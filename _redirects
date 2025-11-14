@@ -1,0 +1,5 @@
+# SvelteKit catch-all
+* /.netlify/functions/sveltekit-render 200
+
+# Immutable assets
+/app/immutable/* /app/immutable/:splat 200

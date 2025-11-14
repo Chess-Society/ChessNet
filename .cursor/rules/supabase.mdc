@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+# Regla: Diccionario de Esquema (Supabase/Postgres)
+
+Antes de crear o modificar consultas (SQL o Supabase JS), **consulta**:
+`docs/db/supabase_schema_dictionary.md`
+
+## Instrucciones
+- Usa solo tablas/columnas que existan en el diccionario.
+- Respeta RLS: **todas** las consultas deben filtrar por `user_id = auth.uid()` cuando aplique.
+- Evita `select("*")` en producción: especifica columnas.
+- Usa claves primarias y foráneas según el diccionario para los JOINs.
+- Si falta una tabla/columna, propone migración SQL segura (`IF NOT EXISTS`, dentro de `BEGIN/COMMIT`) y **actualiza** el diccionario.
+
+## Referencias rápidas
+- Diccionario legible: `docs/db/supabase_schema_dictionary.md`
+- Estructura para scripts/IA: `docs/db/supabase_schema_dictionary.json`
+- CSV normalizado: `docs/db/supabase_schema_dictionary.normalized.csv`
+
+## Cómo invocarlo en el chat
+Cuando pidas una query, referencia el archivo para forzar contexto:
+> “Genera la query según @docs/db/supabase_schema_dictionary.md”

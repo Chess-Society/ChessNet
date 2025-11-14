@@ -1,0 +1,15 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "executionArgs": {
+    "projectName": "chessnet-sveltekit",
+    "projectPath": "C:\\Users\\tomih\\Desktop\\ChessNet\\ChessNet-\\chessnet-sveltekit",
+    "testIds": [],
+    "additionalInstruction": "Focus on testing the main features of the chess education platform: authentication flow, college management, class creation, student enrollment, attendance tracking, chess board functionality, and dashboard analytics. Test both happy path scenarios and error handling.",
+    "envs": {
+      "API_KEY": ""
+    }
+  }
+}

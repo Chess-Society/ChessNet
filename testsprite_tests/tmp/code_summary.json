@@ -1,0 +1,204 @@
+{
+  "tech_stack": [
+    "SvelteKit 5",
+    "TypeScript",
+    "Tailwind CSS",
+    "Supabase",
+    "PostgreSQL",
+    "Google OAuth",
+    "chess.js",
+    "Lucide Svelte",
+    "Vite",
+    "LocalForage"
+  ],
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "Google OAuth authentication with Supabase Auth, user profiles and role management",
+      "files": [
+        "src/hooks.server.ts",
+        "src/routes/auth/callback/+server.ts",
+        "src/routes/login/+page.svelte",
+        "src/routes/login/+page.server.ts",
+        "src/routes/logout/+server.ts",
+        "src/lib/stores/auth.ts",
+        "src/lib/supabase.ts"
+      ]
+    },
+    {
+      "name": "College Management",
+      "description": "Create and manage educational centers with full CRUD operations",
+      "files": [
+        "src/routes/(app)/schools/+page.svelte",
+        "src/routes/(app)/schools/+page.server.ts",
+        "src/routes/(app)/schools/create/+page.svelte",
+        "src/routes/(app)/schools/[schoolId]/+page.svelte",
+        "src/lib/api/colleges.ts",
+        "src/lib/api/schools.ts"
+      ]
+    },
+    {
+      "name": "Class Management",
+      "description": "Organize classes and groups with different levels and schedules",
+      "files": [
+        "src/routes/(app)/classes/+page.svelte",
+        "src/routes/(app)/classes/+page.server.ts",
+        "src/routes/(app)/classes/create/+page.svelte",
+        "src/routes/(app)/classes/[classId]/+page.svelte",
+        "src/lib/api/classes.ts",
+        "src/lib/api/class-skills.ts",
+        "src/lib/api/class-students.ts"
+      ]
+    },
+    {
+      "name": "Student Management",
+      "description": "Manage student profiles, enrollment, and academic progress",
+      "files": [
+        "src/routes/(app)/students/+page.svelte",
+        "src/routes/(app)/students/+page.server.ts",
+        "src/routes/(app)/students/create/+page.svelte",
+        "src/routes/(app)/students/[studentId]/+page.svelte",
+        "src/lib/api/students.ts"
+      ]
+    },
+    {
+      "name": "Skills Management",
+      "description": "Define and organize chess skills by categories and difficulty levels",
+      "files": [
+        "src/routes/(app)/skills/+page.svelte",
+        "src/routes/(app)/skills/+page.server.ts",
+        "src/routes/(app)/skills/create/+page.svelte",
+        "src/routes/(app)/skills/[skillId]/+page.svelte",
+        "src/lib/api/skills.ts",
+        "src/lib/api/categories.ts"
+      ]
+    },
+    {
+      "name": "Attendance System",
+      "description": "Track student attendance with status management and analytics",
+      "files": [
+        "src/routes/(app)/attendance/+page.svelte",
+        "src/routes/(app)/attendance/+page.server.ts",
+        "src/lib/api/attendance.ts"
+      ]
+    },
+    {
+      "name": "Payment Management",
+      "description": "Handle student fees, school payments, and financial tracking",
+      "files": [
+        "src/routes/(app)/payments/+page.svelte",
+        "src/routes/(app)/payments/+page.server.ts",
+        "src/routes/(app)/payments/create/+page.svelte",
+        "src/lib/api/payments.ts"
+      ]
+    },
+    {
+      "name": "Interactive Chess Board",
+      "description": "Fully functional chess board for exercises and game analysis",
+      "files": [
+        "src/lib/components/ChessBoard.svelte",
+        "src/lib/components/ChessExercise.svelte",
+        "src/lib/utils/chess.ts"
+      ]
+    },
+    {
+      "name": "Tournament System",
+      "description": "Create and manage local chess tournaments with Swiss and round-robin formats",
+      "files": [
+        "src/routes/(app)/tournaments/+page.svelte",
+        "src/routes/(app)/tournaments/+page.server.ts",
+        "src/routes/(app)/tournaments/create/+page.svelte",
+        "src/routes/(app)/tournaments/[tournamentId]/+page.svelte",
+        "src/lib/components/TournamentCreator.svelte",
+        "src/lib/api/local-tournaments.ts",
+        "src/lib/stores/tournaments.ts"
+      ]
+    },
+    {
+      "name": "Analytics Dashboard",
+      "description": "Comprehensive analytics and reporting system with student progress tracking",
+      "files": [
+        "src/routes/(app)/dashboard/+page.svelte",
+        "src/routes/(app)/dashboard/+page.server.ts",
+        "src/routes/(app)/reports/+page.svelte",
+        "src/routes/(app)/reports/+page.server.ts",
+        "src/routes/(app)/reports/[studentId]/+page.svelte"
+      ]
+    },
+    {
+      "name": "Subscription Management",
+      "description": "Handle user subscriptions, plans, and billing",
+      "files": [
+        "src/routes/(app)/upgrade/+page.svelte",
+        "src/routes/(app)/upgrade/+page.server.ts",
+        "src/lib/api/subscriptions.ts"
+      ]
+    },
+    {
+      "name": "Communication System",
+      "description": "Announcements and messaging system for families and administration",
+      "files": [
+        "src/lib/api/communication.ts"
+      ]
+    },
+    {
+      "name": "Gamification Features",
+      "description": "Points, levels, badges, and achievement tracking system",
+      "files": [
+        "src/lib/api/gamification.ts"
+      ]
+    },
+    {
+      "name": "UI Components",
+      "description": "Reusable UI components for consistent user experience",
+      "files": [
+        "src/lib/components/LoadingSpinner.svelte",
+        "src/lib/components/SkeletonLoader.svelte",
+        "src/lib/components/Toast.svelte",
+        "src/lib/components/CookieBanner.svelte",
+        "src/lib/components/KofiWidget.svelte"
+      ]
+    },
+    {
+      "name": "Local Storage Management",
+      "description": "Client-side data persistence for offline functionality",
+      "files": [
+        "src/lib/storage/local-storage.ts"
+      ]
+    },
+    {
+      "name": "Utility Functions",
+      "description": "Helper functions for animations, date handling, and toast notifications",
+      "files": [
+        "src/lib/utils/animations.ts",
+        "src/lib/utils/date.ts",
+        "src/lib/utils/toast.ts"
+      ]
+    },
+    {
+      "name": "API Layer",
+      "description": "RESTful API endpoints for all application features",
+      "files": [
+        "src/routes/api/attendance/+server.ts",
+        "src/routes/api/classes/+server.ts",
+        "src/routes/api/schools/+server.ts",
+        "src/routes/api/students/+server.ts",
+        "src/routes/api/skills/+server.ts",
+        "src/routes/api/payments/+server.ts",
+        "src/routes/api/tournaments/+server.ts",
+        "src/routes/api/subscriptions/+server.ts"
+      ]
+    },
+    {
+      "name": "Database Schema",
+      "description": "Complete PostgreSQL schema with RLS policies and seed data",
+      "files": [
+        "supabase/schema.sql",
+        "supabase/policies.sql",
+        "supabase/seed.sql",
+        "docs/db/supabase_schema_dictionary.md",
+        "docs/db/supabase_schema_dictionary.json"
+      ]
+    }
+  ]
+}

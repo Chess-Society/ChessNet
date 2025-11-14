@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: ChessNet
+        - generic [ref=e10]: Sistema de Gestión
+      - button "dev@localhost.com" [ref=e13] [cursor=pointer]:
+        - img [ref=e15] [cursor=pointer]
+        - generic [ref=e18] [cursor=pointer]: dev@localhost.com
+        - img [ref=e19] [cursor=pointer]
+    - main [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - heading "Dashboard" [level=1] [ref=e27]
+            - paragraph [ref=e28]: Bienvenido de vuelta, dev@localhost.com
+          - generic [ref=e30]:
+            - paragraph [ref=e31]: Hoy
+            - paragraph [ref=e32]: jueves, 25 de septiembre
+        - main [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e36]:
+              - generic [ref=e37]:
+                - paragraph [ref=e38]: Centros Educativos
+                - paragraph [ref=e39]: "0"
+                - paragraph [ref=e40]:
+                  - img [ref=e41]
+                  - text: +0 este mes
+              - img [ref=e44]
+            - generic [ref=e50]:
+              - generic [ref=e51]:
+                - paragraph [ref=e52]: Estudiantes Activos
+                - paragraph [ref=e53]: "0"
+                - paragraph [ref=e54]:
+                  - img [ref=e55]
+                  - text: +0 esta semana
+              - img [ref=e58]
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - paragraph [ref=e66]: Ocupación Global
+                - paragraph [ref=e67]: 0%
+                - paragraph [ref=e68]: 0/0 plazas
+              - img [ref=e70]
+            - generic [ref=e74]:
+              - generic [ref=e75]:
+                - paragraph [ref=e76]: Ingresos Mensuales
+                - paragraph [ref=e77]: 0,00 €
+                - paragraph [ref=e78]: Promedio 0,00 €/clase
+              - img [ref=e80]
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - generic [ref=e84]:
+                - heading "Sesiones de Hoy" [level=2] [ref=e85]
+                - generic [ref=e86]:
+                  - img [ref=e87]
+                  - generic [ref=e90]: 0 programadas
+              - generic [ref=e91]:
+                - img [ref=e92]
+                - paragraph [ref=e94]: No hay clases programadas para hoy
+            - generic [ref=e96]:
+              - heading "Actividad Reciente" [level=2] [ref=e97]
+              - img [ref=e98]
+          - generic [ref=e100]:
+            - generic [ref=e102]:
+              - heading "Rendimiento por Centro" [level=2] [ref=e103]
+              - button "Ver todos" [ref=e104] [cursor=pointer]
+            - generic [ref=e106]:
+              - heading "Estado de las Clases" [level=2] [ref=e107]
+              - button "Ver todas" [ref=e108] [cursor=pointer]
+          - generic [ref=e109]:
+            - heading "Acciones Rápidas" [level=2] [ref=e110]
+            - generic [ref=e111]:
+              - button "Centros Educativos Gestionar centros y ubicaciones" [ref=e112] [cursor=pointer]:
+                - generic [ref=e113] [cursor=pointer]:
+                  - img [ref=e114] [cursor=pointer]
+                  - img [ref=e119] [cursor=pointer]
+                - heading "Centros Educativos" [level=3] [ref=e121] [cursor=pointer]
+                - paragraph [ref=e122] [cursor=pointer]: Gestionar centros y ubicaciones
+              - button "Estudiantes Gestionar alumnado e inscripciones" [ref=e123] [cursor=pointer]:
+                - generic [ref=e124] [cursor=pointer]:
+                  - img [ref=e125] [cursor=pointer]
+                  - img [ref=e130] [cursor=pointer]
+                - heading "Estudiantes" [level=3] [ref=e132] [cursor=pointer]
+                - paragraph [ref=e133] [cursor=pointer]: Gestionar alumnado e inscripciones
+              - button "Clases Organizar grupos y horarios" [ref=e134] [cursor=pointer]:
+                - generic [ref=e135] [cursor=pointer]:
+                  - img [ref=e136] [cursor=pointer]
+                  - img [ref=e139] [cursor=pointer]
+                - heading "Clases" [level=3] [ref=e141] [cursor=pointer]
+                - paragraph [ref=e142] [cursor=pointer]: Organizar grupos y horarios
+              - button "Habilidades Definir temarios y competencias" [ref=e143] [cursor=pointer]:
+                - generic [ref=e144] [cursor=pointer]:
+                  - img [ref=e145] [cursor=pointer]
+                  - img [ref=e149] [cursor=pointer]
+                - heading "Habilidades" [level=3] [ref=e151] [cursor=pointer]
+                - paragraph [ref=e152] [cursor=pointer]: Definir temarios y competencias
+              - button "Gestionar Torneos Organizar competiciones locales" [ref=e153] [cursor=pointer]:
+                - generic [ref=e154] [cursor=pointer]:
+                  - img [ref=e155] [cursor=pointer]
+                  - img [ref=e161] [cursor=pointer]
+                - heading "Gestionar Torneos" [level=3] [ref=e163] [cursor=pointer]
+                - paragraph [ref=e164] [cursor=pointer]: Organizar competiciones locales
+              - button "Control de Asistencia Pasar lista y estadísticas" [ref=e165] [cursor=pointer]:
+                - generic [ref=e166] [cursor=pointer]:
+                  - img [ref=e167] [cursor=pointer]
+                  - img [ref=e171] [cursor=pointer]
+                - heading "Control de Asistencia" [level=3] [ref=e173] [cursor=pointer]
+                - paragraph [ref=e174] [cursor=pointer]: Pasar lista y estadísticas
+              - button "Informes Reportes y análisis avanzados" [ref=e175] [cursor=pointer]:
+                - generic [ref=e176] [cursor=pointer]:
+                  - img [ref=e177] [cursor=pointer]
+                  - img [ref=e179] [cursor=pointer]
+                - heading "Informes" [level=3] [ref=e181] [cursor=pointer]
+                - paragraph [ref=e182] [cursor=pointer]: Reportes y análisis avanzados
+              - button "BETA Sistema de Pagos Gestionar cobros y facturación" [ref=e183] [cursor=pointer]:
+                - generic [ref=e185] [cursor=pointer]: BETA
+                - generic [ref=e186] [cursor=pointer]:
+                  - img [ref=e187] [cursor=pointer]
+                  - img [ref=e189] [cursor=pointer]
+                - heading "Sistema de Pagos" [level=3] [ref=e191] [cursor=pointer]
+                - paragraph [ref=e192] [cursor=pointer]: Gestionar cobros y facturación
+```

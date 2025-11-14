@@ -1,0 +1,319 @@
+{
+	"/(app)": [
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/": [
+		"src/routes/+page.server.ts",
+		"src/routes/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/api/attendance": [
+		"src/routes/api/attendance/+server.ts"
+	],
+	"/api/check-auth": [
+		"src/routes/api/check-auth/+server.ts"
+	],
+	"/api/class-skills": [
+		"src/routes/api/class-skills/+server.ts"
+	],
+	"/api/class-students": [
+		"src/routes/api/class-students/+server.ts"
+	],
+	"/api/classes": [
+		"src/routes/api/classes/+server.ts"
+	],
+	"/api/classes/[id]": [
+		"src/routes/api/classes/[id]/+server.ts"
+	],
+	"/api/debug-auth": [
+		"src/routes/api/debug-auth/+server.ts"
+	],
+	"/api/debug-classes-detailed": [
+		"src/routes/api/debug-classes-detailed/+server.ts"
+	],
+	"/api/debug-classes-schema": [
+		"src/routes/api/debug-classes-schema/+server.ts"
+	],
+	"/api/debug-classes": [
+		"src/routes/api/debug-classes/+server.ts"
+	],
+	"/api/debug-colleges-schema": [
+		"src/routes/api/debug-colleges-schema/+server.ts"
+	],
+	"/api/debug-colleges-test": [
+		"src/routes/api/debug-colleges-test/+server.ts"
+	],
+	"/api/debug-colleges": [
+		"src/routes/api/debug-colleges/+server.ts"
+	],
+	"/api/debug-oauth": [
+		"src/routes/api/debug-oauth/+server.ts"
+	],
+	"/api/debug-schools-detailed": [
+		"src/routes/api/debug-schools-detailed/+server.ts"
+	],
+	"/api/debug-schools-post": [
+		"src/routes/api/debug-schools-post/+server.ts"
+	],
+	"/api/debug-schools-simple": [
+		"src/routes/api/debug-schools-simple/+server.ts"
+	],
+	"/api/debug-simple": [
+		"src/routes/api/debug-simple/+server.ts"
+	],
+	"/api/debug-student-creation": [
+		"src/routes/api/debug-student-creation/+server.ts"
+	],
+	"/api/debug-students-schema": [
+		"src/routes/api/debug-students-schema/+server.ts"
+	],
+	"/api/debug-students": [
+		"src/routes/api/debug-students/+server.ts"
+	],
+	"/api/debug-supabase": [
+		"src/routes/api/debug-supabase/+server.ts"
+	],
+	"/api/diagnostic-oauth": [
+		"src/routes/api/diagnostic-oauth/+server.ts"
+	],
+	"/api/health-check": [
+		"src/routes/api/health-check/+server.ts"
+	],
+	"/api/payments": [
+		"src/routes/api/payments/+server.ts"
+	],
+	"/api/schools": [
+		"src/routes/api/schools/+server.ts"
+	],
+	"/api/schools/[id]": [
+		"src/routes/api/schools/[id]/+server.ts"
+	],
+	"/api/skills": [
+		"src/routes/api/skills/+server.ts"
+	],
+	"/api/students": [
+		"src/routes/api/students/+server.ts"
+	],
+	"/api/students/[studentId]": [
+		"src/routes/api/students/[studentId]/+server.ts"
+	],
+	"/api/subscriptions": [
+		"src/routes/api/subscriptions/+server.ts"
+	],
+	"/api/test-auth": [
+		"src/routes/api/test-auth/+server.ts"
+	],
+	"/api/tournaments": [
+		"src/routes/api/tournaments/+server.ts"
+	],
+	"/api/whoami": [
+		"src/routes/api/whoami/+server.ts"
+	],
+	"/(app)/attendance": [
+		"src/routes/(app)/attendance/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/auth/callback": [
+		"src/routes/auth/callback/+server.ts"
+	],
+	"/(app)/classes": [
+		"src/routes/(app)/classes/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/classes/create": [
+		"src/routes/(app)/classes/create/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/classes/[classId]": [
+		"src/routes/(app)/classes/[classId]/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/classes/[classId]/attendance": [
+		"src/routes/(app)/classes/[classId]/attendance/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/classes/[classId]/edit": [
+		"src/routes/(app)/classes/[classId]/edit/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/classes/[classId]/skills": [
+		"src/routes/(app)/classes/[classId]/skills/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/classes/[classId]/students": [
+		"src/routes/(app)/classes/[classId]/students/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/dashboard": [
+		"src/routes/(app)/dashboard/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/debug-auth": [
+		"src/routes/+layout.server.ts"
+	],
+	"/debug": [
+		"src/routes/+layout.server.ts"
+	],
+	"/legal/cookies": [
+		"src/routes/+layout.server.ts"
+	],
+	"/legal/privacy": [
+		"src/routes/+layout.server.ts"
+	],
+	"/legal/terms": [
+		"src/routes/+layout.server.ts"
+	],
+	"/login": [
+		"src/routes/login/+page.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/logout": [
+		"src/routes/logout/+server.ts"
+	],
+	"/(app)/payments": [
+		"src/routes/(app)/payments/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/payments/create": [
+		"src/routes/(app)/payments/create/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/reports": [
+		"src/routes/(app)/reports/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/reports/[studentId]": [
+		"src/routes/(app)/reports/[studentId]/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/schools": [
+		"src/routes/(app)/schools/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/schools/create": [
+		"src/routes/(app)/schools/create/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/schools/[schoolId]": [
+		"src/routes/(app)/schools/[schoolId]/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/schools/[schoolId]/edit": [
+		"src/routes/(app)/schools/[schoolId]/edit/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/schools/[schoolId]/lessons": [
+		"src/routes/(app)/schools/[schoolId]/lessons/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/schools/[schoolId]/tournaments": [
+		"src/routes/(app)/schools/[schoolId]/tournaments/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/skills": [
+		"src/routes/(app)/skills/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/skills/create": [
+		"src/routes/(app)/skills/create/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/skills/[skillId]/edit": [
+		"src/routes/(app)/skills/[skillId]/edit/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/students": [
+		"src/routes/(app)/students/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/students/create": [
+		"src/routes/(app)/students/create/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/students/[studentId]/edit": [
+		"src/routes/(app)/students/[studentId]/edit/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/tournaments": [
+		"src/routes/(app)/tournaments/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/tournaments/create": [
+		"src/routes/(app)/tournaments/create/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/tournaments/[tournamentId]": [
+		"src/routes/(app)/tournaments/[tournamentId]/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/tournaments/[tournamentId]/edit": [
+		"src/routes/(app)/tournaments/[tournamentId]/edit/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	],
+	"/(app)/upgrade": [
+		"src/routes/(app)/upgrade/+page.server.ts",
+		"src/routes/(app)/+layout.ts",
+		"src/routes/(app)/+layout.server.ts",
+		"src/routes/+layout.server.ts"
+	]
+}
