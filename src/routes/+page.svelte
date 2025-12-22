@@ -80,15 +80,24 @@
                     class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
                     >Características</a
                 >
-                <a
-                    href="#analytics"
-                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
-                    >Analíticas</a
-                >
+                <div class="px-2 pt-1.5">
+                    <script
+                        async
+                        src="https://js.stripe.com/v3/buy-button.js"
+                    ></script>
+                    <stripe-buy-button
+                        buy-button-id="buy_btn_1ShDC7RBnPDD6EfRe0xpMg3F"
+                        publishable-key="pk_live_51RzKQXRBnPDD6EfRTxX5YwO774aneUhFFobOgN60B6L119zJqahr3xkTIkq9Y4U9yROltHJGfbIREKP8yrLj19cb00gLokkz1l"
+                    >
+                    </stripe-buy-button>
+                </div>
                 <a
                     href="#pricing"
-                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
-                    >Precios</a
+                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all flex items-center gap-1"
+                    >Precios <span
+                        class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30"
+                        >BETA</span
+                    ></a
                 >
             </div>
             <div class="hidden lg:flex lg:flex-1 lg:justify-end gap-4">

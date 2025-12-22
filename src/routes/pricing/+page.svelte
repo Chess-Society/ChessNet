@@ -97,7 +97,7 @@
         <div class="text-center mb-16" in:fade={{ duration: 800, delay: 200 }}>
             <span
                 class="text-emerald-400 font-bold tracking-wider text-sm uppercase bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20"
-                >Precios de Lanzamiento</span
+                >Precios de Lanzamiento (BETA)</span
             >
             <h1
                 class="mt-6 text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4"
