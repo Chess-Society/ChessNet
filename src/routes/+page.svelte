@@ -80,17 +80,11 @@
                     class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
                     >Características</a
                 >
-                <div class="px-2 pt-1.5">
-                    <script
-                        async
-                        src="https://js.stripe.com/v3/buy-button.js"
-                    ></script>
-                    <stripe-buy-button
-                        buy-button-id="buy_btn_1ShDC7RBnPDD6EfRe0xpMg3F"
-                        publishable-key="pk_live_51RzKQXRBnPDD6EfRTxX5YwO774aneUhFFobOgN60B6L119zJqahr3xkTIkq9Y4U9yROltHJGfbIREKP8yrLj19cb00gLokkz1l"
-                    >
-                    </stripe-buy-button>
-                </div>
+                <a
+                    href="{base}/donate"
+                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
+                    >Donar</a
+                >
                 <a
                     href="#pricing"
                     class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all flex items-center gap-1"
