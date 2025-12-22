@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Check, X, Shield, GraduationCap, Zap } from "lucide-svelte";
+    import { Check, X, Shield, Crown, GraduationCap, Zap } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
     import { base } from "$app/paths";
 
