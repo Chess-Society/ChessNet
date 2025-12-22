@@ -91,6 +91,12 @@
     ];
 
     function navigate(path: string) {
+        if (path === "payments" && store.settings.plan === "free") {
+            alert(
+                `El Sistema de Pagos solo está disponible en los planes Profe y Club.`,
+            );
+            return;
+        }
         goto(`${base}/dashboard/${path}`);
     }
 
