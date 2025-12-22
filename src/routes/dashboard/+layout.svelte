@@ -20,24 +20,20 @@
         <div
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
         >
-            <div
-                class="flex items-center gap-4 cursor-pointer"
+            <button
+                class="flex items-center gap-4 cursor-pointer focus:outline-none hover:opacity-80 transition-opacity"
                 onclick={goHome}
+                type="button"
             >
                 <h1 class="text-xl font-bold text-white">ChessNet</h1>
                 <span
                     class="text-sm text-slate-500 border-l border-slate-700 pl-4"
                     >Sistema de Gestión</span
                 >
-            </div>
+            </button>
 
             <div class="flex items-center gap-4">
-                <button
-                    class="bg-[#1e293b] hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors"
-                >
-                    <User class="w-4 h-4" />
-                    <span>andreslgumuzio...</span>
-                </button>
+                <!-- User profile removed for anonymity -->
             </div>
         </div>
     </header>

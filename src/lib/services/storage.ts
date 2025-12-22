@@ -31,8 +31,28 @@ export interface Skill {
     id: string;
     name: string;
     category: 'Tactics' | 'Strategy' | 'Endgame' | 'Openings';
-    level: number;
-    description?: string;
+    participants: number;
+    format: 'Suizo' | 'Round Robin' | 'Eliminatoria';
+}
+
+export interface AttendanceRecord {
+    id: string;
+    classId: string;
+    date: string; // YYYY-MM-DD
+    records: {
+        studentId: string;
+        status: 'present' | 'absent' | 'excused';
+    }[];
+}
+
+export interface Payment {
+    id: string;
+    studentId: string;
+    amount: number;
+    concept: string;
+    date: string;
+    method: 'cash' | 'transfer' | 'bizum' | 'other';
+    notes?: string;
 }
 
 export interface AppData {
@@ -41,6 +61,8 @@ export interface AppData {
     classes: ClassGroup[];
     skills: Skill[];
     tournaments: Tournament[];
+    attendance: AttendanceRecord[];
+    payments: Payment[];
 }
 
 export interface Tournament {
@@ -58,7 +80,9 @@ const initialState: AppData = {
     students: [],
     classes: [],
     skills: [],
-    tournaments: []
+    tournaments: [],
+    attendance: [],
+    payments: []
 };
 
 // Store de Svelte
@@ -109,6 +133,23 @@ export const storeActions = {
     },
     addTournament: (t: Tournament) => {
         appStore.update(s => ({ ...s, tournaments: [...s.tournaments, t] }));
+    },
+    saveAttendance: (record: AttendanceRecord) => {
+        appStore.update(data => {
+            // Remove existing record for same day and class if exists
+            const filtered = data.attendance.filter(r => !(r.classId === record.classId && r.date === record.date));
+            return { ...data, attendance: [...filtered, record] };
+        });
+    },
+    addPayment: (payment: Payment) => {
+        appStore.update(data => {
+            return { ...data, payments: [payment, ...data.payments] };
+        });
+    },
+    removePayment: (id: string) => {
+        appStore.update(data => {
+            return { ...data, payments: data.payments.filter(p => p.id !== id) };
+        });
     },
     // Reset para pruebas
     reset: () => {
