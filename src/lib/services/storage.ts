@@ -63,6 +63,10 @@ export interface AppData {
     tournaments: Tournament[];
     attendance: AttendanceRecord[];
     payments: Payment[];
+    reports: any[]; // Placeholder
+    settings: {
+        plan: 'free' | 'profe' | 'club';
+    };
 }
 
 export interface Match {
@@ -91,8 +95,32 @@ const initialState: AppData = {
     skills: [],
     tournaments: [],
     attendance: [],
-    payments: []
+    payments: [],
+    reports: [],
+    settings: {
+        plan: 'free'
+    }
 };
+
+// Limites del Plan
+export const PLAN_LIMITS = {
+    free: { centers: 1, classes: 2, students: 10, tournaments: false, reports: false },
+    profe: { centers: 3, classes: 10, students: 50, tournaments: false, reports: true },
+    club: { centers: Infinity, classes: Infinity, students: Infinity, tournaments: true, reports: true }
+};
+
+export function checkPlanLimit(store: AppData, resource: 'centers' | 'classes' | 'students' | 'tournaments' | 'reports'): boolean {
+    const plan = store.settings.plan;
+    const limit = PLAN_LIMITS[plan][resource];
+
+    if (typeof limit === 'boolean') {
+        return limit;
+    }
+
+    // Count current usage
+    const usage = store[resource].length;
+    return usage < limit;
+}
 
 // Store de Svelte
 export const appStore = writable<AppData>(initialState);
