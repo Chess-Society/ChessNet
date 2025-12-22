@@ -9,6 +9,8 @@
         Trophy,
         Settings,
         LogOut,
+        School,
+        Target,
     } from "lucide-svelte";
 
     function logout() {
