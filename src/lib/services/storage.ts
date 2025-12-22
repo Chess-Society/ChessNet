@@ -40,6 +40,16 @@ export interface AppData {
     students: Student[];
     classes: ClassGroup[];
     skills: Skill[];
+    tournaments: Tournament[];
+}
+
+export interface Tournament {
+    id: string;
+    name: string;
+    date: string;
+    status: 'Upcoming' | 'Ongoing' | 'Completed';
+    participants: number;
+    format: string;
 }
 
 // Estado Inicial (Vacío)
@@ -47,7 +57,8 @@ const initialState: AppData = {
     centers: [],
     students: [],
     classes: [],
-    skills: []
+    skills: [],
+    tournaments: []
 };
 
 // Store de Svelte
@@ -95,6 +106,9 @@ export const storeActions = {
     },
     addSkill: (skill: Skill) => {
         appStore.update(s => ({ ...s, skills: [...s.skills, skill] }));
+    },
+    addTournament: (t: Tournament) => {
+        appStore.update(s => ({ ...s, tournaments: [...s.tournaments, t] }));
     },
     // Reset para pruebas
     reset: () => {
