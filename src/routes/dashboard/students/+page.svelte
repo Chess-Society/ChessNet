@@ -5,48 +5,45 @@
         type Student,
     } from "$lib/services/storage";
     import { Users, Search, UserPlus, Trash2 } from "lucide-svelte";
-    import { slide } from "svelte/transition";
+    import { fade, scale } from "svelte/transition";
+    import {
+        X,
+        GraduationCap,
+        CalendarCheck,
+        TrendingUp,
+        Award,
+    } from "lucide-svelte";
 
-    let store = $appStore;
-    appStore.subscribe((value) => (store = value));
-
-    let searchTerm = "";
-    let showForm = false;
-    let newStudent: Student = {
-        id: "",
-        name: "",
-        level: "Pawn",
-        email: "",
-        notes: "",
+    let selectedStudent: Student | null = null;
+    let showReportModal = false;
+    let studentStats = {
+        attendanceRate: 0,
+        classesAttended: 0,
+        totalClasses: 0,
     };
 
-    $: filteredStudents = store.students.filter((student) =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    function generateReport(student: Student) {
+        selectedStudent = student;
 
-    function handleSubmit() {
-        if (!newStudent.name) return;
+        // Calculate Stats
+        const studentRecords = store.attendance.flatMap((r) =>
+            r.records
+                .filter((rec) => rec.studentId === student.id)
+                .map((rec) => ({ date: r.date, status: rec.status })),
+        );
 
-        const studentToAdd = {
-            ...newStudent,
-            id: crypto.randomUUID(),
+        const total = studentRecords.length;
+        const present = studentRecords.filter(
+            (r) => r.status === "present",
+        ).length;
+
+        studentStats = {
+            totalClasses: total,
+            classesAttended: present,
+            attendanceRate: total > 0 ? Math.round((present / total) * 100) : 0,
         };
 
-        storeActions.addStudent(studentToAdd);
-
-        // Reset form
-        newStudent = { id: "", name: "", level: "Pawn", email: "", notes: "" };
-        showForm = false;
-    }
-
-    function deleteStudent(id: string) {
-        if (confirm("¿Estás seguro de eliminar este alumno?")) {
-            // TODO: Implement removeStudent in storage.ts and then uncomment this.
-            // storeActions.removeStudent(id);
-            alert(
-                "Funcionalidad de eliminar estudiante pendiente de implementación en el store.",
-            );
-        }
+        showReportModal = true;
     }
 </script>
 
@@ -209,9 +206,12 @@
                             </td>
                             <td class="p-4 text-right">
                                 <button
-                                    class="text-slate-500 hover:text-emerald-400 font-medium text-sm mr-4 cursor-pointer"
-                                    >Ver Ficha</button
+                                    onclick={() => generateReport(student)}
+                                    class="text-slate-500 hover:text-emerald-400 font-medium text-sm mr-4 cursor-pointer flex items-center gap-1 justify-end ml-auto"
                                 >
+                                    <Award class="w-4 h-4" />
+                                    Generar Informe
+                                </button>
                             </td>
                         </tr>
                     {/each}
@@ -220,3 +220,221 @@
         </table>
     </div>
 </div>
+
+<!-- Report Modal -->
+{#if showReportModal && selectedStudent}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        transition:fade
+    >
+        <div
+            class="bg-[#1e293b] border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl relative flex flex-col max-h-[90vh]"
+            transition:scale
+        >
+            <!-- Header -->
+            <div
+                class="p-6 border-b border-slate-700 flex justify-between items-center"
+            >
+                <div>
+                    <h2 class="text-xl font-bold text-white">
+                        Informe del Estudiante
+                    </h2>
+                    <p class="text-slate-400 text-sm">
+                        Generado el {new Date().toLocaleDateString()}
+                    </p>
+                </div>
+                <button
+                    onclick={() => (showReportModal = false)}
+                    class="text-slate-400 hover:text-white transition-colors"
+                >
+                    <X class="w-6 h-6" />
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 overflow-y-auto custom-scrollbar">
+                <!-- Profile Header -->
+                <div class="flex items-center gap-4 mb-8">
+                    <div
+                        class="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold text-2xl border border-emerald-500/30"
+                    >
+                        {selectedStudent.name.charAt(0)}
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">
+                            {selectedStudent.name}
+                        </h3>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span
+                                class="bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded-full text-xs font-bold border border-blue-500/30"
+                            >
+                                Nivel: {selectedStudent.level}
+                            </span>
+                            {#if selectedStudent.email}
+                                <span class="text-slate-400 text-sm"
+                                    >{selectedStudent.email}</span
+                                >
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div
+                        class="bg-slate-900/50 p-4 rounded-xl border border-slate-800"
+                    >
+                        <div
+                            class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase mb-2"
+                        >
+                            <CalendarCheck class="w-4 h-4 text-emerald-500" />
+                            Asistencia Global
+                        </div>
+                        <div class="text-2xl font-bold text-white">
+                            {studentStats.attendanceRate}%
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">
+                            {studentStats.classesAttended} de {studentStats.totalClasses}
+                            clases
+                        </div>
+                    </div>
+                    <div
+                        class="bg-slate-900/50 p-4 rounded-xl border border-slate-800"
+                    >
+                        <div
+                            class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase mb-2"
+                        >
+                            <TrendingUp class="w-4 h-4 text-blue-500" />
+                            Estado
+                        </div>
+                        <div class="text-2xl font-bold text-white">Activo</div>
+                        <div class="text-xs text-slate-500 mt-1">
+                            Matrícula vigente
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Progress (Mocked based on Level) -->
+                <div class="mb-6">
+                    <h4
+                        class="text-sm font-bold text-slate-300 uppercase mb-4 flex items-center gap-2"
+                    >
+                        <GraduationCap class="w-4 h-4 text-purple-500" />
+                        Habilidades Adquiridas
+                    </h4>
+
+                    <div class="space-y-3">
+                        {#if selectedStudent.level === "Pawn"}
+                            <div
+                                class="flex items-center justify-between text-sm"
+                            >
+                                <span class="text-slate-300"
+                                    >Movimiento de Piezas</span
+                                >
+                                <span class="text-emerald-400 font-bold"
+                                    >100%</span
+                                >
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5">
+                                <div
+                                    class="bg-emerald-500 h-1.5 rounded-full"
+                                    style="width: 100%"
+                                ></div>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between text-sm mt-3"
+                            >
+                                <span class="text-slate-300">Mates Básicos</span
+                                >
+                                <span class="text-yellow-400 font-bold"
+                                    >45%</span
+                                >
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5">
+                                <div
+                                    class="bg-yellow-500 h-1.5 rounded-full"
+                                    style="width: 45%"
+                                ></div>
+                            </div>
+                        {:else if selectedStudent.level === "Bishop"}
+                            <div
+                                class="flex items-center justify-between text-sm"
+                            >
+                                <span class="text-slate-300"
+                                    >Táctica Elemental</span
+                                >
+                                <span class="text-emerald-400 font-bold"
+                                    >80%</span
+                                >
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5">
+                                <div
+                                    class="bg-emerald-500 h-1.5 rounded-full"
+                                    style="width: 80%"
+                                ></div>
+                            </div>
+                            <div
+                                class="flex items-center justify-between text-sm mt-3"
+                            >
+                                <span class="text-slate-300"
+                                    >Aperturas Abiertas</span
+                                >
+                                <span class="text-blue-400 font-bold">60%</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5">
+                                <div
+                                    class="bg-blue-500 h-1.5 rounded-full"
+                                    style="width: 60%"
+                                ></div>
+                            </div>
+                        {:else}
+                            <div
+                                class="flex items-center justify-between text-sm"
+                            >
+                                <span class="text-slate-300"
+                                    >Estrategia Avanzada</span
+                                >
+                                <span class="text-purple-400 font-bold"
+                                    >75%</span
+                                >
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5">
+                                <div
+                                    class="bg-purple-500 h-1.5 rounded-full"
+                                    style="width: 75%"
+                                ></div>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+
+                <div
+                    class="bg-blue-900/20 border border-blue-500/20 p-4 rounded-lg"
+                >
+                    <p class="text-sm text-blue-200">
+                        <span class="font-bold">Nota del Profesor:</span>
+                        {selectedStudent.notes ||
+                            "El alumno progresa adecuadamente según lo esperado para su nivel."}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-6 border-t border-slate-700 flex justify-end">
+                <button
+                    onclick={() => window.print()}
+                    class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors mr-2"
+                >
+                    Imprimir
+                </button>
+                <button
+                    onclick={() => (showReportModal = false)}
+                    class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
