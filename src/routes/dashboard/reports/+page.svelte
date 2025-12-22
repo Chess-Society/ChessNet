@@ -1,6 +1,13 @@
 <script lang="ts">
     import { appStore } from "$lib/services/storage";
-    import { BarChart3, TrendingUp, Users, Calendar } from "lucide-svelte";
+    import {
+        BarChart3,
+        TrendingUp,
+        Users,
+        Calendar,
+        PieChart,
+        Activity,
+    } from "lucide-svelte";
     import { fade } from "svelte/transition";
 
     let store = $appStore;
@@ -69,6 +76,48 @@
 
         const max = Math.max(...months.map((m) => m.total), 10); // avoid div by 0
         return months.map((m) => ({ ...m, height: (m.total / max) * 100 }));
+    }
+
+    // 3. Revenue by Method
+    $: revenueByMethod = getRevenueByMethod(store.payments);
+
+    function getRevenueByMethod(payments: any[]) {
+        const counts: Record<string, number> = {};
+        let total = 0;
+        payments.forEach((p) => {
+            const method = p.method || "cash";
+            counts[method] = (counts[method] || 0) + p.amount;
+            total += p.amount;
+        });
+        return Object.entries(counts)
+            .map(([method, amount]) => ({
+                method,
+                amount,
+                percent: total ? (amount / total) * 100 : 0,
+            }))
+            .sort((a, b) => b.amount - a.amount);
+    }
+
+    // 4. Skills Progress (Top 5)
+    $: topSkills = getTopSkills(store.students, store.skills);
+
+    function getTopSkills(students: any[], skills: any[]) {
+        if (!students.length) return [];
+        return skills
+            .map((skill) => {
+                const count = students.filter((s) =>
+                    s.skills?.includes(skill.id),
+                ).length;
+                return {
+                    name: skill.name,
+                    count,
+                    percent: students.length
+                        ? (count / students.length) * 100
+                        : 0,
+                };
+            })
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
     }
 </script>
 
@@ -228,6 +277,81 @@
                 <p class="text-xs text-slate-600 text-center mt-1">
                     — Bobby Fischer
                 </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Advanced Metrics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        <!-- Revenue by Method -->
+        <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6">
+            <h3
+                class="text-lg font-bold text-white mb-6 flex items-center gap-2"
+            >
+                <PieChart class="w-5 h-5 text-cyan-400" /> Métodos de Pago
+            </h3>
+            <div class="space-y-4">
+                {#each revenueByMethod as item}
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300 capitalize"
+                                >{item.method === "transfer"
+                                    ? "Transferencia"
+                                    : item.method === "cash"
+                                      ? "Efectivo"
+                                      : item.method}</span
+                            >
+                            <span class="text-slate-400"
+                                >{item.amount}€ ({Math.round(
+                                    item.percent,
+                                )}%)</span
+                            >
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div
+                                class="h-2 rounded-full transition-all duration-1000 bg-cyan-500"
+                                style="width: {item.percent}%"
+                            ></div>
+                        </div>
+                    </div>
+                {/each}
+                {#if revenueByMethod.length === 0}
+                    <p class="text-slate-500 text-sm italic text-center">
+                        No hay datos de pagos.
+                    </p>
+                {/if}
+            </div>
+        </div>
+
+        <!-- Top Skills -->
+        <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6">
+            <h3
+                class="text-lg font-bold text-white mb-6 flex items-center gap-2"
+            >
+                <Activity class="w-5 h-5 text-yellow-500" /> Habilidades Más Dominadas
+            </h3>
+            <div class="space-y-4">
+                {#each topSkills as skill}
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300">{skill.name}</span>
+                            <span class="text-slate-400"
+                                >{skill.count} alumnos</span
+                            >
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div
+                                class="h-2 rounded-full transition-all duration-1000 bg-yellow-500"
+                                style="width: {skill.percent}%"
+                            ></div>
+                        </div>
+                    </div>
+                {/each}
+                {#if topSkills.length === 0}
+                    <p class="text-slate-500 text-sm italic text-center">
+                        No hay habilidades registradas.
+                    </p>
+                {/if}
             </div>
         </div>
     </div>

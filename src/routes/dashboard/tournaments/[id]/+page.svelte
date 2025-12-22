@@ -177,30 +177,53 @@
         });
     }
 
-    // Standings Logic
-    $: standings = participants
-        .map((p) => {
-            let points = 0;
-            let games = 0;
+    // Standings Logic (with Buchholz Tie-Break)
+    $: standings = (() => {
+        if (!tournament) return [];
 
-            tournament?.matches.forEach((m) => {
-                if (m.result) {
-                    if (m.whiteId === p.id) {
-                        games++;
-                        if (m.result === "1-0") points += 1;
-                        if (m.result === "0.5-0.5") points += 0.5;
-                    }
-                    if (m.blackId === p.id) {
-                        games++;
-                        if (m.result === "0-1") points += 1;
-                        if (m.result === "0.5-0.5") points += 0.5;
-                    }
+        // Pass 1: Calculate Points
+        const pointsMap = new Map<string, number>();
+        participants.forEach((p) => pointsMap.set(p.id, 0));
+        // Add BYE to map with 0 points (it effectively gives no buchholz, which is standard or customized)
+        pointsMap.set("BYE", 0);
+
+        tournament.matches.forEach((m) => {
+            if (m.result) {
+                const w = pointsMap.get(m.whiteId) || 0;
+                const b = pointsMap.get(m.blackId) || 0;
+
+                if (m.result === "1-0") pointsMap.set(m.whiteId, w + 1);
+                else if (m.result === "0-1") pointsMap.set(m.blackId, b + 1);
+                else if (m.result === "0.5-0.5") {
+                    pointsMap.set(m.whiteId, w + 0.5);
+                    pointsMap.set(m.blackId, b + 0.5);
                 }
-            });
+            }
+        });
 
-            return { ...p, points, games };
-        })
-        .sort((a, b) => b.points - a.points);
+        // Pass 2: Calculate Stats & Buchholz
+        return participants
+            .map((p) => {
+                const myPoints = pointsMap.get(p.id) || 0;
+                let buchholz = 0;
+                let games = 0;
+
+                tournament?.matches.forEach((m) => {
+                    const isWhite = m.whiteId === p.id;
+                    const isBlack = m.blackId === p.id;
+
+                    if (isWhite || isBlack) {
+                        games++;
+                        const opponentId = isWhite ? m.blackId : m.whiteId;
+                        // Add opponent's points to my Buchholz
+                        buchholz += pointsMap.get(opponentId) || 0;
+                    }
+                });
+
+                return { ...p, points: myPoints, buchholz, games };
+            })
+            .sort((a, b) => b.points - a.points || b.buchholz - a.buchholz);
+    })();
 
     function getStudentName(id: string) {
         if (id === "BYE") return "Descanso (Bye)";
@@ -526,6 +549,11 @@
                                 <th class="p-4">Jugador</th>
                                 <th class="p-4 text-center">Partidas</th>
                                 <th class="p-4 text-right">Puntos</th>
+                                <th
+                                    class="p-4 text-right text-xs"
+                                    title="Buchholz: Suma de puntos de los rivales"
+                                    >Desempate</th
+                                >
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-700">
@@ -546,6 +574,11 @@
                                         class="p-4 text-right text-orange-400 font-bold text-lg"
                                         >{p.points}</td
                                     >
+                                    <td
+                                        class="p-4 text-right text-slate-500 text-sm font-mono"
+                                    >
+                                        {p.buchholz}
+                                    </td>
                                 </tr>
                             {/each}
                         </tbody>
