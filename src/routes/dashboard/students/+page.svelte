@@ -5,7 +5,7 @@
         type Student,
     } from "$lib/services/storage";
     import { Users, Search, UserPlus, Trash2 } from "lucide-svelte";
-    import { fade, scale } from "svelte/transition";
+    import { fade, scale, slide } from "svelte/transition";
     import {
         X,
         GraduationCap,
@@ -13,6 +13,38 @@
         TrendingUp,
         Award,
     } from "lucide-svelte";
+
+    let store = $appStore;
+    appStore.subscribe((value) => (store = value));
+
+    let searchTerm = "";
+    let showForm = false;
+    let newStudent: Student = {
+        id: "",
+        name: "",
+        level: "Pawn",
+        email: "",
+        notes: "",
+    };
+
+    $: filteredStudents = store.students.filter((student) =>
+        student.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+
+    function handleSubmit() {
+        if (!newStudent.name) return;
+
+        const studentToAdd = {
+            ...newStudent,
+            id: crypto.randomUUID(),
+        };
+
+        storeActions.addStudent(studentToAdd);
+
+        // Reset form
+        newStudent = { id: "", name: "", level: "Pawn", email: "", notes: "" };
+        showForm = false;
+    }
 
     let selectedStudent: Student | null = null;
     let showReportModal = false;
