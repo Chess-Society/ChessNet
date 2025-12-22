@@ -98,7 +98,7 @@
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
                         <span class="text-sm font-bold text-emerald-400"
-                            >Q1 2025</span
+                            >Q1 2026</span
                         >
                     </div>
                     <div
@@ -139,7 +139,7 @@
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
                         <span class="text-sm font-bold text-blue-400"
-                            >Q2 2025</span
+                            >Q2 2026</span
                         >
                     </div>
                     <div
@@ -184,7 +184,7 @@
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
                         <span class="text-sm font-bold text-purple-400"
-                            >Q3 2025</span
+                            >Q3 2026</span
                         >
                     </div>
                     <div
@@ -227,7 +227,7 @@
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
                         <span class="text-sm font-bold text-orange-400"
-                            >Q4 2025</span
+                            >Q4 2026</span
                         >
                     </div>
                     <div
@@ -271,7 +271,7 @@
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
                         <span class="text-sm font-bold text-cyan-400"
-                            >Futuro</span
+                            >2027+</span
                         >
                     </div>
                     <div
