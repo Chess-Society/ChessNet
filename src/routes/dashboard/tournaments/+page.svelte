@@ -24,7 +24,8 @@
         name: "",
         date: new Date().toISOString().split("T")[0],
         status: "Upcoming",
-        participants: 0,
+        participants: [],
+        matches: [],
         format: "Suizo",
     };
 
@@ -44,7 +45,8 @@
             name: "",
             date: new Date().toISOString().split("T")[0],
             status: "Upcoming",
-            participants: 0,
+            participants: [],
+            matches: [],
             format: "Suizo",
         };
         showForm = false;
@@ -199,7 +201,7 @@
                         </div>
                         <div class="flex items-center text-slate-400 text-sm">
                             <Users class="w-4 h-4 mr-2 text-slate-500" />
-                            {tournament.participants} Participantes
+                            {tournament.participants.length} Participantes
                         </div>
                     </div>
 

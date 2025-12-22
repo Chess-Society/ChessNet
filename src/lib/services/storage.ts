@@ -65,12 +65,21 @@ export interface AppData {
     payments: Payment[];
 }
 
+export interface Match {
+    id: string;
+    round: number;
+    whiteId: string;
+    blackId: string;
+    result: '1-0' | '0-1' | '0.5-0.5' | null;
+}
+
 export interface Tournament {
     id: string;
     name: string;
     date: string;
     status: 'Upcoming' | 'Ongoing' | 'Completed';
-    participants: number;
+    participants: string[]; // List of Student IDs
+    matches: Match[];
     format: string;
 }
 
@@ -125,14 +134,43 @@ export const storeActions = {
     addStudent: (student: Student) => {
         appStore.update(s => ({ ...s, students: [...s.students, student] }));
     },
+    removeStudent: (id: string) => {
+        appStore.update(s => ({ ...s, students: s.students.filter(stud => stud.id !== id) }));
+    },
     addClass: (cls: ClassGroup) => {
         appStore.update(s => ({ ...s, classes: [...s.classes, cls] }));
+    },
+    addClassMember: (classId: string, studentId: string) => {
+        appStore.update(s => ({
+            ...s,
+            classes: s.classes.map(c =>
+                c.id === classId && !c.students.includes(studentId)
+                    ? { ...c, students: [...c.students, studentId] }
+                    : c
+            )
+        }));
+    },
+    removeClassMember: (classId: string, studentId: string) => {
+        appStore.update(s => ({
+            ...s,
+            classes: s.classes.map(c =>
+                c.id === classId
+                    ? { ...c, students: c.students.filter(id => id !== studentId) }
+                    : c
+            )
+        }));
     },
     addSkill: (skill: Skill) => {
         appStore.update(s => ({ ...s, skills: [...s.skills, skill] }));
     },
     addTournament: (t: Tournament) => {
         appStore.update(s => ({ ...s, tournaments: [...s.tournaments, t] }));
+    },
+    updateTournament: (t: Tournament) => {
+        appStore.update(s => ({
+            ...s,
+            tournaments: s.tournaments.map(curr => curr.id === t.id ? t : curr)
+        }));
     },
     saveAttendance: (record: AttendanceRecord) => {
         appStore.update(data => {
