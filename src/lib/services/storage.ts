@@ -191,6 +191,15 @@ export const storeActions = {
     addClass: (cls: ClassGroup) => {
         appStore.update(s => ({ ...s, classes: [...s.classes, cls] }));
     },
+    updateClass: (cls: ClassGroup) => {
+        appStore.update(s => ({
+            ...s,
+            classes: s.classes.map(curr => curr.id === cls.id ? cls : curr)
+        }));
+    },
+    removeClass: (id: string) => {
+        appStore.update(s => ({ ...s, classes: s.classes.filter(c => c.id !== id) }));
+    },
     addClassMember: (classId: string, studentId: string) => {
         appStore.update(s => ({
             ...s,

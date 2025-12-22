@@ -28,11 +28,13 @@
         CheckCircle2,
         UserPlus,
         Plus,
+        X,
+        UserPlus as UserPlusIcon,
+        Trash2,
+        Search,
+        Pencil,
     } from "lucide-svelte";
-    import { slide } from "svelte/transition";
-
-    import { fade, scale } from "svelte/transition";
-    import { X, UserPlus as UserPlusIcon, Trash2, Search } from "lucide-svelte";
+    import { slide, fade, scale } from "svelte/transition";
     import { base } from "$app/paths";
 
     let store = $appStore;
@@ -105,12 +107,15 @@
     function handleSubmit() {
         if (!newClass.name) return;
 
-        const classToAdd = {
-            ...newClass,
-            id: crypto.randomUUID(),
-        };
-
-        storeActions.addClass(classToAdd);
+        if (newClass.id) {
+            storeActions.updateClass(newClass);
+        } else {
+            const classToAdd = {
+                ...newClass,
+                id: crypto.randomUUID(),
+            };
+            storeActions.addClass(classToAdd);
+        }
 
         // Reset form
         newClass = {
@@ -122,6 +127,17 @@
             students: [],
         };
         showForm = false;
+    }
+
+    function editClass(group: ClassGroup) {
+        newClass = { ...group };
+        showForm = true;
+    }
+
+    function deleteClass(id: string) {
+        if (confirm("¿Estás seguro de eliminar esta clase?")) {
+            storeActions.removeClass(id);
+        }
     }
 
     function getCenterName(id: string) {
