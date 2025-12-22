@@ -14,6 +14,7 @@
         Medal,
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
+    import { base } from "$app/paths";
 
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
@@ -205,11 +206,12 @@
                         </div>
                     </div>
 
-                    <button
-                        class="w-full bg-slate-800 text-slate-300 py-2 rounded-xl text-sm font-semibold hover:bg-orange-600 hover:text-white transition-colors cursor-pointer"
+                    <a
+                        href="{base}/dashboard/tournaments/{tournament.id}"
+                        class="w-full bg-slate-800 text-slate-300 py-2 rounded-xl text-sm font-semibold hover:bg-orange-600 hover:text-white transition-colors cursor-pointer text-center block"
                     >
                         Gestionar
-                    </button>
+                    </a>
                 </div>
             {/each}
         {/if}
