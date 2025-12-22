@@ -703,19 +703,7 @@
         >
             <div class="flex justify-center space-x-6 md:order-2">
                 <a
-                    href="https://twitter.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    class="text-slate-400 hover:text-emerald-400">Twitter</a
-                >
-                <a
-                    href="https://github.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    class="text-slate-400 hover:text-emerald-400">GitHub</a
-                >
-                <a
-                    href="https://discord.com"
+                    href="https://discord.gg/G7SrFtJHnr"
                     target="_blank"
                     rel="noreferrer"
                     class="text-slate-400 hover:text-emerald-400">Discord</a
