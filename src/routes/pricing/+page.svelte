@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Check, X, Crown, GraduationCap, Zap } from "lucide-svelte";
+    import { Check, X, Shield, GraduationCap, Zap } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
     import { base } from "$app/paths";
 
@@ -79,13 +79,23 @@
 >
     <!-- Navbar simple -->
     <nav class="p-6 flex justify-between items-center max-w-7xl mx-auto">
-        <div class="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <Crown class="w-8 h-8 text-purple-500" />
+        <a
+            href="{base}/"
+            class="flex items-center gap-2 font-bold text-xl tracking-tight group"
+        >
+            <div class="relative">
+                <div
+                    class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg blur opacity-40 group-hover:opacity-100 transition duration-200"
+                ></div>
+                <div class="relative bg-slate-900 rounded-lg p-1">
+                    <Shield class="w-8 h-8 text-emerald-500" />
+                </div>
+            </div>
             <span
                 class="bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400"
                 >ChessNet</span
             >
-        </div>
+        </a>
         <a
             href="{base}/"
             class="text-sm font-medium text-slate-400 hover:text-white transition-colors"
