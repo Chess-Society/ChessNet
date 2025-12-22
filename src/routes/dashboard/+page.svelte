@@ -1,6 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { base } from "$app/paths";
+    import { appStore } from "$lib/services/storage";
     import {
         School,
         Users,
@@ -11,7 +12,15 @@
         BarChart3,
         CreditCard,
         ChevronRight,
+        Activity,
+        TrendingUp,
+        Calendar,
+        Clock,
     } from "lucide-svelte";
+
+    // Suscribirse a los datos reales
+    let store = $appStore;
+    appStore.subscribe((value) => (store = value));
 
     const actions = [
         {
@@ -82,77 +91,249 @@
     ];
 
     function navigate(path: string) {
-        // Handle "classes" and other unimplemented routes by going to reports/placeholder for now if needed
-        // Or just let them go to their route (which might 404 if not created).
-        // For now, only the ones we created exist.
-        // We implemented: centers, students, tournaments, reports.
-        // Missing: classes, skills, attendance, payments.
-        // Redirect missing ones to dashboard for now? No, let's let them fail or mock them.
-        // I'll ensure links point properly.
         goto(`${base}/dashboard/${path}`);
     }
+
+    const today = new Date().toLocaleDateString("es-ES", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+    });
 </script>
 
-<div class="max-w-7xl mx-auto animation-fade-in">
-    <h3 class="text-2xl font-bold text-white mb-6">Acciones Rápidas</h3>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {#each actions as action}
-            <button
-                onclick={() => navigate(action.link)}
-                class="group flex flex-col items-start p-6 bg-[#1e293b] rounded-2xl border border-slate-700/50 transition-all duration-300 {action.hover} hover:shadow-xl hover:-translate-y-1 relative w-full text-left cursor-pointer"
-            >
-                {#if action.badge}
-                    <span
-                        class="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full z-10"
-                        >{action.badge}</span
-                    >
-                {:else}
-                    <ChevronRight
-                        class="absolute top-6 right-6 w-5 h-5 text-slate-600 group-hover:text-white transition-colors"
-                    />
-                {/if}
-
-                <div
-                    class="p-3 rounded-xl bg-slate-800/50 mb-4 group-hover:scale-110 transition-transform duration-300"
-                >
-                    <svelte:component
-                        this={action.icon}
-                        class="w-8 h-8 {action.color}"
-                    />
-                </div>
-
-                <h4
-                    class="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors"
-                >
-                    {action.title}
-                </h4>
-                <p class="text-sm text-slate-400 font-medium">
-                    {action.desc}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex justify-between items-end">
+            <div>
+                <h2 class="text-3xl font-bold text-white">Dashboard</h2>
+                <p class="text-slate-400 mt-1">
+                    Bienvenido de vuelta, andreslgumuzio@gmail.com
                 </p>
-            </button>
-        {/each}
+            </div>
+            <div class="text-right hidden sm:block">
+                <p class="text-sm text-slate-400">Hoy</p>
+                <p class="text-xl font-bold text-white capitalize">{today}</p>
+            </div>
+        </div>
     </div>
 
-    <div class="mt-12">
-        <h3 class="text-xl font-bold text-white mb-4">Resumen de Actividad</h3>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div
-                class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700/50"
-            >
-                <p class="text-slate-400 text-sm">Próxima Clase</p>
-                <p class="text-xl font-semibold text-white mt-1">
-                    Hoy, 17:00 - Grupo A
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Centros -->
+        <div
+            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
+        >
+            <div>
+                <p class="text-slate-400 text-sm font-medium">
+                    Centros Educativos
+                </p>
+                <p class="text-3xl font-bold text-white mt-2">
+                    {store.centers.length}
+                </p>
+                <p
+                    class="text-emerald-500 text-xs mt-2 flex items-center font-medium"
+                >
+                    <TrendingUp class="w-3 h-3 mr-1" />
+                    +0 este mes
                 </p>
             </div>
-            <div
-                class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700/50"
-            >
-                <p class="text-slate-400 text-sm">Alumnos Nuevos</p>
-                <p class="text-xl font-semibold text-emerald-400 mt-1">
-                    +3 esta semana
+            <div class="bg-blue-500/10 p-3 rounded-xl">
+                <School class="w-6 h-6 text-blue-500" />
+            </div>
+        </div>
+
+        <!-- Estudiantes -->
+        <div
+            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
+        >
+            <div>
+                <p class="text-slate-400 text-sm font-medium">
+                    Estudiantes Activos
+                </p>
+                <p class="text-3xl font-bold text-white mt-2">
+                    {store.students.length}
+                </p>
+                <p
+                    class="text-emerald-500 text-xs mt-2 flex items-center font-medium"
+                >
+                    <TrendingUp class="w-3 h-3 mr-1" />
+                    +0 esta semana
                 </p>
             </div>
+            <div class="bg-emerald-500/10 p-3 rounded-xl">
+                <Users class="w-6 h-6 text-emerald-500" />
+            </div>
+        </div>
+
+        <!-- Ocupacion -->
+        <div
+            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
+        >
+            <div>
+                <p class="text-slate-400 text-sm font-medium">
+                    Ocupación Global
+                </p>
+                <p class="text-3xl font-bold text-white mt-2">0%</p>
+                <p class="text-slate-500 text-xs mt-2 font-medium">
+                    0/0 plazas
+                </p>
+            </div>
+            <div class="bg-purple-500/10 p-3 rounded-xl">
+                <TrendingUp class="w-6 h-6 text-purple-500" />
+            </div>
+        </div>
+
+        <!-- Ingresos (Mock) -->
+        <div
+            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
+        >
+            <div>
+                <p class="text-slate-400 text-sm font-medium">
+                    Ingresos Mensuales
+                </p>
+                <p class="text-3xl font-bold text-white mt-2">0,00 €</p>
+                <p class="text-slate-500 text-xs mt-2 font-medium">
+                    Promedio 0,00 €/clase
+                </p>
+            </div>
+            <div class="bg-yellow-500/10 p-3 rounded-xl">
+                <span class="text-xl font-bold text-yellow-500">$</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mid Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Sesiones de Hoy -->
+        <div
+            class="lg:col-span-2 bg-[#1e293b] rounded-2xl border border-slate-800 p-6 h-80 flex flex-col"
+        >
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">Sesiones de Hoy</h3>
+                <span class="text-xs text-slate-500 flex items-center">
+                    <Clock class="w-3 h-3 mr-1" /> 0 programadas
+                </span>
+            </div>
+
+            <div
+                class="flex-1 flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-800 rounded-xl"
+            >
+                <Calendar class="w-12 h-12 mb-4 opacity-50" />
+                <p>No hay clases programadas para hoy</p>
+            </div>
+        </div>
+
+        <!-- Actividad Reciente -->
+        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6 h-80">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">Actividad Reciente</h3>
+                <Activity class="w-4 h-4 text-slate-500" />
+            </div>
+            <div class="text-center text-slate-500 mt-20">
+                <p class="text-sm">No hay actividad reciente</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance (Placeholder) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Rendimiento por Centro -->
+        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">
+                    Rendimiento por Centro
+                </h3>
+                <button class="text-xs text-blue-400 hover:text-blue-300"
+                    >Ver todos</button
+                >
+            </div>
+            {#if store.centers.length === 0}
+                <div
+                    class="bg-slate-900/50 p-4 rounded-xl flex items-center justify-between"
+                >
+                    <div>
+                        <p class="text-slate-300 font-medium">Sin centros</p>
+                        <p class="text-slate-500 text-xs">
+                            Añade tu primer centro
+                        </p>
+                    </div>
+                </div>
+            {:else}
+                {#each store.centers.slice(0, 2) as center}
+                    <div
+                        class="bg-slate-900/50 p-4 rounded-xl flex items-center justify-between mb-3 last:mb-0"
+                    >
+                        <div>
+                            <p class="text-slate-300 font-medium">
+                                {center.name}
+                            </p>
+                            <p class="text-slate-500 text-xs">
+                                {center.location}
+                            </p>
+                        </div>
+                        <span class="text-emerald-500 text-sm font-bold"
+                            >100%</span
+                        >
+                    </div>
+                {/each}
+            {/if}
+        </div>
+
+        <!-- Estado de clases -->
+        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-white">
+                    Estado de las Clases
+                </h3>
+                <button class="text-xs text-blue-400 hover:text-blue-300"
+                    >Ver todas</button
+                >
+            </div>
+            <div class="text-center text-slate-500 mt-8">
+                <p class="text-sm">No hay datos suficientes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-8">
+        <h3 class="text-xl font-bold text-white mb-6">Acciones Rápidas</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {#each actions as action}
+                <button
+                    onclick={() => navigate(action.link)}
+                    class="group flex flex-col items-start p-6 bg-[#0f172a] rounded-2xl border border-slate-800 transition-all duration-300 {action.hover} hover:shadow-xl hover:-translate-y-1 relative w-full text-left cursor-pointer"
+                >
+                    {#if action.badge}
+                        <span
+                            class="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full z-10"
+                            >{action.badge}</span
+                        >
+                    {/if}
+                    <div class="flex justify-between w-full">
+                        <svelte:component
+                            this={action.icon}
+                            class="w-10 h-10 mb-4 {action.color}"
+                        />
+                        <ChevronRight
+                            class="w-5 h-5 text-slate-700 group-hover:text-white transition-colors"
+                        />
+                    </div>
+
+                    <h4
+                        class="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors"
+                    >
+                        {action.title}
+                    </h4>
+                    <p
+                        class="text-sm text-slate-500 font-medium leading-relaxed"
+                    >
+                        {action.desc}
+                    </p>
+                </button>
+            {/each}
         </div>
     </div>
 </div>
