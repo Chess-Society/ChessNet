@@ -425,14 +425,23 @@
             class="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8"
         >
             <div class="flex justify-center space-x-6 md:order-2">
-                <a href="#" class="text-slate-400 hover:text-emerald-400"
-                    >Twitter</a
+                <a
+                    href="https://twitter.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    class="text-slate-400 hover:text-emerald-400">Twitter</a
                 >
-                <a href="#" class="text-slate-400 hover:text-emerald-400"
-                    >GitHub</a
+                <a
+                    href="https://github.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    class="text-slate-400 hover:text-emerald-400">GitHub</a
                 >
-                <a href="#" class="text-slate-400 hover:text-emerald-400"
-                    >Discord</a
+                <a
+                    href="https://discord.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    class="text-slate-400 hover:text-emerald-400">Discord</a
                 >
             </div>
             <div class="mt-8 md:order-1 md:mt-0">
