@@ -3,8 +3,9 @@
         appStore,
         storeActions,
         type Student,
+        type ClassGroup,
     } from "$lib/services/storage";
-    import { Users, Search, UserPlus, Trash2 } from "lucide-svelte";
+    import { Users, Search, UserPlus, Trash2, Pencil } from "lucide-svelte";
     import { fade, scale, slide } from "svelte/transition";
     import {
         X,
@@ -19,10 +20,13 @@
     appStore.subscribe((value) => (store = value));
 
     let searchTerm = "";
-    let showForm = false;
-    let selectedClassId = ""; // For the new student form
 
-    let newStudent: Student = {
+    // Form State for Creating/Editing
+    let showForm = false;
+    let isEditing = false;
+    let selectedClassId = ""; // For class assignment
+
+    let currentStudent: Student = {
         id: "",
         name: "",
         level: "Pawn",
@@ -34,32 +38,101 @@
         student.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
-    function handleSubmit() {
-        if (!newStudent.name) return;
+    // Helper to find student's class
+    function getStudentClass(studentId: string): ClassGroup | undefined {
+        return store.classes.find((c) => c.students.includes(studentId));
+    }
 
-        const studentId = crypto.randomUUID();
-        const studentToAdd = {
-            ...newStudent,
-            id: studentId,
+    function getCenterNameForClass(cls: ClassGroup | undefined) {
+        if (!cls) return "—";
+        const center = store.centers.find((c) => c.id === cls.centerId);
+        return center ? center.name : "—";
+    }
+
+    function openCreateForm() {
+        isEditing = false;
+        currentStudent = {
+            id: "",
+            name: "",
+            level: "Pawn",
+            email: "",
+            notes: "",
         };
+        selectedClassId = "";
+        showForm = true;
+    }
 
-        storeActions.addStudent(studentToAdd);
+    function openEditForm(student: Student) {
+        isEditing = true;
+        currentStudent = { ...student };
+        const cls = getStudentClass(student.id);
+        selectedClassId = cls ? cls.id : "";
+        showForm = true;
+    }
 
-        // If a class was selected, add the student to that class immediately
-        if (selectedClassId) {
-            storeActions.addClassMember(selectedClassId, studentId);
+    function handleSubmit() {
+        if (!currentStudent.name) return;
+
+        if (isEditing) {
+            // Update existing student
+            storeActions.updateStudent(currentStudent);
+
+            // Handle Class Change logic if needed (complex: remove from old, add to new)
+            // Ideally we should check if they were in another class and move them.
+            const oldClass = getStudentClass(currentStudent.id);
+            if (oldClass && oldClass.id !== selectedClassId) {
+                storeActions.removeClassMember(oldClass.id, currentStudent.id);
+            }
+            if (
+                selectedClassId &&
+                (!oldClass || oldClass.id !== selectedClassId)
+            ) {
+                storeActions.addClassMember(selectedClassId, currentStudent.id);
+            }
+        } else {
+            // Create new student
+            const studentId = crypto.randomUUID();
+            const studentToAdd = {
+                ...currentStudent,
+                id: studentId,
+            };
+            storeActions.addStudent(studentToAdd);
+            if (selectedClassId) {
+                storeActions.addClassMember(selectedClassId, studentId);
+            }
         }
 
         // Reset form
-        newStudent = { id: "", name: "", level: "Pawn", email: "", notes: "" };
+        currentStudent = {
+            id: "",
+            name: "",
+            level: "Pawn",
+            email: "",
+            notes: "",
+        };
         selectedClassId = "";
         showForm = false;
+        isEditing = false;
     }
 
-    let selectedStudent: Student | null = null;
-    let showReportModal = false;
+    function handleDelete(id: string) {
+        if (
+            confirm(
+                "¿Estás seguro de que quieres eliminar a este alumno? Esta acción no se puede deshacer.",
+            )
+        ) {
+            // Remove from classes first to be clean
+            const cls = getStudentClass(id);
+            if (cls) {
+                storeActions.removeClassMember(cls.id, id);
+            }
+            storeActions.removeStudent(id);
+        }
+    }
 
-    // Stats for the report
+    // Report Modal State
+    let selectedStudentForReport: Student | null = null;
+    let showReportModal = false;
     let studentStats = {
         attendanceRate: 0,
         classesAttended: 0,
@@ -67,7 +140,7 @@
     };
 
     function generateReport(student: Student) {
-        selectedStudent = { ...student }; // Create a copy to avoid direct mutation issues
+        selectedStudentForReport = { ...student }; // Copy
 
         // Calculate Stats
         const studentRecords = store.attendance.flatMap((r) =>
@@ -91,13 +164,15 @@
     }
 
     function saveReportNote() {
-        if (selectedStudent) {
-            storeActions.updateStudent(selectedStudent);
+        if (selectedStudentForReport) {
+            storeActions.updateStudent(selectedStudentForReport);
             alert("Nota guardada correctamente.");
+            // Refresh local list if needed, though store is reactive
         }
     }
 </script>
 
+```
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8"
@@ -106,7 +181,10 @@
             <h1 class="text-3xl font-bold text-white flex items-center gap-3">
                 <Users class="w-8 h-8 text-emerald-500" /> Estudiantes
             </h1>
-            <p class="mt-2 text-slate-400">Directorio completo de alumnos.</p>
+            <p class="mt-2 text-slate-400">
+                Directorio completo de alumnos. Gestiona sus datos, asignaciones
+                e informes.
+            </p>
         </div>
         <div class="flex gap-3">
             <div class="relative">
@@ -121,7 +199,7 @@
                 />
             </div>
             <button
-                onclick={() => (showForm = !showForm)}
+                onclick={openCreateForm}
                 class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
             >
                 <UserPlus class="w-5 h-5" />
@@ -136,7 +214,7 @@
             class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl"
         >
             <h3 class="text-lg font-bold text-white mb-4">
-                Matricular Nuevo Alumno
+                {isEditing ? "Editar Alumno" : "Matricular Nuevo Alumno"}
             </h3>
             <div class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -148,7 +226,7 @@
                         >
                         <input
                             id="student-name"
-                            bind:value={newStudent.name}
+                            bind:value={currentStudent.name}
                             type="text"
                             placeholder="Ej: Magnus Carlsen"
                             class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
@@ -158,11 +236,11 @@
                         <label
                             for="student-level"
                             class="block text-sm font-medium text-slate-400 mb-1"
-                            >Nivel Inicial</label
+                            >Nivel</label
                         >
                         <select
                             id="student-level"
-                            bind:value={newStudent.level}
+                            bind:value={currentStudent.level}
                             class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
                         >
                             <option value="Pawn">Peón (Iniciación)</option>
@@ -176,7 +254,7 @@
                     <label
                         for="student-class"
                         class="block text-sm font-medium text-slate-400 mb-1"
-                        >Asignar a Clase (Opcional)</label
+                        >Asignar a Clase</label
                     >
                     <select
                         id="student-class"
@@ -190,6 +268,10 @@
                             >
                         {/each}
                     </select>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Sugerencia: Si cambias la clase, el alumno será movido
+                        automáticamente.
+                    </p>
                 </div>
                 <div>
                     <label
@@ -199,7 +281,7 @@
                     >
                     <input
                         id="student-email"
-                        bind:value={newStudent.email}
+                        bind:value={currentStudent.email}
                         type="email"
                         placeholder="email@ejemplo.com"
                         class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
@@ -214,8 +296,9 @@
                     <button
                         onclick={handleSubmit}
                         class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg font-medium"
-                        >Guardar Alumno</button
                     >
+                        {isEditing ? "Guardar Cambios" : "Registrar Alumno"}
+                    </button>
                 </div>
             </div>
         </div>
@@ -230,9 +313,10 @@
                     <th class="p-4 text-slate-400 font-medium text-sm"
                         >Nombre</th
                     >
-                    <th class="p-4 text-slate-400 font-medium text-sm">Nivel</th
+                    <th class="p-4 text-slate-400 font-medium text-sm"
+                        >Centro/Clase</th
                     >
-                    <th class="p-4 text-slate-400 font-medium text-sm">Email</th
+                    <th class="p-4 text-slate-400 font-medium text-sm">Nivel</th
                     >
                     <th
                         class="p-4 text-slate-400 font-medium text-sm text-right"
@@ -249,6 +333,7 @@
                     </tr>
                 {:else}
                     {#each filteredStudents as student}
+                        {@const studentClass = getStudentClass(student.id)}
                         <tr
                             class="hover:bg-slate-800/50 transition-colors group"
                         >
@@ -259,9 +344,24 @@
                                     >
                                         {student.name.charAt(0)}
                                     </div>
-                                    <span class="font-medium text-white"
-                                        >{student.name}</span
-                                    >
+                                    <div>
+                                        <div class="font-medium text-white">
+                                            {student.name}
+                                        </div>
+                                        <div class="text-xs text-slate-500">
+                                            {student.email || "—"}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <div class="text-sm text-white">
+                                    {studentClass
+                                        ? studentClass.name
+                                        : "Sin asignar"}
+                                </div>
+                                <div class="text-xs text-slate-500">
+                                    {getCenterNameForClass(studentClass)}
                                 </div>
                             </td>
                             <td class="p-4">
@@ -271,17 +371,32 @@
                                     {student.level}
                                 </span>
                             </td>
-                            <td class="p-4 text-slate-400 text-sm">
-                                {student.email || "—"}
-                            </td>
                             <td class="p-4 text-right">
-                                <button
-                                    onclick={() => generateReport(student)}
-                                    class="text-slate-500 hover:text-emerald-400 font-medium text-sm mr-4 cursor-pointer flex items-center gap-1 justify-end ml-auto"
+                                <div
+                                    class="flex items-center justify-end gap-2"
                                 >
-                                    <Award class="w-4 h-4" />
-                                    Generar Informe
-                                </button>
+                                    <button
+                                        onclick={() => generateReport(student)}
+                                        class="text-slate-500 hover:text-emerald-400 p-2 rounded hover:bg-emerald-500/10 transition-colors"
+                                        title="Ver Informe"
+                                    >
+                                        <Award class="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onclick={() => openEditForm(student)}
+                                        class="text-slate-500 hover:text-blue-400 p-2 rounded hover:bg-blue-500/10 transition-colors"
+                                        title="Editar"
+                                    >
+                                        <Pencil class="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onclick={() => handleDelete(student.id)}
+                                        class="text-slate-500 hover:text-red-400 p-2 rounded hover:bg-red-500/10 transition-colors"
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 class="w-4 h-4" />
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     {/each}
@@ -292,7 +407,7 @@
 </div>
 
 <!-- Report Modal -->
-{#if showReportModal && selectedStudent}
+{#if showReportModal && selectedStudentForReport}
     <div
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         transition:fade
@@ -328,23 +443,18 @@
                     <div
                         class="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold text-2xl border border-emerald-500/30"
                     >
-                        {selectedStudent.name.charAt(0)}
+                        {selectedStudentForReport.name.charAt(0)}
                     </div>
                     <div>
                         <h3 class="text-2xl font-bold text-white">
-                            {selectedStudent.name}
+                            {selectedStudentForReport.name}
                         </h3>
                         <div class="flex items-center gap-2 mt-1">
                             <span
                                 class="bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded-full text-xs font-bold border border-blue-500/30"
                             >
-                                Nivel: {selectedStudent.level}
+                                Nivel: {selectedStudentForReport.level}
                             </span>
-                            {#if selectedStudent.email}
-                                <span class="text-slate-400 text-sm"
-                                    >{selectedStudent.email}</span
-                                >
-                            {/if}
                         </div>
                     </div>
                 </div>
@@ -394,7 +504,7 @@
                     </h4>
 
                     <div class="space-y-3">
-                        {#if selectedStudent.level === "Pawn"}
+                        {#if selectedStudentForReport.level === "Pawn"}
                             <div
                                 class="flex items-center justify-between text-sm"
                             >
@@ -427,7 +537,7 @@
                                     style="width: 45%"
                                 ></div>
                             </div>
-                        {:else if selectedStudent.level === "Bishop"}
+                        {:else if selectedStudentForReport.level === "Bishop"}
                             <div
                                 class="flex items-center justify-between text-sm"
                             >
@@ -494,7 +604,7 @@
                         </button>
                     </div>
                     <textarea
-                        bind:value={selectedStudent.notes}
+                        bind:value={selectedStudentForReport.notes}
                         class="w-full bg-blue-900/30 text-blue-100 text-sm p-2 rounded border border-blue-500/30 focus:outline-none focus:border-blue-400 h-24 resize-none"
                         placeholder="Escribe aquí tus observaciones sobre el progreso del alumno..."
                     ></textarea>
@@ -519,3 +629,4 @@
         </div>
     </div>
 {/if}
+```
