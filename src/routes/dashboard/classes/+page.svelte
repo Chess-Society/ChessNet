@@ -1,6 +1,10 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { getClasses, type ClassGroup } from "$lib/services/mockData";
+    import {
+        appStore,
+        storeActions,
+        type ClassGroup,
+    } from "$lib/services/storage";
     import {
         BookOpen,
         Users,
@@ -8,15 +12,49 @@
         Calendar,
         CheckCircle2,
         UserPlus,
+        Plus,
     } from "lucide-svelte";
+    import { slide } from "svelte/transition";
 
-    let classes: ClassGroup[] = [];
-    let loading = true;
+    let store = $appStore;
+    appStore.subscribe((value) => (store = value));
 
-    onMount(async () => {
-        classes = await getClasses();
-        loading = false;
-    });
+    let showForm = false;
+    let newClass: ClassGroup = {
+        id: "",
+        name: "",
+        centerId: "",
+        schedule: "",
+        level: "Pawn",
+        students: [],
+    };
+
+    function handleSubmit() {
+        if (!newClass.name) return;
+
+        const classToAdd = {
+            ...newClass,
+            id: crypto.randomUUID(),
+        };
+
+        storeActions.addClass(classToAdd);
+
+        // Reset form
+        newClass = {
+            id: "",
+            name: "",
+            centerId: "",
+            schedule: "",
+            level: "Pawn",
+            students: [],
+        };
+        showForm = false;
+    }
+
+    function getCenterName(id: string) {
+        const center = store.centers.find((c) => c.id === id);
+        return center ? center.name : "Centro Desconocido";
+    }
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -31,27 +69,95 @@
         </div>
         <div class="mt-4 sm:mt-0">
             <button
+                onclick={() => (showForm = !showForm)}
                 type="button"
                 class="inline-flex items-center justify-center rounded-xl border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none transition-colors cursor-pointer"
             >
-                <UserPlus class="w-4 h-4 mr-2" />
+                <Plus class="w-4 h-4 mr-2" />
                 Nueva Clase
             </button>
         </div>
     </div>
 
+    {#if showForm}
+        <div
+            transition:slide
+            class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 mt-6 max-w-2xl"
+        >
+            <h3 class="text-lg font-bold text-white mb-4">Crear Nuevo Grupo</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                        >Nombre del Grupo</label
+                    >
+                    <input
+                        bind:value={newClass.name}
+                        type="text"
+                        placeholder="Ej: Iniciación Lunes"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                    />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                        >Centro Educativo</label
+                    >
+                    <select
+                        bind:value={newClass.centerId}
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                    >
+                        <option value="">Selecciona un centro...</option>
+                        {#each store.centers as center}
+                            <option value={center.id}>{center.name}</option>
+                        {/each}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                        >Horario Habitual</label
+                    >
+                    <input
+                        bind:value={newClass.schedule}
+                        type="text"
+                        placeholder="Ej: Lunes 17:00"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                    />
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button
+                        onclick={() => (showForm = false)}
+                        class="text-slate-400 hover:text-white px-4 py-2"
+                        >Cancelar</button
+                    >
+                    <button
+                        onclick={handleSubmit}
+                        class="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-lg font-medium"
+                        >Crear Clase</button
+                    >
+                </div>
+            </div>
+        </div>
+    {/if}
+
     <!-- Active Sessions Today -->
     <div class="mt-8">
-        <h2 class="text-lg font-semibold text-white mb-4">Próximas Sesiones</h2>
+        <h2 class="text-lg font-semibold text-white mb-4">
+            Tus Grupos Activos
+        </h2>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {#if loading}
-                {#each Array(3) as _}
-                    <div
-                        class="animate-pulse bg-[#1e293b] rounded-2xl h-48 border border-slate-700/50"
-                    ></div>
-                {/each}
+            {#if store.classes.length === 0}
+                <div
+                    class="col-span-full py-12 text-center bg-[#1e293b]/50 rounded-3xl border border-dashed border-slate-700"
+                >
+                    <BookOpen class="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                    <h3 class="text-xl font-bold text-white mb-2">
+                        No hay clases creadas
+                    </h3>
+                    <p class="text-slate-400 mb-6">
+                        Crea tu primer grupo de alumnos para empezar.
+                    </p>
+                </div>
             {:else}
-                {#each classes as group}
+                {#each store.classes as group}
                     <div
                         class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 hover:shadow-xl hover:border-purple-500/30 transition-all"
                     >
@@ -61,7 +167,7 @@
                                     {group.name}
                                 </h3>
                                 <p class="text-slate-400 text-sm mt-1">
-                                    {group.center}
+                                    {getCenterName(group.centerId)}
                                 </p>
                             </div>
                             <span
@@ -76,13 +182,13 @@
                                 class="flex items-center text-slate-400 text-sm"
                             >
                                 <Clock class="w-4 h-4 mr-2 text-slate-500" />
-                                {group.nextSession}
+                                {group.schedule}
                             </div>
                             <div
                                 class="flex items-center text-slate-400 text-sm"
                             >
                                 <Users class="w-4 h-4 mr-2 text-slate-500" />
-                                {group.students} Alumnos inscritos
+                                {group.students.length} Alumnos inscritos
                             </div>
                         </div>
 

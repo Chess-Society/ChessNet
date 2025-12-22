@@ -27,17 +27,27 @@ export interface ClassGroup {
     students: string[]; // IDs de alumnos
 }
 
+export interface Skill {
+    id: string;
+    name: string;
+    category: 'Tactics' | 'Strategy' | 'Endgame' | 'Openings';
+    level: number;
+    description?: string;
+}
+
 export interface AppData {
     centers: Center[];
     students: Student[];
     classes: ClassGroup[];
+    skills: Skill[];
 }
 
 // Estado Inicial (Vacío)
 const initialState: AppData = {
     centers: [],
     students: [],
-    classes: []
+    classes: [],
+    skills: []
 };
 
 // Store de Svelte
@@ -53,7 +63,9 @@ export function initStore() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         try {
-            appStore.set(JSON.parse(saved));
+            const parsed = JSON.parse(saved);
+            // Ensure compatibility if new fields added
+            appStore.set({ ...initialState, ...parsed });
         } catch (e) {
             console.error('Error cargando datos', e);
         }
@@ -80,6 +92,9 @@ export const storeActions = {
     },
     addClass: (cls: ClassGroup) => {
         appStore.update(s => ({ ...s, classes: [...s.classes, cls] }));
+    },
+    addSkill: (skill: Skill) => {
+        appStore.update(s => ({ ...s, skills: [...s.skills, skill] }));
     },
     // Reset para pruebas
     reset: () => {
