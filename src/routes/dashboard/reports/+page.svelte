@@ -44,15 +44,22 @@
             Rook: 0,
             King: 0,
         };
+        const translations: Record<string, string> = {
+            Pawn: "Peón",
+            Bishop: "Alfil",
+            Rook: "Torre",
+            King: "Rey",
+        };
         students.forEach((s) => {
             const lvl = s.level || "Pawn";
             if (levels[lvl] !== undefined) levels[lvl]++;
             else levels[lvl] = (levels[lvl] || 0) + 1;
         });
         return Object.entries(levels).map(([name, count]) => ({
-            name,
+            name: translations[name] || name,
             count,
             percentage: totalStudents > 0 ? (count / totalStudents) * 100 : 0,
+            originalName: name, // keep for color class logic
         }));
     }
 
@@ -253,10 +260,14 @@
                             <div
                                 class="h-3 rounded-full transition-all duration-1000"
                                 style="width: {level.percentage}%;"
-                                class:bg-blue-500={level.name === "Pawn"}
-                                class:bg-emerald-500={level.name === "Bishop"}
-                                class:bg-purple-500={level.name === "Rook"}
-                                class:bg-orange-500={level.name === "King"}
+                                class:bg-blue-500={level.originalName ===
+                                    "Pawn"}
+                                class:bg-emerald-500={level.originalName ===
+                                    "Bishop"}
+                                class:bg-purple-500={level.originalName ===
+                                    "Rook"}
+                                class:bg-orange-500={level.originalName ===
+                                    "King"}
                             ></div>
                         </div>
                     </div>

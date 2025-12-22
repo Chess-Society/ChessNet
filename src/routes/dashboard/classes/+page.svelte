@@ -438,7 +438,15 @@
                                             {student.name}
                                         </p>
                                         <p class="text-slate-500 text-xs">
-                                            {student.level}
+                                            {student.level === "Pawn"
+                                                ? "Peón"
+                                                : student.level === "Bishop"
+                                                  ? "Alfil"
+                                                  : student.level === "Rook"
+                                                    ? "Torre"
+                                                    : student.level === "King"
+                                                      ? "Rey"
+                                                      : student.level}
                                         </p>
                                     </div>
                                     <Plus

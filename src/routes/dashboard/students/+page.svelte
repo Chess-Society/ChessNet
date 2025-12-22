@@ -504,7 +504,7 @@
                                 <span
                                     class="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs font-bold"
                                 >
-                                    {student.level}
+                                    {translateLevel(student.level)}
                                 </span>
                             </td>
                             <td class="p-4 text-right">

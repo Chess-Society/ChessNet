@@ -281,7 +281,15 @@
                                 <span
                                     class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-2 py-1 rounded-full border border-emerald-500/20"
                                 >
-                                    {cls.level}
+                                    {cls.level === "Pawn"
+                                        ? "Peón"
+                                        : cls.level === "Bishop"
+                                          ? "Alfil"
+                                          : cls.level === "Rook"
+                                            ? "Torre"
+                                            : cls.level === "King"
+                                              ? "Rey"
+                                              : cls.level}
                                 </span>
                                 <p class="text-xs text-slate-500 mt-1">
                                     {cls.students.length} alumnos
@@ -389,7 +397,15 @@
                             >
                             <span
                                 class="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded"
-                                >{cls.level}</span
+                                >{cls.level === "Pawn"
+                                    ? "Peón"
+                                    : cls.level === "Bishop"
+                                      ? "Alfil"
+                                      : cls.level === "Rook"
+                                        ? "Torre"
+                                        : cls.level === "King"
+                                          ? "Rey"
+                                          : cls.level}</span
                             >
                         </div>
                     {/each}
