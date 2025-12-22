@@ -757,21 +757,5 @@
             color: black !important;
             border: 1px solid #ccc !important;
         }
-
-        /* Skills Grid Optimization */
-        .skills-container {
-            display: block !important;
-            columns: 2 !important;
-            column-gap: 20px !important;
-            max-height: none !important;
-            overflow: visible !important;
-        }
-
-        .skills-container > div {
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
-            margin-bottom: 10px !important;
-            border: 1px solid #ddd !important;
-        }
     }
 </style>
