@@ -12,6 +12,7 @@
         CalendarCheck,
         TrendingUp,
         Award,
+        Save,
     } from "lucide-svelte";
 
     let store = $appStore;
@@ -19,6 +20,8 @@
 
     let searchTerm = "";
     let showForm = false;
+    let selectedClassId = ""; // For the new student form
+
     let newStudent: Student = {
         id: "",
         name: "",
@@ -34,20 +37,29 @@
     function handleSubmit() {
         if (!newStudent.name) return;
 
+        const studentId = crypto.randomUUID();
         const studentToAdd = {
             ...newStudent,
-            id: crypto.randomUUID(),
+            id: studentId,
         };
 
         storeActions.addStudent(studentToAdd);
 
+        // If a class was selected, add the student to that class immediately
+        if (selectedClassId) {
+            storeActions.addClassMember(selectedClassId, studentId);
+        }
+
         // Reset form
         newStudent = { id: "", name: "", level: "Pawn", email: "", notes: "" };
+        selectedClassId = "";
         showForm = false;
     }
 
     let selectedStudent: Student | null = null;
     let showReportModal = false;
+
+    // Stats for the report
     let studentStats = {
         attendanceRate: 0,
         classesAttended: 0,
@@ -55,7 +67,7 @@
     };
 
     function generateReport(student: Student) {
-        selectedStudent = student;
+        selectedStudent = { ...student }; // Create a copy to avoid direct mutation issues
 
         // Calculate Stats
         const studentRecords = store.attendance.flatMap((r) =>
@@ -76,6 +88,13 @@
         };
 
         showReportModal = true;
+    }
+
+    function saveReportNote() {
+        if (selectedStudent) {
+            storeActions.updateStudent(selectedStudent);
+            alert("Nota guardada correctamente.");
+        }
     }
 </script>
 
@@ -152,6 +171,25 @@
                             <option value="King">Rey (Avanzado)</option>
                         </select>
                     </div>
+                </div>
+                <div>
+                    <label
+                        for="student-class"
+                        class="block text-sm font-medium text-slate-400 mb-1"
+                        >Asignar a Clase (Opcional)</label
+                    >
+                    <select
+                        id="student-class"
+                        bind:value={selectedClassId}
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    >
+                        <option value="">-- Sin asignar --</option>
+                        {#each store.classes as group}
+                            <option value={group.id}
+                                >{group.name} ({group.schedule})</option
+                            >
+                        {/each}
+                    </select>
                 </div>
                 <div>
                     <label
@@ -444,11 +482,22 @@
                 <div
                     class="bg-blue-900/20 border border-blue-500/20 p-4 rounded-lg"
                 >
-                    <p class="text-sm text-blue-200">
-                        <span class="font-bold">Nota del Profesor:</span>
-                        {selectedStudent.notes ||
-                            "El alumno progresa adecuadamente según lo esperado para su nivel."}
-                    </p>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-bold text-blue-200"
+                            >Nota del Profesor:</span
+                        >
+                        <button
+                            onclick={saveReportNote}
+                            class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                        >
+                            <Save class="w-3 h-3" /> Guardar
+                        </button>
+                    </div>
+                    <textarea
+                        bind:value={selectedStudent.notes}
+                        class="w-full bg-blue-900/30 text-blue-100 text-sm p-2 rounded border border-blue-500/30 focus:outline-none focus:border-blue-400 h-24 resize-none"
+                        placeholder="Escribe aquí tus observaciones sobre el progreso del alumno..."
+                    ></textarea>
                 </div>
             </div>
 

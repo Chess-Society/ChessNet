@@ -134,6 +134,12 @@ export const storeActions = {
     addStudent: (student: Student) => {
         appStore.update(s => ({ ...s, students: [...s.students, student] }));
     },
+    updateStudent: (student: Student) => {
+        appStore.update(s => ({
+            ...s,
+            students: s.students.map(curr => curr.id === student.id ? student : curr)
+        }));
+    },
     removeStudent: (id: string) => {
         appStore.update(s => ({ ...s, students: s.students.filter(stud => stud.id !== id) }));
     },
