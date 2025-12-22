@@ -11,6 +11,8 @@
         School,
         CheckCircle2,
         ArrowRight,
+        Menu,
+        X,
     } from "lucide-svelte";
     import { onMount } from "svelte";
 
@@ -19,6 +21,7 @@
     }
 
     let scrollY = 0;
+    let mobileMenuOpen = false;
 </script>
 
 <svelte:window bind:scrollY />
@@ -74,6 +77,16 @@
                     >
                 </a>
             </div>
+            <div class="flex lg:hidden">
+                <button
+                    type="button"
+                    class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-slate-400 hover:text-white"
+                    onclick={() => (mobileMenuOpen = true)}
+                >
+                    <span class="sr-only">Abrir menú</span>
+                    <Menu class="h-6 w-6" aria-hidden="true" />
+                </button>
+            </div>
             <div class="hidden lg:flex lg:gap-x-12">
                 <a
                     href="#features"
@@ -109,6 +122,80 @@
                 </button>
             </div>
         </nav>
+        <!-- Mobile menu, show/hide based on menu state. -->
+        {#if mobileMenuOpen}
+            <div class="lg:hidden" role="dialog" aria-modal="true">
+                <!-- Background backdrop, show/hide based on slide-over state. -->
+                <div class="fixed inset-0 z-50"></div>
+                <div
+                    class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-[#0f172a] px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-white/10"
+                >
+                    <div class="flex items-center justify-between">
+                        <a
+                            href="{base}/"
+                            class="-m-1.5 p-1.5 flex items-center gap-2"
+                        >
+                            <div class="relative bg-slate-900 rounded-lg p-1">
+                                <Shield class="w-8 h-8 text-emerald-500" />
+                            </div>
+                            <span
+                                class="bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 font-extrabold tracking-tight"
+                                >ChessNet</span
+                            >
+                        </a>
+                        <button
+                            type="button"
+                            class="-m-2.5 rounded-md p-2.5 text-slate-400 hover:text-white"
+                            onclick={() => (mobileMenuOpen = false)}
+                        >
+                            <span class="sr-only">Cerrar menú</span>
+                            <X class="h-6 w-6" aria-hidden="true" />
+                        </button>
+                    </div>
+                    <div class="mt-6 flow-root">
+                        <div class="-my-6 divide-y divide-gray-500/10">
+                            <div class="space-y-2 py-6">
+                                <a
+                                    href="#features"
+                                    class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-slate-800"
+                                    onclick={() => (mobileMenuOpen = false)}
+                                    >Características</a
+                                >
+                                <a
+                                    href="{base}/donate"
+                                    class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-slate-800"
+                                    onclick={() => (mobileMenuOpen = false)}
+                                    >Donar</a
+                                >
+                                <a
+                                    href="#pricing"
+                                    class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-slate-800 flex items-center justify-between"
+                                    onclick={() => (mobileMenuOpen = false)}
+                                    >Precios <span
+                                        class="ml-2 text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30"
+                                        >BETA</span
+                                    ></a
+                                >
+                            </div>
+                            <div class="py-6">
+                                <button
+                                    onclick={login}
+                                    class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-white hover:bg-slate-800 w-full text-left"
+                                >
+                                    Iniciar Sesión
+                                </button>
+                                <button
+                                    onclick={login}
+                                    class="mt-4 w-full rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500"
+                                >
+                                    Empezar Gratis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/if}
     </header>
 
     <!-- Hero -->
