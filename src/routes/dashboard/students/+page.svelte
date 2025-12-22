@@ -96,10 +96,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label
+                            for="student-name"
                             class="block text-sm font-medium text-slate-400 mb-1"
                             >Nombre Completo</label
                         >
                         <input
+                            id="student-name"
                             bind:value={newStudent.name}
                             type="text"
                             placeholder="Ej: Magnus Carlsen"
@@ -125,10 +127,13 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="student-email"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Email de Contacto</label
                     >
                     <input
+                        id="student-email"
                         bind:value={newStudent.email}
                         type="email"
                         placeholder="email@ejemplo.com"

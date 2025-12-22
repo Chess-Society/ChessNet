@@ -82,10 +82,13 @@
             </h3>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="tournament-name"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Nombre del Torneo</label
                     >
                     <input
+                        id="tournament-name"
                         bind:value={newTournament.name}
                         type="text"
                         placeholder="Ej: Torneo de Primavera"
@@ -95,10 +98,12 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label
+                            for="tournament-date"
                             class="block text-sm font-medium text-slate-400 mb-1"
                             >Fecha</label
                         >
                         <input
+                            id="tournament-date"
                             bind:value={newTournament.date}
                             type="date"
                             class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"

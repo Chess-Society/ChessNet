@@ -96,6 +96,7 @@
                             class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
                         />
                         <input
+                            id="center-location"
                             bind:value={newCenter.location}
                             type="text"
                             placeholder="Ciudad, Barrio o Dirección"
