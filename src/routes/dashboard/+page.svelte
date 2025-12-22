@@ -107,12 +107,9 @@
     });
 
     // Derived Stats
-    $: totalCapacity = store.classes.length * 20; // Assume 20 per class
+
     $: totalStudents = store.students.length;
-    $: occupancyRate =
-        totalCapacity > 0
-            ? Math.round((totalStudents / totalCapacity) * 100)
-            : 0;
+    $: totalRevenue = store.payments.reduce((sum, p) => sum + p.amount, 0);
 
     // Real Schedule Logic
     const days = [
@@ -197,27 +194,7 @@
             </div>
         </div>
 
-        <!-- Ocupacion -->
-        <div
-            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
-        >
-            <div>
-                <p class="text-slate-400 text-sm font-medium">
-                    Ocupación Estimada
-                </p>
-                <p class="text-3xl font-bold text-white mt-2">
-                    {occupancyRate}%
-                </p>
-                <p class="text-slate-500 text-xs mt-2 font-medium">
-                    {totalStudents}/{totalCapacity} plazas (aprox)
-                </p>
-            </div>
-            <div class="bg-purple-500/10 p-3 rounded-xl">
-                <TrendingUp class="w-6 h-6 text-purple-500" />
-            </div>
-        </div>
-
-        <!-- Clases (Replaces Revenue for now) -->
+        <!-- Grupos / Clases (Moved to pos 3) -->
         <div
             class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
         >
@@ -234,6 +211,29 @@
             </div>
             <div class="bg-yellow-500/10 p-3 rounded-xl">
                 <BookOpen class="w-6 h-6 text-yellow-500" />
+            </div>
+        </div>
+
+        <!-- Ingresos Totales (New at pos 4) -->
+        <div
+            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
+        >
+            <div>
+                <p class="text-slate-400 text-sm font-medium">
+                    Ingresos Totales
+                </p>
+                <p class="text-3xl font-bold text-white mt-2">
+                    {totalRevenue}€
+                </p>
+                <p
+                    class="text-emerald-500 text-xs mt-2 flex items-center font-medium"
+                >
+                    <TrendingUp class="w-3 h-3 mr-1" />
+                    Acumulado
+                </p>
+            </div>
+            <div class="bg-teal-500/10 p-3 rounded-xl">
+                <CreditCard class="w-6 h-6 text-teal-500" />
             </div>
         </div>
     </div>
