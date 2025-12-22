@@ -232,6 +232,12 @@ export const storeActions = {
             tournaments: s.tournaments.map(curr => curr.id === t.id ? t : curr)
         }));
     },
+    removeTournament: (id: string) => {
+        appStore.update(s => ({
+            ...s,
+            tournaments: s.tournaments.filter(t => t.id !== id)
+        }));
+    },
     saveAttendance: (record: AttendanceRecord) => {
         appStore.update(data => {
             // Remove existing record for same day and class if exists

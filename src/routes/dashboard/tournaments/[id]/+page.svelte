@@ -1,6 +1,7 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import { onMount } from "svelte";
+    import { goto } from "$app/navigation";
     import {
         appStore,
         storeActions,
@@ -17,6 +18,8 @@
         UserPlus,
         Save,
         ArrowLeft,
+        Trash2,
+        Flag,
     } from "lucide-svelte";
     import { slide, fade } from "svelte/transition";
     import { base } from "$app/paths";
@@ -54,6 +57,32 @@
               (a, b) => a - b,
           )
         : [];
+
+    function finishTournament() {
+        if (!tournament) return;
+        if (
+            confirm(
+                "¿Estás seguro de finalizar el torneo? No se podrán crear más rondas.",
+            )
+        ) {
+            storeActions.updateTournament({
+                ...tournament,
+                status: "Completed",
+            });
+        }
+    }
+
+    function deleteTournament() {
+        if (!tournament) return;
+        if (
+            confirm(
+                "ATENCIÓN: ¿Eliminar este torneo y todos sus datos? Esta acción es irreversible.",
+            )
+        ) {
+            storeActions.removeTournament(tournament.id);
+            goto(`${base}/dashboard/tournaments`);
+        }
+    }
 
     function addParticipant(studentId: string) {
         if (!tournament) return;
@@ -280,6 +309,22 @@
                                   : "Próximo"}
                         </span>
                     </div>
+                </div>
+                <div class="flex gap-2 self-start md:self-center">
+                    {#if tournament.status === "Ongoing"}
+                        <button
+                            onclick={finishTournament}
+                            class="bg-blue-600/20 text-blue-400 border border-blue-600/30 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
+                        >
+                            <Flag class="w-4 h-4" /> Finalizar
+                        </button>
+                    {/if}
+                    <button
+                        onclick={deleteTournament}
+                        class="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
+                    >
+                        <Trash2 class="w-4 h-4" /> Eliminar
+                    </button>
                 </div>
             </div>
         </div>

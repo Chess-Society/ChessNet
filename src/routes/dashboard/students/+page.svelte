@@ -684,3 +684,65 @@
     </div>
 {/if}
 ```
+
+<style>
+    @media print {
+        :global(body *) {
+            visibility: hidden;
+        }
+
+        .fixed.inset-0,
+        .fixed.inset-0 * {
+            visibility: visible;
+        }
+
+        .fixed.inset-0 {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background: white !important;
+            display: block !important;
+        }
+
+        .fixed.inset-0 > div {
+            position: static !important;
+            width: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: white !important;
+            color: black !important;
+            overflow: visible !important;
+        }
+
+        .text-white {
+            color: black !important;
+        }
+        .text-slate-300,
+        .text-slate-400,
+        .text-slate-500 {
+            color: #333 !important;
+        }
+
+        button {
+            display: none !important;
+        }
+
+        .bg-slate-900\/50,
+        .bg-blue-900\/20 {
+            background: #fff !important;
+            border: 1px solid #ccc !important;
+        }
+
+        textarea {
+            background: white !important;
+            color: black !important;
+            border: 1px solid #ccc !important;
+        }
+    }
+</style>
