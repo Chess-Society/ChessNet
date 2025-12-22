@@ -228,6 +228,7 @@
         totalClasses: 0,
     };
     let studentSkills: any[] = [];
+    let skillProgress = 0;
 
     function generateReport(student: Student) {
         // Fetch latest student object to ensure up-to-date skills/notes
@@ -261,6 +262,12 @@
         } else {
             studentSkills = [];
         }
+
+        // Calculate Progression
+        skillProgress =
+            store.skills.length > 0
+                ? Math.round((studentSkills.length / store.skills.length) * 100)
+                : 0;
 
         showReportModal = true;
     }
@@ -621,6 +628,20 @@
                         <GraduationCap class="w-4 h-4 text-purple-500" />
                         Habilidades Adquiridas
                     </h4>
+
+                    <div
+                        class="mb-4 bg-slate-800 rounded-full h-4 overflow-hidden border border-slate-700 relative group"
+                    >
+                        <div
+                            class="h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-1000 ease-out"
+                            style="width: {skillProgress}%"
+                        ></div>
+                        <div
+                            class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md"
+                        >
+                            {skillProgress}% COMPLETADO
+                        </div>
+                    </div>
 
                     <div class="space-y-3">
                         {#if studentSkills.length > 0}
