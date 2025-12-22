@@ -3,8 +3,23 @@
     import {
         appStore,
         storeActions,
+        checkPlanLimit,
         type ClassGroup,
     } from "$lib/services/storage";
+    // ...
+
+    function handleToggleForm() {
+        if (!showForm) {
+            // Trying to open
+            if (!checkPlanLimit(store, "classes")) {
+                alert(
+                    `Has alcanzado el límite de clases de tu plan actual (${store.settings.plan}). Actualiza tu plan.`,
+                );
+                return;
+            }
+        }
+        showForm = !showForm;
+    }
     import {
         BookOpen,
         Users,

@@ -2,6 +2,7 @@
     import {
         appStore,
         storeActions,
+        checkPlanLimit,
         type Student,
         type ClassGroup,
     } from "$lib/services/storage";
@@ -59,6 +60,12 @@
     let fileInput: HTMLInputElement;
 
     function triggerFileUpload() {
+        if (!checkPlanLimit(store, "students")) {
+            alert(
+                `Has alcanzado el límite de alumnos de tu plan actual (${store.settings.plan}). Actualiza tu plan para importar más.`,
+            );
+            return;
+        }
         fileInput.click();
     }
 
@@ -71,8 +78,13 @@
         const lines = text.split("\n");
 
         let importedCount = 0;
+        let limitReached = false;
 
-        lines.forEach((line) => {
+        for (const line of lines) {
+            if (!checkPlanLimit(store, "students")) {
+                limitReached = true;
+                break;
+            }
             const [name, levelRaw, email] = line
                 .split(",")
                 .map((s) => s.trim());
@@ -106,13 +118,27 @@
                 });
                 importedCount++;
             }
-        });
+        }
 
-        alert(`Se han importado ${importedCount} alumnos correctamente.`);
+        if (limitReached) {
+            alert(
+                `Se importaron ${importedCount} alumnos, pero se detuvo porque alcanzaste el límite de tu plan.`,
+            );
+        } else {
+            alert(`Se han importado ${importedCount} alumnos correctamente.`);
+        }
+
         target.value = ""; // Reset
     }
 
     function openCreateForm() {
+        if (!checkPlanLimit(store, "students")) {
+            alert(
+                `Has alcanzado el límite de alumnos de tu plan actual (${store.settings.plan}). Actualiza tu plan para añadir más.`,
+            );
+            return;
+        }
+
         isEditing = false;
         currentStudent = {
             id: "",

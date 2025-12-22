@@ -33,7 +33,28 @@
             </button>
 
             <div class="flex items-center gap-4">
-                <!-- User profile removed for anonymity -->
+                <!-- Dev Plan Switcher -->
+                <select
+                    class="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1"
+                    onchange={(e) => {
+                        const plan = e.currentTarget.value as any;
+                        import("$lib/services/storage").then(({ appStore }) => {
+                            appStore.update((s) => ({
+                                ...s,
+                                settings: { ...s.settings, plan },
+                            }));
+                        });
+                    }}
+                >
+                    <option value="free">Plan Ajedrecista</option>
+                    <option value="profe">Plan Profe</option>
+                    <option value="club">Plan Club</option>
+                </select>
+                <div
+                    class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center"
+                >
+                    <User class="w-4 h-4 text-slate-400" />
+                </div>
             </div>
         </div>
     </header>

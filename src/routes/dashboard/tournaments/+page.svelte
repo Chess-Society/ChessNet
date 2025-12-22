@@ -3,8 +3,23 @@
     import {
         appStore,
         storeActions,
+        checkPlanLimit,
         type Tournament,
     } from "$lib/services/storage";
+    // ...
+
+    function handleToggleForm() {
+        if (!showForm) {
+            // Trying to open
+            if (!checkPlanLimit(store, "tournaments")) {
+                alert(
+                    `Tu plan actual (${store.settings.plan}) no incluye gestión de torneos. Actualiza al Plan Club.`,
+                );
+                return;
+            }
+        }
+        showForm = !showForm;
+    }
     import {
         Trophy,
         Calendar,
@@ -66,7 +81,7 @@
         </div>
         <div class="mt-4 sm:mt-0">
             <button
-                onclick={() => (showForm = !showForm)}
+                onclick={handleToggleForm}
                 class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
             >
                 <Plus class="w-5 h-5" />
