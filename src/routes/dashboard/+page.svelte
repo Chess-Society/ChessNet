@@ -99,6 +99,14 @@
         day: "numeric",
         month: "long",
     });
+
+    // Derived Stats
+    $: totalCapacity = store.classes.length * 20; // Assume 20 per class
+    $: totalStudents = store.students.length;
+    $: occupancyRate =
+        totalCapacity > 0
+            ? Math.round((totalStudents / totalCapacity) * 100)
+            : 0;
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,7 +116,7 @@
             <div>
                 <h2 class="text-3xl font-bold text-white">Dashboard</h2>
                 <p class="text-slate-400 mt-1">
-                    Bienvenido de vuelta, andreslgumuzio@gmail.com
+                    Bienvenido de vuelta, profesor.
                 </p>
             </div>
             <div class="text-right hidden sm:block">
@@ -135,7 +143,7 @@
                     class="text-emerald-500 text-xs mt-2 flex items-center font-medium"
                 >
                     <TrendingUp class="w-3 h-3 mr-1" />
-                    +0 este mes
+                    Activos
                 </p>
             </div>
             <div class="bg-blue-500/10 p-3 rounded-xl">
@@ -157,8 +165,8 @@
                 <p
                     class="text-emerald-500 text-xs mt-2 flex items-center font-medium"
                 >
-                    <TrendingUp class="w-3 h-3 mr-1" />
-                    +0 esta semana
+                    <Users class="w-3 h-3 mr-1" />
+                    Matriculados
                 </p>
             </div>
             <div class="bg-emerald-500/10 p-3 rounded-xl">
@@ -172,11 +180,13 @@
         >
             <div>
                 <p class="text-slate-400 text-sm font-medium">
-                    Ocupación Global
+                    Ocupación Estimada
                 </p>
-                <p class="text-3xl font-bold text-white mt-2">0%</p>
+                <p class="text-3xl font-bold text-white mt-2">
+                    {occupancyRate}%
+                </p>
                 <p class="text-slate-500 text-xs mt-2 font-medium">
-                    0/0 plazas
+                    {totalStudents}/{totalCapacity} plazas (aprox)
                 </p>
             </div>
             <div class="bg-purple-500/10 p-3 rounded-xl">
@@ -184,21 +194,23 @@
             </div>
         </div>
 
-        <!-- Ingresos (Mock) -->
+        <!-- Clases (Replaces Revenue for now) -->
         <div
             class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
         >
             <div>
                 <p class="text-slate-400 text-sm font-medium">
-                    Ingresos Mensuales
+                    Grupos / Clases
                 </p>
-                <p class="text-3xl font-bold text-white mt-2">0,00 €</p>
+                <p class="text-3xl font-bold text-white mt-2">
+                    {store.classes.length}
+                </p>
                 <p class="text-slate-500 text-xs mt-2 font-medium">
-                    Promedio 0,00 €/clase
+                    En funcionamiento
                 </p>
             </div>
             <div class="bg-yellow-500/10 p-3 rounded-xl">
-                <span class="text-xl font-bold text-yellow-500">$</span>
+                <BookOpen class="w-6 h-6 text-yellow-500" />
             </div>
         </div>
     </div>
@@ -212,7 +224,7 @@
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold text-white">Sesiones de Hoy</h3>
                 <span class="text-xs text-slate-500 flex items-center">
-                    <Clock class="w-3 h-3 mr-1" /> 0 programadas
+                    <Clock class="w-3 h-3 mr-1" /> 0 programadas hoy
                 </span>
             </div>
 
@@ -220,18 +232,48 @@
                 class="flex-1 flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-800 rounded-xl"
             >
                 <Calendar class="w-12 h-12 mb-4 opacity-50" />
-                <p>No hay clases programadas para hoy</p>
+                <p>
+                    No hay clases para hoy (Funcionalidad Calendario en proceso)
+                </p>
             </div>
         </div>
 
         <!-- Actividad Reciente -->
         <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6 h-80">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">Actividad Reciente</h3>
+                <h3 class="text-lg font-bold text-white">Resumen</h3>
                 <Activity class="w-4 h-4 text-slate-500" />
             </div>
-            <div class="text-center text-slate-500 mt-20">
-                <p class="text-sm">No hay actividad reciente</p>
+            <div class="space-y-4">
+                {#if store.students.length > 0}
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <span class="text-slate-300"
+                            >{store.students.length} Estudiantes totales</span
+                        >
+                    </div>
+                {/if}
+                {#if store.centers.length > 0}
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <span class="text-slate-300"
+                            >{store.centers.length} Centros gestionados</span
+                        >
+                    </div>
+                {/if}
+                {#if store.tournaments.length > 0}
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                        <span class="text-slate-300"
+                            >{store.tournaments.length} Torneos creados</span
+                        >
+                    </div>
+                {/if}
+                {#if store.students.length === 0 && store.centers.length === 0}
+                    <p class="text-slate-500 text-center mt-10">
+                        Sin actividad reciente.
+                    </p>
+                {/if}
             </div>
         </div>
     </div>
@@ -241,12 +283,7 @@
         <!-- Rendimiento por Centro -->
         <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">
-                    Rendimiento por Centro
-                </h3>
-                <button class="text-xs text-blue-400 hover:text-blue-300"
-                    >Ver todos</button
-                >
+                <h3 class="text-lg font-bold text-white">Centros Recientes</h3>
             </div>
             {#if store.centers.length === 0}
                 <div
@@ -260,7 +297,7 @@
                     </div>
                 </div>
             {:else}
-                {#each store.centers.slice(0, 2) as center}
+                {#each store.centers.slice(0, 3) as center}
                     <div
                         class="bg-slate-900/50 p-4 rounded-xl flex items-center justify-between mb-3 last:mb-0"
                     >
@@ -272,9 +309,6 @@
                                 {center.location}
                             </p>
                         </div>
-                        <span class="text-emerald-500 text-sm font-bold"
-                            >100%</span
-                        >
                     </div>
                 {/each}
             {/if}
@@ -283,16 +317,29 @@
         <!-- Estado de clases -->
         <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">
-                    Estado de las Clases
-                </h3>
-                <button class="text-xs text-blue-400 hover:text-blue-300"
-                    >Ver todas</button
-                >
+                <h3 class="text-lg font-bold text-white">Clases Principales</h3>
             </div>
-            <div class="text-center text-slate-500 mt-8">
-                <p class="text-sm">No hay datos suficientes</p>
-            </div>
+            {#if store.classes.length === 0}
+                <div class="text-center text-slate-500 mt-8">
+                    <p class="text-sm">No hay clases creadas</p>
+                </div>
+            {:else}
+                <div class="space-y-3">
+                    {#each store.classes.slice(0, 3) as cls}
+                        <div
+                            class="bg-slate-900/50 p-3 rounded-lg flex justify-between items-center"
+                        >
+                            <span class="text-slate-300 text-sm"
+                                >{cls.name}</span
+                            >
+                            <span
+                                class="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded"
+                                >{cls.level}</span
+                            >
+                        </div>
+                    {/each}
+                </div>
+            {/if}
         </div>
     </div>
 
