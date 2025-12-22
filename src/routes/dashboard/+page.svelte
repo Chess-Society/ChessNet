@@ -147,6 +147,48 @@
     </div>
 
     <!-- Stats Grid -->
+    <!-- Quick Actions -->
+    <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-8 mb-8">
+        <h3 class="text-xl font-bold text-white mb-6">Acciones Rápidas</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {#each actions as action}
+                <button
+                    onclick={() => navigate(action.link)}
+                    class="group flex flex-col items-start p-6 bg-[#0f172a] rounded-2xl border border-slate-800 transition-all duration-300 {action.hover} hover:shadow-xl hover:-translate-y-1 relative w-full text-left cursor-pointer"
+                >
+                    {#if action.badge}
+                        <span
+                            class="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full z-10"
+                            >{action.badge}</span
+                        >
+                    {/if}
+                    <div class="flex justify-between w-full">
+                        <svelte:component
+                            this={action.icon}
+                            class="w-10 h-10 mb-4 {action.color}"
+                        />
+                        <ChevronRight
+                            class="w-5 h-5 text-slate-700 group-hover:text-white transition-colors"
+                        />
+                    </div>
+
+                    <h4
+                        class="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors"
+                    >
+                        {action.title}
+                    </h4>
+                    <p
+                        class="text-sm text-slate-500 font-medium leading-relaxed"
+                    >
+                        {action.desc}
+                    </p>
+                </button>
+            {/each}
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Centros -->
         <div
@@ -415,43 +457,4 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-8">
-        <h3 class="text-xl font-bold text-white mb-6">Acciones Rápidas</h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {#each actions as action}
-                <button
-                    onclick={() => navigate(action.link)}
-                    class="group flex flex-col items-start p-6 bg-[#0f172a] rounded-2xl border border-slate-800 transition-all duration-300 {action.hover} hover:shadow-xl hover:-translate-y-1 relative w-full text-left cursor-pointer"
-                >
-                    {#if action.badge}
-                        <span
-                            class="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full z-10"
-                            >{action.badge}</span
-                        >
-                    {/if}
-                    <div class="flex justify-between w-full">
-                        <svelte:component
-                            this={action.icon}
-                            class="w-10 h-10 mb-4 {action.color}"
-                        />
-                        <ChevronRight
-                            class="w-5 h-5 text-slate-700 group-hover:text-white transition-colors"
-                        />
-                    </div>
-
-                    <h4
-                        class="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors"
-                    >
-                        {action.title}
-                    </h4>
-                    <p
-                        class="text-sm text-slate-500 font-medium leading-relaxed"
-                    >
-                        {action.desc}
-                    </p>
-                </button>
-            {/each}
-        </div>
-    </div>
 </div>
