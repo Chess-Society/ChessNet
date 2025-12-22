@@ -259,10 +259,11 @@
         transition:fade
     >
         <!-- Backdrop -->
-        <div
-            class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
+        <button
+            class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm w-full h-full cursor-default"
             onclick={() => (evaluatingSkill = null)}
-        ></div>
+            aria-label="Cerrar modal"
+        ></button>
 
         <!-- Modal Panel -->
         <div
