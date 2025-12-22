@@ -261,9 +261,25 @@
                     >
                         <div class="flex justify-between items-start mb-4">
                             <div>
-                                <h3 class="text-xl font-bold text-white">
-                                    {group.name}
-                                </h3>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-xl font-bold text-white">
+                                        {group.name}
+                                    </h3>
+                                    <button
+                                        onclick={() => editClass(group)}
+                                        class="text-slate-500 hover:text-white"
+                                        title="Editar Clase"
+                                    >
+                                        <Pencil class="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onclick={() => deleteClass(group.id)}
+                                        class="text-slate-500 hover:text-red-500"
+                                        title="Eliminar Clase"
+                                    >
+                                        <Trash2 class="w-4 h-4" />
+                                    </button>
+                                </div>
                                 <p class="text-slate-400 text-sm mt-1">
                                     {getCenterName(group.centerId)}
                                 </p>
