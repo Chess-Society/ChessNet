@@ -106,6 +106,11 @@
                         >BETA</span
                     ></a
                 >
+                <a
+                    href="{base}/roadmap"
+                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
+                    >Hoja de Ruta</a
+                >
             </div>
             <div class="hidden lg:flex lg:flex-1 lg:justify-end gap-4">
                 <button
@@ -175,6 +180,12 @@
                                         class="ml-2 text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30"
                                         >BETA</span
                                     ></a
+                                >
+                                <a
+                                    href="{base}/roadmap"
+                                    class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-slate-800"
+                                    onclick={() => (mobileMenuOpen = false)}
+                                    >Hoja de Ruta</a
                                 >
                             </div>
                             <div class="py-6">
