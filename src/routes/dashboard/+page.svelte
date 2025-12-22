@@ -107,6 +107,23 @@
         totalCapacity > 0
             ? Math.round((totalStudents / totalCapacity) * 100)
             : 0;
+
+    // Real Schedule Logic
+    const days = [
+        "Domingo",
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+    ];
+    const currentDayName = days[new Date().getDay()];
+
+    // Find classes that mention today's name in their schedule string
+    $: todaysClasses = store.classes.filter((c) =>
+        c.schedule.toLowerCase().includes(currentDayName.toLowerCase()),
+    );
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -222,19 +239,51 @@
             class="lg:col-span-2 bg-[#1e293b] rounded-2xl border border-slate-800 p-6 h-80 flex flex-col"
         >
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">Sesiones de Hoy</h3>
+                <h3 class="text-lg font-bold text-white">
+                    Sesiones de Hoy ({currentDayName})
+                </h3>
                 <span class="text-xs text-slate-500 flex items-center">
-                    <Clock class="w-3 h-3 mr-1" /> 0 programadas hoy
+                    <Clock class="w-3 h-3 mr-1" />
+                    {todaysClasses.length} programadas hoy
                 </span>
             </div>
 
-            <div
-                class="flex-1 flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-800 rounded-xl"
-            >
-                <Calendar class="w-12 h-12 mb-4 opacity-50" />
-                <p>
-                    No hay clases para hoy (Funcionalidad Calendario en proceso)
-                </p>
+            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-3">
+                {#if todaysClasses.length === 0}
+                    <div
+                        class="h-full flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-800 rounded-xl"
+                    >
+                        <Calendar class="w-12 h-12 mb-4 opacity-50" />
+                        <p>No hay clases para hoy</p>
+                    </div>
+                {:else}
+                    {#each todaysClasses as cls}
+                        <div
+                            class="bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center hover:bg-slate-800 transition-colors cursor-pointer"
+                            onclick={() => navigate("classes")}
+                        >
+                            <div>
+                                <h4 class="font-bold text-white">{cls.name}</h4>
+                                <p
+                                    class="text-sm text-slate-400 flex items-center gap-2"
+                                >
+                                    <Clock class="w-3 h-3" />
+                                    {cls.schedule}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <span
+                                    class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-2 py-1 rounded-full border border-emerald-500/20"
+                                >
+                                    {cls.level}
+                                </span>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    {cls.students.length} alumnos
+                                </p>
+                            </div>
+                        </div>
+                    {/each}
+                {/if}
             </div>
         </div>
 

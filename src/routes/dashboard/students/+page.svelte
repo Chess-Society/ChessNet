@@ -5,7 +5,14 @@
         type Student,
         type ClassGroup,
     } from "$lib/services/storage";
-    import { Users, Search, UserPlus, Trash2, Pencil } from "lucide-svelte";
+    import {
+        Users,
+        Search,
+        UserPlus,
+        Trash2,
+        Pencil,
+        FileUp,
+    } from "lucide-svelte";
     import { fade, scale, slide } from "svelte/transition";
     import {
         X,
@@ -47,6 +54,62 @@
         if (!cls) return "—";
         const center = store.centers.find((c) => c.id === cls.centerId);
         return center ? center.name : "—";
+    }
+
+    let fileInput: HTMLInputElement;
+
+    function triggerFileUpload() {
+        fileInput.click();
+    }
+
+    async function handleFileUpload(event: Event) {
+        const target = event.target as HTMLInputElement;
+        const file = target.files?.[0];
+        if (!file) return;
+
+        const text = await file.text();
+        const lines = text.split("\n");
+
+        let importedCount = 0;
+
+        lines.forEach((line) => {
+            const [name, levelRaw, email] = line
+                .split(",")
+                .map((s) => s.trim());
+
+            if (name && name.length > 2) {
+                // Map level text to internal ID if possible, else default
+                let level = "Pawn";
+                const lowerLevel = (levelRaw || "").toLowerCase();
+                if (
+                    lowerLevel.includes("alfil") ||
+                    lowerLevel.includes("intermedio")
+                )
+                    level = "Bishop";
+                if (
+                    lowerLevel.includes("torre") ||
+                    lowerLevel.includes("avanzado")
+                )
+                    level = "Rook";
+                if (
+                    lowerLevel.includes("rey") ||
+                    lowerLevel.includes("maestro")
+                )
+                    level = "King";
+
+                storeActions.addStudent({
+                    id: crypto.randomUUID(),
+                    name,
+                    level,
+                    email: email || "",
+                    notes: "Importado vía CSV",
+                });
+                importedCount++;
+            }
+        });
+
+        alert(`Se han importado ${importedCount} alumnos correctamente.`);
+        target.value = ""; // Reset
     }
 
     function openCreateForm() {
@@ -172,7 +235,6 @@
     }
 </script>
 
-```
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8"
@@ -198,6 +260,24 @@
                     class="bg-[#1e293b] border border-slate-700 text-white pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:border-emerald-500 w-64"
                 />
             </div>
+
+            <!-- Import Button -->
+            <input
+                type="file"
+                accept=".csv,.txt"
+                class="hidden"
+                bind:this={fileInput}
+                onchange={handleFileUpload}
+            />
+            <button
+                onclick={triggerFileUpload}
+                class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
+                title="Formato: Nombre, Nivel, Email"
+            >
+                <FileUp class="w-5 h-5" />
+                <span class="hidden sm:inline">Importar</span>
+            </button>
+
             <button
                 onclick={openCreateForm}
                 class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
