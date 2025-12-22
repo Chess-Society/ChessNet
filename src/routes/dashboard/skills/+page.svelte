@@ -10,8 +10,10 @@
         Shield,
         Book,
         Plus,
+        X,
+        Search,
     } from "lucide-svelte";
-    import { slide } from "svelte/transition";
+    import { slide, fade } from "svelte/transition";
 
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
@@ -24,6 +26,10 @@
         level: 1,
         description: "",
     };
+
+    // Evaluation State
+    let evaluatingSkill: Skill | null = null;
+    let evalSearchTerm = "";
 
     function handleSubmit() {
         if (!newSkill.name) return;
@@ -44,6 +50,16 @@
             description: "",
         };
         showForm = false;
+    }
+
+    function openEvaluation(skill: Skill) {
+        evaluatingSkill = skill;
+        evalSearchTerm = "";
+    }
+
+    function toggleStudentSkill(studentId: string) {
+        if (!evaluatingSkill) return;
+        storeActions.toggleStudentSkill(studentId, evaluatingSkill.id);
     }
 
     const getIcon = (category: string) => {
@@ -216,10 +232,14 @@
                                 class="flex items-center gap-2 text-sm text-slate-500"
                             >
                                 <CheckCircle class="w-4 h-4 text-green-500" />
-                                <span class="text-slate-300 font-medium">0</span
+                                <span class="text-slate-300 font-medium"
+                                    >{store.students.filter((s) =>
+                                        s.skills?.includes(skill.id),
+                                    ).length}</span
                                 > alumnos lo dominan
                             </div>
                             <button
+                                onclick={() => openEvaluation(skill)}
                                 class="text-yellow-500 text-sm font-semibold hover:underline cursor-pointer"
                             >
                                 Evaluar Grupo
@@ -231,3 +251,127 @@
         {/if}
     </div>
 </div>
+
+<!-- Evaluation Modal -->
+{#if evaluatingSkill}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        transition:fade
+    >
+        <!-- Backdrop -->
+        <div
+            class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
+            onclick={() => (evaluatingSkill = null)}
+        ></div>
+
+        <!-- Modal Panel -->
+        <div
+            class="relative bg-[#1e293b] border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
+        >
+            <!-- Header -->
+            <div
+                class="p-6 border-b border-slate-700 flex justify-between items-center"
+            >
+                <div>
+                    <h3
+                        class="text-xl font-bold text-white flex items-center gap-2"
+                    >
+                        <Award class="w-6 h-6 text-yellow-500" />
+                        Evaluando: {evaluatingSkill.name}
+                    </h3>
+                    <p class="text-slate-400 text-sm mt-1">
+                        Marca los alumnos que han dominado esta habilidad.
+                    </p>
+                </div>
+                <button
+                    onclick={() => (evaluatingSkill = null)}
+                    class="text-slate-500 hover:text-white transition-colors"
+                >
+                    <X class="w-6 h-6" />
+                </button>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="p-4 bg-slate-900/50 border-b border-slate-700">
+                <div class="relative">
+                    <Search
+                        class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
+                    />
+                    <input
+                        bind:value={evalSearchTerm}
+                        type="text"
+                        placeholder="Buscar alumno..."
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:border-yellow-500 outline-none"
+                    />
+                </div>
+            </div>
+
+            <!-- List -->
+            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {#each store.students.filter((s) => s.name
+                            .toLowerCase()
+                            .includes(evalSearchTerm.toLowerCase())) as student}
+                        <button
+                            onclick={() => toggleStudentSkill(student.id)}
+                            class="flex items-center justify-between p-3 rounded-xl border transition-all duration-200 {student.skills?.includes(
+                                evaluatingSkill.id,
+                            )
+                                ? 'bg-yellow-500/10 border-yellow-500/50'
+                                : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'}"
+                        >
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white"
+                                >
+                                    {student.name.substring(0, 2).toUpperCase()}
+                                </div>
+                                <div class="text-left">
+                                    <div class="font-bold text-white text-sm">
+                                        {student.name}
+                                    </div>
+                                    <div class="text-xs text-slate-500">
+                                        {student.level}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {#if student.skills?.includes(evaluatingSkill.id)}
+                                <div
+                                    class="w-6 h-6 rounded-full bg-yellow-500 text-black flex items-center justify-center"
+                                    transition:fade
+                                >
+                                    <CheckCircle class="w-4 h-4" />
+                                </div>
+                            {:else}
+                                <div
+                                    class="w-6 h-6 rounded-full border-2 border-slate-600"
+                                ></div>
+                            {/if}
+                        </button>
+                    {/each}
+
+                    {#if store.students.length === 0}
+                        <div
+                            class="col-span-full text-center py-8 text-slate-500"
+                        >
+                            No tienes alumnos registrados para evaluar.
+                        </div>
+                    {/if}
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div
+                class="p-4 border-t border-slate-700 bg-slate-900/50 rounded-b-2xl flex justify-end"
+            >
+                <button
+                    onclick={() => (evaluatingSkill = null)}
+                    class="bg-white text-slate-900 px-6 py-2 rounded-lg font-bold hover:bg-slate-200 transition-colors"
+                >
+                    Listo
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}

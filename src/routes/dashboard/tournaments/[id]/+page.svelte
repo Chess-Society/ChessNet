@@ -81,27 +81,81 @@
         const nextRound = rounds.length > 0 ? Math.max(...rounds) + 1 : 1;
         const newMatches: Match[] = [];
 
-        // Simple Random Pairing for MVP (Shuffle and pair)
-        // In a real app, use Swiss pairing logic here
-        const shuffled = [...participants].sort(() => 0.5 - Math.random());
+        // 1. Calculate Current Points for Pairing
+        const playerStats = participants.map((p) => {
+            let points = 0;
+            tournament?.matches.forEach((m) => {
+                if (m.result) {
+                    if (m.whiteId === p.id) {
+                        if (m.result === "1-0") points += 1;
+                        if (m.result === "0.5-0.5") points += 0.5;
+                    }
+                    if (m.blackId === p.id) {
+                        if (m.result === "0-1") points += 1;
+                        if (m.result === "0.5-0.5") points += 0.5;
+                    }
+                }
+            });
+            return { ...p, points };
+        });
 
-        for (let i = 0; i < shuffled.length; i += 2) {
-            if (i + 1 < shuffled.length) {
+        // 2. Sort by Points Descending (Swiss Standard)
+        // Add random sort for tie-breaking initial rounds or same scores
+        let pool = [...playerStats].sort(
+            (a, b) => b.points - a.points || 0.5 - Math.random(),
+        );
+
+        // 3. Pairing Loop
+        while (pool.length > 0) {
+            const p1 = pool.shift()!;
+
+            if (pool.length === 0) {
+                // Last player gets a Bye (if odd number)
                 newMatches.push({
                     id: crypto.randomUUID(),
                     round: nextRound,
-                    whiteId: shuffled[i].id,
-                    blackId: shuffled[i + 1].id,
-                    result: null,
+                    whiteId: p1.id,
+                    blackId: "BYE",
+                    result: "1-0", // Auto-win
                 });
-            } else {
-                // Bye logic could go here
+                break;
             }
+
+            // Find first opponent in the sorted pool they haven't played against
+            let p2Index = 0;
+            let foundUnplayed = false;
+
+            for (let i = 0; i < pool.length; i++) {
+                const candidate = pool[i];
+                const hasPlayed = tournament.matches.some(
+                    (m) =>
+                        (m.whiteId === p1.id && m.blackId === candidate.id) ||
+                        (m.blackId === p1.id && m.whiteId === candidate.id),
+                );
+
+                if (!hasPlayed) {
+                    p2Index = i;
+                    foundUnplayed = true;
+                    break;
+                }
+            }
+
+            // If everyone left has been played, fallback to the first available (Score Group priority)
+            // Ideally we would backtrack, but for MVP we allow repeat or suboptimal pairing
+            const p2 = pool.splice(p2Index, 1)[0];
+
+            newMatches.push({
+                id: crypto.randomUUID(),
+                round: nextRound,
+                whiteId: p1.id,
+                blackId: p2.id,
+                result: null,
+            });
         }
 
         const updatedTournament = {
             ...tournament,
-            status: "Ongoing" as const, // Force status to Ongoing
+            status: "Ongoing" as const,
             matches: [...tournament.matches, ...newMatches],
         };
         storeActions.updateTournament(updatedTournament);
@@ -149,7 +203,8 @@
         .sort((a, b) => b.points - a.points);
 
     function getStudentName(id: string) {
-        return store.students.find((s) => s.id === id)?.name || "Unknown";
+        if (id === "BYE") return "Descanso (Bye)";
+        return store.students.find((s) => s.id === id)?.name || "Desconocido";
     }
 </script>
 

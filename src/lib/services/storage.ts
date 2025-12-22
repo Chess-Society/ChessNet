@@ -16,6 +16,7 @@ export interface Student {
     level: string;
     centerId?: string;
     notes?: string;
+    skills?: string[]; // IDs of acquired skills
 }
 
 export interface ClassGroup {
@@ -31,8 +32,8 @@ export interface Skill {
     id: string;
     name: string;
     category: 'Tactics' | 'Strategy' | 'Endgame' | 'Openings';
-    participants: number;
-    format: 'Suizo' | 'Round Robin' | 'Eliminatoria';
+    level: number;
+    description: string;
 }
 
 export interface AttendanceRecord {
@@ -170,6 +171,22 @@ export const storeActions = {
     },
     removeStudent: (id: string) => {
         appStore.update(s => ({ ...s, students: s.students.filter(stud => stud.id !== id) }));
+    },
+    toggleStudentSkill: (studentId: string, skillId: string) => {
+        appStore.update(s => ({
+            ...s,
+            students: s.students.map(std => {
+                if (std.id !== studentId) return std;
+                const currentSkills = std.skills || [];
+                const hasSkill = currentSkills.includes(skillId);
+                return {
+                    ...std,
+                    skills: hasSkill
+                        ? currentSkills.filter(id => id !== skillId)
+                        : [...currentSkills, skillId]
+                };
+            })
+        }));
     },
     addClass: (cls: ClassGroup) => {
         appStore.update(s => ({ ...s, classes: [...s.classes, cls] }));
