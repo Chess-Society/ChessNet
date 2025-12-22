@@ -93,10 +93,13 @@
             </h3>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="skill-name"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Nombre de la Habilidad</label
                     >
                     <input
+                        id="skill-name"
                         bind:value={newSkill.name}
                         type="text"
                         placeholder="Ej: Mate del Pasillo"
@@ -106,10 +109,12 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label
+                            for="skill-category"
                             class="block text-sm font-medium text-slate-400 mb-1"
                             >Categoría</label
                         >
                         <select
+                            id="skill-category"
                             bind:value={newSkill.category}
                             class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
                         >
@@ -121,10 +126,12 @@
                     </div>
                     <div>
                         <label
+                            for="skill-level"
                             class="block text-sm font-medium text-slate-400 mb-1"
                             >Nivel (1-5)</label
                         >
                         <input
+                            id="skill-level"
                             bind:value={newSkill.level}
                             type="number"
                             min="1"
@@ -134,10 +141,13 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="skill-description"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Descripción</label
                     >
                     <textarea
+                        id="skill-description"
                         bind:value={newSkill.description}
                         rows="2"
                         class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"

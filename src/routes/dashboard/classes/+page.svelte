@@ -87,10 +87,13 @@
             <h3 class="text-lg font-bold text-white mb-4">Crear Nuevo Grupo</h3>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="class-name"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Nombre del Grupo</label
                     >
                     <input
+                        id="class-name"
                         bind:value={newClass.name}
                         type="text"
                         placeholder="Ej: Iniciación Lunes"
@@ -98,10 +101,13 @@
                     />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="class-center"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Centro Educativo</label
                     >
                     <select
+                        id="class-center"
                         bind:value={newClass.centerId}
                         class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
                     >
@@ -112,10 +118,13 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="class-schedule"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Horario Habitual</label
                     >
                     <input
+                        id="class-schedule"
                         bind:value={newClass.schedule}
                         type="text"
                         placeholder="Ej: Lunes 17:00"
