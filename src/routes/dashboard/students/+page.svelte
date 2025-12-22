@@ -46,6 +46,16 @@
         student.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
+    function translateLevel(level: string): string {
+        const map: Record<string, string> = {
+            Pawn: "Peón",
+            Bishop: "Alfil",
+            Rook: "Torre",
+            King: "Rey",
+        };
+        return map[level] || level;
+    }
+
     // Helper to find student's class
     function getStudentClass(studentId: string): ClassGroup | undefined {
         return store.classes.find((c) => c.students.includes(studentId));
@@ -579,7 +589,9 @@
                             <span
                                 class="bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded-full text-xs font-bold border border-blue-500/30"
                             >
-                                Nivel: {selectedStudentForReport.level}
+                                Nivel: {translateLevel(
+                                    selectedStudentForReport.level,
+                                )}
                             </span>
                         </div>
                     </div>
@@ -641,43 +653,6 @@
                         >
                             {skillProgress}% COMPLETADO
                         </div>
-                    </div>
-
-                    <div class="space-y-3">
-                        {#if studentSkills.length > 0}
-                            <div
-                                class="skills-container max-h-56 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 pr-2"
-                            >
-                                {#each studentSkills as skill}
-                                    <div
-                                        class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3 flex items-start gap-3 break-inside-avoid page-break-inside-avoid"
-                                    >
-                                        <div class="mt-0.5 min-w-[16px]">
-                                            <Award
-                                                class="w-4 h-4 text-purple-400"
-                                            />
-                                        </div>
-                                        <div>
-                                            <p
-                                                class="text-white text-sm font-bold leading-tight"
-                                            >
-                                                {skill.name}
-                                            </p>
-                                            <p
-                                                class="text-purple-300 text-xs mt-0.5 opacity-70"
-                                            >
-                                                {skill.category || "General"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                {/each}
-                            </div>
-                        {:else}
-                            <p class="text-slate-500 text-sm italic">
-                                Aún no se han registrado habilidades
-                                completadas.
-                            </p>
-                        {/if}
                     </div>
                 </div>
 
