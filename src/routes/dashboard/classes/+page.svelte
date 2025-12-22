@@ -16,6 +16,10 @@
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
 
+    import { fade, scale } from "svelte/transition";
+    import { X, UserPlus as UserPlusIcon, Trash2, Search } from "lucide-svelte";
+    import { base } from "$app/paths";
+
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
 
@@ -28,6 +32,60 @@
         level: "Pawn",
         students: [],
     };
+
+    // Manage Students Modal State
+    let showManageModal = false;
+    let selectedClassForManage: ClassGroup | null = null;
+    let studentSearchTerm = "";
+
+    function openManageModal(group: ClassGroup) {
+        selectedClassForManage = group;
+        studentSearchTerm = "";
+        showManageModal = true;
+    }
+
+    function addStudentToClass(studentId: string) {
+        if (selectedClassForManage) {
+            storeActions.addClassMember(selectedClassForManage.id, studentId);
+            // Update local reference to reflect changes immediately in UI
+            selectedClassForManage = {
+                ...selectedClassForManage,
+                students: [...selectedClassForManage.students, studentId],
+            };
+        }
+    }
+
+    function removeStudentFromClass(studentId: string) {
+        if (selectedClassForManage) {
+            storeActions.removeClassMember(
+                selectedClassForManage.id,
+                studentId,
+            );
+            // Update local reference
+            selectedClassForManage = {
+                ...selectedClassForManage,
+                students: selectedClassForManage.students.filter(
+                    (id) => id !== studentId,
+                ),
+            };
+        }
+    }
+
+    function getStudentName(id: string) {
+        const s = store.students.find((stud) => stud.id === id);
+        return s ? s.name : "Alumno Desconocido";
+    }
+
+    // Filter students NOT in the class for the "Add" list
+    $: availableStudents = selectedClassForManage
+        ? store.students.filter(
+              (s) =>
+                  !selectedClassForManage?.students.includes(s.id) &&
+                  s.name
+                      .toLowerCase()
+                      .includes(studentSearchTerm.toLowerCase()),
+          )
+        : [];
 
     function handleSubmit() {
         if (!newClass.name) return;
@@ -168,7 +226,7 @@
             {:else}
                 {#each store.classes as group}
                     <div
-                        class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 hover:shadow-xl hover:border-purple-500/30 transition-all"
+                        class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 hover:shadow-xl hover:border-purple-500/30 transition-all flex flex-col"
                     >
                         <div class="flex justify-between items-start mb-4">
                             <div>
@@ -186,7 +244,7 @@
                             </span>
                         </div>
 
-                        <div class="space-y-3 mb-6">
+                        <div class="space-y-3 mb-6 flex-1">
                             <div
                                 class="flex items-center text-slate-400 text-sm"
                             >
@@ -201,17 +259,19 @@
                             </div>
                         </div>
 
-                        <div class="flex gap-2">
-                            <button
-                                class="flex-1 bg-emerald-600/10 text-emerald-400 border border-emerald-600/20 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-600 hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                        <div class="flex gap-2 mt-auto">
+                            <a
+                                href="{base}/dashboard/attendance?classId={group.id}"
+                                class="flex-1 bg-emerald-600/10 text-emerald-400 border border-emerald-600/20 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-600 hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer no-underline"
                             >
                                 <CheckCircle2 class="w-4 h-4" />
                                 Pasar Lista
-                            </button>
+                            </a>
                             <button
+                                onclick={() => openManageModal(group)}
                                 class="flex-1 bg-slate-800 text-slate-300 py-2 rounded-xl text-sm font-semibold hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
                             >
-                                Detalles
+                                Alumnos
                             </button>
                         </div>
                     </div>
@@ -220,3 +280,140 @@
         </div>
     </div>
 </div>
+
+<!-- Manage Students Modal -->
+{#if showManageModal && selectedClassForManage}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        transition:fade
+    >
+        <div
+            class="bg-[#1e293b] border border-slate-700 rounded-2xl w-full max-w-2xl shadow-2xl relative flex flex-col max-h-[85vh]"
+            transition:scale
+        >
+            <div
+                class="p-6 border-b border-slate-700 flex justify-between items-center"
+            >
+                <div>
+                    <h2 class="text-xl font-bold text-white">
+                        Gestionar Alumnos
+                    </h2>
+                    <p class="text-slate-400 text-sm">
+                        {selectedClassForManage.name}
+                    </p>
+                </div>
+                <button
+                    onclick={() => (showManageModal = false)}
+                    class="text-slate-400 hover:text-white transition-colors"
+                >
+                    <X class="w-6 h-6" />
+                </button>
+            </div>
+
+            <div
+                class="flex-1 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-slate-700"
+            >
+                <!-- Current Members -->
+                <div class="flex-1 p-6 overflow-y-auto custom-scrollbar">
+                    <h3
+                        class="text-sm font-bold text-slate-300 uppercase mb-4 flex items-center gap-2"
+                    >
+                        <Users class="w-4 h-4" /> Inscritos ({selectedClassForManage
+                            .students.length})
+                    </h3>
+                    {#if selectedClassForManage.students.length === 0}
+                        <p class="text-slate-500 text-sm italic">
+                            No hay alumnos en este grupo.
+                        </p>
+                    {:else}
+                        <div class="space-y-2">
+                            {#each selectedClassForManage.students as studentId}
+                                <div
+                                    class="bg-slate-800/50 p-2 rounded-lg flex justify-between items-center group"
+                                >
+                                    <span class="text-slate-200 text-sm"
+                                        >{getStudentName(studentId)}</span
+                                    >
+                                    <button
+                                        onclick={() =>
+                                            removeStudentFromClass(studentId)}
+                                        class="text-slate-500 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-all"
+                                        title="Eliminar del grupo"
+                                    >
+                                        <Trash2 class="w-4 h-4" />
+                                    </button>
+                                </div>
+                            {/each}
+                        </div>
+                    {/if}
+                </div>
+
+                <!-- Add New -->
+                <div class="flex-1 p-6 flex flex-col bg-slate-900/30">
+                    <h3
+                        class="text-sm font-bold text-emerald-400 uppercase mb-4 flex items-center gap-2"
+                    >
+                        <UserPlusIcon class="w-4 h-4" /> Añadir Alumno
+                    </h3>
+
+                    <div class="relative mb-4">
+                        <Search
+                            class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
+                        />
+                        <input
+                            bind:value={studentSearchTerm}
+                            type="text"
+                            placeholder="Buscar alumno..."
+                            class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                        />
+                    </div>
+
+                    <div
+                        class="flex-1 overflow-y-auto custom-scrollbar space-y-2"
+                    >
+                        {#if availableStudents.length === 0}
+                            <p class="text-slate-500 text-sm text-center py-4">
+                                {studentSearchTerm
+                                    ? "No se encontraron alumnos."
+                                    : "Busca un alumno para añadir."}
+                            </p>
+                        {:else}
+                            {#each availableStudents as student}
+                                <button
+                                    onclick={() =>
+                                        addStudentToClass(student.id)}
+                                    class="w-full text-left bg-slate-800 border border-slate-700 hover:border-emerald-500/50 p-2 rounded-lg flex justify-between items-center group transition-colors"
+                                >
+                                    <div>
+                                        <p
+                                            class="text-slate-200 text-sm font-medium"
+                                        >
+                                            {student.name}
+                                        </p>
+                                        <p class="text-slate-500 text-xs">
+                                            {student.level}
+                                        </p>
+                                    </div>
+                                    <Plus
+                                        class="w-4 h-4 text-slate-500 group-hover:text-emerald-500"
+                                    />
+                                </button>
+                            {/each}
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="p-4 border-t border-slate-700 text-right bg-slate-900/50 rounded-b-2xl"
+            >
+                <button
+                    onclick={() => (showManageModal = false)}
+                    class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg text-sm font-bold transition-colors"
+                >
+                    Listo
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
