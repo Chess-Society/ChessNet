@@ -227,14 +227,18 @@
         classesAttended: 0,
         totalClasses: 0,
     };
+    let studentSkillsNames: string[] = [];
 
     function generateReport(student: Student) {
-        selectedStudentForReport = { ...student }; // Copy
+        // Fetch latest student object to ensure up-to-date skills/notes
+        const freshStudent =
+            store.students.find((s) => s.id === student.id) ?? student;
+        selectedStudentForReport = { ...freshStudent };
 
         // Calculate Stats
         const studentRecords = store.attendance.flatMap((r) =>
             r.records
-                .filter((rec) => rec.studentId === student.id)
+                .filter((rec) => rec.studentId === freshStudent.id)
                 .map((rec) => ({ date: r.date, status: rec.status })),
         );
 
@@ -248,6 +252,15 @@
             classesAttended: present,
             attendanceRate: total > 0 ? Math.round((present / total) * 100) : 0,
         };
+
+        // Resolve Skills names for the report
+        if (freshStudent.skills && freshStudent.skills.length > 0) {
+            studentSkillsNames = store.skills
+                .filter((skill) => freshStudent.skills?.includes(skill.id))
+                .map((skill) => skill.name);
+        } else {
+            studentSkillsNames = [];
+        }
 
         showReportModal = true;
     }
@@ -610,87 +623,22 @@
                     </h4>
 
                     <div class="space-y-3">
-                        {#if selectedStudentForReport.level === "Pawn"}
-                            <div
-                                class="flex items-center justify-between text-sm"
-                            >
-                                <span class="text-slate-300"
-                                    >Movimiento de Piezas</span
-                                >
-                                <span class="text-emerald-400 font-bold"
-                                    >100%</span
-                                >
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-1.5">
-                                <div
-                                    class="bg-emerald-500 h-1.5 rounded-full"
-                                    style="width: 100%"
-                                ></div>
-                            </div>
-
-                            <div
-                                class="flex items-center justify-between text-sm mt-3"
-                            >
-                                <span class="text-slate-300">Mates Básicos</span
-                                >
-                                <span class="text-yellow-400 font-bold"
-                                    >45%</span
-                                >
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-1.5">
-                                <div
-                                    class="bg-yellow-500 h-1.5 rounded-full"
-                                    style="width: 45%"
-                                ></div>
-                            </div>
-                        {:else if selectedStudentForReport.level === "Bishop"}
-                            <div
-                                class="flex items-center justify-between text-sm"
-                            >
-                                <span class="text-slate-300"
-                                    >Táctica Elemental</span
-                                >
-                                <span class="text-emerald-400 font-bold"
-                                    >80%</span
-                                >
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-1.5">
-                                <div
-                                    class="bg-emerald-500 h-1.5 rounded-full"
-                                    style="width: 80%"
-                                ></div>
-                            </div>
-                            <div
-                                class="flex items-center justify-between text-sm mt-3"
-                            >
-                                <span class="text-slate-300"
-                                    >Aperturas Abiertas</span
-                                >
-                                <span class="text-blue-400 font-bold">60%</span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-1.5">
-                                <div
-                                    class="bg-blue-500 h-1.5 rounded-full"
-                                    style="width: 60%"
-                                ></div>
+                        {#if studentSkillsNames.length > 0}
+                            <div class="flex flex-wrap gap-2">
+                                {#each studentSkillsNames as skillName}
+                                    <span
+                                        class="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm border border-purple-500/30 flex items-center gap-1"
+                                    >
+                                        <Award class="w-3 h-3" />
+                                        {skillName}
+                                    </span>
+                                {/each}
                             </div>
                         {:else}
-                            <div
-                                class="flex items-center justify-between text-sm"
-                            >
-                                <span class="text-slate-300"
-                                    >Estrategia Avanzada</span
-                                >
-                                <span class="text-purple-400 font-bold"
-                                    >75%</span
-                                >
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-1.5">
-                                <div
-                                    class="bg-purple-500 h-1.5 rounded-full"
-                                    style="width: 75%"
-                                ></div>
-                            </div>
+                            <p class="text-slate-500 text-sm italic">
+                                Aún no se han registrado habilidades
+                                completadas.
+                            </p>
                         {/if}
                     </div>
                 </div>
