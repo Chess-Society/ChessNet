@@ -326,7 +326,7 @@
                 </p>
                 <p class="text-slate-300">
                     ¿Tienes sugerencias? <a
-                        href="https://discord.gg/chessnet"
+                        href="https://discord.gg/G7SrFtJHnr"
                         class="text-emerald-400 hover:text-emerald-300 font-medium"
                         >Únete a nuestra comunidad en Discord</a
                     >.
