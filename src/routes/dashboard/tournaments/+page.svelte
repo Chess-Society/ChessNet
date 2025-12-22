@@ -106,10 +106,12 @@
                     </div>
                     <div>
                         <label
+                            for="tournament-format"
                             class="block text-sm font-medium text-slate-400 mb-1"
                             >Formato</label
                         >
                         <select
+                            id="tournament-format"
                             bind:value={newTournament.format}
                             class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
                         >

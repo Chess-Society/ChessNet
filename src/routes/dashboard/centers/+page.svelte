@@ -72,10 +72,13 @@
             </h3>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="center-name"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Nombre del Centro</label
                     >
                     <input
+                        id="center-name"
                         bind:value={newCenter.name}
                         type="text"
                         placeholder="Ej: Colegio San José"
@@ -83,7 +86,9 @@
                     />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1"
+                    <label
+                        for="center-location"
+                        class="block text-sm font-medium text-slate-400 mb-1"
                         >Ubicación</label
                     >
                     <div class="relative">
