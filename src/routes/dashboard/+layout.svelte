@@ -42,14 +42,24 @@
                 <Layout class="w-5 h-5" /> Dashboard
             </a>
             <a
-                href="{base}/dashboard/lessons"
+                href="{base}/dashboard/centers"
                 class="w-full text-left px-4 py-3 flex items-center gap-3 rounded-xl font-medium transition-all {currentPath.includes(
-                    '/lessons',
+                    '/centers',
                 )
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'}"
             >
-                <BookOpen class="w-5 h-5" /> Lecciones
+                <School class="w-5 h-5" /> Centros
+            </a>
+            <a
+                href="{base}/dashboard/classes"
+                class="w-full text-left px-4 py-3 flex items-center gap-3 rounded-xl font-medium transition-all {currentPath.includes(
+                    '/classes',
+                )
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'}"
+            >
+                <BookOpen class="w-5 h-5" /> Clases
             </a>
             <a
                 href="{base}/dashboard/students"
@@ -60,6 +70,16 @@
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'}"
             >
                 <Users class="w-5 h-5" /> Alumnos
+            </a>
+            <a
+                href="{base}/dashboard/skills"
+                class="w-full text-left px-4 py-3 flex items-center gap-3 rounded-xl font-medium transition-all {currentPath.includes(
+                    '/skills',
+                )
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'}"
+            >
+                <Target class="w-5 h-5" /> Habilidades
             </a>
             <a
                 href="{base}/dashboard/tournaments"
