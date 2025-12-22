@@ -93,7 +93,7 @@
 
         <!-- Timeline -->
         <div class="space-y-8">
-            <!-- Q1 2025 -->
+            <!-- Q1 2026 -->
             <div in:fly={{ y: 50, duration: 800, delay: 200 }} class="relative">
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
@@ -134,7 +134,7 @@
                 </div>
             </div>
 
-            <!-- Q2 2025 -->
+            <!-- Q2 2026 -->
             <div in:fly={{ y: 50, duration: 800, delay: 300 }} class="relative">
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
@@ -179,7 +179,7 @@
                 </div>
             </div>
 
-            <!-- Q3 2025 -->
+            <!-- Q3 2026 -->
             <div in:fly={{ y: 50, duration: 800, delay: 400 }} class="relative">
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
@@ -222,7 +222,7 @@
                 </div>
             </div>
 
-            <!-- Q4 2025 -->
+            <!-- Q4 2026 -->
             <div in:fly={{ y: 50, duration: 800, delay: 500 }} class="relative">
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
@@ -266,7 +266,7 @@
                 </div>
             </div>
 
-            <!-- Futuro -->
+            <!-- 2027+ -->
             <div in:fly={{ y: 50, duration: 800, delay: 600 }} class="relative">
                 <div class="flex items-start gap-6">
                     <div class="flex-shrink-0 w-24 text-right">
