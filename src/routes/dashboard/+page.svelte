@@ -264,8 +264,8 @@
                     </div>
                 {:else}
                     {#each todaysClasses as cls}
-                        <div
-                            class="bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center hover:bg-slate-800 transition-colors cursor-pointer"
+                        <button
+                            class="w-full text-left bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center hover:bg-slate-800 transition-colors cursor-pointer"
                             onclick={() => navigate("classes")}
                         >
                             <div>
@@ -287,7 +287,7 @@
                                     {cls.students.length} alumnos
                                 </p>
                             </div>
-                        </div>
+                        </button>
                     {/each}
                 {/if}
             </div>
