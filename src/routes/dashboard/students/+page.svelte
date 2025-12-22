@@ -41,13 +41,11 @@
 
     function deleteStudent(id: string) {
         if (confirm("¿Estás seguro de eliminar este alumno?")) {
-            // In a real app we would have a removeStudent action
+            // TODO: Implement removeStudent in storage.ts and then uncomment this.
             // storeActions.removeStudent(id);
-            // Since we didn't implement removeStudent in storeActions yet, let's mock it or leave it.
-            // Wait, I should verify storeActions in storage.ts. I think I added addStudent but maybe not removeStudent?
-            // Checking storage.ts created earlier: yes, I implemented addStudent, removeCenter. I did NOT implement removeStudent.
-            // I will skip the delete button for students for now to avoid errors, or implement it in storage.ts next.
-            // I'll just skip the delete button in the UI for now to be safe.
+            alert(
+                "Funcionalidad de eliminar estudiante pendiente de implementación en el store.",
+            );
         }
     }
 </script>

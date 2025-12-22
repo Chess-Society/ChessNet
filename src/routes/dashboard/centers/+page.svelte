@@ -166,7 +166,7 @@
                             <MapPin class="w-4 h-4 mr-2" />
                             {center.location}
                         </div>
-                        <!-- Mocked counts for now as we don't assume data consistency yet -->
+                        <!-- TODO: Calculate actual student count once relation is implemented -->
                         <div class="flex items-center text-slate-400 text-sm">
                             <Users class="w-4 h-4 mr-2" />
                             0 Alumnos
