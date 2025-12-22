@@ -16,6 +16,9 @@
     import { slide } from "svelte/transition";
     import { base } from "$app/paths";
 
+    import { page } from "$app/stores";
+    import { onMount } from "svelte";
+
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
 
@@ -23,6 +26,13 @@
     let selectedDate = new Date().toISOString().split("T")[0];
     let attendanceStatus: Record<string, "present" | "absent" | "excused"> = {};
     let saveMessage = "";
+
+    onMount(() => {
+        const classIdParam = $page.url.searchParams.get("classId");
+        if (classIdParam) {
+            selectedClassId = classIdParam;
+        }
+    });
 
     // Derived values
     $: selectedClass = store.classes.find((c) => c.id === selectedClassId);
