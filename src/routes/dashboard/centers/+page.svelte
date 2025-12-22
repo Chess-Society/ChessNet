@@ -58,78 +58,77 @@
         </div>
     </div>
 
-    <!-- Content Grid -->
-    <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {#if loading}
-            {#each Array(3) as _}
-                <div
-                    class="animate-pulse bg-[#1e293b] rounded-2xl h-48 border border-slate-700/50"
-                ></div>
-            {/each}
-        {:else}
-            {#each centers as center}
-                <div
-                    class="relative flex flex-col overflow-hidden rounded-2xl bg-[#1e293b] border border-slate-700/50 transition duration-300 hover:shadow-xl hover:border-slate-600 group"
-                >
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="rounded-lg bg-blue-900/30 p-2">
-                                    <School class="h-6 w-6 text-blue-400" />
-                                </div>
-                                <h3
-                                    class="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors"
-                                >
-                                    {center.name}
-                                </h3>
-                            </div>
-                            <span
-                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {center.status ===
-                                'active'
-                                    ? 'bg-green-400/10 text-green-400'
-                                    : 'bg-red-400/10 text-red-400'}"
-                            >
-                                {center.status === "active"
-                                    ? "Activo"
-                                    : "Inactivo"}
-                            </span>
-                        </div>
+            <Plus class="w-5 h-5" />
+            Nuevo Centro
+        </button>
+    </div>
 
-                        <div class="mt-6 space-y-3">
-                            <div
-                                class="flex items-center text-sm text-slate-400"
-                            >
-                                <MapPin class="mr-2 h-4 w-4 text-slate-500" />
-                                {center.location}
-                            </div>
-                            <div
-                                class="flex items-center text-sm text-slate-400"
-                            >
-                                <Users class="mr-2 h-4 w-4 text-slate-500" />
-                                {center.studentCount} Alumnos
-                            </div>
-                            <div
-                                class="flex items-center text-sm text-slate-400"
-                            >
-                                <Activity class="mr-2 h-4 w-4 text-slate-500" />
-                                {center.activeGroups} Grupos Activos
-                            </div>
+    {#if showForm}
+        <div transition:slide class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl">
+            <h3 class="text-lg font-bold text-white mb-4">Añadir Nuevo Centro</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Nombre del Centro</label>
+                    <input bind:value={newCenter.name} type="text" placeholder="Ej: Colegio San José" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Ubicación</label>
+                    <div class="relative">
+                        <MapPin class="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+                        <input bind:value={newCenter.location} type="text" placeholder="Ciudad, Barrio o Dirección" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-blue-500" />
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button onclick={() => showForm = false} class="text-slate-400 hover:text-white px-4 py-2">Cancelar</button>
+                    <button onclick={handleSubmit} class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium">Guardar Centro</button>
+                </div>
+            </div>
+        </div>
+    {/if}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {#if store.centers.length === 0}
+            <div class="col-span-full py-12 text-center bg-[#1e293b]/50 rounded-3xl border border-dashed border-slate-700">
+                <School class="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                <h3 class="text-xl font-bold text-white mb-2">No hay centros registrados</h3>
+                <p class="text-slate-400 mb-6">Añade tu primer centro educativo para empezar.</p>
+                <button
+                    onclick={() => showForm = true}
+                    class="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-6 py-2 rounded-xl font-medium transition-all"
+                >
+                    Añadir Centro
+                </button>
+            </div>
+        {:else}
+            {#each store.centers as center}
+                 <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 hover:shadow-xl hover:border-blue-500/30 transition-all group relative">
+                    <button onclick={() => deleteCenter(center.id)} class="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 class="w-4 h-4" />
+                    </button>
+                    
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="bg-blue-500/10 p-3 rounded-xl">
+                            <Building class="w-6 h-6 text-blue-500" />
                         </div>
                     </div>
-                    <div
-                        class="bg-slate-800/50 px-6 py-4 flex justify-between items-center"
-                    >
-                        <button
-                            class="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
-                        >
-                            Administrar
-                        </button>
-                        <button
-                            class="text-sm font-medium text-slate-400 hover:text-white transition-colors cursor-pointer"
-                        >
-                            Ver Detalles
-                        </button>
+                    
+                    <h3 class="text-xl font-bold text-white mb-2">{center.name}</h3>
+                    
+                    <div class="space-y-2 mb-6">
+                        <div class="flex items-center text-slate-400 text-sm">
+                            <MapPin class="w-4 h-4 mr-2" />
+                            {center.location}
+                        </div>
+                         <!-- Mocked counts for now as we don't assume data consistency yet -->
+                         <div class="flex items-center text-slate-400 text-sm">
+                            <Users class="w-4 h-4 mr-2" />
+                            0 Alumnos
+                        </div>
                     </div>
+
+                    <button class="w-full bg-slate-800 text-slate-300 py-2 rounded-xl text-sm font-semibold group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        Ver Detalles
+                    </button>
                 </div>
             {/each}
         {/if}

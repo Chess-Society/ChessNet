@@ -22,138 +22,121 @@
         switch (level) {
             case "King":
                 return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
-            case "Queen":
-                return "text-purple-400 bg-purple-400/10 border-purple-400/20";
-            case "Rook":
-                return "text-blue-400 bg-blue-400/10 border-blue-400/20";
-            case "Bishop":
-                return "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
-            case "Knight":
-                return "text-orange-400 bg-orange-400/10 border-orange-400/20";
-            default:
-                return "text-slate-400 bg-slate-400/10 border-slate-400/20";
-        }
+    import { appStore, storeActions, type Student } from "$lib/services/storage";
+    import { Users, Search, Filter, Plus, UserPlus, Trash2 } from "lucide-svelte";
+    import { slide } from "svelte/transition";
+
+    let store = $appStore;
+    appStore.subscribe(value => store = value);
+
+    let searchTerm = "";
+    let showForm = false;
+    let newStudent: Student = {
+        id: '',
+        name: '',
+        level: 'Pawn',
+        email: '',
+        notes: ''
     };
+
+    $: filteredStudents = store.students.filter(student => 
+        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    function handleSubmit() {
+        if (!newStudent.name) return;
+        
+        const studentToAdd = {
+            ...newStudent,
+            id: crypto.randomUUID()
+        };
+        
+        storeActions.addStudent(studentToAdd);
+        
+        // Reset form
+        newStudent = { id: '', name: '', level: 'Pawn', email: '', notes: '' };
+        showForm = false;
+    }
 </script>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-    >
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
             <h1 class="text-3xl font-bold text-white flex items-center gap-3">
-                <Users class="w-8 h-8 text-emerald-400" /> Estudiantes
+                <Users class="w-8 h-8 text-emerald-500" /> Estudiantes
             </h1>
-            <p class="mt-2 text-sm text-slate-400">
-                Gestión de alumnos, progreso y estadísticas.
+            <p class="mt-2 text-slate-400">
+                Directorio completo de alumnos.
             </p>
         </div>
-        <div class="flex gap-2">
-            <div class="relative">
-                <Search
-                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-                />
-                <input
-                    type="text"
-                    placeholder="Buscar alumno..."
-                    class="bg-[#1e293b] border border-slate-700 text-white text-sm rounded-xl pl-10 pr-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none w-64"
-                />
+        <div class="flex gap-3">
+             <div class="relative">
+                <Search class="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+                <input 
+                    bind:value={searchTerm}
+                    type="text" 
+                    placeholder="Buscar alumno..." 
+                    class="bg-[#1e293b] border border-slate-700 text-white pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:border-emerald-500 w-64"
+                >
             </div>
             <button
-                class="bg-[#1e293b] border border-slate-700 text-slate-300 p-2 rounded-xl hover:text-white hover:border-slate-500 transition-colors"
+                onclick={() => showForm = !showForm}
+                class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors"
             >
-                <Filter class="w-5 h-5" />
+                <UserPlus class="w-5 h-5" />
+                Nuevo Alumno
             </button>
         </div>
     </div>
 
-    <!-- Students Table/Grid -->
-    <div
-        class="mt-8 bg-[#1e293b] border border-slate-700/50 rounded-2xl overflow-hidden shadow-xl"
-    >
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-slate-400">
-                <thead
-                    class="bg-slate-800/50 text-xs uppercase font-semibold text-slate-300"
-                >
+    {#if showForm}
+        <div transition:slide class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl">
+            <h3 class="text-lg font-bold text-white mb-4">Matricular Nuevo Alumno</h3>
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Nombre Completo</label>
+                        <input bind:value={newStudent.name} type="text" placeholder="Ej: Magnus Carlsen" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500" />
+                    </div>
+                    <div>
+                         <label class="block text-sm font-medium text-slate-400 mb-1">Nivel Inicial</label>
+                         <select bind:value={newStudent.level} class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500">
+                            <option value="Pawn">Peón (Iniciación)</option>
+                            <option value="Bishop">Alfil (Intermedio I)</option>
+                            <option value="Rook">Torre (Intermedio II)</option>
+                            <option value="King">Rey (Avanzado)</option>
+                         </select>
+                    </div>
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Email de Contacto</label>
+                    <input bind:value={newStudent.email} type="email" placeholder="email@ejemplo.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button onclick={() => showForm = false} class="text-slate-400 hover:text-white px-4 py-2">Cancelar</button>
+                    <button onclick={handleSubmit} class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg font-medium">Guardar Alumno</button>
+                </div>
+            </div>
+        </div>
+    {/if}
+
+    <div class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-slate-900/50">
+                <tr>
+                    <th class="p-4 text-slate-400 font-medium text-sm">Nombre</th>
+                    <th class="p-4 text-slate-400 font-medium text-sm">Nivel</th>
+                    <th class="p-4 text-slate-400 font-medium text-sm">Email</th>
+                    <th class="p-4 text-slate-400 font-medium text-sm text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700">
+                {#if filteredStudents.length === 0}
                     <tr>
-                        <th class="px-6 py-4">Estudiante</th>
-                        <th class="px-6 py-4">Nivel / Elo</th>
-                        <th class="px-6 py-4">Asistencia</th>
-                        <th class="px-6 py-4">Racha</th>
-                        <th class="px-6 py-4">Última Actividad</th>
-                        <th class="px-6 py-4 text-right">Acciones</th>
+                        <td colspan="4" class="p-8 text-center text-slate-500">
+                            No se encontraron estudiantes.
+                        </td>
                     </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-700/50">
-                    {#if loading}
-                        {#each Array(5) as _}
-                            <tr>
-                                <td colspan="6" class="px-6 py-4">
-                                    <div
-                                        class="h-4 bg-slate-700/50 rounded animate-pulse w-full"
-                                    ></div>
-                                </td>
-                            </tr>
-                        {/each}
-                    {:else}
-                        {#each students as student}
-                            <tr
-                                class="hover:bg-slate-800/30 transition-colors group"
-                            >
-                                <td class="px-6 py-4 flex items-center gap-4">
-                                    <img
-                                        src={student.avatar}
-                                        alt={student.name}
-                                        class="w-10 h-10 rounded-full bg-slate-700"
-                                    />
-                                    <div>
-                                        <div class="font-semibold text-white">
-                                            {student.name}
-                                        </div>
-                                        <div class="text-xs">
-                                            ID: #{student.id}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="px-2 py-1 rounded-md text-xs font-bold border {getLevelColor(
-                                                student.level,
-                                            )}"
-                                        >
-                                            {student.level}
-                                        </span>
-                                        <span class="text-white font-mono"
-                                            >{student.elo}</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-2">
-                                        <div
-                                            class="w-16 h-2 bg-slate-700 rounded-full overflow-hidden"
-                                        >
-                                            <div
-                                                class="h-full bg-emerald-500"
-                                                style="width: {student.attendance}%"
-                                            ></div>
-                                        </div>
-                                        <span class="text-xs"
-                                            >{student.attendance}%</span
-                                        >
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div
-                                        class="flex items-center gap-1 text-orange-400"
-                                    >
-                                        <TrendingUp class="w-4 h-4" />
-                                        <span>{student.streak} días</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
                                     <div class="flex items-center gap-1">
                                         <Clock class="w-4 h-4" />
                                         <span>{student.lastActive}</span>
