@@ -53,6 +53,9 @@
     let deletingSkill: Skill | null = null;
     let confirmDeleteAll = false;
 
+    // Skill Detail View
+    let viewingSkill: Skill | null = null;
+
     // Template import
     let showTemplateModal = false;
     let availableTemplates = getAllTemplates();
@@ -503,7 +506,7 @@
     {/if}
 
     <!-- Skills Grid -->
-    <div class="mt-8 grid gap-6 md:grid-cols-2">
+    <div class="mt-8 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {#if store.skills.length === 0}
             <div
                 class="col-span-full py-12 text-center bg-[#1e293b]/50 rounded-3xl border border-dashed border-slate-700"
@@ -523,8 +526,12 @@
             </div>
         {:else}
             {#each filteredSkills as skill}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div
-                    class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 hover:border-yellow-500/30 transition-colors group"
+                    class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 hover:border-yellow-500/30 transition-all group cursor-pointer hover:shadow-lg hover:shadow-black/20 active:scale-95 duration-200"
+                    onclick={() => (viewingSkill = skill)}
+                    role="button"
+                    tabindex="0"
                 >
                     <div class="flex items-start gap-4">
                         <div
@@ -540,7 +547,7 @@
                             <div class="flex justify-between items-start gap-3">
                                 <div class="flex-1 min-w-0">
                                     <h3
-                                        class="text-lg font-bold text-white truncate"
+                                        class="text-lg font-bold text-white truncate group-hover:text-yellow-500 transition-colors"
                                     >
                                         {skill.name}
                                     </h3>
@@ -559,17 +566,20 @@
                                 </div>
 
                                 <!-- Action buttons -->
-                                <div class="flex gap-2 flex-shrink-0">
+                                <div
+                                    class="flex gap-2 flex-shrink-0"
+                                    onclick={(e) => e.stopPropagation()}
+                                >
                                     <button
                                         onclick={() => editSkill(skill)}
-                                        class="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors"
+                                        class="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors z-10"
                                         title="Editar"
                                     >
                                         <Edit class="w-4 h-4" />
                                     </button>
                                     <button
                                         onclick={() => confirmDelete(skill)}
-                                        class="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                        class="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors z-10"
                                         title="Eliminar"
                                     >
                                         <Trash2 class="w-4 h-4" />
@@ -883,6 +893,160 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+{/if}
+
+<!-- Skill Details Modal -->
+{#if viewingSkill}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        transition:fade
+    >
+        <!-- Backdrop -->
+        <button
+            class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm w-full h-full cursor-default"
+            onclick={() => (viewingSkill = null)}
+            aria-label="Cerrar modal"
+        ></button>
+
+        <!-- Modal Panel -->
+        <div
+            class="relative bg-[#1e293b] border border-slate-700/50 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl"
+        >
+            <!-- Header -->
+            <div class="p-6 border-b border-slate-700">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-slate-800 rounded-xl">
+                            <svelte:component
+                                this={getIcon(viewingSkill.category)}
+                                class="w-8 h-8 text-yellow-500"
+                            />
+                        </div>
+                        <div>
+                            <h3
+                                class="text-2xl font-bold text-white leading-tight"
+                            >
+                                {viewingSkill.name}
+                            </h3>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span
+                                    class="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded"
+                                >
+                                    Nivel {viewingSkill.level}
+                                </span>
+                                <span
+                                    class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded"
+                                >
+                                    {getCategoryLabel(viewingSkill.category)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        onclick={() => (viewingSkill = null)}
+                        class="text-slate-500 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-lg"
+                    >
+                        <X class="w-6 h-6" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <!-- Short Description -->
+                <div class="mb-8">
+                    <h4
+                        class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2"
+                    >
+                        <FileText class="w-4 h-4" /> Descripción Breve
+                    </h4>
+                    <p class="text-lg text-slate-300 leading-relaxed">
+                        {viewingSkill.description}
+                    </p>
+                </div>
+
+                <!-- Detailed Content -->
+                {#if viewingSkill.content}
+                    <div
+                        class="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50"
+                    >
+                        <h4
+                            class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2"
+                        >
+                            <Book class="w-4 h-4" /> Contenido Detallado
+                        </h4>
+                        <div class="prose prose-invert prose-slate max-w-none">
+                            <p
+                                class="text-slate-300 whitespace-pre-wrap leading-loose text-base"
+                            >
+                                {viewingSkill.content}
+                            </p>
+                        </div>
+                    </div>
+                {:else}
+                    <div
+                        class="bg-slate-900/30 rounded-xl p-8 border border-slate-800 border-dashed text-center"
+                    >
+                        <Book class="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                        <p class="text-slate-500">
+                            Esta habilidad aún no tiene contenido detallado.
+                        </p>
+                        <button
+                            onclick={() => {
+                                if (viewingSkill) {
+                                    const s = viewingSkill;
+                                    viewingSkill = null;
+                                    editSkill(s);
+                                }
+                            }}
+                            class="text-blue-400 hover:text-blue-300 text-sm mt-2 font-medium"
+                        >
+                            + Añadir contenido
+                        </button>
+                    </div>
+                {/if}
+
+                <!-- Stats Footer inside modal -->
+                <div
+                    class="mt-8 pt-6 border-t border-slate-800 flex items-center justify-between text-sm text-slate-500"
+                >
+                    <div>
+                        ID: <span class="font-mono text-xs"
+                            >{viewingSkill.id.slice(0, 8)}...</span
+                        >
+                    </div>
+                    <div>
+                        Progreso actual: <span class="text-white font-bold"
+                            >{Math.round(
+                                (viewingSkill as any).progress || 0,
+                            )}%</span
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticky Footer Actions 
+            <div class="p-4 border-t border-slate-700 bg-slate-900/50 flex justify-end gap-3">
+                <button
+                    onclick={() => {
+                        const s = viewingSkill;
+                        viewingSkill = null;
+                        editSkill(s);
+                    }}
+                    class="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2"
+                >
+                    <Edit class="w-4 h-4" /> Editar
+                </button>
+                <button
+                    onclick={() => (viewingSkill = null)}
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                >
+                    Cerrar
+                </button>
+            </div>
+            -->
         </div>
     </div>
 {/if}
