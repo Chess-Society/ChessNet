@@ -101,7 +101,7 @@
     class="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white p-4 md:p-8"
 >
     <!-- Header -->
-    <div class="max-w-7xl mx-auto mb-8" transition:fade>
+    <div class="max-w-7xl mx-auto mb-12 md:mb-16" transition:fade>
         <div class="text-center mb-6">
             <div class="inline-flex items-center gap-3 mb-4">
                 <div
