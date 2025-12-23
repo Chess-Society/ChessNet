@@ -84,29 +84,155 @@ export const skillTemplates: SkillTemplate[] = [
                 description: 'Concepto de jaque y cómo responder',
                 content: 'Jaque es cuando el rey está siendo atacado. Debes responder inmediatamente: 1) Mover el rey a una casilla segura, 2) Bloquear el ataque con otra pieza, o 3) Capturar la pieza atacante. ¡No puedes ignorar un jaque!'
             },
-            { name: 'Mantenerse con vida', category: 'Strategy', level: 1, description: 'Defensa básica y protección de piezas' },
-            { name: 'Jaque mate, ¡Se acabó!', category: 'Tactics', level: 1, description: 'Objetivo final del juego' },
-            { name: 'Resuelve la partida', category: 'Tactics', level: 1, description: 'Ejercicios de mate en 1' },
-            { name: 'El valor de cada pieza', category: 'Strategy', level: 1, description: 'Sistema de puntos de las piezas' },
-            { name: 'Juego de peones', category: 'Strategy', level: 1, description: 'Estructura de peones básica' },
-            { name: 'Juego de caballos', category: 'Tactics', level: 1, description: 'Tácticas con caballos' },
+            {
+                name: 'Mantenerse con vida',
+                category: 'Strategy',
+                level: 1,
+                description: 'Defensa básica y protección de piezas',
+                content: '¡No regales tus piezas! Antes de mover, pregúntate: "¿Me pueden comer si voy ahí?". Si atacan una pieza tuya: 1) Muévela, 2) Defiéndela con otra, o 3) Ataca a quien te ataca. ¡Valora tu ejército!'
+            },
+            {
+                name: 'Jaque mate, ¡Se acabó!',
+                category: 'Tactics',
+                level: 1,
+                description: 'Objetivo final del juego',
+                content: 'El Jaque Mate ocurre cuando el Rey está en jaque y NO tiene escapatoria. No puede moverse, no puede bloquear y no puede capturar. ¡Es el fin de la partida y la victoria es tuya!'
+            },
+            {
+                name: 'Resuelve la partida',
+                category: 'Tactics',
+                level: 1,
+                description: 'Ejercicios de mate en 1',
+                content: 'Entrena tu ojo de águila. Busca oportunidades para terminar la partida en un solo movimiento. Observa las líneas de ataque de tus piezas y busca al Rey enemigo encerrado.'
+            },
+            {
+                name: 'El valor de cada pieza',
+                category: 'Strategy',
+                level: 1,
+                description: 'Sistema de puntos de las piezas',
+                content: 'Cada pieza tiene un valor: Peón=1, Caballo=3, Alfil=3, Torre=5, Dama=9. El Rey vale toda la partida. Usa esto para decidir si te conviene cambiar piezas. ¡No cambies una Torre por un Caballo sin una buena razón!'
+            },
+            {
+                name: 'Juego de peones',
+                category: 'Strategy',
+                level: 1,
+                description: 'Estructura de peones básica',
+                content: 'Los peones son el escudo y la estructura. No los muevas sin sentido, porque no pueden retroceder. Trata de dominar el centro con tus peones al inicio. ¡Una buena cadena de peones es una muralla!'
+            },
+            {
+                name: 'Juego de caballos',
+                category: 'Tactics',
+                level: 1,
+                description: 'Tácticas con caballos',
+                content: 'Los caballos son excelentes bloqueadores y atacantes sorpresa. Intenta colocarlos en el centro del tablero ("caballo en el centro vale por ciento"). Evita dejarlos en los bordes donde tienen menos movimientos.'
+            },
 
             // NIVEL 2 - FUNDAMENTOS
-            { name: 'Juego de alfiles', category: 'Tactics', level: 2, description: 'Uso efectivo de los alfiles' },
-            { name: 'Juego de torres', category: 'Tactics', level: 2, description: 'Coordinación de torres' },
-            { name: 'Juego de dama', category: 'Tactics', level: 2, description: 'Uso estratégico de la dama' },
-            { name: 'Juego de rey', category: 'Endgame', level: 2, description: 'Actividad del rey en el final' },
-            { name: 'Enroque', category: 'Openings', level: 2, description: 'Movimiento especial de seguridad del rey' },
-            { name: 'Resuelve la partida', category: 'Tactics', level: 2, description: 'Ejercicios de mate en 2' },
-            { name: 'Ajedrecistas increíbles', category: 'Openings', level: 2, description: 'Grandes maestros de la historia' },
-            { name: 'Jaques, capturas y amenazas', category: 'Tactics', level: 2, description: 'Tácticas fundamentales' },
-            { name: 'Sigue el sistema', category: 'Strategy', level: 2, description: 'Desarrollo sistemático de piezas' },
-            { name: 'Campeonatos', category: 'Openings', level: 2, description: 'Torneos y competiciones importantes' },
-            { name: 'Apertura', category: 'Openings', level: 2, description: 'Principios de la apertura' },
-            { name: 'Medio juego', category: 'Strategy', level: 2, description: 'Estrategia en el medio juego' },
-            { name: 'Final de juego', category: 'Endgame', level: 2, description: 'Técnicas de finales básicos' },
-            { name: 'Resuelve la partida', category: 'Tactics', level: 2, description: 'Problemas tácticos variados' },
-            { name: 'Encuentra tu estilo', category: 'Strategy', level: 2, description: 'Descubrir tu estilo de juego' },
+            {
+                name: 'Juego de alfiles',
+                category: 'Tactics',
+                level: 2,
+                description: 'Uso efectivo de los alfiles',
+                content: 'Los alfiles necesitan diagonales abiertas. No los bloquees con tus propios peones. El "Alfil Bueno" es el que corre por casillas de color distinto a donde tienes tus peones fijos. ¡Dales libertad!'
+            },
+            {
+                name: 'Juego de torres',
+                category: 'Tactics',
+                level: 2,
+                description: 'Coordinación de torres',
+                content: 'Las torres aman las columnas abiertas (sin peones). Conéctalas entre sí moviendo la Dama y enrocándote. Dos torres dobladas en una columna son una fuerza imparable.'
+            },
+            {
+                name: 'Juego de dama',
+                category: 'Tactics',
+                level: 2,
+                description: 'Uso estratégico de la dama',
+                content: 'La Dama es tu mejor atacante, pero no la saques a pasear sola al principio o las piezas menores la atacarán ganando tiempo. Úsala para rematar ataques o crear amenazas dobles.'
+            },
+            {
+                name: 'Juego de rey',
+                category: 'Endgame',
+                level: 2,
+                description: 'Actividad del rey en el final',
+                content: 'En la apertura y medio juego, el Rey es cobarde y se esconde. Pero en el Final, ¡el Rey se vuelve un héroe! Úsalo para apoyar a tus peones y atacar los del rival. Un Rey activo gana finales.'
+            },
+            {
+                name: 'Enroque',
+                category: 'Openings',
+                level: 2,
+                description: 'Movimiento especial de seguridad del rey',
+                content: 'El único movimiento donde mueves dos piezas a la vez (Rey y Torre). Sirve para poner seguro al Rey y activar la Torre. Reglas: sin piezas en medio, ni el Rey ni la Torre se han movido antes, y no puedes enrocar si estás en jaque o pasas por jaque.'
+            },
+            {
+                name: 'Resuelve la partida',
+                category: 'Tactics',
+                level: 2,
+                description: 'Ejercicios de mate en 2',
+                content: 'Sube de nivel buscando combinaciones de dos jugadas. A veces necesitas sacrificar una pieza o hacer un jaque previo para obligar al Rey a ir a una casilla fatal. ¡Calcula!'
+            },
+            {
+                name: 'Ajedrecistas increíbles',
+                category: 'Openings',
+                level: 2,
+                description: 'Grandes maestros de la historia',
+                content: 'Conoce a leyendas como Morphy, Capablanca o Kasparov. Cada uno aportó ideas revolucionarias. Estudiar sus partidas clásicas es la mejor forma de absorber patrones ganadores.'
+            },
+            {
+                name: 'Jaques, capturas y amenazas',
+                category: 'Tactics',
+                level: 2,
+                description: 'Tácticas fundamentales',
+                content: 'Las jugadas forzadas son la clave de la táctica. En cada turno, busca primero Jaques, luego Capturas y finalmente Amenazas (J-C-A). ¡Obliga a tu rival a responder a tu juego!'
+            },
+            {
+                name: 'Sigue el sistema',
+                category: 'Strategy',
+                level: 2,
+                description: 'Desarrollo sistemático de piezas',
+                content: 'No muevas la misma pieza dos veces en la apertura si no es necesario. Saca caballos y alfiles, enroca, conecta torres. ¡Espera a tener todo tu ejército listo antes de lanzar el ataque final!'
+            },
+            {
+                name: 'Campeonatos',
+                category: 'Openings',
+                level: 2,
+                description: 'Torneos y competiciones importantes',
+                content: 'El Campeonato Mundial es el título máximo. También existen las Olimpiadas de Ajedrez y torneos de élite como Wijk aan Zee. ¡El ajedrez competitivo es un deporte de alto rendimiento!'
+            },
+            {
+                name: 'Apertura',
+                category: 'Openings',
+                level: 2,
+                description: 'Principios de la apertura',
+                content: 'Objetivos: 1) Controlar el centro, 2) Desarrollar piezas menores, 3) Poner seguro al Rey. Si cumples estos tres principios, tendrás una posición sólida para enfrentar el medio juego.'
+            },
+            {
+                name: 'Medio juego',
+                category: 'Strategy',
+                level: 2,
+                description: 'Estrategia en el medio juego',
+                content: 'Es la fase de la lucha y la creatividad. Aquí elaboras planes: atacar al rey, ganar espacio, o crear debilidades en los peones del rival. Combina estrategia a largo plazo con táctica inmediata.'
+            },
+            {
+                name: 'Final de juego',
+                category: 'Endgame',
+                level: 2,
+                description: 'Técnicas de finales básicos',
+                content: 'Cuando quedan pocas piezas, cada peón es una futura Dama. Aprende a dar mate con Rey y Dama, y Rey y Torre. Conoce la regla del cuadrado y la oposición. ¡La técnica aquí debe ser precisa!'
+            },
+            {
+                name: 'Resuelve la partida',
+                category: 'Tactics',
+                level: 2,
+                description: 'Problemas tácticos variados',
+                content: 'Practica temas tácticos mixtos: clavadas, ataques dobles, desviaciones y ataques a la descubierta. Cuantos más patrones reconozcas, ¡más rápido verás las soluciones en tus partidas!'
+            },
+            {
+                name: 'Encuentra tu estilo',
+                category: 'Strategy',
+                level: 2,
+                description: 'Descubrir tu estilo de juego',
+                content: '¿Eres un jugador agresivo como Tal o posicional como Petrosian? Juega diferentes aperturas y observa qué tipo de posiciones disfrutas más. ¡Conocer tu estilo te ayudará a elegir mejor tus batallas!'
+            },
 
             // NIVEL 3 - INTERMEDIO
             { name: 'Empezar con buen pie', category: 'Openings', level: 3, description: 'Aperturas sólidas para principiantes' },
