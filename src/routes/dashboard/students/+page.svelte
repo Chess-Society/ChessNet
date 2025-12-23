@@ -443,7 +443,78 @@
     <div
         class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
     >
-        <table class="w-full text-left">
+        <!-- Mobile View (Cards) -->
+        <div class="block sm:hidden divide-y divide-slate-700">
+            {#if filteredStudents.length === 0}
+                <div class="p-8 text-center text-slate-500">
+                    No se encontraron estudiantes.
+                </div>
+            {:else}
+                {#each filteredStudents as student}
+                    {@const studentClass = getStudentClass(student.id)}
+                    <div class="p-4 flex flex-col gap-3">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold text-sm"
+                                >
+                                    {student.name.charAt(0)}
+                                </div>
+                                <div>
+                                    <div class="font-medium text-white text-lg">
+                                        {student.name}
+                                    </div>
+                                    <div class="text-sm text-slate-500">
+                                        {studentClass
+                                            ? studentClass.name
+                                            : "Sin asignar"}
+                                    </div>
+                                </div>
+                            </div>
+                            <span
+                                class="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs font-bold"
+                            >
+                                {translateLevel(student.level)}
+                            </span>
+                        </div>
+
+                        <div
+                            class="flex items-center justify-between mt-2 pt-3 border-t border-slate-700/50"
+                        >
+                            <div class="text-xs text-slate-500">
+                                {getCenterNameForClass(studentClass)}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    onclick={() => generateReport(student)}
+                                    class="p-2 bg-slate-800 rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                                    title="Ver Informe"
+                                >
+                                    <Award class="w-5 h-5" />
+                                </button>
+                                <button
+                                    onclick={() => openEditForm(student)}
+                                    class="p-2 bg-slate-800 rounded-lg text-blue-400 hover:bg-blue-500/20 transition-colors"
+                                    title="Editar"
+                                >
+                                    <Pencil class="w-5 h-5" />
+                                </button>
+                                <button
+                                    onclick={() => handleDelete(student.id)}
+                                    class="p-2 bg-slate-800 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
+                                    title="Eliminar"
+                                >
+                                    <Trash2 class="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {/each}
+            {/if}
+        </div>
+
+        <!-- Desktop View (Table) -->
+        <table class="w-full text-left hidden sm:table">
             <thead class="bg-slate-900/50">
                 <tr>
                     <th class="p-4 text-slate-400 font-medium text-sm"

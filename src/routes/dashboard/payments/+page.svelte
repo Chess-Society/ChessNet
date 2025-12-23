@@ -306,7 +306,74 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left">
+            <!-- Mobile View (Cards) -->
+            <div class="block sm:hidden divide-y divide-slate-700">
+                {#if sortedPayments.length === 0}
+                    <div class="p-8 text-center text-slate-500">
+                        <Search class="w-8 h-8 mx-auto mb-2 opacity-20" />
+                        No se encontraron transacciones.
+                    </div>
+                {:else}
+                    {#each sortedPayments as payment}
+                        <div class="p-4 flex flex-col gap-3">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="font-medium text-white text-lg">
+                                        {getStudentName(payment.studentId)}
+                                    </div>
+                                    <div
+                                        class="text-xs text-slate-400 font-mono mt-0.5"
+                                    >
+                                        {payment.date}
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div
+                                        class="font-bold text-teal-400 text-lg"
+                                    >
+                                        +{payment.amount} €
+                                    </div>
+                                    <span
+                                        class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded uppercase font-bold border border-slate-700 inline-block mt-1"
+                                    >
+                                        {payment.method}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div
+                                class="text-sm text-slate-300 bg-slate-800/50 p-2 rounded border border-slate-700/50"
+                            >
+                                {payment.concept}
+                            </div>
+
+                            <div
+                                class="flex items-center justify-end gap-2 mt-1"
+                            >
+                                <button
+                                    onclick={() =>
+                                        exportReceiptPDF(
+                                            payment,
+                                            getStudentName(payment.studentId),
+                                        )}
+                                    class="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-teal-400 hover:bg-teal-500/20 transition-colors flex-1 flex justify-center items-center gap-2 text-sm font-medium"
+                                >
+                                    <FileText class="w-4 h-4" /> Recibo
+                                </button>
+                                <button
+                                    onclick={() => removePayment(payment.id)}
+                                    class="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/20 transition-colors flex-1 flex justify-center items-center gap-2 text-sm font-medium"
+                                >
+                                    <Trash2 class="w-4 h-4" /> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    {/each}
+                {/if}
+            </div>
+
+            <!-- Desktop View (Table) -->
+            <table class="w-full text-left hidden sm:table">
                 <thead class="bg-slate-900/50">
                     <tr>
                         <th class="p-4 text-slate-400 font-medium text-sm"
