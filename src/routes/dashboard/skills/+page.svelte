@@ -174,8 +174,14 @@
                           skillProgress.length,
                   )
                 : 0,
-        topSkill: skillProgress.sort((a, b) => b.progress - a.progress)[0],
-        leastMastered: skillProgress.sort((a, b) => a.progress - b.progress)[0],
+        topSkill:
+            skillProgress.length > 0
+                ? [...skillProgress].sort((a, b) => b.progress - a.progress)[0]
+                : null,
+        leastMastered:
+            skillProgress.length > 0
+                ? [...skillProgress].sort((a, b) => a.progress - b.progress)[0]
+                : null,
     };
 
     const categories = [
