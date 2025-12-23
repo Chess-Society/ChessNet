@@ -20,6 +20,7 @@
         ArrowLeft,
         Trash2,
         Flag,
+        Monitor,
     } from "lucide-svelte";
     import { slide, fade } from "svelte/transition";
     import { base } from "$app/paths";
@@ -311,6 +312,13 @@
                     </div>
                 </div>
                 <div class="flex gap-2 self-start md:self-center">
+                    <a
+                        href="{base}/dashboard/tournaments/{tournament.id}/spectator"
+                        target="_blank"
+                        class="bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-emerald-600 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
+                    >
+                        <Monitor class="w-4 h-4" /> Modo Espectador
+                    </a>
                     {#if tournament.status === "Ongoing"}
                         <button
                             onclick={finishTournament}
