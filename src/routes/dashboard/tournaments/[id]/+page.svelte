@@ -21,7 +21,14 @@
         Trash2,
         Flag,
         Monitor,
+        Printer,
+        Download,
+        FileText,
     } from "lucide-svelte";
+    import {
+        exportStandingsPDF,
+        exportPairingsPDF,
+    } from "$lib/services/export";
     import { slide, fade } from "svelte/transition";
     import { base } from "$app/paths";
 
@@ -53,6 +60,7 @@
         : [];
 
     // Matches Logic
+
     $: rounds = tournament
         ? [...new Set(tournament.matches.map((m) => m.round))].sort(
               (a, b) => a - b,
@@ -493,9 +501,20 @@
                                 class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
                             >
                                 <div
-                                    class="px-6 py-4 bg-slate-900/50 border-b border-slate-700 font-bold text-orange-400"
+                                    class="px-6 py-4 bg-slate-900/50 border-b border-slate-700 font-bold text-orange-400 flex justify-between items-center"
                                 >
-                                    Ronda {round}
+                                    <span>Ronda {round}</span>
+                                    <button
+                                        onclick={() =>
+                                            exportPairingsPDF(
+                                                tournament!,
+                                                round - 1,
+                                                getStudentName,
+                                            )}
+                                        class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors border border-slate-600"
+                                    >
+                                        <Printer class="w-3 h-3" /> Imprimir
+                                    </button>
                                 </div>
                                 <div class="divide-y divide-slate-700">
                                     {#each tournament.matches.filter((m) => m.round === round) as match}
@@ -586,12 +605,33 @@
             </div>
         {/if}
 
-        <!-- STANDINGS TAB -->
         {#if activeTab === "standings"}
             <div
                 class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
                 transition:fade
             >
+                <div
+                    class="p-4 bg-slate-900/50 border-b border-slate-700 flex justify-between items-center"
+                >
+                    <h3 class="font-bold text-slate-300">
+                        Tabla de Posiciones
+                    </h3>
+                    <button
+                        onclick={() => {
+                            const currentRound =
+                                rounds.length > 0 ? Math.max(...rounds) : 0;
+                            exportStandingsPDF(
+                                tournament!,
+                                getStudentName,
+                                currentRound,
+                                rounds.length || 0,
+                            );
+                        }}
+                        class="bg-orange-600/20 text-orange-400 border border-orange-600/30 hover:bg-orange-600 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
+                    >
+                        <Download class="w-4 h-4" /> Exportar PDF
+                    </button>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead
