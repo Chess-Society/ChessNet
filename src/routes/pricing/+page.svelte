@@ -7,12 +7,12 @@
     const plans = [
         {
             id: "free",
-            name: "Ajedrecista",
+            name: "Profesor",
             price: "Gratis",
             period: "siempre",
             icon: Zap,
             description:
-                "Para monitores que empiezan o gestionan un pequeño grupo.",
+                "Ideal para clases particulares o pequeños grupos extraescolares.",
             features: [
                 "1 Centro Educativo",
                 "2 Clases activas",
@@ -29,12 +29,12 @@
         },
         {
             id: "profe",
-            name: "Profe",
+            name: "Academia",
             price: "49€",
             period: "/ año",
             icon: GraduationCap,
             description:
-                "La herramienta perfecta para profesores particulares y academias.",
+                "Herramientas avanzadas para escuelas en crecimiento y gestión profesional.",
             features: [
                 "3 Centros Educativos",
                 "10 Clases activas",
@@ -49,7 +49,7 @@
             ],
             highlight: true,
             color: "emerald",
-            cta: "Elegir Plan Profe",
+            cta: "Elegir Plan Academia",
         },
         {
             id: "club",
@@ -58,7 +58,7 @@
             period: "/ año",
             icon: Crown,
             description:
-                "Potencia tu club con herramientas profesionales de gestión y competición.",
+                "Potencia tu club con herramientas de competición y gestión masiva.",
             features: [
                 "Centros Ilimitados",
                 "Clases Ilimitadas",
