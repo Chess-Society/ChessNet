@@ -105,12 +105,13 @@
     let confirmTitle = "";
     let confirmMessage = "";
     let confirmAction: (() => void) | null = null;
-    let confirmType: 'danger' | 'warning' = 'danger';
+    let confirmType: "danger" | "warning" = "danger";
 
     function handleDeleteClass(id: string) {
         confirmTitle = "¿Eliminar clase?";
-        confirmMessage = "Los alumnos no se borrarán, pero serán desasignados de este grupo.";
-        confirmType = 'warning';
+        confirmMessage =
+            "Los alumnos no se borrarán, pero serán desasignados de este grupo.";
+        confirmType = "warning";
         confirmAction = () => {
             appStore.update((s) => ({
                 ...s,
@@ -123,11 +124,12 @@
 
     function handleDeleteStudent(id: string) {
         confirmTitle = "¿Eliminar alumno?";
-        confirmMessage = "Se eliminará al alumno del sistema completo. Esta acción es irreversible.";
-        confirmType = 'danger';
+        confirmMessage =
+            "Se eliminará al alumno del sistema completo. Esta acción es irreversible.";
+        confirmType = "danger";
         confirmAction = () => {
-             // 1. Remove from all classes
-             store.classes.forEach((c) => {
+            // 1. Remove from all classes
+            store.classes.forEach((c) => {
                 if (c.students.includes(id)) {
                     storeActions.removeClassMember(c.id, id);
                 }
@@ -142,8 +144,6 @@
     function handleConfirmAction() {
         if (confirmAction) confirmAction();
         showConfirmModal = false;
-    }
-        }
     }
 
     // Helper
@@ -561,3 +561,12 @@
         {/if}
     {/if}
 </div>
+
+<ConfirmationModal
+    bind:isOpen={showConfirmModal}
+    title={confirmTitle}
+    message={confirmMessage}
+    confirmText="Confirmar Eliminación"
+    type={confirmType}
+    on:confirm={handleConfirmAction}
+/>
