@@ -477,12 +477,35 @@
             <div transition:fade>
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold text-white">Partidas</h2>
-                    <button
-                        onclick={generatePairings}
-                        class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors"
-                    >
-                        <Swords class="w-4 h-4" /> Generar Nueva Ronda
-                    </button>
+                    
+                    {#if rounds.length > 0}
+                        {@const currentRoundNum = Math.max(...rounds)}
+                        {@const matchesInRound = tournament.matches.filter(m => m.round === currentRoundNum)}
+                        {@const allCompleted = matchesInRound.every(m => m.result)}
+                        
+                        <div class="flex gap-2 items-center">
+                            {#if !allCompleted}
+                                <span class="text-xs text-amber-500 font-bold px-3 py-1 bg-amber-500/10 rounded-full border border-amber-500/20">
+                                    Ronda {currentRoundNum} en curso
+                                </span>
+                            {/if}
+                            <button
+                                onclick={generatePairings}
+                                disabled={!allCompleted}
+                                class="px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors {allCompleted ? 'bg-orange-600 hover:bg-orange-500 text-white cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}"
+                                title={!allCompleted ? "Completa todos los resultados antes de la siguiente ronda" : "Generar siguiente ronda"}
+                            >
+                                <Swords class="w-4 h-4" /> Generar Nueva Ronda
+                            </button>
+                        </div>
+                    {:else}
+                         <button
+                            onclick={generatePairings}
+                            class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors"
+                        >
+                            <Swords class="w-4 h-4" /> Generar Primera Ronda
+                        </button>
+                    {/if}
                 </div>
 
                 {#if rounds.length === 0}
