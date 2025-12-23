@@ -214,6 +214,75 @@
         draggedOverItem = null;
     }
 
+    // Touch support variables for mobile
+    let touchStartY = 0;
+    let touchStartX = 0;
+    let isDragging = false;
+
+    // Touch event handlers for mobile
+    function handleTouchStart(event: TouchEvent, item: any) {
+        if (!isEditingLayout) return;
+
+        const touch = event.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        draggedItem = item;
+        isDragging = true;
+
+        const target = event.currentTarget as HTMLElement;
+        target.style.opacity = "0.6";
+        target.style.transform = "scale(1.05)";
+    }
+
+    function handleTouchMove(event: TouchEvent) {
+        if (!isDragging || !draggedItem) return;
+
+        event.preventDefault();
+        const touch = event.touches[0];
+
+        // Find element under touch point
+        const elementAtPoint = document.elementFromPoint(
+            touch.clientX,
+            touch.clientY,
+        );
+        if (!elementAtPoint) return;
+
+        // Find the closest action card
+        const cardElement = elementAtPoint.closest("[data-action-id]");
+        if (!cardElement) return;
+
+        const targetId = cardElement.getAttribute("data-action-id");
+        const targetItem = localOrder.find((a) => a.id === targetId);
+
+        if (targetItem && targetItem !== draggedItem) {
+            const srcIndex = localOrder.findIndex(
+                (i) => i.id === draggedItem.id,
+            );
+            const dstIndex = localOrder.findIndex(
+                (i) => i.id === targetItem.id,
+            );
+
+            if (srcIndex !== -1 && dstIndex !== -1 && srcIndex !== dstIndex) {
+                const newOrder = [...localOrder];
+                const [removed] = newOrder.splice(srcIndex, 1);
+                newOrder.splice(dstIndex, 0, removed);
+                localOrder = newOrder;
+            }
+        }
+    }
+
+    function handleTouchEnd(event: TouchEvent) {
+        if (!isDragging) return;
+
+        const target = event.currentTarget as HTMLElement;
+        target.style.opacity = "1";
+        target.style.transform = "scale(1)";
+
+        isDragging = false;
+        draggedItem = null;
+        draggedOverItem = null;
+    }
+
     function toggleEditMode() {
         if (isEditingLayout) {
             // Save the order when exiting edit mode
@@ -593,6 +662,10 @@
                     ondragstart={(e) => handleDragStart(e, action)}
                     ondragover={(e) => handleDragOver(e, action)}
                     ondragend={(e) => handleDragEnd(e)}
+                    ontouchstart={(e) => handleTouchStart(e, action)}
+                    ontouchmove={handleTouchMove}
+                    ontouchend={handleTouchEnd}
+                    data-action-id={action.id}
                     class="relative transition-all duration-200 {draggedItem?.id ===
                     action.id
                         ? 'scale-105 z-10'
