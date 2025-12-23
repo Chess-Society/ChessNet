@@ -5,6 +5,10 @@
         type AttendanceRecord,
     } from "$lib/services/storage";
     import {
+        exportAttendancePDF,
+        exportAttendanceCSV,
+    } from "$lib/services/export";
+    import {
         ClipboardCheck,
         Calendar,
         Users,
@@ -12,6 +16,9 @@
         XCircle,
         AlertCircle,
         Save,
+        FileText,
+        Download,
+        FileSpreadsheet,
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
     import { base } from "$app/paths";
@@ -31,6 +38,7 @@
         string,
         "present" | "absent" | "excused"
     > = {};
+    let sessionNotes = "";
 
     onMount(() => {
         const classIdParam = $page.url.searchParams.get("classId");
@@ -60,12 +68,14 @@
             existingRecord.records.forEach((r) => {
                 attendanceStatus[r.studentId] = r.status;
             });
+            sessionNotes = existingRecord.sessionNotes || "";
         } else {
             // Default to 'present' for new records
             attendanceStatus = {};
             studentsInClass.forEach((s) => {
                 attendanceStatus[s.id] = "present"; // Default value
             });
+            sessionNotes = "";
         }
 
         // Save initial state and reset unsaved changes flag
@@ -244,6 +254,7 @@
                     status,
                 }),
             ),
+            sessionNotes: sessionNotes.trim() || undefined,
         };
 
         storeActions.saveAttendance(record);
@@ -252,6 +263,30 @@
         hasUnsavedChanges = false;
         initialAttendanceState = { ...attendanceStatus };
         setTimeout(() => (saveMessage = ""), 3000);
+    }
+
+    // Export functions
+    function handleExportPDF() {
+        if (!selectedClass || classHistory.length === 0) {
+            alert("No hay datos de asistencia para exportar");
+            return;
+        }
+
+        exportAttendancePDF(
+            selectedClass.name,
+            classHistory,
+            (id) =>
+                store.students.find((s) => s.id === id)?.name || "Desconocido",
+        );
+    }
+
+    function handleExportCSV() {
+        if (!selectedClass || classHistory.length === 0) {
+            alert("No hay datos de asistencia para exportar");
+            return;
+        }
+
+        exportAttendanceCSV(selectedClass.name, classHistory, studentsInClass);
     }
 </script>
 
@@ -463,6 +498,25 @@
                             </div>
                         </div>
                     {/each}
+                </div>
+
+                <!-- Session Notes -->
+                <div class="p-4 bg-slate-900/30 border-t border-slate-700">
+                    <label
+                        for="session-notes"
+                        class="block text-sm font-medium text-slate-400 mb-2 flex items-center gap-2"
+                    >
+                        <FileText class="w-4 h-4" />
+                        Observaciones de la Sesión (Opcional)
+                    </label>
+                    <textarea
+                        id="session-notes"
+                        bind:value={sessionNotes}
+                        oninput={() => checkForChanges()}
+                        placeholder="Ej: Clase muy participativa, repasamos aperturas..."
+                        rows="2"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-pink-500 resize-none"
+                    ></textarea>
                 </div>
 
                 <div
@@ -688,13 +742,35 @@
             class="mt-6 bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
         >
             <div
-                class="p-4 bg-slate-900/50 border-b border-slate-700 flex justify-between items-center"
+                class="p-4 bg-slate-900/50 border-b border-slate-700 flex justify-between items-center flex-wrap gap-3"
             >
-                <h3 class="font-bold text-white flex items-center gap-2">
-                    <ClipboardCheck class="w-5 h-5 text-cyan-500" />
-                    Historial de Sesiones
-                </h3>
-                <span class="text-xs text-slate-500">Últimas 10 sesiones</span>
+                <div class="flex items-center gap-3">
+                    <h3 class="font-bold text-white flex items-center gap-2">
+                        <ClipboardCheck class="w-5 h-5 text-cyan-500" />
+                        Historial de Sesiones
+                    </h3>
+                    <span class="text-xs text-slate-500"
+                        >Últimas 10 sesiones</span
+                    >
+                </div>
+
+                <!-- Export Buttons -->
+                <div class="flex gap-2">
+                    <button
+                        onclick={handleExportPDF}
+                        class="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg text-xs font-medium transition-colors"
+                    >
+                        <Download class="w-4 h-4" />
+                        <span class="hidden sm:inline">Exportar PDF</span>
+                    </button>
+                    <button
+                        onclick={handleExportCSV}
+                        class="flex items-center gap-2 px-3 py-1.5 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 rounded-lg text-xs font-medium transition-colors"
+                    >
+                        <FileSpreadsheet class="w-4 h-4" />
+                        <span class="hidden sm:inline">Exportar CSV</span>
+                    </button>
+                </div>
             </div>
 
             <div class="divide-y divide-slate-700">

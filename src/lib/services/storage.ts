@@ -45,6 +45,7 @@ export interface AttendanceRecord {
         studentId: string;
         status: 'present' | 'absent' | 'excused';
     }[];
+    sessionNotes?: string; // Observaciones generales de la sesión
 }
 
 export interface Payment {

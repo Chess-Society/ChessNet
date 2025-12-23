@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { Tournament, Student, Payment } from './storage';
+import type { Tournament, Student, Payment, AttendanceRecord } from './storage';
 
 // Add autoTable to jsPDF type
 declare module 'jspdf' {
@@ -218,4 +218,163 @@ export function exportReceiptPDF(
     doc.text("Documento generado automáticamente por ChessNet.io", 105, 280, { align: 'center' });
 
     doc.save(`Recibo_${payment.date}_${studentName.replace(/\s+/g, '_')}.pdf`);
+}
+
+/**
+ * Export Attendance History to PDF
+ */
+export function exportAttendancePDF(
+    className: string,
+    records: AttendanceRecord[],
+    getStudentName: (id: string) => string
+) {
+    const doc = new jsPDF();
+    const brandColor: [number, number, number] = [219, 39, 119]; // Pink-600
+
+    // Header
+    doc.setFillColor(...brandColor);
+    doc.rect(0, 0, 210, 35, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ChessNet', 15, 15);
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Historial de Asistencia', 15, 25);
+
+    // Class Info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Clase: ${className}`, 15, 45);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 15, 52);
+    doc.text(`Total de sesiones: ${records.length}`, 15, 58);
+
+    // Table data
+    const tableData = records.map(record => {
+        const total = record.records.length;
+        const present = record.records.filter(r => r.status === 'present').length;
+        const absent = record.records.filter(r => r.status === 'absent').length;
+        const excused = record.records.filter(r => r.status === 'excused').length;
+        const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+        return [
+            new Date(record.date).toLocaleDateString('es-ES', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            }),
+            `${present}`,
+            `${absent}`,
+            `${excused}`,
+            `${rate}%`,
+            record.sessionNotes || '-'
+        ];
+    });
+
+    autoTable(doc, {
+        startY: 65,
+        head: [['Fecha', 'Presentes', 'Ausentes', 'Justif.', '% Asist.', 'Notas']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+            fillColor: brandColor,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 10
+        },
+        styles: {
+            fontSize: 9,
+            cellPadding: 3
+        },
+        columnStyles: {
+            0: { cellWidth: 45 },
+            1: { cellWidth: 20, halign: 'center' },
+            2: { cellWidth: 20, halign: 'center' },
+            3: { cellWidth: 20, halign: 'center' },
+            4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+            5: { cellWidth: 'auto' }
+        }
+    });
+
+    // Footer
+    const finalY = (doc as any).lastAutoTable.finalY || 200;
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Documento generado automáticamente por ChessNet.io', 105, finalY + 15, { align: 'center' });
+
+    doc.save(`Asistencia_${className.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+/**
+ * Export Attendance to CSV
+ */
+export function exportAttendanceCSV(
+    className: string,
+    records: AttendanceRecord[],
+    students: Student[]
+) {
+    // Create header
+    const studentNames = students.map(s => s.name);
+    const header = ['Fecha', 'Notas', ...studentNames, 'Total Presentes', '% Asistencia'];
+
+    // Create rows
+    const rows = records.map(record => {
+        const row: string[] = [];
+
+        // Date
+        row.push(new Date(record.date).toLocaleDateString('es-ES'));
+
+        // Notes
+        row.push(record.sessionNotes || '');
+
+        // Student statuses
+        students.forEach(student => {
+            const studentRecord = record.records.find(r => r.studentId === student.id);
+            if (studentRecord) {
+                const statusMap = {
+                    'present': 'P',
+                    'absent': 'A',
+                    'excused': 'J'
+                };
+                row.push(statusMap[studentRecord.status]);
+            } else {
+                row.push('-');
+            }
+        });
+
+        // Totals
+        const present = record.records.filter(r => r.status === 'present').length;
+        const total = record.records.length;
+        const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+        row.push(present.toString());
+        row.push(`${rate}%`);
+
+        return row;
+    });
+
+    // Combine header and rows
+    const csvContent = [header, ...rows]
+        .map(row => row.map(cell => `"${cell}"`).join(','))
+        .join('\n');
+
+    // Create and download file
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Asistencia_${className.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
