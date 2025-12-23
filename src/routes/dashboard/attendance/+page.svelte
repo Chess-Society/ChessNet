@@ -150,6 +150,87 @@
         (s) => s === "excused",
     ).length;
 
+    // Statistics and History
+    $: classHistory = selectedClassId
+        ? store.attendance
+              .filter((r) => r.classId === selectedClassId)
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .slice(0, 10)
+        : [];
+
+    $: studentStats =
+        selectedClassId && studentsInClass.length > 0
+            ? studentsInClass
+                  .map((student) => {
+                      const studentRecords = store.attendance
+                          .filter((r) => r.classId === selectedClassId)
+                          .flatMap((r) =>
+                              r.records.filter(
+                                  (rec) => rec.studentId === student.id,
+                              ),
+                          );
+
+                      const total = studentRecords.length;
+                      const present = studentRecords.filter(
+                          (r) => r.status === "present",
+                      ).length;
+                      const absent = studentRecords.filter(
+                          (r) => r.status === "absent",
+                      ).length;
+                      const excused = studentRecords.filter(
+                          (r) => r.status === "excused",
+                      ).length;
+                      const rate =
+                          total > 0 ? Math.round((present / total) * 100) : 100;
+
+                      return {
+                          student,
+                          total,
+                          present,
+                          absent,
+                          excused,
+                          rate,
+                          isLowAttendance: rate < 70 && total >= 3,
+                      };
+                  })
+                  .sort((a, b) => a.rate - b.rate)
+            : [];
+
+    // Weekly trend (last 7 days)
+    $: weeklyTrend = selectedClassId
+        ? (() => {
+              const last7Days = [];
+              const today = new Date();
+              for (let i = 6; i >= 0; i--) {
+                  const date = new Date(today);
+                  date.setDate(date.getDate() - i);
+                  const dateStr = date.toISOString().split("T")[0];
+
+                  const record = store.attendance.find(
+                      (r) =>
+                          r.classId === selectedClassId && r.date === dateStr,
+                  );
+
+                  if (record) {
+                      const total = record.records.length;
+                      const present = record.records.filter(
+                          (r) => r.status === "present",
+                      ).length;
+                      const rate =
+                          total > 0 ? Math.round((present / total) * 100) : 0;
+                      last7Days.push({ date: dateStr, rate, hasData: true });
+                  } else {
+                      last7Days.push({
+                          date: dateStr,
+                          rate: 0,
+                          hasData: false,
+                      });
+                  }
+              }
+              return last7Days;
+          })()
+        : [];
+
     function saveAttendance() {
         if (!selectedClassId) return;
 
@@ -426,6 +507,243 @@
             <p class="text-lg">
                 Selecciona un grupo arriba para empezar a pasar lista.
             </p>
+        </div>
+    {/if}
+
+    <!-- Statistics and Analysis Section -->
+    {#if selectedClassId && classHistory.length > 0}
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Student Statistics Panel -->
+            <div
+                class="lg:col-span-2 bg-[#1e293b] border border-slate-700 rounded-2xl p-6"
+            >
+                <h3
+                    class="text-lg font-bold text-white mb-4 flex items-center gap-2"
+                >
+                    <Users class="w-5 h-5 text-pink-500" />
+                    Estadísticas por Alumno
+                </h3>
+
+                {#if studentStats.length === 0}
+                    <p class="text-slate-500 text-sm text-center py-8">
+                        No hay datos de asistencia registrados aún.
+                    </p>
+                {:else}
+                    <div
+                        class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar"
+                    >
+                        {#each studentStats as stat}
+                            <div
+                                class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors"
+                            >
+                                <div
+                                    class="flex items-center justify-between mb-2"
+                                >
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold text-sm"
+                                        >
+                                            {stat.student.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p class="text-white font-medium">
+                                                {stat.student.name}
+                                            </p>
+                                            <p class="text-xs text-slate-500">
+                                                {stat.total} sesiones registradas
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div
+                                            class="text-2xl font-bold {stat.isLowAttendance
+                                                ? 'text-red-400'
+                                                : stat.rate >= 90
+                                                  ? 'text-emerald-400'
+                                                  : 'text-slate-300'}"
+                                        >
+                                            {stat.rate}%
+                                        </div>
+                                        {#if stat.isLowAttendance}
+                                            <span
+                                                class="text-xs text-red-400 font-medium"
+                                                >⚠ Baja asistencia</span
+                                            >
+                                        {/if}
+                                    </div>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div
+                                    class="w-full bg-slate-800 rounded-full h-2 overflow-hidden"
+                                >
+                                    <div
+                                        class="h-2 rounded-full transition-all duration-500 {stat.isLowAttendance
+                                            ? 'bg-red-500'
+                                            : stat.rate >= 90
+                                              ? 'bg-emerald-500'
+                                              : 'bg-blue-500'}"
+                                        style="width: {stat.rate}%"
+                                    ></div>
+                                </div>
+
+                                <!-- Detailed Stats -->
+                                <div class="flex gap-4 mt-3 text-xs">
+                                    <span class="text-emerald-400"
+                                        >✓ {stat.present} presentes</span
+                                    >
+                                    <span class="text-red-400"
+                                        >✗ {stat.absent} ausentes</span
+                                    >
+                                    {#if stat.excused > 0}
+                                        <span class="text-yellow-400"
+                                            >⚠ {stat.excused} justif.</span
+                                        >
+                                    {/if}
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+
+            <!-- Weekly Trend Chart -->
+            <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6">
+                <h3
+                    class="text-lg font-bold text-white mb-4 flex items-center gap-2"
+                >
+                    <Calendar class="w-5 h-5 text-blue-500" />
+                    Tendencia Semanal
+                </h3>
+
+                <div class="h-48 flex items-end justify-between gap-1 mb-4">
+                    {#each weeklyTrend as day}
+                        <div class="flex-1 flex flex-col items-center group">
+                            <div
+                                class="w-full rounded-t-lg relative transition-all duration-300 {day.hasData
+                                    ? 'bg-pink-500/20 border-t-2 border-pink-500 hover:bg-pink-500/30'
+                                    : 'bg-slate-800/30 border-t-2 border-slate-700'}"
+                                style="height: {day.hasData ? day.rate : 5}%"
+                                title={day.hasData
+                                    ? day.rate + "%"
+                                    : "Sin datos"}
+                            >
+                                {#if day.hasData}
+                                    <div
+                                        class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                                    >
+                                        {day.rate}%
+                                    </div>
+                                {/if}
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-2 rotate-0">
+                                {new Date(day.date).toLocaleDateString(
+                                    "es-ES",
+                                    { weekday: "short" },
+                                )}
+                            </p>
+                        </div>
+                    {/each}
+                </div>
+
+                <div class="text-xs text-slate-500 text-center">
+                    Últimos 7 días
+                </div>
+            </div>
+        </div>
+
+        <!-- Session History -->
+        <div
+            class="mt-6 bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
+        >
+            <div
+                class="p-4 bg-slate-900/50 border-b border-slate-700 flex justify-between items-center"
+            >
+                <h3 class="font-bold text-white flex items-center gap-2">
+                    <ClipboardCheck class="w-5 h-5 text-cyan-500" />
+                    Historial de Sesiones
+                </h3>
+                <span class="text-xs text-slate-500">Últimas 10 sesiones</span>
+            </div>
+
+            <div class="divide-y divide-slate-700">
+                {#each classHistory as record}
+                    {@const total = record.records.length}
+                    {@const present = record.records.filter(
+                        (r) => r.status === "present",
+                    ).length}
+                    {@const absent = record.records.filter(
+                        (r) => r.status === "absent",
+                    ).length}
+                    {@const excused = record.records.filter(
+                        (r) => r.status === "excused",
+                    ).length}
+                    {@const rate =
+                        total > 0 ? Math.round((present / total) * 100) : 0}
+
+                    <div class="p-4 hover:bg-slate-800/30 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-white">
+                                        {new Date(record.date).getDate()}
+                                    </div>
+                                    <div
+                                        class="text-xs text-slate-500 uppercase"
+                                    >
+                                        {new Date(
+                                            record.date,
+                                        ).toLocaleDateString("es-ES", {
+                                            month: "short",
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div class="flex-1">
+                                    <div class="text-sm text-slate-300 mb-1">
+                                        {new Date(
+                                            record.date,
+                                        ).toLocaleDateString("es-ES", {
+                                            weekday: "long",
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                        })}
+                                    </div>
+                                    <div class="flex gap-3 text-xs">
+                                        <span class="text-emerald-400"
+                                            >✓ {present}</span
+                                        >
+                                        <span class="text-red-400"
+                                            >✗ {absent}</span
+                                        >
+                                        {#if excused > 0}
+                                            <span class="text-yellow-400"
+                                                >⚠ {excused}</span
+                                            >
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-right">
+                                <div
+                                    class="text-xl font-bold {rate >= 90
+                                        ? 'text-emerald-400'
+                                        : rate >= 70
+                                          ? 'text-blue-400'
+                                          : 'text-red-400'}"
+                                >
+                                    {rate}%
+                                </div>
+                                <div class="text-xs text-slate-500">
+                                    {total} alumnos
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {/each}
+            </div>
         </div>
     {/if}
 </div>
