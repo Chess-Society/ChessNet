@@ -312,7 +312,7 @@
                     bind:value={searchTerm}
                     type="text"
                     placeholder="Buscar alumno..."
-                    class="bg-[#1e293b] border border-slate-700 text-white pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:border-emerald-500 w-64"
+                    class="form-input w-64 pl-10"
                 />
             </div>
 
@@ -326,18 +326,18 @@
             />
             <button
                 onclick={triggerFileUpload}
-                class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
+                class="btn btn-secondary btn-md shadow-sm"
                 title="Formato: Nombre, Nivel, Email"
             >
-                <FileUp class="w-5 h-5" />
+                <FileUp class="w-5 h-5 mr-2" />
                 <span class="hidden sm:inline">Importar</span>
             </button>
 
             <button
                 onclick={openCreateForm}
-                class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
+                class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20 shadow-sm"
             >
-                <UserPlus class="w-5 h-5" />
+                <UserPlus class="w-5 h-5 mr-2" />
                 Nuevo Alumno
             </button>
         </div>
@@ -364,7 +364,7 @@
                             bind:value={currentStudent.name}
                             type="text"
                             placeholder="Ej: Magnus Carlsen"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
+                            class="form-input focus:border-emerald-500 focus:ring-emerald-500/50"
                         />
                     </div>
                     <div>
@@ -376,7 +376,7 @@
                         <select
                             id="student-level"
                             bind:value={currentStudent.level}
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
+                            class="form-select focus:border-emerald-500 focus:ring-emerald-500/50"
                         >
                             <option value="Pawn">Peón (Iniciación)</option>
                             <option value="Bishop">Alfil (Intermedio I)</option>
@@ -394,7 +394,7 @@
                     <select
                         id="student-class"
                         bind:value={selectedClassId}
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
+                        class="form-select focus:border-emerald-500 focus:ring-emerald-500/50"
                     >
                         <option value="">-- Sin asignar --</option>
                         {#each store.classes as group}
@@ -425,12 +425,11 @@
                 <div class="flex justify-end gap-3 mt-6">
                     <button
                         onclick={() => (showForm = false)}
-                        class="text-slate-400 hover:text-white px-4 py-2"
-                        >Cancelar</button
+                        class="btn btn-ghost btn-md">Cancelar</button
                     >
                     <button
                         onclick={handleSubmit}
-                        class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg font-medium"
+                        class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20"
                     >
                         {isEditing ? "Guardar Cambios" : "Registrar Alumno"}
                     </button>

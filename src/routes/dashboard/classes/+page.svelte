@@ -181,7 +181,7 @@
             <button
                 onclick={() => (showForm = !showForm)}
                 type="button"
-                class="inline-flex items-center justify-center rounded-xl border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none transition-colors cursor-pointer"
+                class="btn btn-primary btn-md shadow-sm"
             >
                 <Plus class="w-4 h-4 mr-2" />
                 Nueva Clase
@@ -207,7 +207,7 @@
                         bind:value={newClass.name}
                         type="text"
                         placeholder="Ej: Iniciación Lunes"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                        class="form-input"
                     />
                 </div>
                 <div>
@@ -219,7 +219,7 @@
                     <select
                         id="class-center"
                         bind:value={newClass.centerId}
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                        class="form-select"
                     >
                         <option value="">Selecciona un centro...</option>
                         {#each store.centers as center}
@@ -237,7 +237,7 @@
                         <select
                             id="class-day"
                             bind:value={selectedDay}
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                            class="form-select"
                         >
                             {#each DAYS as day}
                                 <option value={day}>{day}</option>
@@ -254,7 +254,7 @@
                             id="class-time"
                             bind:value={selectedTime}
                             type="time"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                            class="form-input"
                         />
                     </div>
                     <div>
@@ -269,7 +269,7 @@
                             type="number"
                             min="30"
                             step="15"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                            class="form-input"
                         />
                     </div>
                 </div>
@@ -283,13 +283,11 @@
                 <div class="flex justify-end gap-3 mt-6">
                     <button
                         onclick={() => (showForm = false)}
-                        class="text-slate-400 hover:text-white px-4 py-2"
-                        >Cancelar</button
+                        class="btn btn-ghost btn-md">Cancelar</button
                     >
                     <button
                         onclick={handleSubmit}
-                        class="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-lg font-medium"
-                        >Crear Clase</button
+                        class="btn btn-primary btn-md">Crear Clase</button
                     >
                 </div>
             </div>
