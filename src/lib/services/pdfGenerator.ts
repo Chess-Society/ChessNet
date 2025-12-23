@@ -44,143 +44,81 @@ const colorSchemes = {
     }
 };
 
-const drawIcon = (doc: jsPDF, type: DiplomaOptions['type'], cx: number, cy: number, scale: number) => {
-    // Set color for icon (usually white or primary light)
+const drawSolidIcon = (doc: jsPDF, type: DiplomaOptions['type'], cx: number, cy: number) => {
     const scheme = colorSchemes[type];
-    doc.setDrawColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
     doc.setFillColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
-    doc.setLineWidth(1.5);
+    doc.setDrawColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
+
+    // Background circle for uniformity
+    doc.setDrawColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
+    doc.setLineWidth(1);
+    doc.circle(cx, cy, 18, 'S');
 
     if (type === 'excellence') {
-        // Trophy Cup (Simple geometric)
-        // Bowl
+        // Trophy / Cup
         doc.path([
-            { op: 'm', c: [cx - 10 * scale, cy - 10 * scale] },
-            { op: 'l', c: [cx + 10 * scale, cy - 10 * scale] }, // top bar
-            { op: 'l', c: [cx + 7 * scale, cy + 5 * scale] },   // tapered sides
-            { op: 'c', c: [cx + 7 * scale, cy + 5 * scale, cx, cy + 12 * scale, cx - 7 * scale, cy + 5 * scale] }, // bottom curve
-            { op: 'l', c: [cx - 10 * scale, cy - 10 * scale] }, // close
-            { op: 'f' } // fill
+            { op: 'm', c: [cx - 8, cy - 8] },
+            { op: 'l', c: [cx + 8, cy - 8] },
+            { op: 'l', c: [cx + 5, cy + 2] },
+            { op: 'c', c: [cx + 5, cy + 2, cx, cy + 8, cx - 5, cy + 2] },
+            { op: 'l', c: [cx - 8, cy - 8] },
+            { op: 'f' }
         ]);
-        // Base
-        doc.rect(cx - 5 * scale, cy + 12 * scale, 10 * scale, 3 * scale, 'F');
-        doc.rect(cx - 8 * scale, cy + 15 * scale, 16 * scale, 2 * scale, 'F');
-    }
-    else if (type === 'participation') {
+        doc.rect(cx - 4, cy + 6, 8, 2, 'F');
+        doc.rect(cx - 6, cy + 8, 12, 2, 'F');
+
+    } else if (type === 'participation') {
         // Star
-        const rOuter = 15 * scale;
-        const rInner = 6 * scale;
-        const angleStep = Math.PI / 5;
-
-        let pathOps: any[] = [];
-        // Start top
-        pathOps.push({ op: 'm', c: [cx, cy - rOuter] });
-
-        for (let i = 1; i <= 10; i++) {
-            const r = i % 2 === 0 ? rOuter : rInner;
-            const angle = -Math.PI / 2 + i * angleStep;
-            pathOps.push({ op: 'l', c: [cx + Math.cos(angle) * r, cy + Math.sin(angle) * r] });
+        const r = 10;
+        const pts: any[] = [];
+        const angle = Math.PI / 5;
+        for (let i = 0; i < 10; i++) {
+            const rad = i % 2 === 0 ? r : r / 2.5;
+            const a = -Math.PI / 2 + i * angle;
+            pts.push({ op: i === 0 ? 'm' : 'l', c: [cx + Math.cos(a) * rad, cy + Math.sin(a) * rad] });
         }
-        pathOps.push({ op: 'f' });
-        doc.path(pathOps);
-    }
-    else if (type === 'completion') {
-        // Mortarboard (Graduation Cap)
-        // Top diamond
-        doc.path([
-            { op: 'm', c: [cx, cy - 8 * scale] },
-            { op: 'l', c: [cx + 14 * scale, cy] },
-            { op: 'l', c: [cx, cy + 8 * scale] },
-            { op: 'l', c: [cx - 14 * scale, cy] },
-            { op: 'f' }
-        ]);
-        // Cap base
-        doc.path([
-            { op: 'm', c: [cx - 8 * scale, cy + 4 * scale] }, // left mid
-            { op: 'c', c: [cx - 8 * scale, cy + 4 * scale, cx, cy + 14 * scale, cx + 8 * scale, cy + 4 * scale] }, // curve down
-            { op: 'l', c: [cx + 8 * scale, cy] }, // connect to right corner
-            { op: 'l', c: [cx - 8 * scale, cy] }, // connect to left corner
-            { op: 'f' }
-        ]);
-        // Tassel
-        doc.setDrawColor(scheme.secondary.r, scheme.secondary.g, scheme.secondary.b);
-        doc.setLineWidth(2);
-        doc.line(cx + 8 * scale, cy + 4 * scale, cx + 10 * scale, cy + 12 * scale);
-        doc.circle(cx + 10 * scale, cy + 12 * scale, 1 * scale, 'F');
-    }
-    else if (type === 'tournament') {
+        pts.push({ op: 'f' });
+        doc.path(pts);
+
+    } else if (type === 'completion') {
+        // Graduation Cap
+        doc.triangle(cx, cy - 8, cx + 12, cy, cx, cy + 8, 'F');
+        doc.triangle(cx, cy - 8, cx - 12, cy, cx, cy + 8, 'F');
+        doc.rect(cx - 7, cy, 14, 5, 'F');
+
+    } else if (type === 'tournament') {
         // Crown
-        doc.path([
-            { op: 'm', c: [cx - 12 * scale, cy + 8 * scale] }, // bottom left
-            { op: 'l', c: [cx + 12 * scale, cy + 8 * scale] }, // bottom right
-            { op: 'l', c: [cx + 14 * scale, cy - 8 * scale] }, // right point
-            { op: 'l', c: [cx + 6 * scale, cy + 2 * scale] },  // mid right dip
-            { op: 'l', c: [cx, cy - 12 * scale] },             // center point
-            { op: 'l', c: [cx - 6 * scale, cy + 2 * scale] },  // mid left dip
-            { op: 'l', c: [cx - 14 * scale, cy - 8 * scale] }, // left point
-            { op: 'f' }
-        ]);
+        const baseW = 16;
+        doc.rect(cx - baseW / 2, cy + 2, baseW, 3, 'F');
+        doc.triangle(cx - 8, cy + 2, cx - 12, cy - 6, cx - 4, cy + 2, 'F');
+        doc.triangle(cx - 4, cy + 2, cx, cy - 9, cx + 4, cy + 2, 'F');
+        doc.triangle(cx + 4, cy + 2, cx + 12, cy - 6, cx + 8, cy + 2, 'F');
     }
 };
 
-const drawGradientBackground = (doc: jsPDF, type: DiplomaOptions['type']) => {
+const drawElegantBorder = (doc: jsPDF, type: DiplomaOptions['type']) => {
     const width = doc.internal.pageSize.getWidth();
     const height = doc.internal.pageSize.getHeight();
     const scheme = colorSchemes[type];
 
-    // Solid dark background
-    doc.setFillColor(scheme.bg.r, scheme.bg.g, scheme.bg.b);
-    doc.rect(0, 0, width, height, 'F');
-
-    // Subtle radial-like gradient at center
-    // Casting to any to avoid TS errors with GState constructor if types are missing
-    doc.setDrawColor(255, 255, 255);
-    try {
-        const GState = (doc as any).GState;
-        if (GState) {
-            doc.setGState(new GState({ opacity: 0.03 }));
-            for (let y = 0; y < height; y += 4) {
-                doc.line(0, y, width, y);
-            }
-            doc.setGState(new GState({ opacity: 1.0 }));
-        }
-    } catch (e) {
-        // GState not supported
-    }
-};
-
-const drawModernBorder = (doc: jsPDF, type: DiplomaOptions['type']) => {
-    const width = doc.internal.pageSize.getWidth();
-    const height = doc.internal.pageSize.getHeight();
-    const scheme = colorSchemes[type];
-
-    // Main border frame
+    // Double border line
     doc.setDrawColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
-    doc.setLineWidth(1.0);
-    doc.rect(15, 15, width - 30, height - 30);
 
-    // Decorative corners (Lines only, no fills)
-    const cl = 20; // corner length
-    const m = 15;  // margin
+    // Outer thick
+    doc.setLineWidth(2);
+    doc.rect(10, 10, width - 20, height - 20);
 
-    doc.setLineWidth(3);
-    // Draw corners on top of the rect
+    // Inner thin
+    doc.setLineWidth(0.5);
+    doc.rect(13, 13, width - 26, height - 26);
 
-    // Top Left
-    doc.line(m, m + cl, m, m);
-    doc.line(m, m, m + cl, m);
-
-    // Top Right
-    doc.line(width - m - cl, m, width - m, m);
-    doc.line(width - m, m, width - m, m + cl);
-
-    // Bottom Right
-    doc.line(width - m, height - m - cl, width - m, height - m);
-    doc.line(width - m, height - m, width - m - cl, height - m);
-
-    // Bottom Left
-    doc.line(m, height - m - cl, m, height - m);
-    doc.line(m, height - m, m + cl, height - m);
+    // Corner embellishment (simple squares)
+    doc.setFillColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
+    const size = 6;
+    doc.rect(8, 8, size, size, 'F'); // TL
+    doc.rect(width - 8 - size, 8, size, size, 'F'); // TR
+    doc.rect(8, height - 8 - size, size, size, 'F'); // BL
+    doc.rect(width - 8 - size, height - 8 - size, size, size, 'F'); // BR
 };
 
 export const generateDiploma = (options: DiplomaOptions) => {
@@ -194,111 +132,99 @@ export const generateDiploma = (options: DiplomaOptions) => {
     const height = doc.internal.pageSize.getHeight();
     const scheme = colorSchemes[options.type];
 
-    // 1. Background
-    drawGradientBackground(doc, options.type);
+    // 1. Solid Dark Background
+    doc.setFillColor(scheme.bg.r, scheme.bg.g, scheme.bg.b);
+    doc.rect(0, 0, width, height, 'F');
 
-    // 2. Border
-    drawModernBorder(doc, options.type);
+    // 2. Elegant Border
+    drawElegantBorder(doc, options.type);
 
-    // 3. Icon (Vector Drawing)
-    drawIcon(doc, options.type, width / 2, 45, 1.0);
+    // 3. Icon at Top Center
+    drawSolidIcon(doc, options.type, width / 2, 40);
 
-    // 4. Title
+    // 4. Main Titles
     doc.setTextColor(scheme.text.r, scheme.text.g, scheme.text.b);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(32);
+    doc.setFontSize(36);
 
     let title = "DIPLOMA DE EXCELENCIA";
     if (options.type === 'completion') title = "DIPLOMA DE FINALIZACIÓN";
-    if (options.type === 'participation') title = "CERTIFICADO DE PARTICIPACIÓN";
+    if (options.type === 'participation') title = "DIPLOMA DE PARTICIPACIÓN";
     if (options.type === 'tournament') title = "CAMPEÓN DE TORNEO";
 
-    doc.text(title.toUpperCase(), width / 2, 70, { align: "center" });
+    doc.text(title, width / 2, 70, { align: "center" });
 
-    // 5. Subtitle "Otorgado A"
+    // 5. Subtitle
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
+    doc.setFontSize(14);
     doc.setTextColor(scheme.secondary.r, scheme.secondary.g, scheme.secondary.b);
-    doc.text("OTORGADO A", width / 2, 82, { align: "center" });
+    doc.text("OTORGADO A", width / 2, 85, { align: "center" });
 
     // 6. Student Name
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(40);
-    // Glow effect simulation (draw larger lighter text behind?)
-    // Keeping it crisp:
+    doc.setFontSize(42);
     doc.setTextColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
-    doc.text(options.studentName, width / 2, 100, { align: "center" });
+    doc.text(options.studentName, width / 2, 105, { align: "center" });
 
-    // Divider Line
-    doc.setDrawColor(scheme.secondary.r, scheme.secondary.g, scheme.secondary.b);
-    doc.setLineWidth(0.5);
-    doc.line(width / 2 - 40, 108, width / 2 + 40, 108);
+    // Underline name
+    doc.setDrawColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
+    doc.setLineWidth(1);
+    doc.line(width / 2 - 60, 112, width / 2 + 60, 112);
 
-    // 7. Body Text (Achievement)
+    // 7. Achievement / Description
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(14);
-    doc.setTextColor(200, 200, 200); // Off-white for readability
+    doc.setFontSize(16);
+    doc.setTextColor(230, 230, 230); // Very light gray (almost white)
 
-    let bodyText = "";
-    if (options.achievement) {
-        bodyText = `En reconocimiento por: "${options.achievement}"`;
-    } else if (options.courseName) {
-        bodyText = `Por completar con éxito: "${options.courseName}"`;
-    } else {
-        bodyText = "En reconocimiento a su dedicación y progreso continuo en el ajedrez.";
-    }
+    let bodyText = "Por su esfuerzo y dedicación en el aprendizaje del ajedrez.";
+    if (options.achievement) bodyText = `En reconocimiento por: "${options.achievement}"`;
+    if (options.courseName) bodyText = `Por haber completado el curso: "${options.courseName}"`;
 
-    // Split text to ensure it fits
-    const splitText = doc.splitTextToSize(bodyText, 180);
-    doc.text(splitText, width / 2, 125, { align: "center" });
+    const splitText = doc.splitTextToSize(bodyText, 200);
+    doc.text(splitText, width / 2, 130, { align: "center" });
 
-    // Center Name (Optional)
     if (options.centerName) {
         doc.setFontSize(12);
-        doc.setFont("helvetica", "italic");
         doc.setTextColor(scheme.secondary.r, scheme.secondary.g, scheme.secondary.b);
-        doc.text(options.centerName, width / 2, 145, { align: "center" });
+        doc.text(options.centerName, width / 2, 150, { align: "center" });
     }
 
-    // 8. Signature Area
+    // 8. Signatures Footer
     const sigY = height - 40;
 
-    // Left: Date
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(255, 255, 255);
-    doc.text(options.date, 60, sigY, { align: "center" });
-
-    // Line
-    doc.setDrawColor(scheme.primary.r, scheme.primary.g, scheme.primary.b);
+    // Line Styles for signatures
+    doc.setDrawColor(100, 100, 100);
     doc.setLineWidth(0.5);
-    doc.line(40, sigY + 2, 80, sigY + 2);
 
-    // Label
-    doc.setFontSize(9);
+    // Date (Left)
+    doc.line(40, sigY, 90, sigY);
+    doc.setFontSize(10);
     doc.setTextColor(scheme.secondary.r, scheme.secondary.g, scheme.secondary.b);
-    doc.text("FECHA", 60, sigY + 8, { align: "center" });
+    doc.text("FECHA", 65, sigY + 6, { align: "center" });
 
-    // Right: Instructor
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "italic"); // Italic signature font simulation
+    // Value
+    doc.setFontSize(12);
     doc.setTextColor(255, 255, 255);
-    doc.text(options.instructorName, width - 60, sigY, { align: "center" });
+    doc.text(options.date, 65, sigY - 4, { align: "center" });
 
-    // Line
-    doc.line(width - 80, sigY + 2, width - 40, sigY + 2);
-
-    // Label
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    // Instructor (Right)
+    doc.line(width - 90, sigY, width - 40, sigY);
+    doc.setFontSize(10);
     doc.setTextColor(scheme.secondary.r, scheme.secondary.g, scheme.secondary.b);
-    doc.text("INSTRUCTOR", width - 60, sigY + 8, { align: "center" });
+    doc.text("INSTRUCTOR", width - 65, sigY + 6, { align: "center" });
 
-    // 9. Bottom Branding
+    // Value
+    doc.setFontSize(12);
+    doc.setFont("times", "italic");
+    doc.setTextColor(255, 255, 255);
+    doc.text(options.instructorName, width - 65, sigY - 4, { align: "center" });
+
+    // 9. Branding
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text("ChessNet • Sistema de Gestión de Academias", width / 2, height - 10, { align: "center" });
+    doc.setTextColor(80, 80, 80);
+    doc.text("Generado por ChessNet", width / 2, height - 10, { align: "center" });
 
-    // Save
-    doc.save(`Diploma_${options.studentName.replace(/\s+/g, '_')}_${options.type}.pdf`);
+    // Output
+    doc.save(`Diploma_${options.studentName.replace(/\s+/g, '_')}.pdf`);
 };
