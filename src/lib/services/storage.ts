@@ -35,6 +35,7 @@ export interface Skill {
     category: 'Tactics' | 'Strategy' | 'Endgame' | 'Openings';
     level: number;
     description: string;
+    content?: string; // Contenido detallado de la habilidad
 }
 
 export interface AttendanceRecord {

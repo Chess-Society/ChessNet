@@ -23,6 +23,7 @@
         AlertTriangle,
         Download,
         FileText,
+        Trash,
     } from "lucide-svelte";
     import { slide, fade } from "svelte/transition";
 
@@ -50,6 +51,7 @@
 
     // Delete confirmation
     let deletingSkill: Skill | null = null;
+    let confirmDeleteAll = false;
 
     // Template import
     let showTemplateModal = false;
@@ -125,6 +127,16 @@
         alert(
             `✅ Se han importado ${template.skills.length} habilidades del temario "${template.name}"`,
         );
+    }
+
+    function deleteAllSkills() {
+        // Delete all skills
+        store.skills.forEach((skill) => {
+            storeActions.deleteSkill(skill.id);
+        });
+
+        confirmDeleteAll = false;
+        alert("✅ Se han eliminado todas las habilidades");
     }
 
     const getIcon = (category: string) => {
@@ -248,6 +260,16 @@
             </p>
         </div>
         <div class="mt-4 sm:mt-0 flex gap-3">
+            {#if store.skills.length > 0}
+                <button
+                    onclick={() => (confirmDeleteAll = true)}
+                    class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
+                    title="Eliminar todas las habilidades"
+                >
+                    <Trash class="w-5 h-5" />
+                    Eliminar Todas
+                </button>
+            {/if}
             <button
                 onclick={() => (showTemplateModal = true)}
                 class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
@@ -326,14 +348,33 @@
                     <label
                         for="skill-description"
                         class="block text-sm font-medium text-slate-400 mb-1"
-                        >Descripción</label
+                        >Descripción Breve</label
                     >
                     <textarea
                         id="skill-description"
                         bind:value={newSkill.description}
                         rows="2"
+                        placeholder="Resumen corto de la habilidad"
                         class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
                     ></textarea>
+                </div>
+                <div>
+                    <label
+                        for="skill-content"
+                        class="block text-sm font-medium text-slate-400 mb-1"
+                        >Contenido Detallado (Opcional)</label
+                    >
+                    <textarea
+                        id="skill-content"
+                        bind:value={newSkill.content}
+                        rows="6"
+                        placeholder="Explicación detallada, fácil de entender y corta. Ej: conceptos clave, ejemplos, consejos..."
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                    ></textarea>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Este contenido se mostrará cuando el alumno o profesor
+                        quiera profundizar en la habilidad
+                    </p>
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
                     <button
@@ -769,6 +810,76 @@
                         class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold transition-colors"
                     >
                         Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<!-- Delete All Confirmation Modal -->
+{#if confirmDeleteAll}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        transition:fade
+    >
+        <!-- Backdrop -->
+        <button
+            class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm w-full h-full cursor-default"
+            onclick={() => (confirmDeleteAll = false)}
+            aria-label="Cerrar modal"
+        ></button>
+
+        <!-- Modal Panel -->
+        <div
+            class="relative bg-[#1e293b] border border-red-500/50 rounded-2xl w-full max-w-md shadow-2xl"
+        >
+            <div class="p-6">
+                <div class="flex items-start gap-4">
+                    <div class="bg-red-500/10 p-3 rounded-xl">
+                        <Trash class="w-6 h-6 text-red-500" />
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white">
+                            ¿Eliminar TODAS las habilidades?
+                        </h3>
+                        <p class="text-slate-400 text-sm mt-2">
+                            Estás a punto de eliminar <span
+                                class="font-bold text-white"
+                                >{store.skills.length} habilidades</span
+                            >.
+                        </p>
+                        <div
+                            class="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mt-3"
+                        >
+                            <p
+                                class="text-red-400 text-sm flex items-start gap-2"
+                            >
+                                <AlertTriangle
+                                    class="w-4 h-4 flex-shrink-0 mt-0.5"
+                                />
+                                <span
+                                    ><strong>¡ADVERTENCIA!</strong> Esta acción no
+                                    se puede deshacer. Todas las habilidades y el
+                                    progreso de los alumnos se perderán permanentemente.</span
+                                >
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <button
+                        onclick={() => (confirmDeleteAll = false)}
+                        class="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onclick={deleteAllSkills}
+                        class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                    >
+                        Sí, Eliminar Todo
                     </button>
                 </div>
             </div>
