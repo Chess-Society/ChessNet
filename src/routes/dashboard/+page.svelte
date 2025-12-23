@@ -46,6 +46,14 @@
             link: "classes",
         },
         {
+            title: "Calendario Global",
+            desc: "Vista semanal de todas las clases",
+            icon: Calendar,
+            color: "text-indigo-500",
+            hover: "hover:border-indigo-500/50",
+            link: "calendar",
+        },
+        {
             title: "Estudiantes",
             desc: "Gestionar alumnado e inscripciones",
             icon: Users,

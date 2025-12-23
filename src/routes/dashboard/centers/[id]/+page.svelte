@@ -24,8 +24,6 @@
     import { slide, fade } from "svelte/transition";
     import { base } from "$app/paths";
 
-    export const prerender = false; // Add this line!
-
     $: store = $appStore;
 
     let centerId = $page.params.id;
