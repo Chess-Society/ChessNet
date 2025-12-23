@@ -290,7 +290,37 @@
     $: upcomingEvents = (() => {
         const events: any[] = [];
 
-        // Torneos próximos
+        // 1. Clases de hoy
+        todaysClasses.forEach((cls) => {
+            events.push({
+                type: "class",
+                title: `Clase: ${cls.name}`,
+                subtitle: cls.schedule,
+                date: new Date().toISOString().split("T")[0],
+                daysUntil: 0,
+                icon: BookOpen,
+                color: "purple",
+                badge: `${cls.students.length} alumnos`,
+            });
+        });
+
+        // 2. Torneos en curso
+        store.tournaments
+            .filter((t) => t.status === "Ongoing")
+            .forEach((t) => {
+                events.push({
+                    type: "tournament-ongoing",
+                    title: t.name,
+                    subtitle: `${t.participants.length} participantes`,
+                    date: t.date,
+                    daysUntil: -1, // Negativo para ordenar primero
+                    icon: Trophy,
+                    color: "emerald",
+                    badge: "En curso",
+                });
+            });
+
+        // 3. Torneos próximos (próximos 7 días)
         store.tournaments
             .filter(
                 (t) =>
@@ -302,10 +332,12 @@
                 events.push({
                     type: "tournament",
                     title: t.name,
+                    subtitle: `${t.participants.length} inscritos`,
                     date: t.date,
                     daysUntil: daysTill(t.date),
                     icon: Trophy,
                     color: "orange",
+                    badge: null,
                 });
             });
 
@@ -716,7 +748,7 @@
                 {:else}
                     {#each upcomingEvents as event}
                         <div
-                            class="bg-slate-900/30 p-4 rounded-lg border border-slate-700/50"
+                            class="bg-slate-900/30 p-4 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors"
                         >
                             <div class="flex items-start gap-3">
                                 <div
@@ -728,13 +760,35 @@
                                     />
                                 </div>
                                 <div class="flex-1">
-                                    <h4
-                                        class="font-semibold text-white text-sm"
+                                    <div
+                                        class="flex items-start justify-between gap-2"
                                     >
-                                        {event.title}
-                                    </h4>
-                                    <p class="text-xs text-slate-400 mt-1">
-                                        {#if event.daysUntil === 0}
+                                        <div class="flex-1">
+                                            <h4
+                                                class="font-semibold text-white text-sm"
+                                            >
+                                                {event.title}
+                                            </h4>
+                                            {#if event.subtitle}
+                                                <p
+                                                    class="text-xs text-slate-500 mt-0.5"
+                                                >
+                                                    {event.subtitle}
+                                                </p>
+                                            {/if}
+                                        </div>
+                                        {#if event.badge}
+                                            <span
+                                                class="bg-{event.color}-500/10 text-{event.color}-400 text-xs font-bold px-2 py-0.5 rounded-full border border-{event.color}-500/20 whitespace-nowrap"
+                                            >
+                                                {event.badge}
+                                            </span>
+                                        {/if}
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-2">
+                                        {#if event.daysUntil < 0}
+                                            En curso
+                                        {:else if event.daysUntil === 0}
                                             Hoy
                                         {:else if event.daysUntil === 1}
                                             Mañana
