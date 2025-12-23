@@ -12,6 +12,72 @@ export interface DiplomaOptions {
     type: 'excellence' | 'participation' | 'completion' | 'tournament';
 }
 
+const drawChessPattern = (doc: jsPDF, x: number, y: number, width: number, size: number) => {
+    doc.setFillColor(0, 0, 0);
+    let drawBlack = true;
+    for (let i = x; i < x + width; i += size) {
+        if (drawBlack) {
+            doc.rect(i, y, size, size, 'F');
+        }
+        drawBlack = !drawBlack;
+    }
+    // Second row staggered
+    drawBlack = false;
+    for (let i = x; i < x + width; i += size) {
+        if (drawBlack) {
+            doc.rect(i, y + size, size, size, 'F');
+        }
+        drawBlack = !drawBlack;
+    }
+};
+
+const drawCorner = (doc: jsPDF, x: number, y: number, size: number, rotation: number) => {
+    // Simple ornate corner L-shape
+    doc.setDrawColor(183, 142, 60); // Gold
+    doc.setLineWidth(1.5);
+
+    // We can just draw lines relative to x,y
+    // Rotation is 0 (top-left), 90 (top-right), 180 (bottom-right), 270 (bottom-left)
+    // To keep it simple without matrix transforms, we'll just code logic for 4 corners or use simple lines.
+
+    // Actually, simpler is just 4 distinct calls or if/else logic
+    // Let's just draw "L" shapes with a double line
+    const offset = 5;
+    const len = 20;
+
+    let x1 = x, y1 = y, x2 = x, y2 = y;
+    let x3 = x, y3 = y, x4 = x, y4 = y;
+
+    // TL
+    if (x < 100 && y < 100) {
+        doc.line(x, y, x + len, y);
+        doc.line(x, y, x, y + len);
+        doc.line(x + offset, y + offset, x + len, y + offset);
+        doc.line(x + offset, y + offset, x + offset, y + len);
+    }
+    // TR
+    else if (x > 100 && y < 100) {
+        doc.line(x, y, x - len, y);
+        doc.line(x, y, x, y + len);
+        doc.line(x - offset, y + offset, x - len, y + offset);
+        doc.line(x - offset, y + offset, x - offset, y + len);
+    }
+    // BR
+    else if (x > 100 && y > 100) {
+        doc.line(x, y, x - len, y);
+        doc.line(x, y, x, y - len);
+        doc.line(x - offset, y - offset, x - len, y - offset);
+        doc.line(x - offset, y - offset, x - offset, y - len);
+    }
+    // BL
+    else {
+        doc.line(x, y, x + len, y);
+        doc.line(x, y, x, y - len);
+        doc.line(x + offset, y - offset, x + len, y - offset);
+        doc.line(x + offset, y - offset, x + offset, y - len);
+    }
+};
+
 export const generateDiploma = (options: DiplomaOptions) => {
     const doc = new jsPDF({
         orientation: 'landscape',
@@ -22,93 +88,135 @@ export const generateDiploma = (options: DiplomaOptions) => {
     const width = doc.internal.pageSize.getWidth();
     const height = doc.internal.pageSize.getHeight();
 
-    // -- Background & Border --
-    // Beige/Paper background color check - standard white is usually better for home printers, 
-    // but a very light cream adds "premium". Let's stick to white for cleaner printing or add a subtle option.
-    // We will stick to white for now to save ink.
+    // -- Background --
+    // Subtle cream background
+    doc.setFillColor(255, 253, 245);
+    doc.rect(0, 0, width, height, 'F');
 
-    // Outer Border
-    doc.setDrawColor(20, 20, 20); // Dark Grey/Black
+    // -- Ornamental Borders --
+    // Outer heavy border
+    doc.setDrawColor(20, 20, 20);
+    doc.setLineWidth(1.5);
+    doc.rect(8, 8, width - 16, height - 16);
+
+    // Inner gold border
+    doc.setDrawColor(183, 142, 60); // Gold
     doc.setLineWidth(1);
-    doc.rect(10, 10, width - 20, height - 20);
+    doc.rect(12, 12, width - 24, height - 24);
 
-    // Inner Border (Golden or Accent)
-    doc.setDrawColor(183, 142, 60); // Metallic Gold-ish
-    doc.setLineWidth(2);
-    doc.rect(15, 15, width - 30, height - 30);
+    // Decorative Corners
+    drawCorner(doc, 12, 12, 0, 0); // TL
+    drawCorner(doc, width - 12, 12, 0, 0); // TR
+    drawCorner(doc, width - 12, height - 12, 0, 0); // BR
+    drawCorner(doc, 12, height - 12, 0, 0); // BL
+
+    // -- Chess Pattern Strip (Bottom) --
+    // A subtle checkerboard at the bottom content area ???
+    // Maybe too busy. Let's do a simple icon at top.
 
     // -- Header --
     doc.setTextColor(50, 50, 50);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(36);
+    doc.setFont("times", "bold");
+    doc.setFontSize(40);
 
     let title = "DIPLOMA DE HONOR";
-    if (options.type === 'completion') title = "CERTIFICADO DE FINALIZACIÓN";
-    if (options.type === 'participation') title = "CERTIFICADO DE PARTICIPACIÓN";
-    if (options.type === 'tournament') title = "DIPLOMA DE TORNEO";
+    if (options.type === 'completion') title = "DIPLOMA DE FINALIZACIÓN";
+    if (options.type === 'participation') title = "CERTIFICADO DE MÉRITO";
+    if (options.type === 'tournament') title = "CAMPEÓN DE TORNEO";
 
-    doc.text(title, width / 2, 50, { align: "center" });
+    doc.text(title.toUpperCase(), width / 2, 45, { align: "center" });
 
-    // -- Logo / Decoration (Optional Placeholder) --
-    // A simple Chess piece icon drawn with lines could go here, or just text.
-    // Let's settle for a subtitle.
-
-    doc.setFont("times", "normal");
-    doc.setFontSize(16);
-    doc.setTextColor(100, 100, 100);
-    doc.text("Se otorga el presente reconocimiento a:", width / 2, 75, { align: "center" });
+    // -- Subheader --
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(14);
+    doc.setTextColor(120, 120, 120);
+    doc.text("OTORGADO A", width / 2, 65, { align: "center" });
 
     // -- Student Name --
     doc.setFont("times", "italic");
-    doc.setFontSize(42);
-    doc.setTextColor(0, 0, 0); // Black for name
-    doc.text(options.studentName, width / 2, 100, { align: "center" });
+    doc.setFontSize(48);
+    doc.setTextColor(0, 0, 0);
+    // Add a slight drop shadow effect by printing twice?
+    doc.setTextColor(200, 200, 200);
+    doc.text(options.studentName, width / 2 + 0.5, 90.5, { align: "center" }); // Shadow
+    doc.setTextColor(183, 142, 60); // Gold Text
+    doc.text(options.studentName, width / 2, 90, { align: "center" });
 
-    // -- Divider Line --
-    doc.setDrawColor(183, 142, 60);
+    // -- Divider --
+    doc.setDrawColor(50, 50, 50);
     doc.setLineWidth(0.5);
-    doc.line(width / 2 - 60, 105, width / 2 + 60, 105);
+    doc.line(width / 2 - 40, 100, width / 2 + 40, 100);
 
     // -- Reason / Body Text --
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(16);
-    doc.setTextColor(60, 60, 60);
+    doc.setFont("times", "normal");
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
 
     let bodyText = "";
     if (options.achievement) {
-        bodyText = `Por haber alcanzado el logro: "${options.achievement}"`;
+        bodyText = `En reconocimiento por alcanzar el logro: "${options.achievement}"`;
     } else if (options.courseName) {
-        bodyText = `Por haber completado satisfactoriamente el curso de ajedrez: "${options.courseName}"`;
+        bodyText = `Por haber completado con éxito el curso: "${options.courseName}"`;
     } else {
-        bodyText = "Por su dedicación, esfuerzo y excelente desempeño en el aprendizaje del ajedrez.";
+        bodyText = "En reconocimiento a su dedicación, esfuerzo y progreso continuo en el noble juego del ajedrez.";
     }
 
-    // Wrap text if needed (simple centering for now)
-    doc.text(bodyText, width / 2, 125, { align: "center", maxWidth: 200 });
+    const splitText = doc.splitTextToSize(bodyText, 180);
+    doc.text(splitText, width / 2, 120, { align: "center" });
 
     if (options.centerName) {
         doc.setFontSize(14);
-        doc.text(`Otorgado en ${options.centerName}`, width / 2, 140, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text(options.centerName, width / 2, 145, { align: "center" });
     }
 
-    // -- Date & Signature --
-    const bottomY = height - 45;
+    // -- Signatures Area --
+    const sigY = height - 40;
 
-    // Date
+    // Left: Date
     doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Fecha: ${options.date}`, 50, bottomY);
-    doc.line(40, bottomY - 5, 90, bottomY - 5); // Line over date
-
-    // Signature
-    doc.text(options.instructorName, width - 50, bottomY, { align: "center" });
-    doc.text("Instructor", width - 50, bottomY + 6, { align: "center" });
-    doc.line(width - 80, bottomY - 5, width - 20, bottomY - 5); // Line over signature
-
-    // -- Footer Branding --
+    doc.setTextColor(60, 60, 60);
+    doc.text(options.date, 60, sigY, { align: "center" });
+    doc.setDrawColor(100, 100, 100);
+    doc.line(40, sigY - 2, 80, sigY - 2);
     doc.setFontSize(10);
-    doc.setTextColor(150, 150, 150);
-    doc.text("Generado con ChessNet", width / 2, height - 12, { align: "center" });
+    doc.text("FECHA", 60, sigY + 5, { align: "center" });
+
+    // Right: Signature
+    doc.setFontSize(12);
+    doc.setFont("times", "italic");
+    doc.text(options.instructorName, width - 60, sigY, { align: "center" });
+    doc.line(width - 80, sigY - 2, width - 40, sigY - 2);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("INSTRUCTOR", width - 60, sigY + 5, { align: "center" });
+
+    // -- Chess Piece Icon (Vector) --
+    // Draw a simplified King Crown icon in the center bottom
+    const cx = width / 2;
+    const cy = height - 25;
+
+    doc.setDrawColor(183, 142, 60);
+    doc.setFillColor(183, 142, 60);
+
+    // Cross
+    doc.line(cx, cy - 8, cx, cy - 5);
+    doc.line(cx - 1.5, cy - 6.5, cx + 1.5, cy - 6.5);
+
+    // Crown Top
+    doc.triangle(cx - 4, cy - 2, cx, cy - 5, cx + 4, cy - 2, 'FD');
+
+    // Body
+    doc.rect(cx - 3, cy - 2, 6, 4, 'FD');
+
+    // Base
+    doc.rect(cx - 4, cy + 2, 8, 1, 'FD');
+
+    // Branding
+    doc.setFontSize(8);
+    doc.setTextColor(180, 180, 180);
+    doc.text("ChessNet System", width / 2, height - 8, { align: "center" });
 
     // Output
     doc.save(`Diploma_${options.studentName.replace(/\s+/g, '_')}.pdf`);
