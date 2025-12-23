@@ -22,7 +22,9 @@
         TrendingUp,
         Award,
         Save,
+        Share2,
     } from "lucide-svelte";
+    import DiplomaModal from "$lib/components/dashboard/students/DiplomaModal.svelte";
 
     $: store = $appStore;
 
@@ -288,6 +290,66 @@
             // Refresh local list if needed, though store is reactive
         }
     }
+
+    function handleShareProfile(student: Student) {
+        // Calculate minimal stats for the public card
+        const freshStudent =
+            store.students.find((s) => s.id === student.id) ?? student;
+
+        // Attendance
+        const studentRecords = store.attendance.flatMap((r) =>
+            r.records
+                .filter((rec) => rec.studentId === freshStudent.id)
+                .map((rec) => rec.status),
+        );
+        const total = studentRecords.length;
+        const present = studentRecords.filter((s) => s === "present").length;
+        const attendanceRate =
+            total > 0 ? Math.round((present / total) * 100) : 0;
+
+        // Skills (Mock progress since we don't track % per skill yet, just binary possession)
+        // In a real app, we would have specific progress per skill.
+        // For now, if they have the skill ID, we show 100%, or we can simulate "Mastery".
+        let publicSkills = [];
+        if (freshStudent.skills && freshStudent.skills.length > 0) {
+            publicSkills = store.skills
+                .filter((skill) => freshStudent.skills?.includes(skill.id))
+                .map((skill) => ({ name: skill.name, val: 100 }));
+        }
+
+        const payload = {
+            name: freshStudent.name,
+            level: freshStudent.level,
+            attendance: attendanceRate,
+            skills: publicSkills,
+            notes: freshStudent.notes || "",
+        };
+
+        const str = btoa(JSON.stringify(payload));
+        const url = `${window.location.origin}/student/view?d=${str}`;
+
+        if (navigator.share) {
+            navigator
+                .share({
+                    title: `Perfil de Ajedrez: ${freshStudent.name}`,
+                    text: `Mira el progreso de ${freshStudent.name} en ChessNet`,
+                    url: url,
+                })
+                .catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url);
+            alert("Enlace del perfil copiado al portapapeles.");
+        }
+    }
+
+    // Diploma Modal State
+    let showDiplomaModal = false;
+    let selectedStudentForDiploma: Student | null = null;
+
+    function openDiplomaModal(student: Student) {
+        selectedStudentForDiploma = student;
+        showDiplomaModal = true;
+    }
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -493,6 +555,22 @@
                                 </button>
                                 <button
                                     type="button"
+                                    onclick={() => openDiplomaModal(student)}
+                                    class="p-2 bg-slate-800 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-colors"
+                                    title="Generar Diploma"
+                                >
+                                    <GraduationCap class="w-5 h-5" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onclick={() => handleShareProfile(student)}
+                                    class="p-2 bg-slate-800 rounded-lg text-indigo-400 hover:bg-indigo-500/20 transition-colors"
+                                    title="Compartir Perfil"
+                                >
+                                    <Share2 class="w-5 h-5" />
+                                </button>
+                                <button
+                                    type="button"
                                     onclick={() => openEditForm(student)}
                                     class="p-2 bg-slate-800 rounded-lg text-blue-400 hover:bg-blue-500/20 transition-colors"
                                     title="Editar"
@@ -591,6 +669,22 @@
                                         <Award class="w-4 h-4" />
                                     </button>
                                     <button
+                                        onclick={() =>
+                                            openDiplomaModal(student)}
+                                        class="text-slate-500 hover:text-amber-400 p-2 rounded hover:bg-amber-500/10 transition-colors"
+                                        title="Generar Diploma"
+                                    >
+                                        <GraduationCap class="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onclick={() =>
+                                            handleShareProfile(student)}
+                                        class="text-slate-500 hover:text-indigo-400 p-2 rounded hover:bg-indigo-500/10 transition-colors"
+                                        title="Compartir Perfil"
+                                    >
+                                        <Share2 class="w-4 h-4" />
+                                    </button>
+                                    <button
                                         onclick={() => openEditForm(student)}
                                         class="text-slate-500 hover:text-blue-400 p-2 rounded hover:bg-blue-500/10 transition-colors"
                                         title="Editar"
@@ -612,6 +706,17 @@
             </tbody>
         </table>
     </div>
+
+    {#if showDiplomaModal && selectedStudentForDiploma}
+        <DiplomaModal
+            isOpen={showDiplomaModal}
+            studentName={selectedStudentForDiploma.name}
+            centerName={getCenterNameForClass(
+                getStudentClass(selectedStudentForDiploma.id),
+            )}
+            on:close={() => (showDiplomaModal = false)}
+        />
+    {/if}
 </div>
 
 <!-- Report Modal -->

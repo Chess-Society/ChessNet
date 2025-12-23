@@ -61,6 +61,24 @@ export interface Payment {
     notes?: string;
 }
 
+export interface LessonSegment {
+    id: string;
+    type: 'opening' | 'tactics' | 'strategy' | 'endgame' | 'game' | 'analysis' | 'other';
+    title: string;
+    duration: number; // minutes
+    notes?: string;
+}
+
+export interface LessonPlan {
+    id: string;
+    title: string;
+    date?: string; // Intended date
+    classId?: string; // Optional assignment
+    segments: LessonSegment[];
+    totalDuration: number;
+    createdAt: string;
+}
+
 export interface AppData {
     centers: Center[];
     students: Student[];
@@ -69,10 +87,22 @@ export interface AppData {
     tournaments: Tournament[];
     attendance: AttendanceRecord[];
     payments: Payment[];
+    plans: LessonPlan[];
+    leads: Lead[];
     reports: any[]; // Placeholder
     settings: {
         plan: 'free' | 'profe' | 'club';
     };
+}
+
+export interface Lead {
+    id: string;
+    name: string;
+    contact: string;
+    status: 'new' | 'contacted' | 'trial' | 'converted' | 'lost';
+    source?: 'web' | 'referral' | 'flyer' | 'other';
+    notes?: string;
+    createdAt: string;
 }
 
 export interface Match {
@@ -102,6 +132,8 @@ const initialState: AppData = {
     tournaments: [],
     attendance: [],
     payments: [],
+    plans: [],
+    leads: [],
     reports: [],
     settings: {
         plan: 'free'
@@ -326,6 +358,24 @@ export const storeActions = {
         appStore.update(data => {
             return { ...data, payments: data.payments.filter(p => p.id !== id) };
         });
+    },
+    addLessonPlan: (plan: LessonPlan) => {
+        appStore.update(data => ({ ...data, plans: [plan, ...data.plans] }));
+    },
+    removeLessonPlan: (id: string) => {
+        appStore.update(data => ({ ...data, plans: data.plans.filter(p => p.id !== id) }));
+    },
+    addLead: (lead: Lead) => {
+        appStore.update(data => ({ ...data, leads: [lead, ...data.leads] }));
+    },
+    updateLead: (lead: Lead) => {
+        appStore.update(data => ({
+            ...data,
+            leads: data.leads.map(l => l.id === lead.id ? lead : l)
+        }));
+    },
+    removeLead: (id: string) => {
+        appStore.update(data => ({ ...data, leads: data.leads.filter(l => l.id !== id) }));
     },
     // Reset para pruebas
     reset: () => {

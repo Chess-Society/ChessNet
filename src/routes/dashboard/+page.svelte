@@ -5,6 +5,7 @@
     import {
         School,
         Users,
+        UserPlus,
         BookOpen,
         Trophy,
         Target,
@@ -22,6 +23,7 @@
         ArrowUpRight,
         ArrowDownRight,
         CheckCircle,
+        Layout,
     } from "lucide-svelte";
 
     import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
@@ -96,6 +98,24 @@
             hover: "hover:border-teal-500/50",
             link: "payments",
             badge: "BETA",
+        },
+        {
+            title: "Planificador",
+            desc: "Diseñar sesiones y contenido",
+            icon: Layout,
+            color: "text-indigo-500",
+            hover: "hover:border-indigo-500/50",
+            link: "planner",
+            badge: "NEW",
+        },
+        {
+            title: "CRM / Interesados",
+            desc: "Gestionar posibles alumnos",
+            icon: UserPlus,
+            color: "text-pink-500",
+            hover: "hover:border-pink-500/50",
+            link: "leads",
+            badge: "NEW",
         },
     ];
 
