@@ -140,14 +140,46 @@ export function initStore() {
             // Ensure compatibility if new fields added
             appStore.set({ ...initialState, ...parsed });
         } catch (e) {
-            console.error('Error cargando datos', e);
+            console.error('Error cargando datos:', e);
+            // If data is corrupted, reset to initial state
+            if (typeof window !== 'undefined') {
+                const shouldReset = confirm(
+                    'Los datos guardados están corruptos. ¿Deseas resetear la aplicación?'
+                );
+                if (shouldReset) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    appStore.set(initialState);
+                }
+            }
         }
     }
 
     // Suscribirse a cambios para guardar automáticamente
     appStore.subscribe(value => {
         if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+            try {
+                const serialized = JSON.stringify(value);
+
+                // Check localStorage quota (typically 5-10MB)
+                const estimatedSize = new Blob([serialized]).size;
+                if (estimatedSize > 5 * 1024 * 1024) { // 5MB warning
+                    console.warn('Los datos están ocupando mucho espacio. Considera exportar y limpiar datos antiguos.');
+                }
+
+                localStorage.setItem(STORAGE_KEY, serialized);
+            } catch (e) {
+                console.error('Error guardando datos:', e);
+
+                // Handle quota exceeded error
+                if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                    if (typeof window !== 'undefined') {
+                        alert(
+                            'No hay suficiente espacio en el navegador para guardar los datos. ' +
+                            'Por favor, exporta tus datos y limpia registros antiguos.'
+                        );
+                    }
+                }
+            }
         }
     });
 }

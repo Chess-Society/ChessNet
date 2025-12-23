@@ -12,7 +12,7 @@ const config = {
 			fallback: '404.html' // Tip for SPA mode on GitHub Pages
 		}),
 		paths: {
-			base: process.env.NODE_ENV === 'production' ? '/PruebaChessNet' : '',
+			base: process.env.NODE_ENV === 'production' ? '/ChessNet' : '',
 		}
 	}
 };

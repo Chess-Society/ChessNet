@@ -15,6 +15,7 @@
         X,
     } from "lucide-svelte";
     import { onMount } from "svelte";
+    import SEO from "$lib/components/SEO.svelte";
 
     function login() {
         goto(`${base}/dashboard`);
@@ -22,9 +23,18 @@
 
     let scrollY = 0;
     let mobileMenuOpen = false;
+
+    // Close mobile menu on Escape key
+    function handleKeydown(event: KeyboardEvent) {
+        if (event.key === "Escape" && mobileMenuOpen) {
+            mobileMenuOpen = false;
+        }
+    }
 </script>
 
-<svelte:window bind:scrollY />
+<svelte:window bind:scrollY onkeydown={handleKeydown} />
+
+<SEO />
 
 <div
     class="bg-[#0f172a] min-h-screen text-white selection:bg-emerald-500/30 font-sans overflow-x-hidden"
@@ -90,17 +100,17 @@
             <div class="hidden lg:flex lg:gap-x-12">
                 <a
                     href="#features"
-                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
+                    class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all"
                     >Características</a
                 >
                 <a
                     href="{base}/donate"
-                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
+                    class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all"
                     >Donar</a
                 >
                 <a
                     href="#pricing"
-                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all flex items-center gap-1"
+                    class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all flex items-center gap-1"
                     >Precios <span
                         class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30"
                         >BETA</span
@@ -108,20 +118,22 @@
                 >
                 <a
                     href="{base}/roadmap"
-                    class="text-sm font-medium leading-6 text-slate-300 hover:text-white hover:scale-105 transition-all"
+                    class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all"
                     >Hoja de Ruta</a
                 >
             </div>
             <div class="hidden lg:flex lg:flex-1 lg:justify-end gap-4">
                 <button
                     onclick={login}
-                    class="text-sm font-semibold leading-6 text-slate-300 hover:text-white px-4 py-2 transition-colors"
+                    aria-label="Iniciar sesión en ChessNet"
+                    class="text-sm font-semibold leading-6 text-slate-200 hover:text-white px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg"
                 >
                     Iniciar Sesión
                 </button>
                 <button
                     onclick={login}
-                    class="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 hover:scale-105 hover:shadow-emerald-500/40 transition-all duration-300 cursor-pointer border border-transparent"
+                    aria-label="Crear cuenta gratuita en ChessNet"
+                    class="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 hover:scale-105 hover:shadow-emerald-500/40 transition-all duration-300 cursor-pointer border border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-900"
                 >
                     Empezar Gratis
                 </button>
@@ -150,7 +162,8 @@
                         </a>
                         <button
                             type="button"
-                            class="-m-2.5 rounded-md p-2.5 text-slate-400 hover:text-white"
+                            aria-label="Cerrar menú de navegación"
+                            class="-m-2.5 rounded-md p-2.5 text-slate-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             onclick={() => (mobileMenuOpen = false)}
                         >
                             <span class="sr-only">Cerrar menú</span>
@@ -177,7 +190,7 @@
                                     class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-slate-800 flex items-center justify-between"
                                     onclick={() => (mobileMenuOpen = false)}
                                     >Precios <span
-                                        class="ml-2 text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30"
+                                        class="ml-2 text-sm bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded border border-emerald-500/30 font-bold"
                                         >BETA</span
                                     ></a
                                 >
@@ -234,7 +247,7 @@
                     >Academia de Ajedrez</span
                 >
             </h1>
-            <p class="mt-6 text-lg leading-8 text-slate-300 max-w-2xl mx-auto">
+            <p class="mt-6 text-lg leading-8 text-slate-200 max-w-2xl mx-auto">
                 Olvídate de las hojas de cálculo. Centraliza alumnos, clases,
                 torneos y pagos en una plataforma diseñada por y para
                 ajedrecistas.
@@ -502,7 +515,7 @@
                     </div>
                     <ul
                         role="list"
-                        class="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 text-slate-300 sm:grid-cols-2 sm:gap-6"
+                        class="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 text-slate-200 sm:grid-cols-2 sm:gap-6"
                     >
                         <li class="flex gap-x-3">
                             <CheckCircle2
@@ -575,7 +588,7 @@
                     </div>
                     <ul
                         role="list"
-                        class="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 text-slate-300 sm:grid-cols-2 sm:gap-6"
+                        class="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 text-slate-200 sm:grid-cols-2 sm:gap-6"
                     >
                         <li class="flex gap-x-3">
                             <CheckCircle2
@@ -658,7 +671,7 @@
                     Empieza a profesionalizar tu enseñanza hoy.
                 </h2>
                 <p
-                    class="mx-auto mt-2 max-w-xl text-center text-lg leading-8 text-slate-300"
+                    class="mx-auto mt-2 max-w-xl text-center text-lg leading-8 text-slate-200"
                 >
                     Únete a otros profesores que ya ahorran horas de gestión
                     cada semana.

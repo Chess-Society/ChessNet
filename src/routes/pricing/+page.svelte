@@ -2,6 +2,7 @@
     import { Check, X, Shield, Crown, GraduationCap, Zap } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
     import { base } from "$app/paths";
+    import SEO from "$lib/components/SEO.svelte";
 
     const plans = [
         {
@@ -73,6 +74,11 @@
         },
     ];
 </script>
+
+<SEO
+    title="Precios (BETA)"
+    description="Planes flexibles para academias de ajedrez de todos los tamaños. Desde gratis hasta funciones profesionales. Prueba ChessNet sin compromiso."
+/>
 
 <div
     class="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-purple-500/30"
@@ -177,7 +183,7 @@
                                 >
                                     <Check class="w-3 h-3 text-emerald-400" />
                                 </div>
-                                <span class="text-slate-300 text-sm"
+                                <span class="text-slate-200 text-sm"
                                     >{feature}</span
                                 >
                             </div>

@@ -2,7 +2,13 @@
     import { Heart, Shield } from "lucide-svelte";
     import { base } from "$app/paths";
     import { fade } from "svelte/transition";
+    import SEO from "$lib/components/SEO.svelte";
 </script>
+
+<SEO
+    title="Apoya el Desarrollo"
+    description="Ayuda a mantener ChessNet gratuito y en constante mejora. Tu donación nos permite seguir desarrollando nuevas funcionalidades para profesores de ajedrez."
+/>
 
 <div
     class="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-emerald-500/30 overflow-x-hidden"

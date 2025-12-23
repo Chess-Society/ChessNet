@@ -11,7 +11,13 @@
     } from "lucide-svelte";
     import { base } from "$app/paths";
     import { fade, fly } from "svelte/transition";
+    import SEO from "$lib/components/SEO.svelte";
 </script>
+
+<SEO
+    title="Hoja de Ruta 2026+"
+    description="Descubre las próximas funcionalidades de ChessNet: autenticación, análisis avanzados, automatización, app móvil y más. Roadmap actualizado para profesores de ajedrez."
+/>
 
 <div
     class="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-emerald-500/30 overflow-x-hidden"
@@ -112,7 +118,7 @@
                                 Autenticación y Seguridad
                             </h3>
                         </div>
-                        <ul class="space-y-2 text-slate-300">
+                        <ul class="space-y-2 text-slate-200">
                             <li class="flex items-start gap-2">
                                 <span class="text-emerald-400 mt-1">•</span>
                                 <span>Sistema de registro con email</span>
@@ -153,7 +159,7 @@
                                 Mejoras de Gestión
                             </h3>
                         </div>
-                        <ul class="space-y-2 text-slate-300">
+                        <ul class="space-y-2 text-slate-200">
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-400 mt-1">•</span>
                                 <span
@@ -198,7 +204,7 @@
                                 Análisis y Reportes
                             </h3>
                         </div>
-                        <ul class="space-y-2 text-slate-300">
+                        <ul class="space-y-2 text-slate-200">
                             <li class="flex items-start gap-2">
                                 <span class="text-purple-400 mt-1">•</span>
                                 <span>Dashboards personalizables</span>
@@ -241,7 +247,7 @@
                                 Automatización
                             </h3>
                         </div>
-                        <ul class="space-y-2 text-slate-300">
+                        <ul class="space-y-2 text-slate-200">
                             <li class="flex items-start gap-2">
                                 <span class="text-orange-400 mt-1">•</span>
                                 <span>Recordatorios automáticos de pagos</span>
@@ -285,7 +291,7 @@
                                 Expansión Profesional
                             </h3>
                         </div>
-                        <ul class="space-y-2 text-slate-300">
+                        <ul class="space-y-2 text-slate-200">
                             <li class="flex items-start gap-2">
                                 <span class="text-cyan-400 mt-1">•</span>
                                 <span
@@ -324,7 +330,7 @@
                     Esta hoja de ruta es orientativa y puede cambiar según las
                     necesidades de los profesores y recursos disponibles.
                 </p>
-                <p class="text-slate-300">
+                <p class="text-slate-200">
                     ¿Tienes sugerencias? <a
                         href="https://discord.gg/G7SrFtJHnr"
                         class="text-emerald-400 hover:text-emerald-300 font-medium"
