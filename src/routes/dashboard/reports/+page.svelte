@@ -126,6 +126,39 @@
             .sort((a, b) => b.count - a.count)
             .slice(0, 5);
     }
+
+    // 5. Attendance by Class
+    $: attendanceByClass = getAttendanceByClass(
+        store.classes,
+        store.attendance,
+    );
+
+    function getAttendanceByClass(classes: any[], attendance: any[]) {
+        return classes
+            .map((cls) => {
+                const classRecords = attendance.filter(
+                    (r) => r.classId === cls.id,
+                );
+                if (classRecords.length === 0)
+                    return { name: cls.name, rate: 0, count: 0 };
+
+                let total = 0;
+                let present = 0;
+                classRecords.forEach((r) => {
+                    r.records.forEach((s: any) => {
+                        total++;
+                        if (s.status === "present") present++;
+                    });
+                });
+
+                return {
+                    name: cls.name,
+                    rate: total === 0 ? 0 : Math.round((present / total) * 100),
+                    count: classRecords.length,
+                };
+            })
+            .sort((a, b) => b.rate - a.rate);
+    }
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" in:fade>
@@ -196,6 +229,40 @@
                 </div>
             </div>
             <p class="text-xs text-slate-500 mt-4">Matriculados actualmente</p>
+        </div>
+    </div>
+
+    <!-- Row 3: Class Analytics -->
+    <div class="mt-8 grid grid-cols-1">
+        <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6">
+            <h3
+                class="text-lg font-bold text-white mb-6 flex items-center gap-2"
+            >
+                <Users class="w-5 h-5 text-pink-500" /> Asistencia por Clase
+            </h3>
+            <div class="space-y-4">
+                {#each attendanceByClass as item}
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300">{item.name}</span>
+                            <span class="text-slate-400"
+                                >{item.rate}% ({item.count} sesiones)</span
+                            >
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div
+                                class="h-2 rounded-full transition-all duration-1000 bg-pink-500"
+                                style="width: {item.rate}%"
+                            ></div>
+                        </div>
+                    </div>
+                {/each}
+                {#if attendanceByClass.length === 0}
+                    <p class="text-slate-500 text-sm italic text-center">
+                        No hay clases registradas.
+                    </p>
+                {/if}
+            </div>
         </div>
     </div>
 
@@ -361,6 +428,40 @@
                 {#if topSkills.length === 0}
                     <p class="text-slate-500 text-sm italic text-center">
                         No hay habilidades registradas.
+                    </p>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Class Analytics -->
+    <div class="mt-8 grid grid-cols-1">
+        <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6">
+            <h3
+                class="text-lg font-bold text-white mb-6 flex items-center gap-2"
+            >
+                <Users class="w-5 h-5 text-pink-500" /> Asistencia por Clase
+            </h3>
+            <div class="space-y-4">
+                {#each attendanceByClass as item}
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-300">{item.name}</span>
+                            <span class="text-slate-400"
+                                >{item.rate}% ({item.count} sesiones)</span
+                            >
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-2">
+                            <div
+                                class="h-2 rounded-full transition-all duration-1000 bg-pink-500"
+                                style="width: {item.rate}%"
+                            ></div>
+                        </div>
+                    </div>
+                {/each}
+                {#if attendanceByClass.length === 0}
+                    <p class="text-slate-500 text-sm italic text-center">
+                        No hay clases registradas.
                     </p>
                 {/if}
             </div>

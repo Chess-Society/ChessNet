@@ -42,6 +42,19 @@
             storeActions.removeCenter(id);
         }
     }
+
+    function getStudentCount(centerId: string) {
+        // Find all classes for this center
+        const centerClasses = store.classes.filter(
+            (c) => c.centerId === centerId,
+        );
+        // Collect all student IDs (unique)
+        const uniqueStudents = new Set<string>();
+        centerClasses.forEach((c) => {
+            c.students.forEach((sId) => uniqueStudents.add(sId));
+        });
+        return uniqueStudents.size;
+    }
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -167,10 +180,9 @@
                             <MapPin class="w-4 h-4 mr-2" />
                             {center.location}
                         </div>
-                        <!-- TODO: Calculate actual student count once relation is implemented -->
                         <div class="flex items-center text-slate-400 text-sm">
                             <Users class="w-4 h-4 mr-2" />
-                            0 Alumnos
+                            {getStudentCount(center.id)} Alumnos
                         </div>
                     </div>
 

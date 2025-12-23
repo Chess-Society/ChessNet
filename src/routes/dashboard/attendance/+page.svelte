@@ -26,6 +26,11 @@
     let selectedDate = new Date().toISOString().split("T")[0];
     let attendanceStatus: Record<string, "present" | "absent" | "excused"> = {};
     let saveMessage = "";
+    let hasUnsavedChanges = false;
+    let initialAttendanceState: Record<
+        string,
+        "present" | "absent" | "excused"
+    > = {};
 
     onMount(() => {
         const classIdParam = $page.url.searchParams.get("classId");
@@ -62,6 +67,10 @@
                 attendanceStatus[s.id] = "present"; // Default value
             });
         }
+
+        // Save initial state and reset unsaved changes flag
+        initialAttendanceState = { ...attendanceStatus };
+        hasUnsavedChanges = false;
     }
 
     // React to students list changes to ensure defaults are set even if no record exists yet
@@ -79,7 +88,67 @@
         status: "present" | "absent" | "excused",
     ) {
         attendanceStatus[studentId] = status;
+        checkForChanges();
     }
+
+    function checkForChanges() {
+        hasUnsavedChanges =
+            JSON.stringify(attendanceStatus) !==
+            JSON.stringify(initialAttendanceState);
+    }
+
+    // Quick Actions
+    function markAllPresent() {
+        studentsInClass.forEach((s) => {
+            attendanceStatus[s.id] = "present";
+        });
+        checkForChanges();
+    }
+
+    function markAllAbsent() {
+        if (confirm("¿Estás seguro de marcar a todos como ausentes?")) {
+            studentsInClass.forEach((s) => {
+                attendanceStatus[s.id] = "absent";
+            });
+            checkForChanges();
+        }
+    }
+
+    // Date Navigation
+    function goToPreviousDay() {
+        if (
+            hasUnsavedChanges &&
+            !confirm("Tienes cambios sin guardar. ¿Continuar sin guardar?")
+        ) {
+            return;
+        }
+        const currentDate = new Date(selectedDate);
+        currentDate.setDate(currentDate.getDate() - 1);
+        selectedDate = currentDate.toISOString().split("T")[0];
+    }
+
+    function goToNextDay() {
+        if (
+            hasUnsavedChanges &&
+            !confirm("Tienes cambios sin guardar. ¿Continuar sin guardar?")
+        ) {
+            return;
+        }
+        const currentDate = new Date(selectedDate);
+        currentDate.setDate(currentDate.getDate() + 1);
+        selectedDate = currentDate.toISOString().split("T")[0];
+    }
+
+    // Computed stats
+    $: presentCount = Object.values(attendanceStatus).filter(
+        (s) => s === "present",
+    ).length;
+    $: absentCount = Object.values(attendanceStatus).filter(
+        (s) => s === "absent",
+    ).length;
+    $: excusedCount = Object.values(attendanceStatus).filter(
+        (s) => s === "excused",
+    ).length;
 
     function saveAttendance() {
         if (!selectedClassId) return;
@@ -99,6 +168,8 @@
         storeActions.saveAttendance(record);
 
         saveMessage = "Asistencia guardada correctamente";
+        hasUnsavedChanges = false;
+        initialAttendanceState = { ...attendanceStatus };
         setTimeout(() => (saveMessage = ""), 3000);
     }
 </script>
@@ -114,60 +185,119 @@
     </div>
 
     <!-- Controls -->
-    <div
-        class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 grid grid-cols-1 md:grid-cols-3 gap-6"
-    >
-        <div>
-            <label
-                for="class-select"
-                class="block text-sm font-medium text-slate-400 mb-2"
-            >
-                Seleccionar Grupo
-            </label>
-            <div class="relative">
-                <Users class="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
-                <select
-                    id="class-select"
-                    bind:value={selectedClassId}
-                    class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-pink-500 appearance-none"
+    <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+                <label
+                    for="class-select"
+                    class="block text-sm font-medium text-slate-400 mb-2"
                 >
-                    <option value="">-- Elegir Clase --</option>
-                    {#each store.classes as cls}
-                        <option value={cls.id}>{cls.name}</option>
-                    {/each}
-                </select>
-            </div>
-        </div>
-
-        <div>
-            <label
-                for="date-select"
-                class="block text-sm font-medium text-slate-400 mb-2"
-            >
-                Fecha
-            </label>
-            <div class="relative">
-                <Calendar
-                    class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
-                />
-                <input
-                    id="date-select"
-                    type="date"
-                    bind:value={selectedDate}
-                    class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-pink-500"
-                />
-            </div>
-        </div>
-
-        <div class="flex items-end">
-            {#if selectedClassId}
-                <div class="text-slate-400 text-sm pb-3">
-                    <span class="font-bold text-white"
-                        >{studentsInClass.length}</span
-                    > alumnos en lista
+                    Seleccionar Grupo
+                </label>
+                <div class="relative">
+                    <Users
+                        class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
+                    />
+                    <select
+                        id="class-select"
+                        bind:value={selectedClassId}
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-pink-500 appearance-none"
+                    >
+                        <option value="">-- Elegir Clase --</option>
+                        {#each store.classes as cls}
+                            <option value={cls.id}>{cls.name}</option>
+                        {/each}
+                    </select>
                 </div>
-            {/if}
+            </div>
+
+            <div>
+                <label
+                    for="date-select"
+                    class="block text-sm font-medium text-slate-400 mb-2"
+                >
+                    Fecha
+                </label>
+                <div class="flex gap-2">
+                    <button
+                        onclick={goToPreviousDay}
+                        class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2 rounded-lg transition-colors"
+                        title="Día anterior"
+                    >
+                        ←
+                    </button>
+                    <div class="relative flex-1">
+                        <Calendar
+                            class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
+                        />
+                        <input
+                            id="date-select"
+                            type="date"
+                            bind:value={selectedDate}
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-pink-500"
+                        />
+                    </div>
+                    <button
+                        onclick={goToNextDay}
+                        class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 py-2 rounded-lg transition-colors"
+                        title="Día siguiente"
+                    >
+                        →
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-end">
+                {#if selectedClassId}
+                    <div class="w-full">
+                        <div class="text-slate-400 text-sm mb-2">
+                            <span class="font-bold text-white"
+                                >{studentsInClass.length}</span
+                            > alumnos en lista
+                        </div>
+                        <div class="flex gap-2 text-xs">
+                            <span
+                                class="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded border border-emerald-500/20"
+                            >
+                                ✓ {presentCount} Presentes
+                            </span>
+                            <span
+                                class="bg-red-500/10 text-red-400 px-2 py-1 rounded border border-red-500/20"
+                            >
+                                ✗ {absentCount} Ausentes
+                            </span>
+                            {#if excusedCount > 0}
+                                <span
+                                    class="bg-yellow-500/10 text-yellow-400 px-2 py-1 rounded border border-yellow-500/20"
+                                >
+                                    ⚠ {excusedCount} Justif.
+                                </span>
+                            {/if}
+                        </div>
+                    </div>
+                {/if}
+            </div>
         </div>
+
+        <!-- Quick Actions -->
+        {#if selectedClassId && studentsInClass.length > 0}
+            <div class="flex gap-2 pt-4 border-t border-slate-700">
+                <button
+                    onclick={markAllPresent}
+                    class="flex-1 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                    <CheckCircle class="w-4 h-4" />
+                    Marcar Todos Presentes
+                </button>
+                <button
+                    onclick={markAllAbsent}
+                    class="flex-1 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-600/30 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                    <XCircle class="w-4 h-4" />
+                    Marcar Todos Ausentes
+                </button>
+            </div>
+        {/if}
     </div>
 
     <!-- List -->
@@ -257,12 +387,30 @@
                 <div
                     class="p-6 bg-slate-900/50 border-t border-slate-700 flex justify-between items-center"
                 >
-                    <span class="text-emerald-400 font-medium"
-                        >{saveMessage}</span
-                    >
+                    <div class="flex items-center gap-3">
+                        {#if saveMessage}
+                            <span class="text-emerald-400 font-medium"
+                                >{saveMessage}</span
+                            >
+                        {:else if hasUnsavedChanges}
+                            <span
+                                class="text-amber-400 font-medium flex items-center gap-2"
+                            >
+                                <span
+                                    class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"
+                                ></span>
+                                Cambios sin guardar
+                            </span>
+                        {:else}
+                            <span class="text-slate-500 font-medium">
+                                Todo guardado
+                            </span>
+                        {/if}
+                    </div>
                     <button
                         onclick={saveAttendance}
-                        class="bg-pink-600 hover:bg-pink-500 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-pink-500/20 active:scale-95 cursor-pointer"
+                        disabled={!hasUnsavedChanges}
+                        class="bg-pink-600 hover:bg-pink-500 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-pink-500/20 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pink-600"
                     >
                         <Save class="w-5 h-5" />
                         Guardar Asistencia
