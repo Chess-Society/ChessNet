@@ -27,7 +27,7 @@
     } from "lucide-svelte";
 
     import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
-    import AchievementsWidget from "$lib/components/dashboard/AchievementsWidget.svelte";
+    import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
 
     // Suscribirse a los datos reales
     let store = $appStore;
@@ -115,7 +115,16 @@
             color: "text-pink-500",
             hover: "hover:border-pink-500/50",
             link: "leads",
+            link: "leads",
             badge: "NEW",
+        },
+        {
+            title: "Logros",
+            desc: "Ver progreso y medallas",
+            icon: Trophy,
+            color: "text-amber-500",
+            hover: "hover:border-amber-500/50",
+            link: "achievements",
         },
     ];
 
@@ -893,11 +902,6 @@
                 {/if}
             </div>
         </div>
-    </div>
-
-    <!-- Achievements Widget -->
-    <div class="mb-8">
-        <AchievementsWidget />
     </div>
 
     <!-- Performance (Placeholder) -->
