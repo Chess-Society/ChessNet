@@ -51,7 +51,26 @@
         schedule: "",
         level: "Pawn",
         students: [],
+        duration: 90, // Default 1.5h
     };
+
+    // Structured Schedule State
+    let selectedDay = "Lunes";
+    let selectedTime = "17:00";
+
+    // Days of Week
+    const DAYS = [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo",
+    ];
+
+    // Update schedule string when day or time changes
+    $: newClass.schedule = `${selectedDay} ${selectedTime}`;
 
     function handleAddClass() {
         if (!newClass.name || !center) return;
@@ -72,7 +91,10 @@
             schedule: "",
             level: "Pawn",
             students: [],
+            duration: 90,
         };
+        selectedDay = "Lunes";
+        selectedTime = "17:00";
         showClassForm = false;
     }
 
@@ -324,20 +346,58 @@
                                     class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
                                 />
                             </div>
-                            <div>
-                                <label
-                                    for="c-sched"
-                                    class="block text-sm font-medium text-slate-400 mb-1"
-                                    >Horario</label
-                                >
-                                <input
-                                    id="c-sched"
-                                    bind:value={newClass.schedule}
-                                    type="text"
-                                    placeholder="Ej: Martes 18:00"
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                                />
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label
+                                        for="c-day"
+                                        class="block text-sm font-medium text-slate-400 mb-1"
+                                        >Día de la Semana</label
+                                    >
+                                    <select
+                                        id="c-day"
+                                        bind:value={selectedDay}
+                                        class="form-select"
+                                    >
+                                        {#each DAYS as day}
+                                            <option value={day}>{day}</option>
+                                        {/each}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        for="c-time"
+                                        class="block text-sm font-medium text-slate-400 mb-1"
+                                        >Hora de Inicio</label
+                                    >
+                                    <input
+                                        id="c-time"
+                                        bind:value={selectedTime}
+                                        type="time"
+                                        class="form-input"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        for="c-duration"
+                                        class="block text-sm font-medium text-slate-400 mb-1"
+                                        >Duración (min)</label
+                                    >
+                                    <input
+                                        id="c-duration"
+                                        bind:value={newClass.duration}
+                                        type="number"
+                                        min="30"
+                                        step="15"
+                                        class="form-input"
+                                    />
+                                </div>
                             </div>
+                            <p class="text-xs text-slate-500">
+                                Se mostrará en el calendario como: <span
+                                    class="text-purple-400"
+                                    >{selectedDay} {selectedTime}</span
+                                >
+                            </p>
                             <div>
                                 <label
                                     for="c-level"
@@ -347,7 +407,7 @@
                                 <select
                                     id="c-level"
                                     bind:value={newClass.level}
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                                    class="form-select"
                                 >
                                     <option value="Pawn"
                                         >Peón (Iniciación)</option
