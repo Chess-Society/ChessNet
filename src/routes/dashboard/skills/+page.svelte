@@ -24,6 +24,7 @@
         Download,
         FileText,
         Trash,
+        Users,
     } from "lucide-svelte";
     import { slide, fade } from "svelte/transition";
 
@@ -575,6 +576,13 @@
                                     role="group"
                                 >
                                     <button
+                                        onclick={() => openEvaluation(skill)}
+                                        class="p-2 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-400 rounded-lg transition-colors z-10"
+                                        title="Evaluar Grupo"
+                                    >
+                                        <Users class="w-4 h-4" />
+                                    </button>
+                                    <button
                                         onclick={() => editSkill(skill)}
                                         class="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors z-10"
                                         title="Editar"
@@ -1028,6 +1036,23 @@
                             )}%</span
                         >
                     </div>
+                </div>
+
+                <!-- Action Button inside modal -->
+                <div class="mt-6">
+                    <button
+                        onclick={() => {
+                            if (viewingSkill) {
+                                const s = viewingSkill;
+                                viewingSkill = null;
+                                openEvaluation(s);
+                            }
+                        }}
+                        class="w-full bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20"
+                    >
+                        <Users class="w-5 h-5" />
+                        Evaluar Grupo con esta Habilidad
+                    </button>
                 </div>
             </div>
 
