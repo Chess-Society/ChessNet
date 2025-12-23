@@ -13,6 +13,7 @@
     } from "lucide-svelte";
     import { fade, slide } from "svelte/transition";
     import { flip } from "svelte/animate";
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
     $: store = $appStore;
     $: leads = store.leads || [];
@@ -49,15 +50,22 @@
         newLead = { name: "", contact: "", notes: "" };
     }
 
+    // Confirm Modal State
+    let showConfirmModal = false;
+    let confirmTitle = "";
+    let confirmMessage = "";
+    let confirmType: "danger" | "warning" | "info" = "danger";
+    let confirmAction: (() => void) | null = null;
+    let confirmBtnText = "Confirmar";
+
     function moveLead(lead: Lead, status: Lead["status"]) {
         storeActions.updateLead({ ...lead, status });
         if (status === "converted") {
-            if (
-                confirm(
-                    `¿Deseas convertir a ${lead.name} en estudiante oficial ahora?`,
-                )
-            ) {
-                // Logic to convert to Student could go here
+            confirmTitle = "¡Felicidades! Nuevo Alumno";
+            confirmMessage = `¿Deseas añadir a ${lead.name} a tu lista de estudiantes oficiales ahora mismo?`;
+            confirmType = "info";
+            confirmBtnText = "Sí, añadir alumno";
+            confirmAction = () => {
                 storeActions.addStudent({
                     id: crypto.randomUUID(),
                     name: lead.name,
@@ -68,14 +76,27 @@
                 notifications.success(
                     `${lead.name} ha sido añadido a la lista de estudiantes.`,
                 );
-            }
+            };
+            showConfirmModal = true;
         }
     }
 
     function deleteLead(id: string) {
-        if (confirm("¿Eliminar este interesado?")) {
+        confirmTitle = "¿Eliminar interesado?";
+        confirmMessage =
+            "Esta acción eliminará la ficha de este posible alumno. ¿Estás seguro?";
+        confirmType = "danger";
+        confirmBtnText = "Eliminar";
+        confirmAction = () => {
             storeActions.removeLead(id);
-        }
+            notifications.success("Interesado eliminado.");
+        };
+        showConfirmModal = true;
+    }
+
+    function handleConfirmAction() {
+        if (confirmAction) confirmAction();
+        showConfirmModal = false;
     }
 </script>
 
@@ -291,6 +312,15 @@
         </div>
     </div>
 </div>
+
+<ConfirmationModal
+    bind:isOpen={showConfirmModal}
+    title={confirmTitle}
+    message={confirmMessage}
+    confirmText={confirmBtnText}
+    type={confirmType}
+    on:confirm={handleConfirmAction}
+/>
 
 <style>
     /* Utility for flip animation which is not auto-imported */
