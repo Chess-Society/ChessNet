@@ -446,6 +446,7 @@
                                         {s.name}
                                     </h4>
                                     <button
+                                        type="button"
                                         onclick={() =>
                                             handleDeleteStudent(s.id)}
                                         class="text-slate-500 hover:text-red-400 p-2 -mr-2"

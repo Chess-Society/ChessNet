@@ -350,6 +350,7 @@
                                 class="flex items-center justify-end gap-2 mt-1"
                             >
                                 <button
+                                    type="button"
                                     onclick={() =>
                                         exportReceiptPDF(
                                             payment,
@@ -360,6 +361,7 @@
                                     <FileText class="w-4 h-4" /> Recibo
                                 </button>
                                 <button
+                                    type="button"
                                     onclick={() => removePayment(payment.id)}
                                     class="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/20 transition-colors flex-1 flex justify-center items-center gap-2 text-sm font-medium"
                                 >

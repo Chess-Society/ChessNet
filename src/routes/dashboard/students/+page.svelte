@@ -484,6 +484,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <button
+                                    type="button"
                                     onclick={() => generateReport(student)}
                                     class="p-2 bg-slate-800 rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-colors"
                                     title="Ver Informe"
@@ -491,6 +492,7 @@
                                     <Award class="w-5 h-5" />
                                 </button>
                                 <button
+                                    type="button"
                                     onclick={() => openEditForm(student)}
                                     class="p-2 bg-slate-800 rounded-lg text-blue-400 hover:bg-blue-500/20 transition-colors"
                                     title="Editar"
@@ -498,6 +500,7 @@
                                     <Pencil class="w-5 h-5" />
                                 </button>
                                 <button
+                                    type="button"
                                     onclick={() => handleDelete(student.id)}
                                     class="p-2 bg-slate-800 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
                                     title="Eliminar"
