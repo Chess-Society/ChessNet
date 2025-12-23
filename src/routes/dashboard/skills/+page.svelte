@@ -2,6 +2,10 @@
     import { onMount } from "svelte";
     import { appStore, storeActions, type Skill } from "$lib/services/storage";
     import {
+        getAllTemplates,
+        type SkillTemplate,
+    } from "$lib/data/skillTemplates";
+    import {
         Target,
         CheckCircle,
         Award,
@@ -17,6 +21,8 @@
         TrendingUp,
         BarChart3,
         AlertTriangle,
+        Download,
+        FileText,
     } from "lucide-svelte";
     import { slide, fade } from "svelte/transition";
 
@@ -44,6 +50,10 @@
 
     // Delete confirmation
     let deletingSkill: Skill | null = null;
+
+    // Template import
+    let showTemplateModal = false;
+    let availableTemplates = getAllTemplates();
 
     function handleSubmit() {
         if (!newSkill.name) return;
@@ -97,6 +107,24 @@
     function toggleStudentSkill(studentId: string) {
         if (!evaluatingSkill) return;
         storeActions.toggleStudentSkill(studentId, evaluatingSkill.id);
+    }
+
+    function importTemplate(template: SkillTemplate) {
+        // Import all skills from template
+        template.skills.forEach((skillData) => {
+            const newSkill: Skill = {
+                ...skillData,
+                id: crypto.randomUUID(),
+            };
+            storeActions.addSkill(newSkill);
+        });
+
+        showTemplateModal = false;
+
+        // Show success message (you could add a toast notification here)
+        alert(
+            `✅ Se han importado ${template.skills.length} habilidades del temario "${template.name}"`,
+        );
     }
 
     const getIcon = (category: string) => {
@@ -219,7 +247,14 @@
                 Define qué deben aprender tus alumnos y marca su progreso.
             </p>
         </div>
-        <div class="mt-4 sm:mt-0">
+        <div class="mt-4 sm:mt-0 flex gap-3">
+            <button
+                onclick={() => (showTemplateModal = true)}
+                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
+            >
+                <Download class="w-5 h-5" />
+                Importar Plantilla
+            </button>
             <button
                 onclick={() => (showForm = !showForm)}
                 class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
@@ -736,6 +771,206 @@
                         Eliminar
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<!-- Template Import Modal -->
+{#if showTemplateModal}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        transition:fade
+    >
+        <!-- Backdrop -->
+        <button
+            class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm w-full h-full cursor-default"
+            onclick={() => (showTemplateModal = false)}
+            aria-label="Cerrar modal"
+        ></button>
+
+        <!-- Modal Panel -->
+        <div
+            class="relative bg-[#1e293b] border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[80vh] flex flex-col shadow-2xl"
+        >
+            <!-- Header -->
+            <div class="p-6 border-b border-slate-700">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3
+                            class="text-xl font-bold text-white flex items-center gap-2"
+                        >
+                            <FileText class="w-6 h-6 text-blue-500" />
+                            Importar Plantilla de Habilidades
+                        </h3>
+                        <p class="text-slate-400 text-sm mt-1">
+                            Selecciona un temario predefinido para empezar
+                            rápidamente
+                        </p>
+                    </div>
+                    <button
+                        onclick={() => (showTemplateModal = false)}
+                        class="text-slate-500 hover:text-white transition-colors"
+                    >
+                        <X class="w-6 h-6" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <div class="space-y-4">
+                    {#each availableTemplates as template}
+                        <div
+                            class="bg-slate-900/50 border border-slate-700 rounded-xl p-6 hover:border-blue-500/50 transition-colors"
+                        >
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <h4
+                                        class="text-lg font-bold text-white flex items-center gap-2"
+                                    >
+                                        <Target
+                                            class="w-5 h-5 text-yellow-500"
+                                        />
+                                        {template.name}
+                                    </h4>
+                                    <p class="text-slate-400 text-sm mt-2">
+                                        {template.description}
+                                    </p>
+
+                                    <!-- Stats -->
+                                    <div class="flex flex-wrap gap-4 mt-4">
+                                        <div
+                                            class="flex items-center gap-2 text-sm"
+                                        >
+                                            <div
+                                                class="bg-yellow-500/10 p-2 rounded-lg"
+                                            >
+                                                <Target
+                                                    class="w-4 h-4 text-yellow-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <p
+                                                    class="text-slate-500 text-xs"
+                                                >
+                                                    Total
+                                                </p>
+                                                <p class="text-white font-bold">
+                                                    {template.skills.length} habilidades
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="flex items-center gap-2 text-sm"
+                                        >
+                                            <div
+                                                class="bg-blue-500/10 p-2 rounded-lg"
+                                            >
+                                                <BarChart3
+                                                    class="w-4 h-4 text-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <p
+                                                    class="text-slate-500 text-xs"
+                                                >
+                                                    Niveles
+                                                </p>
+                                                <p class="text-white font-bold">
+                                                    1 - 5
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="flex items-center gap-2 text-sm"
+                                        >
+                                            <div
+                                                class="bg-emerald-500/10 p-2 rounded-lg"
+                                            >
+                                                <CheckCircle
+                                                    class="w-4 h-4 text-emerald-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <p
+                                                    class="text-slate-500 text-xs"
+                                                >
+                                                    Categorías
+                                                </p>
+                                                <p class="text-white font-bold">
+                                                    4 tipos
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Preview -->
+                                    <details class="mt-4">
+                                        <summary
+                                            class="text-sm text-blue-400 hover:text-blue-300 cursor-pointer"
+                                        >
+                                            Ver contenido completo
+                                        </summary>
+                                        <div
+                                            class="mt-3 max-h-60 overflow-y-auto custom-scrollbar bg-slate-950/50 rounded-lg p-4"
+                                        >
+                                            <div class="space-y-2">
+                                                {#each template.skills as skill, index}
+                                                    <div
+                                                        class="text-xs flex items-center gap-2 text-slate-400"
+                                                    >
+                                                        <span
+                                                            class="text-slate-600 font-mono"
+                                                            >{index + 1}.</span
+                                                        >
+                                                        <span class="flex-1"
+                                                            >{skill.name}</span
+                                                        >
+                                                        <span
+                                                            class="bg-slate-800 px-2 py-0.5 rounded text-[10px]"
+                                                        >
+                                                            Nivel {skill.level}
+                                                        </span>
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+
+                                <button
+                                    onclick={() => importTemplate(template)}
+                                    class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-bold transition-colors flex items-center gap-2 flex-shrink-0"
+                                >
+                                    <Download class="w-5 h-5" />
+                                    Importar
+                                </button>
+                            </div>
+                        </div>
+                    {/each}
+
+                    {#if availableTemplates.length === 0}
+                        <div class="text-center py-12 text-slate-500">
+                            <FileText
+                                class="w-12 h-12 mx-auto mb-4 opacity-50"
+                            />
+                            <p>No hay plantillas disponibles</p>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-slate-700 bg-slate-900/50">
+                <button
+                    onclick={() => (showTemplateModal = false)}
+                    class="w-full bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                >
+                    Cerrar
+                </button>
             </div>
         </div>
     </div>
