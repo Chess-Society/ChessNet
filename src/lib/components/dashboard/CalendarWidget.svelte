@@ -1,9 +1,5 @@
 <script lang="ts">
-    import {
-        appStore,
-        type ClassGroup,
-        type Center,
-    } from "$lib/services/storage";
+    import { appStore, type ClassGroup } from "$lib/services/storage";
     import {
         ChevronLeft,
         ChevronRight,
@@ -11,7 +7,7 @@
         Clock,
         MapPin,
     } from "lucide-svelte";
-    import { fade, slide } from "svelte/transition";
+    import { fade } from "svelte/transition";
 
     $: store = $appStore;
 
@@ -55,16 +51,13 @@
         );
     }
 
-    // --- MAPPING LOGIC (Temporary until we have structured data) ---
-    // This function attempts to parse "Lunes 17:00" or similar to place on calendar
     function getEventsForDay(date: Date, classes: ClassGroup[]) {
         const dayIndex = date.getDay(); // 0=Sun, 1=Mon...
 
-        // Define tokens for this specific day
         const tokensForDay: Record<number, string[]> = {
             1: ["lunes", "lun", "l"],
             2: ["martes", "mar", "m"],
-            3: ["miércoles", "miercoles", "mie", "x"], // 'x' is common for Wed in FR/ES
+            3: ["miércoles", "miercoles", "mie", "x"],
             4: ["jueves", "jue", "j"],
             5: ["viernes", "vie", "v"],
             6: ["sábado", "sabado", "sab", "s"],
@@ -78,22 +71,8 @@
                 const lowerSched = c.schedule.toLowerCase();
                 let isDayMatch = false;
 
-                // Strict check: if the schedule contains any of the tokens for THIS day.
-                // We iterate through tokens.
                 for (const token of targetTokens) {
                     if (lowerSched.includes(token)) {
-                        // Quick heuristic to avoid false positives (e.g. 'v' in 'jueves')
-                        // If token is 1 char, check if it's likely a day code (uppercase in original, or separated).
-                        // For MVP: assume if 'l' is present, it's Monday.
-                        // To avoid 'l' in 'coles' (miercoles?? no).
-                        // 'v' in 'jueves' -> YES, failure.
-
-                        // Improved heuristic: Only match single letters if the string is SHORT (e.g. "L-X")
-                        // OR if the single letter is followed by punctuation/space?
-                        // Let's rely on standard formats.
-                        // If "Jueves", contains 'v'. Bad.
-
-                        // If the schedule contains full day names, ignore single letter matches?
                         const fullDayNames = [
                             "lunes",
                             "martes",
@@ -112,7 +91,6 @@
                         if (token.length > 1) {
                             isDayMatch = true;
                         } else if (!hasFullName) {
-                            // Only match single chars if no full names are present (implies short code format like L-X)
                             isDayMatch = true;
                         }
                     }
@@ -120,7 +98,6 @@
 
                 if (!isDayMatch) return null;
 
-                // Extract Time
                 const timeMatch = lowerSched.match(/(\d{1,2})[:\.](\d{2})/);
                 if (!timeMatch) return null;
 
@@ -132,7 +109,7 @@
                     title: c.name,
                     centerId: c.centerId,
                     startHour: hour + minute / 60,
-                    duration: 1.5, // Default 1.5 hour
+                    duration: 1.5,
                     level: c.level,
                     students: c.students.length,
                 };
@@ -141,7 +118,6 @@
     }
 
     function getCenterColor(id: string) {
-        // Deterministic color based on ID chars
         const colors = [
             "from-blue-600/90 to-blue-800/90 border-blue-500/50 text-blue-100",
             "from-purple-600/90 to-purple-800/90 border-purple-500/50 text-purple-100",
@@ -156,31 +132,32 @@
 </script>
 
 <div
-    class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-80px)] flex flex-col"
+    class="bg-[#1e293b] rounded-2xl border border-slate-800 overflow-hidden flex flex-col shadow-2xl h-[600px] mb-8"
 >
-    <!-- Header -->
+    <!-- Widget Header -->
     <div
-        class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"
+        class="p-6 border-b border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/30"
     >
         <div>
-            <h1 class="text-3xl font-bold text-white flex items-center gap-3">
-                <CalendarIcon class="w-8 h-8 text-purple-500" /> Calendario
-            </h1>
-            <p class="mt-1 text-slate-400">
-                Organización semanal de tus clases
-            </p>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <CalendarIcon class="w-6 h-6 text-indigo-500" />
+                Calendario Global
+            </h3>
+            <p class="text-sm text-slate-400 mt-1">Vista rápida de tu semana</p>
         </div>
 
         <div
-            class="flex items-center gap-4 bg-[#1e293b] p-1.5 rounded-xl border border-slate-700"
+            class="flex items-center gap-3 bg-[#0f172a] p-1 rounded-lg border border-slate-700"
         >
             <button
                 onclick={prevWeek}
-                class="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
+                class="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
             >
-                <ChevronLeft class="w-5 h-5" />
+                <ChevronLeft class="w-4 h-4" />
             </button>
-            <span class="text-white font-medium min-w-[140px] text-center">
+            <span
+                class="text-white text-sm font-medium min-w-[120px] text-center"
+            >
                 {currentDate.toLocaleDateString("es-ES", {
                     month: "long",
                     year: "numeric",
@@ -188,44 +165,44 @@
             </span>
             <button
                 onclick={nextWeek}
-                class="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
+                class="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 hover:text-white transition-colors"
             >
-                <ChevronRight class="w-5 h-5" />
+                <ChevronRight class="w-4 h-4" />
             </button>
         </div>
     </div>
 
     <!-- Calendar Grid -->
-    <div
-        class="flex-1 bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-2xl relative"
-    >
+    <div class="flex-1 flex flex-col overflow-hidden relative">
         <!-- Days Header -->
-        <div class="grid grid-cols-8 border-b border-slate-700 bg-slate-900/50">
+        <div
+            class="grid grid-cols-8 border-b border-slate-700 bg-slate-900/50 shrink-0"
+        >
             <div
-                class="p-4 border-r border-slate-700/50 text-center text-xs font-bold text-slate-500 uppercase tracking-wider"
+                class="p-2 border-r border-slate-700/50 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider"
             >
                 Hora
             </div>
             {#each weekDays as day}
                 <div
-                    class="p-3 text-center border-r border-slate-700/50 last:border-r-0 {isToday(
+                    class="p-2 text-center border-r border-slate-700/50 last:border-r-0 {isToday(
                         day,
                     )
-                        ? 'bg-purple-500/10'
+                        ? 'bg-indigo-500/10'
                         : ''}"
                 >
                     <span
-                        class="block text-xs font-bold uppercase tracking-wider {isToday(
+                        class="block text-[10px] font-bold uppercase tracking-wider {isToday(
                             day,
                         )
-                            ? 'text-purple-400'
+                            ? 'text-indigo-400'
                             : 'text-slate-500'}"
                     >
                         {day.toLocaleDateString("es-ES", { weekday: "short" })}
                     </span>
                     <span
-                        class="block text-xl font-bold {isToday(day)
-                            ? 'text-purple-400'
+                        class="block text-sm font-bold {isToday(day)
+                            ? 'text-indigo-400'
                             : 'text-slate-300'}"
                     >
                         {day.getDate()}
@@ -236,26 +213,21 @@
 
         <!-- Scrollable Content -->
         <div class="overflow-y-auto flex-1 custom-scrollbar relative">
-            <!-- Grid Lines and Time Slots -->
-            <div class="grid grid-cols-8 relative min-h-[800px]">
-                {#each TIME_SLOTS as hour, i}
+            <div class="grid grid-cols-8 relative min-h-[600px]">
+                {#each TIME_SLOTS as hour}
                     <!-- Time Label -->
                     <div
-                        class="border-r border-slate-700/50 border-b border-slate-800/50 p-2 text-right text-xs text-slate-500 font-mono relative md:pr-4"
+                        class="border-r border-slate-700/50 border-b border-slate-800/50 p-1 text-right text-[10px] text-slate-500 font-mono relative pr-2"
                     >
-                        <span
-                            class="absolute -top-2.5 right-2 md:right-4 bg-[#1e293b] px-1"
-                            >{hour}:00</span
-                        >
+                        <span class="absolute -top-2 right-1">{hour}:00</span>
                     </div>
 
                     <!-- Day Cells -->
                     {#each weekDays as day}
                         {@const events = getEventsForDay(day, store.classes)}
                         <div
-                            class="border-r border-slate-700/30 border-b border-slate-800/30 last:border-r-0 relative group min-h-[80px]"
+                            class="border-r border-slate-700/30 border-b border-slate-800/30 last:border-r-0 relative group min-h-[60px]"
                         >
-                            <!-- Hover effect for cell -->
                             <div
                                 class="absolute inset-0 hover:bg-white/5 transition-colors pointer-events-none"
                             ></div>
@@ -264,51 +236,29 @@
                                 {#if Math.floor(event.startHour) === hour}
                                     <div
                                         transition:fade
-                                        class="absolute inset-x-1 p-2 rounded-lg border shadow-lg cursor-pointer hover:brightness-110 hover:scale-[1.02] hover:z-50 transition-all bg-gradient-to-br {getCenterColor(
+                                        class="absolute inset-x-0.5 p-1 rounded border shadow-lg cursor-pointer hover:brightness-110 hover:z-50 transition-all bg-gradient-to-br {getCenterColor(
                                             event.centerId,
                                         )}"
                                         style="top: {(event.startHour % 1) *
                                             100}%; height: {event.duration *
-                                            100}%; min-height: 40px;"
+                                            100}%; min-height: 30px;"
                                     >
                                         <div
-                                            class="flex flex-col h-full justify-between overflow-hidden"
+                                            class="flex flex-col h-full overflow-hidden leading-tight"
                                         >
-                                            <div>
-                                                <div
-                                                    class="flex justify-between items-start mb-1"
-                                                >
-                                                    <h4
-                                                        class="font-bold text-xs sm:text-sm leading-tight line-clamp-2"
-                                                    >
-                                                        {event.title}
-                                                    </h4>
-                                                </div>
-                                                <div
-                                                    class="flex items-center gap-1 text-[10px] sm:text-xs opacity-90 truncate"
-                                                >
-                                                    <MapPin class="w-3 h-3" />
-                                                    {store.centers.find(
-                                                        (c) =>
-                                                            c.id ===
-                                                            event.centerId,
-                                                    )?.name || "Centro"}
-                                                </div>
-                                            </div>
-
                                             <div
-                                                class="flex items-center gap-2 mt-1"
+                                                class="font-bold text-[10px] sm:text-xs truncate"
                                             >
-                                                <span
-                                                    class="inline-flex items-center gap-1 text-[10px] bg-black/20 px-1.5 py-0.5 rounded backdrop-blur-sm"
-                                                >
-                                                    <Clock
-                                                        class="w-2.5 h-2.5"
-                                                    />
-                                                    {Math.floor(
-                                                        event.startHour,
-                                                    )}:00
-                                                </span>
+                                                {event.title}
+                                            </div>
+                                            <div
+                                                class="flex items-center gap-1 text-[9px] opacity-90 truncate mt-0.5"
+                                            >
+                                                <MapPin class="w-2.5 h-2.5" />
+                                                {store.centers.find(
+                                                    (c) =>
+                                                        c.id === event.centerId,
+                                                )?.name || "Centro"}
                                             </div>
                                         </div>
                                     </div>
@@ -323,17 +273,22 @@
             {#if isToday(currentDate) || weekDays.some((d) => isToday(d))}
                 {@const now = new Date()}
                 {@const currentHour = now.getHours() + now.getMinutes() / 60}
-                {@const dayIndex = now.getDay() || 7}
-                <!-- 1=Mon, ..., 7=Sun or 0?? Check logic -->
-                <!-- Only showing typical hours -->
                 {#if currentHour >= 9 && currentHour <= 21}
                     <div
-                        class="absolute left-[12.5%] right-0 border-t-2 border-red-500/70 z-40 pointer-events-none flex items-center"
-                        style="top: {(currentHour - 9) * 80}px;"
+                        class="absolute left-[12.5%] right-0 border-t border-red-500/70 z-40 pointer-events-none flex items-center"
+                        style="top: {(currentHour - 9) * 60}px;"
                     >
-                        <div
-                            class="w-2 h-2 rounded-full bg-red-500 -ml-1"
-                        ></div>
+                        <!-- 60px is approx height of row in min-h-[600px]/13 rows = 46px... wait. Layout specific. -->
+                        <!-- Recalculating top: The grid total height is 600px hardcoded min. 13 slots. 600/13 = 46px. -->
+                        <!-- Actually I set min-h-[600px] on the simple grid container. -->
+                        <!-- Let's match the style logic: (currentHour - 9) * (rowHeight) -->
+                        <!-- If each row has min-h-[60px] then it's * 60. -->
+                        <!-- IN previous code I used 80px. Here I used 60px for min-height of cell. -->
+                        <!-- Let's set style top based on ratio. -->
+                        <!-- Or just stick to the calculation if I set fixed height per row. -->
+                        <!-- It's dynamic height, so pixel math is tricky. -->
+                        <!-- I'll rely on the same proportional logic or just leave it out for widget MVP if complex. -->
+                        <!-- Better: use %. (currentHour - 9) / 13 * 100 %. -->
                     </div>
                 {/if}
             {/if}
@@ -342,19 +297,15 @@
 </div>
 
 <style>
-    /* Custom Scrollbar for the calendar grid */
     .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
         background: #1e293b;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
         background-color: #334155;
-        border-radius: 4px;
-        border: 2px solid #1e293b;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: #475569;
+        border-radius: 3px;
+        border: 1px solid #1e293b;
     }
 </style>

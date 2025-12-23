@@ -24,6 +24,8 @@
         CheckCircle,
     } from "lucide-svelte";
 
+    import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
+
     // Suscribirse a los datos reales
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
@@ -44,14 +46,6 @@
             color: "text-purple-500",
             hover: "hover:border-purple-500/50",
             link: "classes",
-        },
-        {
-            title: "Calendario Global",
-            desc: "Vista semanal de todas las clases",
-            icon: Calendar,
-            color: "text-indigo-500",
-            hover: "hover:border-indigo-500/50",
-            link: "calendar",
         },
         {
             title: "Estudiantes",
@@ -612,6 +606,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Calendar Layout -->
+    <CalendarWidget />
 
     <!-- Mid Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
