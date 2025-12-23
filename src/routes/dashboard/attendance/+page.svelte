@@ -616,38 +616,69 @@
                     Tendencia Semanal
                 </h3>
 
-                <div class="h-48 flex items-end justify-between gap-1 mb-4">
+                <div
+                    class="h-56 flex items-end justify-between gap-2 mb-4 px-2"
+                >
                     {#each weeklyTrend as day}
-                        <div class="flex-1 flex flex-col items-center group">
+                        {@const displayHeight = day.hasData
+                            ? Math.max(day.rate, 8)
+                            : 4}
+                        <div
+                            class="flex-1 flex flex-col items-center group relative"
+                        >
+                            <!-- Bar -->
                             <div
-                                class="w-full rounded-t-lg relative transition-all duration-300 {day.hasData
-                                    ? 'bg-pink-500/20 border-t-2 border-pink-500 hover:bg-pink-500/30'
+                                class="w-full rounded-t-lg transition-all duration-300 relative {day.hasData
+                                    ? 'bg-gradient-to-t from-pink-500/40 to-pink-500/20 border-t-4 border-pink-500 hover:from-pink-500/60 hover:to-pink-500/30 cursor-pointer'
                                     : 'bg-slate-800/30 border-t-2 border-slate-700'}"
-                                style="height: {day.hasData ? day.rate : 5}%"
-                                title={day.hasData
-                                    ? day.rate + "%"
-                                    : "Sin datos"}
+                                style="height: {displayHeight}%"
                             >
+                                <!-- Tooltip -->
                                 {#if day.hasData}
                                     <div
-                                        class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                                        class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1.5 px-3 rounded-lg border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none"
+                                    >
+                                        <div class="font-bold text-pink-400">
+                                            {day.rate}%
+                                        </div>
+                                        <div class="text-[10px] text-slate-400">
+                                            asistencia
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                <!-- Value label inside bar for high values -->
+                                {#if day.hasData && day.rate >= 30}
+                                    <div
+                                        class="absolute top-2 left-1/2 -translate-x-1/2 text-white text-xs font-bold"
                                     >
                                         {day.rate}%
                                     </div>
                                 {/if}
                             </div>
-                            <p class="text-[10px] text-slate-500 mt-2 rotate-0">
+
+                            <!-- Day label -->
+                            <p
+                                class="text-[10px] text-slate-400 mt-2 font-medium uppercase"
+                            >
                                 {new Date(day.date).toLocaleDateString(
                                     "es-ES",
                                     { weekday: "short" },
                                 )}
                             </p>
+
+                            <!-- Date -->
+                            <p class="text-[9px] text-slate-600">
+                                {new Date(day.date).getDate()}
+                            </p>
                         </div>
                     {/each}
                 </div>
 
-                <div class="text-xs text-slate-500 text-center">
-                    Últimos 7 días
+                <div
+                    class="text-xs text-slate-500 text-center pt-2 border-t border-slate-700"
+                >
+                    Últimos 7 días • Pasa el ratón para ver detalles
                 </div>
             </div>
         </div>

@@ -272,26 +272,36 @@
             <h3 class="text-lg font-bold text-white mb-6">
                 Ingresos Últimos 6 Meses
             </h3>
-            <div class="h-64 flex items-end justify-between gap-2">
+            <div class="h-64 flex items-end justify-between gap-3 px-2">
                 {#each monthlyRevenue as month}
+                    {@const displayHeight = Math.max(month.height, 8)}
                     <div
                         class="flex-1 flex flex-col items-center group cursor-default"
                     >
                         <div
-                            class="w-full bg-slate-800/50 rounded-t-lg relative group-hover:bg-slate-700/50 transition-colors flex flex-col justify-end"
-                            style="height: {month.height}%"
+                            class="w-full rounded-t-lg relative transition-all duration-300 bg-gradient-to-t from-teal-500/40 to-teal-500/20 border-t-4 border-teal-500 hover:from-teal-500/60 hover:to-teal-500/30"
+                            style="height: {displayHeight}%"
                         >
-                            <!-- Bar fill -->
-                            <div
-                                class="w-full h-full bg-teal-500/20 border-t-2 border-teal-500 rounded-t-lg absolute bottom-0 left-0"
-                            ></div>
-
                             <!-- Tooltip -->
                             <div
-                                class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap"
+                                class="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1.5 px-3 rounded-lg border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none"
                             >
-                                {month.total} €
+                                <div class="font-bold text-teal-400">
+                                    {month.total}€
+                                </div>
+                                <div class="text-[10px] text-slate-400">
+                                    {month.label}
+                                </div>
                             </div>
+
+                            <!-- Value label inside bar for high values -->
+                            {#if month.height >= 40}
+                                <div
+                                    class="absolute top-2 left-1/2 -translate-x-1/2 text-white text-xs font-bold"
+                                >
+                                    {month.total}€
+                                </div>
+                            {/if}
                         </div>
                         <p
                             class="text-xs text-slate-400 mt-3 uppercase font-medium"
