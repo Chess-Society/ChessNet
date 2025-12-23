@@ -14,16 +14,76 @@ export const skillTemplates: SkillTemplate[] = [
         description: 'Temario oficial completo desde nivel básico hasta avanzado',
         skills: [
             // NIVEL 1 - INTRODUCCIÓN
-            { name: 'Bienvenidos al mundo del ajedrez', category: 'Openings', level: 1, description: 'Introducción al juego y sus reglas básicas' },
-            { name: 'El tablero', category: 'Openings', level: 1, description: 'Conocer el tablero: filas, columnas y diagonales' },
-            { name: 'El peón sin miedo', category: 'Tactics', level: 1, description: 'Movimiento y captura del peón' },
-            { name: 'El caballo saltarín', category: 'Tactics', level: 1, description: 'Movimiento en L del caballo' },
-            { name: 'El alfil veloz', category: 'Tactics', level: 1, description: 'Movimiento diagonal del alfil' },
-            { name: 'La torre astuta', category: 'Tactics', level: 1, description: 'Movimiento en línea recta de la torre' },
-            { name: 'La dama poderosa', category: 'Tactics', level: 1, description: 'El movimiento más versátil del tablero' },
-            { name: 'El rey ansioso', category: 'Tactics', level: 1, description: 'Movimiento del rey y su importancia' },
-            { name: 'Orígenes del ajedrez', category: 'Openings', level: 1, description: 'Historia y evolución del juego' },
-            { name: '¡Jaque al rey!', category: 'Tactics', level: 1, description: 'Concepto de jaque y cómo responder' },
+            {
+                name: 'Bienvenidos al mundo del ajedrez',
+                category: 'Openings',
+                level: 1,
+                description: 'Introducción al juego y sus reglas básicas',
+                content: 'El ajedrez es un juego de estrategia para 2 jugadores. Cada uno controla 16 piezas (blancas o negras) en un tablero de 64 casillas. El objetivo es dar jaque mate al rey contrario. ¡Es como una batalla donde la inteligencia gana!'
+            },
+            {
+                name: 'El tablero',
+                category: 'Openings',
+                level: 1,
+                description: 'Conocer el tablero: filas, columnas y diagonales',
+                content: 'El tablero tiene 8 filas (horizontales) y 8 columnas (verticales), formando 64 casillas. Las casillas alternan entre blancas y negras. Recuerda: la casilla de la esquina derecha debe ser blanca. Las filas se numeran del 1 al 8, y las columnas se nombran de la "a" a la "h".'
+            },
+            {
+                name: 'El peón sin miedo',
+                category: 'Tactics',
+                level: 1,
+                description: 'Movimiento y captura del peón',
+                content: 'El peón avanza 1 casilla hacia adelante (2 en su primer movimiento). Captura en diagonal. Cuando llega al final del tablero, se convierte en cualquier pieza (normalmente dama). ¡Los peones son el alma del ajedrez!'
+            },
+            {
+                name: 'El caballo saltarín',
+                category: 'Tactics',
+                level: 1,
+                description: 'Movimiento en L del caballo',
+                content: 'El caballo se mueve en forma de "L": 2 casillas en una dirección y 1 en perpendicular. Es la única pieza que puede saltar sobre otras. Puede controlar hasta 8 casillas desde el centro del tablero. ¡Es muy travieso!'
+            },
+            {
+                name: 'El alfil veloz',
+                category: 'Tactics',
+                level: 1,
+                description: 'Movimiento diagonal del alfil',
+                content: 'El alfil se mueve en diagonal, todas las casillas que quieras. Cada alfil permanece siempre en casillas del mismo color (blancas o negras). Los dos alfiles juntos controlan todo el tablero. ¡Son muy rápidos!'
+            },
+            {
+                name: 'La torre astuta',
+                category: 'Tactics',
+                level: 1,
+                description: 'Movimiento en línea recta de la torre',
+                content: 'La torre se mueve en línea recta: horizontal o vertical, todas las casillas que quieras. Es muy poderosa en filas y columnas abiertas. Dos torres en la séptima fila son devastadoras. ¡Son como cañones!'
+            },
+            {
+                name: 'La dama poderosa',
+                category: 'Tactics',
+                level: 1,
+                description: 'El movimiento más versátil del tablero',
+                content: 'La dama combina el movimiento de torre y alfil: puede moverse en línea recta y en diagonal. Es la pieza más poderosa del tablero. ¡Pero cuidado! No la saques muy pronto o te la pueden atacar.'
+            },
+            {
+                name: 'El rey ansioso',
+                category: 'Tactics',
+                level: 1,
+                description: 'Movimiento del rey y su importancia',
+                content: 'El rey se mueve 1 casilla en cualquier dirección. Es la pieza más importante: si lo pierdes, pierdes la partida. Mantenlo seguro al principio, pero actívalo en el final. ¡Protégelo siempre!'
+            },
+            {
+                name: 'Orígenes del ajedrez',
+                category: 'Openings',
+                level: 1,
+                description: 'Historia y evolución del juego',
+                content: 'El ajedrez nació en India hace más de 1500 años. Se llamaba "chaturanga" y representaba un ejército. Viajó a Persia, luego al mundo árabe y finalmente a Europa, donde evolucionó a las reglas actuales. ¡Un juego milenario!'
+            },
+            {
+                name: '¡Jaque al rey!',
+                category: 'Tactics',
+                level: 1,
+                description: 'Concepto de jaque y cómo responder',
+                content: 'Jaque es cuando el rey está siendo atacado. Debes responder inmediatamente: 1) Mover el rey a una casilla segura, 2) Bloquear el ataque con otra pieza, o 3) Capturar la pieza atacante. ¡No puedes ignorar un jaque!'
+            },
             { name: 'Mantenerse con vida', category: 'Strategy', level: 1, description: 'Defensa básica y protección de piezas' },
             { name: 'Jaque mate, ¡Se acabó!', category: 'Tactics', level: 1, description: 'Objetivo final del juego' },
             { name: 'Resuelve la partida', category: 'Tactics', level: 1, description: 'Ejercicios de mate en 1' },
