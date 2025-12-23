@@ -25,6 +25,7 @@
     } from "lucide-svelte";
 
     import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
+    import AchievementsWidget from "$lib/components/dashboard/AchievementsWidget.svelte";
 
     // Suscribirse a los datos reales
     let store = $appStore;
@@ -872,6 +873,11 @@
                 {/if}
             </div>
         </div>
+    </div>
+
+    <!-- Achievements Widget -->
+    <div class="mb-8">
+        <AchievementsWidget />
     </div>
 
     <!-- Performance (Placeholder) -->
