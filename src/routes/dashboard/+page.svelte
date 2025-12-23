@@ -32,20 +32,20 @@
             link: "centers",
         },
         {
-            title: "Estudiantes",
-            desc: "Gestionar alumnado e inscripciones",
-            icon: Users,
-            color: "text-emerald-500",
-            hover: "hover:border-emerald-500/50",
-            link: "students",
-        },
-        {
             title: "Clases",
             desc: "Organizar grupos y horarios",
             icon: BookOpen,
             color: "text-purple-500",
             hover: "hover:border-purple-500/50",
             link: "classes",
+        },
+        {
+            title: "Estudiantes",
+            desc: "Gestionar alumnado e inscripciones",
+            icon: Users,
+            color: "text-emerald-500",
+            hover: "hover:border-emerald-500/50",
+            link: "students",
         },
         {
             title: "Habilidades",
