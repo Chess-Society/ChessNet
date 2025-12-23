@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { broadcastUpdate } from '$lib/utils/broadcast';
 
 // Tipos
 export interface Center {
@@ -257,12 +258,14 @@ export const storeActions = {
     },
     addTournament: (t: Tournament) => {
         appStore.update(s => ({ ...s, tournaments: [...s.tournaments, t] }));
+        broadcastUpdate({ type: 'tournament-update', tournamentId: t.id });
     },
     updateTournament: (t: Tournament) => {
         appStore.update(s => ({
             ...s,
             tournaments: s.tournaments.map(curr => curr.id === t.id ? t : curr)
         }));
+        broadcastUpdate({ type: 'tournament-update', tournamentId: t.id });
     },
     removeTournament: (id: string) => {
         appStore.update(s => ({

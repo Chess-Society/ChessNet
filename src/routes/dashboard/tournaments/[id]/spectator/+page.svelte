@@ -2,6 +2,7 @@
     import { page } from "$app/stores";
     import { onMount } from "svelte";
     import { appStore, type Tournament } from "$lib/services/storage";
+    import { onBroadcastMessage } from "$lib/utils/broadcast";
     import { Trophy, Medal, TrendingUp, Users, RefreshCw } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
 
@@ -15,6 +16,7 @@
 
     // Auto-refresh every 10 seconds
     let refreshInterval: ReturnType<typeof setInterval>;
+    let cleanupBroadcast: (() => void) | undefined;
 
     onMount(() => {
         if (autoRefresh) {
@@ -23,8 +25,20 @@
             }, 10000);
         }
 
+        // Listen for real-time updates from other tabs
+        cleanupBroadcast = onBroadcastMessage((message) => {
+            if (
+                message.type === "tournament-update" &&
+                message.tournamentId === tournamentId
+            ) {
+                // Force re-render by updating lastUpdate
+                lastUpdate = new Date();
+            }
+        });
+
         return () => {
             if (refreshInterval) clearInterval(refreshInterval);
+            if (cleanupBroadcast) cleanupBroadcast();
         };
     });
 
