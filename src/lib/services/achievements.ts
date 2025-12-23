@@ -138,24 +138,44 @@ export const ACHIEVEMENTS: Omit<Achievement, 'unlockedAt' | 'progress'>[] = [
         requirement: { type: 'count', target: 50, metric: 'skills' }
     },
 
-    // Centers
+    // Financial
     {
-        id: 'first-center',
-        name: 'Primera Sede',
-        description: 'Has creado tu primer centro',
+        id: 'first-income',
+        name: 'Primer Ingreso',
+        description: 'Has registrado tu primer pago',
         category: 'teaching',
-        icon: 'School',
+        icon: 'CreditCard',
         tier: 'bronze',
-        requirement: { type: 'count', target: 1, metric: 'centers' }
+        requirement: { type: 'milestone', target: 1, metric: 'revenue' }
     },
     {
-        id: 'multi-location',
-        name: 'Multi-Ubicación',
-        description: 'Gestionas 3 o más centros',
+        id: 'business-growing',
+        name: 'Negocio Rentable',
+        description: 'Has generado más de 500€ en ingresos',
         category: 'teaching',
-        icon: 'School',
+        icon: 'TrendingUp',
         tier: 'silver',
-        requirement: { type: 'count', target: 3, metric: 'centers' }
+        requirement: { type: 'milestone', target: 500, metric: 'revenue' }
+    },
+    {
+        id: 'chess-tycoon',
+        name: 'Magnate del Tablero',
+        description: 'Ingresos superiores a 2000€',
+        category: 'teaching',
+        icon: 'Crown',
+        tier: 'platinum',
+        requirement: { type: 'milestone', target: 2000, metric: 'revenue' }
+    },
+
+    // Centers
+    {
+        id: 'expansion',
+        name: 'Expansión',
+        description: 'Gestionas 2 o más centros',
+        category: 'teaching',
+        icon: 'MapPin',
+        tier: 'silver',
+        requirement: { type: 'count', target: 2, metric: 'centers' }
     },
 ];
 
@@ -163,16 +183,20 @@ export const ACHIEVEMENTS: Omit<Achievement, 'unlockedAt' | 'progress'>[] = [
 export const achievementsStore: Readable<Achievement[]> = derived(
     appStore,
     ($store) => {
+        const totalRevenue = $store.payments.reduce((sum, p) => sum + p.amount, 0);
+
         const metrics = {
             classes: $store.classes.length,
             students: $store.students.length,
             tournaments: $store.tournaments.length,
             skills: $store.skills.length,
             centers: $store.centers.length,
+            revenue: totalRevenue,
         };
 
         return ACHIEVEMENTS.map((achievement) => {
             const currentValue = metrics[achievement.requirement.metric as keyof typeof metrics] || 0;
+            // For revenue, 1 unit is enough for "first income" if target is 1, but if target is 500, we need the actual sum
             const progress = Math.min(100, (currentValue / achievement.requirement.target) * 100);
             const isUnlocked = currentValue >= achievement.requirement.target;
 

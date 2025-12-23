@@ -11,8 +11,13 @@
         Target,
         School,
         Lock,
+        CreditCard,
+        TrendingUp,
+        Crown,
+        MapPin,
     } from "lucide-svelte";
     import { scale, fade } from "svelte/transition";
+    import { base } from "$app/paths";
 
     export let achievement: Achievement;
     export let size: "sm" | "md" | "lg" = "md";
@@ -24,6 +29,10 @@
         Trophy,
         Target,
         School,
+        CreditCard,
+        TrendingUp,
+        Crown,
+        MapPin,
     };
 
     const Icon = iconMap[achievement.icon] || Target;
@@ -31,61 +40,66 @@
     const isUnlocked = achievement.unlockedAt !== undefined;
 
     const sizeClasses = {
-        sm: "w-16 h-16",
-        md: "w-24 h-24",
-        lg: "w-32 h-32",
+        sm: "w-20 h-20", // Slightly larger to accommodate intricate badges
+        md: "w-32 h-32",
+        lg: "w-40 h-40",
     };
 
     const iconSizes = {
         sm: "w-6 h-6",
         md: "w-10 h-10",
-        lg: "w-14 h-14",
+        lg: "w-12 h-12",
     };
 </script>
 
 <div
-    class="relative group {sizeClasses[size]} cursor-pointer"
+    class="relative group {sizeClasses[
+        size
+    ]} flex items-center justify-center select-none"
     title={achievement.description}
     transition:scale={{ duration: 300 }}
 >
-    <!-- Badge Container -->
+    <!-- Badge Background (Image) -->
     <div
-        class="w-full h-full rounded-2xl border-2 transition-all duration-300 flex items-center justify-center relative overflow-hidden
-        {isUnlocked
-            ? `bg-gradient-to-br ${getTierColor(achievement.tier)} border-white/20 ${getTierGlow(achievement.tier)} shadow-xl group-hover:scale-110`
-            : 'bg-slate-800/50 border-slate-700 grayscale opacity-60 group-hover:opacity-80'}"
+        class="absolute inset-0 transition-transform duration-300 group-hover:scale-110 {isUnlocked
+            ? 'drop-shadow-2xl'
+            : 'grayscale opacity-50 contrast-125'}"
     >
-        <!-- Shine Effect for Unlocked -->
-        {#if isUnlocked}
-            <div
-                class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
-            ></div>
-        {/if}
+        <img
+            src="{base}/badges/{achievement.tier}.png"
+            alt="{achievement.tier} badge"
+            class="w-full h-full object-contain"
+        />
+    </div>
 
-        <!-- Icon -->
-        <div class="relative z-10">
-            {#if isUnlocked}
+    <!-- Icon (Centered) -->
+    <div
+        class="relative z-10 -mt-1 transition-transform duration-300 group-hover:scale-110"
+    >
+        {#if isUnlocked}
+            <div class="relative">
+                <!-- Outer Glow for Icon -->
+                <div
+                    class="absolute inset-0 bg-{getTierColor(
+                        achievement.tier,
+                    ).split('-')[1]}-500 blur-md opacity-50"
+                ></div>
                 <svelte:component
                     this={Icon}
-                    class="{iconSizes[size]} text-white drop-shadow-lg"
+                    class="{iconSizes[
+                        size
+                    ]} text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                 />
-            {:else}
-                <Lock class="{iconSizes[size]} text-slate-500" />
-            {/if}
-        </div>
-
-        <!-- Tier Indicator (small corner badge) -->
-        {#if isUnlocked && size !== "sm"}
-            <div
-                class="absolute top-1 right-1 w-3 h-3 rounded-full bg-white/30 border border-white/50"
-            ></div>
+            </div>
+        {:else}
+            <Lock class="{iconSizes[size]} text-slate-400/80 drop-shadow-md" />
         {/if}
     </div>
 
-    <!-- Progress Bar (if locked and showProgress) -->
+    <!-- Progress Bar (below badge) -->
     {#if !isUnlocked && showProgress && achievement.progress > 0}
         <div
-            class="absolute -bottom-2 left-0 right-0 h-1 bg-slate-700 rounded-full overflow-hidden"
+            class="absolute -bottom-2 left-1/4 right-1/4 h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50"
             transition:fade
         >
             <div
