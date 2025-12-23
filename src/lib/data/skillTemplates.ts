@@ -235,22 +235,118 @@ export const skillTemplates: SkillTemplate[] = [
             },
 
             // NIVEL 3 - INTERMEDIO
-            { name: 'Empezar con buen pie', category: 'Openings', level: 3, description: 'Aperturas sólidas para principiantes' },
-            { name: 'Aperturas famosas', category: 'Openings', level: 3, description: 'Española, Italiana, Francesa, etc.' },
-            { name: 'Trampa de jaque mate', category: 'Tactics', level: 3, description: 'Patrones de mate comunes' },
-            { name: 'Trampa de alfil y caballo', category: 'Tactics', level: 3, description: 'Coordinación de piezas menores' },
-            { name: 'Trampa del imitador', category: 'Tactics', level: 3, description: 'Peligros de copiar jugadas' },
-            { name: 'Trampa de la dama', category: 'Tactics', level: 3, description: 'Ataques prematuros de dama' },
-            { name: 'Resuelve la partida', category: 'Tactics', level: 3, description: 'Combinaciones tácticas' },
-            { name: 'El juego prohibido', category: 'Strategy', level: 3, description: 'Errores comunes a evitar' },
-            { name: 'Ajedrecistas increíbles', category: 'Openings', level: 3, description: 'Campeones mundiales modernos' },
-            { name: 'Tablas', category: 'Endgame', level: 3, description: 'Tipos de tablas y ahogado' },
-            { name: 'Resuelve la partida', category: 'Tactics', level: 3, description: 'Ejercicios de combinaciones' },
-            { name: 'Ajedrez a distancia', category: 'Strategy', level: 3, description: 'Juego posicional' },
-            { name: 'Visión de juego', category: 'Strategy', level: 3, description: 'Cálculo de variantes' },
-            { name: 'Trabajo en equipo', category: 'Strategy', level: 3, description: 'Coordinación de piezas' },
-            { name: 'Ajedrecistas increíbles', category: 'Openings', level: 3, description: 'Estilos de juego de los grandes' },
-            { name: 'Vigila el reloj', category: 'Strategy', level: 3, description: 'Gestión del tiempo' },
+            {
+                name: 'Empezar con buen pie',
+                category: 'Openings',
+                level: 3,
+                description: 'Aperturas sólidas para principiantes',
+                content: 'Las mejores aperturas para empezar son las que siguen los principios clásicos: 1.e4 (Apertura de Rey) o 1.d4 (Apertura de Dama). Busca esquemas sencillos como el Giuoco Piano o el Sistema Londres que te permitan sacar las piezas sin complicaciones.'
+            },
+            {
+                name: 'Aperturas famosas',
+                category: 'Openings',
+                level: 3,
+                description: 'Española, Italiana, Francesa, etc.',
+                content: 'Aprende los nombres y las ideas básicas de las aperturas más jugadas: La Española (Ruy López), la Italiana, la Defensa Siciliana, la Francesa y el Gambito de Dama. ¡No memorices jugadas, entiende las ideas!'
+            },
+            {
+                name: 'Trampa de jaque mate',
+                category: 'Tactics',
+                level: 3,
+                description: 'Patrones de mate comunes',
+                content: 'Existen patrones de mate que se repiten una y otra vez, como el Mate del Pasillo (en la última fila), el Mate del Beso (Dama pegada al Rey) o el Mate Árabe (Torre y Caballo). ¡Apréndelos y los verás venir!'
+            },
+            {
+                name: 'Trampa de alfil y caballo',
+                category: 'Tactics',
+                level: 3,
+                description: 'Coordinación de piezas menores',
+                content: 'El Mate de la Coz (caballo ahogando al rey) o el ataque al punto f7/f2 son clásicos. La coordinación entre el Alfil (largo alcance) y el Caballo (saltos sorpresa) es letal. ¡Juntos son más fuertes que por separado!'
+            },
+            {
+                name: 'Trampa del imitador',
+                category: 'Tactics',
+                level: 3,
+                description: 'Peligros de copiar jugadas',
+                content: 'A veces copiar al rival parece seguro, pero es muy peligroso. Si copias demasiado tiempo, puedes caer en trampas donde él da el primer golpe (jaque o captura) y tú ya no puedes responder igual. ¡Piensa por ti mismo!'
+            },
+            {
+                name: 'Trampa de la dama',
+                category: 'Tactics',
+                level: 3,
+                description: 'Ataques prematuros de dama',
+                content: 'Sacar la Dama al inicio para intentar el "Mate Pastor" (4 movimientos) es tentador, pero incorrecto. Si el rival se defiende bien, tu Dama quedará expuesta y perderás tiempos moviéndola. ¡Desarrolla todo el equipo primero!'
+            },
+            {
+                name: 'Resuelve la partida',
+                category: 'Tactics',
+                level: 3,
+                description: 'Combinaciones tácticas',
+                content: 'Las combinaciones son secuencias de jugadas forzadas que te dan ventaja. Busca sacrificios que rompan la defensa del Rey o ataques dobles que ganen material. ¡Calcula "si yo hago esto, él hace aquello"!'
+            },
+            {
+                name: 'El juego prohibido',
+                category: 'Strategy',
+                level: 3,
+                description: 'Errores comunes a evitar',
+                content: 'Errores típicos a corregir: 1) Mover peones de los extremos sin razón ("orejas de burro"), 2) Dejar el Rey en el centro, 3) Cambiar piezas cuando vas perdiendo material, 4) Jugar rápido sin pensar.'
+            },
+            {
+                name: 'Ajedrecistas increíbles',
+                category: 'Openings',
+                level: 3,
+                description: 'Campeones mundiales modernos',
+                content: 'Figuras como Karpov (el boa constrictor posicional) o Anand (el tigre de Madrás, rápido y táctico) muestran cómo el ajedrez evolucionó hacia un juego universal. ¡Cada campeón tiene una lección para ti!'
+            },
+            {
+                name: 'Tablas',
+                category: 'Endgame',
+                level: 3,
+                description: 'Tipos de tablas y ahogado',
+                content: 'No siempre se gana o se pierde. Las Tablas (empate) ocurren por: Rey Ahogado (sin movimientos legales y sin estar en jaque), Insuficiencia de material (Rey vs Rey), Triple repetición o Regla de los 50 movimientos.'
+            },
+            {
+                name: 'Resuelve la partida',
+                category: 'Tactics',
+                level: 3,
+                description: 'Ejercicios de combinaciones',
+                content: 'Practica la "Desviación" (obligar a una pieza defensora a irse) y la "Atracción" (obligar al Rey a ir a una mala casilla). Estas armas tácticas deciden la mayoría de las partidas a este nivel.'
+            },
+            {
+                name: 'Ajedrez a distancia',
+                category: 'Strategy',
+                level: 3,
+                description: 'Juego posicional',
+                content: 'A veces no hay contacto directo entre piezas. Debes mejorar tu posición poco a poco: controlar columnas abiertas, poner un caballo en un puesto avanzado o mejorar tu estructura de peones. ¡Paciencia estratégica!'
+            },
+            {
+                name: 'Visión de juego',
+                category: 'Strategy',
+                level: 3,
+                description: 'Cálculo de variantes',
+                content: 'Intenta visualizar el tablero en tu mente antes de mover. "¿Cómo se verá la posición dentro de 3 jugadas?". Entrenar esta visión "ciega" es lo que separa a los aficionados de los jugadores fuertes.'
+            },
+            {
+                name: 'Trabajo en equipo',
+                category: 'Strategy',
+                level: 3,
+                description: 'Coordinación de piezas',
+                content: 'Tus piezas deben hablarse entre sí. Una Torre defiende al Alfil, el Caballo vigila la casilla donde irá la Dama. Las piezas desconectadas son presas fáciles. ¡La armonía es la clave!'
+            },
+            {
+                name: 'Ajedrecistas increíbles',
+                category: 'Openings',
+                level: 3,
+                description: 'Estilos de juego de los grandes',
+                content: 'Compara el estilo agresivo y caótico de Mikhail Tal ("El Mago de Riga") con el estilo lógico y científico de Botvinnik. ¿Te gusta el caos o el orden? ¡Hay un campeón para cada personalidad!'
+            },
+            {
+                name: 'Vigila el reloj',
+                category: 'Strategy',
+                level: 3,
+                description: 'Gestión del tiempo',
+                content: 'El reloj es una pieza más. No gastes todo tu tiempo en una sola jugada buena para luego cometer errores graves por apuros de tiempo. Administra tu tiempo según la complejidad de la posición.'
+            },
 
             // NIVEL 4 - AVANZADO
             { name: 'La Guerra Fría', category: 'Openings', level: 4, description: 'Ajedrez en la era Fischer-Spassky' },
