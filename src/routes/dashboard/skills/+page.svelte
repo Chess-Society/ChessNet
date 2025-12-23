@@ -184,27 +184,27 @@
                 : null,
     };
 
-    const categories = [
-        { id: "all", label: "Todas", count: skillsByCategory.all.length },
+    $: categories = [
+        { id: "all", label: "Todas", count: skillsByCategory.all?.length || 0 },
         {
             id: "Tactics",
             label: "Táctica",
-            count: skillsByCategory.Tactics.length,
+            count: skillsByCategory.Tactics?.length || 0,
         },
         {
             id: "Strategy",
             label: "Estrategia",
-            count: skillsByCategory.Strategy.length,
+            count: skillsByCategory.Strategy?.length || 0,
         },
         {
             id: "Openings",
             label: "Aperturas",
-            count: skillsByCategory.Openings.length,
+            count: skillsByCategory.Openings?.length || 0,
         },
         {
             id: "Endgame",
             label: "Finales",
-            count: skillsByCategory.Endgame.length,
+            count: skillsByCategory.Endgame?.length || 0,
         },
     ];
 </script>
