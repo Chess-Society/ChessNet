@@ -26,6 +26,7 @@
     } from "lucide-svelte";
     import { notifications } from "$lib/stores/notifications";
     import DiplomaModal from "$lib/components/dashboard/students/DiplomaModal.svelte";
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
     $: store = $appStore;
 
@@ -218,18 +219,24 @@
         isEditing = false;
     }
 
+    let showDeleteModal = false;
+    let studentToDeleteId: string | null = null;
+
     function handleDelete(id: string) {
-        if (
-            confirm(
-                "¿Estás seguro de que quieres eliminar a este alumno? Esta acción no se puede deshacer.",
-            )
-        ) {
+        studentToDeleteId = id;
+        showDeleteModal = true;
+    }
+
+    function confirmDelete() {
+        if (studentToDeleteId) {
             // Remove from classes first to be clean
-            const cls = getStudentClass(id);
+            const cls = getStudentClass(studentToDeleteId);
             if (cls) {
-                storeActions.removeClassMember(cls.id, id);
+                storeActions.removeClassMember(cls.id, studentToDeleteId);
             }
-            storeActions.removeStudent(id);
+            storeActions.removeStudent(studentToDeleteId);
+            notifications.success("Estudiante eliminado correctamente.");
+            studentToDeleteId = null;
         }
     }
 

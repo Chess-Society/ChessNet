@@ -6,6 +6,7 @@
         type LessonSegment,
     } from "$lib/services/storage";
     import { notifications } from "$lib/stores/notifications";
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import {
         Plus,
         Clock,
@@ -106,19 +107,43 @@
         // Reset or redirect? Let's just reset for now or keep editing.
     }
 
+    // Confirm Modal State
+    let showConfirmModal = false;
+    let confirmTitle = "";
+    let confirmMessage = "";
+    let confirmAction: (() => void) | null = null;
+    let confirmType: "danger" | "warning" = "danger";
+
     function loadPlan(plan: LessonPlan) {
-        if (confirm("¿Cargar este plan reemplazará el actual. Continuar?")) {
+        confirmTitle = "¿Cargar plan?";
+        confirmMessage =
+            "Cargar este plan reemplazará el trabajo actual no guardado. ¿Continuar?";
+        confirmType = "warning";
+        confirmAction = () => {
             planTitle = plan.title;
             segments = [...plan.segments]; // Clone
             selectedClassId = plan.classId || "";
-        }
+            notifications.success("Plan cargado correctamente.");
+        };
+        showConfirmModal = true;
     }
 
     function deletePlan(id: string, e: Event) {
         e.stopPropagation();
-        if (confirm("¿Eliminar este plan guardado?")) {
+        confirmTitle = "¿Eliminar plan?";
+        confirmMessage =
+            "Esta acción eliminará el plan guardado permanentemente.";
+        confirmType = "danger";
+        confirmAction = () => {
             storeActions.removeLessonPlan(id);
-        }
+            notifications.success("Plan eliminado.");
+        };
+        showConfirmModal = true;
+    }
+
+    function handleConfirmAction() {
+        if (confirmAction) confirmAction();
+        showConfirmModal = false;
     }
 </script>
 
@@ -436,3 +461,12 @@
         </div>
     </div>
 </div>
+
+<ConfirmationModal
+    bind:isOpen={showConfirmModal}
+    title={confirmTitle}
+    message={confirmMessage}
+    confirmText="Confirmar"
+    type={confirmType}
+    on:confirm={handleConfirmAction}
+/>

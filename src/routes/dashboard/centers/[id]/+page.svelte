@@ -21,8 +21,10 @@
         X,
         UserPlus,
     } from "lucide-svelte";
-    import { slide, fade } from "svelte/transition";
+    import { fade, slide } from "svelte/transition";
     import { base } from "$app/paths";
+    import { notifications } from "$lib/stores/notifications";
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
     $: store = $appStore;
 
@@ -98,56 +100,49 @@
         showClassForm = false;
     }
 
+    // Confirm Modal State
+    let showConfirmModal = false;
+    let confirmTitle = "";
+    let confirmMessage = "";
+    let confirmAction: (() => void) | null = null;
+    let confirmType: 'danger' | 'warning' = 'danger';
+
     function handleDeleteClass(id: string) {
-        if (
-            confirm(
-                "¿Seguro que quieres eliminar esta clase? Los alumnos no se borrarán, pero serán desasignados.",
-            )
-        ) {
-            // Logic to remove class would typically go in storeActions.removeClass (need to check if it exists or add it)
-            // Ideally we'd add removeClass to storeActions. Assuming user might want it.
-            // For now, I'll direct update store manually or add the action if missing.
-            // Let's check storeActions first. It likely doesn't have removeClass properly defined yet based on previous views.
-            // I will implement a local remover for now or assume I added it.
-            // Actually, best to add it to storeActions in storage.ts if needed, but I can use update for now.
+        confirmTitle = "¿Eliminar clase?";
+        confirmMessage = "Los alumnos no se borrarán, pero serán desasignados de este grupo.";
+        confirmType = 'warning';
+        confirmAction = () => {
             appStore.update((s) => ({
                 ...s,
                 classes: s.classes.filter((c) => c.id !== id),
             }));
-        }
+            notifications.success("Clase eliminada del centro.");
+        };
+        showConfirmModal = true;
     }
 
-    // --- STUDENT MANAGEMENT (Read-Onlyish view of the Center's roster) ---
-    // Deleting a student here implies removing them from the Center (== removing from the class they are in at this center)
-    // Or deleting them entirely? "User wants to be able to delete everything".
-    // Let's offer "Remove from Center" (Unenroll) and "Delete User" (Global).
-    // For simplicity given the prompt "delete student", I'll do Global Delete with warning.
-
     function handleDeleteStudent(id: string) {
-        if (
-            confirm(
-                "¿Eliminar alumno del sistema completo? Esta acción es irreversible.",
-            )
-        ) {
-            storeActions.removeStudent(id);
-            // Also need to clean up class references, which I added logic for in previous turns.
-            // But wait, the previous `removeStudent` helper only removed from student list.
-            // I should ensure cleanup happens.
-            // Ideally the removeStudent action handles deep cleanup, or I do it here.
-            // I'll do it purely via the existing removeStudent action for now, assuming the store is the source of truth,
-            // BUT `ClassGroup.students` is an array of IDs. If I delete the student object, the ID remains in the class array
-            // making "ghost" students.
-            // I should fix `removeStudent` in `storage.ts` to clean references OR do it here.
-            // I'll do it here to be safe:
-
-            // 1. Remove from all classes
-            store.classes.forEach((c) => {
+        confirmTitle = "¿Eliminar alumno?";
+        confirmMessage = "Se eliminará al alumno del sistema completo. Esta acción es irreversible.";
+        confirmType = 'danger';
+        confirmAction = () => {
+             // 1. Remove from all classes
+             store.classes.forEach((c) => {
                 if (c.students.includes(id)) {
                     storeActions.removeClassMember(c.id, id);
                 }
             });
             // 2. Remove student
             storeActions.removeStudent(id);
+            notifications.success("Alumno eliminado correctamente.");
+        };
+        showConfirmModal = true;
+    }
+
+    function handleConfirmAction() {
+        if (confirmAction) confirmAction();
+        showConfirmModal = false;
+    }
         }
     }
 

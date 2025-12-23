@@ -10,6 +10,8 @@
     } from "lucide-svelte";
     import { fade, slide } from "svelte/transition";
     import { base } from "$app/paths";
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
+    import { notifications } from "$lib/stores/notifications";
 
     $: store = $appStore;
 
@@ -36,9 +38,19 @@
         showForm = false;
     }
 
+    let showDeleteModal = false;
+    let centerToDeleteId: string | null = null;
+
     function deleteCenter(id: string) {
-        if (confirm("¿Estás seguro de eliminar este centro?")) {
-            storeActions.removeCenter(id);
+        centerToDeleteId = id;
+        showDeleteModal = true;
+    }
+
+    function confirmDelete() {
+        if (centerToDeleteId) {
+            storeActions.removeCenter(centerToDeleteId);
+            notifications.success("Centro eliminado correctamente.");
+            centerToDeleteId = null;
         }
     }
 
@@ -199,3 +211,11 @@
         {/if}
     </div>
 </div>
+
+<ConfirmationModal
+    bind:isOpen={showDeleteModal}
+    title="¿Eliminar centro?"
+    message="Esta acción eliminará el centro y todas las clases asociadas a él."
+    confirmText="Eliminar Centro"
+    on:confirm={confirmDelete}
+/>
