@@ -6,13 +6,14 @@
         checkPlanLimit,
         type ClassGroup,
     } from "$lib/services/storage";
+    import { notifications } from "$lib/stores/notifications";
     // ...
 
     function handleToggleForm() {
         if (!showForm) {
             // Trying to open
             if (!checkPlanLimit(store, "classes")) {
-                alert(
+                notifications.warning(
                     `Has alcanzado el límite de clases de tu plan actual (${store.settings.plan}). Actualiza tu plan.`,
                 );
                 return;

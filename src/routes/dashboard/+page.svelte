@@ -25,7 +25,7 @@
         CheckCircle,
         Layout,
     } from "lucide-svelte";
-
+    import { notifications } from "$lib/stores/notifications";
     import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
 
     // Suscribirse a los datos reales
@@ -128,7 +128,7 @@
 
     function navigate(path: string) {
         if (path === "payments" && store.settings.plan === "free") {
-            alert(
+            notifications.warning(
                 `El Sistema de Pagos solo está disponible en los planes Profe y Club.`,
             );
             return;

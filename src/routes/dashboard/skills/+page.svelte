@@ -5,6 +5,7 @@
         getAllTemplates,
         type SkillTemplate,
     } from "$lib/data/skillTemplates";
+    import { notifications } from "$lib/stores/notifications";
     import {
         Target,
         CheckCircle,
@@ -127,7 +128,8 @@
         showTemplateModal = false;
 
         // Show success message (you could add a toast notification here)
-        alert(
+        // Show success message (you could add a toast notification here)
+        notifications.success(
             `✅ Se han importado ${template.skills.length} habilidades del temario "${template.name}"`,
         );
     }
@@ -139,7 +141,8 @@
         });
 
         confirmDeleteAll = false;
-        alert("✅ Se han eliminado todas las habilidades");
+        confirmDeleteAll = false;
+        notifications.success("✅ Se han eliminado todas las habilidades");
     }
 
     const getIcon = (category: string) => {

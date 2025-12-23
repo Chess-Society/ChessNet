@@ -5,6 +5,7 @@
         type LessonPlan,
         type LessonSegment,
     } from "$lib/services/storage";
+    import { notifications } from "$lib/stores/notifications";
     import {
         Plus,
         Clock,
@@ -82,9 +83,12 @@
     }
 
     function handleSave() {
-        if (!planTitle) return alert("Por favor, asigna un título a la clase.");
+        if (!planTitle)
+            return notifications.error(
+                "Por favor, asigna un título a la clase.",
+            );
         if (segments.length === 0)
-            return alert("Añade al menos una actividad.");
+            return notifications.warning("Añade al menos una actividad.");
 
         const newPlan: LessonPlan = {
             id: crypto.randomUUID(),
@@ -97,7 +101,7 @@
         };
 
         storeActions.addLessonPlan(newPlan);
-        alert("Plan de clase guardado correctamente.");
+        notifications.success("Plan de clase guardado correctamente.");
 
         // Reset or redirect? Let's just reset for now or keep editing.
     }

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { appStore, storeActions, type Lead } from "$lib/services/storage";
+    import { notifications } from "$lib/stores/notifications";
     import {
         Plus,
         Phone,
@@ -64,7 +65,7 @@
                     level: "Pawn",
                     notes: `Convertido desde CRM. Notas: ${lead.notes || ""}`,
                 });
-                alert(
+                notifications.success(
                     `${lead.name} ha sido añadido a la lista de estudiantes.`,
                 );
             }

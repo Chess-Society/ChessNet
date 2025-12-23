@@ -24,6 +24,7 @@
         Save,
         Share2,
     } from "lucide-svelte";
+    import { notifications } from "$lib/stores/notifications";
     import DiplomaModal from "$lib/components/dashboard/students/DiplomaModal.svelte";
 
     $: store = $appStore;
@@ -72,7 +73,7 @@
 
     function triggerFileUpload() {
         if (!checkPlanLimit(store, "students")) {
-            alert(
+            notifications.warning(
                 `Has alcanzado el límite de alumnos de tu plan actual (${store.settings.plan}). Actualiza tu plan para importar más.`,
             );
             return;
@@ -132,11 +133,13 @@
         }
 
         if (limitReached) {
-            alert(
+            notifications.warning(
                 `Se importaron ${importedCount} alumnos, pero se detuvo porque alcanzaste el límite de tu plan.`,
             );
         } else {
-            alert(`Se han importado ${importedCount} alumnos correctamente.`);
+            notifications.success(
+                `Se han importado ${importedCount} alumnos correctamente.`,
+            );
         }
 
         target.value = ""; // Reset
@@ -144,7 +147,7 @@
 
     function openCreateForm() {
         if (!checkPlanLimit(store, "students")) {
-            alert(
+            notifications.warning(
                 `Has alcanzado el límite de alumnos de tu plan actual (${store.settings.plan}). Actualiza tu plan para añadir más.`,
             );
             return;
@@ -286,7 +289,7 @@
     function saveReportNote() {
         if (selectedStudentForReport) {
             storeActions.updateStudent(selectedStudentForReport);
-            alert("Nota guardada correctamente.");
+            notifications.success("Nota guardada correctamente.");
             // Refresh local list if needed, though store is reactive
         }
     }
@@ -310,7 +313,7 @@
         // Skills (Mock progress since we don't track % per skill yet, just binary possession)
         // In a real app, we would have specific progress per skill.
         // For now, if they have the skill ID, we show 100%, or we can simulate "Mastery".
-        let publicSkills = [];
+        let publicSkills: { name: string; val: number }[] = [];
         if (freshStudent.skills && freshStudent.skills.length > 0) {
             publicSkills = store.skills
                 .filter((skill) => freshStudent.skills?.includes(skill.id))
@@ -338,7 +341,7 @@
                 .catch(console.error);
         } else {
             navigator.clipboard.writeText(url);
-            alert("Enlace del perfil copiado al portapapeles.");
+            notifications.success("Enlace del perfil copiado al portapapeles.");
         }
     }
 
