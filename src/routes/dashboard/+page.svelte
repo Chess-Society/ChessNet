@@ -27,6 +27,9 @@
     } from "lucide-svelte";
     import { notifications } from "$lib/stores/notifications";
     import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
+    import { flip } from "svelte/animate";
+    import { storeActions } from "$lib/services/storage";
+    import { Settings2, GripVertical } from "lucide-svelte";
 
     // Suscribirse a los datos reales
     let store = $appStore;
@@ -34,6 +37,7 @@
 
     const actions = [
         {
+            id: "centers",
             title: "Centros Educativos",
             desc: "Gestionar centros y ubicaciones",
             icon: School,
@@ -42,6 +46,7 @@
             link: "centers",
         },
         {
+            id: "classes",
             title: "Clases",
             desc: "Organizar grupos y horarios",
             icon: BookOpen,
@@ -50,6 +55,7 @@
             link: "classes",
         },
         {
+            id: "students",
             title: "Estudiantes",
             desc: "Gestionar alumnado e inscripciones",
             icon: Users,
@@ -58,6 +64,7 @@
             link: "students",
         },
         {
+            id: "skills",
             title: "Habilidades",
             desc: "Definir temarios y competencias",
             icon: Target,
@@ -66,6 +73,7 @@
             link: "skills",
         },
         {
+            id: "tournaments",
             title: "Gestionar Torneos",
             desc: "Organizar competiciones locales",
             icon: Trophy,
@@ -74,6 +82,7 @@
             link: "tournaments",
         },
         {
+            id: "attendance",
             title: "Control de Asistencia",
             desc: "Pasar lista y estadísticas",
             icon: ClipboardCheck,
@@ -82,6 +91,7 @@
             link: "attendance",
         },
         {
+            id: "reports",
             title: "Informes",
             desc: "Reportes y análisis avanzados",
             icon: BarChart3,
@@ -90,6 +100,7 @@
             link: "reports",
         },
         {
+            id: "payments",
             title: "Sistema de Pagos",
             desc: "Gestionar cobros y facturación",
             icon: CreditCard,
@@ -99,6 +110,7 @@
             badge: "BETA",
         },
         {
+            id: "planner",
             title: "Planificador",
             desc: "Diseñar sesiones y contenido",
             icon: Layout,
@@ -108,6 +120,7 @@
             badge: "NEW",
         },
         {
+            id: "leads",
             title: "CRM / Interesados",
             desc: "Gestionar posibles alumnos",
             icon: UserPlus,
@@ -117,6 +130,7 @@
             badge: "NEW",
         },
         {
+            id: "achievements",
             title: "Logros",
             desc: "Ver progreso y medallas",
             icon: Trophy,
@@ -125,6 +139,71 @@
             link: "achievements",
         },
     ];
+
+    // Reorder Display Logic
+    $: displayedActions = (() => {
+        const layout = store.dashboardLayout || [];
+        if (layout.length === 0) return actions;
+
+        // Map ID to action
+        const map = new Map(actions.map((a) => [a.id, a]));
+        const reordered = [];
+
+        // Add from layout if exists
+        for (const id of layout) {
+            const act = map.get(id);
+            if (act) {
+                reordered.push(act);
+                map.delete(id);
+            }
+        }
+        // Add remaining
+        for (const act of map.values()) {
+            reordered.push(act);
+        }
+        return reordered;
+    })();
+
+    let isEditingLayout = false;
+    let draggedItem: any = null;
+
+    function handleDragStart(event: DragEvent, item: any) {
+        draggedItem = item;
+        if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", JSON.stringify(item));
+        }
+    }
+
+    function handleDragOver(event: DragEvent, targetItem: any) {
+        event.preventDefault();
+        if (!draggedItem || draggedItem === targetItem) return;
+
+        const currentOrder = [...displayedActions];
+        const srcIndex = currentOrder.findIndex((i) => i.id === draggedItem.id);
+        const dstIndex = currentOrder.findIndex((i) => i.id === targetItem.id);
+
+        if (srcIndex !== -1 && dstIndex !== -1) {
+            // Swap visually immediately for feedback
+            const temp = currentOrder[srcIndex];
+            currentOrder.splice(srcIndex, 1);
+            currentOrder.splice(dstIndex, 0, temp);
+
+            // This relies on Svelte reactivity, but we are computing displayedActions from store.
+            // To make it fluid, we might need a local override or update store immediately.
+            // Updating store immediately on dragOver might be too heavy?
+            // Let's use a local variable while dragging if possible, or just update store.
+            // Updating store is simplest for code, maybe expensive for performance but N is small (11 items).
+            storeActions.updateDashboardLayout(currentOrder.map((a) => a.id));
+        }
+    }
+
+    function toggleEditMode() {
+        isEditingLayout = !isEditingLayout;
+        if (!isEditingLayout) {
+            notifications.success("Diseño del dashboard guardado.");
+        }
+    }
 
     function navigate(path: string) {
         if (path === "payments" && store.settings.plan === "free") {
@@ -469,42 +548,71 @@
 
     <!-- Stats Grid -->
     <!-- Quick Actions -->
-    <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-8 mb-8">
-        <h3 class="text-xl font-bold text-white mb-6">Acciones Rápidas</h3>
+    <div
+        class="bg-[#1e293b] rounded-2xl border border-slate-800 p-8 mb-8 relative"
+    >
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-white">Acciones Rápidas</h3>
+            <button
+                onclick={toggleEditMode}
+                class="text-xs flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors {isEditingLayout
+                    ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400'
+                    : 'text-slate-400'}"
+            >
+                <Settings2 class="w-3.5 h-3.5" />
+                {isEditingLayout ? "Guardar Orden" : "Personalizar"}
+            </button>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {#each actions as action}
-                <button
-                    onclick={() => navigate(action.link)}
-                    class="group flex flex-col items-start p-6 bg-[#0f172a] rounded-2xl border border-slate-800 transition-all duration-300 {action.hover} hover:shadow-xl hover:-translate-y-1 relative w-full text-left cursor-pointer"
+            {#each displayedActions as action (action.id)}
+                <div
+                    animate:flip={{ duration: 300 }}
+                    draggable={isEditingLayout}
+                    ondragstart={(e) => handleDragStart(e, action)}
+                    ondragover={(e) => handleDragOver(e, action)}
+                    ondragend={() => (draggedItem = null)}
+                    class="relative"
                 >
-                    {#if action.badge}
-                        <span
-                            class="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full z-10"
-                            >{action.badge}</span
-                        >
-                    {/if}
-                    <div class="flex justify-between w-full">
-                        <svelte:component
-                            this={action.icon}
-                            class="w-10 h-10 mb-4 {action.color}"
-                        />
-                        <ChevronRight
-                            class="w-5 h-5 text-slate-700 group-hover:text-white transition-colors"
-                        />
-                    </div>
+                    <button
+                        onclick={() =>
+                            !isEditingLayout && navigate(action.link)}
+                        class="group flex flex-col items-start p-6 bg-[#0f172a] rounded-2xl border border-slate-800 transition-all duration-300 {action.hover} hover:shadow-xl hover:-translate-y-1 relative w-full text-left cursor-pointer {isEditingLayout
+                            ? 'border-dashed border-slate-600 cursor-move'
+                            : ''}"
+                    >
+                        {#if action.badge}
+                            <span
+                                class="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full z-10"
+                                >{action.badge}</span
+                            >
+                        {/if}
+                        <div class="flex justify-between w-full">
+                            <svelte:component
+                                this={action.icon}
+                                class="w-10 h-10 mb-4 {action.color}"
+                            />
+                            {#if isEditingLayout}
+                                <GripVertical class="w-5 h-5 text-slate-600" />
+                            {:else}
+                                <ChevronRight
+                                    class="w-5 h-5 text-slate-700 group-hover:text-white transition-colors"
+                                />
+                            {/if}
+                        </div>
 
-                    <h4
-                        class="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors"
-                    >
-                        {action.title}
-                    </h4>
-                    <p
-                        class="text-sm text-slate-500 font-medium leading-relaxed"
-                    >
-                        {action.desc}
-                    </p>
-                </button>
+                        <h4
+                            class="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors"
+                        >
+                            {action.title}
+                        </h4>
+                        <p
+                            class="text-sm text-slate-500 font-medium leading-relaxed"
+                        >
+                            {action.desc}
+                        </p>
+                    </button>
+                </div>
             {/each}
         </div>
     </div>

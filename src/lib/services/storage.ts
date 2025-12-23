@@ -93,6 +93,7 @@ export interface AppData {
     settings: {
         plan: 'free' | 'profe' | 'club';
     };
+    dashboardLayout?: string[]; // IDs of quick actions in order
 }
 
 export interface Lead {
@@ -137,7 +138,8 @@ const initialState: AppData = {
     reports: [],
     settings: {
         plan: 'free'
-    }
+    },
+    dashboardLayout: [] // Empty means default order
 };
 
 // Limites del Plan
@@ -380,5 +382,8 @@ export const storeActions = {
     // Reset para pruebas
     reset: () => {
         appStore.set(initialState);
+    },
+    updateDashboardLayout: (layout: string[]) => {
+        appStore.update(s => ({ ...s, dashboardLayout: layout }));
     }
 };
