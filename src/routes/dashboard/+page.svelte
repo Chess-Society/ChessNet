@@ -14,8 +14,14 @@
         ChevronRight,
         Activity,
         TrendingUp,
+        TrendingDown,
         Calendar,
         Clock,
+        AlertTriangle,
+        Bell,
+        ArrowUpRight,
+        ArrowDownRight,
+        CheckCircle,
     } from "lucide-svelte";
 
     // Suscribirse a los datos reales
@@ -106,10 +112,205 @@
         month: "long",
     });
 
+    // Helper functions
+    function getTimeAgo(dateStr: string): string {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffMins < 60) return `hace ${diffMins} min`;
+        if (diffHours < 24) return `hace ${diffHours}h`;
+        if (diffDays === 1) return "ayer";
+        if (diffDays < 7) return `hace ${diffDays} días`;
+        return date.toLocaleDateString("es-ES", {
+            day: "numeric",
+            month: "short",
+        });
+    }
+
+    function daysSince(dateStr: string): number {
+        const date = new Date(dateStr);
+        const now = new Date();
+        return Math.floor(
+            (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
+        );
+    }
+
+    function daysTill(dateStr: string): number {
+        const date = new Date(dateStr);
+        const now = new Date();
+        return Math.floor(
+            (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+        );
+    }
+
     // Derived Stats
 
     $: totalStudents = store.students.length;
     $: totalRevenue = store.payments.reduce((sum, p) => sum + p.amount, 0);
+
+    // Tendencias (comparar con datos antiguos - simplificado)
+    $: recentStudents = store.students.filter((s) => {
+        // Asumimos que los últimos añadidos son recientes
+        const index = store.students.indexOf(s);
+        return (
+            index >=
+            store.students.length - Math.ceil(store.students.length * 0.2)
+        );
+    }).length;
+
+    $: recentPayments = store.payments.filter((p) => {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return new Date(p.date) >= thirtyDaysAgo;
+    });
+
+    $: revenueThisMonth = recentPayments.reduce((sum, p) => sum + p.amount, 0);
+
+    // Tasa de asistencia promedio
+    $: averageAttendance = (() => {
+        if (store.attendance.length === 0) return 0;
+        const rates = store.attendance.map((record) => {
+            const total = record.records.length;
+            const present = record.records.filter(
+                (r) => r.status === "present",
+            ).length;
+            return total > 0 ? (present / total) * 100 : 0;
+        });
+        return Math.round(rates.reduce((sum, r) => sum + r, 0) / rates.length);
+    })();
+
+    // Actividad reciente
+    $: recentActivity = (() => {
+        const activities: any[] = [];
+
+        // Últimos estudiantes
+        store.students
+            .slice(-3)
+            .reverse()
+            .forEach((s) => {
+                activities.push({
+                    type: "student",
+                    description: `Nuevo estudiante: ${s.name}`,
+                    timeAgo: "reciente",
+                    icon: Users,
+                    color: "emerald",
+                    timestamp: Date.now(),
+                });
+            });
+
+        // Últimos pagos
+        store.payments
+            .slice(-3)
+            .reverse()
+            .forEach((p) => {
+                const student = store.students.find(
+                    (s) => s.id === p.studentId,
+                );
+                activities.push({
+                    type: "payment",
+                    description: `Pago: ${p.amount}€ - ${student?.name || "Desconocido"}`,
+                    timeAgo: getTimeAgo(p.date),
+                    icon: CreditCard,
+                    color: "teal",
+                    timestamp: new Date(p.date).getTime(),
+                });
+            });
+
+        // Últimos torneos
+        store.tournaments
+            .slice(-2)
+            .reverse()
+            .forEach((t) => {
+                activities.push({
+                    type: "tournament",
+                    description: `Torneo: ${t.name}`,
+                    timeAgo: getTimeAgo(t.date),
+                    icon: Trophy,
+                    color: "orange",
+                    timestamp: new Date(t.date).getTime(),
+                });
+            });
+
+        return activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, 6);
+    })();
+
+    // Alertas inteligentes
+    $: alerts = (() => {
+        const alertList: any[] = [];
+
+        // Alumnos con baja asistencia
+        const studentStats = store.students
+            .map((student) => {
+                const records = store.attendance.flatMap((r) =>
+                    r.records.filter((rec) => rec.studentId === student.id),
+                );
+                const total = records.length;
+                const present = records.filter(
+                    (r) => r.status === "present",
+                ).length;
+                const rate = total > 0 ? (present / total) * 100 : 100;
+                return { student, rate, total };
+            })
+            .filter((s) => s.rate < 70 && s.total >= 3);
+
+        if (studentStats.length > 0) {
+            alertList.push({
+                type: "warning",
+                message: `${studentStats.length} alumno${studentStats.length > 1 ? "s" : ""} con baja asistencia`,
+                action: "Ver detalles",
+                link: "students",
+            });
+        }
+
+        // Clases sin asistencia reciente
+        const classesNoAttendance = store.classes.filter((c) => {
+            const lastRecord = store.attendance
+                .filter((r) => r.classId === c.id)
+                .sort((a, b) => b.date.localeCompare(a.date))[0];
+            return !lastRecord || daysSince(lastRecord.date) > 7;
+        });
+
+        if (classesNoAttendance.length > 0) {
+            alertList.push({
+                type: "info",
+                message: `${classesNoAttendance.length} clase${classesNoAttendance.length > 1 ? "s" : ""} sin asistencia registrada`,
+                action: "Pasar lista",
+                link: "attendance",
+            });
+        }
+
+        return alertList;
+    })();
+
+    // Próximos eventos
+    $: upcomingEvents = (() => {
+        const events: any[] = [];
+
+        // Torneos próximos
+        store.tournaments
+            .filter(
+                (t) =>
+                    t.status === "Upcoming" &&
+                    daysTill(t.date) >= 0 &&
+                    daysTill(t.date) <= 7,
+            )
+            .forEach((t) => {
+                events.push({
+                    type: "tournament",
+                    title: t.name,
+                    date: t.date,
+                    daysUntil: daysTill(t.date),
+                    icon: Trophy,
+                    color: "orange",
+                });
+            });
+
+        return events.sort((a, b) => a.daysUntil - b.daysUntil);
+    })();
 
     // Real Schedule Logic
     const days = [
@@ -190,57 +391,42 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Centros -->
-        <div
-            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
-        >
-            <div>
-                <p class="text-slate-400 text-sm font-medium">
-                    Centros Educativos
-                </p>
-                <p class="text-3xl font-bold text-white mt-2">
-                    {store.centers.length}
-                </p>
-                <p
-                    class="text-emerald-500 text-xs mt-2 flex items-center font-medium"
-                >
-                    <TrendingUp class="w-3 h-3 mr-1" />
-                    Activos
-                </p>
-            </div>
-            <div class="bg-blue-500/10 p-3 rounded-xl">
-                <School class="w-6 h-6 text-blue-500" />
-            </div>
-        </div>
-
         <!-- Estudiantes -->
         <div
             class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
         >
-            <div>
+            <div class="flex-1">
                 <p class="text-slate-400 text-sm font-medium">
                     Estudiantes Activos
                 </p>
                 <p class="text-3xl font-bold text-white mt-2">
                     {store.students.length}
                 </p>
-                <p
-                    class="text-emerald-500 text-xs mt-2 flex items-center font-medium"
-                >
-                    <Users class="w-3 h-3 mr-1" />
-                    Matriculados
-                </p>
+                {#if recentStudents > 0}
+                    <div class="flex items-center gap-2 mt-2">
+                        <span
+                            class="text-emerald-500 text-xs flex items-center font-medium"
+                        >
+                            <ArrowUpRight class="w-3 h-3 mr-1" />
+                            +{recentStudents} recientes
+                        </span>
+                    </div>
+                {:else}
+                    <p class="text-slate-500 text-xs mt-2 font-medium">
+                        Matriculados
+                    </p>
+                {/if}
             </div>
             <div class="bg-emerald-500/10 p-3 rounded-xl">
                 <Users class="w-6 h-6 text-emerald-500" />
             </div>
         </div>
 
-        <!-- Grupos / Clases (Moved to pos 3) -->
+        <!-- Clases -->
         <div
             class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
         >
-            <div>
+            <div class="flex-1">
                 <p class="text-slate-400 text-sm font-medium">
                     Grupos / Clases
                 </p>
@@ -251,28 +437,77 @@
                     En funcionamiento
                 </p>
             </div>
-            <div class="bg-yellow-500/10 p-3 rounded-xl">
-                <BookOpen class="w-6 h-6 text-yellow-500" />
+            <div class="bg-purple-500/10 p-3 rounded-xl">
+                <BookOpen class="w-6 h-6 text-purple-500" />
             </div>
         </div>
 
-        <!-- Ingresos Totales (New at pos 4) -->
+        <!-- Asistencia Promedio (NUEVO) -->
         <div
             class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
         >
-            <div>
+            <div class="flex-1">
+                <p class="text-slate-400 text-sm font-medium">
+                    Asistencia Promedio
+                </p>
+                <p class="text-3xl font-bold text-white mt-2">
+                    {averageAttendance}%
+                </p>
+                <div class="flex items-center gap-2 mt-2">
+                    {#if averageAttendance >= 90}
+                        <span
+                            class="text-emerald-500 text-xs flex items-center font-medium"
+                        >
+                            <TrendingUp class="w-3 h-3 mr-1" />
+                            Excelente
+                        </span>
+                    {:else if averageAttendance >= 70}
+                        <span
+                            class="text-blue-500 text-xs flex items-center font-medium"
+                        >
+                            <Activity class="w-3 h-3 mr-1" />
+                            Buena
+                        </span>
+                    {:else}
+                        <span
+                            class="text-amber-500 text-xs flex items-center font-medium"
+                        >
+                            <AlertTriangle class="w-3 h-3 mr-1" />
+                            Mejorable
+                        </span>
+                    {/if}
+                </div>
+            </div>
+            <div class="bg-pink-500/10 p-3 rounded-xl">
+                <ClipboardCheck class="w-6 h-6 text-pink-500" />
+            </div>
+        </div>
+
+        <!-- Ingresos -->
+        <div
+            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
+        >
+            <div class="flex-1">
                 <p class="text-slate-400 text-sm font-medium">
                     Ingresos Totales
                 </p>
                 <p class="text-3xl font-bold text-white mt-2">
                     {totalRevenue}€
                 </p>
-                <p
-                    class="text-emerald-500 text-xs mt-2 flex items-center font-medium"
-                >
-                    <TrendingUp class="w-3 h-3 mr-1" />
-                    Acumulado
-                </p>
+                {#if revenueThisMonth > 0}
+                    <div class="flex items-center gap-2 mt-2">
+                        <span
+                            class="text-emerald-500 text-xs flex items-center font-medium"
+                        >
+                            <TrendingUp class="w-3 h-3 mr-1" />
+                            {revenueThisMonth}€ este mes
+                        </span>
+                    </div>
+                {:else}
+                    <p class="text-slate-500 text-xs mt-2 font-medium">
+                        Acumulado
+                    </p>
+                {/if}
             </div>
             <div class="bg-teal-500/10 p-3 rounded-xl">
                 <CreditCard class="w-6 h-6 text-teal-500" />
@@ -343,41 +578,180 @@
             </div>
         </div>
 
-        <!-- Actividad Reciente -->
-        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6 h-80">
+        <!-- Alertas Inteligentes (NUEVO) -->
+        <div
+            class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6 h-80 flex flex-col"
+        >
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">Resumen</h3>
-                <Activity class="w-4 h-4 text-slate-500" />
+                <h3
+                    class="text-lg font-bold text-white flex items-center gap-2"
+                >
+                    <Bell class="w-5 h-5 text-amber-500" />
+                    Alertas
+                </h3>
+                {#if alerts.length > 0}
+                    <span
+                        class="bg-amber-500/10 text-amber-400 text-xs font-bold px-2 py-1 rounded-full"
+                    >
+                        {alerts.length}
+                    </span>
+                {/if}
             </div>
-            <div class="space-y-4">
-                {#if store.students.length > 0}
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                        <span class="text-slate-300"
-                            >{store.students.length} Estudiantes totales</span
-                        >
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-3">
+                {#if alerts.length === 0}
+                    <div
+                        class="h-full flex flex-col items-center justify-center text-slate-500"
+                    >
+                        <CheckCircle
+                            class="w-12 h-12 mb-4 opacity-50 text-emerald-500"
+                        />
+                        <p class="text-sm">Todo en orden</p>
                     </div>
-                {/if}
-                {#if store.centers.length > 0}
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                        <span class="text-slate-300"
-                            >{store.centers.length} Centros gestionados</span
+                {:else}
+                    {#each alerts as alert}
+                        <div
+                            class="bg-{alert.type === 'warning'
+                                ? 'amber'
+                                : 'blue'}-500/10 border border-{alert.type ===
+                            'warning'
+                                ? 'amber'
+                                : 'blue'}-500/30 rounded-xl p-4"
                         >
-                    </div>
+                            <div class="flex items-start gap-3">
+                                <AlertTriangle
+                                    class="w-5 h-5 text-{alert.type ===
+                                    'warning'
+                                        ? 'amber'
+                                        : 'blue'}-500 flex-shrink-0 mt-0.5"
+                                />
+                                <div class="flex-1">
+                                    <p
+                                        class="text-{alert.type === 'warning'
+                                            ? 'amber'
+                                            : 'blue'}-400 font-medium text-sm"
+                                    >
+                                        {alert.message}
+                                    </p>
+                                    <button
+                                        onclick={() => navigate(alert.link)}
+                                        class="text-xs text-{alert.type ===
+                                        'warning'
+                                            ? 'amber'
+                                            : 'blue'}-300 hover:underline mt-1 cursor-pointer"
+                                    >
+                                        {alert.action} →
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {/each}
                 {/if}
-                {#if store.tournaments.length > 0}
-                    <div class="flex items-center gap-3 text-sm">
-                        <div class="w-2 h-2 rounded-full bg-orange-500"></div>
-                        <span class="text-slate-300"
-                            >{store.tournaments.length} Torneos creados</span
-                        >
-                    </div>
-                {/if}
-                {#if store.students.length === 0 && store.centers.length === 0}
-                    <p class="text-slate-500 text-center mt-10">
-                        Sin actividad reciente.
+            </div>
+        </div>
+    </div>
+
+    <!-- Nueva fila: Actividad Reciente + Próximos Eventos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Actividad Reciente (Mejorado) -->
+        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3
+                    class="text-lg font-bold text-white flex items-center gap-2"
+                >
+                    <Activity class="w-5 h-5 text-cyan-500" />
+                    Actividad Reciente
+                </h3>
+            </div>
+
+            <div class="space-y-3">
+                {#if recentActivity.length === 0}
+                    <p class="text-slate-500 text-center py-8 text-sm">
+                        Sin actividad reciente
                     </p>
+                {:else}
+                    {#each recentActivity as activity}
+                        <div
+                            class="flex items-start gap-3 text-sm p-3 bg-slate-900/30 rounded-lg hover:bg-slate-900/50 transition-colors"
+                        >
+                            <div
+                                class="w-8 h-8 rounded-full bg-{activity.color}-500/10 flex items-center justify-center flex-shrink-0"
+                            >
+                                <svelte:component
+                                    this={activity.icon}
+                                    class="w-4 h-4 text-{activity.color}-500"
+                                />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-slate-300 truncate">
+                                    {activity.description}
+                                </p>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    {activity.timeAgo}
+                                </p>
+                            </div>
+                        </div>
+                    {/each}
+                {/if}
+            </div>
+        </div>
+
+        <!-- Próximos Eventos (NUEVO) -->
+        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3
+                    class="text-lg font-bold text-white flex items-center gap-2"
+                >
+                    <Calendar class="w-5 h-5 text-purple-500" />
+                    Próximos 7 Días
+                </h3>
+            </div>
+
+            <div class="space-y-3">
+                {#if upcomingEvents.length === 0}
+                    <div class="text-center py-8 text-slate-500">
+                        <Calendar class="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p class="text-sm">No hay eventos próximos</p>
+                    </div>
+                {:else}
+                    {#each upcomingEvents as event}
+                        <div
+                            class="bg-slate-900/30 p-4 rounded-lg border border-slate-700/50"
+                        >
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-{event.color}-500/10 flex items-center justify-center flex-shrink-0"
+                                >
+                                    <svelte:component
+                                        this={event.icon}
+                                        class="w-5 h-5 text-{event.color}-500"
+                                    />
+                                </div>
+                                <div class="flex-1">
+                                    <h4
+                                        class="font-semibold text-white text-sm"
+                                    >
+                                        {event.title}
+                                    </h4>
+                                    <p class="text-xs text-slate-400 mt-1">
+                                        {#if event.daysUntil === 0}
+                                            Hoy
+                                        {:else if event.daysUntil === 1}
+                                            Mañana
+                                        {:else}
+                                            En {event.daysUntil} días
+                                        {/if}
+                                        • {new Date(
+                                            event.date,
+                                        ).toLocaleDateString("es-ES", {
+                                            day: "numeric",
+                                            month: "short",
+                                        })}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {/each}
                 {/if}
             </div>
         </div>
