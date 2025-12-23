@@ -7,7 +7,7 @@
         type ClassGroup,
     } from "$lib/services/storage";
     import { notifications } from "$lib/stores/notifications";
-    // ...
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
     function handleToggleForm() {
         if (!showForm) {
@@ -156,9 +156,19 @@
         showForm = true;
     }
 
+    let showDeleteModal = false;
+    let classToDeleteId: string | null = null;
+
     function deleteClass(id: string) {
-        if (confirm("¿Estás seguro de eliminar esta clase?")) {
-            storeActions.removeClass(id);
+        classToDeleteId = id;
+        showDeleteModal = true;
+    }
+
+    function confirmDelete() {
+        if (classToDeleteId) {
+            storeActions.removeClass(classToDeleteId);
+            classToDeleteId = null;
+            notifications.success("Clase eliminada correctamente.");
         }
     }
 
@@ -386,6 +396,14 @@
         </div>
     </div>
 </div>
+
+<ConfirmationModal
+    bind:isOpen={showDeleteModal}
+    title="¿Eliminar clase?"
+    message="Esta acción eliminará el grupo y todos sus registros de asistencia. Los alumnos no se borrarán."
+    confirmText="Eliminar Clase"
+    on:confirm={confirmDelete}
+/>
 
 <!-- Manage Students Modal -->
 {#if showManageModal && selectedClassForManage}
