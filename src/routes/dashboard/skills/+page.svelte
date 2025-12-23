@@ -566,9 +566,13 @@
                                 </div>
 
                                 <!-- Action buttons -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                                 <div
                                     class="flex gap-2 flex-shrink-0"
                                     onclick={(e) => e.stopPropagation()}
+                                    onkeydown={(e) => e.stopPropagation()}
+                                    role="group"
                                 >
                                     <button
                                         onclick={() => editSkill(skill)}
