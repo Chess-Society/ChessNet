@@ -273,6 +273,23 @@ export const storeActions = {
     addSkill: (skill: Skill) => {
         appStore.update(s => ({ ...s, skills: [...s.skills, skill] }));
     },
+    updateSkill: (id: string, updatedSkill: Partial<Skill>) => {
+        appStore.update(s => ({
+            ...s,
+            skills: s.skills.map(skill => skill.id === id ? { ...skill, ...updatedSkill } : skill)
+        }));
+    },
+    deleteSkill: (id: string) => {
+        appStore.update(s => ({
+            ...s,
+            skills: s.skills.filter(skill => skill.id !== id),
+            // Also remove this skill from all students
+            students: s.students.map(student => ({
+                ...student,
+                skills: student.skills?.filter(skillId => skillId !== id) || []
+            }))
+        }));
+    },
     addTournament: (t: Tournament) => {
         appStore.update(s => ({ ...s, tournaments: [...s.tournaments, t] }));
         broadcastUpdate({ type: 'tournament-update', tournamentId: t.id });

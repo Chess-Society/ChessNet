@@ -12,6 +12,11 @@
         Plus,
         X,
         Search,
+        Edit,
+        Trash2,
+        TrendingUp,
+        BarChart3,
+        AlertTriangle,
     } from "lucide-svelte";
     import { slide, fade } from "svelte/transition";
 
@@ -19,6 +24,7 @@
     appStore.subscribe((value) => (store = value));
 
     let showForm = false;
+    let editingSkill: Skill | null = null;
     let newSkill: Skill = {
         id: "",
         name: "",
@@ -31,15 +37,29 @@
     let evaluatingSkill: Skill | null = null;
     let evalSearchTerm = "";
 
+    // Filter/Search State
+    let searchTerm = "";
+    let selectedCategory = "all";
+    let filterLevel = "";
+
+    // Delete confirmation
+    let deletingSkill: Skill | null = null;
+
     function handleSubmit() {
         if (!newSkill.name) return;
 
-        const skillToAdd = {
-            ...newSkill,
-            id: crypto.randomUUID(),
-        };
-
-        storeActions.addSkill(skillToAdd);
+        if (editingSkill) {
+            // Update existing skill
+            storeActions.updateSkill(editingSkill.id, newSkill);
+            editingSkill = null;
+        } else {
+            // Add new skill
+            const skillToAdd = {
+                ...newSkill,
+                id: crypto.randomUUID(),
+            };
+            storeActions.addSkill(skillToAdd);
+        }
 
         // Reset form
         newSkill = {
@@ -50,6 +70,23 @@
             description: "",
         };
         showForm = false;
+    }
+
+    function editSkill(skill: Skill) {
+        editingSkill = skill;
+        newSkill = { ...skill };
+        showForm = true;
+    }
+
+    function confirmDelete(skill: Skill) {
+        deletingSkill = skill;
+    }
+
+    function deleteSkill() {
+        if (deletingSkill) {
+            storeActions.deleteSkill(deletingSkill.id);
+            deletingSkill = null;
+        }
     }
 
     function openEvaluation(skill: Skill) {
@@ -76,6 +113,94 @@
                 return Target;
         }
     };
+
+    const getCategoryLabel = (category: string) => {
+        switch (category) {
+            case "Tactics":
+                return "Táctica";
+            case "Strategy":
+                return "Estrategia";
+            case "Endgame":
+                return "Finales";
+            case "Openings":
+                return "Aperturas";
+            default:
+                return category;
+        }
+    };
+
+    // Reactive calculations
+    $: skillProgress = store.skills.map((skill) => {
+        const studentsWithSkill = store.students.filter((s) =>
+            s.skills?.includes(skill.id),
+        ).length;
+        const totalStudents = store.students.length;
+        return {
+            ...skill,
+            progress:
+                totalStudents > 0
+                    ? (studentsWithSkill / totalStudents) * 100
+                    : 0,
+            studentsCount: studentsWithSkill,
+            totalStudents,
+        };
+    });
+
+    $: skillsByCategory = {
+        all: skillProgress,
+        Tactics: skillProgress.filter((s) => s.category === "Tactics"),
+        Strategy: skillProgress.filter((s) => s.category === "Strategy"),
+        Openings: skillProgress.filter((s) => s.category === "Openings"),
+        Endgame: skillProgress.filter((s) => s.category === "Endgame"),
+    };
+
+    $: filteredSkills = (
+        skillsByCategory[selectedCategory as keyof typeof skillsByCategory] ||
+        []
+    )
+        .filter((s: any) =>
+            s.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        )
+        .filter((s: any) =>
+            filterLevel ? s.level === parseInt(filterLevel) : true,
+        );
+
+    $: stats = {
+        totalSkills: store.skills.length,
+        avgMastery:
+            skillProgress.length > 0
+                ? Math.round(
+                      skillProgress.reduce((sum, s) => sum + s.progress, 0) /
+                          skillProgress.length,
+                  )
+                : 0,
+        topSkill: skillProgress.sort((a, b) => b.progress - a.progress)[0],
+        leastMastered: skillProgress.sort((a, b) => a.progress - b.progress)[0],
+    };
+
+    const categories = [
+        { id: "all", label: "Todas", count: skillsByCategory.all.length },
+        {
+            id: "Tactics",
+            label: "Táctica",
+            count: skillsByCategory.Tactics.length,
+        },
+        {
+            id: "Strategy",
+            label: "Estrategia",
+            count: skillsByCategory.Strategy.length,
+        },
+        {
+            id: "Openings",
+            label: "Aperturas",
+            count: skillsByCategory.Openings.length,
+        },
+        {
+            id: "Endgame",
+            label: "Finales",
+            count: skillsByCategory.Endgame.length,
+        },
+    ];
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -185,6 +310,116 @@
         </div>
     {/if}
 
+    <!-- Stats Panel -->
+    {#if store.skills.length > 0}
+        <div
+            class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8"
+            transition:slide
+        >
+            <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-sm font-medium">
+                            Total Habilidades
+                        </p>
+                        <p class="text-3xl font-bold text-white mt-2">
+                            {stats.totalSkills}
+                        </p>
+                    </div>
+                    <div class="bg-yellow-500/10 p-3 rounded-xl">
+                        <Target class="w-6 h-6 text-yellow-500" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-sm font-medium">
+                            Dominio Promedio
+                        </p>
+                        <p class="text-3xl font-bold text-white mt-2">
+                            {stats.avgMastery}%
+                        </p>
+                    </div>
+                    <div class="bg-emerald-500/10 p-3 rounded-xl">
+                        <TrendingUp class="w-6 h-6 text-emerald-500" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#1e293b] p-6 rounded-2xl border border-slate-700">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-slate-400 text-sm font-medium">
+                            Más Dominada
+                        </p>
+                        <p class="text-lg font-bold text-white mt-2 truncate">
+                            {stats.topSkill?.name || "N/A"}
+                        </p>
+                        {#if stats.topSkill}
+                            <p class="text-xs text-emerald-500 mt-1">
+                                {Math.round(stats.topSkill.progress)}% de
+                                alumnos
+                            </p>
+                        {/if}
+                    </div>
+                    <div class="bg-amber-500/10 p-3 rounded-xl flex-shrink-0">
+                        <Award class="w-6 h-6 text-amber-500" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="mt-8 border-b border-slate-700">
+            <div class="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
+                {#each categories as cat}
+                    <button
+                        onclick={() => (selectedCategory = cat.id)}
+                        class="px-4 py-2 rounded-t-lg font-medium text-sm transition-all whitespace-nowrap {selectedCategory ===
+                        cat.id
+                            ? 'bg-yellow-500/10 text-yellow-500 border-b-2 border-yellow-500'
+                            : 'text-slate-400 hover:text-white hover:bg-slate-800'}"
+                    >
+                        {cat.label}
+                        <span
+                            class="ml-2 bg-slate-700 px-2 py-0.5 rounded-full text-xs"
+                        >
+                            {cat.count}
+                        </span>
+                    </button>
+                {/each}
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="mt-6 flex flex-col sm:flex-row gap-4">
+            <div class="flex-1 relative">
+                <Search
+                    class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
+                />
+                <input
+                    bind:value={searchTerm}
+                    type="text"
+                    placeholder="Buscar habilidades..."
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:border-yellow-500 outline-none"
+                />
+            </div>
+            <select
+                bind:value={filterLevel}
+                class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-yellow-500 outline-none"
+            >
+                <option value="">Todos los niveles</option>
+                <option value="1">Nivel 1</option>
+                <option value="2">Nivel 2</option>
+                <option value="3">Nivel 3</option>
+                <option value="4">Nivel 4</option>
+                <option value="5">Nivel 5</option>
+            </select>
+        </div>
+    {/if}
+
     <!-- Skills Grid -->
     <div class="mt-8 grid gap-6 md:grid-cols-2">
         {#if store.skills.length === 0}
@@ -199,51 +434,109 @@
                     Crea una matriz de habilidades para evaluar a tus alumnos.
                 </p>
             </div>
+        {:else if filteredSkills.length === 0}
+            <div class="col-span-full py-12 text-center text-slate-500">
+                <Search class="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No se encontraron habilidades con esos filtros.</p>
+            </div>
         {:else}
-            {#each store.skills as skill}
+            {#each filteredSkills as skill}
                 <div
-                    class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 flex items-start gap-4 hover:border-yellow-500/30 transition-colors group"
+                    class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 hover:border-yellow-500/30 transition-colors group"
                 >
-                    <div
-                        class="p-3 bg-slate-800 rounded-xl group-hover:bg-yellow-500/10 group-hover:text-yellow-500 transition-colors"
-                    >
-                        <svelte:component
-                            this={getIcon(skill.category)}
-                            class="w-8 h-8 text-slate-400 group-hover:text-yellow-500"
-                        />
-                    </div>
-
-                    <div class="flex-1">
-                        <div class="flex justify-between items-start">
-                            <h3 class="text-lg font-bold text-white">
-                                {skill.name}
-                            </h3>
-                            <span
-                                class="text-xs font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded"
-                                >Nivel {skill.level}</span
-                            >
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="p-3 bg-slate-800 rounded-xl group-hover:bg-yellow-500/10 transition-colors flex-shrink-0"
+                        >
+                            <svelte:component
+                                this={getIcon(skill.category)}
+                                class="w-8 h-8 text-slate-400 group-hover:text-yellow-500"
+                            />
                         </div>
-                        <p class="text-slate-400 text-sm mt-1">
-                            {skill.description}
-                        </p>
 
-                        <div class="mt-4 flex items-center justify-between">
-                            <div
-                                class="flex items-center gap-2 text-sm text-slate-500"
-                            >
-                                <CheckCircle class="w-4 h-4 text-green-500" />
-                                <span class="text-slate-300 font-medium"
-                                    >{store.students.filter((s) =>
-                                        s.skills?.includes(skill.id),
-                                    ).length}</span
-                                > alumnos lo dominan
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start gap-3">
+                                <div class="flex-1 min-w-0">
+                                    <h3
+                                        class="text-lg font-bold text-white truncate"
+                                    >
+                                        {skill.name}
+                                    </h3>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span
+                                            class="text-xs font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded"
+                                            >Nivel {skill.level}</span
+                                        >
+                                        <span
+                                            class="text-xs text-slate-500 bg-slate-900 px-2 py-1 rounded"
+                                            >{getCategoryLabel(
+                                                skill.category,
+                                            )}</span
+                                        >
+                                    </div>
+                                </div>
+
+                                <!-- Action buttons -->
+                                <div class="flex gap-2 flex-shrink-0">
+                                    <button
+                                        onclick={() => editSkill(skill)}
+                                        class="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors"
+                                        title="Editar"
+                                    >
+                                        <Edit class="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onclick={() => confirmDelete(skill)}
+                                        class="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 class="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
-                            <button
-                                onclick={() => openEvaluation(skill)}
-                                class="text-yellow-500 text-sm font-semibold hover:underline cursor-pointer"
-                            >
-                                Evaluar Grupo
-                            </button>
+
+                            <p class="text-slate-400 text-sm mt-2 line-clamp-2">
+                                {skill.description}
+                            </p>
+
+                            <!-- Progress Bar -->
+                            <div class="mt-4">
+                                <div
+                                    class="flex justify-between text-xs mb-1.5"
+                                >
+                                    <span class="text-slate-400">Progreso</span>
+                                    <span class="text-white font-bold"
+                                        >{Math.round(skill.progress)}%</span
+                                    >
+                                </div>
+                                <div
+                                    class="h-2 bg-slate-800 rounded-full overflow-hidden"
+                                >
+                                    <div
+                                        class="h-full transition-all duration-500 {skill.progress >=
+                                        70
+                                            ? 'bg-gradient-to-r from-emerald-500 to-green-500'
+                                            : skill.progress >= 30
+                                              ? 'bg-gradient-to-r from-yellow-500 to-amber-500'
+                                              : 'bg-gradient-to-r from-red-500 to-orange-500'}"
+                                        style="width: {skill.progress}%"
+                                    ></div>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1.5">
+                                    {skill.studentsCount} de {skill.totalStudents}
+                                    alumnos
+                                </p>
+                            </div>
+
+                            <div class="mt-4 flex justify-end">
+                                <button
+                                    onclick={() => openEvaluation(skill)}
+                                    class="text-yellow-500 text-sm font-semibold hover:underline cursor-pointer flex items-center gap-1"
+                                >
+                                    Evaluar Grupo
+                                    <CheckCircle class="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -372,6 +665,71 @@
                 >
                     Listo
                 </button>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<!-- Delete Confirmation Modal -->
+{#if deletingSkill}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        transition:fade
+    >
+        <!-- Backdrop -->
+        <button
+            class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm w-full h-full cursor-default"
+            onclick={() => (deletingSkill = null)}
+            aria-label="Cerrar modal"
+        ></button>
+
+        <!-- Modal Panel -->
+        <div
+            class="relative bg-[#1e293b] border border-red-500/50 rounded-2xl w-full max-w-md shadow-2xl"
+        >
+            <div class="p-6">
+                <div class="flex items-start gap-4">
+                    <div class="bg-red-500/10 p-3 rounded-xl">
+                        <AlertTriangle class="w-6 h-6 text-red-500" />
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white">
+                            ¿Eliminar habilidad?
+                        </h3>
+                        <p class="text-slate-400 text-sm mt-2">
+                            Estás a punto de eliminar "<span
+                                class="font-semibold text-white"
+                                >{deletingSkill.name}</span
+                            >".
+                        </p>
+                        <p
+                            class="text-amber-400 text-sm mt-2 flex items-start gap-2"
+                        >
+                            <AlertTriangle
+                                class="w-4 h-4 flex-shrink-0 mt-0.5"
+                            />
+                            <span
+                                >Esta habilidad también se eliminará del
+                                progreso de todos los alumnos.</span
+                            >
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <button
+                        onclick={() => (deletingSkill = null)}
+                        class="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onclick={deleteSkill}
+                        class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+                    >
+                        Eliminar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
