@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { broadcastUpdate } from '$lib/utils/broadcast';
+import { broadcastUpdate, onBroadcastMessage } from '$lib/utils/broadcast';
 
 // Tipos
 export interface Center {
@@ -153,6 +153,22 @@ export function initStore() {
                 }
             }
         }
+
+        // Listen for cross-tab updates via BroadcastChannel
+        onBroadcastMessage((message) => {
+            if (message.type === 'tournament-update') {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        // Update store to reflect changes from other tabs
+                        appStore.set({ ...initialState, ...parsed });
+                    } catch (e) {
+                        console.error('Error syncing data from broadcast:', e);
+                    }
+                }
+            }
+        });
     }
 
     // Suscribirse a cambios para guardar automáticamente
