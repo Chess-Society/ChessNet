@@ -564,7 +564,10 @@
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            role="list"
+        >
             {#each displayedActions as action (action.id)}
                 <div
                     animate:flip={{ duration: 300 }}
@@ -573,6 +576,7 @@
                     ondragover={(e) => handleDragOver(e, action)}
                     ondragend={() => (draggedItem = null)}
                     class="relative"
+                    role="listitem"
                 >
                     <button
                         onclick={() =>
