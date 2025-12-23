@@ -12,70 +12,115 @@ export interface DiplomaOptions {
     type: 'excellence' | 'participation' | 'completion' | 'tournament';
 }
 
-const drawChessPattern = (doc: jsPDF, x: number, y: number, width: number, size: number) => {
-    doc.setFillColor(0, 0, 0);
-    let drawBlack = true;
-    for (let i = x; i < x + width; i += size) {
-        if (drawBlack) {
-            doc.rect(i, y, size, size, 'F');
-        }
-        drawBlack = !drawBlack;
-    }
-    // Second row staggered
-    drawBlack = false;
-    for (let i = x; i < x + width; i += size) {
-        if (drawBlack) {
-            doc.rect(i, y + size, size, size, 'F');
-        }
-        drawBlack = !drawBlack;
+// Color schemes for each diploma type
+const colorSchemes = {
+    excellence: {
+        primary: [59, 130, 246], // Blue
+        secondary: [147, 197, 253],
+        accent: [37, 99, 235],
+        bg: [15, 23, 42], // Dark slate
+        text: [255, 255, 255],
+        icon: '🏆'
+    },
+    participation: {
+        primary: [168, 85, 247], // Purple
+        secondary: [216, 180, 254],
+        accent: [147, 51, 234],
+        bg: [24, 24, 27], // Dark zinc
+        text: [255, 255, 255],
+        icon: '⭐'
+    },
+    completion: {
+        primary: [34, 197, 94], // Green
+        secondary: [134, 239, 172],
+        accent: [22, 163, 74],
+        bg: [20, 29, 47], // Dark blue
+        text: [255, 255, 255],
+        icon: '🎓'
+    },
+    tournament: {
+        primary: [245, 158, 11], // Amber
+        secondary: [253, 224, 71],
+        accent: [217, 119, 6],
+        bg: [23, 23, 23], // Near black
+        text: [255, 255, 255],
+        icon: '♛'
     }
 };
 
-const drawCorner = (doc: jsPDF, x: number, y: number, size: number, rotation: number) => {
-    // Simple ornate corner L-shape
-    doc.setDrawColor(183, 142, 60); // Gold
-    doc.setLineWidth(1.5);
+const drawGradientBackground = (doc: jsPDF, type: DiplomaOptions['type']) => {
+    const width = doc.internal.pageSize.getWidth();
+    const height = doc.internal.pageSize.getHeight();
+    const scheme = colorSchemes[type];
 
-    // We can just draw lines relative to x,y
-    // Rotation is 0 (top-left), 90 (top-right), 180 (bottom-right), 270 (bottom-left)
-    // To keep it simple without matrix transforms, we'll just code logic for 4 corners or use simple lines.
+    // Dark background
+    doc.setFillColor(...scheme.bg);
+    doc.rect(0, 0, width, height, 'F');
 
-    // Actually, simpler is just 4 distinct calls or if/else logic
-    // Let's just draw "L" shapes with a double line
-    const offset = 5;
-    const len = 20;
+    // Gradient effect with rectangles
+    const steps = 50;
+    for (let i = 0; i < steps; i++) {
+        const alpha = i / steps;
+        const r = scheme.bg[0] + (scheme.primary[0] - scheme.bg[0]) * alpha * 0.3;
+        const g = scheme.bg[1] + (scheme.primary[1] - scheme.bg[1]) * alpha * 0.3;
+        const b = scheme.bg[2] + (scheme.primary[2] - scheme.bg[2]) * alpha * 0.3;
 
-    let x1 = x, y1 = y, x2 = x, y2 = y;
-    let x3 = x, y3 = y, x4 = x, y4 = y;
+        doc.setFillColor(r, g, b);
+        doc.rect(0, (height / steps) * i, width, height / steps, 'F');
+    }
+};
 
-    // TL
-    if (x < 100 && y < 100) {
-        doc.line(x, y, x + len, y);
-        doc.line(x, y, x, y + len);
-        doc.line(x + offset, y + offset, x + len, y + offset);
-        doc.line(x + offset, y + offset, x + offset, y + len);
-    }
-    // TR
-    else if (x > 100 && y < 100) {
-        doc.line(x, y, x - len, y);
-        doc.line(x, y, x, y + len);
-        doc.line(x - offset, y + offset, x - len, y + offset);
-        doc.line(x - offset, y + offset, x - offset, y + len);
-    }
-    // BR
-    else if (x > 100 && y > 100) {
-        doc.line(x, y, x - len, y);
-        doc.line(x, y, x, y - len);
-        doc.line(x - offset, y - offset, x - len, y - offset);
-        doc.line(x - offset, y - offset, x - offset, y - len);
-    }
-    // BL
-    else {
-        doc.line(x, y, x + len, y);
-        doc.line(x, y, x, y - len);
-        doc.line(x + offset, y - offset, x + len, y - offset);
-        doc.line(x + offset, y - offset, x + offset, y - len);
-    }
+const drawModernBorder = (doc: jsPDF, type: DiplomaOptions['type']) => {
+    const width = doc.internal.pageSize.getWidth();
+    const height = doc.internal.pageSize.getHeight();
+    const scheme = colorSchemes[type];
+
+    // Outer border with primary color
+    doc.setDrawColor(...scheme.primary);
+    doc.setLineWidth(2);
+    doc.rect(10, 10, width - 20, height - 20);
+
+    // Inner accent border
+    doc.setDrawColor(...scheme.accent);
+    doc.setLineWidth(0.5);
+    doc.rect(12, 12, width - 24, height - 24);
+
+    // Corner accents
+    const cornerSize = 15;
+    doc.setFillColor(...scheme.primary);
+
+    // Top-left
+    doc.rect(10, 10, cornerSize, 2, 'F');
+    doc.rect(10, 10, 2, cornerSize, 'F');
+
+    // Top-right
+    doc.rect(width - 10 - cornerSize, 10, cornerSize, 2, 'F');
+    doc.rect(width - 12, 10, 2, cornerSize, 'F');
+
+    // Bottom-right
+    doc.rect(width - 10 - cornerSize, height - 12, cornerSize, 2, 'F');
+    doc.rect(width - 12, height - 10 - cornerSize, 2, cornerSize, 'F');
+
+    // Bottom-left
+    doc.rect(10, height - 12, cornerSize, 2, 'F');
+    doc.rect(10, height - 10 - cornerSize, 2, cornerSize, 'F');
+};
+
+const drawDecorativeElements = (doc: jsPDF, type: DiplomaOptions['type']) => {
+    const width = doc.internal.pageSize.getWidth();
+    const height = doc.internal.pageSize.getHeight();
+    const scheme = colorSchemes[type];
+
+    // Decorative circles in corners
+    doc.setFillColor(...scheme.secondary);
+    doc.setGState(new doc.GState({ opacity: 0.1 }));
+
+    doc.circle(20, 20, 30, 'F');
+    doc.circle(width - 20, 20, 30, 'F');
+    doc.circle(20, height - 20, 30, 'F');
+    doc.circle(width - 20, height - 20, 30, 'F');
+
+    doc.setGState(new doc.GState({ opacity: 1 }));
 };
 
 export const generateDiploma = (options: DiplomaOptions) => {
@@ -87,137 +132,106 @@ export const generateDiploma = (options: DiplomaOptions) => {
 
     const width = doc.internal.pageSize.getWidth();
     const height = doc.internal.pageSize.getHeight();
+    const scheme = colorSchemes[options.type];
 
-    // -- Background --
-    // Subtle cream background
-    doc.setFillColor(255, 253, 245);
-    doc.rect(0, 0, width, height, 'F');
+    // Background
+    drawGradientBackground(doc, options.type);
 
-    // -- Ornamental Borders --
-    // Outer heavy border
-    doc.setDrawColor(20, 20, 20);
-    doc.setLineWidth(1.5);
-    doc.rect(8, 8, width - 16, height - 16);
+    // Decorative elements
+    drawDecorativeElements(doc, options.type);
 
-    // Inner gold border
-    doc.setDrawColor(183, 142, 60); // Gold
-    doc.setLineWidth(1);
-    doc.rect(12, 12, width - 24, height - 24);
+    // Border
+    drawModernBorder(doc, options.type);
 
-    // Decorative Corners
-    drawCorner(doc, 12, 12, 0, 0); // TL
-    drawCorner(doc, width - 12, 12, 0, 0); // TR
-    drawCorner(doc, width - 12, height - 12, 0, 0); // BR
-    drawCorner(doc, 12, height - 12, 0, 0); // BL
+    // Icon at top
+    doc.setFontSize(60);
+    doc.text(scheme.icon, width / 2, 35, { align: "center" });
 
-    // -- Chess Pattern Strip (Bottom) --
-    // A subtle checkerboard at the bottom content area ???
-    // Maybe too busy. Let's do a simple icon at top.
+    // Title
+    doc.setTextColor(...scheme.text);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(36);
 
-    // -- Header --
-    doc.setTextColor(50, 50, 50);
-    doc.setFont("times", "bold");
-    doc.setFontSize(40);
-
-    let title = "DIPLOMA DE HONOR";
+    let title = "DIPLOMA DE EXCELENCIA";
     if (options.type === 'completion') title = "DIPLOMA DE FINALIZACIÓN";
-    if (options.type === 'participation') title = "CERTIFICADO DE MÉRITO";
+    if (options.type === 'participation') title = "CERTIFICADO DE PARTICIPACIÓN";
     if (options.type === 'tournament') title = "CAMPEÓN DE TORNEO";
 
-    doc.text(title.toUpperCase(), width / 2, 45, { align: "center" });
+    doc.text(title.toUpperCase(), width / 2, 55, { align: "center" });
 
-    // -- Subheader --
+    // Subtitle
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
-    doc.setTextColor(120, 120, 120);
-    doc.text("OTORGADO A", width / 2, 65, { align: "center" });
+    doc.setTextColor(...scheme.secondary);
+    doc.text("OTORGADO A", width / 2, 70, { align: "center" });
 
-    // -- Student Name --
-    doc.setFont("times", "italic");
-    doc.setFontSize(48);
-    doc.setTextColor(0, 0, 0);
-    // Add a slight drop shadow effect by printing twice?
-    doc.setTextColor(200, 200, 200);
-    doc.text(options.studentName, width / 2 + 0.5, 90.5, { align: "center" }); // Shadow
-    doc.setTextColor(183, 142, 60); // Gold Text
-    doc.text(options.studentName, width / 2, 90, { align: "center" });
+    // Student Name with accent color
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(42);
+    doc.setTextColor(...scheme.primary);
+    doc.text(options.studentName, width / 2, 95, { align: "center" });
 
-    // -- Divider --
-    doc.setDrawColor(50, 50, 50);
-    doc.setLineWidth(0.5);
-    doc.line(width / 2 - 40, 100, width / 2 + 40, 100);
+    // Decorative line under name
+    doc.setDrawColor(...scheme.primary);
+    doc.setLineWidth(1);
+    doc.line(width / 2 - 50, 100, width / 2 + 50, 100);
 
-    // -- Reason / Body Text --
-    doc.setFont("times", "normal");
-    doc.setFontSize(18);
-    doc.setTextColor(40, 40, 40);
+    // Body Text
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(16);
+    doc.setTextColor(...scheme.text);
 
     let bodyText = "";
     if (options.achievement) {
-        bodyText = `En reconocimiento por alcanzar el logro: "${options.achievement}"`;
+        bodyText = `En reconocimiento por: "${options.achievement}"`;
     } else if (options.courseName) {
-        bodyText = `Por haber completado con éxito el curso: "${options.courseName}"`;
+        bodyText = `Por completar con éxito: "${options.courseName}"`;
     } else {
-        bodyText = "En reconocimiento a su dedicación, esfuerzo y progreso continuo en el noble juego del ajedrez.";
+        bodyText = "En reconocimiento a su dedicación y progreso continuo en el ajedrez.";
     }
 
-    const splitText = doc.splitTextToSize(bodyText, 180);
+    const splitText = doc.splitTextToSize(bodyText, 200);
     doc.text(splitText, width / 2, 120, { align: "center" });
 
+    // Center Name
     if (options.centerName) {
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(100, 100, 100);
-        doc.text(options.centerName, width / 2, 145, { align: "center" });
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(...scheme.secondary);
+        doc.text(options.centerName, width / 2, 140, { align: "center" });
     }
 
-    // -- Signatures Area --
-    const sigY = height - 40;
+    // Signature Area
+    const sigY = height - 35;
 
-    // Left: Date
-    doc.setFontSize(12);
-    doc.setTextColor(60, 60, 60);
-    doc.text(options.date, 60, sigY, { align: "center" });
-    doc.setDrawColor(100, 100, 100);
-    doc.line(40, sigY - 2, 80, sigY - 2);
-    doc.setFontSize(10);
-    doc.text("FECHA", 60, sigY + 5, { align: "center" });
-
-    // Right: Signature
-    doc.setFontSize(12);
-    doc.setFont("times", "italic");
-    doc.text(options.instructorName, width - 60, sigY, { align: "center" });
-    doc.line(width - 80, sigY - 2, width - 40, sigY - 2);
+    // Date
+    doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("INSTRUCTOR", width - 60, sigY + 5, { align: "center" });
+    doc.setTextColor(...scheme.text);
+    doc.text(options.date, 50, sigY, { align: "center" });
+    doc.setDrawColor(...scheme.primary);
+    doc.setLineWidth(0.5);
+    doc.line(30, sigY - 2, 70, sigY - 2);
+    doc.setFontSize(9);
+    doc.setTextColor(...scheme.secondary);
+    doc.text("FECHA", 50, sigY + 5, { align: "center" });
 
-    // -- Chess Piece Icon (Vector) --
-    // Draw a simplified King Crown icon in the center bottom
-    const cx = width / 2;
-    const cy = height - 25;
-
-    doc.setDrawColor(183, 142, 60);
-    doc.setFillColor(183, 142, 60);
-
-    // Cross
-    doc.line(cx, cy - 8, cx, cy - 5);
-    doc.line(cx - 1.5, cy - 6.5, cx + 1.5, cy - 6.5);
-
-    // Crown Top
-    doc.triangle(cx - 4, cy - 2, cx, cy - 5, cx + 4, cy - 2, 'FD');
-
-    // Body
-    doc.rect(cx - 3, cy - 2, 6, 4, 'FD');
-
-    // Base
-    doc.rect(cx - 4, cy + 2, 8, 1, 'FD');
+    // Instructor Signature
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(...scheme.text);
+    doc.text(options.instructorName, width - 50, sigY, { align: "center" });
+    doc.line(width - 70, sigY - 2, width - 30, sigY - 2);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...scheme.secondary);
+    doc.text("INSTRUCTOR", width - 50, sigY + 5, { align: "center" });
 
     // Branding
     doc.setFontSize(8);
-    doc.setTextColor(180, 180, 180);
-    doc.text("ChessNet System", width / 2, height - 8, { align: "center" });
+    doc.setTextColor(...scheme.secondary);
+    doc.text("ChessNet • Sistema de Gestión de Academias de Ajedrez", width / 2, height - 8, { align: "center" });
 
     // Output
-    doc.save(`Diploma_${options.studentName.replace(/\s+/g, '_')}.pdf`);
+    doc.save(`Diploma_${options.studentName.replace(/\s+/g, '_')}_${options.type}.pdf`);
 };
