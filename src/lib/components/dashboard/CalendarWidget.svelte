@@ -109,7 +109,7 @@
                     title: c.name,
                     centerId: c.centerId,
                     startHour: hour + minute / 60,
-                    duration: 1.5,
+                    duration: c.duration ? c.duration / 60 : 1.5,
                     level: c.level,
                     students: c.students.length,
                 };

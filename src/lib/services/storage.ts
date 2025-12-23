@@ -27,6 +27,7 @@ export interface ClassGroup {
     schedule: string; // "L-X 17:00"
     level: string;
     students: string[]; // IDs de alumnos
+    duration?: number; // Duración en minutos
 }
 
 export interface Skill {

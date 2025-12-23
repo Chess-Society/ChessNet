@@ -47,6 +47,7 @@
         schedule: "",
         level: "Pawn",
         students: [],
+        duration: 90, // Default 1.5h
     };
 
     // Structured Schedule State
@@ -142,8 +143,11 @@
             schedule: "",
             level: "Pawn",
             students: [],
+            duration: 90,
         };
         showForm = false;
+        selectedDay = "Lunes";
+        selectedTime = "17:00";
     }
 
     function editClass(group: ClassGroup) {
@@ -223,7 +227,7 @@
                         {/each}
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label
                             for="class-day"
@@ -250,6 +254,21 @@
                             id="class-time"
                             bind:value={selectedTime}
                             type="time"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                        />
+                    </div>
+                    <div>
+                        <label
+                            for="class-duration"
+                            class="block text-sm font-medium text-slate-400 mb-1"
+                            >Duración (min)</label
+                        >
+                        <input
+                            id="class-duration"
+                            bind:value={newClass.duration}
+                            type="number"
+                            min="30"
+                            step="15"
                             class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
                         />
                     </div>
