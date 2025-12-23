@@ -231,7 +231,7 @@
                 <div
                     class="relative rounded-full px-3 py-1 text-sm leading-6 text-slate-400 ring-1 ring-white/10 hover:ring-white/20 hover:bg-white/5 transition-all cursor-default"
                 >
-                    Gestión integral para escuelas de ajedrez <span
+                    Evoluciona tu enseñanza <span
                         class="font-semibold text-emerald-400"
                         ><span class="absolute inset-0" aria-hidden="true"
                         ></span>v1.0 BETA</span
@@ -241,23 +241,23 @@
             <h1
                 class="text-5xl font-extrabold tracking-tight text-white sm:text-7xl mb-6 drop-shadow-2xl"
             >
-                Domina la gestión de tu <br />
+                La plataforma definitiva para <br />
                 <span
                     class="bg-gradient-to-r from-blue-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent animate-gradient-x"
-                    >Academia de Ajedrez</span
+                    >Profesores de Ajedrez</span
                 >
             </h1>
             <p class="mt-6 text-lg leading-8 text-slate-200 max-w-2xl mx-auto">
-                Olvídate de las hojas de cálculo. Centraliza alumnos, clases,
-                torneos y pagos en una plataforma diseñada por y para
-                ajedrecistas.
+                Gestiona tus clases particulares, grupos escolares o tu propia
+                academia desde un solo lugar. Olvida el papel y profesionaliza
+                tu pasión.
             </p>
             <div class="mt-10 flex items-center justify-center gap-x-6">
                 <button
                     onclick={login}
                     class="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-lg font-bold text-white shadow-lg hover:shadow-emerald-500/30 hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex items-center gap-2 group"
                 >
-                    Acceder al Dashboard
+                    Empezar Gratis
                     <ArrowRight
                         class="w-5 h-5 group-hover:translate-x-1 transition-transform"
                     />
@@ -350,30 +350,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div
-                    class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
-                >
-                    <div
-                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
-                    >
-                        <Users class="w-24 h-24 text-blue-500" />
-                    </div>
-                    <div
-                        class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all"
-                    >
-                        <Users class="w-6 h-6" />
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">
-                        Gestión de Alumnos
-                    </h3>
-                    <p class="text-slate-400 leading-relaxed">
-                        Base de datos completa con niveles ELO, historial de
-                        clases y notas personalizadas.
-                    </p>
-                </div>
-
-                <!-- Feature 2 -->
+                <!-- Feature 1: Asistencia (Teacher Daily Driver) -->
                 <div
                     class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
                 >
@@ -385,64 +362,18 @@
                     <div
                         class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-6 text-emerald-400 group-hover:text-emerald-300 group-hover:scale-110 transition-all"
                     >
-                        <BarChart3 class="w-6 h-6" />
+                        <CheckCircle2 class="w-6 h-6" />
                     </div>
                     <h3 class="text-xl font-bold text-white mb-3">
-                        Informes y Asistencia
+                        Diario de Clase
                     </h3>
                     <p class="text-slate-400 leading-relaxed">
-                        Controla la asistencia diaria y visualiza estadísticas
-                        de crecimiento y retención.
+                        Pasa lista en segundos, registra los temas impartidos y
+                        evalúa el progreso de cada sesión al instante.
                     </p>
                 </div>
 
-                <!-- Feature 3 -->
-                <div
-                    class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-orange-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
-                >
-                    <div
-                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
-                    >
-                        <Trophy class="w-24 h-24 text-orange-500" />
-                    </div>
-                    <div
-                        class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-6 text-orange-400 group-hover:text-orange-300 group-hover:scale-110 transition-all"
-                    >
-                        <Trophy class="w-6 h-6" />
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">
-                        Torneos Internos
-                    </h3>
-                    <p class="text-slate-400 leading-relaxed">
-                        Organiza competiciones, genera emparejamientos y guarda
-                        históricos de resultados.
-                    </p>
-                </div>
-
-                <!-- Feature 4 -->
-                <div
-                    class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-purple-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
-                >
-                    <div
-                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
-                    >
-                        <School class="w-24 h-24 text-purple-500" />
-                    </div>
-                    <div
-                        class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-6 text-purple-400 group-hover:text-purple-300 group-hover:scale-110 transition-all"
-                    >
-                        <School class="w-6 h-6" />
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">
-                        Multi-Centro
-                    </h3>
-                    <p class="text-slate-400 leading-relaxed">
-                        ¿Gestionas varias escuelas? Adminístralas todas desde un
-                        único panel de control.
-                    </p>
-                </div>
-
-                <!-- Feature 5 -->
+                <!-- Feature 2: Material (Content) -->
                 <div
                     class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-pink-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
                 >
@@ -460,8 +391,78 @@
                         Material Didáctico
                     </h3>
                     <p class="text-slate-400 leading-relaxed">
-                        Base de datos de habilidades y lecciones para
-                        estructurar tu plan de estudios.
+                        Organiza tu temario. Define habilidades (Celada,
+                        Apertura...) y asígnalas a tus alumnos cuando las
+                        dominen.
+                    </p>
+                </div>
+
+                <!-- Feature 3: Alumnos (CRM) -->
+                <div
+                    class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
+                >
+                    <div
+                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
+                    >
+                        <Users class="w-24 h-24 text-blue-500" />
+                    </div>
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all"
+                    >
+                        <Users class="w-6 h-6" />
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">
+                        Ficha de Alumno
+                    </h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Ten a mano niveles, contacto, notas privadas y
+                        estadísticas de asistencia de cada estudiante.
+                    </p>
+                </div>
+
+                <!-- Feature 4: Torneos -->
+                <div
+                    class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-orange-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
+                >
+                    <div
+                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
+                    >
+                        <Trophy class="w-24 h-24 text-orange-500" />
+                    </div>
+                    <div
+                        class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-6 text-orange-400 group-hover:text-orange-300 group-hover:scale-110 transition-all"
+                    >
+                        <Trophy class="w-6 h-6" />
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">
+                        Torneos Internos
+                    </h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Crea competiciones para tus alumnos, genera
+                        emparejamientos y fomenta la práctica competitiva.
+                    </p>
+                </div>
+
+                <!-- Feature 5: Academias (Growth) -->
+                <div
+                    class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-purple-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
+                >
+                    <div
+                        class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
+                    >
+                        <School class="w-24 h-24 text-purple-500" />
+                    </div>
+                    <div
+                        class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-6 text-purple-400 group-hover:text-purple-300 group-hover:scale-110 transition-all"
+                    >
+                        <School class="w-6 h-6" />
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">
+                        Clubes y Academias
+                    </h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        ¿Creces? ChessNet escala contigo. Gestiona múltiples
+                        ubicaciones, profesores y cientos de alumnos.
                     </p>
                 </div>
 
@@ -469,11 +470,11 @@
                     class="relative group bg-slate-800/30 p-8 rounded-3xl border border-slate-800 border-dashed flex flex-col items-center justify-center text-center"
                 >
                     <h3 class="text-xl font-bold text-white mb-2">
-                        Más Próximamente
+                        Próximamente
                     </h3>
                     <p class="text-slate-500 text-sm">
-                        Estamos trabajando en pagos online, app para padres y
-                        mucho más.
+                        Pagos online integrados, app para padres y herramientas
+                        de marketing.
                     </p>
                 </div>
             </div>
@@ -487,11 +488,11 @@
                 <h2
                     class="text-3xl font-bold tracking-tight text-white sm:text-4xl"
                 >
-                    Planes diseñados para crecer
+                    Empieza gratis. Crece a tu ritmo.
                 </h2>
                 <p class="mt-6 text-lg leading-8 text-slate-400">
-                    Elige el plan que mejor se adapte a tu academia. Sin
-                    permanencia.
+                    Desde tus primeras clases particulares hasta gestionar una
+                    gran escuela. Sin permanencia.
                 </p>
             </div>
             <div
@@ -500,10 +501,10 @@
                 <!-- Free -->
                 <div class="p-8 sm:p-10 lg:flex-auto">
                     <h3 class="text-2xl font-bold tracking-tight text-white">
-                        Ajedrecista (Gratis)
+                        Profesor (Gratis)
                     </h3>
                     <p class="mt-6 text-base leading-7 text-slate-400">
-                        Perfecto para empezar con un pequeño grupo.
+                        Ideal para clases particulares o grupos extraescolares.
                     </p>
                     <div class="mt-10 flex items-center gap-x-4">
                         <h4
@@ -573,10 +574,10 @@
                 <!-- Pro -->
                 <div class="p-8 sm:p-10 lg:flex-auto">
                     <h3 class="text-2xl font-bold tracking-tight text-white">
-                        Profe / Academia
+                        Academia / Pro
                     </h3>
                     <p class="mt-6 text-base leading-7 text-slate-400">
-                        Todo lo necesario para profesionalizar tu enseñanza.
+                        Herramientas avanzadas para escuelas en crecimiento.
                     </p>
                     <div class="mt-10 flex items-center gap-x-4">
                         <h4
@@ -668,13 +669,13 @@
                 <h2
                     class="mx-auto max-w-2xl text-center text-3xl font-bold tracking-tight text-white sm:text-4xl"
                 >
-                    Empieza a profesionalizar tu enseñanza hoy.
+                    Tu enseñanza merece herramientas profesionales.
                 </h2>
                 <p
                     class="mx-auto mt-2 max-w-xl text-center text-lg leading-8 text-slate-200"
                 >
-                    Únete a otros profesores que ya ahorran horas de gestión
-                    cada semana.
+                    Únete a los profesores que ya han dejado atrás el caos de
+                    notas y hojas de cálculo.
                 </p>
                 <div class="mt-10 flex justify-center gap-x-6">
                     <button
