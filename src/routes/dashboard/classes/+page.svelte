@@ -49,6 +49,24 @@
         students: [],
     };
 
+    // Structured Schedule State
+    let selectedDay = "Lunes";
+    let selectedTime = "17:00";
+
+    // Days of Week
+    const DAYS = [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo",
+    ];
+
+    // Update schedule string when day or time changes
+    $: newClass.schedule = `${selectedDay} ${selectedTime}`;
+
     // Manage Students Modal State
     let showManageModal = false;
     let selectedClassForManage: ClassGroup | null = null;
@@ -205,20 +223,44 @@
                         {/each}
                     </select>
                 </div>
-                <div>
-                    <label
-                        for="class-schedule"
-                        class="block text-sm font-medium text-slate-400 mb-1"
-                        >Horario Habitual</label
-                    >
-                    <input
-                        id="class-schedule"
-                        bind:value={newClass.schedule}
-                        type="text"
-                        placeholder="Ej: Lunes 17:00"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                    />
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label
+                            for="class-day"
+                            class="block text-sm font-medium text-slate-400 mb-1"
+                            >Día de la Semana</label
+                        >
+                        <select
+                            id="class-day"
+                            bind:value={selectedDay}
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                        >
+                            {#each DAYS as day}
+                                <option value={day}>{day}</option>
+                            {/each}
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            for="class-time"
+                            class="block text-sm font-medium text-slate-400 mb-1"
+                            >Hora de Inicio</label
+                        >
+                        <input
+                            id="class-time"
+                            bind:value={selectedTime}
+                            type="time"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                        />
+                    </div>
                 </div>
+                <!-- Preview hidden/read-only or just implicit -->
+                <p class="text-xs text-slate-500">
+                    Se mostrará en el calendario como: <span
+                        class="text-purple-400"
+                        >{selectedDay} {selectedTime}</span
+                    >
+                </p>
                 <div class="flex justify-end gap-3 mt-6">
                     <button
                         onclick={() => (showForm = false)}
