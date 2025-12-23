@@ -176,10 +176,10 @@
     <!-- Podium (Top 3) -->
     {#if standings.length >= 3}
         <div
-            class="max-w-5xl mx-auto mb-12"
+            class="max-w-5xl mx-auto mb-8 px-2"
             transition:fly={{ y: 20, delay: 200 }}
         >
-            <div class="grid grid-cols-3 gap-4 items-end">
+            <div class="grid grid-cols-3 gap-2 md:gap-4 items-end">
                 <!-- 2nd Place -->
                 <div class="text-center">
                     <div class="relative mb-4">
@@ -194,20 +194,26 @@
                         </div>
                     </div>
                     <div
-                        class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 h-32 flex flex-col justify-center"
+                        class="bg-slate-800/50 border border-slate-700 rounded-lg md:rounded-xl p-2 md:p-4 h-24 md:h-32 flex flex-col justify-center"
                     >
-                        <h3 class="font-bold text-lg mb-1 truncate">
+                        <h3
+                            class="font-bold text-xs md:text-lg mb-0.5 md:mb-1 truncate px-1"
+                        >
                             {standings[1].student.name}
                         </h3>
-                        <p class="text-2xl font-black text-slate-400">
+                        <p
+                            class="text-lg md:text-2xl font-black text-slate-400"
+                        >
                             {standings[1].points}
                         </p>
-                        <p class="text-xs text-slate-500">puntos</p>
+                        <p class="text-[10px] md:text-xs text-slate-500">
+                            puntos
+                        </p>
                     </div>
                 </div>
 
                 <!-- 1st Place -->
-                <div class="text-center -mt-8">
+                <div class="text-center -mt-4 md:-mt-8">
                     <div class="relative mb-4">
                         <div
                             class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center border-4 border-yellow-500 shadow-lg shadow-yellow-500/50"
@@ -220,15 +226,19 @@
                         </div>
                     </div>
                     <div
-                        class="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 rounded-xl p-6 h-40 flex flex-col justify-center"
+                        class="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 rounded-lg md:rounded-xl p-3 md:p-6 h-28 md:h-40 flex flex-col justify-center"
                     >
-                        <h3 class="font-bold text-xl mb-2 truncate">
+                        <h3
+                            class="font-bold text-sm md:text-xl mb-1 md:mb-2 truncate px-1"
+                        >
                             {standings[0].student.name}
                         </h3>
-                        <p class="text-4xl font-black text-yellow-400">
+                        <p
+                            class="text-2xl md:text-4xl font-black text-yellow-400"
+                        >
                             {standings[0].points}
                         </p>
-                        <p class="text-sm text-yellow-300">puntos</p>
+                        <p class="text-xs md:text-sm text-yellow-300">puntos</p>
                     </div>
                 </div>
 
@@ -246,15 +256,21 @@
                         </div>
                     </div>
                     <div
-                        class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 h-32 flex flex-col justify-center"
+                        class="bg-slate-800/50 border border-slate-700 rounded-lg md:rounded-xl p-2 md:p-4 h-24 md:h-32 flex flex-col justify-center"
                     >
-                        <h3 class="font-bold text-lg mb-1 truncate">
+                        <h3
+                            class="font-bold text-xs md:text-lg mb-0.5 md:mb-1 truncate px-1"
+                        >
                             {standings[2].student.name}
                         </h3>
-                        <p class="text-2xl font-black text-orange-400">
+                        <p
+                            class="text-lg md:text-2xl font-black text-orange-400"
+                        >
                             {standings[2].points}
                         </p>
-                        <p class="text-xs text-slate-500">puntos</p>
+                        <p class="text-[10px] md:text-xs text-slate-500">
+                            puntos
+                        </p>
                     </div>
                 </div>
             </div>
