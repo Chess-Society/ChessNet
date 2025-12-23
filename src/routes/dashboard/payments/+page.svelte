@@ -21,8 +21,7 @@
     import { slide } from "svelte/transition";
     import { exportReceiptPDF } from "$lib/services/export";
 
-    let store = $appStore;
-    appStore.subscribe((value) => (store = value));
+    $: store = $appStore;
 
     let showForm = false;
     let newPayment: Payment = {

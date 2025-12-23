@@ -37,8 +37,7 @@
     import { slide, fade, scale } from "svelte/transition";
     import { base } from "$app/paths";
 
-    let store = $appStore;
-    appStore.subscribe((value) => (store = value));
+    $: store = $appStore;
 
     let showForm = false;
     let newClass: ClassGroup = {

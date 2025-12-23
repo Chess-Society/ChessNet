@@ -28,8 +28,7 @@
     } from "lucide-svelte";
     import { slide, fade } from "svelte/transition";
 
-    let store = $appStore;
-    appStore.subscribe((value) => (store = value));
+    $: store = $appStore;
 
     let showForm = false;
     let editingSkill: Skill | null = null;

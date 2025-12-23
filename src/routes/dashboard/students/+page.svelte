@@ -24,8 +24,7 @@
         Save,
     } from "lucide-svelte";
 
-    let store = $appStore;
-    appStore.subscribe((value) => (store = value));
+    $: store = $appStore;
 
     let searchTerm = "";
 

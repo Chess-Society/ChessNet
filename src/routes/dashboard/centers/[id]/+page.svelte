@@ -26,8 +26,7 @@
 
     export const prerender = false; // Add this line!
 
-    let store = $appStore;
-    appStore.subscribe((value) => (store = value));
+    $: store = $appStore;
 
     let centerId = $page.params.id;
     let center: Center | undefined;
@@ -163,10 +162,10 @@
             </a>
 
             <div
-                class="bg-[#1e293b] border border-slate-700 rounded-2xl p-8 relative overflow-hidden"
+                class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 sm:p-8 relative overflow-hidden"
             >
-                <div class="absolute top-0 right-0 p-8 opacity-10">
-                    <Building2 class="w-48 h-48 text-white" />
+                <div class="absolute top-0 right-0 p-4 sm:p-8 opacity-10">
+                    <Building2 class="w-32 h-32 sm:w-48 sm:h-48 text-white" />
                 </div>
 
                 <div class="relative z-10">
@@ -194,7 +193,9 @@
         </div>
 
         <!-- Navigation -->
-        <div class="flex gap-2 mb-8 border-b border-slate-700">
+        <div
+            class="flex gap-2 mb-8 border-b border-slate-700 overflow-x-auto pb-1 no-scrollbar"
+        >
             <button
                 onclick={() => (activeTab = "overview")}
                 class="px-4 py-3 text-sm font-medium border-b-2 transition-colors {activeTab ===
@@ -378,7 +379,7 @@
                     <div class="grid gap-4">
                         {#each centerClasses as cls}
                             <div
-                                class="bg-[#1e293b] border border-slate-700/50 p-4 rounded-xl flex items-center justify-between hover:border-purple-500/30 transition-colors"
+                                class="bg-[#1e293b] border border-slate-700/50 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-purple-500/30 transition-colors"
                             >
                                 <div>
                                     <h4 class="text-lg font-bold text-white">
@@ -435,7 +436,40 @@
                         centro.
                     </div>
                 {:else}
-                    <table class="w-full text-left">
+                    <div class="block sm:hidden space-y-4 p-4">
+                        {#each centerStudents as s}
+                            <div
+                                class="bg-slate-900/50 border border-slate-700 rounded-xl p-4"
+                            >
+                                <div
+                                    class="flex justify-between items-start mb-2"
+                                >
+                                    <h4 class="text-white font-bold text-lg">
+                                        {s.name}
+                                    </h4>
+                                    <button
+                                        onclick={() =>
+                                            handleDeleteStudent(s.id)}
+                                        class="text-slate-500 hover:text-red-400 p-2 -mr-2"
+                                        title="Baja definitiva"
+                                    >
+                                        <Trash2 class="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div
+                                    class="text-sm text-slate-400 bg-slate-800/50 p-3 rounded-lg mb-2"
+                                >
+                                    <span
+                                        class="block text-xs uppercase font-bold text-slate-500 mb-1"
+                                        >Clases:</span
+                                    >
+                                    {getStudentClassesInCenter(s.id)}
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+
+                    <table class="hidden sm:table w-full text-left">
                         <thead
                             class="bg-slate-900/30 text-slate-400 text-xs uppercase"
                         >
