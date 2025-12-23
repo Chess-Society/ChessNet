@@ -27,7 +27,6 @@
     } from "lucide-svelte";
 
     import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
-    import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
 
     // Suscribirse a los datos reales
     let store = $appStore;
@@ -114,7 +113,6 @@
             icon: UserPlus,
             color: "text-pink-500",
             hover: "hover:border-pink-500/50",
-            link: "leads",
             link: "leads",
             badge: "NEW",
         },
