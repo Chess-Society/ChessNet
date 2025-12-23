@@ -13,8 +13,13 @@
         User,
         Trash2,
         Wallet,
+        Search,
+        Filter,
+        FileText,
+        Download,
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
+    import { exportReceiptPDF } from "$lib/services/export";
 
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
@@ -30,9 +35,30 @@
         notes: "",
     };
 
-    // Derived values
+    // --- Filters ---
+    let searchTerm = "";
+    let filterDate = ""; // Month YYYY-MM
+    let filterMethod = "all";
+
+    // Derived values with Filtering
     $: totalRevenue = store.payments.reduce((sum, p) => sum + p.amount, 0);
-    $: sortedPayments = [...store.payments].sort(
+
+    $: filteredPayments = store.payments.filter((p) => {
+        const matchesTerm =
+            searchTerm === "" ||
+            p.concept.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            getStudentName(p.studentId)
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase());
+
+        const matchesDate = filterDate === "" || p.date.startsWith(filterDate);
+        const matchesMethod =
+            filterMethod === "all" || p.method === filterMethod;
+
+        return matchesTerm && matchesDate && matchesMethod;
+    });
+
+    $: sortedPayments = [...filteredPayments].sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
 
@@ -130,7 +156,7 @@
     {#if showForm}
         <div
             transition:slide
-            class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl"
+            class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl mx-auto shadow-2xl"
         >
             <h3 class="text-lg font-bold text-white mb-4">
                 Registrar Nuevo Ingreso
@@ -241,11 +267,44 @@
     <div
         class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
     >
-        <div class="p-6 border-b border-slate-700">
-            <h3 class="text-lg font-bold text-white">
-                Historial de Transacciones
-            </h3>
+        <!-- Filter Bar -->
+        <div
+            class="p-4 border-b border-slate-700 bg-slate-900/30 flex flex-col md:flex-row gap-4 items-center justify-between"
+        >
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <div class="relative w-full md:w-64">
+                    <Search
+                        class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
+                    />
+                    <input
+                        bind:value={searchTerm}
+                        type="text"
+                        placeholder="Buscar alumno o concepto..."
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:border-teal-500 outline-none"
+                    />
+                </div>
+            </div>
+
+            <div class="flex gap-2 w-full md:w-auto">
+                <div class="relative">
+                    <input
+                        bind:value={filterDate}
+                        type="month"
+                        class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-teal-500 outline-none"
+                    />
+                </div>
+                <select
+                    bind:value={filterMethod}
+                    class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-teal-500 outline-none"
+                >
+                    <option value="all">Todos los métodos</option>
+                    <option value="cash">Efectivo</option>
+                    <option value="transfer">Transferencia</option>
+                    <option value="bizum">Bizum</option>
+                </select>
+            </div>
         </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-slate-900/50">
@@ -267,8 +326,8 @@
                             >Cantidad</th
                         >
                         <th
-                            class="p-4 text-slate-400 font-medium text-sm text-right"
-                            >Acción</th
+                            class="p-4 text-slate-400 font-medium text-sm text-center"
+                            >Acciones</th
                         >
                     </tr>
                 </thead>
@@ -277,14 +336,19 @@
                         <tr>
                             <td
                                 colspan="6"
-                                class="p-8 text-center text-slate-500"
+                                class="p-12 text-center text-slate-500"
                             >
-                                No hay transacciones registradas.
+                                <Search
+                                    class="w-8 h-8 mx-auto mb-2 opacity-20"
+                                />
+                                No se encontraron transacciones.
                             </td>
                         </tr>
                     {:else}
                         {#each sortedPayments as payment}
-                            <tr class="hover:bg-slate-800/50 transition-colors">
+                            <tr
+                                class="hover:bg-slate-800/50 transition-colors group"
+                            >
                                 <td class="p-4 text-slate-300 font-mono text-sm"
                                     >{payment.date}</td
                                 >
@@ -296,7 +360,7 @@
                                 >
                                 <td class="p-4">
                                     <span
-                                        class="bg-slate-800 text-slate-400 text-xs px-2 py-1 rounded uppercase font-bold"
+                                        class="bg-slate-800 text-slate-400 text-xs px-2 py-1 rounded uppercase font-bold border border-slate-700"
                                     >
                                         {payment.method}
                                     </span>
@@ -306,11 +370,27 @@
                                 >
                                     +{payment.amount} €
                                 </td>
-                                <td class="p-4 text-right">
+                                <td
+                                    class="p-4 flex items-center justify-center gap-2"
+                                >
+                                    <button
+                                        onclick={() =>
+                                            exportReceiptPDF(
+                                                payment,
+                                                getStudentName(
+                                                    payment.studentId,
+                                                ),
+                                            )}
+                                        class="p-2 text-slate-500 hover:text-teal-400 transition-colors rounded-lg hover:bg-teal-500/10"
+                                        title="Descargar Recibo"
+                                    >
+                                        <FileText class="w-4 h-4" />
+                                    </button>
                                     <button
                                         onclick={() =>
                                             removePayment(payment.id)}
-                                        class="text-slate-600 hover:text-red-400 cursor-pointer"
+                                        class="p-2 text-slate-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+                                        title="Eliminar registro"
                                     >
                                         <Trash2 class="w-4 h-4" />
                                     </button>
