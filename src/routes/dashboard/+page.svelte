@@ -286,62 +286,120 @@
         return alertList;
     })();
 
-    // Próximos eventos
-    $: upcomingEvents = (() => {
-        const events: any[] = [];
+    // Tareas Pendientes
+    $: pendingTasks = (() => {
+        const tasks: any[] = [];
 
-        // 1. Clases de hoy
-        todaysClasses.forEach((cls) => {
-            events.push({
-                type: "class",
-                title: `Clase: ${cls.name}`,
-                subtitle: cls.schedule,
-                date: new Date().toISOString().split("T")[0],
-                daysUntil: 0,
-                icon: BookOpen,
-                color: "purple",
-                badge: `${cls.students.length} alumnos`,
+        // 1. Clases sin asistencia registrada (>3 días)
+        const classesNeedingAttendance = store.classes.filter((c) => {
+            const lastRecord = store.attendance
+                .filter((r) => r.classId === c.id)
+                .sort((a, b) => b.date.localeCompare(a.date))[0];
+            return !lastRecord || daysSince(lastRecord.date) > 3;
+        });
+
+        classesNeedingAttendance.forEach((cls) => {
+            const lastRecord = store.attendance
+                .filter((r) => r.classId === cls.id)
+                .sort((a, b) => b.date.localeCompare(a.date))[0];
+            const daysAgo = lastRecord ? daysSince(lastRecord.date) : 999;
+
+            tasks.push({
+                type: "attendance",
+                title: `Pasar lista: ${cls.name}`,
+                subtitle: lastRecord
+                    ? `Última asistencia hace ${daysAgo} días`
+                    : "Sin registros de asistencia",
+                priority: daysAgo > 7 ? "high" : "medium",
+                icon: ClipboardCheck,
+                color: daysAgo > 7 ? "red" : "amber",
+                action: "Registrar",
+                link: "attendance",
+                linkParams: `?classId=${cls.id}`,
             });
         });
 
-        // 2. Torneos en curso
-        store.tournaments
-            .filter((t) => t.status === "Ongoing")
-            .forEach((t) => {
-                events.push({
-                    type: "tournament-ongoing",
-                    title: t.name,
-                    subtitle: `${t.participants.length} participantes`,
-                    date: t.date,
-                    daysUntil: -1, // Negativo para ordenar primero
-                    icon: Trophy,
-                    color: "emerald",
-                    badge: "En curso",
-                });
-            });
+        // 2. Torneos sin emparejamientos generados
+        const tournamentsNeedingPairings = store.tournaments.filter(
+            (t) =>
+                t.status === "Upcoming" &&
+                t.matches.length === 0 &&
+                t.participants.length >= 2,
+        );
 
-        // 3. Torneos próximos (próximos 7 días)
-        store.tournaments
-            .filter(
-                (t) =>
-                    t.status === "Upcoming" &&
-                    daysTill(t.date) >= 0 &&
-                    daysTill(t.date) <= 7,
-            )
-            .forEach((t) => {
-                events.push({
-                    type: "tournament",
-                    title: t.name,
-                    subtitle: `${t.participants.length} inscritos`,
-                    date: t.date,
-                    daysUntil: daysTill(t.date),
-                    icon: Trophy,
-                    color: "orange",
-                    badge: null,
-                });
+        tournamentsNeedingPairings.forEach((t) => {
+            const daysUntil = daysTill(t.date);
+            tasks.push({
+                type: "tournament-pairings",
+                title: `Generar emparejamientos: ${t.name}`,
+                subtitle: `${t.participants.length} participantes inscritos`,
+                priority: daysUntil <= 2 ? "high" : "medium",
+                icon: Trophy,
+                color: daysUntil <= 2 ? "red" : "orange",
+                action: "Generar",
+                link: `tournaments/${t.id}`,
+                linkParams: "",
             });
+        });
 
-        return events.sort((a, b) => a.daysUntil - b.daysUntil);
+        // 3. Clases de hoy sin asistencia registrada
+        const todaysClassesNeedingAttendance = todaysClasses.filter((cls) => {
+            const todayRecord = store.attendance.find(
+                (r) =>
+                    r.classId === cls.id &&
+                    r.date === new Date().toISOString().split("T")[0],
+            );
+            return !todayRecord;
+        });
+
+        todaysClassesNeedingAttendance.forEach((cls) => {
+            tasks.push({
+                type: "today-attendance",
+                title: `Clase de hoy: ${cls.name}`,
+                subtitle: `${cls.schedule} • ${cls.students.length} alumnos`,
+                priority: "high",
+                icon: BookOpen,
+                color: "purple",
+                action: "Pasar lista",
+                link: "attendance",
+                linkParams: `?classId=${cls.id}`,
+            });
+        });
+
+        // 4. Torneos próximos (2 días) sin suficientes participantes
+        const tournamentsNeedingParticipants = store.tournaments.filter(
+            (t) =>
+                t.status === "Upcoming" &&
+                daysTill(t.date) <= 2 &&
+                daysTill(t.date) >= 0 &&
+                t.participants.length < 4,
+        );
+
+        tournamentsNeedingParticipants.forEach((t) => {
+            tasks.push({
+                type: "tournament-participants",
+                title: `Inscribir participantes: ${t.name}`,
+                subtitle: `Solo ${t.participants.length} inscritos • Empieza en ${daysTill(t.date)} día${daysTill(t.date) !== 1 ? "s" : ""}`,
+                priority: "medium",
+                icon: Trophy,
+                color: "blue",
+                action: "Inscribir",
+                link: `tournaments/${t.id}`,
+                linkParams: "",
+            });
+        });
+
+        // Ordenar por prioridad: high > medium > low
+        const priorityOrder: Record<string, number> = {
+            high: 0,
+            medium: 1,
+            low: 2,
+        };
+        return tasks.sort(
+            (a, b) =>
+                (priorityOrder[a.priority] ?? 99) -
+                (priorityOrder[b.priority] ?? 99),
+        );
     })();
 
     // Real Schedule Logic
@@ -728,80 +786,80 @@
             </div>
         </div>
 
-        <!-- Próximos Eventos (NUEVO) -->
+        <!-- Tareas Pendientes (NUEVO) -->
         <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
             <div class="flex justify-between items-center mb-6">
                 <h3
                     class="text-lg font-bold text-white flex items-center gap-2"
                 >
-                    <Calendar class="w-5 h-5 text-purple-500" />
-                    Próximos 7 Días
+                    <CheckCircle class="w-5 h-5 text-cyan-500" />
+                    Tareas Pendientes
                 </h3>
+                {#if pendingTasks.length > 0}
+                    <span
+                        class="bg-cyan-500/10 text-cyan-400 text-xs font-bold px-2 py-1 rounded-full"
+                    >
+                        {pendingTasks.length}
+                    </span>
+                {/if}
             </div>
 
             <div class="space-y-3">
-                {#if upcomingEvents.length === 0}
+                {#if pendingTasks.length === 0}
                     <div class="text-center py-8 text-slate-500">
-                        <Calendar class="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p class="text-sm">No hay eventos próximos</p>
+                        <CheckCircle
+                            class="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-500"
+                        />
+                        <p class="text-sm font-medium text-emerald-400">
+                            ¡Todo al día!
+                        </p>
+                        <p class="text-xs mt-1">No hay tareas pendientes</p>
                     </div>
                 {:else}
-                    {#each upcomingEvents as event}
+                    {#each pendingTasks as task}
                         <div
-                            class="bg-slate-900/30 p-4 rounded-lg border border-slate-700/50 hover:border-slate-600 transition-colors"
+                            class="bg-slate-900/30 p-4 rounded-lg border border-{task.color}-500/30 hover:border-{task.color}-500/50 transition-colors group"
                         >
                             <div class="flex items-start gap-3">
-                                <div
-                                    class="w-10 h-10 rounded-full bg-{event.color}-500/10 flex items-center justify-center flex-shrink-0"
-                                >
-                                    <svelte:component
-                                        this={event.icon}
-                                        class="w-5 h-5 text-{event.color}-500"
-                                    />
-                                </div>
-                                <div class="flex-1">
+                                <!-- Priority indicator -->
+                                <div class="flex flex-col items-center gap-1">
                                     <div
-                                        class="flex items-start justify-between gap-2"
+                                        class="w-10 h-10 rounded-full bg-{task.color}-500/10 flex items-center justify-center flex-shrink-0"
                                     >
-                                        <div class="flex-1">
-                                            <h4
-                                                class="font-semibold text-white text-sm"
-                                            >
-                                                {event.title}
-                                            </h4>
-                                            {#if event.subtitle}
-                                                <p
-                                                    class="text-xs text-slate-500 mt-0.5"
-                                                >
-                                                    {event.subtitle}
-                                                </p>
-                                            {/if}
-                                        </div>
-                                        {#if event.badge}
-                                            <span
-                                                class="bg-{event.color}-500/10 text-{event.color}-400 text-xs font-bold px-2 py-0.5 rounded-full border border-{event.color}-500/20 whitespace-nowrap"
-                                            >
-                                                {event.badge}
-                                            </span>
-                                        {/if}
+                                        <svelte:component
+                                            this={task.icon}
+                                            class="w-5 h-5 text-{task.color}-500"
+                                        />
                                     </div>
-                                    <p class="text-xs text-slate-400 mt-2">
-                                        {#if event.daysUntil < 0}
-                                            En curso
-                                        {:else if event.daysUntil === 0}
-                                            Hoy
-                                        {:else if event.daysUntil === 1}
-                                            Mañana
-                                        {:else}
-                                            En {event.daysUntil} días
-                                        {/if}
-                                        • {new Date(
-                                            event.date,
-                                        ).toLocaleDateString("es-ES", {
-                                            day: "numeric",
-                                            month: "short",
-                                        })}
+                                    {#if task.priority === "high"}
+                                        <span
+                                            class="text-[10px] font-bold text-red-400 uppercase"
+                                            >Urgente</span
+                                        >
+                                    {/if}
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <h4
+                                        class="font-semibold text-white text-sm"
+                                    >
+                                        {task.title}
+                                    </h4>
+                                    <p class="text-xs text-slate-400 mt-1">
+                                        {task.subtitle}
                                     </p>
+
+                                    <!-- Action button -->
+                                    <button
+                                        onclick={() =>
+                                            goto(
+                                                `${base}/dashboard/${task.link}${task.linkParams}`,
+                                            )}
+                                        class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-{task.color}-400 hover:text-{task.color}-300 transition-colors cursor-pointer group-hover:gap-2"
+                                    >
+                                        {task.action}
+                                        <ChevronRight class="w-3 h-3" />
+                                    </button>
                                 </div>
                             </div>
                         </div>
