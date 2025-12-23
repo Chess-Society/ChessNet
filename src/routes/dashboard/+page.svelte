@@ -166,43 +166,61 @@
 
     let isEditingLayout = false;
     let draggedItem: any = null;
+    let draggedOverItem: any = null;
+    let localOrder: any[] = [];
+
+    // Initialize local order from displayed actions
+    $: if (!isEditingLayout) {
+        localOrder = [...displayedActions];
+    }
+
+    // Use local order when editing for instant feedback
+    $: finalActions = isEditingLayout ? localOrder : displayedActions;
 
     function handleDragStart(event: DragEvent, item: any) {
         draggedItem = item;
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = "move";
-            event.dataTransfer.setData("text/plain", JSON.stringify(item));
         }
+        // Add visual feedback
+        const target = event.currentTarget as HTMLElement;
+        target.style.opacity = "0.4";
     }
 
     function handleDragOver(event: DragEvent, targetItem: any) {
         event.preventDefault();
         if (!draggedItem || draggedItem === targetItem) return;
 
-        const currentOrder = [...displayedActions];
-        const srcIndex = currentOrder.findIndex((i) => i.id === draggedItem.id);
-        const dstIndex = currentOrder.findIndex((i) => i.id === targetItem.id);
+        draggedOverItem = targetItem;
 
-        if (srcIndex !== -1 && dstIndex !== -1) {
-            // Swap visually immediately for feedback
-            const temp = currentOrder[srcIndex];
-            currentOrder.splice(srcIndex, 1);
-            currentOrder.splice(dstIndex, 0, temp);
+        const srcIndex = localOrder.findIndex((i) => i.id === draggedItem.id);
+        const dstIndex = localOrder.findIndex((i) => i.id === targetItem.id);
 
-            // This relies on Svelte reactivity, but we are computing displayedActions from store.
-            // To make it fluid, we might need a local override or update store immediately.
-            // Updating store immediately on dragOver might be too heavy?
-            // Let's use a local variable while dragging if possible, or just update store.
-            // Updating store is simplest for code, maybe expensive for performance but N is small (11 items).
-            storeActions.updateDashboardLayout(currentOrder.map((a) => a.id));
+        if (srcIndex !== -1 && dstIndex !== -1 && srcIndex !== dstIndex) {
+            // Create new array with swapped items for instant visual feedback
+            const newOrder = [...localOrder];
+            const [removed] = newOrder.splice(srcIndex, 1);
+            newOrder.splice(dstIndex, 0, removed);
+            localOrder = newOrder;
         }
     }
 
+    function handleDragEnd(event: DragEvent) {
+        // Reset visual feedback
+        const target = event.currentTarget as HTMLElement;
+        target.style.opacity = "1";
+
+        draggedItem = null;
+        draggedOverItem = null;
+    }
+
     function toggleEditMode() {
-        isEditingLayout = !isEditingLayout;
-        if (!isEditingLayout) {
+        if (isEditingLayout) {
+            // Save the order when exiting edit mode
+            storeActions.updateDashboardLayout(localOrder.map((a) => a.id));
             notifications.success("Diseño del dashboard guardado.");
         }
+        isEditingLayout = !isEditingLayout;
     }
 
     function navigate(path: string) {
@@ -568,14 +586,17 @@
             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
             role="list"
         >
-            {#each displayedActions as action (action.id)}
+            {#each finalActions as action (action.id)}
                 <div
                     animate:flip={{ duration: 300 }}
                     draggable={isEditingLayout}
                     ondragstart={(e) => handleDragStart(e, action)}
                     ondragover={(e) => handleDragOver(e, action)}
-                    ondragend={() => (draggedItem = null)}
-                    class="relative"
+                    ondragend={(e) => handleDragEnd(e)}
+                    class="relative transition-all duration-200 {draggedItem?.id ===
+                    action.id
+                        ? 'scale-105 z-10'
+                        : ''}"
                     role="listitem"
                 >
                     <button
