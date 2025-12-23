@@ -47,6 +47,7 @@ export interface AttendanceRecord {
         status: 'present' | 'absent' | 'excused';
     }[];
     sessionNotes?: string; // Observaciones generales de la sesión
+    skills?: string[]; // IDs de habilidades trabajadas en la sesión
 }
 
 export interface Payment {

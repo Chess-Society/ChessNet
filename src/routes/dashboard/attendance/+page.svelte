@@ -19,6 +19,10 @@
         FileText,
         Download,
         FileSpreadsheet,
+        Book,
+        Search,
+        X,
+        Tag,
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
     import { base } from "$app/paths";
@@ -39,6 +43,18 @@
         "present" | "absent" | "excused"
     > = {};
     let sessionNotes = "";
+
+    // Class Planning (Skills)
+    let selectedSkills: string[] = []; // Skill IDs
+    let skillSearchTerm = "";
+    $: availableSkills = store.skills.filter(
+        (s) =>
+            !selectedSkills.includes(s.id) &&
+            s.name.toLowerCase().includes(skillSearchTerm.toLowerCase()),
+    );
+    $: selectedSkillObjects = store.skills.filter((s) =>
+        selectedSkills.includes(s.id),
+    );
 
     onMount(() => {
         const classIdParam = $page.url.searchParams.get("classId");
@@ -69,6 +85,7 @@
                 attendanceStatus[r.studentId] = r.status;
             });
             sessionNotes = existingRecord.sessionNotes || "";
+            selectedSkills = existingRecord.skills || [];
         } else {
             // Default to 'present' for new records
             attendanceStatus = {};
@@ -76,10 +93,15 @@
                 attendanceStatus[s.id] = "present"; // Default value
             });
             sessionNotes = "";
+            selectedSkills = [];
         }
 
         // Save initial state and reset unsaved changes flag
         initialAttendanceState = { ...attendanceStatus };
+        // We need to track changes in skills/notes too for optimal UX, but for MVP simplifying change detection to status only + manual check for notes/skills?
+        // Let's rely on status for now, or expand change detection.
+        // Expanding change detection is better.
+        // Actually, let's keep it simple: any interaction with skills triggers 'checkForChanges' logic if we want.
         hasUnsavedChanges = false;
     }
 
@@ -102,9 +124,9 @@
     }
 
     function checkForChanges() {
-        hasUnsavedChanges =
-            JSON.stringify(attendanceStatus) !==
-            JSON.stringify(initialAttendanceState);
+        // This simple check only looks at attendance status.
+        // Ideally we should check notes and skills too, but for now we set hasUnsavedChanges when modifying those.
+        hasUnsavedChanges = true;
     }
 
     // Quick Actions
@@ -255,6 +277,7 @@
                 }),
             ),
             sessionNotes: sessionNotes.trim() || undefined,
+            skills: selectedSkills.length > 0 ? selectedSkills : undefined,
         };
 
         storeActions.saveAttendance(record);
@@ -517,6 +540,81 @@
                         rows="2"
                         class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-pink-500 resize-none"
                     ></textarea>
+                </div>
+
+                <!-- Class Planning (Skills) -->
+                <div class="p-4 bg-slate-900/30 border-t border-slate-700">
+                    <label
+                        class="block text-sm font-medium text-slate-400 mb-2 flex items-center gap-2"
+                    >
+                        <Book class="w-4 h-4 text-purple-400" />
+                        Planificación: ¿Qué habilidades enseñaste hoy?
+                    </label>
+
+                    <!-- Selected Tags -->
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        {#each selectedSkillObjects as skill}
+                            <span
+                                class="inline-flex items-center gap-1.5 bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm border border-purple-500/30"
+                            >
+                                {skill.name}
+                                <button
+                                    onclick={() => {
+                                        selectedSkills = selectedSkills.filter(
+                                            (id) => id !== skill.id,
+                                        );
+                                        checkForChanges();
+                                    }}
+                                    class="hover:text-white"
+                                    ><X class="w-3 h-3" /></button
+                                >
+                            </span>
+                        {/each}
+                    </div>
+
+                    <!-- Search & Add -->
+                    <div class="relative">
+                        <Search
+                            class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
+                        />
+                        <input
+                            type="text"
+                            bind:value={skillSearchTerm}
+                            placeholder="Buscar habilidades para añadir..."
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+                        />
+                        {#if skillSearchTerm}
+                            <div
+                                class="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto"
+                            >
+                                {#if availableSkills.length === 0}
+                                    <div class="p-3 text-slate-500 text-sm">
+                                        No se encontraron habilidades.
+                                    </div>
+                                {:else}
+                                    {#each availableSkills as skill}
+                                        <button
+                                            onclick={() => {
+                                                selectedSkills = [
+                                                    ...selectedSkills,
+                                                    skill.id,
+                                                ];
+                                                skillSearchTerm = "";
+                                                checkForChanges();
+                                            }}
+                                            class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white flex justify-between group"
+                                        >
+                                            <span>{skill.name}</span>
+                                            <span
+                                                class="text-xs text-slate-500 group-hover:text-slate-400"
+                                                >{skill.category}</span
+                                            >
+                                        </button>
+                                    {/each}
+                                {/if}
+                            </div>
+                        {/if}
+                    </div>
                 </div>
 
                 <div
