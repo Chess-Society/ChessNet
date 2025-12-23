@@ -166,97 +166,88 @@
             {#each plans as plan, i}
                 <div
                     in:fly={{ y: 50, duration: 800, delay: 300 + i * 100 }}
-                    class="relative rounded-2xl overflow-hidden transition-all duration-300 flex flex-col h-full shadow-xl
+                    class="relative p-8 rounded-2xl border transition-all duration-300 flex flex-col h-full
                     {plan.highlight
-                        ? 'scale-105 z-10 shadow-emerald-500/20'
-                        : 'hover:scale-102'}"
+                        ? 'bg-[#1e293b] border-emerald-500/50 shadow-2xl shadow-emerald-500/10 scale-105 z-10'
+                        : 'bg-[#1e293b]/50 border-slate-700 hover:border-slate-600 hover:bg-[#1e293b]'}"
                 >
                     {#if plan.highlight}
                         <div
-                            class="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-emerald-600 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg z-20"
+                            class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r {plan.gradient} text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg"
                         >
                             Más Popular
                         </div>
                     {/if}
 
-                    <!-- Colored Header -->
-                    <div
-                        class="bg-gradient-to-br {plan.gradient} p-8 text-white"
-                    >
-                        <div class="flex items-center gap-3 mb-3">
-                            <div
-                                class="p-2 bg-white/20 rounded-lg backdrop-blur-sm"
-                            >
-                                <svelte:component
-                                    this={plan.icon}
-                                    class="w-6 h-6"
-                                />
-                            </div>
-                            <h3 class="text-2xl font-bold">
-                                {plan.name}
-                            </h3>
+                    <!-- Icon & Title -->
+                    <div class="mb-6">
+                        <div
+                            class="p-3 rounded-xl bg-gradient-to-br {plan.gradient} bg-opacity-10 w-fit mb-4"
+                        >
+                            <svelte:component
+                                this={plan.icon}
+                                class="w-8 h-8 text-white"
+                            />
                         </div>
-                        <p class="text-white/90 text-sm mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">
+                            {plan.name}
+                        </h3>
+                        <p class="text-slate-400 text-sm">
                             {plan.description}
                         </p>
-
-                        <!-- Price in header -->
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-5xl font-extrabold tracking-tight"
-                                >{plan.price}</span
-                            >
-                            <span class="text-white/80 font-medium text-lg"
-                                >{plan.period}</span
-                            >
-                        </div>
                     </div>
 
-                    <!-- White Content Section -->
-                    <div class="bg-white p-8 flex-1 flex flex-col">
-                        <!-- Features -->
-                        <div class="flex-1 space-y-3 mb-6">
-                            {#each plan.features as feature}
-                                <div class="flex items-start gap-3">
-                                    <div
-                                        class="mt-0.5 min-w-[1.25rem] h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0"
-                                    >
-                                        <Check
-                                            class="w-3 h-3 text-emerald-600"
-                                        />
-                                    </div>
-                                    <span
-                                        class="text-slate-700 text-sm font-medium"
-                                        >{feature}</span
-                                    >
-                                </div>
-                            {/each}
-                            {#each plan.missing as missing}
-                                <div class="flex items-start gap-3 opacity-40">
-                                    <div
-                                        class="mt-0.5 min-w-[1.25rem] h-5 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0"
-                                    >
-                                        <X class="w-3 h-3 text-slate-400" />
-                                    </div>
-                                    <span class="text-slate-500 text-sm"
-                                        >{missing}</span
-                                    >
-                                </div>
-                            {/each}
-                        </div>
-
-                        <!-- CTA Button -->
-                        <a
-                            href="{base}/dashboard"
-                            class="w-full py-4 rounded-xl font-bold text-center transition-all duration-200 flex items-center justify-center gap-2
-                            {plan.highlight
-                                ? 'bg-gradient-to-r ' +
-                                  plan.gradient +
-                                  ' hover:shadow-lg text-white'
-                                : 'bg-slate-800 hover:bg-slate-700 text-white'}"
+                    <!-- Price -->
+                    <div class="mb-8 flex items-baseline gap-1">
+                        <span
+                            class="text-5xl font-extrabold text-white tracking-tight"
+                            >{plan.price}</span
                         >
-                            {plan.cta}
-                        </a>
+                        <span class="text-slate-500 font-medium"
+                            >{plan.period}</span
+                        >
                     </div>
+
+                    <!-- Features -->
+                    <div class="flex-1 space-y-3 mb-8">
+                        {#each plan.features as feature}
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="mt-0.5 min-w-[1.25rem] h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0"
+                                >
+                                    <Check class="w-3 h-3 text-emerald-400" />
+                                </div>
+                                <span class="text-slate-200 text-sm"
+                                    >{feature}</span
+                                >
+                            </div>
+                        {/each}
+                        {#each plan.missing as missing}
+                            <div class="flex items-start gap-3 opacity-40">
+                                <div
+                                    class="mt-0.5 min-w-[1.25rem] h-5 rounded-full bg-slate-700/50 flex items-center justify-center flex-shrink-0"
+                                >
+                                    <X class="w-3 h-3 text-slate-500" />
+                                </div>
+                                <span class="text-slate-500 text-sm"
+                                    >{missing}</span
+                                >
+                            </div>
+                        {/each}
+                    </div>
+
+                    <!-- CTA Button -->
+                    <a
+                        href="{base}/dashboard"
+                        class="w-full py-4 rounded-xl font-bold text-center transition-all duration-200 flex items-center justify-center gap-2
+                        {plan.highlight
+                            ? 'bg-gradient-to-r ' +
+                              plan.gradient +
+                              ' hover:shadow-lg hover:shadow-emerald-500/25 text-white'
+                            : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'}"
+                    >
+                        {plan.cta}
+                    </a>
                 </div>
             {/each}
         </div>
