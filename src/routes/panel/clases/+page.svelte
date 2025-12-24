@@ -62,6 +62,29 @@
     let selectedClassForManage: ClassGroup | null = null;
     let studentSearchTerm = "";
 
+    // Form validation errors
+    let formErrors: {
+        name?: string;
+        centerId?: string;
+    } = {};
+
+    function validateClassForm(): boolean {
+        formErrors = {};
+        let isValid = true;
+
+        if (!newClass.name || newClass.name.trim().length < 3) {
+            formErrors.name = "El nombre debe tener al menos 3 caracteres";
+            isValid = false;
+        }
+
+        if (!newClass.centerId) {
+            formErrors.centerId = "Selecciona un centro";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     function handleToggleForm() {
         if (!showForm) {
             // Trying to create new
@@ -76,6 +99,7 @@
             };
             selectedDay = "Lunes";
             selectedTime = "17:00";
+            formErrors = {};
 
             if (!checkPlanLimit(store, "classes")) {
                 notifications.warning(
@@ -137,7 +161,12 @@
         : [];
 
     function handleSubmit() {
-        if (!newClass.name) return;
+        if (!validateClassForm()) {
+            notifications.error(
+                "Por favor, corrige los errores del formulario",
+            );
+            return;
+        }
 
         if (newClass.id) {
             storeActions.updateClass(newClass);
@@ -152,6 +181,7 @@
         }
 
         showForm = false;
+        formErrors = {};
     }
 
     function editClass(group: ClassGroup) {
@@ -164,6 +194,7 @@
         }
 
         newClass = { ...group };
+        formErrors = {};
         showForm = true;
     }
 
@@ -323,32 +354,68 @@
             <label
                 for="class-name"
                 class="block text-sm font-medium text-slate-400 mb-1"
-                >Nombre del Grupo</label
+                >Nombre del Grupo <span class="text-red-400">*</span></label
             >
             <input
                 id="class-name"
                 bind:value={newClass.name}
                 type="text"
                 placeholder="Ej: Iniciación Lunes"
-                class="form-input"
+                class="form-input {formErrors.name
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/50'
+                    : ''}"
             />
+            {#if formErrors.name}
+                <p class="text-red-400 text-xs mt-1 flex items-center gap-1">
+                    <svg
+                        class="w-3 h-3"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    {formErrors.name}
+                </p>
+            {/if}
         </div>
         <div>
             <label
                 for="class-center"
                 class="block text-sm font-medium text-slate-400 mb-1"
-                >Centro Educativo</label
+                >Centro Educativo <span class="text-red-400">*</span></label
             >
             <select
                 id="class-center"
                 bind:value={newClass.centerId}
-                class="form-select"
+                class="form-select {formErrors.centerId
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/50'
+                    : ''}"
             >
                 <option value="">Selecciona un centro...</option>
                 {#each store.centers as center}
                     <option value={center.id}>{center.name}</option>
                 {/each}
             </select>
+            {#if formErrors.centerId}
+                <p class="text-red-400 text-xs mt-1 flex items-center gap-1">
+                    <svg
+                        class="w-3 h-3"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    {formErrors.centerId}
+                </p>
+            {/if}
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

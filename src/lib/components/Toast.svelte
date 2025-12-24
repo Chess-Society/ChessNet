@@ -29,11 +29,11 @@
 </script>
 
 <div
-    class="pointer-events-auto flex w-full max-w-sm overflow-hidden rounded-xl border shadow-2xl backdrop-blur-md bg-[#1e293b]/90 ring-1 ring-white/10 {colors[
+    class="pointer-events-auto flex w-full max-w-md overflow-hidden rounded-xl border shadow-2xl backdrop-blur-md bg-[#1e293b]/95 ring-1 ring-white/10 {colors[
         toast.type
     ]
         .replace('bg-', 'border-')
-        .replace('text-', 'border-opacity-50 ')}"
+        .replace('text-', 'border-opacity-50 ')} min-w-[320px]"
     in:fly={{ y: 20, duration: 300 }}
     out:fade={{ duration: 200 }}
     role="alert"
@@ -45,7 +45,7 @@
                 class="h-6 w-6 {iconColors[toast.type]}"
             />
         </div>
-        <div class="flex-1 w-0 pt-0.5">
+        <div class="flex-1 pt-0.5">
             <p class="text-sm font-medium text-white">
                 {toast.message}
             </p>
