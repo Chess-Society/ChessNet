@@ -11,6 +11,7 @@
         ChevronRight,
         Home,
         LayoutDashboard,
+        Shield,
     } from "lucide-svelte";
     import AchievementManager from "$lib/components/common/AchievementManager.svelte";
     import { AuthService } from "$lib/services/auth";
@@ -76,17 +77,12 @@
                     type="button"
                 >
                     <div
-                        class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform"
+                        class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/50 flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:border-emerald-500/50 transition-colors"
                     >
-                        <svg
-                            class="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                        >
-                            <path
-                                d="M10 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-7-3z"
-                            />
-                        </svg>
+                        <Shield
+                            class="w-6 h-6 text-emerald-500"
+                            strokeWidth={2}
+                        />
                     </div>
                     <span
                         class="text-xl font-bold text-white tracking-tight hidden sm:block"
