@@ -86,7 +86,13 @@
         <div
             class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
             transition:fade={{ duration: 200 }}
+            role="button"
+            tabindex="0"
             onclick={close}
+            onkeydown={(e) => {
+                if (e.key === "Escape" || e.key === "Enter") close();
+            }}
+            aria-label="Cerrar modal"
         ></div>
 
         <!-- Modal Content -->

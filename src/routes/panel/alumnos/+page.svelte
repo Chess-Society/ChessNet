@@ -8,6 +8,7 @@
     } from "$lib/services/storage";
     import {
         Users,
+        User,
         Search,
         UserPlus,
         Trash2,
@@ -274,14 +275,18 @@
     // Modals State
     let showDeleteModal = false;
     let studentToDeleteId: string | null = null;
-    
+
     let showProfileModal = false;
     let selectedStudentForProfile: Student | null = null;
     let profileAttendanceRate = 0;
-    
+
     let showReportModal = false;
     let selectedStudentForReport: Student | null = null;
-    let reportStats = { attendanceRate: 0, classesAttended: 0, totalClasses: 0 };
+    let reportStats = {
+        attendanceRate: 0,
+        classesAttended: 0,
+        totalClasses: 0,
+    };
 
     function handleDelete(id: string) {
         studentToDeleteId = id;
@@ -305,13 +310,15 @@
 
     // Helper to calculate stats for a student
     function calculateStudentStats(studentId: string) {
-         const studentRecords = store.attendance.flatMap((r) =>
+        const studentRecords = store.attendance.flatMap((r) =>
             r.records
                 .filter((rec) => rec.studentId === studentId)
                 .map((rec) => ({ date: r.date, status: rec.status })),
         );
         const total = studentRecords.length;
-        const present = studentRecords.filter((r) => r.status === "present").length;
+        const present = studentRecords.filter(
+            (r) => r.status === "present",
+        ).length;
         return {
             totalClasses: total,
             classesAttended: present,
@@ -329,25 +336,25 @@
     function openReportFromProfile(event: CustomEvent<Student>) {
         const student = event.detail;
         selectedStudentForProfile = null; // Close profile ? Or keep open? Let's close for now to avoid overlapping backdrops issues unless z-index handled well.
-        showProfileModal = false; 
-        
+        showProfileModal = false;
+
         selectedStudentForReport = student;
         reportStats = calculateStudentStats(student.id);
         showReportModal = true;
     }
-    
+
     // Direct report open
     function generateReport(student: Student) {
-         selectedStudentForReport = student;
-         reportStats = calculateStudentStats(student.id);
-         showReportModal = true;
+        selectedStudentForReport = student;
+        reportStats = calculateStudentStats(student.id);
+        showReportModal = true;
     }
 
     function handleEditFromProfile(event: CustomEvent<Student>) {
         showProfileModal = false;
         openEditForm(event.detail);
     }
-    
+
     function handleDeleteFromProfile(event: CustomEvent<string>) {
         // showProfileModal = false; // Keep open or close? Better close to show confirm.
         // Actually the delete logic uses an ID.
@@ -811,7 +818,7 @@
                                     >
                                         Ver Perfil
                                     </button>
-                                    
+
                                     <button
                                         onclick={() => openEditForm(student)}
                                         class="text-slate-500 hover:text-blue-400 p-2 rounded hover:bg-blue-500/10 transition-colors"
@@ -857,16 +864,16 @@
     />
 </div>
 
-{/if}
-
 {#if showProfileModal && selectedStudentForProfile}
     <StudentProfileModal
         isOpen={showProfileModal}
         student={selectedStudentForProfile}
         studentClass={getStudentClass(selectedStudentForProfile.id)}
-        centerName={getCenterNameForClass(getStudentClass(selectedStudentForProfile.id))}
+        centerName={getCenterNameForClass(
+            getStudentClass(selectedStudentForProfile.id),
+        )}
         attendanceRate={profileAttendanceRate}
-        on:close={() => showProfileModal = false}
+        on:close={() => (showProfileModal = false)}
         on:edit={handleEditFromProfile}
         on:delete={handleDeleteFromProfile}
         on:report={openReportFromProfile}
@@ -879,71 +886,10 @@
         isOpen={showReportModal}
         student={selectedStudentForReport}
         studentClass={getStudentClass(selectedStudentForReport.id)}
-        centerName={getCenterNameForClass(getStudentClass(selectedStudentForReport.id))}
+        centerName={getCenterNameForClass(
+            getStudentClass(selectedStudentForReport.id),
+        )}
         stats={reportStats}
-        on:close={() => showReportModal = false}
+        on:close={() => (showReportModal = false)}
     />
 {/if}
-```
-
-<style>
-    @media print {
-        :global(body *) {
-            visibility: hidden;
-        }
-
-        .fixed.inset-0,
-        .fixed.inset-0 * {
-            visibility: visible;
-        }
-
-        .fixed.inset-0 {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            background: white !important;
-            display: block !important;
-        }
-
-        .fixed.inset-0 > div {
-            position: static !important;
-            width: 100% !important;
-            max-width: none !important;
-            max-height: none !important;
-            border: none !important;
-            box-shadow: none !important;
-            background: white !important;
-            color: black !important;
-            overflow: visible !important;
-        }
-
-        .text-white {
-            color: black !important;
-        }
-        .text-slate-300,
-        .text-slate-400,
-        .text-slate-500 {
-            color: #333 !important;
-        }
-
-        button {
-            display: none !important;
-        }
-
-        .bg-slate-900\/50,
-        .bg-blue-900\/20 {
-            background: #fff !important;
-            border: 1px solid #ccc !important;
-        }
-
-        textarea {
-            background: white !important;
-            color: black !important;
-            border: 1px solid #ccc !important;
-        }
-    }
-</style>
