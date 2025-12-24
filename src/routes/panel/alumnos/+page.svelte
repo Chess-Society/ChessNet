@@ -31,6 +31,7 @@
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import Modal from "$lib/components/Modal.svelte";
     import StudentProfileModal from "$lib/components/dashboard/students/StudentProfileModal.svelte";
+    import EmptyState from "$lib/components/common/EmptyState.svelte";
     import StudentReportModal from "$lib/components/dashboard/students/StudentReportModal.svelte";
     import { fireConfetti } from "$lib/utils/confetti";
 
@@ -768,8 +769,14 @@
         <!-- Mobile View (Cards) -->
         <div class="block sm:hidden divide-y divide-slate-700">
             {#if filteredStudents.length === 0}
-                <div class="p-8 text-center text-slate-500">
-                    No se encontraron estudiantes.
+                <div class="p-4">
+                    <EmptyState
+                        icon={Users}
+                        title="Lista vacía"
+                        description="No hay alumnos que coincidan con la búsqueda."
+                        actionLabel="Crear Alumno"
+                        on:action={openCreateForm}
+                    />
                 </div>
             {:else}
                 {#each filteredStudents as student}
@@ -859,8 +866,14 @@
             <tbody class="divide-y divide-slate-700">
                 {#if filteredStudents.length === 0}
                     <tr>
-                        <td colspan="4" class="p-8 text-center text-slate-500">
-                            No se encontraron estudiantes.
+                        <td colspan="4" class="p-8">
+                            <EmptyState
+                                icon={Users}
+                                title="Lista vacía"
+                                description="No hay alumnos que coincidan con la búsqueda."
+                                actionLabel="Crear Alumno"
+                                on:action={openCreateForm}
+                            />
                         </td>
                     </tr>
                 {:else}

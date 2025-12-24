@@ -30,6 +30,7 @@
     import { fireConfetti } from "$lib/utils/confetti";
     import { notifications } from "$lib/stores/notifications";
     import Modal from "$lib/components/Modal.svelte";
+    import EmptyState from "$lib/components/common/EmptyState.svelte";
 
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
@@ -307,20 +308,13 @@
     <!-- Tournaments List -->
     <div class="grid gap-6">
         {#if filteredTournaments.length === 0}
-            <div
-                class="text-center py-20 bg-[#1e293b] border border-dashed border-slate-700 rounded-3xl"
-            >
-                <Trophy class="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                <h3 class="text-xl font-bold text-white mb-2">
-                    No se encontraron torneos
-                </h3>
-                <p class="text-slate-400 mb-6">
-                    Prueba con otros filtros o crea uno nuevo.
-                </p>
-                <button onclick={handleToggleForm} class="btn btn-primary">
-                    Crear Torneo
-                </button>
-            </div>
+            <EmptyState
+                icon={Trophy}
+                title="No se encontraron torneos"
+                description="Prueba cambiando los filtros o crea tu primer torneo para empezar la competición."
+                actionLabel="Crear Torneo"
+                on:action={handleToggleForm}
+            />
         {:else}
             {#each filteredTournaments as tournament (tournament.id)}
                 <div

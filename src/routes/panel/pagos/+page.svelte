@@ -27,6 +27,7 @@
     import { exportReceiptPDF } from "$lib/services/export";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import Modal from "$lib/components/Modal.svelte";
+    import EmptyState from "$lib/components/common/EmptyState.svelte";
     import { notifications } from "$lib/stores/notifications";
 
     $: store = $appStore;
@@ -209,6 +210,10 @@
             notifications.success("Pago eliminado.");
         };
         showConfirmModal = true;
+    }
+
+    function toggleForm() {
+        showForm = !showForm;
     }
 </script>
 
@@ -500,113 +505,112 @@
 
     <!-- Transaction History (Timeline Style) -->
     <div class="space-y-8">
-        {#each sortedMonths as monthKey}
-            <div in:fade={{ duration: 300 }}>
-                <!-- Month Header -->
-                <div class="flex items-center gap-4 mb-4">
-                    <h3 class="text-lg font-bold text-white capitalize">
-                        {formatMonth(monthKey)}
-                    </h3>
-                    <div class="h-[1px] flex-1 bg-slate-800"></div>
-                </div>
-
-                <!-- Transaction List for Month -->
-                <div class="space-y-3">
-                    {#each groupedPayments[monthKey] as payment (payment.id)}
-                        <div
-                            class="group bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 rounded-2xl p-4 flex items-center justify-between transition-all duration-200"
-                        >
-                            <!-- Left: Icon & Info -->
-                            <div class="flex items-center gap-4">
-                                <div
-                                    class="w-12 h-12 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-400 group-hover:text-white group-hover:bg-slate-700 transition-colors"
-                                >
-                                    <svelte:component
-                                        this={methodIcons[payment.method]}
-                                        class="w-5 h-5"
-                                    />
-                                </div>
-                                <div>
-                                    <div
-                                        class="font-bold text-slate-200 group-hover:text-white"
-                                    >
-                                        {getStudentName(payment.studentId)}
-                                    </div>
-                                    <div
-                                        class="text-xs text-slate-500 flex items-center gap-2"
-                                    >
-                                        <span
-                                            >{new Date(
-                                                payment.date,
-                                            ).toLocaleDateString()}</span
-                                        >
-                                        <span
-                                            class="w-1 h-1 rounded-full bg-slate-600"
-                                        ></span>
-                                        <span class="capitalize"
-                                            >{payment.concept}</span
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Right: Amount & Actions -->
-                            <div class="flex items-center gap-6">
-                                <div class="text-right">
-                                    <div
-                                        class="font-bold text-emerald-400 text-lg"
-                                    >
-                                        +{payment.amount}€
-                                    </div>
-                                    <div
-                                        class="text-[10px] text-slate-500 uppercase font-bold tracking-wider"
-                                    >
-                                        {methodLabels[payment.method]}
-                                    </div>
-                                </div>
-
-                                <!-- Hover Actions -->
-                                <div
-                                    class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0"
-                                >
-                                    <button
-                                        onclick={() =>
-                                            exportReceiptPDF(
-                                                payment,
-                                                getStudentName(
-                                                    payment.studentId,
-                                                ),
-                                            )}
-                                        class="p-2 hover:bg-slate-600 rounded-lg text-slate-400 hover:text-white transition-colors"
-                                        title="Descargar Recibo"
-                                    >
-                                        <FileText class="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onclick={() =>
-                                            handleDeleteClick(payment.id)}
-                                        class="p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
-                                        title="Eliminar"
-                                    >
-                                        <Trash2 class="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    {/each}
-                </div>
-            </div>
-        {/each}
-
         {#if sortedMonths.length === 0}
-            <div class="text-center py-20 text-slate-500">
-                <div
-                    class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"
-                >
-                    <Search class="w-8 h-8 opacity-50" />
+            <EmptyState
+                icon={CreditCard}
+                title="Sin movimientos registrados"
+                description="Aquí aparecerá el historial de pagos. Registra el primer ingreso para empezar a ver datos."
+                actionLabel="Nuevo Ingreso"
+                on:action={toggleForm}
+            />
+        {:else}
+            {#each sortedMonths as monthKey}
+                <div in:fade={{ duration: 300 }}>
+                    <!-- Month Header -->
+                    <div class="flex items-center gap-4 mb-4">
+                        <h3 class="text-lg font-bold text-white capitalize">
+                            {formatMonth(monthKey)}
+                        </h3>
+                        <div class="h-[1px] flex-1 bg-slate-800"></div>
+                    </div>
+
+                    <!-- Transaction List for Month -->
+                    <div class="space-y-3">
+                        {#each groupedPayments[monthKey] as payment (payment.id)}
+                            <div
+                                class="group bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 rounded-2xl p-4 flex items-center justify-between transition-all duration-200"
+                            >
+                                <!-- Left: Icon & Info -->
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-400 group-hover:text-white group-hover:bg-slate-700 transition-colors"
+                                    >
+                                        <svelte:component
+                                            this={methodIcons[payment.method]}
+                                            class="w-5 h-5"
+                                        />
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="font-bold text-slate-200 group-hover:text-white"
+                                        >
+                                            {getStudentName(payment.studentId)}
+                                        </div>
+                                        <div
+                                            class="text-xs text-slate-500 flex items-center gap-2"
+                                        >
+                                            <span
+                                                >{new Date(
+                                                    payment.date,
+                                                ).toLocaleDateString()}</span
+                                            >
+                                            <span
+                                                class="w-1 h-1 rounded-full bg-slate-600"
+                                            ></span>
+                                            <span class="capitalize"
+                                                >{payment.concept}</span
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right: Amount & Actions -->
+                                <div class="flex items-center gap-6">
+                                    <div class="text-right">
+                                        <div
+                                            class="font-bold text-emerald-400 text-lg"
+                                        >
+                                            +{payment.amount}€
+                                        </div>
+                                        <div
+                                            class="text-[10px] text-slate-500 uppercase font-bold tracking-wider"
+                                        >
+                                            {methodLabels[payment.method]}
+                                        </div>
+                                    </div>
+
+                                    <!-- Hover Actions -->
+                                    <div
+                                        class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0"
+                                    >
+                                        <button
+                                            onclick={() =>
+                                                exportReceiptPDF(
+                                                    payment,
+                                                    getStudentName(
+                                                        payment.studentId,
+                                                    ),
+                                                )}
+                                            class="p-2 hover:bg-slate-600 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                            title="Descargar Recibo"
+                                        >
+                                            <FileText class="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onclick={() =>
+                                                handleDeleteClick(payment.id)}
+                                            class="p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                                            title="Eliminar"
+                                        >
+                                            <Trash2 class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
                 </div>
-                <p>No se encontraron transacciones.</p>
-            </div>
+            {/each}
         {/if}
     </div>
 </div>

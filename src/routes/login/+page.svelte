@@ -179,10 +179,10 @@
                             class="block text-sm font-medium text-slate-300"
                             >Contraseña</label
                         >
-                        <a
-                            href="#"
-                            class="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
-                            >¿Olvidaste tu contraseña?</a
+                        <button
+                            type="button"
+                            class="text-xs text-emerald-400 hover:text-emerald-300 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                            >¿Olvidaste tu contraseña?</button
                         >
                     </div>
                     <div class="relative">
@@ -232,10 +232,10 @@
             <div class="mt-6 pt-6 border-t border-slate-700/50 text-center">
                 <p class="text-sm text-slate-400">
                     ¿No tienes una cuenta?
-                    <a
-                        href="#"
-                        class="font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
-                        >Regístrate gratis</a
+                    <button
+                        type="button"
+                        class="font-medium text-emerald-400 hover:text-emerald-300 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        >Regístrate gratis</button
                     >
                 </p>
             </div>
