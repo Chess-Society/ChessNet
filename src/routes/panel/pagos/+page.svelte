@@ -46,6 +46,35 @@
     // Filters
     let searchTerm = "";
 
+    // Form validation errors
+    let formErrors: {
+        studentId?: string;
+        amount?: string;
+        concept?: string;
+    } = {};
+
+    function validatePaymentForm(): boolean {
+        formErrors = {};
+        let isValid = true;
+
+        if (!newPayment.studentId) {
+            formErrors.studentId = "Selecciona un alumno";
+            isValid = false;
+        }
+
+        if (!newPayment.amount || newPayment.amount <= 0) {
+            formErrors.amount = "El importe debe ser mayor a 0";
+            isValid = false;
+        }
+
+        if (!newPayment.concept || newPayment.concept.trim().length < 2) {
+            formErrors.concept = "El concepto es obligatorio";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     // --- Confirmation Modal State ---
     let showConfirmModal = false;
     let confirmTitle = "";
@@ -142,8 +171,10 @@
     // --- Actions ---
 
     function handleSubmit() {
-        if (!newPayment.studentId || !newPayment.amount) {
-            notifications.error("Faltan datos obligatorios");
+        if (!validatePaymentForm()) {
+            notifications.error(
+                "Por favor, corrige los errores del formulario",
+            );
             return;
         }
 
@@ -155,15 +186,16 @@
         storeActions.addPayment(paymentToAdd);
         notifications.success("Pago registrado correctamente");
 
-        // Reset but keep date/amount for convenience? No, better reset.
         newPayment = {
-            ...newPayment,
             id: "",
             studentId: "",
             amount: 30,
             concept: "Mensualidad",
-            // Keep Date
+            date: new Date().toISOString().split("T")[0],
+            method: "cash",
+            notes: "",
         };
+        formErrors = {};
         showForm = false;
     }
 
@@ -329,24 +361,44 @@
                 <label
                     for="payment-student"
                     class="text-sm font-semibold text-slate-400 ml-1"
-                    >Alumno</label
+                    >Alumno <span class="text-red-400">*</span></label
                 >
                 <select
                     id="payment-student"
                     bind:value={newPayment.studentId}
-                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all {formErrors.studentId
+                        ? 'border-red-500 focus:ring-red-500'
+                        : ''}"
                 >
                     <option value="" disabled>Selecciona un alumno</option>
                     {#each store.students as student}
                         <option value={student.id}>{student.name}</option>
                     {/each}
                 </select>
+                {#if formErrors.studentId}
+                    <p
+                        class="text-red-400 text-xs mt-1 flex items-center gap-1"
+                    >
+                        <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        {formErrors.studentId}
+                    </p>
+                {/if}
             </div>
 
             <!-- Amount & Date -->
             <div class="space-y-2">
                 <span class="block text-sm font-semibold text-slate-400 ml-1"
-                    >Importe y Fecha</span
+                    >Importe y Fecha <span class="text-red-400">*</span></span
                 >
                 <div class="flex gap-2">
                     <div class="relative flex-1">
@@ -357,7 +409,9 @@
                             type="number"
                             aria-label="Importe"
                             bind:value={newPayment.amount}
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none {formErrors.amount
+                                ? 'border-red-500 focus:ring-red-500'
+                                : ''}"
                             placeholder="0.00"
                         />
                     </div>
@@ -368,12 +422,30 @@
                         class="w-40 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
                     />
                 </div>
+                {#if formErrors.amount}
+                    <p
+                        class="text-red-400 text-xs mt-1 flex items-center gap-1"
+                    >
+                        <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        {formErrors.amount}
+                    </p>
+                {/if}
             </div>
 
             <!-- Method & Concept -->
             <div class="space-y-2">
                 <span class="block text-sm font-semibold text-slate-400 ml-1"
-                    >Detalles</span
+                    >Detalles <span class="text-red-400">*</span></span
                 >
                 <div class="flex gap-2">
                     <select
@@ -390,9 +462,29 @@
                         aria-label="Concepto"
                         bind:value={newPayment.concept}
                         placeholder="Concepto (ej: Abril)"
-                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none {formErrors.concept
+                            ? 'border-red-500 focus:ring-red-500'
+                            : ''}"
                     />
                 </div>
+                {#if formErrors.concept}
+                    <p
+                        class="text-red-400 text-xs mt-1 flex items-center gap-1"
+                    >
+                        <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        {formErrors.concept}
+                    </p>
+                {/if}
             </div>
         </div>
 
