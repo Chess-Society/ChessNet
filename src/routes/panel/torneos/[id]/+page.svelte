@@ -2,6 +2,7 @@
     import { page } from "$app/stores";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
+    import { notifications } from "$lib/stores/notifications";
     import {
         appStore,
         storeActions,
@@ -31,6 +32,7 @@
     } from "$lib/services/export";
     import { slide, fade } from "svelte/transition";
     import { base } from "$app/paths";
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
@@ -67,30 +69,49 @@
           )
         : [];
 
+    // Modal State
+    let showConfirmModal = false;
+    let confirmTitle = "";
+    let confirmMessage = "";
+    let confirmAction: (() => void) | null = null;
+    let confirmType: "danger" | "warning" | "info" = "danger";
+    let confirmBtnText = "Confirmar";
+
     function finishTournament() {
         if (!tournament) return;
-        if (
-            confirm(
-                "¿Estás seguro de finalizar el torneo? No se podrán crear más rondas.",
-            )
-        ) {
+        confirmTitle = "¿Finalizar Torneo?";
+        confirmMessage =
+            "¿Estás seguro de finalizar el torneo? No se podrán crear más rondas y se calcularán los resultados finales.";
+        confirmType = "warning";
+        confirmBtnText = "Finalizar";
+        confirmAction = () => {
             storeActions.updateTournament({
-                ...tournament,
+                ...tournament!,
                 status: "Completed",
             });
-        }
+            notifications.success("Torneo finalizado.");
+        };
+        showConfirmModal = true;
     }
 
     function deleteTournament() {
         if (!tournament) return;
-        if (
-            confirm(
-                "ATENCIÓN: ¿Eliminar este torneo y todos sus datos? Esta acción es irreversible.",
-            )
-        ) {
-            storeActions.removeTournament(tournament.id);
+        confirmTitle = "Eliminar Torneo";
+        confirmMessage =
+            "ATENCIÓN: ¿Eliminar este torneo y todos sus datos? Esta acción es irreversible.";
+        confirmType = "danger";
+        confirmBtnText = "Eliminar";
+        confirmAction = () => {
+            storeActions.removeTournament(tournament!.id);
             goto(`${base}/panel/torneos`);
-        }
+            notifications.success("Torneo eliminado.");
+        };
+        showConfirmModal = true;
+    }
+
+    function handleConfirmAction() {
+        if (confirmAction) confirmAction();
+        showConfirmModal = false;
     }
 
     function addParticipant(studentId: string) {
@@ -714,3 +735,12 @@
         {/if}
     {/if}
 </div>
+
+<ConfirmationModal
+    bind:isOpen={showConfirmModal}
+    title={confirmTitle}
+    message={confirmMessage}
+    confirmText={confirmBtnText}
+    type={confirmType}
+    on:confirm={handleConfirmAction}
+/>

@@ -731,6 +731,16 @@
             on:close={() => (showDiplomaModal = false)}
         />
     {/if}
+
+    <ConfirmationModal
+        isOpen={showDeleteModal}
+        title="Eliminar Alumno"
+        message="¿Estás seguro de que deseas eliminar este alumno? Se perderán todos sus datos y asistencia. Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        type="danger"
+        on:confirm={confirmDelete}
+        on:cancel={() => (showDeleteModal = false)}
+    />
 </div>
 
 <!-- Report Modal -->
