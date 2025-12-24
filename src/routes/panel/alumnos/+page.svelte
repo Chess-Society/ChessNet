@@ -28,6 +28,8 @@
     import { notifications } from "$lib/stores/notifications";
     import DiplomaModal from "$lib/components/dashboard/students/DiplomaModal.svelte";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
+    import StudentProfileModal from "$lib/components/dashboard/students/StudentProfileModal.svelte";
+    import StudentReportModal from "$lib/components/dashboard/students/StudentReportModal.svelte";
     import { fireConfetti } from "$lib/utils/confetti";
 
     $: store = $appStore;
@@ -269,17 +271,27 @@
         isEditing = false;
     }
 
+    // Modals State
     let showDeleteModal = false;
     let studentToDeleteId: string | null = null;
+    
+    let showProfileModal = false;
+    let selectedStudentForProfile: Student | null = null;
+    let profileAttendanceRate = 0;
+    
+    let showReportModal = false;
+    let selectedStudentForReport: Student | null = null;
+    let reportStats = { attendanceRate: 0, classesAttended: 0, totalClasses: 0 };
 
     function handleDelete(id: string) {
         studentToDeleteId = id;
         showDeleteModal = true;
+        // If profile is open, close it (optional)
+        showProfileModal = false;
     }
 
     function confirmDelete() {
         if (studentToDeleteId) {
-            // Remove from classes first to be clean
             const cls = getStudentClass(studentToDeleteId);
             if (cls) {
                 storeActions.removeClassMember(cls.id, studentToDeleteId);
@@ -287,68 +299,59 @@
             storeActions.removeStudent(studentToDeleteId);
             notifications.success("Estudiante eliminado correctamente.");
             studentToDeleteId = null;
+            showDeleteModal = false;
         }
     }
 
-    // Report Modal State
-    let selectedStudentForReport: Student | null = null;
-    let showReportModal = false;
-    let studentStats = {
-        attendanceRate: 0,
-        classesAttended: 0,
-        totalClasses: 0,
-    };
-    let studentSkills: any[] = [];
-    let skillProgress = 0;
-
-    function generateReport(student: Student) {
-        // Fetch latest student object to ensure up-to-date skills/notes
-        const freshStudent =
-            store.students.find((s) => s.id === student.id) ?? student;
-        selectedStudentForReport = { ...freshStudent };
-
-        // Calculate Stats
-        const studentRecords = store.attendance.flatMap((r) =>
+    // Helper to calculate stats for a student
+    function calculateStudentStats(studentId: string) {
+         const studentRecords = store.attendance.flatMap((r) =>
             r.records
-                .filter((rec) => rec.studentId === freshStudent.id)
+                .filter((rec) => rec.studentId === studentId)
                 .map((rec) => ({ date: r.date, status: rec.status })),
         );
-
         const total = studentRecords.length;
-        const present = studentRecords.filter(
-            (r) => r.status === "present",
-        ).length;
-
-        studentStats = {
+        const present = studentRecords.filter((r) => r.status === "present").length;
+        return {
             totalClasses: total,
             classesAttended: present,
             attendanceRate: total > 0 ? Math.round((present / total) * 100) : 0,
         };
-
-        // Resolve Skills objects for the report
-        if (freshStudent.skills && freshStudent.skills.length > 0) {
-            studentSkills = store.skills.filter((skill) =>
-                freshStudent.skills?.includes(skill.id),
-            );
-        } else {
-            studentSkills = [];
-        }
-
-        // Calculate Progression
-        skillProgress =
-            store.skills.length > 0
-                ? Math.round((studentSkills.length / store.skills.length) * 100)
-                : 0;
-
-        showReportModal = true;
     }
 
-    function saveReportNote() {
-        if (selectedStudentForReport) {
-            storeActions.updateStudent(selectedStudentForReport);
-            notifications.success("Nota guardada correctamente.");
-            // Refresh local list if needed, though store is reactive
-        }
+    function openProfile(student: Student) {
+        selectedStudentForProfile = student;
+        const s = calculateStudentStats(student.id);
+        profileAttendanceRate = s.attendanceRate;
+        showProfileModal = true;
+    }
+
+    function openReportFromProfile(event: CustomEvent<Student>) {
+        const student = event.detail;
+        selectedStudentForProfile = null; // Close profile ? Or keep open? Let's close for now to avoid overlapping backdrops issues unless z-index handled well.
+        showProfileModal = false; 
+        
+        selectedStudentForReport = student;
+        reportStats = calculateStudentStats(student.id);
+        showReportModal = true;
+    }
+    
+    // Direct report open
+    function generateReport(student: Student) {
+         selectedStudentForReport = student;
+         reportStats = calculateStudentStats(student.id);
+         showReportModal = true;
+    }
+
+    function handleEditFromProfile(event: CustomEvent<Student>) {
+        showProfileModal = false;
+        openEditForm(event.detail);
+    }
+    
+    function handleDeleteFromProfile(event: CustomEvent<string>) {
+        // showProfileModal = false; // Keep open or close? Better close to show confirm.
+        // Actually the delete logic uses an ID.
+        handleDelete(event.detail);
     }
 
     function handleShareProfile(student: Student) {
@@ -703,27 +706,11 @@
                             <div class="flex items-center gap-2">
                                 <button
                                     type="button"
-                                    onclick={() => generateReport(student)}
+                                    onclick={() => openProfile(student)}
                                     class="p-2 bg-slate-800 rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                                    title="Ver Informe"
+                                    title="Ver Perfil"
                                 >
-                                    <Award class="w-5 h-5" />
-                                </button>
-                                <button
-                                    type="button"
-                                    onclick={() => openDiplomaModal(student)}
-                                    class="p-2 bg-slate-800 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-colors"
-                                    title="Generar Diploma"
-                                >
-                                    <GraduationCap class="w-5 h-5" />
-                                </button>
-                                <button
-                                    type="button"
-                                    onclick={() => handleShareProfile(student)}
-                                    class="p-2 bg-slate-800 rounded-lg text-indigo-400 hover:bg-indigo-500/20 transition-colors"
-                                    title="Compartir Perfil"
-                                >
-                                    <Share2 class="w-5 h-5" />
+                                    <User class="w-5 h-5" />
                                 </button>
                                 <button
                                     type="button"
@@ -818,28 +805,13 @@
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <button
-                                        onclick={() => generateReport(student)}
-                                        class="text-slate-500 hover:text-emerald-400 p-2 rounded hover:bg-emerald-500/10 transition-colors"
-                                        title="Ver Informe"
+                                        onclick={() => openProfile(student)}
+                                        class="text-slate-500 hover:text-white p-2 rounded hover:bg-slate-700/50 transition-colors flex items-center gap-1 text-xs font-bold uppercase tracking-wider border border-transparent hover:border-slate-600"
+                                        title="Ver Perfil Completo"
                                     >
-                                        <Award class="w-4 h-4" />
+                                        Ver Perfil
                                     </button>
-                                    <button
-                                        onclick={() =>
-                                            openDiplomaModal(student)}
-                                        class="text-slate-500 hover:text-amber-400 p-2 rounded hover:bg-amber-500/10 transition-colors"
-                                        title="Generar Diploma"
-                                    >
-                                        <GraduationCap class="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onclick={() =>
-                                            handleShareProfile(student)}
-                                        class="text-slate-500 hover:text-indigo-400 p-2 rounded hover:bg-indigo-500/10 transition-colors"
-                                        title="Compartir Perfil"
-                                    >
-                                        <Share2 class="w-4 h-4" />
-                                    </button>
+                                    
                                     <button
                                         onclick={() => openEditForm(student)}
                                         class="text-slate-500 hover:text-blue-400 p-2 rounded hover:bg-blue-500/10 transition-colors"
@@ -885,159 +857,32 @@
     />
 </div>
 
-<!-- Report Modal -->
+{/if}
+
+{#if showProfileModal && selectedStudentForProfile}
+    <StudentProfileModal
+        isOpen={showProfileModal}
+        student={selectedStudentForProfile}
+        studentClass={getStudentClass(selectedStudentForProfile.id)}
+        centerName={getCenterNameForClass(getStudentClass(selectedStudentForProfile.id))}
+        attendanceRate={profileAttendanceRate}
+        on:close={() => showProfileModal = false}
+        on:edit={handleEditFromProfile}
+        on:delete={handleDeleteFromProfile}
+        on:report={openReportFromProfile}
+        on:share={(e) => handleShareProfile(e.detail)}
+    />
+{/if}
+
 {#if showReportModal && selectedStudentForReport}
-    <div
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-        transition:fade
-    >
-        <div
-            class="bg-[#1e293b] border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl relative flex flex-col max-h-[90vh]"
-            transition:scale
-        >
-            <!-- Header -->
-            <div
-                class="p-6 border-b border-slate-700 flex justify-between items-center"
-            >
-                <div>
-                    <h2 class="text-xl font-bold text-white">
-                        Informe del Estudiante
-                    </h2>
-                    <p class="text-slate-400 text-sm">
-                        Generado el {new Date().toLocaleDateString()}
-                    </p>
-                </div>
-                <button
-                    onclick={() => (showReportModal = false)}
-                    class="text-slate-400 hover:text-white transition-colors"
-                >
-                    <X class="w-6 h-6" />
-                </button>
-            </div>
-
-            <!-- Content -->
-            <div class="p-6 overflow-y-auto custom-scrollbar">
-                <!-- Profile Header -->
-                <div class="flex items-center gap-4 mb-8">
-                    <div
-                        class="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold text-2xl border border-emerald-500/30"
-                    >
-                        {selectedStudentForReport.name.charAt(0)}
-                    </div>
-                    <div>
-                        <h3 class="text-2xl font-bold text-white">
-                            {selectedStudentForReport.name}
-                        </h3>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span
-                                class="bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded-full text-xs font-bold border border-blue-500/30"
-                            >
-                                Nivel: {translateLevel(
-                                    selectedStudentForReport.level,
-                                )}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div
-                        class="bg-slate-900/50 p-4 rounded-xl border border-slate-800"
-                    >
-                        <div
-                            class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase mb-2"
-                        >
-                            <CalendarCheck class="w-4 h-4 text-emerald-500" />
-                            Asistencia Global
-                        </div>
-                        <div class="text-2xl font-bold text-white">
-                            {studentStats.attendanceRate}%
-                        </div>
-                        <div class="text-xs text-slate-500 mt-1">
-                            {studentStats.classesAttended} de {studentStats.totalClasses}
-                            clases
-                        </div>
-                    </div>
-                    <div
-                        class="bg-slate-900/50 p-4 rounded-xl border border-slate-800"
-                    >
-                        <div
-                            class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase mb-2"
-                        >
-                            <TrendingUp class="w-4 h-4 text-blue-500" />
-                            Estado
-                        </div>
-                        <div class="text-2xl font-bold text-white">Activo</div>
-                        <div class="text-xs text-slate-500 mt-1">
-                            Matrícula vigente
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Learning Progress (Mocked based on Level) -->
-                <div class="mb-6">
-                    <h4
-                        class="text-sm font-bold text-slate-300 uppercase mb-4 flex items-center gap-2"
-                    >
-                        <GraduationCap class="w-4 h-4 text-purple-500" />
-                        Habilidades Adquiridas
-                    </h4>
-
-                    <div
-                        class="mb-4 bg-slate-800 rounded-full h-4 overflow-hidden border border-slate-700 relative group"
-                    >
-                        <div
-                            class="h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-1000 ease-out"
-                            style="width: {skillProgress}%"
-                        ></div>
-                        <div
-                            class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md"
-                        >
-                            {skillProgress}% COMPLETADO
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    class="bg-blue-900/20 border border-blue-500/20 p-4 rounded-lg"
-                >
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-bold text-blue-200"
-                            >Nota del Profesor:</span
-                        >
-                        <button
-                            onclick={saveReportNote}
-                            class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                        >
-                            <Save class="w-3 h-3" /> Guardar
-                        </button>
-                    </div>
-                    <textarea
-                        bind:value={selectedStudentForReport.notes}
-                        class="w-full bg-blue-900/30 text-blue-100 text-sm p-2 rounded border border-blue-500/30 focus:outline-none focus:border-blue-400 h-24 resize-none"
-                        placeholder="Escribe aquí tus observaciones sobre el progreso del alumno..."
-                    ></textarea>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="p-6 border-t border-slate-700 flex justify-end">
-                <button
-                    onclick={() => window.print()}
-                    class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors mr-2"
-                >
-                    Imprimir
-                </button>
-                <button
-                    onclick={() => (showReportModal = false)}
-                    class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                    Cerrar
-                </button>
-            </div>
-        </div>
-    </div>
+    <StudentReportModal
+        isOpen={showReportModal}
+        student={selectedStudentForReport}
+        studentClass={getStudentClass(selectedStudentForReport.id)}
+        centerName={getCenterNameForClass(getStudentClass(selectedStudentForReport.id))}
+        stats={reportStats}
+        on:close={() => showReportModal = false}
+    />
 {/if}
 ```
 
