@@ -16,58 +16,135 @@
         Search,
         Filter,
         FileText,
-        Download,
+        ArrowUpRight,
+        ArrowDownRight,
+        Banknote,
+        Smartphone,
+        Landmark,
+        MoreHorizontal,
     } from "lucide-svelte";
-    import { slide } from "svelte/transition";
+    import { slide, fade, fly } from "svelte/transition";
     import { exportReceiptPDF } from "$lib/services/export";
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
+    import { notifications } from "$lib/stores/notifications";
 
     $: store = $appStore;
 
+    // --- State ---
     let showForm = false;
     let newPayment: Payment = {
         id: "",
         studentId: "",
-        amount: 30,
-        concept: "Mensualidad",
+        amount: 30, // Default price
+        concept: "Mensualidad Mes Actual",
         date: new Date().toISOString().split("T")[0],
         method: "cash",
         notes: "",
     };
 
-    // --- Filters ---
+    // Filters
     let searchTerm = "";
-    let filterDate = ""; // Month YYYY-MM
-    let filterMethod = "all";
 
-    // Derived values with Filtering
-    $: totalRevenue = store.payments.reduce((sum, p) => sum + p.amount, 0);
+    // --- Confirmation Modal State ---
+    let showConfirmModal = false;
+    let confirmTitle = "";
+    let confirmMessage = "";
+    let confirmAction: (() => void) | null = null;
+    let confirmType: "danger" | "warning" = "danger";
 
-    $: filteredPayments = store.payments.filter((p) => {
-        const matchesTerm =
-            searchTerm === "" ||
-            p.concept.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            getStudentName(p.studentId)
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
+    // --- Derived Data & KPIs ---
 
-        const matchesDate = filterDate === "" || p.date.startsWith(filterDate);
-        const matchesMethod =
-            filterMethod === "all" || p.method === filterMethod;
-
-        return matchesTerm && matchesDate && matchesMethod;
-    });
-
-    $: sortedPayments = [...filteredPayments].sort(
+    $: payments = store.payments.sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
+
+    // Filter logic
+    $: filteredPayments = payments.filter((p) => {
+        const studentName = getStudentName(p.studentId).toLowerCase();
+        const concept = p.concept.toLowerCase();
+        const term = searchTerm.toLowerCase();
+        return studentName.includes(term) || concept.includes(term);
+    });
+
+    // Grouping by Month (YYYY-MM)
+    $: groupedPayments = filteredPayments.reduce(
+        (acc, p) => {
+            const monthKey = p.date.substring(0, 7); // "2023-11"
+            if (!acc[monthKey]) acc[monthKey] = [];
+            acc[monthKey].push(p);
+            return acc;
+        },
+        {} as Record<string, Payment[]>,
+    );
+
+    $: sortedMonths = Object.keys(groupedPayments).sort((a, b) =>
+        b.localeCompare(a),
+    );
+
+    // KPIs
+    $: totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+
+    // Current Month Revenue
+    $: currentMonthKey = new Date().toISOString().substring(0, 7);
+    $: currentMonthRevenue = (groupedPayments[currentMonthKey] || []).reduce(
+        (sum, p) => sum + p.amount,
+        0,
+    );
+
+    // Last Month Revenue
+    $: lastDate = new Date();
+    $: {
+        lastDate.setMonth(lastDate.getMonth() - 1);
+    }
+    $: lastMonthKey = lastDate.toISOString().substring(0, 7);
+    $: lastMonthRevenue = (groupedPayments[lastMonthKey] || []).reduce(
+        (sum, p) => sum + p.amount,
+        0,
+    );
+
+    $: growth =
+        lastMonthRevenue > 0
+            ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) *
+              100
+            : 100;
+
+    // --- Helpers ---
 
     function getStudentName(id: string) {
         const s = store.students.find((std) => std.id === id);
         return s ? s.name : "Alumno Eliminado";
     }
 
+    function formatMonth(monthKey: string) {
+        const [year, month] = monthKey.split("-");
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        return date.toLocaleDateString("es-ES", {
+            month: "long",
+            year: "numeric",
+        });
+    }
+
+    const methodIcons = {
+        cash: Banknote,
+        transfer: Landmark,
+        bizum: Smartphone,
+        other: Wallet,
+    };
+
+    const methodLabels = {
+        cash: "Efectivo",
+        transfer: "Transferencia",
+        bizum: "Bizum",
+        other: "Otro",
+    };
+
+    // --- Actions ---
+
     function handleSubmit() {
-        if (!newPayment.studentId || !newPayment.amount) return;
+        if (!newPayment.studentId || !newPayment.amount) {
+            notifications.error("Faltan datos obligatorios");
+            return;
+        }
 
         const paymentToAdd = {
             ...newPayment,
@@ -75,371 +152,356 @@
         };
 
         storeActions.addPayment(paymentToAdd);
+        notifications.success("Pago registrado correctamente");
 
-        // Reset form
+        // Reset but keep date/amount for convenience? No, better reset.
         newPayment = {
+            ...newPayment,
             id: "",
             studentId: "",
             amount: 30,
             concept: "Mensualidad",
-            date: new Date().toISOString().split("T")[0],
-            method: "cash",
-            notes: "",
+            // Keep Date
         };
         showForm = false;
     }
 
-    function removePayment(id: string) {
-        if (confirm("¿Borrar este registro de pago?")) {
+    function handleDeleteClick(id: string) {
+        confirmTitle = "¿Eliminar pago?";
+        confirmMessage =
+            "Esta acción eliminará el registro financiero permanentemente.";
+        confirmType = "danger";
+        confirmAction = () => {
             storeActions.removePayment(id);
-        }
+            notifications.success("Pago eliminado.");
+        };
+        showConfirmModal = true;
     }
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex justify-between items-center mb-8">
+    <!-- Top Bar -->
+    <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8"
+    >
         <div>
             <h1 class="text-3xl font-bold text-white flex items-center gap-3">
-                <CreditCard class="w-8 h-8 text-teal-400" /> Control de Pagos
+                <CreditCard class="w-8 h-8 text-teal-400" />
+                Finanzas
             </h1>
             <p class="mt-2 text-slate-400">
-                Gestiona los ingresos y cuotas de tus alumnos.
+                Panel de control de ingresos y mensualidades.
             </p>
         </div>
-        <button
-            onclick={() => (showForm = !showForm)}
-            class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
-        >
-            <Plus class="w-5 h-5" />
-            Registrar Pago
-        </button>
+        <div class="flex gap-3">
+            <div class="relative group">
+                <input
+                    bind:value={searchTerm}
+                    type="text"
+                    placeholder="Buscar..."
+                    class="bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-teal-500 w-full md:w-64 transition-all"
+                />
+                <Search
+                    class="absolute left-3 top-2.5 w-4 h-4 text-slate-500 group-focus-within:text-teal-500"
+                />
+            </div>
+            <button
+                onclick={() => (showForm = !showForm)}
+                class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-transform active:scale-95 shadow-lg shadow-teal-900/20"
+            >
+                <Plus class="w-5 h-5" />
+                <span class="hidden sm:inline">Nuevo Ingreso</span>
+            </button>
+        </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6">
-            <p class="text-slate-400 text-sm font-medium">Ingresos Totales</p>
-            <p class="text-3xl font-bold text-white mt-2">
-                {totalRevenue.toLocaleString("es-ES", {
-                    style: "currency",
-                    currency: "EUR",
-                })}
-            </p>
-            <div class="mt-2 text-teal-400 text-xs flex items-center">
-                <TrendingUp class="w-3 h-3 mr-1" /> Acumulado histórico
+    <!-- KPIs Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <!-- Card 1: Total Life Time -->
+        <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl p-6 relative overflow-hidden group hover:border-slate-600 transition-colors"
+        >
+            <div
+                class="absolute right-0 top-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-teal-500/20 transition-all"
+            ></div>
+
+            <div class="relative z-10">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="p-2 bg-slate-700/50 rounded-lg">
+                        <Wallet class="w-5 h-5 text-slate-300" />
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium"
+                        >Ingresos Totales</span
+                    >
+                </div>
+                <div class="text-3xl font-bold text-white tracking-tight">
+                    {totalRevenue.toLocaleString("es-ES", {
+                        style: "currency",
+                        currency: "EUR",
+                    })}
+                </div>
+                <div class="text-xs text-slate-500 mt-2">
+                    Desde el inicio de los tiempos
+                </div>
             </div>
         </div>
-        <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6">
-            <p class="text-slate-400 text-sm font-medium">Pagos Registrados</p>
-            <p class="text-3xl font-bold text-white mt-2">
-                {store.payments.length}
-            </p>
-            <div class="mt-2 text-slate-500 text-xs">Transacciones</div>
+
+        <!-- Card 2: This Month -->
+        <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl p-6 relative overflow-hidden group hover:border-slate-600 transition-colors"
+        >
+            <div
+                class="absolute right-0 bottom-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl -mr-10 -mb-10 group-hover:bg-emerald-500/20 transition-all"
+            ></div>
+
+            <div class="relative z-10">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="p-2 bg-slate-700/50 rounded-lg">
+                        <Calendar class="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium"
+                        >Este Mes ({new Date().toLocaleString("es-ES", {
+                            month: "long",
+                        })})</span
+                    >
+                </div>
+                <div
+                    class="text-3xl font-bold text-white tracking-tight flex items-end gap-3"
+                >
+                    {currentMonthRevenue.toLocaleString("es-ES", {
+                        style: "currency",
+                        currency: "EUR",
+                    })}
+
+                    {#if growth !== 0}
+                        <div
+                            class="flex items-center text-sm mb-1 px-2 py-0.5 rounded-full {growth >=
+                            0
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : 'bg-red-500/20 text-red-400'}"
+                        >
+                            {#if growth >= 0}
+                                <ArrowUpRight class="w-3 h-3 mr-1" />
+                            {:else}
+                                <ArrowDownRight class="w-3 h-3 mr-1" />
+                            {/if}
+                            {Math.abs(Math.round(growth))}%
+                        </div>
+                    {/if}
+                </div>
+                <div class="text-xs text-slate-500 mt-2">vs. mes anterior</div>
+            </div>
         </div>
-        <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6">
-            <p class="text-slate-400 text-sm font-medium">Ticket Medio</p>
-            <p class="text-3xl font-bold text-white mt-2">
-                {(store.payments.length > 0
-                    ? totalRevenue / store.payments.length
-                    : 0
-                ).toLocaleString("es-ES", {
-                    style: "currency",
-                    currency: "EUR",
-                })}
-            </p>
-            <div class="mt-2 text-slate-500 text-xs">Por transacción</div>
+
+        <!-- Card 3: Recent Volume -->
+        <div
+            class="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl p-6 relative overflow-hidden group hover:border-slate-600 transition-colors"
+        >
+            <div
+                class="absolute left-0 bottom-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -ml-10 -mb-10 group-hover:bg-blue-500/20 transition-all"
+            ></div>
+
+            <div class="relative z-10">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="p-2 bg-slate-700/50 rounded-lg">
+                        <FileText class="w-5 h-5 text-blue-400" />
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium"
+                        >Transacciones</span
+                    >
+                </div>
+                <div class="text-3xl font-bold text-white tracking-tight">
+                    {groupedPayments[currentMonthKey]?.length || 0}
+                </div>
+                <div class="text-xs text-slate-500 mt-2">
+                    Registrados este mes
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Form -->
+    <!-- Add Payment Form -->
     {#if showForm}
-        <div
-            transition:slide
-            class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl mx-auto shadow-2xl"
-        >
-            <h3 class="text-lg font-bold text-white mb-4">
-                Registrar Nuevo Ingreso
-            </h3>
-            <div class="space-y-4">
-                <div>
-                    <label
-                        for="payment-student"
-                        class="block text-sm font-medium text-slate-400 mb-1"
-                        >Alumno</label
-                    >
-                    <select
-                        id="payment-student"
-                        bind:value={newPayment.studentId}
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                    >
-                        <option value="">Seleccionar alumno...</option>
-                        {#each store.students as student}
-                            <option value={student.id}>{student.name}</option>
-                        {/each}
-                    </select>
-                </div>
+        <div transition:slide class="mb-10">
+            <div
+                class="bg-slate-900 border border-slate-700 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden"
+            >
+                <!-- Decorative background -->
+                <div
+                    class="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl pointer-events-none"
+                ></div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label
-                            for="payment-amount"
-                            class="block text-sm font-medium text-slate-400 mb-1"
-                            >Cantidad (€)</label
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-white">
+                            Registrar Nuevo Pago
+                        </h2>
+                        <button
+                            onclick={() => (showForm = false)}
+                            class="text-slate-500 hover:text-white transition-colors"
+                            >Cancel</button
                         >
-                        <div class="relative">
-                            <DollarSign
-                                class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
-                            />
-                            <input
-                                id="payment-amount"
-                                type="number"
-                                bind:value={newPayment.amount}
-                                class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white"
-                            />
+                    </div>
+
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                        <!-- Student Selector -->
+                        <div class="space-y-2">
+                            <label
+                                class="text-sm font-semibold text-slate-400 ml-1"
+                                >Alumno</label
+                            >
+                            <select
+                                bind:value={newPayment.studentId}
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                            >
+                                <option value="" disabled
+                                    >Selecciona un alumno</option
+                                >
+                                {#each store.students as student}
+                                    <option value={student.id}
+                                        >{student.name}</option
+                                    >
+                                {/each}
+                            </select>
+                        </div>
+
+                        <!-- Amount & Date -->
+                        <div class="space-y-2">
+                            <label
+                                class="text-sm font-semibold text-slate-400 ml-1"
+                                >Importe y Fecha</label
+                            >
+                            <div class="flex gap-2">
+                                <div class="relative flex-1">
+                                    <span
+                                        class="absolute left-4 top-3 text-slate-500"
+                                        >€</span
+                                    >
+                                    <input
+                                        type="number"
+                                        bind:value={newPayment.amount}
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                                <input
+                                    type="date"
+                                    bind:value={newPayment.date}
+                                    class="w-40 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Method & Concept -->
+                        <div class="space-y-2">
+                            <label
+                                class="text-sm font-semibold text-slate-400 ml-1"
+                                >Detalles</label
+                            >
+                            <div class="flex gap-2">
+                                <select
+                                    bind:value={newPayment.method}
+                                    class="w-36 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                                >
+                                    <option value="cash">Efectivo</option>
+                                    <option value="transfer">Transf.</option>
+                                    <option value="bizum">Bizum</option>
+                                </select>
+                                <input
+                                    type="text"
+                                    bind:value={newPayment.concept}
+                                    placeholder="Concepto (ej: Abril)"
+                                    class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label
-                            for="payment-date"
-                            class="block text-sm font-medium text-slate-400 mb-1"
-                            >Fecha</label
-                        >
-                        <input
-                            id="payment-date"
-                            type="date"
-                            bind:value={newPayment.date}
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                        />
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label
-                            for="payment-concept"
-                            class="block text-sm font-medium text-slate-400 mb-1"
-                            >Concepto</label
+                    <div class="mt-8 flex justify-end">
+                        <button
+                            onclick={handleSubmit}
+                            class="bg-gradient-to-r from-teal-600 to-teal-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-teal-500/20 hover:scale-[1.02] active:scale-95 transition-all text-sm"
                         >
-                        <input
-                            id="payment-concept"
-                            type="text"
-                            bind:value={newPayment.concept}
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                        />
+                            Confirmar Ingreso
+                        </button>
                     </div>
-                    <div>
-                        <label
-                            for="payment-method"
-                            class="block text-sm font-medium text-slate-400 mb-1"
-                            >Método de Pago</label
-                        >
-                        <select
-                            id="payment-method"
-                            bind:value={newPayment.method}
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                        >
-                            <option value="cash">Efectivo</option>
-                            <option value="transfer">Transferencia</option>
-                            <option value="bizum">Bizum</option>
-                            <option value="other">Otro</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-3 mt-6">
-                    <button
-                        onclick={() => (showForm = false)}
-                        class="text-slate-400 hover:text-white px-4 py-2"
-                        >Cancelar</button
-                    >
-                    <button
-                        onclick={handleSubmit}
-                        class="bg-teal-600 hover:bg-teal-500 text-white px-6 py-2 rounded-lg font-medium"
-                        >Guardar Pago</button
-                    >
                 </div>
             </div>
         </div>
     {/if}
 
-    <!-- Transaction History -->
-    <div
-        class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
-    >
-        <!-- Filter Bar -->
-        <div
-            class="p-4 border-b border-slate-700 bg-slate-900/30 flex flex-col md:flex-row gap-4 items-center justify-between"
-        >
-            <div class="flex items-center gap-2 w-full md:w-auto">
-                <div class="relative w-full md:w-64">
-                    <Search
-                        class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
-                    />
-                    <input
-                        bind:value={searchTerm}
-                        type="text"
-                        placeholder="Buscar alumno o concepto..."
-                        class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:border-teal-500 outline-none"
-                    />
+    <!-- Transaction History (Timeline Style) -->
+    <div class="space-y-8">
+        {#each sortedMonths as monthKey}
+            <div in:fade={{ duration: 300 }}>
+                <!-- Month Header -->
+                <div class="flex items-center gap-4 mb-4">
+                    <h3 class="text-lg font-bold text-white capitalize">
+                        {formatMonth(monthKey)}
+                    </h3>
+                    <div class="h-[1px] flex-1 bg-slate-800"></div>
                 </div>
-            </div>
 
-            <div class="flex gap-2 w-full md:w-auto">
-                <div class="relative">
-                    <input
-                        bind:value={filterDate}
-                        type="month"
-                        class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-teal-500 outline-none"
-                    />
-                </div>
-                <select
-                    bind:value={filterMethod}
-                    class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-teal-500 outline-none"
-                >
-                    <option value="all">Todos los métodos</option>
-                    <option value="cash">Efectivo</option>
-                    <option value="transfer">Transferencia</option>
-                    <option value="bizum">Bizum</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-            <!-- Mobile View (Cards) -->
-            <div class="block sm:hidden divide-y divide-slate-700">
-                {#if sortedPayments.length === 0}
-                    <div class="p-8 text-center text-slate-500">
-                        <Search class="w-8 h-8 mx-auto mb-2 opacity-20" />
-                        No se encontraron transacciones.
-                    </div>
-                {:else}
-                    {#each sortedPayments as payment}
-                        <div class="p-4 flex flex-col gap-3">
-                            <div class="flex items-start justify-between">
+                <!-- Transaction List for Month -->
+                <div class="space-y-3">
+                    {#each groupedPayments[monthKey] as payment (payment.id)}
+                        <div
+                            class="group bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 rounded-2xl p-4 flex items-center justify-between transition-all duration-200"
+                        >
+                            <!-- Left: Icon & Info -->
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="w-12 h-12 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-400 group-hover:text-white group-hover:bg-slate-700 transition-colors"
+                                >
+                                    <svelte:component
+                                        this={methodIcons[payment.method]}
+                                        class="w-5 h-5"
+                                    />
+                                </div>
                                 <div>
-                                    <div class="font-medium text-white text-lg">
+                                    <div
+                                        class="font-bold text-slate-200 group-hover:text-white"
+                                    >
                                         {getStudentName(payment.studentId)}
                                     </div>
                                     <div
-                                        class="text-xs text-slate-400 font-mono mt-0.5"
+                                        class="text-xs text-slate-500 flex items-center gap-2"
                                     >
-                                        {payment.date}
+                                        <span
+                                            >{new Date(
+                                                payment.date,
+                                            ).toLocaleDateString()}</span
+                                        >
+                                        <span
+                                            class="w-1 h-1 rounded-full bg-slate-600"
+                                        ></span>
+                                        <span class="capitalize"
+                                            >{payment.concept}</span
+                                        >
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Right: Amount & Actions -->
+                            <div class="flex items-center gap-6">
                                 <div class="text-right">
                                     <div
-                                        class="font-bold text-teal-400 text-lg"
+                                        class="font-bold text-emerald-400 text-lg"
                                     >
-                                        +{payment.amount} €
+                                        +{payment.amount}€
                                     </div>
-                                    <span
-                                        class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded uppercase font-bold border border-slate-700 inline-block mt-1"
+                                    <div
+                                        class="text-[10px] text-slate-500 uppercase font-bold tracking-wider"
                                     >
-                                        {payment.method}
-                                    </span>
+                                        {methodLabels[payment.method]}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div
-                                class="text-sm text-slate-300 bg-slate-800/50 p-2 rounded border border-slate-700/50"
-                            >
-                                {payment.concept}
-                            </div>
-
-                            <div
-                                class="flex items-center justify-end gap-2 mt-1"
-                            >
-                                <button
-                                    type="button"
-                                    onclick={() =>
-                                        exportReceiptPDF(
-                                            payment,
-                                            getStudentName(payment.studentId),
-                                        )}
-                                    class="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-teal-400 hover:bg-teal-500/20 transition-colors flex-1 flex justify-center items-center gap-2 text-sm font-medium"
-                                >
-                                    <FileText class="w-4 h-4" /> Recibo
-                                </button>
-                                <button
-                                    type="button"
-                                    onclick={() => removePayment(payment.id)}
-                                    class="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/20 transition-colors flex-1 flex justify-center items-center gap-2 text-sm font-medium"
-                                >
-                                    <Trash2 class="w-4 h-4" /> Eliminar
-                                </button>
-                            </div>
-                        </div>
-                    {/each}
-                {/if}
-            </div>
-
-            <!-- Desktop View (Table) -->
-            <table class="w-full text-left hidden sm:table">
-                <thead class="bg-slate-900/50">
-                    <tr>
-                        <th class="p-4 text-slate-400 font-medium text-sm"
-                            >Fecha</th
-                        >
-                        <th class="p-4 text-slate-400 font-medium text-sm"
-                            >Alumno</th
-                        >
-                        <th class="p-4 text-slate-400 font-medium text-sm"
-                            >Concepto</th
-                        >
-                        <th class="p-4 text-slate-400 font-medium text-sm"
-                            >Método</th
-                        >
-                        <th
-                            class="p-4 text-slate-400 font-medium text-sm text-right"
-                            >Cantidad</th
-                        >
-                        <th
-                            class="p-4 text-slate-400 font-medium text-sm text-center"
-                            >Acciones</th
-                        >
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-700">
-                    {#if sortedPayments.length === 0}
-                        <tr>
-                            <td
-                                colspan="6"
-                                class="p-12 text-center text-slate-500"
-                            >
-                                <Search
-                                    class="w-8 h-8 mx-auto mb-2 opacity-20"
-                                />
-                                No se encontraron transacciones.
-                            </td>
-                        </tr>
-                    {:else}
-                        {#each sortedPayments as payment}
-                            <tr
-                                class="hover:bg-slate-800/50 transition-colors group"
-                            >
-                                <td class="p-4 text-slate-300 font-mono text-sm"
-                                    >{payment.date}</td
-                                >
-                                <td class="p-4 font-medium text-white"
-                                    >{getStudentName(payment.studentId)}</td
-                                >
-                                <td class="p-4 text-slate-400 text-sm"
-                                    >{payment.concept}</td
-                                >
-                                <td class="p-4">
-                                    <span
-                                        class="bg-slate-800 text-slate-400 text-xs px-2 py-1 rounded uppercase font-bold border border-slate-700"
-                                    >
-                                        {payment.method}
-                                    </span>
-                                </td>
-                                <td
-                                    class="p-4 text-right font-bold text-teal-400"
-                                >
-                                    +{payment.amount} €
-                                </td>
-                                <td
-                                    class="p-4 flex items-center justify-center gap-2"
+                                <!-- Hover Actions -->
+                                <div
+                                    class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0"
                                 >
                                     <button
                                         onclick={() =>
@@ -449,25 +511,45 @@
                                                     payment.studentId,
                                                 ),
                                             )}
-                                        class="p-2 text-slate-500 hover:text-teal-400 transition-colors rounded-lg hover:bg-teal-500/10"
+                                        class="p-2 hover:bg-slate-600 rounded-lg text-slate-400 hover:text-white transition-colors"
                                         title="Descargar Recibo"
                                     >
                                         <FileText class="w-4 h-4" />
                                     </button>
                                     <button
                                         onclick={() =>
-                                            removePayment(payment.id)}
-                                        class="p-2 text-slate-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
-                                        title="Eliminar registro"
+                                            handleDeleteClick(payment.id)}
+                                        class="p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                                        title="Eliminar"
                                     >
                                         <Trash2 class="w-4 h-4" />
                                     </button>
-                                </td>
-                            </tr>
-                        {/each}
-                    {/if}
-                </tbody>
-            </table>
-        </div>
+                                </div>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            </div>
+        {/each}
+
+        {#if sortedMonths.length === 0}
+            <div class="text-center py-20 text-slate-500">
+                <div
+                    class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"
+                >
+                    <Search class="w-8 h-8 opacity-50" />
+                </div>
+                <p>No se encontraron transacciones.</p>
+            </div>
+        {/if}
     </div>
 </div>
+
+<ConfirmationModal
+    bind:isOpen={showConfirmModal}
+    title={confirmTitle}
+    message={confirmMessage}
+    confirmText="Eliminar"
+    type={confirmType}
+    on:confirm={confirmAction}
+/>
