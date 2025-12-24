@@ -19,6 +19,7 @@
         X,
         GraduationCap,
         CalendarCheck,
+        ClipboardCheck,
         TrendingUp,
         Award,
         Save,
@@ -30,6 +31,51 @@
     import { fireConfetti } from "$lib/utils/confetti";
 
     $: store = $appStore;
+
+    // Stats Logic
+    $: totalStudents = store.students.length;
+
+    // Attendance
+    $: averageAttendance = (() => {
+        if (store.attendance.length === 0) return 0;
+        let total = 0;
+        let present = 0;
+        store.attendance.forEach((record) => {
+            total += record.records.length;
+            present += record.records.filter(
+                (r) => r.status === "present",
+            ).length;
+        });
+        return total > 0 ? Math.round((present / total) * 100) : 0;
+    })();
+
+    // Level Distribution
+    $: mainLevel = (() => {
+        if (store.students.length === 0) return "N/A";
+        // Create a type-safe object with index signature
+        const counts: Record<string, number> = {
+            Pawn: 0,
+            Bishop: 0,
+            Rook: 0,
+            King: 0,
+        };
+        store.students.forEach((s) => {
+            const l = s.level;
+            if (counts[l] !== undefined) counts[l]++;
+        });
+        // Find max
+        const entries = Object.entries(counts);
+        entries.sort((a, b) => b[1] - a[1]);
+        const top = entries[0];
+
+        const translations: Record<string, string> = {
+            Pawn: "Peón",
+            Bishop: "Alfil",
+            Rook: "Torre",
+            King: "Rey",
+        };
+        return translations[top[0]] || top[0];
+    })();
 
     let searchTerm = "";
 
@@ -416,6 +462,102 @@
                 <UserPlus class="w-5 h-5 mr-2" />
                 Nuevo Alumno
             </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div
+            class="bg-[#1e293b] border border-slate-700 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/50 transition-colors"
+        >
+            <div
+                class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+                <Users class="w-12 h-12 text-emerald-500" />
+            </div>
+            <p
+                class="text-slate-400 text-xs font-bold uppercase tracking-wider"
+            >
+                Total Alumnos
+            </p>
+            <div>
+                <span class="text-3xl font-bold text-white block mt-1"
+                    >{totalStudents}</span
+                >
+                <span class="text-xs text-emerald-400 font-medium">Activos</span
+                >
+            </div>
+        </div>
+
+        <div
+            class="bg-[#1e293b] border border-slate-700 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/50 transition-colors"
+        >
+            <div
+                class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+                <TrendingUp class="w-12 h-12 text-blue-500" />
+            </div>
+            <p
+                class="text-slate-400 text-xs font-bold uppercase tracking-wider"
+            >
+                Nivel Dominante
+            </p>
+            <div>
+                <span class="text-2xl font-bold text-white block mt-1"
+                    >{mainLevel}</span
+                >
+                <span class="text-xs text-blue-400 font-medium"
+                    >Mayoría del grupo</span
+                >
+            </div>
+        </div>
+
+        <div
+            class="bg-[#1e293b] border border-slate-700 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden group hover:border-pink-500/50 transition-colors"
+        >
+            <div
+                class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+                <ClipboardCheck class="w-12 h-12 text-pink-500" />
+            </div>
+            <p
+                class="text-slate-400 text-xs font-bold uppercase tracking-wider"
+            >
+                Asistencia
+            </p>
+            <div>
+                <span class="text-3xl font-bold text-white block mt-1"
+                    >{averageAttendance}%</span
+                >
+                <span
+                    class="text-xs {averageAttendance > 80
+                        ? 'text-emerald-400'
+                        : 'text-amber-400'} font-medium">Promedio Global</span
+                >
+            </div>
+        </div>
+
+        <div
+            class="bg-[#1e293b] border border-slate-700 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden group hover:border-purple-500/50 transition-colors"
+        >
+            <div
+                class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+                <GraduationCap class="w-12 h-12 text-purple-500" />
+            </div>
+            <p
+                class="text-slate-400 text-xs font-bold uppercase tracking-wider"
+            >
+                Clases
+            </p>
+            <div>
+                <span class="text-3xl font-bold text-white block mt-1"
+                    >{store.classes.length}</span
+                >
+                <span class="text-xs text-purple-400 font-medium"
+                    >Grupos activos</span
+                >
+            </div>
         </div>
     </div>
 

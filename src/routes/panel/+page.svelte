@@ -672,7 +672,9 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <!-- 1. Header & Welcome -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 pt-6">
+    <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 pt-6"
+    >
         <div>
             <h1 class="text-3xl font-bold text-white flex items-center gap-2">
                 Hola, Profe <span class="animate-pulse">👋</span>
@@ -681,9 +683,17 @@
                 Aquí tienes el resumen de tu academia hoy.
             </p>
         </div>
-        <div class="mt-4 md:mt-0 text-left md:text-right bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50">
-            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Hoy es</p>
-            <p class="text-xl font-bold text-white capitalize flex items-center gap-2">
+        <div
+            class="mt-4 md:mt-0 text-left md:text-right bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50"
+        >
+            <p
+                class="text-xs text-slate-400 uppercase font-bold tracking-wider"
+            >
+                Hoy es
+            </p>
+            <p
+                class="text-xl font-bold text-white capitalize flex items-center gap-2"
+            >
                 <Calendar class="w-5 h-5 text-indigo-400" />
                 {today}
             </p>
@@ -723,32 +733,46 @@
                     ontouchmove={handleTouchMove}
                     ontouchend={handleTouchEnd}
                     data-action-id={action.id}
-                    class="relative transition-all duration-200 {draggedItem?.id === action.id ? 'scale-105 z-10 opacity-50' : ''}"
+                    class="relative transition-all duration-200 {draggedItem?.id ===
+                    action.id
+                        ? 'scale-105 z-10 opacity-50'
+                        : ''}"
                     role="listitem"
                 >
                     <button
-                        onclick={() => !isEditingLayout && navigate(action.link)}
-                        class="group flex flex-col items-center justify-center p-4 bg-[#1e293b] hover:bg-slate-800 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300 w-full aspect-square md:aspect-auto md:h-32 shadow-lg hover:shadow-xl hover:-translate-y-1 relative {isEditingLayout ? 'cursor-move border-dashed border-slate-500' : 'cursor-pointer'}"
+                        onclick={() =>
+                            !isEditingLayout && navigate(action.link)}
+                        class="group flex flex-col items-center justify-center p-4 bg-[#1e293b] hover:bg-slate-800 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300 w-full aspect-square md:aspect-auto md:h-32 shadow-lg hover:shadow-xl hover:-translate-y-1 relative {isEditingLayout
+                            ? 'cursor-move border-dashed border-slate-500'
+                            : 'cursor-pointer'}"
                     >
                         {#if action.badge}
-                            <span class="absolute top-2 right-2 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">
+                            <span
+                                class="absolute top-2 right-2 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10"
+                            >
                                 {action.badge}
                             </span>
                         {/if}
-                        
-                        <div class="p-3 bg-slate-900/50 rounded-xl mb-3 group-hover:scale-110 transition-transform duration-300">
+
+                        <div
+                            class="p-3 bg-slate-900/50 rounded-xl mb-3 group-hover:scale-110 transition-transform duration-300"
+                        >
                             <svelte:component
                                 this={action.icon}
                                 class="w-6 h-6 {action.color}"
                             />
                         </div>
-                        
-                        <span class="text-sm font-semibold text-slate-300 group-hover:text-white text-center leading-tight">
+
+                        <span
+                            class="text-sm font-semibold text-slate-300 group-hover:text-white text-center leading-tight"
+                        >
                             {action.title}
                         </span>
-                        
+
                         {#if isEditingLayout}
-                            <div class="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center">
+                            <div
+                                class="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center"
+                            >
                                 <GripVertical class="w-6 h-6 text-white/80" />
                             </div>
                         {/if}
@@ -760,32 +784,46 @@
 
     <!-- 3. Command Center (Alerts & Activity) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-        
         <!-- Left: Priority Alerts & Today's Schedule -->
         <div class="lg:col-span-2 space-y-8">
-            
             <!-- Smart Alerts -->
             {#if alerts.length > 0 || pendingTasks.length > 0}
                 <div class="space-y-3">
-                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <h3
+                        class="text-lg font-bold text-white flex items-center gap-2"
+                    >
                         <Bell class="w-5 h-5 text-amber-500" />
                         Atención Requerida
                     </h3>
-                    
+
                     {#if pendingTasks.length > 0}
                         {#each pendingTasks.slice(0, 3) as task}
-                            <div class="bg-slate-800/40 border-l-4 border-{task.color}-500 rounded-r-xl p-4 flex items-center justify-between hover:bg-slate-800/60 transition-colors">
+                            <div
+                                class="bg-slate-800/40 border-l-4 border-{task.color}-500 rounded-r-xl p-4 flex items-center justify-between hover:bg-slate-800/60 transition-colors"
+                            >
                                 <div class="flex items-center gap-4">
                                     <div class="p-2 bg-slate-900 rounded-lg">
-                                        <svelte:component this={task.icon} class="w-5 h-5 text-{task.color}-500" />
+                                        <svelte:component
+                                            this={task.icon}
+                                            class="w-5 h-5 text-{task.color}-500"
+                                        />
                                     </div>
                                     <div>
-                                        <p class="font-bold text-slate-200 text-sm">{task.title}</p>
-                                        <p class="text-xs text-slate-500">{task.subtitle}</p>
+                                        <p
+                                            class="font-bold text-slate-200 text-sm"
+                                        >
+                                            {task.title}
+                                        </p>
+                                        <p class="text-xs text-slate-500">
+                                            {task.subtitle}
+                                        </p>
                                     </div>
                                 </div>
-                                <button 
-                                    onclick={() => navigate(`${task.link}${task.linkParams || ''}`)}
+                                <button
+                                    onclick={() =>
+                                        navigate(
+                                            `${task.link}${task.linkParams || ""}`,
+                                        )}
                                     class="text-xs font-bold bg-{task.color}-500/10 text-{task.color}-400 px-3 py-1.5 rounded-lg hover:bg-{task.color}-500/20 transition-colors"
                                 >
                                     {task.action}
@@ -795,12 +833,16 @@
                     {/if}
 
                     {#each alerts.slice(0, 2) as alert}
-                        <div class="bg-slate-800/40 border-l-4 border-amber-500 rounded-r-xl p-4 flex items-center justify-between">
+                        <div
+                            class="bg-slate-800/40 border-l-4 border-amber-500 rounded-r-xl p-4 flex items-center justify-between"
+                        >
                             <div class="flex items-center gap-3">
                                 <AlertTriangle class="w-5 h-5 text-amber-500" />
-                                <span class="text-sm text-slate-300 font-medium">{alert.message}</span>
+                                <span class="text-sm text-slate-300 font-medium"
+                                    >{alert.message}</span
+                                >
                             </div>
-                            <button 
+                            <button
                                 onclick={() => navigate(alert.link)}
                                 class="text-xs font-bold text-amber-500 hover:text-amber-400"
                             >
@@ -813,45 +855,70 @@
 
             <!-- Today's Classes -->
             <div>
-                <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
+                <h3
+                    class="text-lg font-bold text-white flex items-center gap-2 mb-4"
+                >
                     <Clock class="w-5 h-5 text-emerald-500" />
                     Clases de Hoy
                 </h3>
-                
+
                 {#if todaysClasses.length === 0}
-                    <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-8 text-center">
-                        <div class="inline-block p-4 bg-slate-800 rounded-full mb-3">
+                    <div
+                        class="bg-[#1e293b] border border-slate-700 rounded-2xl p-8 text-center"
+                    >
+                        <div
+                            class="inline-block p-4 bg-slate-800 rounded-full mb-3"
+                        >
                             <Calendar class="w-8 h-8 text-slate-500" />
                         </div>
                         <p class="text-slate-300 font-medium">¡Día libre! 🎉</p>
-                        <p class="text-sm text-slate-500 mt-1">No tienes clases programadas para hoy.</p>
-                        <button onclick={() => navigate('clases')} class="mt-4 text-sm text-indigo-400 hover:text-indigo-300 font-medium">
+                        <p class="text-sm text-slate-500 mt-1">
+                            No tienes clases programadas para hoy.
+                        </p>
+                        <button
+                            onclick={() => navigate("clases")}
+                            class="mt-4 text-sm text-indigo-400 hover:text-indigo-300 font-medium"
+                        >
                             Ver horario completo →
                         </button>
                     </div>
                 {:else}
                     <div class="grid gap-4">
                         {#each todaysClasses as cls}
-                            <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div
+                                class="bg-[#1e293b] border border-slate-700 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                            >
                                 <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-xl border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                                    <div
+                                        class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-xl border border-emerald-500/20 group-hover:scale-105 transition-transform"
+                                    >
                                         {cls.name.charAt(0)}
                                     </div>
                                     <div>
-                                        <h4 class="font-bold text-white text-lg">{cls.name}</h4>
-                                        <div class="flex items-center gap-3 text-sm text-slate-400 mt-1">
-                                            <span class="flex items-center gap-1">
+                                        <h4
+                                            class="font-bold text-white text-lg"
+                                        >
+                                            {cls.name}
+                                        </h4>
+                                        <div
+                                            class="flex items-center gap-3 text-sm text-slate-400 mt-1"
+                                        >
+                                            <span
+                                                class="flex items-center gap-1"
+                                            >
                                                 <Clock class="w-3.5 h-3.5" />
                                                 {cls.schedule}
                                             </span>
-                                            <span class="flex items-center gap-1">
+                                            <span
+                                                class="flex items-center gap-1"
+                                            >
                                                 <Users class="w-3.5 h-3.5" />
                                                 {cls.students.length} alumnos
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                                <a 
+                                <a
                                     href="{base}/panel/asistencia?classId={cls.id}"
                                     class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-emerald-900/20 text-center"
                                 >
@@ -862,41 +929,76 @@
                     </div>
                 {/if}
             </div>
-            
+
             <!-- Quick Stats Row -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                 <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
-                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">Alumnos</p>
-                    <p class="text-2xl font-bold text-white">{store.students.length}</p>
-                    <p class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-                         <TrendingUp class="w-3 h-3" /> Activos
+                <div
+                    class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50"
+                >
+                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">
+                        Alumnos
                     </p>
-                 </div>
-                 <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
-                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">Ingresos (Mes)</p>
-                    <p class="text-2xl font-bold text-white">{totalRevenueCurrentMonth}€</p>
-                    <p class="text-xs {revenueTrend >= 0 ? 'text-emerald-400' : 'text-red-400'} mt-1 flex items-center gap-1">
-                         {#if revenueTrend >= 0}<TrendingUp class="w-3 h-3" />{:else}<TrendingDown class="w-3 h-3" />{/if}
-                         {Math.round(revenueTrend)}% vs mes ant.
+                    <p class="text-2xl font-bold text-white">
+                        {store.students.length}
                     </p>
-                 </div>
-                 <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
-                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">Asistencia</p>
-                    <p class="text-2xl font-bold text-white">{averageAttendance}%</p>
+                    <p
+                        class="text-xs text-emerald-400 mt-1 flex items-center gap-1"
+                    >
+                        <TrendingUp class="w-3 h-3" /> Activos
+                    </p>
+                </div>
+                <div
+                    class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50"
+                >
+                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">
+                        Ingresos (Mes)
+                    </p>
+                    <p class="text-2xl font-bold text-white">
+                        {totalRevenueCurrentMonth}€
+                    </p>
+                    <p
+                        class="text-xs {revenueTrend >= 0
+                            ? 'text-emerald-400'
+                            : 'text-red-400'} mt-1 flex items-center gap-1"
+                    >
+                        {#if revenueTrend >= 0}<TrendingUp
+                                class="w-3 h-3"
+                            />{:else}<TrendingDown class="w-3 h-3" />{/if}
+                        {Math.round(revenueTrend)}% vs mes ant.
+                    </p>
+                </div>
+                <div
+                    class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50"
+                >
+                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">
+                        Asistencia
+                    </p>
+                    <p class="text-2xl font-bold text-white">
+                        {averageAttendance}%
+                    </p>
                     <p class="text-xs text-blue-400 mt-1">Promedio global</p>
-                 </div>
-                 <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
-                     <p class="text-slate-500 text-xs font-bold uppercase mb-1">Próx. Torneo</p>
-                     {#if store.tournaments.filter(t => t.status === 'Upcoming').length > 0}
-                        {@const next = store.tournaments.filter(t => t.status === 'Upcoming')[0]}
-                        <p class="text-lg font-bold text-white truncate">{next.name}</p>
-                        <p class="text-xs text-orange-400 mt-1">{daysTill(next.date)} días</p>
-                     {:else}
+                </div>
+                <div
+                    class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50"
+                >
+                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">
+                        Próx. Torneo
+                    </p>
+                    {#if store.tournaments.filter((t) => t.status === "Upcoming").length > 0}
+                        {@const next = store.tournaments.filter(
+                            (t) => t.status === "Upcoming",
+                        )[0]}
+                        <p class="text-lg font-bold text-white truncate">
+                            {next.name}
+                        </p>
+                        <p class="text-xs text-orange-400 mt-1">
+                            {daysTill(next.date)} días
+                        </p>
+                    {:else}
                         <p class="text-lg font-bold text-slate-500">—</p>
-                     {/if}
-                 </div>
+                    {/if}
+                </div>
             </div>
-
         </div>
 
         <!-- Right: Recent Activity Feed -->
@@ -905,8 +1007,10 @@
                 <Activity class="w-5 h-5 text-blue-500" />
                 Actividad Reciente
             </h3>
-            
-            <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+
+            <div
+                class="bg-[#1e293b] border border-slate-700 rounded-2xl p-2 max-h-[500px] overflow-y-auto custom-scrollbar"
+            >
                 {#if recentActivity.length === 0}
                     <div class="p-8 text-center text-slate-500 text-sm">
                         No hay actividad reciente.
@@ -914,14 +1018,23 @@
                 {:else}
                     <div class="divide-y divide-slate-800">
                         {#each recentActivity as item}
-                            <div class="p-4 flex gap-4 hover:bg-slate-800/30 transition-colors rounded-xl">
+                            <div
+                                class="p-4 flex gap-4 hover:bg-slate-800/30 transition-colors rounded-xl"
+                            >
                                 <div class="mt-1">
-                                    <div class="w-8 h-8 rounded-full bg-{item.color}-500/20 flex items-center justify-center border border-{item.color}-500/30">
-                                        <svelte:component this={item.icon} class="w-4 h-4 text-{item.color}-500" />
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-{item.color}-500/20 flex items-center justify-center border border-{item.color}-500/30"
+                                    >
+                                        <svelte:component
+                                            this={item.icon}
+                                            class="w-4 h-4 text-{item.color}-500"
+                                        />
                                     </div>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-slate-300 font-medium leading-snug">
+                                    <p
+                                        class="text-sm text-slate-300 font-medium leading-snug"
+                                    >
                                         {item.description}
                                     </p>
                                     <p class="text-xs text-slate-500 mt-1">
@@ -935,13 +1048,22 @@
             </div>
 
             <!-- Optional: Evaluation / Progression Widget could go here in future -->
-            <div class="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-2xl p-6 border border-indigo-500/30 text-center">
-                 <Trophy class="w-10 h-10 text-yellow-400 mx-auto mb-3" />
-                 <h4 class="text-white font-bold mb-1">¡Nuevo Logro Desbloqueado?</h4>
-                 <p class="text-sm text-indigo-200 mb-4">Revisa si has subido de nivel como entrenador.</p>
-                 <button onclick={() => navigate('logros')} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all w-full">
-                     Ver Mis Logros
-                 </button>
+            <div
+                class="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-2xl p-6 border border-indigo-500/30 text-center"
+            >
+                <Trophy class="w-10 h-10 text-yellow-400 mx-auto mb-3" />
+                <h4 class="text-white font-bold mb-1">
+                    ¡Nuevo Logro Desbloqueado?
+                </h4>
+                <p class="text-sm text-indigo-200 mb-4">
+                    Revisa si has subido de nivel como entrenador.
+                </p>
+                <button
+                    onclick={() => navigate("logros")}
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all w-full"
+                >
+                    Ver Mis Logros
+                </button>
             </div>
         </div>
     </div>
@@ -967,459 +1089,4 @@
             />
         </div>
     </div>
-</div>
-                {#if recentStudents > 0}
-                    <div class="flex items-center gap-2 mt-2">
-                        <span
-                            class="text-emerald-500 text-xs flex items-center font-medium"
-                        >
-                            <ArrowUpRight class="w-3 h-3 mr-1" />
-                            +{recentStudents} recientes
-                        </span>
-                    </div>
-                {:else}
-                    <p class="text-slate-500 text-xs mt-2 font-medium">
-                        Matriculados
-                    </p>
-                {/if}
-            </div>
-            <div class="bg-emerald-500/10 p-3 rounded-xl">
-                <Users class="w-6 h-6 text-emerald-500" />
-            </div>
-        </div>
-
-        <!-- Clases -->
-        <div
-            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
-        >
-            <div class="flex-1">
-                <p class="text-slate-400 text-sm font-medium">
-                    Grupos / Clases
-                </p>
-                <p class="text-3xl font-bold text-white mt-2">
-                    {store.classes.length}
-                </p>
-                <p class="text-slate-500 text-xs mt-2 font-medium">
-                    En funcionamiento
-                </p>
-            </div>
-            <div class="bg-purple-500/10 p-3 rounded-xl">
-                <BookOpen class="w-6 h-6 text-purple-500" />
-            </div>
-        </div>
-
-        <!-- Asistencia Promedio (NUEVO) -->
-        <div
-            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
-        >
-            <div class="flex-1">
-                <p class="text-slate-400 text-sm font-medium">
-                    Asistencia Promedio
-                </p>
-                <p class="text-3xl font-bold text-white mt-2">
-                    {averageAttendance}%
-                </p>
-                <div class="flex items-center gap-2 mt-2">
-                    {#if averageAttendance >= 90}
-                        <span
-                            class="text-emerald-500 text-xs flex items-center font-medium"
-                        >
-                            <TrendingUp class="w-3 h-3 mr-1" />
-                            Excelente
-                        </span>
-                    {:else if averageAttendance >= 70}
-                        <span
-                            class="text-blue-500 text-xs flex items-center font-medium"
-                        >
-                            <Activity class="w-3 h-3 mr-1" />
-                            Buena
-                        </span>
-                    {:else}
-                        <span
-                            class="text-amber-500 text-xs flex items-center font-medium"
-                        >
-                            <AlertTriangle class="w-3 h-3 mr-1" />
-                            Mejorable
-                        </span>
-                    {/if}
-                </div>
-            </div>
-            <div class="bg-pink-500/10 p-3 rounded-xl">
-                <ClipboardCheck class="w-6 h-6 text-pink-500" />
-            </div>
-        </div>
-
-        <!-- Ingresos -->
-        <div
-            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
-        >
-            <div class="flex-1">
-                <p class="text-slate-400 text-sm font-medium">
-                    Ingresos Totales
-                </p>
-                <p class="text-3xl font-bold text-white mt-2">
-                    {totalRevenue}€
-                </p>
-                {#if revenueThisMonth > 0}
-                    <div class="flex items-center gap-2 mt-2">
-                        <span
-                            class="text-emerald-500 text-xs flex items-center font-medium"
-                        >
-                            <TrendingUp class="w-3 h-3 mr-1" />
-                            {revenueThisMonth}€ este mes
-                        </span>
-                    </div>
-                {:else}
-                    <p class="text-slate-500 text-xs mt-2 font-medium">
-                        Acumulado
-                    </p>
-                {/if}
-            </div>
-            <div class="bg-teal-500/10 p-3 rounded-xl">
-                <CreditCard class="w-6 h-6 text-teal-500" />
-            </div>
-        </div>
-    </div>
-
-    <!-- Calendar Layout -->
-    <CalendarWidget />
-
-    <!-- Mid Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Sesiones de Hoy -->
-        <div
-            class="lg:col-span-2 bg-[#1e293b] rounded-2xl border border-slate-800 p-6 h-80 flex flex-col"
-        >
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">
-                    Sesiones de Hoy ({currentDayName})
-                </h3>
-                <span class="text-xs text-slate-500 flex items-center">
-                    <Clock class="w-3 h-3 mr-1" />
-                    {todaysClasses.length} programadas hoy
-                </span>
-            </div>
-
-            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-3">
-                {#if todaysClasses.length === 0}
-                    <div
-                        class="h-full flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-800 rounded-xl"
-                    >
-                        <Calendar class="w-12 h-12 mb-4 opacity-50" />
-                        <p>No hay clases para hoy</p>
-                    </div>
-                {:else}
-                    {#each todaysClasses as cls}
-                        <button
-                            class="w-full text-left bg-slate-900/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center hover:bg-slate-800 transition-colors cursor-pointer"
-                            onclick={() => navigate("classes")}
-                        >
-                            <div>
-                                <h4 class="font-bold text-white">{cls.name}</h4>
-                                <p
-                                    class="text-sm text-slate-400 flex items-center gap-2"
-                                >
-                                    <Clock class="w-3 h-3" />
-                                    {cls.schedule}
-                                </p>
-                            </div>
-                            <div class="text-right">
-                                <span
-                                    class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-2 py-1 rounded-full border border-emerald-500/20"
-                                >
-                                    {cls.level === "Pawn"
-                                        ? "Peón"
-                                        : cls.level === "Bishop"
-                                          ? "Alfil"
-                                          : cls.level === "Rook"
-                                            ? "Torre"
-                                            : cls.level === "King"
-                                              ? "Rey"
-                                              : cls.level}
-                                </span>
-                                <p class="text-xs text-slate-500 mt-1">
-                                    {cls.students.length} alumnos
-                                </p>
-                            </div>
-                        </button>
-                    {/each}
-                {/if}
-            </div>
-        </div>
-
-        <!-- Alertas Inteligentes (NUEVO) -->
-        <div
-            class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6 h-80 flex flex-col"
-        >
-            <div class="flex justify-between items-center mb-6">
-                <h3
-                    class="text-lg font-bold text-white flex items-center gap-2"
-                >
-                    <Bell class="w-5 h-5 text-amber-500" />
-                    Alertas
-                </h3>
-                {#if alerts.length > 0}
-                    <span
-                        class="bg-amber-500/10 text-amber-400 text-xs font-bold px-2 py-1 rounded-full"
-                    >
-                        {alerts.length}
-                    </span>
-                {/if}
-            </div>
-
-            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-3">
-                {#if alerts.length === 0}
-                    <div
-                        class="h-full flex flex-col items-center justify-center text-slate-500"
-                    >
-                        <CheckCircle
-                            class="w-12 h-12 mb-4 opacity-50 text-emerald-500"
-                        />
-                        <p class="text-sm">Todo en orden</p>
-                    </div>
-                {:else}
-                    {#each alerts as alert}
-                        <div
-                            class="bg-{alert.type === 'warning'
-                                ? 'amber'
-                                : 'blue'}-500/10 border border-{alert.type ===
-                            'warning'
-                                ? 'amber'
-                                : 'blue'}-500/30 rounded-xl p-4"
-                        >
-                            <div class="flex items-start gap-3">
-                                <AlertTriangle
-                                    class="w-5 h-5 text-{alert.type ===
-                                    'warning'
-                                        ? 'amber'
-                                        : 'blue'}-500 flex-shrink-0 mt-0.5"
-                                />
-                                <div class="flex-1">
-                                    <p
-                                        class="text-{alert.type === 'warning'
-                                            ? 'amber'
-                                            : 'blue'}-400 font-medium text-sm"
-                                    >
-                                        {alert.message}
-                                    </p>
-                                    <button
-                                        onclick={() => navigate(alert.link)}
-                                        class="text-xs text-{alert.type ===
-                                        'warning'
-                                            ? 'amber'
-                                            : 'blue'}-300 hover:underline mt-1 cursor-pointer"
-                                    >
-                                        {alert.action} →
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    {/each}
-                {/if}
-            </div>
-        </div>
-    </div>
-
-    <!-- Nueva fila: Actividad Reciente + Próximos Eventos -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Actividad Reciente (Mejorado) -->
-        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3
-                    class="text-lg font-bold text-white flex items-center gap-2"
-                >
-                    <Activity class="w-5 h-5 text-cyan-500" />
-                    Actividad Reciente
-                </h3>
-            </div>
-
-            <div class="space-y-3">
-                {#if recentActivity.length === 0}
-                    <p class="text-slate-500 text-center py-8 text-sm">
-                        Sin actividad reciente
-                    </p>
-                {:else}
-                    {#each recentActivity as activity}
-                        <div
-                            class="flex items-start gap-3 text-sm p-3 bg-slate-900/30 rounded-lg hover:bg-slate-900/50 transition-colors"
-                        >
-                            <div
-                                class="w-8 h-8 rounded-full bg-{activity.color}-500/10 flex items-center justify-center flex-shrink-0"
-                            >
-                                <svelte:component
-                                    this={activity.icon}
-                                    class="w-4 h-4 text-{activity.color}-500"
-                                />
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-slate-300 truncate">
-                                    {activity.description}
-                                </p>
-                                <p class="text-xs text-slate-500 mt-0.5">
-                                    {activity.timeAgo}
-                                </p>
-                            </div>
-                        </div>
-                    {/each}
-                {/if}
-            </div>
-        </div>
-
-        <!-- Tareas Pendientes (NUEVO) -->
-        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3
-                    class="text-lg font-bold text-white flex items-center gap-2"
-                >
-                    <CheckCircle class="w-5 h-5 text-cyan-500" />
-                    Tareas Pendientes
-                </h3>
-                {#if pendingTasks.length > 0}
-                    <span
-                        class="bg-cyan-500/10 text-cyan-400 text-xs font-bold px-2 py-1 rounded-full"
-                    >
-                        {pendingTasks.length}
-                    </span>
-                {/if}
-            </div>
-
-            <div class="space-y-3">
-                {#if pendingTasks.length === 0}
-                    <div class="text-center py-8 text-slate-500">
-                        <CheckCircle
-                            class="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-500"
-                        />
-                        <p class="text-sm font-medium text-emerald-400">
-                            ¡Todo al día!
-                        </p>
-                        <p class="text-xs mt-1">No hay tareas pendientes</p>
-                    </div>
-                {:else}
-                    {#each pendingTasks as task}
-                        <div
-                            class="bg-slate-900/30 p-4 rounded-lg border border-{task.color}-500/30 hover:border-{task.color}-500/50 transition-colors group"
-                        >
-                            <div class="flex items-start gap-3">
-                                <!-- Priority indicator -->
-                                <div class="flex flex-col items-center gap-1">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-{task.color}-500/10 flex items-center justify-center flex-shrink-0"
-                                    >
-                                        <svelte:component
-                                            this={task.icon}
-                                            class="w-5 h-5 text-{task.color}-500"
-                                        />
-                                    </div>
-                                    {#if task.priority === "high"}
-                                        <span
-                                            class="text-[10px] font-bold text-red-400 uppercase"
-                                            >Urgente</span
-                                        >
-                                    {/if}
-                                </div>
-
-                                <div class="flex-1 min-w-0">
-                                    <h4
-                                        class="font-semibold text-white text-sm"
-                                    >
-                                        {task.title}
-                                    </h4>
-                                    <p class="text-xs text-slate-400 mt-1">
-                                        {task.subtitle}
-                                    </p>
-
-                                    <!-- Action button -->
-                                    <button
-                                        onclick={() =>
-                                            goto(
-                                                `${base}/panel/${task.link}${task.linkParams}`,
-                                            )}
-                                        class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-{task.color}-400 hover:text-{task.color}-300 transition-colors cursor-pointer group-hover:gap-2"
-                                    >
-                                        {task.action}
-                                        <ChevronRight class="w-3 h-3" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    {/each}
-                {/if}
-            </div>
-        </div>
-    </div>
-
-    <!-- Performance (Placeholder) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <!-- Rendimiento por Centro -->
-        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">Centros Recientes</h3>
-            </div>
-            {#if store.centers.length === 0}
-                <div
-                    class="bg-slate-900/50 p-4 rounded-xl flex items-center justify-between"
-                >
-                    <div>
-                        <p class="text-slate-300 font-medium">Sin centros</p>
-                        <p class="text-slate-500 text-xs">
-                            Añade tu primer centro
-                        </p>
-                    </div>
-                </div>
-            {:else}
-                {#each store.centers.slice(0, 3) as center}
-                    <div
-                        class="bg-slate-900/50 p-4 rounded-xl flex items-center justify-between mb-3 last:mb-0"
-                    >
-                        <div>
-                            <p class="text-slate-300 font-medium">
-                                {center.name}
-                            </p>
-                            <p class="text-slate-500 text-xs">
-                                {center.location}
-                            </p>
-                        </div>
-                    </div>
-                {/each}
-            {/if}
-        </div>
-
-        <!-- Estado de clases -->
-        <div class="bg-[#1e293b] rounded-2xl border border-slate-800 p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">Clases Principales</h3>
-            </div>
-            {#if store.classes.length === 0}
-                <div class="text-center text-slate-500 mt-8">
-                    <p class="text-sm">No hay clases creadas</p>
-                </div>
-            {:else}
-                <div class="space-y-3">
-                    {#each store.classes.slice(0, 3) as cls}
-                        <div
-                            class="bg-slate-900/50 p-3 rounded-lg flex justify-between items-center"
-                        >
-                            <span class="text-slate-300 text-sm"
-                                >{cls.name}</span
-                            >
-                            <span
-                                class="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded"
-                                >{cls.level === "Pawn"
-                                    ? "Peón"
-                                    : cls.level === "Bishop"
-                                      ? "Alfil"
-                                      : cls.level === "Rook"
-                                        ? "Torre"
-                                        : cls.level === "King"
-                                          ? "Rey"
-                                          : cls.level}</span
-                            >
-                        </div>
-                    {/each}
-                </div>
-            {/if}
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
 </div>
