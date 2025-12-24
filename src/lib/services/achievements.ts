@@ -194,16 +194,20 @@ export const achievementsStore: Readable<Achievement[]> = derived(
             revenue: totalRevenue,
         };
 
+        const unlockedIds = new Set(($store.unlockedAchievements || []).map(a => a.id));
+
         return ACHIEVEMENTS.map((achievement) => {
             const currentValue = metrics[achievement.requirement.metric as keyof typeof metrics] || 0;
             // For revenue, 1 unit is enough for "first income" if target is 1, but if target is 500, we need the actual sum
             const progress = Math.min(100, (currentValue / achievement.requirement.target) * 100);
-            const isUnlocked = currentValue >= achievement.requirement.target;
+
+            // Check persistence first
+            const validUnlock = $store.unlockedAchievements?.find(a => a.id === achievement.id);
 
             return {
                 ...achievement,
                 progress,
-                unlockedAt: isUnlocked ? new Date().toISOString() : undefined,
+                unlockedAt: validUnlock ? validUnlock.unlockedAt : undefined,
             };
         });
     }

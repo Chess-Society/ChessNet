@@ -91,6 +91,7 @@ export interface AppData {
     plans: LessonPlan[];
     leads: Lead[];
     reports: any[]; // Placeholder
+    unlockedAchievements: { id: string; unlockedAt: string }[];
     settings: {
         plan: 'free' | 'profe' | 'club';
         academyName?: string;
@@ -142,6 +143,7 @@ const initialState: AppData = {
     plans: [],
     leads: [],
     reports: [],
+    unlockedAchievements: [],
     settings: {
         plan: 'free'
     },
@@ -395,5 +397,18 @@ export const storeActions = {
     },
     updateSettings: (newSettings: Partial<AppData['settings']>) => {
         appStore.update(s => ({ ...s, settings: { ...s.settings, ...newSettings } }));
+    },
+    unlockAchievement: (id: string) => {
+        appStore.update(s => {
+            // Check if already unlocked
+            if (s.unlockedAchievements.some(a => a.id === id)) return s;
+            return {
+                ...s,
+                unlockedAchievements: [
+                    ...s.unlockedAchievements,
+                    { id, unlockedAt: new Date().toISOString() }
+                ]
+            };
+        });
     }
 };

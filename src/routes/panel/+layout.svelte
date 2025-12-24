@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import { initStore } from "$lib/services/storage";
     import { User, Settings } from "lucide-svelte";
+    import AchievementManager from "$lib/components/common/AchievementManager.svelte";
 
     onMount(() => {
         initStore();
@@ -65,4 +66,6 @@
     <main class="py-6">
         <slot />
     </main>
+
+    <AchievementManager />
 </div>
