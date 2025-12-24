@@ -35,6 +35,18 @@
         .filter((p) => p && p !== "panel");
     $: currentPlan = $appStore.settings.plan;
 
+    // Teacher Profile Data
+    $: teacherName = $appStore.settings.teacherName || "Profe de Ajedrez";
+    $: teacherEmail = "admin@chessnet.com"; // TODO: From Auth
+    $: teacherAvatar = $appStore.settings.teacherAvatar;
+    $: teacherInitials =
+        teacherName
+            .split(" ")
+            .slice(0, 2)
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase() || "AD";
+
     const translateSegment = (seg: string) => {
         const map: Record<string, string> = {
             alumnos: "Mis Alumnos",
@@ -127,20 +139,28 @@
                         class="flex items-center gap-3 hover:bg-slate-800 py-1.5 px-1.5 pr-3 rounded-full transition-all border border-transparent hover:border-slate-700"
                     >
                         <div
-                            class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-emerald-500/20 shadow-lg"
+                            class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-emerald-500/20 shadow-lg overflow-hidden relative"
                         >
-                            AD
+                            {#if teacherAvatar}
+                                <img
+                                    src={teacherAvatar}
+                                    alt="Profile"
+                                    class="w-full h-full object-cover"
+                                />
+                            {:else}
+                                {teacherInitials}
+                            {/if}
                         </div>
                         <div class="hidden md:block text-left">
                             <div
                                 class="text-xs font-bold text-white leading-none mb-0.5"
                             >
-                                Admin
+                                {teacherName}
                             </div>
                             <div
                                 class="text-[9px] text-emerald-400 font-bold tracking-wider uppercase"
                             >
-                                Online
+                                {currentPlan === "club" ? "Club" : "Profe"}
                             </div>
                         </div>
                     </button>
@@ -152,11 +172,13 @@
                         <div
                             class="px-4 py-3 border-b border-slate-700/50 bg-slate-800/50 rounded-t-xl"
                         >
-                            <p class="text-sm text-white font-bold">
-                                Profe de Ajedrez
+                            <p
+                                class="text-sm text-white font-bold max-w-full truncate"
+                            >
+                                {teacherName}
                             </p>
                             <p class="text-xs text-slate-400 truncate">
-                                admin@chessnet.com
+                                {teacherEmail}
                             </p>
                         </div>
 

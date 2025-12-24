@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import { broadcastUpdate, onBroadcastMessage } from '$lib/utils/broadcast';
+import { logger } from './logger';
 
 // Tipos
 export interface Center {
@@ -99,6 +100,11 @@ export interface AppData {
         currency?: string;
         theme?: 'dark' | 'light' | 'system';
         language?: 'es' | 'en';
+        // Profile for Teachers
+        teacherName?: string;
+        teacherTitle?: string; // e.g. "Gran Maestro", "Entrenador FIDE"
+        teacherBio?: string;
+        teacherAvatar?: string;
     };
     dashboardLayout?: string[]; // IDs of quick actions in order
 }
@@ -186,7 +192,13 @@ export function initStore() {
             const parsed = JSON.parse(saved);
             // Ensure compatibility if new fields added
             appStore.set({ ...initialState, ...parsed });
+            logger.info('Data loaded successfully from localStorage', 'Storage', {
+                studentCount: parsed.students?.length || 0,
+                centerCount: parsed.centers?.length || 0,
+                classCount: parsed.classes?.length || 0
+            });
         } catch (e) {
+            logger.error('Failed to load data from localStorage - data corrupted', 'Storage', e);
             console.error('Error cargando datos:', e);
             // If data is corrupted, reset to initial state
             if (typeof window !== 'undefined') {
@@ -196,55 +208,59 @@ export function initStore() {
                 if (shouldReset) {
                     localStorage.removeItem(STORAGE_KEY);
                     appStore.set(initialState);
+                    logger.warn('User chose to reset corrupted data', 'Storage');
                 }
             }
         }
-
-        // Listen for cross-tab updates via BroadcastChannel
-        onBroadcastMessage((message) => {
-            if (message.type === 'tournament-update') {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        // Update store to reflect changes from other tabs
-                        appStore.set({ ...initialState, ...parsed });
-                    } catch (e) {
-                        console.error('Error syncing data from broadcast:', e);
-                    }
-                }
-            }
-        });
+    } else {
+        logger.info('No saved data found, using initial state', 'Storage');
     }
 
-    // Suscribirse a cambios para guardar automáticamente
-    appStore.subscribe(value => {
-        if (typeof localStorage !== 'undefined') {
-            try {
-                const serialized = JSON.stringify(value);
-
-                // Check localStorage quota (typically 5-10MB)
-                const estimatedSize = new Blob([serialized]).size;
-                if (estimatedSize > 5 * 1024 * 1024) { // 5MB warning
-                    console.warn('Los datos están ocupando mucho espacio. Considera exportar y limpiar datos antiguos.');
-                }
-
-                localStorage.setItem(STORAGE_KEY, serialized);
-            } catch (e) {
-                console.error('Error guardando datos:', e);
-
-                // Handle quota exceeded error
-                if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                    if (typeof window !== 'undefined') {
-                        alert(
-                            'No hay suficiente espacio en el navegador para guardar los datos. ' +
-                            'Por favor, exporta tus datos y limpia registros antiguos.'
-                        );
-                    }
+    // Listen for cross-tab updates via BroadcastChannel
+    onBroadcastMessage((message) => {
+        if (message.type === 'tournament-update') {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    // Update store to reflect changes from other tabs
+                    appStore.set({ ...initialState, ...parsed });
+                } catch (e) {
+                    console.error('Error syncing data from broadcast:', e);
                 }
             }
         }
     });
+}
+
+// Suscribirse a cambios para guardar automáticamente
+appStore.subscribe(value => {
+    if (typeof localStorage !== 'undefined') {
+        try {
+            const serialized = JSON.stringify(value);
+
+            // Check localStorage quota (typically 5-10MB)
+            const estimatedSize = new Blob([serialized]).size;
+            if (estimatedSize > 5 * 1024 * 1024) { // 5MB warning
+                console.warn('Los datos están ocupando mucho espacio. Considera exportar y limpiar datos antiguos.');
+            }
+
+            localStorage.setItem(STORAGE_KEY, serialized);
+        } catch (e) {
+            console.error('Error guardando datos:', e);
+
+            // Handle quota exceeded error
+            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                if (typeof window !== 'undefined') {
+                    alert(
+                        'No hay suficiente espacio en el navegador para guardar los datos. ' +
+                        'Por favor, exporta tus datos y limpia registros antiguos.'
+                    );
+                }
+            }
+        }
+    }
+});
 }
 
 // Helpers para CRUD
