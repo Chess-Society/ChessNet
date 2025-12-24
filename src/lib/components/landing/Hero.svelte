@@ -4,7 +4,7 @@
     import { ArrowRight, ChevronRight } from "lucide-svelte";
 
     function login() {
-        goto(`${base}/dashboard`);
+        goto(`${base}/panel`);
     }
 </script>
 

@@ -17,7 +17,7 @@
     )[0];
 
     function viewAll() {
-        goto(`${base}/dashboard/achievements`);
+        goto(`${base}/panel/logros`);
     }
 </script>
 

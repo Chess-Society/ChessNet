@@ -449,7 +449,7 @@
                 <div class="p-12 text-center text-slate-500">
                     <p>Este grupo no tiene alumnos asignados todavía.</p>
                     <a
-                        href="{base}/dashboard/classes"
+                        href="{base}/panel/clases"
                         class="text-pink-400 hover:underline mt-2 inline-block"
                         >Gestionar Clases</a
                     >

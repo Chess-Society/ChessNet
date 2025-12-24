@@ -350,7 +350,7 @@
                     </div>
 
                     <a
-                        href="{base}/dashboard/tournaments/{tournament.id}"
+                        href="{base}/panel/torneos/{tournament.id}"
                         class="w-full bg-slate-800 text-slate-300 py-2 rounded-xl text-sm font-semibold hover:bg-orange-600 hover:text-white transition-colors cursor-pointer text-center block"
                     >
                         Gestionar

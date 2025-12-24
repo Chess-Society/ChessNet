@@ -89,7 +89,7 @@
             )
         ) {
             storeActions.removeTournament(tournament.id);
-            goto(`${base}/dashboard/tournaments`);
+            goto(`${base}/panel/torneos`);
         }
     }
 
@@ -276,7 +276,7 @@
                 Torneo no encontrado
             </h2>
             <a
-                href="{base}/dashboard/tournaments"
+                href="{base}/panel/torneos"
                 class="text-emerald-400 hover:underline">Volver a la lista</a
             >
         </div>
@@ -284,7 +284,7 @@
         <!-- Header -->
         <div class="mb-8">
             <a
-                href="{base}/dashboard/tournaments"
+                href="{base}/panel/torneos"
                 class="inline-flex items-center text-slate-400 hover:text-white mb-4 transition-colors"
             >
                 <ArrowLeft class="w-4 h-4 mr-1" /> Volver
@@ -321,7 +321,7 @@
                 </div>
                 <div class="flex gap-2 self-start md:self-center">
                     <a
-                        href="{base}/dashboard/tournaments/{tournament.id}/spectator"
+                        href="{base}/panel/torneos/{tournament.id}/spectator"
                         target="_blank"
                         class="bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-emerald-600 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
                     >
@@ -477,29 +477,39 @@
             <div transition:fade>
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold text-white">Partidas</h2>
-                    
+
                     {#if rounds.length > 0}
                         {@const currentRoundNum = Math.max(...rounds)}
-                        {@const matchesInRound = tournament.matches.filter(m => m.round === currentRoundNum)}
-                        {@const allCompleted = matchesInRound.every(m => m.result)}
-                        
+                        {@const matchesInRound = tournament.matches.filter(
+                            (m) => m.round === currentRoundNum,
+                        )}
+                        {@const allCompleted = matchesInRound.every(
+                            (m) => m.result,
+                        )}
+
                         <div class="flex gap-2 items-center">
                             {#if !allCompleted}
-                                <span class="text-xs text-amber-500 font-bold px-3 py-1 bg-amber-500/10 rounded-full border border-amber-500/20">
+                                <span
+                                    class="text-xs text-amber-500 font-bold px-3 py-1 bg-amber-500/10 rounded-full border border-amber-500/20"
+                                >
                                     Ronda {currentRoundNum} en curso
                                 </span>
                             {/if}
                             <button
                                 onclick={generatePairings}
                                 disabled={!allCompleted}
-                                class="px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors {allCompleted ? 'bg-orange-600 hover:bg-orange-500 text-white cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}"
-                                title={!allCompleted ? "Completa todos los resultados antes de la siguiente ronda" : "Generar siguiente ronda"}
+                                class="px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors {allCompleted
+                                    ? 'bg-orange-600 hover:bg-orange-500 text-white cursor-pointer'
+                                    : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}"
+                                title={!allCompleted
+                                    ? "Completa todos los resultados antes de la siguiente ronda"
+                                    : "Generar siguiente ronda"}
                             >
                                 <Swords class="w-4 h-4" /> Generar Nueva Ronda
                             </button>
                         </div>
                     {:else}
-                         <button
+                        <button
                             onclick={generatePairings}
                             class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors"
                         >

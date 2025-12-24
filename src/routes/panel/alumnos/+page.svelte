@@ -336,7 +336,7 @@
         };
 
         const str = btoa(JSON.stringify(payload));
-        const url = `${window.location.origin}/student/view?d=${str}`;
+        const url = `${window.location.origin}/area-alumno/vista?d=${str}`;
 
         if (navigator.share) {
             navigator

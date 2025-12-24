@@ -377,7 +377,7 @@
 
                         <div class="flex gap-2 mt-auto">
                             <a
-                                href="{base}/dashboard/attendance?classId={group.id}"
+                                href="{base}/panel/asistencia?classId={group.id}"
                                 class="flex-1 bg-emerald-600/10 text-emerald-400 border border-emerald-600/20 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-600 hover:text-white transition-colors flex items-center justify-center gap-2 cursor-pointer no-underline"
                             >
                                 <CheckCircle2 class="w-4 h-4" />

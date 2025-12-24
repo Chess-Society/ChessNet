@@ -10,7 +10,7 @@
     });
 
     function goHome() {
-        goto(`${base}/dashboard`);
+        goto(`${base}/panel`);
     }
 </script>
 
@@ -52,7 +52,7 @@
                 </select>
                 <button
                     class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition-colors"
-                    onclick={() => goto(`${base}/dashboard/settings`)}
+                    onclick={() => goto(`${base}/panel/configuracion`)}
                     title="Configuración"
                     type="button"
                 >

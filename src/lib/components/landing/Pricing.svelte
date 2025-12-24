@@ -4,7 +4,7 @@
     import { CheckCircle2, ArrowRight } from "lucide-svelte";
 
     function login() {
-        goto(`${base}/dashboard`);
+        goto(`${base}/panel`);
     }
 </script>
 
@@ -162,7 +162,7 @@
                             >
                         </p>
                         <a
-                            href="{base}/pricing"
+                            href="{base}/precios"
                             class="mt-10 block w-full rounded-md bg-emerald-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-emerald-500"
                             >Ver todos los detalles</a
                         >
@@ -173,7 +173,7 @@
 
         <div class="text-center mt-12">
             <a
-                href="{base}/pricing"
+                href="{base}/precios"
                 class="text-emerald-400 hover:text-emerald-300 font-medium flex items-center justify-center gap-2 group"
             >
                 Comparar todos los planes (incluido Club) <ArrowRight

@@ -238,7 +238,7 @@
 
                     <!-- CTA Button -->
                     <a
-                        href="{base}/dashboard"
+                        href="{base}/panel"
                         class="w-full py-4 rounded-xl font-bold text-center transition-all duration-200 flex items-center justify-center gap-2
                         {plan.highlight
                             ? 'bg-gradient-to-r ' +

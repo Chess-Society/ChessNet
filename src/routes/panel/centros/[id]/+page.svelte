@@ -162,7 +162,7 @@
                 Centro no encontrado
             </h2>
             <a
-                href="{base}/dashboard/centers"
+                href="{base}/panel/centros"
                 class="text-purple-400 hover:underline">Volver a la lista</a
             >
         </div>
@@ -170,7 +170,7 @@
         <!-- Header -->
         <div class="mb-8">
             <a
-                href="{base}/dashboard/centers"
+                href="{base}/panel/centros"
                 class="inline-flex items-center text-slate-400 hover:text-white mb-4 transition-colors"
             >
                 <ArrowLeft class="w-4 h-4 mr-1" /> Volver a Centros
@@ -444,7 +444,7 @@
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <a
-                                        href="{base}/dashboard/classes"
+                                        href="{base}/panel/clases"
                                         class="text-sm text-purple-400 hover:text-purple-300 font-medium"
                                         >Gestionar</a
                                     >
@@ -477,7 +477,7 @@
                         >Listado de Alumnos ({centerStudents.length})</span
                     >
                     <a
-                        href="{base}/dashboard/students"
+                        href="{base}/panel/alumnos"
                         class="text-sm text-emerald-400 hover:underline flex items-center gap-1"
                     >
                         <UserPlus class="w-4 h-4" /> Matricular Nuevo

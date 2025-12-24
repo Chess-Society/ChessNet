@@ -45,7 +45,7 @@
             icon: School,
             color: "text-blue-500",
             hover: "hover:border-blue-500/50",
-            link: "centers",
+            link: "centros",
         },
         {
             id: "classes",
@@ -54,7 +54,7 @@
             icon: BookOpen,
             color: "text-purple-500",
             hover: "hover:border-purple-500/50",
-            link: "classes",
+            link: "clases",
         },
         {
             id: "students",
@@ -63,7 +63,7 @@
             icon: Users,
             color: "text-emerald-500",
             hover: "hover:border-emerald-500/50",
-            link: "students",
+            link: "alumnos",
         },
         {
             id: "skills",
@@ -72,7 +72,7 @@
             icon: Target,
             color: "text-yellow-500",
             hover: "hover:border-yellow-500/50",
-            link: "skills",
+            link: "habilidades",
         },
         {
             id: "tournaments",
@@ -81,7 +81,7 @@
             icon: Trophy,
             color: "text-orange-500",
             hover: "hover:border-orange-500/50",
-            link: "tournaments",
+            link: "torneos",
         },
         {
             id: "attendance",
@@ -90,7 +90,7 @@
             icon: ClipboardCheck,
             color: "text-pink-500",
             hover: "hover:border-pink-500/50",
-            link: "attendance",
+            link: "asistencia",
         },
         {
             id: "reports",
@@ -99,7 +99,7 @@
             icon: BarChart3,
             color: "text-cyan-500",
             hover: "hover:border-cyan-500/50",
-            link: "reports",
+            link: "informes",
         },
         {
             id: "payments",
@@ -108,7 +108,7 @@
             icon: CreditCard,
             color: "text-teal-500",
             hover: "hover:border-teal-500/50",
-            link: "payments",
+            link: "pagos",
             badge: "BETA",
         },
         {
@@ -118,7 +118,7 @@
             icon: Layout,
             color: "text-indigo-500",
             hover: "hover:border-indigo-500/50",
-            link: "planner",
+            link: "agenda",
             badge: "NEW",
         },
         {
@@ -128,7 +128,7 @@
             icon: UserPlus,
             color: "text-pink-500",
             hover: "hover:border-pink-500/50",
-            link: "leads",
+            link: "contactos",
             badge: "NEW",
         },
         {
@@ -138,7 +138,7 @@
             icon: Trophy,
             color: "text-amber-500",
             hover: "hover:border-amber-500/50",
-            link: "achievements",
+            link: "logros",
         },
     ];
 
@@ -295,13 +295,13 @@
     }
 
     function navigate(path: string) {
-        if (path === "payments" && store.settings.plan === "free") {
+        if (path === "pagos" && store.settings.plan === "free") {
             notifications.warning(
                 `El Sistema de Pagos solo está disponible en los planes Profe y Club.`,
             );
             return;
         }
-        goto(`${base}/dashboard/${path}`);
+        goto(`${base}/panel/${path}`);
     }
 
     const today = new Date().toLocaleDateString("es-ES", {
@@ -460,7 +460,7 @@
                 type: "warning",
                 message: `${studentStats.length} alumno${studentStats.length > 1 ? "s" : ""} con baja asistencia`,
                 action: "Ver detalles",
-                link: "students",
+                link: "alumnos",
             });
         }
 
@@ -477,7 +477,7 @@
                 type: "info",
                 message: `${classesNoAttendance.length} clase${classesNoAttendance.length > 1 ? "s" : ""} sin asistencia registrada`,
                 action: "Pasar lista",
-                link: "attendance",
+                link: "asistencia",
             });
         }
 
@@ -512,7 +512,7 @@
                 icon: ClipboardCheck,
                 color: daysAgo > 7 ? "red" : "amber",
                 action: "Registrar",
-                link: "attendance",
+                link: "asistencia",
                 linkParams: `?classId=${cls.id}`,
             });
         });
@@ -535,7 +535,7 @@
                 icon: Trophy,
                 color: daysUntil <= 2 ? "red" : "orange",
                 action: "Generar",
-                link: `tournaments/${t.id}`,
+                link: `torneos/${t.id}`,
                 linkParams: "",
             });
         });
@@ -559,7 +559,7 @@
                 icon: BookOpen,
                 color: "purple",
                 action: "Pasar lista",
-                link: "attendance",
+                link: "asistencia",
                 linkParams: `?classId=${cls.id}`,
             });
         });
@@ -582,7 +582,7 @@
                 icon: Trophy,
                 color: "blue",
                 action: "Inscribir",
-                link: `tournaments/${t.id}`,
+                link: `torneos/${t.id}`,
                 linkParams: "",
             });
         });
@@ -1162,7 +1162,7 @@
                                     <button
                                         onclick={() =>
                                             goto(
-                                                `${base}/dashboard/${task.link}${task.linkParams}`,
+                                                `${base}/panel/${task.link}${task.linkParams}`,
                                             )}
                                         class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-{task.color}-400 hover:text-{task.color}-300 transition-colors cursor-pointer group-hover:gap-2"
                                     >

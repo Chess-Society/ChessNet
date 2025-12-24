@@ -3,7 +3,7 @@
     import { base } from "$app/paths";
 
     function login() {
-        goto(`${base}/dashboard`);
+        goto(`${base}/panel`);
     }
 </script>
 

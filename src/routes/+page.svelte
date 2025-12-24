@@ -10,7 +10,7 @@
     import Footer from "$lib/components/landing/Footer.svelte";
 
     function login() {
-        goto(`${base}/dashboard`);
+        goto(`${base}/panel`);
     }
 
     let scrollY = 0;
@@ -96,7 +96,7 @@
                     >Características</a
                 >
                 <a
-                    href="{base}/donate"
+                    href="{base}/donar"
                     class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all"
                     >Donar</a
                 >
@@ -109,7 +109,7 @@
                     ></a
                 >
                 <a
-                    href="{base}/roadmap"
+                    href="{base}/hoja-de-ruta"
                     class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all"
                     >Hoja de Ruta</a
                 >
@@ -171,7 +171,7 @@
                                     >Características</a
                                 >
                                 <a
-                                    href="{base}/donate"
+                                    href="{base}/donar"
                                     class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-slate-800"
                                     onclick={() => (mobileMenuOpen = false)}
                                     >Donar</a
@@ -186,7 +186,7 @@
                                     ></a
                                 >
                                 <a
-                                    href="{base}/roadmap"
+                                    href="{base}/hoja-de-ruta"
                                     class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-slate-800"
                                     onclick={() => (mobileMenuOpen = false)}
                                     >Hoja de Ruta</a

@@ -201,7 +201,7 @@
                     </div>
 
                     <a
-                        href="{base}/dashboard/centers/{center.id}"
+                        href="{base}/panel/centros/{center.id}"
                         class="block w-full text-center bg-slate-800 text-slate-300 py-2 rounded-xl text-sm font-semibold hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
                     >
                         Gestionar
