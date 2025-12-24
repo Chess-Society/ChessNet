@@ -29,6 +29,7 @@
     import { base } from "$app/paths";
     import { fireConfetti } from "$lib/utils/confetti";
     import { notifications } from "$lib/stores/notifications";
+    import Modal from "$lib/components/Modal.svelte";
 
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
@@ -237,202 +238,26 @@
         </div>
     </div>
 
-    <!-- Create Form -->
-    {#if showForm}
-        <div
-            transition:slide
-            class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 shadow-2xl relative overflow-hidden"
-        >
-            <div
-                class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-red-500 to-yellow-500"
-            ></div>
-
-            {#if showTemplateSelection}
-                <!-- Template Selection -->
-                <div transition:fade>
-                    <div class="flex items-center gap-2 mb-2">
-                        <Sparkles class="w-5 h-5 text-yellow-500" />
-                        <h3 class="text-lg font-bold text-white">
-                            Elige una Plantilla
-                        </h3>
-                    </div>
-                    <p class="text-sm text-slate-400 mb-6">
-                        Comienza rápido con una configuración predefinida o crea
-                        desde cero
-                    </p>
-
-                    <div
-                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"
-                    >
-                        {#each tournamentTemplates as template}
-                            <button
-                                onclick={() => selectTemplate(template)}
-                                class="group text-left p-4 bg-slate-900/50 border border-slate-700 rounded-xl hover:border-{template.color}-500/50 hover:bg-slate-900 transition-all cursor-pointer relative overflow-hidden"
-                            >
-                                <div
-                                    class="absolute inset-0 bg-gradient-to-br from-{template.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                                ></div>
-                                <div
-                                    class="flex items-start justify-between mb-2 relative z-10"
-                                >
-                                    <span class="text-3xl filter drop-shadow-lg"
-                                        >{template.icon}</span
-                                    >
-                                    <ArrowRight
-                                        class="w-4 h-4 text-slate-600 group-hover:text-{template.color}-500 group-hover:translate-x-1 transition-all"
-                                    />
-                                </div>
-                                <h4
-                                    class="font-semibold text-white mb-1 relative z-10"
-                                >
-                                    {template.name}
-                                </h4>
-                                <p
-                                    class="text-xs text-slate-400 mb-3 line-clamp-2 relative z-10"
-                                >
-                                    {template.description}
-                                </p>
-                                <div
-                                    class="flex flex-wrap gap-2 text-xs relative z-10"
-                                >
-                                    <span
-                                        class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700"
-                                        >{template.format}</span
-                                    >
-                                    <span
-                                        class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700"
-                                        >{template.timeControl}</span
-                                    >
-                                </div>
-                            </button>
-                        {/each}
-                    </div>
-
-                    <button
-                        onclick={skipTemplate}
-                        class="w-full py-2 text-sm text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-2 group"
-                    >
-                        <span>Omitir y crear desde cero</span>
-                        <ArrowRight
-                            class="w-4 h-4 group-hover:translate-x-1 transition-transform"
-                        />
-                    </button>
-                </div>
-            {:else}
-                <!-- Tournament Form -->
-                <div transition:fade>
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-white">
-                            {selectedTemplate
-                                ? `Configurar: ${selectedTemplate.name}`
-                                : "Organizar Nuevo Torneo"}
-                        </h3>
-                        {#if selectedTemplate}
-                            <button
-                                onclick={() => {
-                                    showTemplateSelection = true;
-                                    selectedTemplate = null;
-                                }}
-                                class="text-xs text-slate-400 hover:text-white underline"
-                            >
-                                Cambiar Plantilla
-                            </button>
-                        {/if}
-                    </div>
-
-                    <div class="grid gap-6">
-                        <div>
-                            <label
-                                for="tournament-name"
-                                class="block text-sm font-medium text-slate-300 mb-2"
-                                >Nombre del Torneo</label
-                            >
-                            <input
-                                id="tournament-name"
-                                bind:value={newTournament.name}
-                                type="text"
-                                placeholder="Ej: Torneo de Primavera 2024"
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            />
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label
-                                    for="tournament-date"
-                                    class="block text-sm font-medium text-slate-300 mb-2"
-                                    >Fecha de Inicio</label
-                                >
-                                <input
-                                    id="tournament-date"
-                                    bind:value={newTournament.date}
-                                    type="date"
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    for="tournament-format"
-                                    class="block text-sm font-medium text-slate-300 mb-2"
-                                    >Formato de Competición</label
-                                >
-                                <select
-                                    id="tournament-format"
-                                    bind:value={newTournament.format}
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                >
-                                    <option value="Suizo"
-                                        >Sistema Suizo (Recomendado)</option
-                                    >
-                                    <option value="Round Robin"
-                                        >Round Robin (Liga)</option
-                                    >
-                                    <option value="Eliminación"
-                                        >Eliminación Directa (Copa)</option
-                                    >
-                                </select>
-                            </div>
-                        </div>
-
-                        <div
-                            class="flex justify-end gap-3 pt-4 border-t border-slate-700/50"
-                        >
-                            <button
-                                onclick={() => (showForm = false)}
-                                class="text-slate-400 hover:text-white px-4 py-2 text-sm font-medium transition-colors"
-                                >Cancelar</button
-                            >
-                            <button
-                                onclick={handleSubmit}
-                                class="bg-orange-600 hover:bg-orange-500 text-white px-8 py-2.5 rounded-xl font-medium shadow-lg shadow-orange-900/20 active:scale-95 transition-all w-full md:w-auto"
-                                >Crear Torneo</button
-                            >
-                        </div>
-                    </div>
-                </div>
-            {/if}
-        </div>
-    {/if}
-
-    <!-- Search & Filters -->
-    <div class="flex flex-col md:flex-row gap-4">
+    <!-- Filters & Search -->
+    <div class="flex flex-col sm:flex-row gap-4">
         <div class="relative flex-1">
             <Search
-                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"
             />
             <input
                 type="text"
                 bind:value={searchTerm}
-                placeholder="Buscar torneo por nombre..."
-                class="w-full bg-[#1e293b] border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all placeholder:text-slate-500"
+                placeholder="Buscar torneo..."
+                class="w-full bg-[#1e293b] border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-slate-600 transition-all"
             />
         </div>
         <div
-            class="flex gap-2 bg-[#1e293b] p-1 rounded-xl border border-slate-700 w-full md:w-auto overflow-x-auto"
+            class="flex gap-2 bg-[#1e293b] p-1 rounded-xl border border-slate-700 overflow-x-auto"
         >
             {#each ["All", "Upcoming", "Ongoing", "Completed"] as status}
                 <button
                     onclick={() => (filterStatus = status as any)}
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap {filterStatus ===
+                    class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all {filterStatus ===
                     status
                         ? 'bg-slate-700 text-white shadow-sm'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800'}"
@@ -449,173 +274,288 @@
         </div>
     </div>
 
-    <!-- Tournaments Grid -->
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <!-- Tournaments List -->
+    <div class="grid gap-6">
         {#if filteredTournaments.length === 0}
             <div
-                class="col-span-full py-20 text-center bg-[#1e293b]/30 rounded-3xl border border-dashed border-slate-700"
+                class="text-center py-20 bg-[#1e293b] border border-dashed border-slate-700 rounded-3xl"
             >
-                <div
-                    class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6"
-                >
-                    <Trophy class="w-10 h-10 text-slate-600" />
-                </div>
+                <Trophy class="w-16 h-16 text-slate-600 mx-auto mb-4" />
                 <h3 class="text-xl font-bold text-white mb-2">
-                    {store.tournaments.length === 0
-                        ? "Aún no hay torneos"
-                        : "No se encontraron torneos"}
+                    No se encontraron torneos
                 </h3>
-                <p class="text-slate-400 mb-6 max-w-sm mx-auto">
-                    {store.tournaments.length === 0
-                        ? "Crea tu primer torneo para empezar a gestionar emparejamientos y resultados."
-                        : "Prueba a cambiar los filtros de búsqueda."}
+                <p class="text-slate-400 mb-6">
+                    Prueba con otros filtros o crea uno nuevo.
                 </p>
-                {#if store.tournaments.length === 0}
-                    <button
-                        onclick={handleToggleForm}
-                        class="bg-slate-800 text-white px-6 py-2 rounded-xl font-medium hover:bg-slate-700 transition-colors"
-                    >
-                        Crear Primer Torneo
-                    </button>
-                {/if}
+                <button onclick={handleToggleForm} class="btn btn-primary">
+                    Crear Torneo
+                </button>
             </div>
         {:else}
             {#each filteredTournaments as tournament (tournament.id)}
                 <div
-                    transition:scale={{ duration: 200, start: 0.95 }}
-                    class="group bg-[#1e293b] border border-slate-700/50 rounded-2xl overflow-hidden hover:border-orange-500/30 hover:shadow-xl hover:shadow-orange-900/10 transition-all duration-300 flex flex-col relative"
+                    class="group bg-[#1e293b] border border-slate-700/50 rounded-2xl p-0 hover:border-orange-500/50 transition-all hover:shadow-2xl hover:shadow-orange-900/10 relative overflow-hidden"
                 >
-                    <!-- Status Indication Stripe -->
+                    <!-- Premium Hover Gradient -->
                     <div
-                        class="absolute left-0 top-0 bottom-0 w-1 {tournament.status ===
-                        'Ongoing'
-                            ? 'bg-emerald-500'
-                            : tournament.status === 'Completed'
-                              ? 'bg-slate-600'
-                              : 'bg-blue-500'}"
+                        class="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                     ></div>
 
-                    <div class="p-6 flex-1 flex flex-col">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="ml-2">
+                    <!-- Progress Bar for Ongoing -->
+                    {#if tournament.status === "Ongoing"}
+                        <div
+                            class="absolute top-0 left-0 w-full h-1 bg-slate-800"
+                        >
+                            <div
+                                class="h-full bg-gradient-to-r from-orange-500 to-yellow-500 animate-pulse w-1/3"
+                            ></div>
+                        </div>
+                    {/if}
+
+                    <div
+                        class="p-6 flex flex-col md:flex-row gap-6 items-start md:items-center relative z-10"
+                    >
+                        <!-- Icon Box -->
+                        <div
+                            class="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center border border-slate-700 shrink-0 group-hover:scale-105 transition-transform"
+                        >
+                            {#if tournament.status === "Completed"}
+                                <Medal class="w-8 h-8 text-yellow-500" />
+                            {:else if tournament.status === "Ongoing"}
+                                <PlayCircle class="w-8 h-8 text-emerald-500" />
+                            {:else}
+                                <Calendar
+                                    class="w-8 h-8 text-slate-400 group-hover:text-orange-500 transition-colors"
+                                />
+                            {/if}
+                        </div>
+
+                        <!-- Content -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
                                 <span
-                                    class="text-xs font-bold uppercase tracking-wider mb-1 block
-                                    {tournament.status === 'Ongoing'
-                                        ? 'text-emerald-400'
+                                    class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border {tournament.status ===
+                                    'Ongoing'
+                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                                         : tournament.status === 'Completed'
-                                          ? 'text-slate-500'
-                                          : 'text-blue-400'}
-                                "
+                                          ? 'bg-slate-800 text-slate-400 border-slate-700'
+                                          : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}"
                                 >
                                     {tournament.status === "Ongoing"
-                                        ? "EN CURSO"
+                                        ? "En Juego"
                                         : tournament.status === "Completed"
-                                          ? "FINALIZADO"
-                                          : "PRÓXIMO"}
+                                          ? "Finalizado"
+                                          : "Inscripciones Abiertas"}
                                 </span>
-                                <h3
-                                    class="text-xl font-bold text-white group-hover:text-orange-400 transition-colors"
-                                >
-                                    {tournament.name}
-                                </h3>
-                            </div>
-                            <!-- Icon Badge -->
-                            <div
-                                class="w-10 h-10 rounded-xl flex items-center justify-center
-                                {tournament.status === 'Ongoing'
-                                    ? 'bg-emerald-500/10 text-emerald-400'
-                                    : tournament.status === 'Completed'
-                                      ? 'bg-slate-700/30 text-slate-500'
-                                      : 'bg-blue-500/10 text-blue-400'}
-                            "
-                            >
-                                {#if tournament.status === "Completed"}
-                                    <CheckCircle2 class="w-5 h-5" />
-                                {:else if tournament.status === "Ongoing"}
-                                    <PlayCircle class="w-5 h-5" />
-                                {:else}
-                                    <Calendar class="w-5 h-5" />
-                                {/if}
-                            </div>
-                        </div>
-
-                        <!-- Info Grid -->
-                        <div class="grid grid-cols-2 gap-4 mt-auto ml-2">
-                            <div
-                                class="flex items-center gap-2 text-sm text-slate-400 bg-slate-900/30 p-2 rounded-lg"
-                            >
-                                <Users class="w-4 h-4 text-slate-500" />
                                 <span
-                                    >{tournament.participants.length} Jugadores</span
+                                    class="text-slate-500 text-xs flex items-center gap-1"
                                 >
+                                    <Clock class="w-3 h-3" />
+                                    {tournament.format}
+                                </span>
                             </div>
-                            <div
-                                class="flex items-center gap-2 text-sm text-slate-400 bg-slate-900/30 p-2 rounded-lg"
+                            <h3
+                                class="text-xl font-bold text-white mb-1 truncate group-hover:text-orange-400 transition-colors"
                             >
-                                <Medal class="w-4 h-4 text-slate-500" />
-                                <span>{tournament.format}</span>
-                            </div>
+                                {tournament.name}
+                            </h3>
                             <div
-                                class="col-span-2 flex items-center gap-2 text-sm text-slate-400 bg-slate-900/30 p-2 rounded-lg"
+                                class="flex items-center gap-4 text-sm text-slate-400"
                             >
-                                <Calendar class="w-4 h-4 text-slate-500" />
-                                <span
-                                    >{new Date(
+                                <span class="flex items-center gap-1.5">
+                                    <Calendar class="w-4 h-4 text-slate-500" />
+                                    {new Date(
                                         tournament.date,
-                                    ).toLocaleDateString("es-ES", {
+                                    ).toLocaleDateString(undefined, {
+                                        weekday: "short",
                                         day: "numeric",
-                                        month: "long",
-                                        year: "numeric",
-                                    })}</span
-                                >
+                                        month: "short",
+                                    })}
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <Users class="w-4 h-4 text-slate-500" />
+                                    {tournament.participants.length} Participantes
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Progress Bar for Ongoing -->
-                        {#if tournament.status === "Ongoing"}
-                            <div class="mt-4 ml-2">
-                                <div
-                                    class="flex justify-between text-xs text-slate-400 mb-1"
-                                >
-                                    <span>Progreso</span>
-                                    <span
-                                        >{tournament.matches.length > 0
-                                            ? "Rondas en juego"
-                                            : "Iniciando"}</span
-                                    >
-                                </div>
-                                <div
-                                    class="h-1.5 bg-slate-700 rounded-full overflow-hidden"
-                                >
-                                    <div
-                                        class="h-full bg-emerald-500 rounded-full animate-pulse w-2/3"
-                                    ></div>
-                                </div>
-                            </div>
-                        {/if}
-                    </div>
-
-                    <!-- Footer Action -->
-                    <div
-                        class="p-4 bg-slate-900/30 border-t border-slate-700/50 mt-auto"
-                    >
-                        <a
-                            href="{base}/panel/torneos/{tournament.id}"
-                            class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-semibold text-sm transition-all
-                            {tournament.status === 'Completed'
-                                ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
-                                : 'bg-orange-600 text-white hover:bg-orange-500 shadow-lg shadow-orange-900/20 active:scale-95'}"
+                        <!-- Actions -->
+                        <div
+                            class="flex flex-col sm:flex-row gap-3 w-full md:w-auto mt-4 md:mt-0"
                         >
-                            <span
-                                >{tournament.status === "Completed"
-                                    ? "Ver Resultados"
-                                    : "Gestionar Torneo"}</span
+                            <a
+                                href="{base}/panel/torneos/{tournament.id}"
+                                class="btn bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
                             >
-                            <ArrowRight class="w-4 h-4" />
-                        </a>
+                                {tournament.status === "Completed"
+                                    ? "Ver Resultados"
+                                    : "Gestionar Panel"}
+                                <ArrowRight class="w-4 h-4 ml-2" />
+                            </a>
+                        </div>
                     </div>
                 </div>
             {/each}
         {/if}
     </div>
+
+    <!-- Create Tournament Modal -->
+    <Modal
+        bind:isOpen={showForm}
+        title={selectedTemplate && !showTemplateSelection
+            ? `Configurar: ${selectedTemplate.name}`
+            : "Nuevo Torneo"}
+        size="lg"
+    >
+        {#if showTemplateSelection}
+            <!-- Template Selection -->
+            <div transition:fade>
+                <div class="flex items-center gap-2 mb-4">
+                    <Sparkles class="w-5 h-5 text-yellow-500" />
+                    <p class="text-sm text-slate-400">
+                        Comienza rápido con una plantilla o crea desde cero.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {#each tournamentTemplates as template}
+                        <button
+                            onclick={() => selectTemplate(template)}
+                            class="group text-left p-4 bg-slate-900/50 border border-slate-700 rounded-xl hover:border-{template.color}-500/50 hover:bg-slate-900 transition-all cursor-pointer relative overflow-hidden"
+                        >
+                            <div
+                                class="absolute inset-0 bg-gradient-to-br from-{template.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                            ></div>
+                            <div
+                                class="flex items-start justify-between mb-2 relative z-10"
+                            >
+                                <span class="text-3xl filter drop-shadow-lg"
+                                    >{template.icon}</span
+                                >
+                                <ArrowRight
+                                    class="w-4 h-4 text-slate-600 group-hover:text-{template.color}-500 group-hover:translate-x-1 transition-all"
+                                />
+                            </div>
+                            <h4
+                                class="font-semibold text-white mb-1 relative z-10"
+                            >
+                                {template.name}
+                            </h4>
+                            <p
+                                class="text-xs text-slate-400 mb-3 line-clamp-2 relative z-10"
+                            >
+                                {template.description}
+                            </p>
+                            <div
+                                class="flex flex-wrap gap-2 text-xs relative z-10"
+                            >
+                                <span
+                                    class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700"
+                                    >{template.format}</span
+                                >
+                                <span
+                                    class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700"
+                                    >{template.timeControl}</span
+                                >
+                            </div>
+                        </button>
+                    {/each}
+                </div>
+
+                <button
+                    onclick={skipTemplate}
+                    class="w-full py-3 text-sm text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-2 group border border-dashed border-slate-700 rounded-xl hover:border-slate-500 hover:bg-slate-800/50"
+                >
+                    <span>Omitir y crear desde cero</span>
+                    <ArrowRight
+                        class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                    />
+                </button>
+            </div>
+        {:else}
+            <!-- Tournament Form -->
+            <div transition:fade>
+                {#if selectedTemplate}
+                    <div class="flex justify-end mb-6">
+                        <button
+                            onclick={() => {
+                                showTemplateSelection = true;
+                                selectedTemplate = null;
+                            }}
+                            class="text-xs text-slate-400 hover:text-white underline"
+                        >
+                            Cambiar Plantilla
+                        </button>
+                    </div>
+                {/if}
+
+                <div class="grid gap-6">
+                    <div>
+                        <label
+                            for="tournament-name"
+                            class="block text-sm font-medium text-slate-300 mb-2"
+                            >Nombre del Torneo</label
+                        >
+                        <input
+                            id="tournament-name"
+                            bind:value={newTournament.name}
+                            type="text"
+                            placeholder="Ej: Torneo de Primavera 2024"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        />
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label
+                                for="tournament-date"
+                                class="block text-sm font-medium text-slate-300 mb-2"
+                                >Fecha de Inicio</label
+                            >
+                            <input
+                                id="tournament-date"
+                                bind:value={newTournament.date}
+                                type="date"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label
+                                for="tournament-format"
+                                class="block text-sm font-medium text-slate-300 mb-2"
+                                >Formato de Competición</label
+                            >
+                            <select
+                                id="tournament-format"
+                                bind:value={newTournament.format}
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            >
+                                <option value="Suizo"
+                                    >Sistema Suizo (Recomendado)</option
+                                >
+                                <option value="Round Robin"
+                                    >Round Robin (Liga)</option
+                                >
+                                <option value="Eliminación"
+                                    >Eliminación Directa (Copa)</option
+                                >
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-6 mt-2">
+                        <button
+                            onclick={() => (showForm = false)}
+                            class="text-slate-400 hover:text-white px-4 py-2 text-sm font-medium transition-colors"
+                            >Cancelar</button
+                        >
+                        <button
+                            onclick={handleSubmit}
+                            class="bg-orange-600 hover:bg-orange-500 text-white px-8 py-2.5 rounded-xl font-medium shadow-lg shadow-orange-900/20 active:scale-95 transition-all w-full md:w-auto"
+                            >Crear Torneo</button
+                        >
+                    </div>
+                </div>
+            </div>
+        {/if}
+    </Modal>
 </div>
