@@ -78,7 +78,15 @@
                     <div
                         class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform"
                     >
-                        <LayoutDashboard class="w-5 h-5" />
+                        <svg
+                            class="w-5 h-5"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                d="M10 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-7-3z"
+                            />
+                        </svg>
                     </div>
                     <span
                         class="text-xl font-bold text-white tracking-tight hidden sm:block"
