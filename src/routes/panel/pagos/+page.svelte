@@ -49,7 +49,7 @@
     let showConfirmModal = false;
     let confirmTitle = "";
     let confirmMessage = "";
-    let confirmAction: (() => void) | null = null;
+    let confirmAction: () => void = () => {};
     let confirmType: "danger" | "warning" = "danger";
 
     // --- Derived Data & KPIs ---
@@ -349,10 +349,12 @@
                         <!-- Student Selector -->
                         <div class="space-y-2">
                             <label
+                                for="payment-student"
                                 class="text-sm font-semibold text-slate-400 ml-1"
                                 >Alumno</label
                             >
                             <select
+                                id="payment-student"
                                 bind:value={newPayment.studentId}
                                 class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
                             >
@@ -369,9 +371,9 @@
 
                         <!-- Amount & Date -->
                         <div class="space-y-2">
-                            <label
-                                class="text-sm font-semibold text-slate-400 ml-1"
-                                >Importe y Fecha</label
+                            <span
+                                class="block text-sm font-semibold text-slate-400 ml-1"
+                                >Importe y Fecha</span
                             >
                             <div class="flex gap-2">
                                 <div class="relative flex-1">
@@ -381,6 +383,7 @@
                                     >
                                     <input
                                         type="number"
+                                        aria-label="Importe"
                                         bind:value={newPayment.amount}
                                         class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
                                         placeholder="0.00"
@@ -388,6 +391,7 @@
                                 </div>
                                 <input
                                     type="date"
+                                    aria-label="Fecha"
                                     bind:value={newPayment.date}
                                     class="w-40 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
                                 />
@@ -396,12 +400,13 @@
 
                         <!-- Method & Concept -->
                         <div class="space-y-2">
-                            <label
-                                class="text-sm font-semibold text-slate-400 ml-1"
-                                >Detalles</label
+                            <span
+                                class="block text-sm font-semibold text-slate-400 ml-1"
+                                >Detalles</span
                             >
                             <div class="flex gap-2">
                                 <select
+                                    aria-label="Método de Pago"
                                     bind:value={newPayment.method}
                                     class="w-36 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
                                 >
@@ -411,6 +416,7 @@
                                 </select>
                                 <input
                                     type="text"
+                                    aria-label="Concepto"
                                     bind:value={newPayment.concept}
                                     placeholder="Concepto (ej: Abril)"
                                     class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
