@@ -80,6 +80,32 @@
 
     $: levelStyle = levelColors[student.level] || levelColors["Pawn"];
 
+    // Payment Logic
+    $: studentPayments = store.payments
+        .filter((p) => p.studentId === student.id)
+        .sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+
+    $: lastPayment = studentPayments.length > 0 ? studentPayments[0] : null;
+
+    $: daysSincePayment = lastPayment
+        ? Math.floor(
+              (new Date().getTime() - new Date(lastPayment.date).getTime()) /
+                  (1000 * 3600 * 24),
+          )
+        : -1;
+
+    $: isUpToDate = daysSincePayment >= 0 && daysSincePayment < 35; // Consider "Up to date" if paid within last ~month
+
+    $: paymentLabel = lastPayment
+        ? daysSincePayment === 0
+            ? "Hoy"
+            : daysSincePayment === 1
+              ? "Ayer"
+              : `Hace ${daysSincePayment} días`
+        : "Sin pagos";
+
     // Get real skills/achievements
     $: studentSkills = (student.skills || [])
         .map((skillId) => store.skills.find((s) => s.id === skillId))
@@ -264,32 +290,63 @@
                                     </div>
                                 </div>
 
-                                <div
-                                    class="bg-slate-800/30 border border-slate-700/50 p-4 rounded-xl"
-                                >
-                                    <div class="flex items-center gap-3 mb-2">
+                                {#if lastPayment}
+                                    <div
+                                        class="bg-slate-800/30 border border-slate-700/50 p-4 rounded-xl"
+                                    >
                                         <div
-                                            class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400"
+                                            class="flex items-center gap-3 mb-2"
                                         >
-                                            <DollarSign class="w-5 h-5" />
+                                            <div
+                                                class="p-2 rounded-lg {isUpToDate
+                                                    ? 'bg-emerald-500/10 text-emerald-400'
+                                                    : 'bg-red-500/10 text-red-400'}"
+                                            >
+                                                <DollarSign class="w-5 h-5" />
+                                            </div>
+                                            <span
+                                                class="text-slate-400 text-xs font-bold uppercase"
+                                                >Estado Pagos</span
+                                            >
                                         </div>
-                                        <span
-                                            class="text-slate-400 text-xs font-bold uppercase"
-                                            >Estado Pagos</span
-                                        >
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-white font-bold"
+                                                >{isUpToDate
+                                                    ? "Al Día"
+                                                    : "Pendiente"}</span
+                                            >
+                                            <Shield
+                                                class="w-4 h-4 {isUpToDate
+                                                    ? 'text-emerald-500'
+                                                    : 'text-red-500'}"
+                                            />
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-1">
+                                            Último pago: {paymentLabel}
+                                        </p>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-white font-bold"
-                                            >Al Día</span
+                                {:else}
+                                    <div
+                                        class="bg-slate-800/30 border border-slate-700/50 p-4 rounded-xl"
+                                    >
+                                        <div
+                                            class="flex items-center gap-3 mb-2"
                                         >
-                                        <Shield
-                                            class="w-4 h-4 text-emerald-500"
-                                        />
+                                            <div
+                                                class="p-2 rounded-lg bg-slate-500/10 text-slate-400"
+                                            >
+                                                <DollarSign class="w-5 h-5" />
+                                            </div>
+                                            <span
+                                                class="text-slate-400 text-xs font-bold uppercase"
+                                                >Estado Pagos</span
+                                            >
+                                        </div>
+                                        <p class="text-sm text-slate-400">
+                                            Sin pagos registrados
+                                        </p>
                                     </div>
-                                    <p class="text-xs text-slate-500 mt-1">
-                                        Último pago hace 5 días
-                                    </p>
-                                </div>
+                                {/if}
                             </div>
 
                             <!-- Report Action -->
