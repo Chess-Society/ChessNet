@@ -261,7 +261,6 @@ appStore.subscribe(value => {
         }
     }
 });
-}
 
 // Helpers para CRUD
 export const storeActions = {
