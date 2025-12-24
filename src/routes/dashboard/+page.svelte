@@ -27,6 +27,8 @@
     } from "lucide-svelte";
     import { notifications } from "$lib/stores/notifications";
     import CalendarWidget from "$lib/components/dashboard/CalendarWidget.svelte";
+    import RevenueChart from "$lib/components/dashboard/charts/RevenueChart.svelte";
+    import StudentGrowthChart from "$lib/components/dashboard/charts/StudentGrowthChart.svelte";
     import { flip } from "svelte/animate";
     import { storeActions } from "$lib/services/storage";
     import { Settings2, GripVertical } from "lucide-svelte";
@@ -631,6 +633,12 @@
                 <p class="text-xl font-bold text-white capitalize">{today}</p>
             </div>
         </div>
+    </div>
+
+    <!-- Analytics Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <RevenueChart />
+        <StudentGrowthChart />
     </div>
 
     <!-- Stats Grid -->

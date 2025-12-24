@@ -3,7 +3,7 @@
     import { base } from "$app/paths";
     import { onMount } from "svelte";
     import { initStore } from "$lib/services/storage";
-    import { User } from "lucide-svelte";
+    import { User, Settings } from "lucide-svelte";
 
     onMount(() => {
         initStore();
@@ -50,11 +50,14 @@
                     <option value="profe">Plan Profe</option>
                     <option value="club">Plan Club</option>
                 </select>
-                <div
-                    class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center"
+                <button
+                    class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition-colors"
+                    onclick={() => goto(`${base}/dashboard/settings`)}
+                    title="Configuración"
+                    type="button"
                 >
-                    <User class="w-4 h-4 text-slate-400" />
-                </div>
+                    <Settings class="w-4 h-4 text-slate-400" />
+                </button>
             </div>
         </div>
     </header>

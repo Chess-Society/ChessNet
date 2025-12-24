@@ -92,6 +92,11 @@ export interface AppData {
     reports: any[]; // Placeholder
     settings: {
         plan: 'free' | 'profe' | 'club';
+        academyName?: string;
+        academyLogo?: string;
+        currency?: string;
+        theme?: 'dark' | 'light' | 'system';
+        language?: 'es' | 'en';
     };
     dashboardLayout?: string[]; // IDs of quick actions in order
 }
@@ -385,5 +390,8 @@ export const storeActions = {
     },
     updateDashboardLayout: (layout: string[]) => {
         appStore.update(s => ({ ...s, dashboardLayout: layout }));
+    },
+    updateSettings: (newSettings: Partial<AppData['settings']>) => {
+        appStore.update(s => ({ ...s, settings: { ...s.settings, ...newSettings } }));
     }
 };
