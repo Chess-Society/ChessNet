@@ -29,7 +29,7 @@
 </script>
 
 <div
-    class="pointer-events-auto flex w-full max-w-sm overflow-hidden rounded-xl border bg-[#1e293b] shadow-lg ring-1 ring-black ring-opacity-5 {colors[
+    class="pointer-events-auto flex w-full max-w-sm overflow-hidden rounded-xl border shadow-2xl backdrop-blur-md bg-[#1e293b]/90 ring-1 ring-white/10 {colors[
         toast.type
     ]
         .replace('bg-', 'border-')

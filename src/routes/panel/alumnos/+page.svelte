@@ -27,6 +27,7 @@
     import { notifications } from "$lib/stores/notifications";
     import DiplomaModal from "$lib/components/dashboard/students/DiplomaModal.svelte";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
+    import { fireConfetti } from "$lib/utils/confetti";
 
     $: store = $appStore;
 
@@ -204,6 +205,9 @@
             if (selectedClassId) {
                 storeActions.addClassMember(selectedClassId, studentId);
             }
+            // JUICY
+            fireConfetti();
+            notifications.success(`¡Bienvenido/a, ${currentStudent.name}! ♟️`);
         }
 
         // Reset form
@@ -407,7 +411,7 @@
 
             <button
                 onclick={openCreateForm}
-                class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20 shadow-sm"
+                class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20 shadow-sm btn-bounce"
             >
                 <UserPlus class="w-5 h-5 mr-2" />
                 Nuevo Alumno
@@ -501,7 +505,7 @@
                     >
                     <button
                         onclick={handleSubmit}
-                        class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20"
+                        class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20 btn-bounce"
                     >
                         {isEditing ? "Guardar Cambios" : "Registrar Alumno"}
                     </button>

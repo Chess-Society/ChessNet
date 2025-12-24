@@ -40,6 +40,8 @@
     } from "lucide-svelte";
     import { slide, fade } from "svelte/transition";
     import { base } from "$app/paths";
+    import { fireConfetti } from "$lib/utils/confetti";
+    import { notifications } from "$lib/stores/notifications";
 
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
@@ -82,6 +84,10 @@
 
         storeActions.addTournament(tournamentToAdd);
 
+        // JUICY
+        fireConfetti();
+        notifications.success("¡Torneo creado con éxito!");
+
         // Reset form
         newTournament = {
             id: "",
@@ -111,7 +117,7 @@
         <div class="mt-4 sm:mt-0">
             <button
                 onclick={handleToggleForm}
-                class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer"
+                class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors cursor-pointer btn-bounce"
             >
                 <Plus class="w-5 h-5" />
                 Nuevo Torneo
@@ -282,7 +288,7 @@
                             >
                             <button
                                 onclick={handleSubmit}
-                                class="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2 rounded-lg font-medium"
+                                class="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2 rounded-lg font-medium btn-bounce"
                                 >Crear Torneo</button
                             >
                         </div>
