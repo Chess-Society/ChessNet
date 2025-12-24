@@ -616,6 +616,58 @@
     $: todaysClasses = store.classes.filter((c) =>
         c.schedule.toLowerCase().includes(currentDayName.toLowerCase()),
     );
+
+    // --- Chart Data Logic ---
+    $: chartLabels = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (5 - i));
+        // Capitalize first letter
+        const month = d.toLocaleDateString("es-ES", { month: "short" });
+        return month.charAt(0).toUpperCase() + month.slice(1);
+    });
+
+    $: revenueData = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (5 - i));
+        const month = d.getMonth();
+        const year = d.getFullYear();
+
+        return store.payments
+            .filter((p) => {
+                const pDate = new Date(p.date);
+                return (
+                    pDate.getMonth() === month && pDate.getFullYear() === year
+                );
+            })
+            .reduce((sum, p) => sum + p.amount, 0);
+    });
+
+    $: totalRevenueCurrentMonth = revenueData[5] || 0;
+    $: revenueTrend =
+        revenueData[4] > 0
+            ? ((revenueData[5] - revenueData[4]) / revenueData[4]) * 100
+            : 0;
+
+    $: studentGrowthData = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (5 - i));
+        const month = d.getMonth();
+        const year = d.getFullYear();
+
+        return store.students.filter((s) => {
+            // If no joinedAt, assume old student (or handle as you wish, here ignoring or placing in ancient times)
+            if (!s.joinedAt) return false;
+            const sDate = new Date(s.joinedAt);
+            return sDate.getMonth() === month && sDate.getFullYear() === year;
+        }).length;
+    });
+
+    $: newStudentsCurrentMonth = studentGrowthData[5] || 0;
+    // Simple text based on previous month
+    $: studentGrowthTrendText =
+        newStudentsCurrentMonth >= studentGrowthData[4]
+            ? "este mes"
+            : "baja activ.";
 </script>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -637,8 +689,18 @@
 
     <!-- Analytics Charts -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <RevenueChart />
-        <StudentGrowthChart />
+        <RevenueChart
+            data={revenueData}
+            labels={chartLabels}
+            totalRevenue={totalRevenueCurrentMonth}
+            trendPercentage={revenueTrend}
+        />
+        <StudentGrowthChart
+            data={studentGrowthData}
+            labels={chartLabels}
+            totalNewStudents={newStudentsCurrentMonth}
+            trendText={studentGrowthTrendText}
+        />
     </div>
 
     <!-- Stats Grid -->

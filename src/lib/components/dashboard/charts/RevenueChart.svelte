@@ -2,9 +2,11 @@
     import { onMount } from "svelte";
     import { TrendingUp, DollarSign } from "lucide-svelte";
 
-    // Mock data for last 6 months
-    const data = [1200, 1350, 1250, 1600, 1850, 2100];
-    const months = ["Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    // Props
+    export let data: number[] = [0, 0, 0, 0, 0, 0];
+    export let labels: string[] = ["", "", "", "", "", ""];
+    export let totalRevenue: number = 0;
+    export let trendPercentage: number = 0;
 
     // Chart dimensions
     const height = 150;
@@ -12,8 +14,8 @@
     const padding = 20;
 
     // Helper to scale values
-    const maxVal = Math.max(...data) * 1.1;
-    const minVal = Math.min(...data) * 0.8;
+    $: maxVal = Math.max(...data, 100) * 1.1; // Ensure at least some height
+    $: minVal = Math.min(...data) * 0.8;
 
     // Generate path definition
     $: points = data
@@ -31,7 +33,7 @@
 </script>
 
 <div
-    class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-emerald-500/30 transition-all duration-300 group"
+    class="bg-[#1e293b] border border-slate-800 rounded-xl p-6 hover:border-emerald-500/30 transition-all duration-300 group"
 >
     <div class="flex justify-between items-start mb-6">
         <div>
@@ -39,12 +41,16 @@
                 Ingresos Estimados
             </h3>
             <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl font-bold text-white">2,100€</span>
+                <span class="text-2xl font-bold text-white"
+                    >{totalRevenue.toLocaleString()}€</span
+                >
                 <span
                     class="text-emerald-400 text-xs font-medium flex items-center bg-emerald-500/10 px-1.5 py-0.5 rounded-full"
                 >
                     <TrendingUp class="w-3 h-3 mr-1" />
-                    +12.5%
+                    {trendPercentage > 0 ? "+" : ""}{trendPercentage.toFixed(
+                        1,
+                    )}%
                 </span>
             </div>
         </div>
@@ -123,8 +129,8 @@
         <div
             class="absolute bottom-0 left-0 right-0 flex justify-between px-2 text-[10px] text-slate-500 font-medium"
         >
-            {#each months as month}
-                <span>{month}</span>
+            {#each labels as label}
+                <span>{label}</span>
             {/each}
         </div>
     </div>

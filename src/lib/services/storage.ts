@@ -18,6 +18,7 @@ export interface Student {
     centerId?: string;
     notes?: string;
     skills?: string[]; // IDs of acquired skills
+    joinedAt?: string; // ISO Date string
 }
 
 export interface ClassGroup {
@@ -253,7 +254,8 @@ export const storeActions = {
         appStore.update(s => ({ ...s, centers: s.centers.filter(c => c.id !== id) }));
     },
     addStudent: (student: Student) => {
-        appStore.update(s => ({ ...s, students: [...s.students, student] }));
+        const s = { ...student, joinedAt: student.joinedAt || new Date().toISOString() };
+        appStore.update(s_store => ({ ...s_store, students: [...s_store.students, s] }));
     },
     updateStudent: (student: Student) => {
         appStore.update(s => ({
