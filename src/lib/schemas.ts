@@ -130,6 +130,12 @@ export const TournamentSchema = z.object({
     format: z.string().default('Suizo')
 });
 
+// --- Auth Schemas ---
+export const LoginSchema = z.object({
+    email: z.string().email("Por favor, introduce un email válido"),
+    password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres")
+});
+
 // ==========================================
 // Tipos inferidos (para usar en TypeScript)
 // ==========================================
@@ -142,3 +148,4 @@ export type SkillInput = z.infer<typeof SkillSchema>;
 export type LessonPlanInput = z.infer<typeof LessonPlanSchema>;
 export type LeadInput = z.infer<typeof LeadSchema>;
 export type TournamentInput = z.infer<typeof TournamentSchema>;
+export type LoginInput = z.infer<typeof LoginSchema>;

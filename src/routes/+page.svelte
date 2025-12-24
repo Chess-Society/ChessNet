@@ -9,10 +9,6 @@
     import CTA from "$lib/components/landing/CTA.svelte";
     import Footer from "$lib/components/landing/Footer.svelte";
 
-    function login() {
-        goto(`${base}/panel`);
-    }
-
     let scrollY = 0;
     let mobileMenuOpen = false;
 
@@ -115,20 +111,20 @@
                 >
             </div>
             <div class="hidden lg:flex lg:flex-1 lg:justify-end gap-4">
-                <button
-                    onclick={login}
+                <a
+                    href="{base}/login"
                     aria-label="Iniciar sesión en ChessNet"
                     class="text-sm font-semibold leading-6 text-slate-200 hover:text-white px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg"
                 >
                     Iniciar Sesión
-                </button>
-                <button
-                    onclick={login}
+                </a>
+                <a
+                    href="{base}/login"
                     aria-label="Crear cuenta gratuita en ChessNet"
                     class="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 hover:scale-105 hover:shadow-emerald-500/40 transition-all duration-300 cursor-pointer border border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-900"
                 >
                     Empezar Gratis
-                </button>
+                </a>
             </div>
         </nav>
         <!-- Mobile menu -->
@@ -193,15 +189,15 @@
                                 >
                             </div>
                             <div class="py-6">
-                                <button
-                                    onclick={login}
+                                <a
+                                    href="{base}/login"
                                     class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-white hover:bg-slate-800 w-full text-left"
-                                    >Iniciar Sesión</button
+                                    >Iniciar Sesión</a
                                 >
-                                <button
-                                    onclick={login}
-                                    class="mt-4 w-full rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500"
-                                    >Empezar Gratis</button
+                                <a
+                                    href="{base}/login"
+                                    class="mt-4 w-full block text-center rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500"
+                                    >Empezar Gratis</a
                                 >
                             </div>
                         </div>
