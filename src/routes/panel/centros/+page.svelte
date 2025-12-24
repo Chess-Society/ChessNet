@@ -11,6 +11,7 @@
     import { fade, slide } from "svelte/transition";
     import { base } from "$app/paths";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
+    import Modal from "$lib/components/Modal.svelte";
     import { notifications } from "$lib/stores/notifications";
 
     $: store = $appStore;
@@ -36,6 +37,7 @@
         // Reset form
         newCenter = { id: "", name: "", location: "", description: "" };
         showForm = false;
+        notifications.success("Centro añadido correctamente");
     }
 
     let showDeleteModal = false;
@@ -85,67 +87,59 @@
             class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 sm:py-2 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg shadow-blue-900/20"
         >
             <Plus class="w-5 h-5" />
-            {showForm ? "Cerrar Formulario" : "Nuevo Centro"}
+            Nuevo Centro
         </button>
     </div>
 
-    {#if showForm}
-        <div
-            transition:slide
-            class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl shadow-xl"
-        >
-            <h3 class="text-lg font-bold text-white mb-4">
-                Añadir Nuevo Centro
-            </h3>
-            <div class="space-y-4">
-                <div>
-                    <label
-                        for="center-name"
-                        class="block text-sm font-medium text-slate-400 mb-1"
-                        >Nombre del Centro</label
-                    >
+    <Modal bind:isOpen={showForm} title="Añadir Nuevo Centro" size="md">
+        <div class="space-y-4">
+            <div>
+                <label
+                    for="center-name"
+                    class="block text-sm font-medium text-slate-400 mb-1"
+                    >Nombre del Centro</label
+                >
+                <input
+                    id="center-name"
+                    bind:value={newCenter.name}
+                    type="text"
+                    placeholder="Ej: Colegio San José"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                />
+            </div>
+            <div>
+                <label
+                    for="center-location"
+                    class="block text-sm font-medium text-slate-400 mb-1"
+                    >Ubicación</label
+                >
+                <div class="relative">
+                    <MapPin
+                        class="absolute left-3 top-3.5 w-4 h-4 text-slate-500"
+                    />
                     <input
-                        id="center-name"
-                        bind:value={newCenter.name}
+                        id="center-location"
+                        bind:value={newCenter.location}
                         type="text"
-                        placeholder="Ej: Colegio San José"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                        placeholder="Ciudad, Barrio o Dirección"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-blue-500"
                     />
                 </div>
-                <div>
-                    <label
-                        for="center-location"
-                        class="block text-sm font-medium text-slate-400 mb-1"
-                        >Ubicación</label
-                    >
-                    <div class="relative">
-                        <MapPin
-                            class="absolute left-3 top-3.5 w-4 h-4 text-slate-500"
-                        />
-                        <input
-                            id="center-location"
-                            bind:value={newCenter.location}
-                            type="text"
-                            placeholder="Ciudad, Barrio o Dirección"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                        />
-                    </div>
-                </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button
-                        onclick={() => (showForm = false)}
-                        class="text-slate-400 hover:text-white px-4 py-2"
-                        >Cancelar</button
-                    >
-                    <button
-                        onclick={handleSubmit}
-                        class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium"
-                        >Guardar Centro</button
-                    >
-                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button
+                    onclick={() => (showForm = false)}
+                    class="text-slate-400 hover:text-white px-4 py-2"
+                    >Cancelar</button
+                >
+                <button
+                    onclick={handleSubmit}
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium"
+                    >Guardar Centro</button
+                >
             </div>
         </div>
-    {/if}
+    </Modal>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {#if store.centers.length === 0}

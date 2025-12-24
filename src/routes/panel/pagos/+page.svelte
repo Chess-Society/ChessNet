@@ -26,6 +26,7 @@
     import { slide, fade, fly } from "svelte/transition";
     import { exportReceiptPDF } from "$lib/services/export";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
+    import Modal from "$lib/components/Modal.svelte";
     import { notifications } from "$lib/stores/notifications";
 
     $: store = $appStore;
@@ -321,122 +322,89 @@
     </div>
 
     <!-- Add Payment Form -->
-    {#if showForm}
-        <div transition:slide class="mb-10">
-            <div
-                class="bg-slate-900 border border-slate-700 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden"
-            >
-                <!-- Decorative background -->
-                <div
-                    class="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl pointer-events-none"
-                ></div>
+    <Modal bind:isOpen={showForm} title="Registrar Nuevo Pago" size="lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Student Selector -->
+            <div class="space-y-2">
+                <label
+                    for="payment-student"
+                    class="text-sm font-semibold text-slate-400 ml-1"
+                    >Alumno</label
+                >
+                <select
+                    id="payment-student"
+                    bind:value={newPayment.studentId}
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                >
+                    <option value="" disabled>Selecciona un alumno</option>
+                    {#each store.students as student}
+                        <option value={student.id}>{student.name}</option>
+                    {/each}
+                </select>
+            </div>
 
-                <div class="relative z-10">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-white">
-                            Registrar Nuevo Pago
-                        </h2>
-                        <button
-                            onclick={() => (showForm = false)}
-                            class="text-slate-500 hover:text-white transition-colors"
-                            >Cancel</button
+            <!-- Amount & Date -->
+            <div class="space-y-2">
+                <span class="block text-sm font-semibold text-slate-400 ml-1"
+                    >Importe y Fecha</span
+                >
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute left-4 top-3 text-slate-500"
+                            >€</span
                         >
+                        <input
+                            type="number"
+                            aria-label="Importe"
+                            bind:value={newPayment.amount}
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                            placeholder="0.00"
+                        />
                     </div>
+                    <input
+                        type="date"
+                        aria-label="Fecha"
+                        bind:value={newPayment.date}
+                        class="w-40 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                    />
+                </div>
+            </div>
 
-                    <div
-                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            <!-- Method & Concept -->
+            <div class="space-y-2">
+                <span class="block text-sm font-semibold text-slate-400 ml-1"
+                    >Detalles</span
+                >
+                <div class="flex gap-2">
+                    <select
+                        aria-label="Método de Pago"
+                        bind:value={newPayment.method}
+                        class="w-36 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
                     >
-                        <!-- Student Selector -->
-                        <div class="space-y-2">
-                            <label
-                                for="payment-student"
-                                class="text-sm font-semibold text-slate-400 ml-1"
-                                >Alumno</label
-                            >
-                            <select
-                                id="payment-student"
-                                bind:value={newPayment.studentId}
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
-                            >
-                                <option value="" disabled
-                                    >Selecciona un alumno</option
-                                >
-                                {#each store.students as student}
-                                    <option value={student.id}
-                                        >{student.name}</option
-                                    >
-                                {/each}
-                            </select>
-                        </div>
-
-                        <!-- Amount & Date -->
-                        <div class="space-y-2">
-                            <span
-                                class="block text-sm font-semibold text-slate-400 ml-1"
-                                >Importe y Fecha</span
-                            >
-                            <div class="flex gap-2">
-                                <div class="relative flex-1">
-                                    <span
-                                        class="absolute left-4 top-3 text-slate-500"
-                                        >€</span
-                                    >
-                                    <input
-                                        type="number"
-                                        aria-label="Importe"
-                                        bind:value={newPayment.amount}
-                                        class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                                <input
-                                    type="date"
-                                    aria-label="Fecha"
-                                    bind:value={newPayment.date}
-                                    class="w-40 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Method & Concept -->
-                        <div class="space-y-2">
-                            <span
-                                class="block text-sm font-semibold text-slate-400 ml-1"
-                                >Detalles</span
-                            >
-                            <div class="flex gap-2">
-                                <select
-                                    aria-label="Método de Pago"
-                                    bind:value={newPayment.method}
-                                    class="w-36 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
-                                >
-                                    <option value="cash">Efectivo</option>
-                                    <option value="transfer">Transf.</option>
-                                    <option value="bizum">Bizum</option>
-                                </select>
-                                <input
-                                    type="text"
-                                    aria-label="Concepto"
-                                    bind:value={newPayment.concept}
-                                    placeholder="Concepto (ej: Abril)"
-                                    class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-8 flex justify-end">
-                        <button
-                            onclick={handleSubmit}
-                            class="bg-gradient-to-r from-teal-600 to-teal-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-teal-500/20 hover:scale-[1.02] active:scale-95 transition-all text-sm"
-                        >
-                            Confirmar Ingreso
-                        </button>
-                    </div>
+                        <option value="cash">Efectivo</option>
+                        <option value="transfer">Transf.</option>
+                        <option value="bizum">Bizum</option>
+                    </select>
+                    <input
+                        type="text"
+                        aria-label="Concepto"
+                        bind:value={newPayment.concept}
+                        placeholder="Concepto (ej: Abril)"
+                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-teal-500 outline-none"
+                    />
                 </div>
             </div>
         </div>
-    {/if}
+
+        <div class="mt-8 flex justify-end">
+            <button
+                onclick={handleSubmit}
+                class="bg-gradient-to-r from-teal-600 to-teal-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-teal-500/20 hover:scale-[1.02] active:scale-95 transition-all text-sm"
+            >
+                Confirmar Ingreso
+            </button>
+        </div>
+    </Modal>
 
     <!-- Transaction History (Timeline Style) -->
     <div class="space-y-8">

@@ -29,6 +29,7 @@
     import { notifications } from "$lib/stores/notifications";
     import DiplomaModal from "$lib/components/dashboard/students/DiplomaModal.svelte";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
+    import Modal from "$lib/components/Modal.svelte";
     import StudentProfileModal from "$lib/components/dashboard/students/StudentProfileModal.svelte";
     import StudentReportModal from "$lib/components/dashboard/students/StudentReportModal.svelte";
     import { fireConfetti } from "$lib/utils/confetti";
@@ -591,100 +592,96 @@
         </div>
     </div>
 
-    {#if showForm}
-        <div
-            transition:slide
-            class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl"
-        >
-            <h3 class="text-lg font-bold text-white mb-4">
-                {isEditing ? "Editar Alumno" : "Matricular Nuevo Alumno"}
-            </h3>
-            <div class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label
-                            for="student-name"
-                            class="block text-sm font-medium text-slate-400 mb-1"
-                            >Nombre Completo</label
-                        >
-                        <input
-                            id="student-name"
-                            bind:value={currentStudent.name}
-                            type="text"
-                            placeholder="Ej: Magnus Carlsen"
-                            class="form-input focus:border-emerald-500 focus:ring-emerald-500/50"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            for="student-level"
-                            class="block text-sm font-medium text-slate-400 mb-1"
-                            >Nivel</label
-                        >
-                        <select
-                            id="student-level"
-                            bind:value={currentStudent.level}
-                            class="form-select focus:border-emerald-500 focus:ring-emerald-500/50"
-                        >
-                            <option value="Pawn">Peón (Iniciación)</option>
-                            <option value="Bishop">Alfil (Intermedio I)</option>
-                            <option value="Rook">Torre (Intermedio II)</option>
-                            <option value="King">Rey (Avanzado)</option>
-                        </select>
-                    </div>
-                </div>
+    <Modal
+        bind:isOpen={showForm}
+        title={isEditing ? "Editar Alumno" : "Matricular Nuevo Alumno"}
+        size="md"
+    >
+        <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label
-                        for="student-class"
+                        for="student-name"
                         class="block text-sm font-medium text-slate-400 mb-1"
-                        >Asignar a Clase</label
-                    >
-                    <select
-                        id="student-class"
-                        bind:value={selectedClassId}
-                        class="form-select focus:border-emerald-500 focus:ring-emerald-500/50"
-                    >
-                        <option value="">-- Sin asignar --</option>
-                        {#each store.classes as group}
-                            <option value={group.id}
-                                >{group.name} ({group.schedule})</option
-                            >
-                        {/each}
-                    </select>
-                    <p class="text-xs text-slate-500 mt-1">
-                        Sugerencia: Si cambias la clase, el alumno será movido
-                        automáticamente.
-                    </p>
-                </div>
-                <div>
-                    <label
-                        for="student-email"
-                        class="block text-sm font-medium text-slate-400 mb-1"
-                        >Email de Contacto</label
+                        >Nombre Completo</label
                     >
                     <input
-                        id="student-email"
-                        bind:value={currentStudent.email}
-                        type="email"
-                        placeholder="email@ejemplo.com"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
+                        id="student-name"
+                        bind:value={currentStudent.name}
+                        type="text"
+                        placeholder="Ej: Magnus Carlsen"
+                        class="form-input focus:border-emerald-500 focus:ring-emerald-500/50"
                     />
                 </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button
-                        onclick={() => (showForm = false)}
-                        class="btn btn-ghost btn-md">Cancelar</button
+                <div>
+                    <label
+                        for="student-level"
+                        class="block text-sm font-medium text-slate-400 mb-1"
+                        >Nivel</label
                     >
-                    <button
-                        onclick={handleSubmit}
-                        class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20 btn-bounce"
+                    <select
+                        id="student-level"
+                        bind:value={currentStudent.level}
+                        class="form-select focus:border-emerald-500 focus:ring-emerald-500/50"
                     >
-                        {isEditing ? "Guardar Cambios" : "Registrar Alumno"}
-                    </button>
+                        <option value="Pawn">Peón (Iniciación)</option>
+                        <option value="Bishop">Alfil (Intermedio I)</option>
+                        <option value="Rook">Torre (Intermedio II)</option>
+                        <option value="King">Rey (Avanzado)</option>
+                    </select>
                 </div>
             </div>
+            <div>
+                <label
+                    for="student-class"
+                    class="block text-sm font-medium text-slate-400 mb-1"
+                    >Asignar a Clase</label
+                >
+                <select
+                    id="student-class"
+                    bind:value={selectedClassId}
+                    class="form-select focus:border-emerald-500 focus:ring-emerald-500/50"
+                >
+                    <option value="">-- Sin asignar --</option>
+                    {#each store.classes as group}
+                        <option value={group.id}
+                            >{group.name} ({group.schedule})</option
+                        >
+                    {/each}
+                </select>
+                <p class="text-xs text-slate-500 mt-1">
+                    Sugerencia: Si cambias la clase, el alumno será movido
+                    automáticamente.
+                </p>
+            </div>
+            <div>
+                <label
+                    for="student-email"
+                    class="block text-sm font-medium text-slate-400 mb-1"
+                    >Email de Contacto</label
+                >
+                <input
+                    id="student-email"
+                    bind:value={currentStudent.email}
+                    type="email"
+                    placeholder="email@ejemplo.com"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500"
+                />
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button
+                    onclick={() => (showForm = false)}
+                    class="btn btn-ghost btn-md">Cancelar</button
+                >
+                <button
+                    onclick={handleSubmit}
+                    class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20 btn-bounce"
+                >
+                    {isEditing ? "Guardar Cambios" : "Registrar Alumno"}
+                </button>
+            </div>
         </div>
-    {/if}
+    </Modal>
 
     <div
         class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
