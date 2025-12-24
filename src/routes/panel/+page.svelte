@@ -670,46 +670,33 @@
             : "baja activ.";
 </script>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Header Section -->
-    <div class="mb-8">
-        <div class="flex justify-between items-end">
-            <div>
-                <h2 class="text-3xl font-bold text-white">Dashboard</h2>
-                <p class="text-slate-400 mt-1">
-                    Bienvenido de vuelta, profesor.
-                </p>
-            </div>
-            <div class="text-right hidden sm:block">
-                <p class="text-sm text-slate-400">Hoy</p>
-                <p class="text-xl font-bold text-white capitalize">{today}</p>
-            </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <!-- 1. Header & Welcome -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 pt-6">
+        <div>
+            <h1 class="text-3xl font-bold text-white flex items-center gap-2">
+                Hola, Profe <span class="animate-pulse">👋</span>
+            </h1>
+            <p class="text-slate-400 mt-1 text-lg">
+                Aquí tienes el resumen de tu academia hoy.
+            </p>
+        </div>
+        <div class="mt-4 md:mt-0 text-left md:text-right bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50">
+            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Hoy es</p>
+            <p class="text-xl font-bold text-white capitalize flex items-center gap-2">
+                <Calendar class="w-5 h-5 text-indigo-400" />
+                {today}
+            </p>
         </div>
     </div>
 
-    <!-- Analytics Charts -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <RevenueChart
-            data={revenueData}
-            labels={chartLabels}
-            totalRevenue={totalRevenueCurrentMonth}
-            trendPercentage={revenueTrend}
-        />
-        <StudentGrowthChart
-            data={studentGrowthData}
-            labels={chartLabels}
-            totalNewStudents={newStudentsCurrentMonth}
-            trendText={studentGrowthTrendText}
-        />
-    </div>
-
-    <!-- Stats Grid -->
-    <!-- Quick Actions -->
-    <div
-        class="bg-[#1e293b] rounded-2xl border border-slate-800 p-8 mb-8 relative"
-    >
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-white">Acciones Rápidas</h3>
+    <!-- 2. Quick Actions (Navigation) - NOW TOP PRIORITY -->
+    <div class="mb-10">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <Layout class="w-5 h-5 text-indigo-500" />
+                Accesos Directos
+            </h2>
             <button
                 onclick={toggleEditMode}
                 class="text-xs flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors {isEditingLayout
@@ -722,7 +709,7 @@
         </div>
 
         <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4"
             role="list"
         >
             {#each finalActions as action (action.id)}
@@ -736,68 +723,251 @@
                     ontouchmove={handleTouchMove}
                     ontouchend={handleTouchEnd}
                     data-action-id={action.id}
-                    class="relative transition-all duration-200 {draggedItem?.id ===
-                    action.id
-                        ? 'scale-105 z-10'
-                        : ''}"
+                    class="relative transition-all duration-200 {draggedItem?.id === action.id ? 'scale-105 z-10 opacity-50' : ''}"
                     role="listitem"
                 >
                     <button
-                        onclick={() =>
-                            !isEditingLayout && navigate(action.link)}
-                        class="group flex flex-col items-start p-6 bg-[#0f172a] rounded-2xl border border-slate-800 transition-all duration-300 {action.hover} hover:shadow-xl hover:-translate-y-1 relative w-full text-left cursor-pointer {isEditingLayout
-                            ? 'border-dashed border-slate-600 cursor-move'
-                            : ''}"
+                        onclick={() => !isEditingLayout && navigate(action.link)}
+                        class="group flex flex-col items-center justify-center p-4 bg-[#1e293b] hover:bg-slate-800 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300 w-full aspect-square md:aspect-auto md:h-32 shadow-lg hover:shadow-xl hover:-translate-y-1 relative {isEditingLayout ? 'cursor-move border-dashed border-slate-500' : 'cursor-pointer'}"
                     >
                         {#if action.badge}
-                            <span
-                                class="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full z-10"
-                                >{action.badge}</span
-                            >
+                            <span class="absolute top-2 right-2 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">
+                                {action.badge}
+                            </span>
                         {/if}
-                        <div class="flex justify-between w-full">
+                        
+                        <div class="p-3 bg-slate-900/50 rounded-xl mb-3 group-hover:scale-110 transition-transform duration-300">
                             <svelte:component
                                 this={action.icon}
-                                class="w-10 h-10 mb-4 {action.color}"
+                                class="w-6 h-6 {action.color}"
                             />
-                            {#if isEditingLayout}
-                                <GripVertical class="w-5 h-5 text-slate-600" />
-                            {:else}
-                                <ChevronRight
-                                    class="w-5 h-5 text-slate-700 group-hover:text-white transition-colors"
-                                />
-                            {/if}
                         </div>
-
-                        <h4
-                            class="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors"
-                        >
+                        
+                        <span class="text-sm font-semibold text-slate-300 group-hover:text-white text-center leading-tight">
                             {action.title}
-                        </h4>
-                        <p
-                            class="text-sm text-slate-500 font-medium leading-relaxed"
-                        >
-                            {action.desc}
-                        </p>
+                        </span>
+                        
+                        {#if isEditingLayout}
+                            <div class="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center">
+                                <GripVertical class="w-6 h-6 text-white/80" />
+                            </div>
+                        {/if}
                     </button>
                 </div>
             {/each}
         </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Estudiantes -->
-        <div
-            class="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-start"
-        >
-            <div class="flex-1">
-                <p class="text-slate-400 text-sm font-medium">
-                    Estudiantes Activos
-                </p>
-                <p class="text-3xl font-bold text-white mt-2">
-                    {store.students.length}
-                </p>
+    <!-- 3. Command Center (Alerts & Activity) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        
+        <!-- Left: Priority Alerts & Today's Schedule -->
+        <div class="lg:col-span-2 space-y-8">
+            
+            <!-- Smart Alerts -->
+            {#if alerts.length > 0 || pendingTasks.length > 0}
+                <div class="space-y-3">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <Bell class="w-5 h-5 text-amber-500" />
+                        Atención Requerida
+                    </h3>
+                    
+                    {#if pendingTasks.length > 0}
+                        {#each pendingTasks.slice(0, 3) as task}
+                            <div class="bg-slate-800/40 border-l-4 border-{task.color}-500 rounded-r-xl p-4 flex items-center justify-between hover:bg-slate-800/60 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div class="p-2 bg-slate-900 rounded-lg">
+                                        <svelte:component this={task.icon} class="w-5 h-5 text-{task.color}-500" />
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-200 text-sm">{task.title}</p>
+                                        <p class="text-xs text-slate-500">{task.subtitle}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onclick={() => navigate(`${task.link}${task.linkParams || ''}`)}
+                                    class="text-xs font-bold bg-{task.color}-500/10 text-{task.color}-400 px-3 py-1.5 rounded-lg hover:bg-{task.color}-500/20 transition-colors"
+                                >
+                                    {task.action}
+                                </button>
+                            </div>
+                        {/each}
+                    {/if}
+
+                    {#each alerts.slice(0, 2) as alert}
+                        <div class="bg-slate-800/40 border-l-4 border-amber-500 rounded-r-xl p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <AlertTriangle class="w-5 h-5 text-amber-500" />
+                                <span class="text-sm text-slate-300 font-medium">{alert.message}</span>
+                            </div>
+                            <button 
+                                onclick={() => navigate(alert.link)}
+                                class="text-xs font-bold text-amber-500 hover:text-amber-400"
+                            >
+                                {alert.action} →
+                            </button>
+                        </div>
+                    {/each}
+                </div>
+            {/if}
+
+            <!-- Today's Classes -->
+            <div>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
+                    <Clock class="w-5 h-5 text-emerald-500" />
+                    Clases de Hoy
+                </h3>
+                
+                {#if todaysClasses.length === 0}
+                    <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-8 text-center">
+                        <div class="inline-block p-4 bg-slate-800 rounded-full mb-3">
+                            <Calendar class="w-8 h-8 text-slate-500" />
+                        </div>
+                        <p class="text-slate-300 font-medium">¡Día libre! 🎉</p>
+                        <p class="text-sm text-slate-500 mt-1">No tienes clases programadas para hoy.</p>
+                        <button onclick={() => navigate('clases')} class="mt-4 text-sm text-indigo-400 hover:text-indigo-300 font-medium">
+                            Ver horario completo →
+                        </button>
+                    </div>
+                {:else}
+                    <div class="grid gap-4">
+                        {#each todaysClasses as cls}
+                            <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-xl border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                                        {cls.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-white text-lg">{cls.name}</h4>
+                                        <div class="flex items-center gap-3 text-sm text-slate-400 mt-1">
+                                            <span class="flex items-center gap-1">
+                                                <Clock class="w-3.5 h-3.5" />
+                                                {cls.schedule}
+                                            </span>
+                                            <span class="flex items-center gap-1">
+                                                <Users class="w-3.5 h-3.5" />
+                                                {cls.students.length} alumnos
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a 
+                                    href="{base}/panel/asistencia?classId={cls.id}"
+                                    class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-emerald-900/20 text-center"
+                                >
+                                    Pasar Lista
+                                </a>
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+            
+            <!-- Quick Stats Row -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                 <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
+                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">Alumnos</p>
+                    <p class="text-2xl font-bold text-white">{store.students.length}</p>
+                    <p class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+                         <TrendingUp class="w-3 h-3" /> Activos
+                    </p>
+                 </div>
+                 <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
+                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">Ingresos (Mes)</p>
+                    <p class="text-2xl font-bold text-white">{totalRevenueCurrentMonth}€</p>
+                    <p class="text-xs {revenueTrend >= 0 ? 'text-emerald-400' : 'text-red-400'} mt-1 flex items-center gap-1">
+                         {#if revenueTrend >= 0}<TrendingUp class="w-3 h-3" />{:else}<TrendingDown class="w-3 h-3" />{/if}
+                         {Math.round(revenueTrend)}% vs mes ant.
+                    </p>
+                 </div>
+                 <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
+                    <p class="text-slate-500 text-xs font-bold uppercase mb-1">Asistencia</p>
+                    <p class="text-2xl font-bold text-white">{averageAttendance}%</p>
+                    <p class="text-xs text-blue-400 mt-1">Promedio global</p>
+                 </div>
+                 <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
+                     <p class="text-slate-500 text-xs font-bold uppercase mb-1">Próx. Torneo</p>
+                     {#if store.tournaments.filter(t => t.status === 'Upcoming').length > 0}
+                        {@const next = store.tournaments.filter(t => t.status === 'Upcoming')[0]}
+                        <p class="text-lg font-bold text-white truncate">{next.name}</p>
+                        <p class="text-xs text-orange-400 mt-1">{daysTill(next.date)} días</p>
+                     {:else}
+                        <p class="text-lg font-bold text-slate-500">—</p>
+                     {/if}
+                 </div>
+            </div>
+
+        </div>
+
+        <!-- Right: Recent Activity Feed -->
+        <div class="space-y-6">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <Activity class="w-5 h-5 text-blue-500" />
+                Actividad Reciente
+            </h3>
+            
+            <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+                {#if recentActivity.length === 0}
+                    <div class="p-8 text-center text-slate-500 text-sm">
+                        No hay actividad reciente.
+                    </div>
+                {:else}
+                    <div class="divide-y divide-slate-800">
+                        {#each recentActivity as item}
+                            <div class="p-4 flex gap-4 hover:bg-slate-800/30 transition-colors rounded-xl">
+                                <div class="mt-1">
+                                    <div class="w-8 h-8 rounded-full bg-{item.color}-500/20 flex items-center justify-center border border-{item.color}-500/30">
+                                        <svelte:component this={item.icon} class="w-4 h-4 text-{item.color}-500" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-300 font-medium leading-snug">
+                                        {item.description}
+                                    </p>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        {item.timeAgo}
+                                    </p>
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+
+            <!-- Optional: Evaluation / Progression Widget could go here in future -->
+            <div class="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-2xl p-6 border border-indigo-500/30 text-center">
+                 <Trophy class="w-10 h-10 text-yellow-400 mx-auto mb-3" />
+                 <h4 class="text-white font-bold mb-1">¡Nuevo Logro Desbloqueado?</h4>
+                 <p class="text-sm text-indigo-200 mb-4">Revisa si has subido de nivel como entrenador.</p>
+                 <button onclick={() => navigate('logros')} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all w-full">
+                     Ver Mis Logros
+                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Detailed Charts (Collapsible or Bottom) -->
+    <div class="border-t border-slate-800 pt-8">
+        <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <BarChart3 class="w-5 h-5 text-slate-400" />
+            Análisis Detallado
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <RevenueChart
+                data={revenueData}
+                labels={chartLabels}
+                totalRevenue={totalRevenueCurrentMonth}
+                trendPercentage={revenueTrend}
+            />
+            <StudentGrowthChart
+                data={studentGrowthData}
+                labels={chartLabels}
+                totalNewStudents={newStudentsCurrentMonth}
+                trendText={studentGrowthTrendText}
+            />
+        </div>
+    </div>
+</div>
                 {#if recentStudents > 0}
                     <div class="flex items-center gap-2 mt-2">
                         <span
