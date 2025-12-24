@@ -19,13 +19,12 @@
         Shield,
         DollarSign,
     } from "lucide-svelte";
-    import type {
-        Student,
-        ClassGroup,
-        Tournament,
+    import {
+        appStore,
+        type Student,
+        type ClassGroup,
     } from "$lib/services/storage";
     import AchievementBadge from "$lib/components/AchievementBadge.svelte";
-    import { achievementsStore } from "$lib/services/achievements";
 
     // Props
     export let isOpen = false;
@@ -33,9 +32,10 @@
     export let studentClass: ClassGroup | undefined = undefined;
     export let centerName: string = "—";
     export let attendanceRate: number = 0;
-    export let recentActivity: any[] = []; // Payments, tournaments, etc.
+    export let recentActivity: any[] = [];
 
     const dispatch = createEventDispatcher();
+    $: store = $appStore;
 
     function close() {
         dispatch("close");
@@ -57,6 +57,16 @@
         dispatch("share", student);
     }
 
+    function translateLevel(level: string): string {
+        const map: Record<string, string> = {
+            Pawn: "Peón",
+            Bishop: "Alfil",
+            Rook: "Torre",
+            King: "Rey",
+        };
+        return map[level] || level;
+    }
+
     // Tabs
     let activeTab: "overview" | "history" | "achievements" = "overview";
 
@@ -70,10 +80,10 @@
 
     $: levelStyle = levelColors[student.level] || levelColors["Pawn"];
 
-    // Mock Achievements for now (in real app, filter from store)
-    $: unlockedAchievements = $achievementsStore
-        .filter((a) => Math.random() > 0.7)
-        .slice(0, 3); // Just purely visual mock for layout demo if no real data
+    // Get real skills/achievements
+    $: studentSkills = (student.skills || [])
+        .map((skillId) => store.skills.find((s) => s.id === skillId))
+        .filter((s) => !!s); // Filter found skills
 </script>
 
 {#if isOpen}
@@ -166,7 +176,7 @@
                                 <span
                                     class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border {levelStyle}"
                                 >
-                                    {student.level}
+                                    {translateLevel(student.level)}
                                 </span>
                             </h2>
                             <div
@@ -460,54 +470,46 @@
                                         <div
                                             class="grid grid-cols-1 sm:grid-cols-2 gap-4"
                                         >
-                                            <!-- Mock Badges Loop -->
-                                            <!-- In real implementation this takes from student.achievements -->
-                                            <div
-                                                class="bg-slate-800/50 p-3 rounded-xl flex items-center gap-3 border border-slate-700"
-                                            >
+                                            {#if studentSkills.length === 0}
                                                 <div
-                                                    class="p-2 bg-yellow-500/10 rounded-full text-yellow-500"
+                                                    class="col-span-full py-10 text-center text-slate-500"
                                                 >
-                                                    <Trophy class="w-5 h-5" />
-                                                </div>
-                                                <div>
-                                                    <p
-                                                        class="text-sm font-bold text-white"
-                                                    >
-                                                        Primer Torneo
-                                                    </p>
-                                                    <p
-                                                        class="text-xs text-slate-400"
-                                                    >
-                                                        Participó en su primer
-                                                        torneo local
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="bg-slate-800/50 p-3 rounded-xl flex items-center gap-3 border border-slate-700"
-                                            >
-                                                <div
-                                                    class="p-2 bg-blue-500/10 rounded-full text-blue-500"
-                                                >
-                                                    <TrendingUp
-                                                        class="w-5 h-5"
+                                                    <Trophy
+                                                        class="w-12 h-12 mx-auto mb-3 opacity-20"
                                                     />
-                                                </div>
-                                                <div>
-                                                    <p
-                                                        class="text-sm font-bold text-white"
-                                                    >
-                                                        Racha Asistencia
-                                                    </p>
-                                                    <p
-                                                        class="text-xs text-slate-400"
-                                                    >
-                                                        10 clases seguidas sin
-                                                        faltar
+                                                    <p>
+                                                        Aún no ha desbloqueado
+                                                        logros o habilidades.
                                                     </p>
                                                 </div>
-                                            </div>
+                                            {:else}
+                                                {#each studentSkills as skill}
+                                                    <div
+                                                        class="bg-slate-800/50 p-3 rounded-xl flex items-center gap-3 border border-slate-700"
+                                                    >
+                                                        <div
+                                                            class="p-2 bg-yellow-500/10 rounded-full text-yellow-500"
+                                                        >
+                                                            <Trophy
+                                                                class="w-5 h-5"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <p
+                                                                class="text-sm font-bold text-white capitalize"
+                                                            >
+                                                                {skill?.name}
+                                                            </p>
+                                                            <p
+                                                                class="text-xs text-slate-400 capitalize"
+                                                            >
+                                                                {skill?.category}
+                                                                - Nivel {skill?.level}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                {/each}
+                                            {/if}
                                         </div>
                                     </div>
                                 {/if}
