@@ -50,6 +50,29 @@
         format: "Suizo",
     };
 
+    // Form validation errors
+    let formErrors: {
+        name?: string;
+        date?: string;
+    } = {};
+
+    function validateTournamentForm(): boolean {
+        formErrors = {};
+        let isValid = true;
+
+        if (!newTournament.name || newTournament.name.trim().length < 3) {
+            formErrors.name = "El nombre debe tener al menos 3 caracteres";
+            isValid = false;
+        }
+
+        if (!newTournament.date) {
+            formErrors.date = "Selecciona una fecha";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     // KPI Stats
     $: totalTournaments = store.tournaments.length;
     $: ongoingTournaments = store.tournaments.filter(
@@ -91,6 +114,7 @@
         if (showForm) {
             showTemplateSelection = true;
             selectedTemplate = null;
+            formErrors = {};
         }
     }
 
@@ -110,7 +134,12 @@
     }
 
     function handleSubmit() {
-        if (!newTournament.name) return;
+        if (!validateTournamentForm()) {
+            notifications.error(
+                "Por favor, corrige los errores del formulario",
+            );
+            return;
+        }
 
         const tournamentToAdd = {
             ...newTournament,
@@ -136,6 +165,7 @@
         showForm = false;
         showTemplateSelection = true;
         selectedTemplate = null;
+        formErrors = {};
     }
 </script>
 
@@ -494,29 +524,73 @@
                         <label
                             for="tournament-name"
                             class="block text-sm font-medium text-slate-300 mb-2"
-                            >Nombre del Torneo</label
+                            >Nombre del Torneo <span class="text-red-400"
+                                >*</span
+                            ></label
                         >
                         <input
                             id="tournament-name"
                             bind:value={newTournament.name}
                             type="text"
                             placeholder="Ej: Torneo de Primavera 2024"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all {formErrors.name
+                                ? 'border-red-500 focus:ring-red-500'
+                                : ''}"
                         />
+                        {#if formErrors.name}
+                            <p
+                                class="text-red-400 text-xs mt-1 flex items-center gap-1"
+                            >
+                                <svg
+                                    class="w-3 h-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                                {formErrors.name}
+                            </p>
+                        {/if}
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label
                                 for="tournament-date"
                                 class="block text-sm font-medium text-slate-300 mb-2"
-                                >Fecha de Inicio</label
+                                >Fecha de Inicio <span class="text-red-400"
+                                    >*</span
+                                ></label
                             >
                             <input
                                 id="tournament-date"
                                 bind:value={newTournament.date}
                                 type="date"
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all {formErrors.date
+                                    ? 'border-red-500 focus:ring-red-500'
+                                    : ''}"
                             />
+                            {#if formErrors.date}
+                                <p
+                                    class="text-red-400 text-xs mt-1 flex items-center gap-1"
+                                >
+                                    <svg
+                                        class="w-3 h-3"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                            clip-rule="evenodd"
+                                        />
+                                    </svg>
+                                    {formErrors.date}
+                                </p>
+                            {/if}
                         </div>
                         <div>
                             <label

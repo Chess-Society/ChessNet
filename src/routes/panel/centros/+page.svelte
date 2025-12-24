@@ -24,8 +24,36 @@
         description: "",
     };
 
+    // Form validation errors
+    let formErrors: {
+        name?: string;
+        location?: string;
+    } = {};
+
+    function validateCenterForm(): boolean {
+        formErrors = {};
+        let isValid = true;
+
+        if (!newCenter.name || newCenter.name.trim().length < 3) {
+            formErrors.name = "El nombre debe tener al menos 3 caracteres";
+            isValid = false;
+        }
+
+        if (!newCenter.location || newCenter.location.trim().length < 3) {
+            formErrors.location = "La ubicación es obligatoria";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     function handleSubmit() {
-        if (!newCenter.name || !newCenter.location) return;
+        if (!validateCenterForm()) {
+            notifications.error(
+                "Por favor, corrige los errores del formulario",
+            );
+            return;
+        }
 
         const centerToAdd = {
             ...newCenter,
@@ -36,6 +64,7 @@
 
         // Reset form
         newCenter = { id: "", name: "", location: "", description: "" };
+        formErrors = {};
         showForm = false;
         notifications.success("Centro añadido correctamente");
     }
@@ -57,16 +86,19 @@
     }
 
     function getStudentCount(centerId: string) {
-        // Find all classes for this center
         const centerClasses = store.classes.filter(
             (c) => c.centerId === centerId,
         );
-        // Collect all student IDs (unique)
         const uniqueStudents = new Set<string>();
         centerClasses.forEach((c) => {
             c.students.forEach((sId) => uniqueStudents.add(sId));
         });
         return uniqueStudents.size;
+    }
+
+    function openForm() {
+        formErrors = {};
+        showForm = true;
     }
 </script>
 
@@ -79,11 +111,11 @@
                 <School class="w-8 h-8 text-blue-500" /> Centros Educativos
             </h1>
             <p class="mt-2 text-slate-400">
-                Gestiona las escuelas y clubes donde impartes clase.
+                Gest iona las escuelas y clubes donde impartes clase.
             </p>
         </div>
         <button
-            onclick={() => (showForm = !showForm)}
+            onclick={openForm}
             class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 sm:py-2 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg shadow-blue-900/20"
         >
             <Plus class="w-5 h-5" />
@@ -97,21 +129,42 @@
                 <label
                     for="center-name"
                     class="block text-sm font-medium text-slate-400 mb-1"
-                    >Nombre del Centro</label
+                    >Nombre del Centro <span class="text-red-400">*</span
+                    ></label
                 >
                 <input
                     id="center-name"
                     bind:value={newCenter.name}
                     type="text"
                     placeholder="Ej: Colegio San José"
-                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 {formErrors.name
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/50'
+                        : ''}"
                 />
+                {#if formErrors.name}
+                    <p
+                        class="text-red-400 text-xs mt-1 flex items-center gap-1"
+                    >
+                        <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        {formErrors.name}
+                    </p>
+                {/if}
             </div>
             <div>
                 <label
                     for="center-location"
                     class="block text-sm font-medium text-slate-400 mb-1"
-                    >Ubicación</label
+                    >Ubicación <span class="text-red-400">*</span></label
                 >
                 <div class="relative">
                     <MapPin
@@ -122,9 +175,29 @@
                         bind:value={newCenter.location}
                         type="text"
                         placeholder="Ciudad, Barrio o Dirección"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-blue-500 {formErrors.location
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/50'
+                            : ''}"
                     />
                 </div>
+                {#if formErrors.location}
+                    <p
+                        class="text-red-400 text-xs mt-1 flex items-center gap-1"
+                    >
+                        <svg
+                            class="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        {formErrors.location}
+                    </p>
+                {/if}
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button
@@ -154,7 +227,7 @@
                     Añade tu primer centro educativo para empezar.
                 </p>
                 <button
-                    onclick={() => (showForm = true)}
+                    onclick={openForm}
                     class="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-6 py-2 rounded-xl font-medium transition-all"
                 >
                     Añadir Centro
