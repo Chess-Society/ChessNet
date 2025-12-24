@@ -1,6 +1,6 @@
 <script lang="ts">
     import { page } from "$app/stores";
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { goto } from "$app/navigation";
     import { notifications } from "$lib/stores/notifications";
     import {
@@ -25,12 +25,18 @@
         Printer,
         Download,
         FileText,
+        Medal,
+        Clock,
+        Target,
+        User,
+        MoreVertical,
+        ChevronRight,
     } from "lucide-svelte";
     import {
         exportStandingsPDF,
         exportPairingsPDF,
     } from "$lib/services/export";
-    import { slide, fade } from "svelte/transition";
+    import { slide, fade, scale } from "svelte/transition";
     import { base } from "$app/paths";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
@@ -68,6 +74,11 @@
               (a, b) => a - b,
           )
         : [];
+
+    $: currentRound = rounds.length > 0 ? Math.max(...rounds) : 0;
+
+    // Leader logic
+    $: leader = standings.length > 0 ? standings[0] : null;
 
     // Modal State
     let showConfirmModal = false;
@@ -121,6 +132,7 @@
             participants: [...tournament.participants, studentId],
         };
         storeActions.updateTournament(updatedTournament);
+        notifications.success("Jugador añadido");
     }
 
     function removeParticipant(studentId: string) {
@@ -132,6 +144,7 @@
             ),
         };
         storeActions.updateTournament(updatedTournament);
+        notifications.success("Jugador eliminado");
     }
 
     function generatePairings() {
@@ -218,6 +231,8 @@
             matches: [...tournament.matches, ...newMatches],
         };
         storeActions.updateTournament(updatedTournament);
+        activeTab = "matches"; // Switch to matches tab
+        notifications.success(`Ronda ${nextRound} generada`);
     }
 
     function updateMatchResult(
@@ -290,7 +305,7 @@
     }
 </script>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
     {#if !tournament}
         <div class="text-center text-slate-500 mt-20">
             <h2 class="text-2xl font-bold text-white mb-4">
@@ -302,437 +317,752 @@
             >
         </div>
     {:else}
-        <!-- Header -->
-        <div class="mb-8">
-            <a
-                href="{base}/panel/torneos"
-                class="inline-flex items-center text-slate-400 hover:text-white mb-4 transition-colors"
-            >
-                <ArrowLeft class="w-4 h-4 mr-1" /> Volver
-            </a>
+        <!-- Top Nav -->
+        <a
+            href="{base}/panel/torneos"
+            class="inline-flex items-center text-slate-400 hover:text-white transition-colors"
+        >
+            <ArrowLeft class="w-4 h-4 mr-2" /> Volver a Torneos
+        </a>
+
+        <!-- Premium Header Panel -->
+        <div
+            class="bg-[#1e293b] border border-slate-700/50 rounded-3xl p-6 lg:p-8 relative overflow-hidden"
+        >
+            <!-- Background Decoration -->
             <div
-                class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+                class="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"
+            ></div>
+
+            <div
+                class="relative z-10 flex flex-col md:flex-row justify-between gap-6"
             >
-                <div>
-                    <div class="flex items-center gap-3">
-                        <Trophy class="w-10 h-10 text-orange-500" />
-                        <h1 class="text-3xl font-bold text-white">
-                            {tournament.name}
-                        </h1>
-                    </div>
-                    <div class="flex gap-4 mt-2 text-slate-400 text-sm">
-                        <span class="flex items-center gap-1"
-                            ><Calendar class="w-4 h-4" />
-                            {tournament.date}</span
-                        >
-                        <span class="flex items-center gap-1"
-                            ><Swords class="w-4 h-4" />
-                            {tournament.format}</span
-                        >
+                <!-- Branding & Title -->
+                <div class="flex-1">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-wider mb-4
+                        {tournament.status === 'Ongoing'
+                            ? 'text-emerald-400 border-emerald-500/30'
+                            : tournament.status === 'Completed'
+                              ? 'text-slate-400'
+                              : 'text-blue-400 border-blue-500/30'}"
+                    >
                         <span
-                            class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 uppercase to-xs font-bold"
+                            class="w-2 h-2 rounded-full {tournament.status ===
+                            'Ongoing'
+                                ? 'bg-emerald-500 animate-pulse'
+                                : 'bg-current'}"
+                        ></span>
+                        {tournament.status === "Ongoing"
+                            ? "Torneo En Curso"
+                            : tournament.status === "Completed"
+                              ? "Torneo Finalizado"
+                              : "Inscripción Abierta"}
+                    </div>
+
+                    <h1
+                        class="text-4xl font-bold text-white mb-4 flex items-center gap-4"
+                    >
+                        {tournament.name}
+                        {#if tournament.status === "Completed"}
+                            <Medal class="w-8 h-8 text-yellow-500" />
+                        {/if}
+                    </h1>
+
+                    <div class="flex flex-wrap gap-4 text-slate-400 text-sm">
+                        <div
+                            class="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg"
                         >
-                            {tournament.status === "Ongoing"
-                                ? "En Curso"
-                                : tournament.status === "Completed"
-                                  ? "Finalizado"
-                                  : "Próximo"}
-                        </span>
+                            <Calendar class="w-4 h-4 text-slate-500" />
+                            {new Date(tournament.date).toLocaleDateString()}
+                        </div>
+                        <div
+                            class="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg"
+                        >
+                            <Swords class="w-4 h-4 text-slate-500" />
+                            {tournament.format}
+                        </div>
+                        <div
+                            class="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg"
+                        >
+                            <Users class="w-4 h-4 text-slate-500" />
+                            {participants.length} Participantes
+                        </div>
                     </div>
                 </div>
-                <div class="flex gap-2 self-start md:self-center">
-                    <a
-                        href="{base}/panel/torneos/{tournament.id}/spectator"
-                        target="_blank"
-                        class="bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 hover:bg-emerald-600 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
-                    >
-                        <Monitor class="w-4 h-4" /> Modo Espectador
-                    </a>
-                    {#if tournament.status === "Ongoing"}
-                        <button
-                            onclick={finishTournament}
-                            class="bg-blue-600/20 text-blue-400 border border-blue-600/30 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
+
+                <!-- Quick Stats / Leader -->
+                <div class="flex gap-4">
+                    {#if leader}
+                        <div
+                            class="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-4 min-w-[160px]"
                         >
-                            <Flag class="w-4 h-4" /> Finalizar
-                        </button>
+                            <div
+                                class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2"
+                            >
+                                Líder Actual
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 text-yellow-500"
+                                >
+                                    <Trophy class="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div class="font-bold text-white text-lg">
+                                        {leader.name.split(" ")[0]}
+                                    </div>
+                                    <div
+                                        class="text-xs text-yellow-500 font-medium"
+                                    >
+                                        {leader.points} Pts
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     {/if}
-                    <button
-                        onclick={deleteTournament}
-                        class="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
+
+                    <div
+                        class="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-4 min-w-[140px]"
                     >
-                        <Trash2 class="w-4 h-4" /> Eliminar
-                    </button>
+                        <div
+                            class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2"
+                        >
+                            Rondas Jugadas
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-500"
+                            >
+                                <Clock class="w-5 h-5" />
+                            </div>
+                            <div>
+                                <div class="font-bold text-white text-2xl">
+                                    {currentRound}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Actions Bar -->
+            <div class="flex gap-2 mt-8 pt-6 border-t border-slate-700/50">
+                <a
+                    href="{base}/panel/torneos/{tournament.id}/spectator"
+                    target="_blank"
+                    class="bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors border border-slate-700"
+                >
+                    <Monitor class="w-4 h-4" /> Modo Pantalla Gigante
+                </a>
+
+                <div class="flex-1"></div>
+
+                {#if tournament.status === "Ongoing"}
+                    <button
+                        onclick={finishTournament}
+                        class="bg-blue-600/20 text-blue-400 border border-blue-600/30 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
+                    >
+                        <Flag class="w-4 h-4" /> Finalizar Torneo
+                    </button>
+                {/if}
+                <button
+                    onclick={deleteTournament}
+                    class="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
+                >
+                    <Trash2 class="w-4 h-4" /> Eliminar
+                </button>
             </div>
         </div>
 
-        <!-- Navigation -->
-        <div class="flex gap-2 mb-8 border-b border-slate-700">
-            <button
-                onclick={() => (activeTab = "participants")}
-                class="px-4 py-3 text-sm font-medium border-b-2 transition-colors {activeTab ===
-                'participants'
-                    ? 'border-orange-500 text-orange-400'
-                    : 'border-transparent text-slate-400 hover:text-white'}"
-            >
-                Participantes ({participants.length})
-            </button>
-            <button
-                onclick={() => (activeTab = "matches")}
-                class="px-4 py-3 text-sm font-medium border-b-2 transition-colors {activeTab ===
-                'matches'
-                    ? 'border-orange-500 text-orange-400'
-                    : 'border-transparent text-slate-400 hover:text-white'}"
-            >
-                Rondas y Partidas
-            </button>
-            <button
-                onclick={() => (activeTab = "standings")}
-                class="px-4 py-3 text-sm font-medium border-b-2 transition-colors {activeTab ===
-                'standings'
-                    ? 'border-orange-500 text-orange-400'
-                    : 'border-transparent text-slate-400 hover:text-white'}"
-            >
-                Clasificación
-            </button>
-        </div>
-
-        <!-- Content -->
-
-        <!-- PARTICIPANTS TAB -->
-        {#if activeTab === "participants"}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" transition:fade>
-                <!-- List -->
-                <div
-                    class="lg:col-span-2 bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
-                >
-                    <div
-                        class="p-4 bg-slate-900/50 border-b border-slate-700 font-bold text-slate-300"
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Sidebar / Tabs Navigation -->
+            <div class="lg:col-span-1 space-y-4">
+                <nav class="flex flex-col gap-2">
+                    <button
+                        onclick={() => (activeTab = "participants")}
+                        class="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-between group {activeTab ===
+                        'participants'
+                            ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20'
+                            : 'bg-[#1e293b] text-slate-400 hover:bg-slate-800 border border-transparent hover:border-slate-700'}"
                     >
-                        Jugadores Inscritos
-                    </div>
-                    {#if participants.length === 0}
-                        <div class="p-12 text-center text-slate-500">
-                            No hay jugadores inscritos aún.
-                        </div>
-                    {:else}
-                        <div class="divide-y divide-slate-700">
-                            {#each participants as p, i}
-                                <div
-                                    class="p-4 flex justify-between items-center hover:bg-slate-800/30"
+                        <span class="flex items-center gap-3">
+                            <Users class="w-5 h-5" />
+                            Participantes
+                        </span>
+                        <span
+                            class="text-xs bg-black/20 px-2 py-0.5 rounded-full {activeTab ===
+                            'participants'
+                                ? 'text-white'
+                                : 'text-slate-500'}">{participants.length}</span
+                        >
+                    </button>
+                    <button
+                        onclick={() => (activeTab = "matches")}
+                        class="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-between group {activeTab ===
+                        'matches'
+                            ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20'
+                            : 'bg-[#1e293b] text-slate-400 hover:bg-slate-800 border border-transparent hover:border-slate-700'}"
+                    >
+                        <span class="flex items-center gap-3">
+                            <Swords class="w-5 h-5" />
+                            Rondas y Partidas
+                        </span>
+                        {#if currentRound > 0}
+                            <span
+                                class="text-xs bg-black/20 px-2 py-0.5 rounded-full {activeTab ===
+                                'matches'
+                                    ? 'text-white'
+                                    : 'text-slate-500'}">R{currentRound}</span
+                            >
+                        {/if}
+                    </button>
+                    <button
+                        onclick={() => (activeTab = "standings")}
+                        class="w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-between group {activeTab ===
+                        'standings'
+                            ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20'
+                            : 'bg-[#1e293b] text-slate-400 hover:bg-slate-800 border border-transparent hover:border-slate-700'}"
+                    >
+                        <span class="flex items-center gap-3">
+                            <Target class="w-5 h-5" />
+                            Clasificación
+                        </span>
+                    </button>
+                </nav>
+
+                <!-- Mini Stats / Info Box -->
+                <div
+                    class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-5 mt-6"
+                >
+                    <h4 class="text-slate-300 font-bold mb-3 text-sm">
+                        Detalles del Formato
+                    </h4>
+                    <ul class="space-y-3 text-sm text-slate-400">
+                        <li
+                            class="flex justify-between border-b border-slate-800 pb-2"
+                        >
+                            <span>Sistema</span>
+                            <span class="text-white">{tournament.format}</span>
+                        </li>
+                        <li
+                            class="flex justify-between border-b border-slate-800 pb-2"
+                        >
+                            <span>Puntuación</span>
+                            <span class="text-white">1 / 0.5 / 0</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span>Desempate</span>
+                            <span class="text-white">Buchholz</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="lg:col-span-3">
+                <!-- PARTICIPANTS TAB -->
+                {#if activeTab === "participants"}
+                    <div transition:fade={{ duration: 200 }}>
+                        <div
+                            class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden min-h-[500px] flex flex-col"
+                        >
+                            <!-- Toolbar -->
+                            <div
+                                class="p-4 bg-slate-900/50 border-b border-slate-700 flex flex-col sm:flex-row gap-4 justify-between items-center"
+                            >
+                                <h2
+                                    class="font-bold text-white flex items-center gap-2"
                                 >
-                                    <div class="flex items-center gap-3">
-                                        <div
-                                            class="text-slate-500 font-mono text-sm w-6"
-                                        >
-                                            #{i + 1}
-                                        </div>
-                                        <div class="font-medium text-white">
-                                            {p.name}
-                                        </div>
-                                        <span
-                                            class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded"
-                                            >{p.level}</span
-                                        >
-                                    </div>
-                                    <button
-                                        onclick={() => removeParticipant(p.id)}
-                                        class="text-slate-500 hover:text-red-400 text-xs font-bold uppercase transition-colors"
+                                    <Users class="w-5 h-5 text-orange-500" />
+                                    Lista de Inscritos
+                                </h2>
+
+                                <div
+                                    class="bg-slate-900 border border-slate-700 rounded-lg flex items-center px-3 py-2 w-full sm:w-64"
+                                >
+                                    <UserPlus
+                                        class="w-4 h-4 text-slate-500 mr-2"
+                                    />
+                                    <input
+                                        type="text"
+                                        bind:value={studentSearchTerm}
+                                        placeholder="Buscar para añadir..."
+                                        class="bg-transparent border-none focus:outline-none text-white text-sm w-full placeholder:text-slate-600"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Search Results Dropdown -->
+                            {#if studentSearchTerm && availableStudents.length > 0}
+                                <div
+                                    class="bg-slate-800 border-b border-slate-700 p-2 max-h-48 overflow-y-auto shadow-inner"
+                                >
+                                    <div
+                                        class="text-xs font-bold text-slate-500 uppercase px-2 mb-2"
                                     >
-                                        Eliminar
+                                        Resultados de búsqueda
+                                    </div>
+                                    <div
+                                        class="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                                    >
+                                        {#each availableStudents as s}
+                                            <button
+                                                onclick={() => {
+                                                    addParticipant(s.id);
+                                                    studentSearchTerm = "";
+                                                }}
+                                                class="flex items-center justify-between p-2 bg-slate-700/50 hover:bg-emerald-600/20 border border-slate-600 hover:border-emerald-500/50 rounded-lg group transition-all"
+                                            >
+                                                <span
+                                                    class="text-sm text-slate-200"
+                                                    >{s.name}</span
+                                                >
+                                                <Plus
+                                                    class="w-4 h-4 text-emerald-400"
+                                                />
+                                            </button>
+                                        {/each}
+                                    </div>
+                                </div>
+                            {/if}
+
+                            <!-- List -->
+                            <div class="flex-1 overflow-x-auto">
+                                {#if participants.length === 0}
+                                    <div
+                                        class="h-64 flex flex-col items-center justify-center text-slate-500"
+                                    >
+                                        <Users
+                                            class="w-12 h-12 mb-3 opacity-20"
+                                        />
+                                        <p>
+                                            No hay jugadores inscritos todavía.
+                                        </p>
+                                    </div>
+                                {:else}
+                                    <table
+                                        class="w-full text-left border-collapse"
+                                    >
+                                        <thead
+                                            class="bg-slate-900/30 text-slate-400 text-xs uppercase font-bold tracking-wider"
+                                        >
+                                            <tr>
+                                                <th class="p-4 w-16 text-center"
+                                                    >#</th
+                                                >
+                                                <th class="p-4">Jugador</th>
+                                                <th class="p-4 w-32">Nivel</th>
+                                                <th class="p-4 w-20 text-center"
+                                                    >Acciones</th
+                                                >
+                                            </tr>
+                                        </thead>
+                                        <tbody
+                                            class="divide-y divide-slate-700/50 text-sm"
+                                        >
+                                            {#each participants as p, i}
+                                                <tr
+                                                    class="hover:bg-slate-800/50 transition-colors group"
+                                                >
+                                                    <td
+                                                        class="p-4 text-center text-slate-500 font-mono"
+                                                        >{i + 1}</td
+                                                    >
+                                                    <td
+                                                        class="p-4 font-medium text-white flex items-center gap-3"
+                                                    >
+                                                        <div
+                                                            class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300"
+                                                        >
+                                                            {p.name.charAt(0)}
+                                                        </div>
+                                                        {p.name}
+                                                    </td>
+                                                    <td class="p-4">
+                                                        <span
+                                                            class="px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700 text-xs"
+                                                        >
+                                                            {p.level}
+                                                        </span>
+                                                    </td>
+                                                    <td class="p-4 text-center">
+                                                        <button
+                                                            onclick={() =>
+                                                                removeParticipant(
+                                                                    p.id,
+                                                                )}
+                                                            class="text-slate-500 hover:text-red-400 hover:bg-red-500/10 p-2 rounded-lg transition-colors"
+                                                            title="Eliminar del torneo"
+                                                        >
+                                                            <Trash2
+                                                                class="w-4 h-4"
+                                                            />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            {/each}
+                                        </tbody>
+                                    </table>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+
+                <!-- MATCHES TAB -->
+                {#if activeTab === "matches"}
+                    <div transition:fade={{ duration: 200 }}>
+                        <!-- Toolbar -->
+                        <div
+                            class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"
+                        >
+                            <h2
+                                class="text-xl font-bold text-white flex items-center gap-2"
+                            >
+                                <Swords class="w-6 h-6 text-orange-500" />
+                                Emparejamientos
+                            </h2>
+
+                            {#if rounds.length > 0}
+                                {@const currentRoundNum = Math.max(...rounds)}
+                                {@const matchesInRound =
+                                    tournament.matches.filter(
+                                        (m) => m.round === currentRoundNum,
+                                    )}
+                                {@const allCompleted = matchesInRound.every(
+                                    (m) => m.result,
+                                )}
+
+                                <div class="flex gap-3 items-center">
+                                    {#if !allCompleted}
+                                        <div
+                                            class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-500 text-xs font-bold uppercase animate-pulse"
+                                        >
+                                            <div
+                                                class="w-2 h-2 rounded-full bg-amber-500"
+                                            ></div>
+                                            Ronda en curso
+                                        </div>
+                                    {/if}
+
+                                    <button
+                                        onclick={generatePairings}
+                                        disabled={!allCompleted}
+                                        class="px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg active:scale-95 {allCompleted
+                                            ? 'bg-orange-600 hover:bg-orange-500 text-white shadow-orange-900/20'
+                                            : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 opacity-50'}"
+                                    >
+                                        <Swords class="w-4 h-4" />
+                                        {allCompleted
+                                            ? "Siguiente Ronda"
+                                            : "Completar Ronda"}
                                     </button>
                                 </div>
-                            {/each}
+                            {:else}
+                                <button
+                                    onclick={generatePairings}
+                                    class="bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-orange-900/20 active:scale-95 btn-bounce"
+                                >
+                                    <Swords class="w-5 h-5" /> Generar Primera Ronda
+                                </button>
+                            {/if}
                         </div>
-                    {/if}
-                </div>
 
-                <!-- Add Panel -->
-                <div
-                    class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 h-fit"
-                >
-                    <h3
-                        class="font-bold text-white mb-4 flex items-center gap-2"
-                    >
-                        <UserPlus class="w-5 h-5 text-emerald-400" /> Añadir Jugador
-                    </h3>
-                    <input
-                        bind:value={studentSearchTerm}
-                        type="text"
-                        placeholder="Buscar alumno..."
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white mb-4 focus:border-emerald-500 outline-none"
-                    />
-                    <div
-                        class="max-h-96 overflow-y-auto custom-scrollbar space-y-2"
-                    >
-                        {#if availableStudents.length === 0}
+                        {#if rounds.length === 0}
                             <div
-                                class="text-slate-500 text-sm text-center py-4"
+                                class="flex flex-col items-center justify-center p-12 bg-[#1e293b] border border-slate-700/50 rounded-2xl border-dashed"
                             >
-                                {studentSearchTerm
-                                    ? "No encontrado"
-                                    : "Busca para añadir"}
+                                <Swords class="w-16 h-16 text-slate-700 mb-4" />
+                                <h3 class="text-xl font-bold text-white mb-2">
+                                    Comienza la Acción
+                                </h3>
+                                <p class="text-slate-400 text-center max-w-sm">
+                                    Genera la primera ronda para emparejar a los
+                                    jugadores inscritos.
+                                </p>
                             </div>
                         {:else}
-                            {#each availableStudents as s}
-                                <button
-                                    onclick={() => addParticipant(s.id)}
-                                    class="w-full text-left bg-slate-900 hover:bg-slate-700 border border-slate-700/50 p-3 rounded-lg flex justify-between items-center group transition-colors"
-                                >
-                                    <span class="text-slate-300 text-sm"
-                                        >{s.name}</span
+                            <div class="space-y-8">
+                                {#each rounds.slice().reverse() as round}
+                                    <div
+                                        class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
                                     >
-                                    <Plus
-                                        class="w-4 h-4 text-emerald-500 opacity-0 group-hover:opacity-100"
-                                    />
-                                </button>
-                            {/each}
+                                        <!-- Round Header -->
+                                        <div
+                                            class="px-6 py-4 bg-slate-900 border-b border-slate-700 flex justify-between items-center"
+                                        >
+                                            <h3
+                                                class="font-bold text-lg text-white flex items-center gap-2"
+                                            >
+                                                <span
+                                                    class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-sm border border-slate-700"
+                                                    >{round}</span
+                                                >
+                                                Ronda {round}
+                                            </h3>
+                                            <button
+                                                onclick={() =>
+                                                    exportPairingsPDF(
+                                                        tournament!,
+                                                        round - 1,
+                                                        getStudentName,
+                                                    )}
+                                                class="text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors border border-slate-700 hover:bg-slate-800"
+                                            >
+                                                <Printer class="w-3 h-3" /> Imprimir
+                                            </button>
+                                        </div>
+
+                                        <!-- Matches Grid -->
+                                        <div
+                                            class="p-4 grid gap-4 grid-cols-1 md:grid-cols-2"
+                                        >
+                                            {#each tournament.matches.filter((m) => m.round === round) as match}
+                                                <div
+                                                    class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 flex flex-col items-center gap-3 relative hover:bg-slate-800/50 transition-colors group"
+                                                >
+                                                    <!-- VS Badge -->
+                                                    <div
+                                                        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-600 z-10 md:flex hidden"
+                                                    >
+                                                        VS
+                                                    </div>
+
+                                                    <div
+                                                        class="flex justify-between w-full items-center gap-4"
+                                                    >
+                                                        <!-- White Player -->
+                                                        <div
+                                                            class="flex-1 flex flex-col items-end text-right"
+                                                        >
+                                                            <div
+                                                                class="flex items-center gap-2 mb-1"
+                                                            >
+                                                                <span
+                                                                    class="font-bold text-slate-200 text-sm md:text-base line-clamp-1"
+                                                                    >{getStudentName(
+                                                                        match.whiteId,
+                                                                    )}</span
+                                                                >
+                                                                <div
+                                                                    class="w-3 h-3 rounded-full bg-white border border-slate-400 shadow-sm"
+                                                                    title="Blancas"
+                                                                ></div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Mobile VS spacer -->
+                                                        <div
+                                                            class="w-8 md:hidden"
+                                                        ></div>
+
+                                                        <!-- Black Player -->
+                                                        <div
+                                                            class="flex-1 flex flex-col items-start"
+                                                        >
+                                                            <div
+                                                                class="flex items-center gap-2 mb-1"
+                                                            >
+                                                                <div
+                                                                    class="w-3 h-3 rounded-full bg-black border border-slate-600 shadow-sm"
+                                                                    title="Negras"
+                                                                ></div>
+                                                                <span
+                                                                    class="font-bold text-slate-200 text-sm md:text-base line-clamp-1"
+                                                                    >{getStudentName(
+                                                                        match.blackId,
+                                                                    )}</span
+                                                                >
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Result Actions -->
+                                                    <div
+                                                        class="flex gap-1 bg-slate-900/80 p-1 rounded-lg border border-slate-700 relative z-20"
+                                                    >
+                                                        <button
+                                                            onclick={() =>
+                                                                updateMatchResult(
+                                                                    match.id,
+                                                                    "1-0",
+                                                                )}
+                                                            class="px-4 py-1.5 rounded-md text-xs font-bold transition-all {match.result ===
+                                                            '1-0'
+                                                                ? 'bg-emerald-600 text-white shadow-lg'
+                                                                : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+                                                            >1-0</button
+                                                        >
+                                                        <button
+                                                            onclick={() =>
+                                                                updateMatchResult(
+                                                                    match.id,
+                                                                    "0.5-0.5",
+                                                                )}
+                                                            class="px-4 py-1.5 rounded-md text-xs font-bold transition-all {match.result ===
+                                                            '0.5-0.5'
+                                                                ? 'bg-blue-600 text-white shadow-lg'
+                                                                : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+                                                            >½-½</button
+                                                        >
+                                                        <button
+                                                            onclick={() =>
+                                                                updateMatchResult(
+                                                                    match.id,
+                                                                    "0-1",
+                                                                )}
+                                                            class="px-4 py-1.5 rounded-md text-xs font-bold transition-all {match.result ===
+                                                            '0-1'
+                                                                ? 'bg-red-600 text-white shadow-lg'
+                                                                : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
+                                                            >0-1</button
+                                                        >
+                                                    </div>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
                         {/if}
                     </div>
-                </div>
-            </div>
-        {/if}
+                {/if}
 
-        <!-- MATCHES TAB -->
-        {#if activeTab === "matches"}
-            <div transition:fade>
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-white">Partidas</h2>
-
-                    {#if rounds.length > 0}
-                        {@const currentRoundNum = Math.max(...rounds)}
-                        {@const matchesInRound = tournament.matches.filter(
-                            (m) => m.round === currentRoundNum,
-                        )}
-                        {@const allCompleted = matchesInRound.every(
-                            (m) => m.result,
-                        )}
-
-                        <div class="flex gap-2 items-center">
-                            {#if !allCompleted}
-                                <span
-                                    class="text-xs text-amber-500 font-bold px-3 py-1 bg-amber-500/10 rounded-full border border-amber-500/20"
-                                >
-                                    Ronda {currentRoundNum} en curso
-                                </span>
-                            {/if}
-                            <button
-                                onclick={generatePairings}
-                                disabled={!allCompleted}
-                                class="px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors {allCompleted
-                                    ? 'bg-orange-600 hover:bg-orange-500 text-white cursor-pointer'
-                                    : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}"
-                                title={!allCompleted
-                                    ? "Completa todos los resultados antes de la siguiente ronda"
-                                    : "Generar siguiente ronda"}
+                <!-- STANDINGS TAB -->
+                {#if activeTab === "standings"}
+                    <div
+                        transition:fade={{ duration: 200 }}
+                        class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
+                    >
+                        <div
+                            class="p-5 bg-slate-900/50 border-b border-slate-700 flex justify-between items-center"
+                        >
+                            <h3
+                                class="font-bold text-white flex items-center gap-2"
                             >
-                                <Swords class="w-4 h-4" /> Generar Nueva Ronda
+                                <Target class="w-5 h-5 text-orange-500" />
+                                Tabla de Posiciones
+                            </h3>
+                            <button
+                                onclick={() => {
+                                    const currentRound =
+                                        rounds.length > 0
+                                            ? Math.max(...rounds)
+                                            : 0;
+                                    exportStandingsPDF(
+                                        tournament!,
+                                        getStudentName,
+                                        currentRound,
+                                        rounds.length || 0,
+                                    );
+                                }}
+                                class="bg-orange-600/20 text-orange-400 border border-orange-600/30 hover:bg-orange-600 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
+                            >
+                                <Download class="w-4 h-4" /> Exportar PDF
                             </button>
                         </div>
-                    {:else}
-                        <button
-                            onclick={generatePairings}
-                            class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors"
-                        >
-                            <Swords class="w-4 h-4" /> Generar Primera Ronda
-                        </button>
-                    {/if}
-                </div>
-
-                {#if rounds.length === 0}
-                    <div
-                        class="text-center py-16 border-2 border-dashed border-slate-800 rounded-3xl text-slate-500"
-                    >
-                        <p>No se han generado rondas todavía.</p>
-                        <p class="text-sm mt-2">
-                            Asegúrate de tener participantes inscritos.
-                        </p>
-                    </div>
-                {:else}
-                    <div class="space-y-8">
-                        {#each rounds.slice().reverse() as round}
-                            <div
-                                class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
-                            >
-                                <div
-                                    class="px-6 py-4 bg-slate-900/50 border-b border-slate-700 font-bold text-orange-400 flex justify-between items-center"
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead
+                                    class="bg-slate-900/80 text-slate-400 font-bold text-xs uppercase tracking-wider"
                                 >
-                                    <span>Ronda {round}</span>
-                                    <button
-                                        onclick={() =>
-                                            exportPairingsPDF(
-                                                tournament!,
-                                                round - 1,
-                                                getStudentName,
-                                            )}
-                                        class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors border border-slate-600"
-                                    >
-                                        <Printer class="w-3 h-3" /> Imprimir
-                                    </button>
-                                </div>
-                                <div class="divide-y divide-slate-700">
-                                    {#each tournament.matches.filter((m) => m.round === round) as match}
-                                        <div
-                                            class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center hover:bg-slate-800/30"
+                                    <tr>
+                                        <th class="p-4 w-16 text-center">Pos</th
                                         >
-                                            <!-- White -->
-                                            <div
-                                                class="flex items-center justify-end gap-3 md:border-r border-slate-700/50 pr-4"
-                                            >
-                                                <span
-                                                    class="font-bold text-white"
-                                                    >{getStudentName(
-                                                        match.whiteId,
-                                                    )}</span
-                                                >
+                                        <th class="p-4">Jugador</th>
+                                        <th class="p-4 text-center w-24"
+                                            >Partidas</th
+                                        >
+                                        <th class="p-4 text-right w-24"
+                                            >Puntos</th
+                                        >
+                                        <th
+                                            class="p-4 text-right text-xs w-24"
+                                            title="Buchholz: Suma de puntos de los rivales"
+                                            >Tie-Break</th
+                                        >
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-700/50">
+                                    {#each standings as p, i}
+                                        <tr
+                                            class="hover:bg-slate-800/40 transition-colors {i <
+                                            3
+                                                ? 'bg-slate-800/20'
+                                                : ''}"
+                                        >
+                                            <td class="p-4 text-center">
+                                                {#if i === 0}
+                                                    <div
+                                                        class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-500 mx-auto flex items-center justify-center border border-yellow-500/30"
+                                                    >
+                                                        <TrophyIcon
+                                                            class="w-4 h-4"
+                                                        />
+                                                    </div>
+                                                {:else if i === 1}
+                                                    <div
+                                                        class="w-8 h-8 rounded-full bg-slate-400/20 text-slate-300 mx-auto flex items-center justify-center border border-slate-400/30 font-bold text-sm"
+                                                    >
+                                                        2
+                                                    </div>
+                                                {:else if i === 2}
+                                                    <div
+                                                        class="w-8 h-8 rounded-full bg-amber-700/20 text-amber-600 mx-auto flex items-center justify-center border border-amber-700/30 font-bold text-sm"
+                                                    >
+                                                        3
+                                                    </div>
+                                                {:else}
+                                                    <span
+                                                        class="text-slate-500 font-mono"
+                                                        >#{i + 1}</span
+                                                    >
+                                                {/if}
+                                            </td>
+                                            <td class="p-4">
                                                 <div
-                                                    class="w-3 h-3 rounded-full bg-white border border-slate-400"
-                                                ></div>
-                                            </div>
-
-                                            <!-- Result Controls -->
-                                            <div
-                                                class="flex justify-center gap-2"
-                                            >
-                                                <button
-                                                    onclick={() =>
-                                                        updateMatchResult(
-                                                            match.id,
-                                                            "1-0",
-                                                        )}
-                                                    class="px-3 py-1 rounded text-xs font-bold border transition-colors {match.result ===
-                                                    '1-0'
-                                                        ? 'bg-emerald-600 border-emerald-600 text-white'
-                                                        : 'border-slate-600 text-slate-400 hover:text-white'}"
+                                                    class="font-bold text-white {i ===
+                                                    0
+                                                        ? 'text-yellow-500'
+                                                        : ''}"
                                                 >
-                                                    1 - 0
-                                                </button>
-                                                <button
-                                                    onclick={() =>
-                                                        updateMatchResult(
-                                                            match.id,
-                                                            "0.5-0.5",
-                                                        )}
-                                                    class="px-3 py-1 rounded text-xs font-bold border transition-colors {match.result ===
-                                                    '0.5-0.5'
-                                                        ? 'bg-blue-600 border-blue-600 text-white'
-                                                        : 'border-slate-600 text-slate-400 hover:text-white'}"
-                                                >
-                                                    ½ - ½
-                                                </button>
-                                                <button
-                                                    onclick={() =>
-                                                        updateMatchResult(
-                                                            match.id,
-                                                            "0-1",
-                                                        )}
-                                                    class="px-3 py-1 rounded text-xs font-bold border transition-colors {match.result ===
-                                                    '0-1'
-                                                        ? 'bg-red-600 border-red-600 text-white'
-                                                        : 'border-slate-600 text-slate-400 hover:text-white'}"
-                                                >
-                                                    0 - 1
-                                                </button>
-                                            </div>
-
-                                            <!-- Black -->
-                                            <div
-                                                class="flex items-center gap-3 md:border-l border-slate-700/50 pl-4"
-                                            >
+                                                    {p.name}
+                                                </div>
                                                 <div
-                                                    class="w-3 h-3 rounded-full bg-black border border-slate-600"
-                                                ></div>
-                                                <span
-                                                    class="font-bold text-white"
-                                                    >{getStudentName(
-                                                        match.blackId,
-                                                    )}</span
+                                                    class="text-xs text-slate-500"
                                                 >
-                                            </div>
-                                        </div>
+                                                    {p.id !== "BYE"
+                                                        ? `Nivel: ${p.level}`
+                                                        : ""}
+                                                </div>
+                                            </td>
+                                            <td
+                                                class="p-4 text-center text-slate-400 font-medium"
+                                                >{p.games}</td
+                                            >
+                                            <td
+                                                class="p-4 text-right font-black text-xl {i ===
+                                                0
+                                                    ? 'text-yellow-500'
+                                                    : 'text-white'}"
+                                                >{p.points}</td
+                                            >
+                                            <td
+                                                class="p-4 text-right text-slate-500 text-sm font-mono"
+                                            >
+                                                {p.buchholz}
+                                            </td>
+                                        </tr>
                                     {/each}
-                                </div>
-                            </div>
-                        {/each}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 {/if}
             </div>
-        {/if}
-
-        {#if activeTab === "standings"}
-            <div
-                class="bg-[#1e293b] border border-slate-700 rounded-2xl overflow-hidden"
-                transition:fade
-            >
-                <div
-                    class="p-4 bg-slate-900/50 border-b border-slate-700 flex justify-between items-center"
-                >
-                    <h3 class="font-bold text-slate-300">
-                        Tabla de Posiciones
-                    </h3>
-                    <button
-                        onclick={() => {
-                            const currentRound =
-                                rounds.length > 0 ? Math.max(...rounds) : 0;
-                            exportStandingsPDF(
-                                tournament!,
-                                getStudentName,
-                                currentRound,
-                                rounds.length || 0,
-                            );
-                        }}
-                        class="bg-orange-600/20 text-orange-400 border border-orange-600/30 hover:bg-orange-600 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors"
-                    >
-                        <Download class="w-4 h-4" /> Exportar PDF
-                    </button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead
-                            class="bg-slate-900/50 text-slate-400 font-medium text-sm uppercase"
-                        >
-                            <tr>
-                                <th class="p-4 w-16">Pos</th>
-                                <th class="p-4">Jugador</th>
-                                <th class="p-4 text-center">Partidas</th>
-                                <th class="p-4 text-right">Puntos</th>
-                                <th
-                                    class="p-4 text-right text-xs"
-                                    title="Buchholz: Suma de puntos de los rivales"
-                                    >Desempate</th
-                                >
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-700">
-                            {#each standings as p, i}
-                                <tr class="hover:bg-slate-800/30">
-                                    <td class="p-4 text-slate-500 font-mono">
-                                        {#if i === 0}<TrophyIcon
-                                                class="w-5 h-5 text-yellow-500 inline"
-                                            />{:else}#{i + 1}{/if}
-                                    </td>
-                                    <td class="p-4 font-bold text-white"
-                                        >{p.name}</td
-                                    >
-                                    <td class="p-4 text-center text-slate-400"
-                                        >{p.games}</td
-                                    >
-                                    <td
-                                        class="p-4 text-right text-orange-400 font-bold text-lg"
-                                        >{p.points}</td
-                                    >
-                                    <td
-                                        class="p-4 text-right text-slate-500 text-sm font-mono"
-                                    >
-                                        {p.buchholz}
-                                    </td>
-                                </tr>
-                            {/each}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        {/if}
+        </div>
     {/if}
 </div>
 
