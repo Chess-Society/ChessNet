@@ -361,6 +361,26 @@
         handleDelete(event.detail);
     }
 
+    function handleSaveNotesFromReport(
+        event: CustomEvent<{ studentId: string; notes: string }>,
+    ) {
+        const { studentId, notes } = event.detail;
+        const student = store.students.find((s) => s.id === studentId);
+        if (student) {
+            storeActions.updateStudent({ ...student, notes });
+            // Update the modal's student reference
+            if (
+                selectedStudentForReport &&
+                selectedStudentForReport.id === studentId
+            ) {
+                selectedStudentForReport = {
+                    ...selectedStudentForReport,
+                    notes,
+                };
+            }
+        }
+    }
+
     function handleShareProfile(student: Student) {
         // Calculate minimal stats for the public card
         const freshStudent =
@@ -891,5 +911,6 @@
         )}
         stats={reportStats}
         on:close={() => (showReportModal = false)}
+        on:saveNotes={handleSaveNotesFromReport}
     />
 {/if}

@@ -10,8 +10,11 @@
         BookOpen,
         Target,
         BrainCircuit,
+        Save,
     } from "lucide-svelte";
-    import type { Student, ClassGroup } from "$lib/services/storage";
+    import type { Student, ClassGroup, Skill } from "$lib/services/storage";
+    import { appStore } from "$lib/services/storage";
+    import { notifications } from "$lib/stores/notifications";
 
     export let isOpen = false;
     export let student: Student;
@@ -30,68 +33,38 @@
         day: "numeric",
     });
 
-    // Mock Skills based on Level for visualization
-    $: skills = [
-        {
-            name: "Táctica",
-            value:
-                student.level === "King"
-                    ? 90
-                    : student.level === "Rook"
-                      ? 70
-                      : student.level === "Bishop"
-                        ? 50
-                        : 30,
-            icon: Target,
-            color: "text-rose-500",
-            bg: "bg-rose-500",
-        },
-        {
-            name: "Estrategia",
-            value:
-                student.level === "King"
-                    ? 85
-                    : student.level === "Rook"
-                      ? 65
-                      : student.level === "Bishop"
-                        ? 45
-                        : 25,
-            icon: BrainCircuit,
-            color: "text-blue-500",
-            bg: "bg-blue-500",
-        },
-        {
-            name: "Finales",
-            value:
-                student.level === "King"
-                    ? 80
-                    : student.level === "Rook"
-                      ? 60
-                      : student.level === "Bishop"
-                        ? 40
-                        : 20,
-            icon: TrendingUp,
-            color: "text-emerald-500",
-            bg: "bg-emerald-500",
-        },
-        {
-            name: "Aperturas",
-            value:
-                student.level === "King"
-                    ? 88
-                    : student.level === "Rook"
-                      ? 68
-                      : student.level === "Bishop"
-                        ? 48
-                        : 28,
-            icon: BookOpen,
-            color: "text-amber-500",
-            bg: "bg-amber-500",
-        },
-    ];
+    // Get real skills from store
+    $: store = $appStore;
+    $: studentSkills = student.skills
+        ? store.skills.filter((s) => student.skills?.includes(s.id))
+        : [];
+
+    // Editable fields
+    let editableNotes = student.notes || "";
+    let teacherSignature = "";
+
+    // Watch for student changes to update notes
+    $: if (student) {
+        editableNotes = student.notes || "";
+    }
+
+    function saveNotes() {
+        dispatch("saveNotes", { studentId: student.id, notes: editableNotes });
+        notifications.success("Observaciones guardadas correctamente");
+    }
 
     function close() {
         dispatch("close");
+    }
+
+    function handlePrint() {
+        if (!teacherSignature.trim()) {
+            notifications.warning(
+                "Por favor, introduce tu nombre para firmar el informe antes de imprimir",
+            );
+            return;
+        }
+        window.print();
     }
 </script>
 
@@ -109,7 +82,7 @@
                 class="sticky top-0 right-0 p-4 flex justify-end gap-2 bg-white/80 backdrop-blur-sm border-b border-gray-100 print:hidden z-10"
             >
                 <button
-                    onclick={() => window.print()}
+                    onclick={handlePrint}
                     class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors text-sm font-medium"
                 >
                     <Printer class="w-4 h-4" />
@@ -238,57 +211,76 @@
                         class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"
                     >
                         <Award class="w-5 h-5 text-indigo-500" />
-                        Evaluación de Habilidades
+                        Habilidades Adquiridas
                     </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {#each skills as skill}
-                            <div
-                                class="p-4 border border-slate-100 rounded-xl hover:border-slate-200 transition-colors print:border-slate-200"
-                            >
+                    {#if studentSkills.length > 0}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {#each studentSkills as skill}
                                 <div
-                                    class="flex justify-between items-center mb-2"
+                                    class="p-4 border border-slate-100 rounded-xl print:border-slate-200 bg-slate-50"
                                 >
-                                    <div class="flex items-center gap-2">
-                                        <svelte:component
-                                            this={skill.icon}
-                                            class="w-4 h-4 {skill.color}"
-                                        />
+                                    <div
+                                        class="flex justify-between items-center mb-2"
+                                    >
                                         <span class="font-medium text-slate-700"
                                             >{skill.name}</span
                                         >
+                                        <span
+                                            class="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-full border border-emerald-500/20 font-bold"
+                                            >✓ Adquirida</span
+                                        >
                                     </div>
-                                    <span
-                                        class="text-sm font-bold {skill.color}"
-                                        >{skill.value}/100</span
-                                    >
+                                    {#if skill.description}
+                                        <p class="text-xs text-slate-500 mt-1">
+                                            {skill.description}
+                                        </p>
+                                    {/if}
                                 </div>
-                                <div
-                                    class="h-2 w-full bg-slate-100 rounded-full overflow-hidden"
-                                >
-                                    <div
-                                        class="{skill.bg} h-full rounded-full print:bg-slate-800"
-                                        style="width: {skill.value}%"
-                                    ></div>
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
+                            {/each}
+                        </div>
+                    {:else}
+                        <div
+                            class="p-6 bg-slate-50 rounded-xl border border-slate-100 text-center"
+                        >
+                            <p class="text-slate-500 text-sm">
+                                Aún no se han registrado habilidades específicas
+                                para este alumno.
+                            </p>
+                            <p class="text-xs text-slate-400 mt-2">
+                                Las habilidades se asignan desde la sección
+                                "Habilidades" del panel.
+                            </p>
+                        </div>
+                    {/if}
                 </div>
 
                 <!-- Teacher Notes -->
                 <div class="mb-8">
-                    <h3
-                        class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"
-                    >
-                        <BookOpen class="w-5 h-5 text-indigo-500" />
-                        Observaciones del Profesor
-                    </h3>
-                    <div
-                        class="p-6 bg-slate-50 rounded-xl border-l-4 border-indigo-500 text-slate-700 italic leading-relaxed print:border-slate-300"
-                    >
-                        "{student.notes ||
-                            "El alumno progresa adecuadamente según lo esperado para su nivel. Se recomienda mantener la constancia en la práctica de problemas tácticos."}"
+                    <div class="flex justify-between items-center mb-4">
+                        <h3
+                            class="text-lg font-bold text-slate-900 flex items-center gap-2"
+                        >
+                            <BookOpen class="w-5 h-5 text-indigo-500" />
+                            Observaciones del Profesor
+                        </h3>
+                        <button
+                            onclick={saveNotes}
+                            class="print:hidden flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-colors"
+                        >
+                            <Save class="w-3 h-3" />
+                            Guardar
+                        </button>
                     </div>
+                    <textarea
+                        bind:value={editableNotes}
+                        class="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent print:border-slate-300 print:bg-white"
+                        rows="4"
+                        placeholder="Escribe aquí tus observaciones sobre el progreso del alumno..."
+                    ></textarea>
+                    <p class="text-xs text-slate-400 mt-2 print:hidden">
+                        Estas observaciones se guardarán en el perfil del alumno
+                        y aparecerán en el informe impreso.
+                    </p>
                 </div>
 
                 <!-- Footer Signoff -->
@@ -298,9 +290,12 @@
                             Generado automáticamente por ChessNet Platform.
                         </div>
                         <div class="text-center">
-                            <div
-                                class="w-48 border-b border-slate-300 mb-2"
-                            ></div>
+                            <input
+                                type="text"
+                                bind:value={teacherSignature}
+                                placeholder="Nombre del instructor"
+                                class="w-48 text-center border-b-2 border-slate-300 pb-2 mb-2 text-sm font-medium text-slate-700 focus:outline-none focus:border-indigo-500 print:border-slate-800 bg-transparent"
+                            />
                             <div
                                 class="text-xs font-bold text-slate-500 uppercase"
                             >
