@@ -495,8 +495,8 @@
                 e informes.
             </p>
         </div>
-        <div class="flex gap-3">
-            <div class="relative">
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div class="relative flex-1 sm:flex-initial">
                 <Search
                     class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"
                 />
@@ -504,34 +504,37 @@
                     bind:value={searchTerm}
                     type="text"
                     placeholder="Buscar alumno..."
-                    class="form-input w-64 pl-10"
+                    class="form-input w-full sm:w-64 pl-10"
                 />
             </div>
 
-            <!-- Import Button -->
-            <input
-                type="file"
-                accept=".csv,.txt"
-                class="hidden"
-                bind:this={fileInput}
-                onchange={handleFileUpload}
-            />
-            <button
-                onclick={triggerFileUpload}
-                class="btn btn-secondary btn-md shadow-sm"
-                title="Formato: Nombre, Nivel, Email"
-            >
-                <FileUp class="w-5 h-5 mr-2" />
-                <span class="hidden sm:inline">Importar</span>
-            </button>
+            <div class="flex gap-3">
+                <!-- Import Button -->
+                <input
+                    type="file"
+                    accept=".csv,.txt"
+                    class="hidden"
+                    bind:this={fileInput}
+                    onchange={handleFileUpload}
+                />
+                <button
+                    onclick={triggerFileUpload}
+                    class="btn btn-secondary btn-md shadow-sm flex-1 sm:flex-initial"
+                    title="Formato: Nombre, Nivel, Email"
+                >
+                    <FileUp class="w-5 h-5 mr-2" />
+                    <span class="hidden sm:inline">Importar</span>
+                </button>
 
-            <button
-                onclick={openCreateForm}
-                class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20 shadow-sm btn-bounce"
-            >
-                <UserPlus class="w-5 h-5 mr-2" />
-                Nuevo Alumno
-            </button>
+                <button
+                    onclick={openCreateForm}
+                    class="btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-500 hover:shadow-emerald-500/20 shadow-sm btn-bounce flex-1 sm:flex-initial whitespace-nowrap"
+                >
+                    <UserPlus class="w-5 h-5 mr-2" />
+                    <span class="hidden xs:inline">Nuevo Alumno</span>
+                    <span class="xs:hidden">Nuevo</span>
+                </button>
+            </div>
         </div>
     </div>
 
