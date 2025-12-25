@@ -37,7 +37,7 @@
         schedule: "",
         level: "Pawn",
         students: [],
-        duration: 90, // Default 1.5h
+        duration: 60, // Default 1h
     };
 
     // Structured Schedule State
@@ -96,7 +96,7 @@
                 schedule: "",
                 level: "Pawn",
                 students: [],
-                duration: 90,
+                duration: 60,
             };
             selectedDay = "Lunes";
             selectedTime = "17:00";

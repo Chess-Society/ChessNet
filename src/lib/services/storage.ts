@@ -181,6 +181,7 @@ export const appStore = writable<AppData>(initialState);
 
 // Clave para localStorage
 const STORAGE_KEY = 'chessnet_data_v1';
+let isInitialized = false;
 
 // Función para inicializar (cargar datos)
 export function initStore() {
@@ -231,11 +232,13 @@ export function initStore() {
             }
         }
     });
+
+    isInitialized = true;
 }
 
 // Suscribirse a cambios para guardar automáticamente
 appStore.subscribe(value => {
-    if (typeof localStorage !== 'undefined') {
+    if (typeof localStorage !== 'undefined' && isInitialized) {
         try {
             const serialized = JSON.stringify(value);
 
