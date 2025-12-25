@@ -15,7 +15,7 @@
         Pencil,
         FileUp,
     } from "lucide-svelte";
-    import { fade, scale, slide } from "svelte/transition";
+    import { fade, scale, slide, fly } from "svelte/transition";
     import {
         X,
         GraduationCap,
@@ -782,21 +782,24 @@
                     />
                 </div>
             {:else}
-                {#each filteredStudents as student}
+                {#each filteredStudents as student, i (student.id)}
                     {@const studentClass = getStudentClass(student.id)}
-                    <div class="p-4 flex flex-col gap-3">
+                    <div
+                        in:fly={{ y: 20, duration: 300, delay: i * 50 }}
+                        class="bg-[#1e293b] border border-slate-700/50 rounded-xl p-4 flex flex-col gap-3"
+                    >
                         <div class="flex items-start justify-between">
                             <div class="flex items-center gap-3">
                                 <div
-                                    class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold text-sm"
+                                    class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold"
                                 >
                                     {student.name.charAt(0)}
                                 </div>
                                 <div>
-                                    <div class="font-medium text-white text-lg">
+                                    <h3 class="font-bold text-white text-base">
                                         {student.name}
-                                    </div>
-                                    <div class="text-sm text-slate-500">
+                                    </h3>
+                                    <div class="text-xs text-slate-400">
                                         {studentClass
                                             ? studentClass.name
                                             : "Sin asignar"}
@@ -880,9 +883,10 @@
                         </td>
                     </tr>
                 {:else}
-                    {#each filteredStudents as student}
+                    {#each filteredStudents as student, i (student.id)}
                         {@const studentClass = getStudentClass(student.id)}
                         <tr
+                            in:fly={{ y: 20, duration: 300, delay: i * 30 }}
                             class="hover:bg-slate-800/50 transition-colors group"
                         >
                             <td class="p-4">

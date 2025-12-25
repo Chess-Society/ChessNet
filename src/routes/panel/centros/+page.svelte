@@ -9,11 +9,13 @@
         Trash2,
         BookOpen,
     } from "lucide-svelte";
-    import { fade, slide } from "svelte/transition";
+    import { fade, slide, fly } from "svelte/transition";
     import { base } from "$app/paths";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import Modal from "$lib/components/Modal.svelte";
     import { notifications } from "$lib/stores/notifications";
+
+    import EmptyState from "$lib/components/common/EmptyState.svelte";
 
     $: store = $appStore;
 
@@ -268,26 +270,19 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {#if store.centers.length === 0}
-            <div
-                class="col-span-full py-12 text-center bg-[#1e293b]/50 rounded-3xl border border-dashed border-slate-700"
-            >
-                <School class="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                <h3 class="text-xl font-bold text-white mb-2">
-                    No hay centros registrados
-                </h3>
-                <p class="text-slate-400 mb-6">
-                    Añade tu primer centro educativo para empezar.
-                </p>
-                <button
-                    onclick={openForm}
-                    class="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-6 py-2 rounded-xl font-medium transition-all"
-                >
-                    Añadir Centro
-                </button>
+            <div class="col-span-full">
+                <EmptyState
+                    icon={School}
+                    title="No hay centros registrados"
+                    description="Añade tu primer centro educativo para empezar a organizar tus clases y alumnos."
+                    actionLabel="Añadir Centro"
+                    on:action={openForm}
+                />
             </div>
         {:else}
-            {#each store.centers as center}
+            {#each store.centers as center, i (center.id)}
                 <div
+                    in:fly={{ y: 20, duration: 400, delay: i * 50 }}
                     class="bg-[#1e293b] border border-slate-800 rounded-2xl p-6 hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-500/50 transition-all duration-300 group relative"
                 >
                     <button

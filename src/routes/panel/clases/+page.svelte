@@ -9,6 +9,7 @@
     import { notifications } from "$lib/stores/notifications";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
     import Modal from "$lib/components/Modal.svelte";
+    import EmptyState from "$lib/components/common/EmptyState.svelte";
     import {
         BookOpen,
         Users,
@@ -23,7 +24,7 @@
         Search,
         Pencil,
     } from "lucide-svelte";
-    import { slide, fade, scale } from "svelte/transition";
+    import { slide, fade, scale, fly } from "svelte/transition";
     import { base } from "$app/paths";
 
     $: store = $appStore;
@@ -297,29 +298,23 @@
     <div>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {#if store.classes.length === 0}
-                <div
-                    class="col-span-full py-12 text-center bg-[#1e293b]/50 rounded-3xl border border-dashed border-slate-700"
-                >
-                    <BookOpen class="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                    <h3 class="text-xl font-bold text-white mb-2">
-                        No hay clases creadas
-                    </h3>
-                    <p class="text-slate-400 mb-6">
-                        Crea tu primer grupo de alumnos para empezar.
-                    </p>
-                    <button
-                        onclick={handleToggleForm}
-                        class="text-purple-400 hover:underline"
-                        >Crear ahora</button
-                    >
+                <div class="col-span-full">
+                    <EmptyState
+                        icon={BookOpen}
+                        title="No hay clases creadas"
+                        description="Crea tu primer grupo de alumnos para empezar. Podrás asignar horarios y niveles."
+                        actionLabel="Crear Clase"
+                        on:action={handleToggleForm}
+                    />
                 </div>
             {:else}
-                {#each store.classes as group}
+                {#each store.classes as group, i (group.id)}
                     <div
-                        class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 hover:shadow-xl hover:border-purple-500/30 transition-all flex flex-col group relative"
+                        in:fly={{ y: 20, duration: 400, delay: i * 50 }}
+                        class="bg-[#1e293b] border border-slate-700/50 rounded-2xl p-6 hover:shadow-2xl hover:shadow-purple-500/10 hover:border-purple-500/50 transition-all duration-300 flex flex-col group relative"
                     >
                         <div
-                            class="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                            class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                             <button
                                 onclick={() => deleteClass(group.id)}
