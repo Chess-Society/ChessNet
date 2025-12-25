@@ -7,6 +7,7 @@
         Building,
         Plus,
         Trash2,
+        BookOpen,
     } from "lucide-svelte";
     import { fade, slide } from "svelte/transition";
     import { base } from "$app/paths";
@@ -123,6 +124,57 @@
         </button>
     </div>
 
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-[#1e293b] border border-slate-800 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">
+                        Total Centros
+                    </p>
+                    <p class="text-3xl font-bold text-white mt-1">
+                        {store.centers.length}
+                    </p>
+                </div>
+                <div class="bg-blue-500/10 p-3 rounded-lg">
+                    <Building class="w-6 h-6 text-blue-500" />
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1e293b] border border-slate-800 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">
+                        Total Alumnos
+                    </p>
+                    <p class="text-3xl font-bold text-white mt-1">
+                        {store.students.length}
+                    </p>
+                </div>
+                <div class="bg-emerald-500/10 p-3 rounded-lg">
+                    <Users class="w-6 h-6 text-emerald-500" />
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1e293b] border border-slate-800 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">
+                        Total Clases
+                    </p>
+                    <p class="text-3xl font-bold text-white mt-1">
+                        {store.classes.length}
+                    </p>
+                </div>
+                <div class="bg-purple-500/10 p-3 rounded-lg">
+                    <BookOpen class="w-6 h-6 text-purple-500" />
+                </div>
+            </div>
+        </div>
+    </div>
+
     <Modal bind:isOpen={showForm} title="Añadir Nuevo Centro" size="md">
         <div class="space-y-4">
             <div>
@@ -236,42 +288,49 @@
         {:else}
             {#each store.centers as center}
                 <div
-                    class="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 hover:shadow-xl hover:border-blue-500/30 transition-all group relative"
+                    class="bg-[#1e293b] border border-slate-800 rounded-2xl p-6 hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-500/50 transition-all duration-300 group relative"
                 >
                     <button
                         onclick={() => deleteCenter(center.id)}
-                        class="absolute top-4 right-4 text-slate-500 hover:text-red-400 hover:bg-slate-800 p-2 rounded-lg transition-colors z-10"
+                        class="absolute top-4 right-4 text-slate-500 hover:text-red-400 hover:bg-slate-800 p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                         title="Eliminar Centro"
                     >
-                        <Trash2 class="w-5 h-5" />
+                        <Trash2 class="w-4 h-4" />
                     </button>
 
                     <div class="flex items-start justify-between mb-4">
-                        <div class="bg-blue-500/10 p-3 rounded-xl">
-                            <Building class="w-6 h-6 text-blue-500" />
+                        <div
+                            class="bg-blue-500/10 p-3 rounded-xl group-hover:bg-blue-500/20 transition-colors"
+                        >
+                            <Building class="w-7 h-7 text-blue-500" />
                         </div>
                     </div>
 
-                    <h3 class="text-xl font-bold text-white mb-2">
+                    <h3 class="text-xl font-bold text-white mb-3 pr-8">
                         {center.name}
                     </h3>
 
                     <div class="space-y-2 mb-6">
                         <div class="flex items-center text-slate-400 text-sm">
-                            <MapPin class="w-4 h-4 mr-2" />
-                            {center.location}
+                            <MapPin class="w-4 h-4 mr-2 flex-shrink-0" />
+                            <span class="truncate">{center.location}</span>
                         </div>
                         <div class="flex items-center text-slate-400 text-sm">
-                            <Users class="w-4 h-4 mr-2" />
-                            {getStudentCount(center.id)} Alumnos
+                            <Users class="w-4 h-4 mr-2 flex-shrink-0" />
+                            <span>{getStudentCount(center.id)} Alumnos</span>
                         </div>
+                        {#if center.description}
+                            <p class="text-slate-500 text-xs mt-2 line-clamp-2">
+                                {center.description}
+                            </p>
+                        {/if}
                     </div>
 
                     <a
                         href="{base}/panel/centros/{center.id}"
-                        class="block w-full text-center bg-slate-800 text-slate-300 py-2 rounded-xl text-sm font-semibold hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
+                        class="block w-full text-center bg-slate-800 text-slate-300 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-600 hover:text-white transition-all group-hover:bg-blue-600/20 group-hover:text-blue-400"
                     >
-                        Gestionar
+                        Ver Detalles
                     </a>
                 </div>
             {/each}
