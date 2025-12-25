@@ -40,6 +40,12 @@
     import { base } from "$app/paths";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
+    const RESULT_OPTIONS: ("1-0" | "0-1" | "0.5-0.5")[] = [
+        "1-0",
+        "0.5-0.5",
+        "0-1",
+    ];
+
     let store = $appStore;
     appStore.subscribe((value) => (store = value));
 
@@ -944,7 +950,7 @@
                                                             <div
                                                                 class="grid grid-cols-3 gap-2 pt-4 border-t border-white/5"
                                                             >
-                                                                {#each ["1-0", "0.5-0.5", "0-1"] as res}
+                                                                {#each RESULT_OPTIONS as res}
                                                                     <button
                                                                         onclick={() =>
                                                                             updateMatchResult(
