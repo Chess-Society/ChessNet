@@ -21,7 +21,9 @@
         X,
         UserPlus,
     } from "lucide-svelte";
-    import { fade, slide } from "svelte/transition";
+    import Modal from "$lib/components/Modal.svelte";
+    import EmptyState from "$lib/components/common/EmptyState.svelte";
+    import { fade, slide, fly } from "svelte/transition";
     import { base } from "$app/paths";
     import { notifications } from "$lib/stores/notifications";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
@@ -311,127 +313,132 @@
                     </button>
                 </div>
 
-                {#if showClassForm}
-                    <div
-                        transition:slide
-                        class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 mb-8 max-w-2xl"
-                    >
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-bold text-white">
-                                Crear Clase en {center.name}
-                            </h3>
-                            <button
-                                onclick={() => (showClassForm = false)}
-                                class="text-slate-400 hover:text-white"
-                                ><X class="w-6 h-6" /></button
+                <Modal
+                    bind:isOpen={showClassForm}
+                    title="Crear Clase en {center.name}"
+                    size="md"
+                >
+                    <div class="space-y-4">
+                        <div>
+                            <label
+                                for="c-name"
+                                class="block text-sm font-medium text-slate-400 mb-1"
+                                >Nombre</label
                             >
+                            <input
+                                id="c-name"
+                                bind:value={newClass.name}
+                                type="text"
+                                placeholder="Ej: Avanzado Martes"
+                                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
+                            />
                         </div>
-                        <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label
-                                    for="c-name"
+                                    for="c-day"
                                     class="block text-sm font-medium text-slate-400 mb-1"
-                                    >Nombre</label
-                                >
-                                <input
-                                    id="c-name"
-                                    bind:value={newClass.name}
-                                    type="text"
-                                    placeholder="Ej: Avanzado Martes"
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white"
-                                />
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label
-                                        for="c-day"
-                                        class="block text-sm font-medium text-slate-400 mb-1"
-                                        >Día de la Semana</label
-                                    >
-                                    <select
-                                        id="c-day"
-                                        bind:value={selectedDay}
-                                        class="form-select"
-                                    >
-                                        {#each DAYS as day}
-                                            <option value={day}>{day}</option>
-                                        {/each}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label
-                                        for="c-time"
-                                        class="block text-sm font-medium text-slate-400 mb-1"
-                                        >Hora de Inicio</label
-                                    >
-                                    <input
-                                        id="c-time"
-                                        bind:value={selectedTime}
-                                        type="time"
-                                        class="form-input"
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        for="c-duration"
-                                        class="block text-sm font-medium text-slate-400 mb-1"
-                                        >Duración (min)</label
-                                    >
-                                    <input
-                                        id="c-duration"
-                                        bind:value={newClass.duration}
-                                        type="number"
-                                        min="30"
-                                        step="15"
-                                        class="form-input"
-                                    />
-                                </div>
-                            </div>
-                            <p class="text-xs text-slate-500">
-                                Se mostrará en el calendario como: <span
-                                    class="text-purple-400"
-                                    >{selectedDay} {selectedTime}</span
-                                >
-                            </p>
-                            <div>
-                                <label
-                                    for="c-level"
-                                    class="block text-sm font-medium text-slate-400 mb-1"
-                                    >Nivel</label
+                                    >Día de la Semana</label
                                 >
                                 <select
-                                    id="c-level"
-                                    bind:value={newClass.level}
+                                    id="c-day"
+                                    bind:value={selectedDay}
                                     class="form-select"
                                 >
-                                    <option value="Pawn"
-                                        >Peón (Iniciación)</option
-                                    >
-                                    <option value="Bishop"
-                                        >Alfil (Intermedio)</option
-                                    >
-                                    <option value="King">Rey (Avanzado)</option>
+                                    {#each DAYS as day}
+                                        <option value={day}>{day}</option>
+                                    {/each}
                                 </select>
                             </div>
-                            <button
-                                onclick={handleAddClass}
-                                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg mt-2"
-                                >Crear Clase</button
+                            <div>
+                                <label
+                                    for="c-time"
+                                    class="block text-sm font-medium text-slate-400 mb-1"
+                                    >Hora de Inicio</label
+                                >
+                                <input
+                                    id="c-time"
+                                    bind:value={selectedTime}
+                                    type="time"
+                                    class="form-input"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    for="c-duration"
+                                    class="block text-sm font-medium text-slate-400 mb-1"
+                                    >Duración (min)</label
+                                >
+                                <input
+                                    id="c-duration"
+                                    bind:value={newClass.duration}
+                                    type="number"
+                                    min="30"
+                                    step="15"
+                                    class="form-input"
+                                />
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            Se mostrará en el calendario como: <span
+                                class="text-purple-400"
+                                >{selectedDay} {selectedTime}</span
                             >
+                        </p>
+                        <div>
+                            <label
+                                for="c-level"
+                                class="block text-sm font-medium text-slate-400 mb-1"
+                                >Nivel</label
+                            >
+                            <select
+                                id="c-level"
+                                bind:value={newClass.level}
+                                class="form-select"
+                            >
+                                <option value="Pawn">Peón (Iniciación)</option>
+                                <option value="Bishop"
+                                    >Alfil (Intermedio)</option
+                                >
+                                <option value="King">Rey (Avanzado)</option>
+                            </select>
                         </div>
                     </div>
-                {/if}
+                    <svelte:fragment slot="footer">
+                        <button
+                            onclick={() => (showClassForm = false)}
+                            class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onclick={handleAddClass}
+                            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+                        >
+                            Crear Clase
+                        </button>
+                    </svelte:fragment>
+                </Modal>
 
                 {#if centerClasses.length === 0}
-                    <div
-                        class="text-center py-12 text-slate-500 border-2 border-dashed border-slate-800 rounded-2xl"
-                    >
-                        No hay clases registradas en este centro.
+                    <div class="col-span-full">
+                        <EmptyState
+                            icon={BookOpen}
+                            title="No hay clases en este centro"
+                            description="Organiza tus alumnos en grupos y horarios."
+                            actionLabel="Crear Clase"
+                            on:action={() => (showClassForm = true)}
+                        />
                     </div>
                 {:else}
                     <div class="grid gap-4">
-                        {#each centerClasses as cls}
+                        {#each centerClasses as cls, i (cls.id)}
                             <div
+                                in:fly={{
+                                    y: 20,
+                                    duration: 300,
+                                    delay: i * 50,
+                                }}
                                 class="bg-[#1e293b] border border-slate-700/50 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-purple-500/30 transition-colors"
                             >
                                 <div>
@@ -484,14 +491,22 @@
                     </a>
                 </div>
                 {#if centerStudents.length === 0}
-                    <div class="text-center py-12 text-slate-500">
-                        No hay alumnos matriculados en las clases de este
-                        centro.
+                    <div class="p-8">
+                        <EmptyState
+                            icon={Users}
+                            title="No hay alumnos"
+                            description="Ningún alumno está inscrito en clases de este centro todavía. Añádelos desde la sección 'Alumnos' o al editar una clase."
+                        />
                     </div>
                 {:else}
                     <div class="block sm:hidden space-y-4 p-4">
-                        {#each centerStudents as s}
+                        {#each centerStudents as s, i (s.id)}
                             <div
+                                in:fly={{
+                                    y: 20,
+                                    duration: 300,
+                                    delay: i * 30,
+                                }}
                                 class="bg-slate-900/50 border border-slate-700 rounded-xl p-4"
                             >
                                 <div
@@ -534,8 +549,15 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-700">
-                            {#each centerStudents as s}
-                                <tr class="hover:bg-slate-800/30">
+                            {#each centerStudents as s, i (s.id)}
+                                <tr
+                                    in:fly={{
+                                        y: 20,
+                                        duration: 300,
+                                        delay: i * 30,
+                                    }}
+                                    class="hover:bg-slate-800/30"
+                                >
                                     <td class="p-4 font-medium text-white"
                                         >{s.name}</td
                                     >
