@@ -29,6 +29,14 @@
         goto(`${base}/login`);
     }
 
+    function handlePlanChange(event: Event) {
+        const target = event.target as HTMLSelectElement;
+        appStore.update(s => ({
+            ...s,
+            settings: { ...s.settings, plan: target.value as 'free' | 'profe' | 'club' }
+        }));
+    }
+
     // Breadcrumbs Logic (Basic)
     $: pathSegments = $page.url.pathname
         .replace(base, "")
@@ -67,10 +75,10 @@
         class="bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50"
     >
         <div
-            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+            class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2"
         >
             <!-- Left: Logo & Breadcumbs -->
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 sm:gap-6 min-w-0 flex-1">
                 <button
                     class="flex items-center gap-2 cursor-pointer focus:outline-none group"
                     onclick={goHome}
@@ -91,11 +99,11 @@
                 </button>
 
                 <!-- Breadcrumbs Divider -->
-                <div class="hidden md:flex h-6 w-px bg-slate-700"></div>
+                <div class="hidden lg:flex h-6 w-px bg-slate-700"></div>
 
                 <!-- Breadcrumbs -->
                 <nav
-                    class="hidden md:flex items-center gap-2 text-sm text-slate-500"
+                    class="hidden lg:flex items-center gap-2 text-sm text-slate-500"
                 >
                     <button
                         class="hover:text-slate-300 transition-colors"
@@ -118,18 +126,19 @@
             </div>
 
             <!-- Right: Actions & User -->
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 sm:gap-4">
                 <!-- Dev Plan Switcher (Styled) -->
                 <div
-                    class="hidden sm:flex items-center gap-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700/50"
+                    class="flex items-center gap-1 sm:gap-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700/50"
                 >
                     <span
-                        class="text-[10px] uppercase font-bold text-slate-500 px-2"
+                        class="text-[10px] uppercase font-bold text-slate-500 px-1 sm:px-2 hidden sm:inline"
                         >Plan</span
                     >
                     <select
-                        class="bg-transparent text-xs text-white font-medium border-none focus:ring-0 cursor-pointer py-1"
-                        bind:value={$appStore.settings.plan}
+                        class="bg-transparent text-xs text-white font-medium border-none focus:ring-0 cursor-pointer py-1 pr-6"
+                        value={$appStore.settings.plan}
+                        on:change={handlePlanChange}
                     >
                         <option value="free">Ajedrecista</option>
                         <option value="profe">Profe</option>
@@ -138,9 +147,9 @@
                 </div>
 
                 <!-- User Dropdown -->
-                <div class="relative group ml-2">
+                <div class="relative group">
                     <button
-                        class="flex items-center gap-3 hover:bg-slate-800 py-1.5 px-1.5 pr-3 rounded-full transition-all border border-transparent hover:border-slate-700"
+                        class="flex items-center gap-2 sm:gap-3 hover:bg-slate-800 py-1.5 px-1.5 sm:pr-3 rounded-full transition-all border border-transparent hover:border-slate-700"
                     >
                         <div
                             class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-emerald-500/20 shadow-lg overflow-hidden relative"
@@ -155,17 +164,13 @@
                                 {teacherInitials}
                             {/if}
                         </div>
-                        <div class="hidden md:block text-left">
-                            <div
-                                class="text-xs font-bold text-white leading-none mb-0.5"
-                            >
+                        <div class="text-left hidden sm:block">
+                            <p class="text-sm font-medium text-white">
                                 {teacherName}
-                            </div>
-                            <div
-                                class="text-[9px] text-emerald-400 font-bold tracking-wider uppercase"
-                            >
-                                {currentPlan === "club" ? "Club" : "Profe"}
-                            </div>
+                            </p>
+                            <p class="text-xs text-slate-400 capitalize">
+                                {currentPlan}
+                            </p>
                         </div>
                     </button>
 
