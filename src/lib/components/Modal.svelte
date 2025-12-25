@@ -62,6 +62,15 @@
             <div class="p-6 overflow-y-auto custom-scrollbar">
                 <slot />
             </div>
+
+            <!-- Footer -->
+            {#if $$slots.footer}
+                <div
+                    class="px-6 py-4 border-t border-slate-700/50 flex justify-end gap-3 shrink-0 bg-[#1e293b]/50"
+                >
+                    <slot name="footer" />
+                </div>
+            {/if}
         </div>
     </div>
 {/if}
