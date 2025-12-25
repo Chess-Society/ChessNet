@@ -36,7 +36,7 @@
         exportStandingsPDF,
         exportPairingsPDF,
     } from "$lib/services/export";
-    import { slide, fade, scale } from "svelte/transition";
+    import { slide, fade, scale, fly } from "svelte/transition";
     import { base } from "$app/paths";
     import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
@@ -821,106 +821,156 @@
                                         <div
                                             class="p-4 grid gap-4 grid-cols-1 md:grid-cols-2"
                                         >
-                                            {#each tournament.matches.filter((m) => m.round === round) as match}
+                                            {#each tournament.matches.filter((m) => m.round === round) as match, i (match.id)}
+                                                {@const white =
+                                                    store.students.find(
+                                                        (s) =>
+                                                            s.id ===
+                                                            match.whiteId,
+                                                    )}
+                                                {@const black =
+                                                    match.blackId === "BYE"
+                                                        ? {
+                                                              name: "Descanso (Bye)",
+                                                              level: "",
+                                                          }
+                                                        : store.students.find(
+                                                              (s) =>
+                                                                  s.id ===
+                                                                  match.blackId,
+                                                          )}
+
                                                 <div
-                                                    class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 flex flex-col items-center gap-3 relative hover:bg-slate-800/50 transition-colors group"
+                                                    in:fly={{
+                                                        y: 20,
+                                                        duration: 400,
+                                                        delay: i * 50,
+                                                    }}
+                                                    class="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-black/50"
                                                 >
-                                                    <!-- VS Badge -->
                                                     <div
-                                                        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-600 z-10 md:flex hidden"
-                                                    >
-                                                        VS
-                                                    </div>
-
+                                                        class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                                                    ></div>
                                                     <div
-                                                        class="flex justify-between w-full items-center gap-4"
+                                                        class="relative p-6 flex flex-col gap-6"
                                                     >
-                                                        <!-- White Player -->
+                                                        <!-- Players Area -->
                                                         <div
-                                                            class="flex-1 flex flex-col items-end text-right"
+                                                            class="flex items-center justify-between gap-4"
                                                         >
+                                                            <!-- White Player -->
                                                             <div
-                                                                class="flex items-center gap-2 mb-1"
+                                                                class="flex-1 flex flex-col items-center text-center gap-3"
+                                                            >
+                                                                <div
+                                                                    class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-slate-200 to-slate-400 p-1 shadow-lg shadow-white/5"
+                                                                >
+                                                                    <div
+                                                                        class="w-full h-full rounded-full bg-slate-100 flex items-center justify-center text-slate-800 font-black text-xl"
+                                                                    >
+                                                                        {white
+                                                                            ? white
+                                                                                  .name[0]
+                                                                            : "?"}
+                                                                    </div>
+                                                                </div>
+                                                                <div
+                                                                    class="min-w-0 w-full"
+                                                                >
+                                                                    <div
+                                                                        class="font-bold text-white text-base sm:text-lg leading-tight truncate px-1"
+                                                                        title={white?.name}
+                                                                    >
+                                                                        {white
+                                                                            ? white.name
+                                                                            : "Desconocido"}
+                                                                    </div>
+                                                                    <div
+                                                                        class="text-[10px] bg-slate-100/10 text-slate-300 px-2 py-0.5 rounded-full inline-block mt-1 font-bold uppercase tracking-wider"
+                                                                    >
+                                                                        Blancas
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- VS Badge -->
+                                                            <div
+                                                                class="flex flex-col items-center justify-center z-10"
                                                             >
                                                                 <span
-                                                                    class="font-bold text-slate-200 text-sm md:text-base line-clamp-1"
-                                                                    >{getStudentName(
-                                                                        match.whiteId,
-                                                                    )}</span
+                                                                    class="text-2xl font-black italic text-slate-700/50"
+                                                                    >VS</span
                                                                 >
+                                                            </div>
+
+                                                            <!-- Black Player -->
+                                                            <div
+                                                                class="flex-1 flex flex-col items-center text-center gap-3"
+                                                            >
                                                                 <div
-                                                                    class="w-3 h-3 rounded-full bg-white border border-slate-400 shadow-sm"
-                                                                    title="Blancas"
-                                                                ></div>
+                                                                    class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 p-1 shadow-lg shadow-black/50"
+                                                                >
+                                                                    <div
+                                                                        class="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-slate-200 font-black text-xl"
+                                                                    >
+                                                                        {black
+                                                                            ? black
+                                                                                  .name[0]
+                                                                            : "B"}
+                                                                    </div>
+                                                                </div>
+                                                                <div
+                                                                    class="min-w-0 w-full"
+                                                                >
+                                                                    <div
+                                                                        class="font-bold text-white text-base sm:text-lg leading-tight truncate px-1"
+                                                                        title={black?.name}
+                                                                    >
+                                                                        {black
+                                                                            ? black.name
+                                                                            : "Desconocido"}
+                                                                    </div>
+                                                                    <div
+                                                                        class="text-[10px] bg-black/30 text-slate-400 px-2 py-0.5 rounded-full inline-block mt-1 font-bold uppercase tracking-wider"
+                                                                    >
+                                                                        Negras
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
 
-                                                        <!-- Mobile VS spacer -->
-                                                        <div
-                                                            class="w-8 md:hidden"
-                                                        ></div>
-
-                                                        <!-- Black Player -->
-                                                        <div
-                                                            class="flex-1 flex flex-col items-start"
-                                                        >
+                                                        <!-- Action Buttons -->
+                                                        {#if match.blackId !== "BYE"}
                                                             <div
-                                                                class="flex items-center gap-2 mb-1"
+                                                                class="grid grid-cols-3 gap-2 pt-4 border-t border-white/5"
                                                             >
-                                                                <div
-                                                                    class="w-3 h-3 rounded-full bg-black border border-slate-600 shadow-sm"
-                                                                    title="Negras"
-                                                                ></div>
-                                                                <span
-                                                                    class="font-bold text-slate-200 text-sm md:text-base line-clamp-1"
-                                                                    >{getStudentName(
-                                                                        match.blackId,
-                                                                    )}</span
-                                                                >
+                                                                {#each ["1-0", "0.5-0.5", "0-1"] as res}
+                                                                    <button
+                                                                        onclick={() =>
+                                                                            updateMatchResult(
+                                                                                match.id,
+                                                                                res,
+                                                                            )}
+                                                                        class="py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 border {match.result ===
+                                                                        res
+                                                                            ? 'bg-emerald-500 text-white border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.02]'
+                                                                            : 'bg-white/5 text-slate-400 border-white/5 hover:bg-white/10 hover:text-white'}"
+                                                                    >
+                                                                        {res ===
+                                                                        "0.5-0.5"
+                                                                            ? "½ - ½"
+                                                                            : res}
+                                                                    </button>
+                                                                {/each}
                                                             </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Result Actions -->
-                                                    <div
-                                                        class="flex gap-1 bg-slate-900/80 p-1 rounded-lg border border-slate-700 relative z-20"
-                                                    >
-                                                        <button
-                                                            onclick={() =>
-                                                                updateMatchResult(
-                                                                    match.id,
-                                                                    "1-0",
-                                                                )}
-                                                            class="px-4 py-1.5 rounded-md text-xs font-bold transition-all {match.result ===
-                                                            '1-0'
-                                                                ? 'bg-emerald-600 text-white shadow-lg'
-                                                                : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
-                                                            >1-0</button
-                                                        >
-                                                        <button
-                                                            onclick={() =>
-                                                                updateMatchResult(
-                                                                    match.id,
-                                                                    "0.5-0.5",
-                                                                )}
-                                                            class="px-4 py-1.5 rounded-md text-xs font-bold transition-all {match.result ===
-                                                            '0.5-0.5'
-                                                                ? 'bg-blue-600 text-white shadow-lg'
-                                                                : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
-                                                            >½-½</button
-                                                        >
-                                                        <button
-                                                            onclick={() =>
-                                                                updateMatchResult(
-                                                                    match.id,
-                                                                    "0-1",
-                                                                )}
-                                                            class="px-4 py-1.5 rounded-md text-xs font-bold transition-all {match.result ===
-                                                            '0-1'
-                                                                ? 'bg-red-600 text-white shadow-lg'
-                                                                : 'text-slate-400 hover:text-white hover:bg-slate-700'}"
-                                                            >0-1</button
-                                                        >
+                                                        {:else}
+                                                            <div
+                                                                class="text-center py-2 pt-4 border-t border-white/5 text-sm text-emerald-400 font-bold"
+                                                            >
+                                                                Victoria
+                                                                Automática (Bye)
+                                                            </div>
+                                                        {/if}
                                                     </div>
                                                 </div>
                                             {/each}
