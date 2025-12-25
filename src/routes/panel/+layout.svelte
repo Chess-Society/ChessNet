@@ -31,9 +31,12 @@
 
     function handlePlanChange(event: Event) {
         const target = event.target as HTMLSelectElement;
-        appStore.update(s => ({
+        appStore.update((s) => ({
             ...s,
-            settings: { ...s.settings, plan: target.value as 'free' | 'profe' | 'club' }
+            settings: {
+                ...s.settings,
+                plan: target.value as "free" | "profe" | "club",
+            },
         }));
     }
 
@@ -138,7 +141,7 @@
                     <select
                         class="bg-transparent text-xs text-white font-medium border-none focus:ring-0 cursor-pointer py-1 pr-6"
                         value={$appStore.settings.plan}
-                        on:change={handlePlanChange}
+                        onchange={handlePlanChange}
                     >
                         <option value="free">Ajedrecista</option>
                         <option value="profe">Profe</option>
