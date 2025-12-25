@@ -857,9 +857,132 @@
                                                     <div
                                                         class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                                                     ></div>
+                                                    <!-- Compact Premium Layout -->
                                                     <div
-                                                        class="relative p-6 flex flex-col gap-6"
+                                                        class="relative p-3 sm:p-4 flex flex-col gap-3"
                                                     >
+                                                        <div
+                                                            class="flex flex-col md:flex-row items-center gap-3 md:gap-4"
+                                                        >
+                                                            <!-- Players Row -->
+                                                            <div
+                                                                class="flex-1 flex items-center justify-between w-full md:w-auto gap-2 md:gap-6"
+                                                            >
+                                                                <!-- White Player -->
+                                                                <div
+                                                                    class="flex-1 flex items-center justify-end md:justify-start gap-2 md:gap-3 text-right md:text-left min-w-0"
+                                                                >
+                                                                    <div
+                                                                        class="flex flex-col items-end md:items-start min-w-0"
+                                                                    >
+                                                                        <div
+                                                                            class="font-bold text-white text-sm md:text-base leading-tight truncate max-w-[90px] sm:max-w-[120px] md:max-w-[150px]"
+                                                                            title={white?.name}
+                                                                        >
+                                                                            {white
+                                                                                ? white.name
+                                                                                : "Desconocido"}
+                                                                        </div>
+                                                                        <span
+                                                                            class="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider"
+                                                                            >Blancas</span
+                                                                        >
+                                                                    </div>
+                                                                    <div
+                                                                        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-400 p-0.5 shadow-lg shadow-white/5 flex-shrink-0 order-last md:order-first"
+                                                                    >
+                                                                        <div
+                                                                            class="w-full h-full rounded-full bg-slate-100 flex items-center justify-center text-slate-800 font-black text-xs sm:text-sm"
+                                                                        >
+                                                                            {white
+                                                                                ? white
+                                                                                      .name[0]
+                                                                                : "?"}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- VS Badge -->
+                                                                <div
+                                                                    class="flex-shrink-0 px-1"
+                                                                >
+                                                                    <span
+                                                                        class="text-xs sm:text-sm font-black italic text-slate-600"
+                                                                        >VS</span
+                                                                    >
+                                                                </div>
+
+                                                                <!-- Black Player -->
+                                                                <div
+                                                                    class="flex-1 flex items-center justify-start gap-2 md:gap-3 text-left min-w-0"
+                                                                >
+                                                                    <div
+                                                                        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 p-0.5 shadow-lg shadow-black/50 flex-shrink-0"
+                                                                    >
+                                                                        <div
+                                                                            class="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-slate-200 font-black text-xs sm:text-sm"
+                                                                        >
+                                                                            {black
+                                                                                ? black
+                                                                                      .name[0]
+                                                                                : "B"}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div
+                                                                        class="flex flex-col items-start min-w-0"
+                                                                    >
+                                                                        <div
+                                                                            class="font-bold text-white text-sm md:text-base leading-tight truncate max-w-[90px] sm:max-w-[120px] md:max-w-[150px]"
+                                                                            title={black?.name}
+                                                                        >
+                                                                            {black
+                                                                                ? black.name
+                                                                                : "Desconocido"}
+                                                                        </div>
+                                                                        <span
+                                                                            class="text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider"
+                                                                            >Negras</span
+                                                                        >
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Actions -->
+                                                            {#if match.blackId !== "BYE"}
+                                                                <div
+                                                                    class="flex items-center gap-1 w-full md:w-auto h-8 sm:h-9 bg-slate-900/40 p-1 rounded-lg border border-white/5"
+                                                                >
+                                                                    {#each RESULT_OPTIONS as res}
+                                                                        <button
+                                                                            onclick={() =>
+                                                                                updateMatchResult(
+                                                                                    match.id,
+                                                                                    res,
+                                                                                )}
+                                                                            class="flex-1 md:flex-none px-3 sm:px-4 h-full rounded text-[10px] sm:text-xs font-bold transition-all duration-200 flex items-center justify-center whitespace-nowrap {match.result ===
+                                                                            res
+                                                                                ? 'bg-emerald-500 text-white shadow-lg'
+                                                                                : 'text-slate-400 hover:text-white hover:bg-white/10'}"
+                                                                        >
+                                                                            {res ===
+                                                                            "0.5-0.5"
+                                                                                ? "½"
+                                                                                : res}
+                                                                        </button>
+                                                                    {/each}
+                                                                </div>
+                                                            {:else}
+                                                                <div
+                                                                    class="w-full md:w-auto text-center px-3 py-1.5 text-xs text-emerald-400 font-bold bg-emerald-500/10 rounded-lg border border-emerald-500/20"
+                                                                >
+                                                                    Bye
+                                                                    (Victoria)
+                                                                </div>
+                                                            {/if}
+                                                        </div>
+                                                    </div>
+                                                    <!-- OLD_CONTENT_START -->
+                                                    <div class="hidden">
                                                         <!-- Players Area -->
                                                         <div
                                                             class="flex items-center justify-between gap-4"
