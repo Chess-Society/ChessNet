@@ -55,7 +55,7 @@
         schedule: "",
         level: "Pawn",
         students: [],
-        duration: 90, // Default 1.5h
+        duration: 60, // Default 1h
     };
 
     // Structured Schedule State
@@ -95,7 +95,7 @@
             schedule: "",
             level: "Pawn",
             students: [],
-            duration: 90,
+            duration: 60,
         };
         selectedDay = "Lunes";
         selectedTime = "17:00";
@@ -246,24 +246,7 @@
 
         <!-- OVERVIEW -->
         {#if activeTab === "overview"}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" transition:fade>
-                <div
-                    class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700"
-                >
-                    <h3 class="text-slate-400 text-sm font-bold uppercase mb-2">
-                        Ingresos Mensuales Estimados
-                    </h3>
-                    <p class="text-3xl font-bold text-white">
-                        {new Intl.NumberFormat("es-ES", {
-                            style: "currency",
-                            currency: "EUR",
-                        }).format(centerStudents.length * 45)}
-                    </p>
-                    <p class="text-xs text-slate-500 mt-1">
-                        Basado en 45€/alumno
-                    </p>
-                </div>
-
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" transition:fade>
                 <div
                     class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700"
                 >
