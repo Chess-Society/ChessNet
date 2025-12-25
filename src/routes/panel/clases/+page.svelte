@@ -242,6 +242,57 @@
         </div>
     </div>
 
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-[#1e293b] border border-slate-800 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">
+                        Total Clases
+                    </p>
+                    <p class="text-3xl font-bold text-white mt-1">
+                        {store.classes.length}
+                    </p>
+                </div>
+                <div class="bg-purple-500/10 p-3 rounded-lg">
+                    <BookOpen class="w-6 h-6 text-purple-500" />
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1e293b] border border-slate-800 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">
+                        Total Alumnos
+                    </p>
+                    <p class="text-3xl font-bold text-white mt-1">
+                        {store.students.length}
+                    </p>
+                </div>
+                <div class="bg-emerald-500/10 p-3 rounded-lg">
+                    <Users class="w-6 h-6 text-emerald-500" />
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1e293b] border border-slate-800 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">
+                        Centros Activos
+                    </p>
+                    <p class="text-3xl font-bold text-white mt-1">
+                        {store.centers.length}
+                    </p>
+                </div>
+                <div class="bg-blue-500/10 p-3 rounded-lg">
+                    <Calendar class="w-6 h-6 text-blue-500" />
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Active Sessions Today -->
     <div>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
