@@ -143,9 +143,15 @@
                         value={$appStore.settings.plan}
                         onchange={handlePlanChange}
                     >
-                        <option value="free">Ajedrecista</option>
-                        <option value="profe">Profe</option>
-                        <option value="club">Club</option>
+                        <option value="free" class="bg-slate-900 text-white"
+                            >Ajedrecista</option
+                        >
+                        <option value="profe" class="bg-slate-900 text-white"
+                            >Profe</option
+                        >
+                        <option value="club" class="bg-slate-900 text-white"
+                            >Club</option
+                        >
                     </select>
                 </div>
 
