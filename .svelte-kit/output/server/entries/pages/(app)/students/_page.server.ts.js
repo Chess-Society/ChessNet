@@ -1,60 +1,43 @@
-import { createServerClient } from "@supabase/ssr";
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from "../../../../chunks/public.js";
-const load = async ({ locals, url, cookies }) => {
+import { s as studentsApi } from "../../../../chunks/students.js";
+import { s as schoolsApi } from "../../../../chunks/schools.js";
+const load = async ({ locals }) => {
   console.log("👥 Students page server load - User:", locals.user?.email || "none");
   if (!locals.user) {
     return {
       user: null,
       students: [],
-      stats: { total: 0, active: 0, inactive: 0, levels: { beginner: 0, intermediate: 0, advanced: 0 }, schools: {}, averageAge: 0, newest: null },
+      stats: { total: 0, schools: {}, newest: null },
       schools: []
     };
   }
-  const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-    cookies: {
-      get: (key) => cookies.get(key),
-      set: (key, value, options) => cookies.set(key, value, options),
-      remove: (key, options) => cookies.delete(key, options)
-    }
-  });
   try {
-    const { data: students, error: studentsError } = await supabase.from("students").select("*").eq("user_id", locals.user.id).order("created_at", { ascending: false });
-    if (studentsError) {
-      console.error("❌ Error fetching students:", studentsError);
-      return {
-        user: locals.user,
-        students: [],
-        stats: { total: 0, schools: {}, newest: null },
-        schools: []
-      };
-    }
-    const { data: schools, error: schoolsError } = await supabase.from("colleges").select("id, name").eq("user_id", locals.user.id);
-    if (schoolsError) {
-      console.error("❌ Error fetching schools:", schoolsError);
-    }
+    const [students, schools] = await Promise.all([
+      studentsApi.getMyStudents(locals.user.id),
+      schoolsApi.getMySchools(locals.user.id)
+    ]);
     const schoolCounts = {};
-    students?.forEach((s) => {
+    students.forEach((s) => {
       if (s.college_id) {
         schoolCounts[s.college_id] = (schoolCounts[s.college_id] || 0) + 1;
       }
     });
     const stats = {
-      total: students?.length || 0,
+      total: students.length,
       schools: schoolCounts,
-      newest: students?.[0]?.created_at || null
+      newest: students[0]?.created_at || null
     };
     return {
       user: locals.user,
-      students: students || [],
+      students,
       stats,
-      schools: schools || []
+      schools
     };
   } catch (err) {
-    console.error("❌ Error in students production mode:", err);
+    console.error("❌ Error in students page load:", err);
     return {
       user: locals.user,
       students: [],
-      stats: { total: 0, active: 0, inactive: 0, levels: { beginner: 0, intermediate: 0, advanced: 0 }, schools: {}, averageAge: 0, newest: null },
+      stats: { total: 0, schools: {}, newest: null },
       schools: []
     };
   }

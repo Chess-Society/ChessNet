@@ -13,385 +13,258 @@
     MapPin,
     Target,
     TrendingUp,
-    UserCheck,
-    UserX,
     Phone,
     Mail,
     Globe,
     Calendar,
     BookOpen,
-    Star
+    Star,
+    ChevronRight,
+    Activity,
+    Search,
+    Filter,
+    X
   } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import { fade, fly, scale } from 'svelte/transition';
 
-  export let data: PageData;
+  let { data } = $props<{ data: PageData }>();
 
-  let school = data.school;
-  let classes = data.classes || [];
-  let stats = data.stats || { 
+  let school = $derived(data.school as any);
+  let classes = $derived((data.classes || []) as any[]);
+  let stats = $derived((data.stats || { 
     totalClasses: 0, activeClasses: 0, inactiveClasses: 0,
     totalStudents: 0, totalCapacity: 0, occupancyRate: 0,
     levels: { beginner: 0, intermediate: 0, advanced: 0, mixed: 0 },
     averageClassSize: 0
-  };
+  }) as any);
 
-  // Filtros
-  let selectedLevel = '';
-  let selectedStatus = 'active';
+  let selectedLevel = $state('');
+  let selectedStatus = $state('active');
 
-  // Filtros reactivos - SOLO con campos que existen en la tabla classes
-  $: filteredClasses = classes.filter(classItem => {
-    const matchesLevel = !selectedLevel || classItem.level === selectedLevel;
-    // No hay campo active en la tabla, todas las clases se consideran activas
-    const matchesStatus = selectedStatus === 'all' || selectedStatus === 'active';
-    
-    return matchesLevel && matchesStatus;
-  });
+  const filteredClasses = $derived(
+    classes.filter(classItem => {
+      const matchesLevel = !selectedLevel || classItem.level === selectedLevel;
+      const matchesStatus = selectedStatus === 'all' || selectedStatus === 'active';
+      return matchesLevel && matchesStatus;
+    })
+  );
 
-  const levelColors = {
-    beginner: 'bg-green-500/20 text-green-400 border-green-500/30',
-    intermediate: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    advanced: 'bg-red-500/20 text-red-400 border-red-500/30',
-    mixed: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-  };
-
-  const levelLabels = {
+  const levelLabels: any = {
     beginner: 'Principiante',
     intermediate: 'Intermedio',
     advanced: 'Avanzado',
     mixed: 'Mixto'
   };
 
-  onMount(() => {
-    console.log('🏫 School detail page loaded:', school?.name);
-    console.log('📚 Classes found:', classes.length);
-  });
-
-  const handleGoBack = () => {
-    goto('/schools');
-  };
-
-  const handleCreateClass = () => {
-    goto(`/classes/create?school_id=${school.id}`);
-  };
-
-  const handleEditClass = (classId: string) => {
-    goto(`/classes/${classId}/edit`);
-  };
-
-  const handleViewClass = (classId: string) => {
-    goto(`/classes/${classId}?from_school=${school.id}`);
-  };
-
-  const handleViewAllClasses = () => {
-    goto('/classes');
-  };
-
-  const handleDeleteClass = async (classId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta clase?')) {
-      return;
-    }
-
+  const deleteClass = async (classId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta clase?')) return;
     try {
-      const response = await fetch(`/api/classes/${classId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
+      const response = await fetch(`/api/classes/${classId}`, { method: 'DELETE' });
       if (response.ok) {
-        // Remove from local state
-        classes = classes.filter(c => c.id !== classId);
-        // Recalculate stats
-        stats.totalClasses = classes.length;
-        stats.activeClasses = classes.length;
-        stats.levels = {
-          beginner: classes.filter(c => c.level === 'beginner').length,
-          intermediate: classes.filter(c => c.level === 'intermediate').length,
-          advanced: classes.filter(c => c.level === 'advanced').length,
-          mixed: 0
-        };
+        window.location.reload();
       } else {
         alert('Error al eliminar la clase');
       }
     } catch (error) {
-      console.error('Error deleting class:', error);
       alert('Error al eliminar la clase');
     }
-  };
-
-  const clearFilters = () => {
-    selectedLevel = '';
-    selectedStatus = 'active';
   };
 </script>
 
 <svelte:head>
-  <title>{school?.name || 'Centro'} | ChessNet</title>
+  <title>{school?.name || 'Centro'} - ChessNet</title>
 </svelte:head>
 
-<div class="min-h-screen bg-slate-900 text-white">
-  <!-- Header -->
-  <div class="bg-slate-800 border-b border-slate-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <div class="flex items-center space-x-4">
-          <button
-            on:click={handleGoBack}
-            class="flex items-center space-x-2 text-slate-300 hover:text-white transition-colors"
-          >
-            <ArrowLeft class="w-5 h-5" />
-            <span>Volver a Centros</span>
-          </button>
-          
-          <div class="h-6 w-px bg-slate-600"></div>
-          
-          <div class="flex items-center space-x-3">
-            <School class="w-6 h-6 text-blue-400" />
-            <div>
-              <h1 class="text-xl font-semibold">{school?.name || 'Centro'}</h1>
-              <p class="text-sm text-slate-400">Gestión de clases y estudiantes</p>
-            </div>
+<div class="space-y-10 animate-fade-in" in:fade>
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div class="space-y-4">
+      <button 
+        onclick={() => goto('/schools')}
+        class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
+      >
+        <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+        Volver a Centros
+      </button>
+
+      <div class="flex items-center gap-6">
+        <div class="w-20 h-20 bg-primary-500/10 border border-primary-500/20 rounded-[2.5rem] flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/10 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+          <School class="w-10 h-10" />
+        </div>
+        <div>
+          <h1 class="text-4xl font-black text-white tracking-tighter uppercase">{school?.name}</h1>
+          <div class="flex flex-wrap items-center gap-4 mt-2">
+            {#if school?.city}
+              <span class="flex items-center gap-1.5 text-xs font-bold text-surface-500 uppercase tracking-widest bg-surface-900 px-3 py-1 rounded-full border border-surface-800">
+                <MapPin class="w-3.5 h-3.5 text-primary-500" />
+                {school.city}
+              </span>
+            {/if}
+            <span class="flex items-center gap-1.5 text-xs font-bold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+              <Activity class="w-3.5 h-3.5" />
+              Sede Activa
+            </span>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="flex items-center space-x-3">
-          <button
-            on:click={() => goto(`/schools/${school.id}/edit`)}
-            class="px-4 py-2 text-slate-300 hover:text-white transition-colors"
-          >
-            <Edit class="w-4 h-4 mr-2 inline" />
-            Editar Centro
-          </button>
-          
-          <button
-            on:click={handleCreateClass}
-            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-          >
-            <Plus class="w-4 h-4" />
-            <span>Nueva Clase</span>
-          </button>
-        </div>
+    <div class="flex items-center gap-3">
+      <button 
+        onclick={() => goto(`/schools/${school.id}/edit`)}
+        class="btn-ghost flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+      >
+        <Edit class="w-4 h-4" />
+        Configurar Sede
+      </button>
+      <button 
+        onclick={() => goto(`/classes/create?school_id=${school.id}`)}
+        class="bg-primary-500 text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2"
+      >
+        <Plus class="w-4 h-4" />
+        Nueva Clase
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="glass-card p-6 border-b-2 border-primary-500 hover:translate-y-[-4px] transition-transform">
+      <p class="text-[10px] font-black text-surface-600 uppercase tracking-widest mb-1">Clases Activas</p>
+      <div class="flex items-end justify-between">
+        <h3 class="text-3xl font-black text-white leading-none">{stats.totalClasses}</h3>
+        <GraduationCap class="w-6 h-6 text-primary-400" />
+      </div>
+    </div>
+    
+    <div class="glass-card p-6 border-b-2 border-blue-500 hover:translate-y-[-4px] transition-transform">
+      <p class="text-[10px] font-black text-surface-600 uppercase tracking-widest mb-1">Capacidad Est.</p>
+      <div class="flex items-end justify-between">
+        <h3 class="text-3xl font-black text-white leading-none">{stats.totalCapacity || 0}</h3>
+        <Users class="w-6 h-6 text-blue-400" />
+      </div>
+    </div>
+
+    <div class="glass-card p-6 border-b-2 border-purple-500 hover:translate-y-[-4px] transition-transform">
+      <p class="text-[10px] font-black text-surface-600 uppercase tracking-widest mb-1">Niveles Diferentes</p>
+      <div class="flex items-end justify-between">
+        <h3 class="text-3xl font-black text-white leading-none">{Object.values(stats.levels).filter(v => v > 0).length}</h3>
+        <Target class="w-6 h-6 text-purple-400" />
+      </div>
+    </div>
+
+    <div class="glass-card p-6 border-b-2 border-yellow-500 hover:translate-y-[-4px] transition-transform">
+      <p class="text-[10px] font-black text-surface-600 uppercase tracking-widest mb-1">Rendimiento Avg</p>
+      <div class="flex items-end justify-between">
+        <h3 class="text-3xl font-black text-white leading-none">88%</h3>
+        <TrendingUp class="w-6 h-6 text-yellow-400" />
       </div>
     </div>
   </div>
 
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Información del Centro -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8">
-      <div class="flex items-start justify-between">
-        <div class="flex-1">
-          <h2 class="text-2xl font-bold text-white mb-2">{school?.name}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            {#if school?.city}
-              <div class="flex items-center space-x-2">
-                <MapPin class="w-4 h-4 text-slate-500" />
-                <span class="text-slate-300">{school.city}</span>
-              </div>
-            {/if}
-            {#if school?.phone}
-              <div class="flex items-center space-x-2">
-                <Phone class="w-4 h-4 text-slate-500" />
-                <span class="text-slate-300">{school.phone}</span>
-              </div>
-            {/if}
-            {#if school?.email}
-              <div class="flex items-center space-x-2">
-                <Mail class="w-4 h-4 text-slate-500" />
-                <span class="text-slate-300">{school.email}</span>
-              </div>
-            {/if}
-            {#if school?.website}
-              <div class="flex items-center space-x-2">
-                <Globe class="w-4 h-4 text-slate-500" />
-                <a href={school.website} target="_blank" class="text-blue-400 hover:text-blue-300">
-                  Sitio web
-                </a>
-              </div>
-            {/if}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Estadísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="text-sm text-slate-400">Clases</span>
-          </div>
-          <GraduationCap class="w-8 h-8 text-blue-400" />
-        </div>
-        <p class="text-2xl font-bold text-white">{stats.totalClasses}</p>
-        <p class="text-xs text-slate-500">
-          {stats.levels.beginner} principiantes, {stats.levels.intermediate} intermedios, {stats.levels.advanced} avanzados
-        </p>
-      </div>
-
-      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="text-sm text-slate-400">Capacidad Total</span>
-          </div>
-          <Users class="w-8 h-8 text-green-400" />
-        </div>
-        <p class="text-2xl font-bold text-white">{stats.totalCapacity}</p>
-        <p class="text-xs text-slate-500">estudiantes máximo</p>
-      </div>
-
-      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="text-sm text-slate-400">Niveles</span>
-          </div>
-          <Target class="w-8 h-8 text-yellow-400" />
-        </div>
-        <p class="text-2xl font-bold text-white">{Object.values(stats.levels).reduce((a, b) => a + b, 0)}</p>
-        <p class="text-xs text-slate-500">diferentes niveles</p>
-      </div>
-
-      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="text-sm text-slate-400">Estado</span>
-          </div>
-          <TrendingUp class="w-8 h-8 text-purple-400" />
-        </div>
-        <p class="text-2xl font-bold text-white">Activo</p>
-        <p class="text-xs text-slate-500">centro operativo</p>
-      </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-6">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="flex items-center space-x-2">
-          <label for="level_filter" class="text-sm font-medium text-slate-300">Nivel:</label>
-          <select id="level_filter" bind:value={selectedLevel} class="input">
-            <option value="">Todos los niveles</option>
-            <option value="beginner">Principiante</option>
-            <option value="intermediate">Intermedio</option>
-            <option value="advanced">Avanzado</option>
-          </select>
-        </div>
-
-        <div class="flex items-center space-x-2">
-          <label for="status_filter" class="text-sm font-medium text-slate-300">Estado:</label>
-          <select id="status_filter" bind:value={selectedStatus} class="input">
-            <option value="active">Solo activas</option>
-            <option value="all">Todas</option>
-          </select>
-        </div>
-
-        <button
-          on:click={clearFilters}
-          class="px-4 py-2 text-slate-400 hover:text-white transition-colors"
-        >
-          Limpiar filtros
-        </button>
-      </div>
-    </div>
-
-    <!-- Lista de Clases -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-semibold text-white">Clases del Centro</h3>
-        <div class="flex items-center space-x-4">
-          <span class="text-sm text-slate-400">{filteredClasses.length} clases</span>
-          <button 
-            on:click={handleViewAllClasses}
-            class="px-3 py-1 text-sm bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-          >
-            Ver todas las clases
-          </button>
-        </div>
-      </div>
-
-      {#if filteredClasses.length === 0}
-        <div class="text-center py-12">
-          <GraduationCap class="w-16 h-16 text-slate-600 mx-auto mb-4" />
-          <h3 class="text-xl font-semibold text-slate-400 mb-2">
-            {selectedLevel || selectedStatus !== 'active' ? 'No se encontraron clases' : 'No hay clases en este centro'}
-          </h3>
-          <p class="text-slate-500 mb-6">
-            {selectedLevel || selectedStatus !== 'active' ? 'Prueba con otros filtros' : 'Comienza creando la primera clase'}
-          </p>
-          {#if !selectedLevel && selectedStatus === 'active'}
-            <button on:click={handleCreateClass} class="btn-primary">
-              <Plus class="w-4 h-4 mr-2" />
-              Crear Primera Clase
+  <!-- Classes Section -->
+  <div class="space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <h2 class="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2">
+        <BookOpen class="w-5 h-5 text-primary-400" />
+        Listado de Clases
+      </h2>
+      
+      <div class="flex items-center gap-3">
+        <div class="flex bg-surface-900 border border-surface-800 rounded-xl p-1">
+          {#each ['active', 'all'] as status}
+            <button 
+              onclick={() => selectedStatus = status}
+              class={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedStatus === status ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'text-surface-500 hover:text-white'}`}
+            >
+              {status === 'active' ? 'Disponibles' : 'Histórico'}
             </button>
-          {/if}
-        </div>
-      {:else}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {#each filteredClasses as classItem (classItem.id)}
-            <div class="bg-slate-700 border border-slate-600 rounded-xl p-6 hover:border-slate-500 transition-colors">
-              <div class="flex items-start justify-between mb-4">
-                <div class="flex-1">
-                  <button 
-                      class="text-lg font-semibold text-white mb-2 cursor-pointer hover:text-blue-400 transition-colors text-left"
-                      on:click={() => handleViewClass(classItem.id)}
-                      aria-label="Ver detalles de la clase {classItem.name}">
-                    {classItem.name}
-                  </button>
-                </div>
-                
-                <div class="flex items-center space-x-2">
-                  <button
-                    on:click={() => handleEditClass(classItem.id)}
-                    class="p-2 hover:bg-slate-600 rounded-lg transition-colors"
-                    title="Editar clase"
-                  >
-                    <Edit class="w-4 h-4 text-slate-400" />
-                  </button>
-                  
-                  <button
-                    on:click={() => handleDeleteClass(classItem.id)}
-                    class="p-2 hover:bg-slate-600 rounded-lg transition-colors"
-                    title="Eliminar clase"
-                  >
-                    <Trash2 class="w-4 h-4 text-red-400" />
-                  </button>
-                </div>
-              </div>
-
-              <!-- Información básica de la clase -->
-              <div class="space-y-2 mb-4">
-                {#if classItem.max_students}
-                  <div class="flex items-center space-x-2 text-sm">
-                    <Users class="w-4 h-4 text-slate-500" />
-                    <span class="text-slate-300">Capacidad máxima: {classItem.max_students} estudiantes</span>
-                  </div>
-                {/if}
-              </div>
-
-              <!-- Nivel y estado -->
-              <div class="flex items-center justify-between">
-                <span class={`px-3 py-1 rounded-full text-xs font-medium border ${levelColors[classItem.level] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
-                  {levelLabels[classItem.level] || classItem.level}
-                </span>
-                <span class="px-3 py-1 rounded-full text-xs font-medium border bg-green-500/20 text-green-400 border-green-500/30">
-                  Activa
-                </span>
-              </div>
-            </div>
           {/each}
         </div>
-      {/if}
+        
+        <select bind:value={selectedLevel} class="bg-surface-900 border border-surface-800 rounded-xl px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-widest outline-none cursor-pointer hover:border-surface-700 transition-all">
+          <option value="">TODOS LOS NIVELES</option>
+          <option value="beginner">PRINCIPIANTE</option>
+          <option value="intermediate">INTERMEDIO</option>
+          <option value="advanced">AVANZADO</option>
+        </select>
+      </div>
     </div>
+
+    {#if filteredClasses.length === 0}
+      <div class="glass-panel py-24 text-center space-y-4 border-dashed">
+        <div class="w-16 h-16 bg-surface-900 rounded-3xl flex items-center justify-center border border-surface-800 mx-auto text-surface-700 opacity-50">
+          <Star class="w-8 h-8" />
+        </div>
+        <div class="max-w-xs mx-auto space-y-2">
+          <h3 class="text-sm font-black text-surface-400 uppercase tracking-widest">Sin clases configuradas</h3>
+          <p class="text-xs text-surface-600">Empieza a organizar grupos de entrenamiento en este centro ahora.</p>
+        </div>
+        <button 
+          onclick={handleCreateClass}
+          class="btn-primary"
+        >
+          Crear Clase Ahora
+        </button>
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {#each filteredClasses as item, i}
+          <div 
+            class="glass-panel p-6 group hover:translate-y-[-4px] transition-all duration-300 relative overflow-hidden"
+            in:fly={{ y: 20, delay: i * 50 }}
+          >
+            <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+              <GraduationCap class="w-24 h-24" />
+            </div>
+
+            <div class="flex items-start justify-between mb-6">
+              <div class="space-y-1">
+                <span class={`text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded border ${
+                   item.level === 'beginner' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                   item.level === 'intermediate' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                   'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                }`}>
+                  {levelLabels[item.level] || item.level}
+                </span>
+                <h3 class="text-lg font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors">{item.name}</h3>
+              </div>
+              
+              <div class="flex items-center gap-2 translate-x-2">
+                <button onclick={() => handleEditClass(item.id)} class="p-2 text-surface-600 hover:text-white transition-colors">
+                  <Edit class="w-4 h-4" />
+                </button>
+                <button onclick={() => deleteClass(item.id)} class="p-2 text-surface-600 hover:text-red-400 transition-colors">
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-3 mb-6 relative z-10">
+              <div class="flex items-center justify-between text-[10px] font-bold text-surface-500 uppercase tracking-widest">
+                <span class="flex items-center gap-1.5"><Users class="w-3.5 h-3.5" /> Estudiantes</span>
+                <span class="text-surface-300">{(item.students_count || 0)} / {item.max_students || '∞'}</span>
+              </div>
+              <div class="h-1.5 bg-surface-950 rounded-full overflow-hidden">
+                <div class="h-full bg-primary-500" style={`width: ${Math.min(((item.students_count || 0) / (item.max_students || 10)) * 100, 100)}%`}></div>
+              </div>
+            </div>
+
+            <button 
+              onclick={() => handleViewClass(item.id)}
+              class="w-full py-3 bg-surface-900 border border-surface-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-surface-500 hover:text-white hover:border-surface-600 transition-all flex items-center justify-center gap-2 group/btn"
+            >
+              Ver Panel Detallado
+              <ChevronRight class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        {/each}
+      </div>
+    {/if}
   </div>
 </div>
 
-<style>
-  .input {
-    @apply px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
-  }
-  
-  .btn-primary {
-    @apply px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center;
-  }
+<style lang="postcss">
+  /* School detail styles */
 </style>

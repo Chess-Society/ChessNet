@@ -1,30 +1,46 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  setDoc,
+  writeBatch,
+  limit,
+  type DocumentData
+} from "firebase/firestore";
 import type { Badge, StudentBadge, StudentStats } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const gamificationApi = {
   // Get badges by school
   async getBadgesBySchool(schoolId: string): Promise<Badge[]> {
-    const { data, error } = await supabase
-      .from("badges")
-      .select("*")
-      .eq("school_id", schoolId)
-      .eq("is_active", true)
-      .order("created_at");
+    const q = query(
+      collection(db, "badges"),
+      where("school_id", "==", schoolId),
+      where("is_active", "==", true),
+      orderBy("created_at")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<Badge>(doc));
   },
 
   // Get a specific badge
   async getBadge(id: string): Promise<Badge> {
-    const { data, error } = await supabase
-      .from("badges")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(doc(db, "badges", id));
+    if (!docSnap.exists()) throw new Error("Badge not found");
+    return toData<Badge>(docSnap);
   },
 
   // Create a new badge
@@ -36,96 +52,91 @@ export const gamificationApi = {
     color: string = "#3b82f6",
     criteria: any,
   ): Promise<Badge> {
-    const { data, error } = await supabase
-      .from("badges")
-      .insert({
-        school_id: schoolId,
-        name,
-        description,
-        icon,
-        color,
-        criteria,
-      })
-      .select()
-      .single();
+    const badgeData = {
+      school_id: schoolId,
+      name,
+      description,
+      icon,
+      color,
+      criteria,
+      is_active: true,
+      created_at: new Date().toISOString()
+    };
 
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "badges"), badgeData);
+    const docSnap = await getDoc(docRef);
+    return toData<Badge>(docSnap);
   },
 
   // Update a badge
   async updateBadge(id: string, updates: Partial<Badge>): Promise<Badge> {
-    const { data, error } = await supabase
-      .from("badges")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+    const docRef = doc(db, "badges", id);
+    await updateDoc(docRef, updates);
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<Badge>(docSnap);
   },
 
   // Delete a badge
   async deleteBadge(id: string): Promise<void> {
-    const { error } = await supabase.from("badges").delete().eq("id", id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, "badges", id));
   },
 
   // Get student badges
   async getStudentBadges(studentId: string): Promise<StudentBadge[]> {
-    const { data, error } = await supabase
-      .from("student_badges")
-      .select(
-        `
-        *,
-        badges(*)
-      `,
-      )
-      .eq("student_id", studentId)
-      .order("earned_at", { ascending: false });
+    const q = query(
+      collection(db, "student_badges"),
+      where("student_id", "==", studentId),
+      orderBy("earned_at", "desc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    const studentBadges = querySnapshot.docs.map(doc => toData<any>(doc));
+
+    // Manual join for badge data
+    for (const sb of studentBadges) {
+      if (sb.badge_id) {
+        const badgeSnap = await getDoc(doc(db, "badges", sb.badge_id));
+        if (badgeSnap.exists()) {
+          sb.badges = toData<Badge>(badgeSnap);
+        }
+      }
+    }
+
+    return studentBadges as StudentBadge[];
   },
 
   // Award badge to student
   async awardBadge(studentId: string, badgeId: string): Promise<StudentBadge> {
-    const { data, error } = await supabase
-      .from("student_badges")
-      .insert({
-        student_id: studentId,
-        badge_id: badgeId,
-      })
-      .select()
-      .single();
+    const sbData = {
+      student_id: studentId,
+      badge_id: badgeId,
+      earned_at: new Date().toISOString()
+    };
 
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "student_badges"), sbData);
+    const docSnap = await getDoc(docRef);
+    return toData<StudentBadge>(docSnap);
   },
 
   // Remove badge from student
   async removeBadge(studentId: string, badgeId: string): Promise<void> {
-    const { error } = await supabase
-      .from("student_badges")
-      .delete()
-      .eq("student_id", studentId)
-      .eq("badge_id", badgeId);
-
-    if (error) throw error;
+    const q = query(
+      collection(db, "student_badges"),
+      where("student_id", "==", studentId),
+      where("badge_id", "==", badgeId)
+    );
+    const snap = await getDocs(q);
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
   },
 
   // Get student statistics
   async getStudentStats(studentId: string): Promise<StudentStats | null> {
-    const { data, error } = await supabase
-      .from("student_stats")
-      .select("*")
-      .eq("student_id", studentId)
-      .single();
-
-    if (error && error.code !== "PGRST116") throw error;
-    return data;
+    const docSnap = await getDoc(doc(db, "student_stats", studentId));
+    if (!docSnap.exists()) return null;
+    return toData<StudentStats>(docSnap);
   },
 
   // Create or update student statistics
@@ -133,19 +144,18 @@ export const gamificationApi = {
     studentId: string,
     updates: Partial<StudentStats>,
   ): Promise<StudentStats> {
-    const { data, error } = await supabase
-      .from("student_stats")
-      .upsert({
-        student_id: studentId,
-        ...updates,
-        last_activity: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const docRef = doc(db, "student_stats", studentId);
+    const data = {
+      ...updates,
+      student_id: studentId,
+      last_activity: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
 
-    if (error) throw error;
-    return data;
+    await setDoc(docRef, data, { merge: true });
+    
+    const docSnap = await getDoc(docRef);
+    return toData<StudentStats>(docSnap);
   },
 
   // Add points to student
@@ -279,13 +289,16 @@ export const gamificationApi = {
     activityType: string,
     activityData?: any,
   ): Promise<void> {
-    const { error } = await supabase.from("activity_logs").insert({
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+
+    await addDoc(collection(db, "activity_logs"), {
       student_id: studentId,
       activity_type: activityType,
-      activity_data: activityData,
+      activity_data: activityData || null,
+      created_at: new Date().toISOString(),
+      owner_id: user.uid
     });
-
-    if (error) throw error;
   },
 
   // Check and award badges
@@ -294,16 +307,12 @@ export const gamificationApi = {
     const studentBadges = await this.getStudentBadges(studentId);
     const earnedBadgeIds = studentBadges.map((sb) => sb.badge_id);
 
-    // Get all badges for the student's school
-    const { data: student } = await supabase
-      .from("students")
-      .select("school_id")
-      .eq("id", studentId)
-      .single();
-
-    if (!student) return [];
-
-    const badges = await this.getBadgesBySchool(student.school_id);
+    // Get student's school_id
+    const studentDoc = await getDoc(doc(db, "students", studentId));
+    if (!studentDoc.exists()) return [];
+    
+    const schoolId = studentDoc.data().school_id;
+    const badges = await this.getBadgesBySchool(schoolId);
     const newBadges: Badge[] = [];
 
     for (const badge of badges) {

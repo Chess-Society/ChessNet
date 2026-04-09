@@ -1,180 +1,342 @@
-import { createServerClient } from "@supabase/ssr";
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from "../../../../../../chunks/public.js";
-const load = async ({ locals, url, params, cookies }) => {
+import { c as classesApi } from "../../../../../../chunks/classes.js";
+import { a as auth, d as db } from "../../../../../../chunks/firebase.js";
+import { query, collection, where, orderBy, getDocs, getDoc, doc, writeBatch, deleteDoc, updateDoc, addDoc, limit } from "firebase/firestore";
+const toData$1 = (doc2) => {
+  return { id: doc2.id, ...doc2.data() };
+};
+const skillsApi = {
+  // Get all skills for the specified user (or current user)
+  async getMySkills(userId) {
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+    const q = query(
+      collection(db, "skills"),
+      where("user_id", "==", uid),
+      orderBy("order_index", "asc")
+    );
+    const querySnapshot = await getDocs(q);
+    const skills = querySnapshot.docs.map((doc2) => toData$1(doc2));
+    for (const skill of skills) {
+      if (skill.category_id) {
+        const catDoc = await getDoc(doc(db, "categories", skill.category_id));
+        if (catDoc.exists()) {
+          skill.categories = toData$1(catDoc);
+        }
+      }
+    }
+    return skills;
+  },
+  // Get skills by category
+  async getSkillsByCategory(categoryId) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const q = query(
+      collection(db, "skills"),
+      where("user_id", "==", user.uid),
+      where("category_id", "==", categoryId),
+      orderBy("order_index", "asc")
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((doc2) => toData$1(doc2));
+  },
+  // Get a specific skill
+  async getSkill(id) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const docRef = doc(db, "skills", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
+      throw new Error("Skill not found or access denied");
+    }
+    const skill = toData$1(docSnap);
+    if (skill.category_id) {
+      const catDoc = await getDoc(doc(db, "categories", skill.category_id));
+      if (catDoc.exists()) {
+        skill.categories = toData$1(catDoc);
+      }
+    }
+    return skill;
+  },
+  // Create a new skill
+  async createSkill(skillData) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const docRef = await addDoc(collection(db, "skills"), {
+      user_id: user.uid,
+      name: skillData.name,
+      category_id: skillData.category_id,
+      description: skillData.description || "",
+      icon: skillData.icon || "",
+      resource_link: skillData.resource_link || "",
+      level: skillData.level || 1,
+      order_index: 0,
+      created_at: (/* @__PURE__ */ new Date()).toISOString(),
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    const docSnap = await getDoc(docRef);
+    return toData$1(docSnap);
+  },
+  // Update a skill
+  async updateSkill(id, updates) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const docRef = doc(db, "skills", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
+      throw new Error("Skill not found or access denied");
+    }
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    const updatedSnap = await getDoc(docRef);
+    return toData$1(updatedSnap);
+  },
+  // Delete a skill
+  async deleteSkill(id) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const docRef = doc(db, "skills", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
+      throw new Error("Skill not found or access denied");
+    }
+    await deleteDoc(docRef);
+  },
+  // Reorder skills
+  async reorderSkills(skillIds) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const batch = writeBatch(db);
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    skillIds.forEach((id, index) => {
+      const docRef = doc(db, "skills", id);
+      batch.update(docRef, {
+        order_index: index,
+        updated_at: now
+      });
+    });
+    await batch.commit();
+  },
+  // Get skills with progress for a specific student
+  async getSkillsWithProgress(studentId) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const progressQuery = query(
+      collection(db, "student_skills"),
+      where("user_id", "==", user.uid),
+      where("student_id", "==", studentId)
+    );
+    const progressSnap = await getDocs(progressQuery);
+    const progressMap = /* @__PURE__ */ new Map();
+    progressSnap.docs.forEach((d) => progressMap.set(d.data().skill_id, d.data()));
+    const skills = await this.getMySkills();
+    return skills.map((skill) => ({
+      ...skill,
+      progress: progressMap.get(skill.id) || null
+    }));
+  },
+  // Get skills assigned to a class
+  async getClassSkills(classId) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      orderBy("order_index", "asc")
+    );
+    const querySnapshot = await getDocs(q);
+    const skillIds = querySnapshot.docs.map((doc2) => doc2.data().skill_id);
+    const skills = [];
+    for (const sid of skillIds) {
+      const skillDoc = await getDoc(doc(db, "skills", sid));
+      if (skillDoc.exists()) {
+        skills.push(toData$1(skillDoc));
+      }
+    }
+    return skills;
+  }
+};
+const toData = (doc2) => {
+  return { id: doc2.id, ...doc2.data() };
+};
+const classSkillsApi = {
+  // Get all skills assigned to a class
+  async getClassSkills(classId, userId) {
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", uid),
+      where("class_id", "==", classId),
+      orderBy("order_index", "asc")
+    );
+    const querySnapshot = await getDocs(q);
+    const classSkills = querySnapshot.docs.map((doc2) => toData(doc2));
+    for (const cs of classSkills) {
+      if (cs.skill_id) {
+        const skillDoc = await getDoc(doc(db, "skills", cs.skill_id));
+        if (skillDoc.exists()) {
+          cs.skill = toData(skillDoc);
+        }
+      }
+    }
+    return classSkills;
+  },
+  // Get all classes where a skill is assigned
+  async getSkillClasses(skillId) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("skill_id", "==", skillId),
+      orderBy("created_at", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    const classSkills = querySnapshot.docs.map((doc2) => toData(doc2));
+    for (const cs of classSkills) {
+      if (cs.class_id) {
+        const classDoc = await getDoc(doc(db, "classes", cs.class_id));
+        if (classDoc.exists()) {
+          cs.class = toData(classDoc);
+        }
+      }
+    }
+    return classSkills;
+  },
+  // Assign a skill to a class
+  async assignSkillToClass(classId, skillId, orderIndex) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("skill_id", "==", skillId)
+    );
+    const existingSnap = await getDocs(q);
+    if (!existingSnap.empty) {
+      throw new Error("Skill is already assigned to this class");
+    }
+    if (orderIndex === void 0) {
+      const lastQ = query(
+        collection(db, "class_skills"),
+        where("owner_id", "==", user.uid),
+        where("class_id", "==", classId),
+        orderBy("order_index", "desc"),
+        limit(1)
+      );
+      const lastSnap = await getDocs(lastQ);
+      orderIndex = lastSnap.empty ? 1 : (lastSnap.docs[0].data().order_index || 0) + 1;
+    }
+    const docRef = await addDoc(collection(db, "class_skills"), {
+      owner_id: user.uid,
+      class_id: classId,
+      skill_id: skillId,
+      order_index: orderIndex,
+      created_at: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    const docSnap = await getDoc(docRef);
+    return toData(docSnap);
+  },
+  // Assign multiple skills to a class
+  async assignSkillsToClass(classId, skillIds) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const lastQ = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      orderBy("order_index", "desc"),
+      limit(1)
+    );
+    const lastSnap = await getDocs(lastQ);
+    let nextOrderIndex = lastSnap.empty ? 1 : (lastSnap.docs[0].data().order_index || 0) + 1;
+    const batch = writeBatch(db);
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const newRefs = [];
+    for (const skillId of skillIds) {
+      const docRef = doc(collection(db, "class_skills"));
+      batch.set(docRef, {
+        owner_id: user.uid,
+        class_id: classId,
+        skill_id: skillId,
+        order_index: nextOrderIndex++,
+        created_at: now
+      });
+      newRefs.push(docRef);
+    }
+    await batch.commit();
+    const result = [];
+    for (const ref of newRefs) {
+      const snap = await getDoc(ref);
+      if (snap.exists()) result.push(toData(snap));
+    }
+    return result;
+  },
+  // Remove a skill from a class
+  async removeSkillFromClass(classId, skillId) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("skill_id", "==", skillId)
+    );
+    const snap = await getDocs(q);
+    const batch = writeBatch(db);
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  },
+  // Remove multiple skills from a class
+  async removeSkillsFromClass(classId, skillIds) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    for (const skillId of skillIds) {
+      await this.removeSkillFromClass(classId, skillId);
+    }
+  },
+  // Reorder skills in a class
+  async reorderClassSkills(classId, skillIds) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const batch = writeBatch(db);
+    for (let i = 0; i < skillIds.length; i++) {
+      const skillId = skillIds[i];
+      const q = query(
+        collection(db, "class_skills"),
+        where("owner_id", "==", user.uid),
+        where("class_id", "==", classId),
+        where("skill_id", "==", skillId)
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        batch.update(snap.docs[0].ref, { order_index: i });
+      }
+    }
+    await batch.commit();
+  },
+  // Get class curriculum (skills with details)
+  async getClassCurriculum(classId) {
+    return this.getClassSkills(classId);
+  },
+  // Copy curriculum from one class to another
+  async copyCurriculum(fromClassId, toClassId) {
+    const sourceSkills = await this.getClassSkills(fromClassId);
+    if (!sourceSkills || sourceSkills.length === 0) {
+      return [];
+    }
+    const skillIds = sourceSkills.map((s) => s.skill_id);
+    return this.assignSkillsToClass(toClassId, skillIds);
+  }
+};
+const load = async ({ locals, params }) => {
   console.log("🎯 Class skills page server load - User:", locals.user?.email || "none");
   console.log("🎯 Class ID:", params.classId);
-  const isLocalDev = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-  if (isLocalDev) {
-    console.log("🔧 DEV MODE: Class skills page - Providing mock data");
-    const classId = params.classId;
-    const mockClasses = [
-      {
-        id: "mock-class-1",
-        name: "Principiantes Mañana",
-        description: "Grupo de iniciación para niños de 6-9 años",
-        schedule: "Lunes y Miércoles 10:00-11:00",
-        level: "beginner",
-        room: "Aula 1"
-      },
-      {
-        id: "mock-class-2",
-        name: "Intermedios Tarde",
-        description: "Grupo intermedio para estudiantes con conocimientos básicos",
-        schedule: "Martes y Jueves 17:00-18:30",
-        level: "intermediate",
-        room: "Aula 2"
-      },
-      {
-        id: "mock-class-3",
-        name: "Avanzados Fin de Semana",
-        description: "Grupo avanzado para preparación de torneos",
-        schedule: "Sábados 09:00-11:00",
-        level: "advanced",
-        room: "Sala Principal"
-      },
-      {
-        id: "mock-class-4",
-        name: "Pequeños Ajedrecistas",
-        description: "Iniciación para los más pequeños (4-6 años)",
-        schedule: "Viernes 16:00-17:00",
-        level: "beginner",
-        room: "Sala Infantil"
-      },
-      {
-        id: "mock-class-5",
-        name: "Jóvenes Talentos",
-        description: "Grupo para jóvenes con potencial competitivo",
-        schedule: "Martes y Viernes 18:00-19:30",
-        level: "intermediate",
-        room: "Sala de Competición"
-      }
-    ];
-    const mockSkills = [
-      {
-        id: "mock-skill-1",
-        name: "Movimiento de Peones",
-        description: "Comprende cómo se mueven los peones y sus reglas especiales",
-        category: "Fundamentos",
-        difficulty: "beginner"
-      },
-      {
-        id: "mock-skill-2",
-        name: "Enroque",
-        description: "Domina la técnica del enroque corto y largo",
-        category: "Fundamentos",
-        difficulty: "beginner"
-      },
-      {
-        id: "mock-skill-3",
-        name: "Táctica: Clavada",
-        description: "Identifica y ejecuta clavadas efectivas",
-        category: "Táctica",
-        difficulty: "intermediate"
-      },
-      {
-        id: "mock-skill-4",
-        name: "Táctica: Tenedor",
-        description: "Reconoce y aplica tenedores en diferentes situaciones",
-        category: "Táctica",
-        difficulty: "intermediate"
-      },
-      {
-        id: "mock-skill-5",
-        name: "Final: Rey y Torre vs Rey",
-        description: "Técnica básica de mate con rey y torre",
-        category: "Finales",
-        difficulty: "intermediate"
-      },
-      {
-        id: "mock-skill-6",
-        name: "Apertura: Italiana",
-        description: "Principios y variantes de la apertura italiana",
-        category: "Aperturas",
-        difficulty: "advanced"
-      }
-    ];
-    const mockClassSkills = [
-      // Principiantes Mañana (mock-class-1)
-      { id: "csk-1", class_id: "mock-class-1", skill_id: "mock-skill-1", assigned_at: "2024-01-15T10:00:00Z", active: true, order: 1 },
-      { id: "csk-2", class_id: "mock-class-1", skill_id: "mock-skill-2", assigned_at: "2024-01-20T10:00:00Z", active: true, order: 2 },
-      // Intermedios Tarde (mock-class-2)
-      { id: "csk-3", class_id: "mock-class-2", skill_id: "mock-skill-2", assigned_at: "2024-01-10T17:00:00Z", active: true, order: 1 },
-      { id: "csk-4", class_id: "mock-class-2", skill_id: "mock-skill-3", assigned_at: "2024-01-15T17:00:00Z", active: true, order: 2 },
-      { id: "csk-5", class_id: "mock-class-2", skill_id: "mock-skill-4", assigned_at: "2024-01-20T17:00:00Z", active: true, order: 3 },
-      // Avanzados Fin de Semana (mock-class-3)
-      { id: "csk-6", class_id: "mock-class-3", skill_id: "mock-skill-4", assigned_at: "2024-01-05T09:00:00Z", active: true, order: 1 },
-      { id: "csk-7", class_id: "mock-class-3", skill_id: "mock-skill-5", assigned_at: "2024-01-10T09:00:00Z", active: true, order: 2 },
-      { id: "csk-8", class_id: "mock-class-3", skill_id: "mock-skill-6", assigned_at: "2024-01-15T09:00:00Z", active: true, order: 3 },
-      // Pequeños Ajedrecistas (mock-class-4)
-      { id: "csk-9", class_id: "mock-class-4", skill_id: "mock-skill-1", assigned_at: "2024-02-10T16:00:00Z", active: true, order: 1 },
-      // Jóvenes Talentos (mock-class-5)
-      { id: "csk-10", class_id: "mock-class-5", skill_id: "mock-skill-3", assigned_at: "2024-02-05T18:00:00Z", active: true, order: 1 },
-      { id: "csk-11", class_id: "mock-class-5", skill_id: "mock-skill-4", assigned_at: "2024-02-08T18:00:00Z", active: true, order: 2 },
-      { id: "csk-12", class_id: "mock-class-5", skill_id: "mock-skill-5", assigned_at: "2024-02-12T18:00:00Z", active: true, order: 3 }
-    ];
-    const currentClass = mockClasses.find((c) => c.id === classId);
-    if (!currentClass) {
-      console.log("❌ Class not found in mock data:", classId);
-      return {
-        user: locals.user,
-        class: null,
-        assignedSkills: [],
-        availableSkillsByCategory: {},
-        stats: { total_assigned: 0, total_available: 0, categories_count: 0 }
-      };
-    }
-    const classSkillAssignments = mockClassSkills.filter((cs) => cs.class_id === classId && cs.active).sort((a, b) => a.order - b.order);
-    const assignedSkillIds = classSkillAssignments.map((cs) => cs.skill_id);
-    const assignedSkills = classSkillAssignments.map((assignment) => {
-      const skill = mockSkills.find((s) => s.id === assignment.skill_id);
-      return {
-        ...skill,
-        assigned_at: assignment.assigned_at,
-        order: assignment.order,
-        assignment_id: assignment.id
-      };
-    }).filter((skill) => skill.id);
-    const availableSkills = mockSkills.filter((skill) => {
-      if (assignedSkillIds.includes(skill.id)) return false;
-      const classLevel = currentClass.level;
-      if (classLevel === "beginner") {
-        return skill.difficulty === "beginner";
-      } else if (classLevel === "intermediate") {
-        return ["beginner", "intermediate"].includes(skill.difficulty);
-      } else if (classLevel === "advanced") {
-        return ["beginner", "intermediate", "advanced"].includes(skill.difficulty);
-      }
-      return true;
-    });
-    const availableSkillsByCategory = availableSkills.reduce((acc, skill) => {
-      if (!acc[skill.category]) {
-        acc[skill.category] = [];
-      }
-      acc[skill.category].push(skill);
-      return acc;
-    }, {});
-    const stats = {
-      assigned: assignedSkills.length,
-      available: availableSkills.length,
-      byCategory: assignedSkills.reduce((acc, skill) => {
-        if (!acc[skill.category]) {
-          acc[skill.category] = 0;
-        }
-        acc[skill.category]++;
-        return acc;
-      }, {})
-    };
-    return {
-      user: locals.user,
-      class: currentClass,
-      assignedSkills,
-      availableSkillsByCategory,
-      stats
-    };
-  }
-  console.log("🌐 PRODUCTION MODE: Class skills page - Fetching data from Supabase");
   if (!locals.user) {
-    console.log("❌ No user found, redirecting to login");
     return {
       user: null,
       class: null,
@@ -183,18 +345,14 @@ const load = async ({ locals, url, params, cookies }) => {
       stats: { total_assigned: 0, total_available: 0, categories_count: 0 }
     };
   }
-  const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-    cookies: {
-      get: (name) => cookies.get(name),
-      set: (name, value, options) => cookies.set(name, value, options),
-      remove: (name, options) => cookies.delete(name, options)
-    }
-  });
   try {
     const classId = params.classId;
-    const { data: classData, error: classError } = await supabase.from("classes").select("*").eq("id", classId).eq("user_id", locals.user.id).single();
-    if (classError || !classData) {
-      console.error("❌ Error fetching class:", classError);
+    const [classData, assignedClassSkills, allSkills] = await Promise.all([
+      classesApi.getClass(classId, locals.user.id),
+      classSkillsApi.getClassSkills(classId, locals.user.id),
+      skillsApi.getMySkills(locals.user.id)
+    ]);
+    if (!classData) {
       return {
         user: locals.user,
         class: null,
@@ -203,37 +361,14 @@ const load = async ({ locals, url, params, cookies }) => {
         stats: { total_assigned: 0, total_available: 0, categories_count: 0 }
       };
     }
-    const { data: assignedSkills, error: assignedError } = await supabase.from("class_skills").select(`
-        *,
-        skills (
-          id,
-          name,
-          description,
-          difficulty,
-          order_index,
-          categories (
-            id,
-            name,
-            color
-          )
-        )
-      `).eq("class_id", classId).eq("active", true).order("order_index");
-    if (assignedError) {
-      console.error("❌ Error fetching assigned skills:", assignedError);
-    }
-    const { data: allSkills, error: skillsError } = await supabase.from("skills").select(`
-        *,
-        categories (
-          id,
-          name,
-          color
-        )
-      `).eq("user_id", locals.user.id).eq("active", true).order("order_index");
-    if (skillsError) {
-      console.error("❌ Error fetching all skills:", skillsError);
-    }
-    const assignedSkillIds = assignedSkills?.map((s) => s.skill_id) || [];
-    const availableSkills = allSkills?.filter((s) => !assignedSkillIds.includes(s.id)) || [];
+    const assignedSkills = assignedClassSkills.map((cs) => ({
+      ...cs.skill,
+      assigned_at: cs.created_at,
+      order: cs.order_index,
+      assignment_id: cs.id
+    }));
+    const assignedSkillIds = assignedSkills.map((s) => s.id);
+    const availableSkills = allSkills.filter((s) => !assignedSkillIds.includes(s.id));
     const availableSkillsByCategory = availableSkills.reduce((acc, skill) => {
       const categoryName = skill.categories?.name || "Sin categoría";
       if (!acc[categoryName]) {
@@ -243,7 +378,7 @@ const load = async ({ locals, url, params, cookies }) => {
       return acc;
     }, {});
     const stats = {
-      total_assigned: assignedSkills?.length || 0,
+      total_assigned: assignedSkills.length,
       total_available: availableSkills.length,
       categories_count: Object.keys(availableSkillsByCategory).length
     };
@@ -251,7 +386,7 @@ const load = async ({ locals, url, params, cookies }) => {
     return {
       user: locals.user,
       class: classData,
-      assignedSkills: assignedSkills || [],
+      assignedSkills,
       availableSkillsByCategory,
       stats
     };

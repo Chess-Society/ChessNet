@@ -6,441 +6,347 @@
     Plus, 
     Edit, 
     Trash2,
-    ArrowLeft,
     Search,
     Filter,
     Users,
     UserPlus,
-    Clock,
-    MapPin,
     School,
     Calendar,
     UserCheck,
-    UserX,
-    TrendingUp,
     Target,
     BookOpen,
-    Star,
     Eye,
-    Settings,
-    BarChart3,
-    Activity
+    Activity,
+    RefreshCw,
+    X,
+    ChevronRight,
+    ArrowUpRight,
+    MoreHorizontal
   } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import { fade, fly, slide, scale } from 'svelte/transition';
 
-  export let data: PageData;
+  let { data } = $props<{ data: PageData }>();
 
-  let classes = data.classes || [];
-  let stats = data.stats || { 
+  let classes = $state((data.classes || []) as any[]);
+  let stats = $derived(data.stats || { 
     total: 0, 
     levels: { beginner: 0, intermediate: 0, advanced: 0, mixed: 0 }, 
     schools: {}, totalStudents: 0, totalCapacity: 0, occupancyRate: 0, averageClassSize: 0 
-  };
-  let schools = data.schools || [];
-  let isLoading = false;
+  });
+  let schools = $derived(data.schools || []);
   
-  // Filtros
-  let searchQuery = '';
-  let selectedLevel = '';
-  let selectedSchool = '';
+  let searchQuery = $state('');
+  let selectedLevel = $state('');
+  let selectedSchool = $state('');
 
-  // Filtros reactivos (solo con campos que existen)
-  $: filteredClasses = classes.filter(classItem => {
-    const matchesSearch = classItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (classItem.description && classItem.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesLevel = !selectedLevel || classItem.level === selectedLevel;
-    const matchesSchool = !selectedSchool || classItem.college_id === selectedSchool;
-    
-    return matchesSearch && matchesLevel && matchesSchool;
-  });
+  const filteredClasses = $derived(
+    (classes as ClassItem[]).filter(classItem => {
+      const matchesSearch = classItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (classItem.description && classItem.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesLevel = !selectedLevel || classItem.level === selectedLevel;
+      const matchesSchool = !selectedSchool || classItem.college_id === selectedSchool;
+      return matchesSearch && matchesLevel && matchesSchool;
+    })
+  );
 
-  const levelColors = {
-    beginner: 'bg-green-500/20 text-green-400 border-green-500/30',
-    intermediate: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    advanced: 'bg-red-500/20 text-red-400 border-red-500/30',
-    mixed: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+  interface ClassItem {
+    id: string;
+    name: string;
+    description?: string;
+    level: string;
+    college_id: string;
+  }
+
+  const levelLabels: Record<string, string> = {
+    beginner: 'PRINCIPIANTE',
+    intermediate: 'INTERMEDIO',
+    advanced: 'AVANZADO',
+    mixed: 'MIXTO'
   };
 
-  const levelLabels = {
-    beginner: 'Principiante',
-    intermediate: 'Intermedio',
-    advanced: 'Avanzado',
-    mixed: 'Mixto'
+  const levelThemes: Record<string, string> = {
+    beginner: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10',
+    intermediate: 'text-orange-400 border-orange-500/20 bg-orange-500/10',
+    advanced: 'text-red-400 border-red-500/20 bg-red-500/10',
+    mixed: 'text-purple-400 border-purple-500/20 bg-purple-500/10'
   };
 
-
-  const levelIcons = {
-    beginner: BookOpen,
-    intermediate: Target,
-    advanced: Star,
-    mixed: Users
+  const getSchoolName = (collegeId: string) => {
+    const school = schools.find((s: {id: string, name: string}) => s.id === collegeId);
+    return school?.name || 'CENTRO NO ASIGNADO';
   };
 
-  onMount(() => {
-    console.log('✅ Classes page: User authenticated via server:', data.user?.email);
-    console.log('✅ Classes page: Classes from server:', classes.length);
-  });
-
-  const handleGoBack = () => {
-    goto('/dashboard');
-  };
-
-  const handleCreateClass = () => {
-    goto('/classes/create');
-  };
-
-  const handleEditClass = (classId: string) => {
-    goto(`/classes/${classId}/edit`);
-  };
-
-  const handleViewClass = (classId: string) => {
-    goto(`/classes/${classId}`);
-  };
-
-  const handleManageStudents = (classId: string) => {
-    goto(`/classes/${classId}/students`);
-  };
-
-  const handleManageSkills = (classId: string) => {
-    goto(`/classes/${classId}/skills`);
-  };
-
-  const handleTakeAttendance = (classId: string) => {
-    goto(`/classes/${classId}/attendance`);
-  };
-
-  const handleDeleteClass = async (classId: string) => {
+  async function deleteClass(classId: string) {
     const classItem = classes.find(c => c.id === classId);
-    if (!confirm(`¿Estás seguro de que quieres eliminar la clase "${classItem?.name}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(`¿ESTÁS SEGURO DE QUE DESEAS ELIMINAR LA CLASE "${classItem?.name.toUpperCase()}"?`)) return;
     
     try {
-      // Usar el endpoint DELETE de la API
       const response = await fetch('/api/classes', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ id: classId })
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Error al eliminar la clase');
+      if (response.ok) {
+        classes = classes.filter(c => c.id !== classId);
       }
-
-      // Eliminar del array local
-      classes = classes.filter(c => c.id !== classId);
-      console.log('✅ Class deleted successfully:', classId);
     } catch (error) {
-      console.error('❌ Error deleting class:', error);
-      alert('Error al eliminar la clase: ' + (error as Error).message);
+      console.error('Error deleting class:', error);
     }
-  };
-
-
-  // Funciones para mejorar UX
-  const getSchoolName = (collegeId: string) => {
-    const school = schools.find(s => s.id === collegeId);
-    return school?.name || 'Centro no asignado';
-  };
-
-
-  const handleQuickViewClass = (classId: string) => {
-    goto(`/classes/${classId}`);
-  };
-
-  const handleQuickManageStudents = (classId: string) => {
-    goto(`/classes/${classId}/students`);
-  };
-
-  const handleQuickCreateStudent = (classId: string) => {
-    const classItem = classes.find(c => c.id === classId);
-    goto(`/students/create?class_id=${classId}&college_id=${classItem?.college_id}&return_to=${encodeURIComponent(`/classes/${classId}`)}`);
-  };
+  }
 
   const clearFilters = () => {
     searchQuery = '';
     selectedLevel = '';
     selectedSchool = '';
   };
-
-
-  const getOccupancyColor = (current: number, max: number) => {
-    const rate = (current / max) * 100;
-    if (rate >= 90) return 'text-red-400';
-    if (rate >= 75) return 'text-yellow-400';
-    return 'text-green-400';
-  };
-
-  const getOccupancyBarColor = (current: number, max: number) => {
-    const rate = (current / max) * 100;
-    if (rate >= 90) return 'bg-red-500';
-    if (rate >= 75) return 'bg-yellow-500';
-    return 'bg-green-500';
-  };
 </script>
 
 <svelte:head>
-  <title>Clases - ChessNet</title>
+  <title>Gestión de Clases - ChessNet</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-  <!-- Header -->
-  <header class="border-b border-slate-700 bg-slate-800/50 backdrop-blur">
-    <div class="container mx-auto px-4 py-6">
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center space-x-4">
-          <button on:click={handleGoBack} class="p-2 hover:bg-slate-700 rounded-lg transition-colors">
-            <ArrowLeft class="w-5 h-5" />
-          </button>
-          <div class="flex items-center space-x-3">
-            <div class="p-2 bg-blue-500/20 rounded-lg">
-              <GraduationCap class="w-6 h-6 text-blue-500" />
-            </div>
-            <div>
-              <h1 class="text-2xl font-bold">Clases</h1>
-              <p class="text-sm text-slate-400">Gestión de grupos y aulas</p>
-            </div>
-          </div>
+<div class="space-y-10 animate-fade-in pb-20" in:fade>
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div class="space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-primary-500/10 border border-primary-500/20 rounded-2xl flex items-center justify-center text-primary-400 shadow-2xl">
+          <GraduationCap class="w-6 h-6" />
         </div>
-        
-        <div class="flex items-center space-x-3">
-          <button on:click={handleCreateClass} class="btn-primary">
-            <Plus class="w-4 h-4 mr-2" />
-            Nueva Clase
-          </button>
+        <div>
+          <h1 class="text-3xl font-black text-white tracking-tighter uppercase leading-none">Gestión Académica</h1>
+          <p class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mt-1">Control de Aulas y Programas Formativos</p>
         </div>
-      </div>
-
-      <!-- Estadísticas rápidas -->
-      {#if classes.length > 0}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-slate-400">Total Clases</p>
-                <p class="text-2xl font-bold text-white">{classes.length}</p>
-              </div>
-              <div class="bg-blue-500/20 p-3 rounded-lg">
-                <GraduationCap class="w-6 h-6 text-blue-400" />
-              </div>
-            </div>
-          </div>
-          
-          <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-slate-400">Total Estudiantes</p>
-                <p class="text-2xl font-bold text-white">{stats.totalStudents}</p>
-              </div>
-              <div class="bg-green-500/20 p-3 rounded-lg">
-                <Activity class="w-6 h-6 text-green-400" />
-              </div>
-            </div>
-          </div>
-          
-          <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-slate-400">Estudiantes</p>
-                <p class="text-2xl font-bold text-white">{stats.totalStudents}</p>
-              </div>
-              <div class="bg-purple-500/20 p-3 rounded-lg">
-                <Users class="w-6 h-6 text-purple-400" />
-              </div>
-            </div>
-          </div>
-          
-          <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-slate-400">Centros</p>
-                <p class="text-2xl font-bold text-white">{schools.length}</p>
-              </div>
-              <div class="bg-orange-500/20 p-3 rounded-lg">
-                <School class="w-6 h-6 text-orange-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-      {/if}
-    </div>
-  </header>
-
-  <main class="container mx-auto px-4 py-8">
-
-    <!-- Filtros -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8">
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div class="relative">
-          <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar clases..."
-            bind:value={searchQuery}
-            class="input pl-10 w-full"
-          />
-        </div>
-
-        <select bind:value={selectedLevel} class="input">
-          <option value="">Todos los niveles</option>
-          <option value="beginner">Principiante</option>
-          <option value="intermediate">Intermedio</option>
-          <option value="advanced">Avanzado</option>
-          <option value="mixed">Mixto</option>
-        </select>
-
-        <select bind:value={selectedSchool} class="input">
-          <option value="">Todos los centros</option>
-          {#each schools as school}
-            <option value={school.id}>{school.name}</option>
-          {/each}
-        </select>
-
-
-        <button on:click={clearFilters} class="btn-secondary">
-          <Filter class="w-4 h-4 mr-2" />
-          Limpiar
-        </button>
       </div>
     </div>
 
-    <!-- Lista de clases -->
-    {#if isLoading}
-      <div class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+    <button 
+      onclick={() => goto('/classes/create')}
+      class="bg-primary-500 text-black px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg flex items-center justify-center gap-3 group"
+    >
+      <Plus class="w-5 h-5 transition-transform group-hover:rotate-90" />
+      NUEVA CLASE
+    </button>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="glass-panel p-8 border-t-4 border-primary-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <GraduationCap class="w-24 h-24" />
+       </div>
+       <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Total Programas</p>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter leading-none">{classes.length}</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-0.5">GRUPOS</p>
+       </div>
+    </div>
+
+    <div class="glass-panel p-8 border-t-4 border-blue-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <Users class="w-24 h-24" />
+       </div>
+       <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Alumnos Inscritos</p>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter leading-none">{stats.totalStudents}</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-0.5">ACTIVOS</p>
+       </div>
+    </div>
+
+    <div class="glass-panel p-8 border-t-4 border-orange-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <Activity class="w-24 h-24" />
+       </div>
+       <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Ocupación Media</p>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter leading-none">{stats.occupancyRate.toFixed(0)}%</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-0.5">CAPACIDAD</p>
+       </div>
+    </div>
+
+    <div class="glass-panel p-8 border-t-4 border-purple-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <School class="w-24 h-24" />
+       </div>
+       <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Centros Asignados</p>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter leading-none">{schools.length}</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-0.5">SEDES</p>
+       </div>
+    </div>
+  </div>
+
+  <!-- Filters Area -->
+  <div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex-grow relative group">
+      <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-600 group-focus-within:text-primary-400 transition-colors" />
+      <input
+        type="text"
+        placeholder="BUSCAR POR NOMBRE O DESCRIPCIÓN..."
+        bind:value={searchQuery}
+        class="w-full bg-surface-950/50 border border-surface-900 rounded-2xl pl-12 pr-6 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all backdrop-blur-xl"
+      />
+    </div>
+
+    <select 
+      bind:value={selectedLevel} 
+      class="bg-surface-950/50 border border-surface-900 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all appearance-none cursor-pointer backdrop-blur-xl min-w-[200px]"
+    >
+      <option value="">TODOS LOS NIVELES</option>
+      <option value="beginner">PRINCIPIANTE</option>
+      <option value="intermediate">INTERMEDIO</option>
+      <option value="advanced">AVANZADO</option>
+      <option value="mixed">MIXTO</option>
+    </select>
+
+    <select 
+      bind:value={selectedSchool} 
+      class="bg-surface-950/50 border border-surface-900 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all appearance-none cursor-pointer backdrop-blur-xl min-w-[200px]"
+    >
+      <option value="">TODOS LOS CENTROS</option>
+      {#each schools as school}
+        <option value={school.id}>{school.name.toUpperCase()}</option>
+      {/each}
+    </select>
+
+    <button 
+      onclick={clearFilters} 
+      class="bg-surface-900/50 border border-surface-800 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-surface-800 transition-all backdrop-blur-xl"
+    >
+      RESETEAR
+    </button>
+  </div>
+
+  <!-- Classes Grid -->
+  {#if filteredClasses.length === 0}
+    <div class="glass-panel p-24 text-center space-y-6">
+      <div class="w-20 h-20 bg-surface-950 border border-surface-900 rounded-3xl flex items-center justify-center mx-auto text-surface-800">
+        <GraduationCap class="w-10 h-10" />
       </div>
-    {:else if filteredClasses.length === 0}
-      <div class="text-center py-12">
-        <GraduationCap class="w-16 h-16 text-slate-600 mx-auto mb-4" />
-        <h3 class="text-xl font-semibold text-slate-400 mb-2">
-          {searchQuery || selectedLevel || selectedSchool ? 'No se encontraron clases' : 'No hay clases registradas'}
-        </h3>
-        <p class="text-slate-500 mb-6">
-          {searchQuery || selectedLevel || selectedSchool ? 'Prueba con otros filtros de búsqueda' : 'Comienza creando tu primera clase'}
-        </p>
-        {#if !searchQuery && !selectedLevel && !selectedSchool}
-          <button on:click={handleCreateClass} class="btn-primary">
-            <Plus class="w-4 h-4 mr-2" />
-            Crear Primera Clase
-          </button>
-        {/if}
+      <div>
+        <p class="text-[10px] font-black text-surface-600 uppercase tracking-[0.3em]">No hay clases disponibles</p>
+        <p class="text-[9px] font-bold text-surface-800 uppercase tracking-widest mt-2">Prueba a ajustar los criterios de búsqueda.</p>
       </div>
-    {:else}
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {#each filteredClasses as classItem}
-          <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-colors group">
-            <!-- Header de la clase -->
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex items-center space-x-3">
-                <div class="p-3 bg-blue-500/20 rounded-lg">
-                  <GraduationCap class="w-6 h-6 text-blue-400" />
+    </div>
+  {:else}
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      {#each filteredClasses as classItem, i}
+        <div 
+          class="glass-panel group hover:border-primary-500/30 transition-all"
+          in:fly={{ y: 20, delay: i * 50 }}
+        >
+          <div class="p-8 space-y-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-5">
+                <div class="w-14 h-14 bg-surface-950 border border-surface-900 rounded-2xl flex items-center justify-center text-primary-400 shadow-xl group-hover:scale-105 transition-transform">
+                  <GraduationCap class="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 class="font-semibold text-lg text-white">{classItem.name}</h3>
-                  <p class="text-sm text-slate-400">{getSchoolName(classItem.college_id)}</p>
+                  <h3 class="text-base font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors leading-none">{classItem.name}</h3>
+                  <p class="text-[9px] font-black text-surface-600 uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
+                    <School class="w-3 h-3" />
+                    {getSchoolName(classItem.college_id)}
+                  </p>
                 </div>
               </div>
               
-              <!-- Estado de la clase -->
-              <div class="flex items-center space-x-2">
-                <span class={`px-2 py-1 rounded-full text-xs font-medium ${getClassStatusColor(classItem)} bg-slate-700/50`}>
-                  {getClassStatusText(classItem)}
+              <div class="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                  onclick={() => goto(`/classes/${classItem.id}/edit`)}
+                  class="p-2.5 bg-surface-950 border border-surface-900 rounded-xl text-surface-400 hover:text-white hover:border-primary-500/30 transition-all"
+                >
+                  <Edit class="w-4 h-4" />
+                </button>
+                <button 
+                  onclick={() => deleteClass(classItem.id)}
+                  class="p-2.5 bg-surface-950 border border-surface-900 rounded-xl text-surface-400 hover:text-red-400 hover:border-red-500/30 transition-all"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+               {#if classItem.level}
+                <span class={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${levelThemes[classItem.level]}`}>
+                  {levelLabels[classItem.level]}
                 </span>
-                <div class="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    on:click={() => handleEditClass(classItem.id)}
-                    class="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-white"
-                    title="Editar clase"
-                  >
-                    <Edit class="w-4 h-4" />
-                  </button>
-                  <button 
-                    on:click={() => handleDeleteClass(classItem.id)}
-                    class="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-slate-400 hover:text-red-400"
-                    title="Eliminar clase"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
+              {/if}
+              <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-primary-500/20 bg-primary-500/10 text-primary-400">
+                ACTIVA
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pt-6 border-t border-surface-900/50">
+              <div class="space-y-1">
+                <p class="text-[8px] font-black text-surface-600 uppercase tracking-[0.2em]">MATRICULADOS</p>
+                <div class="flex items-center gap-2">
+                   <Users class="w-3.5 h-3.5 text-blue-400" />
+                   <span class="text-white font-black text-sm">~15</span>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[8px] font-black text-surface-600 uppercase tracking-[0.2em]">CONTENIDO</p>
+                <div class="flex items-center gap-2">
+                   <BookOpen class="w-3.5 h-3.5 text-purple-400" />
+                   <span class="text-white font-black text-sm">~5 BLOQUES</span>
                 </div>
               </div>
             </div>
 
-            <!-- Información básica -->
-            <div class="space-y-3 mb-4">
-              <div class="flex items-center text-sm text-slate-400">
-                <Calendar class="w-4 h-4 mr-2" />
-                Creada {new Date(classItem.created_at).toLocaleDateString('es-ES')}
-              </div>
-              
-              <!-- Estadísticas estimadas -->
-              <div class="flex items-center justify-between text-sm">
-                <div class="flex items-center text-slate-400">
-                  <Users class="w-4 h-4 mr-1" />
-                  ~15 estudiantes
-                </div>
-                <div class="flex items-center text-slate-400">
-                  <BookOpen class="w-4 h-4 mr-1" />
-                  ~5 temas
-                </div>
-              </div>
+            <div class="flex flex-col gap-3 pt-2">
+               <button
+                 onclick={() => goto(`/classes/${classItem.id}/attendance`)}
+                 class="w-full bg-primary-500/10 border border-primary-500/20 text-primary-400 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-500 hover:text-black transition-all flex items-center justify-center gap-3"
+               >
+                 <UserCheck class="w-4 h-4" />
+                 TOMAR ASISTENCIA
+               </button>
+               
+               <div class="grid grid-cols-2 gap-3">
+                  <button
+                    onclick={() => goto(`/classes/${classItem.id}`)}
+                    class="bg-surface-950 border border-surface-900 py-3 rounded-2xl text-[9px] font-black text-surface-500 uppercase tracking-widest hover:text-white hover:border-primary-500/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Eye class="w-4 h-4" />
+                    DETALLES
+                  </button>
+                  <button
+                    onclick={() => goto(`/students/create?class_id=${classItem.id}`)}
+                    class="bg-surface-950 border border-surface-900 py-3 rounded-2xl text-[9px] font-black text-surface-500 uppercase tracking-widest hover:text-white hover:border-primary-500/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    <UserPlus class="w-4 h-4" />
+                    MATRICULAR
+                  </button>
+               </div>
             </div>
 
-            <!-- Acciones rápidas -->
-            <div class="mt-4 pt-4 border-t border-slate-700">
-              <div class="grid grid-cols-2 gap-2">
-                <button
-                  on:click={() => handleQuickViewClass(classItem.id)}
-                  class="btn-secondary text-sm py-2"
+            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar pt-2">
+              {#each [
+                { label: 'ALUMNOS', path: 'students' },
+                { label: 'TEMARIO', path: 'skills' },
+                { label: 'ANÁLISIS', path: 'analysis' }
+              ] as sub}
+                <button 
+                  onclick={() => goto(`/classes/${classItem.id}/${sub.path}`)} 
+                  class="px-4 py-2 bg-surface-950/80 border border-surface-900 rounded-xl text-[8px] font-black text-surface-600 hover:text-primary-400 hover:border-primary-500/30 transition-all whitespace-nowrap uppercase tracking-widest"
                 >
-                  <Eye class="w-4 h-4 mr-1" />
-                  Ver Detalles
+                   {sub.label}
                 </button>
-                <button
-                  on:click={() => handleQuickCreateStudent(classItem.id)}
-                  class="btn-primary text-sm py-2"
-                >
-                  <UserPlus class="w-4 h-4 mr-1" />
-                  Nuevo Estudiante
-                </button>
-              </div>
-              
-              <!-- Acciones secundarias -->
-              <div class="flex space-x-2 mt-2">
-                <button
-                  on:click={() => handleQuickManageStudents(classItem.id)}
-                  class="flex-1 btn-secondary text-xs py-1"
-                >
-                  <Users class="w-3 h-3 mr-1" />
-                  Gestionar
-                </button>
-                <button
-                  on:click={() => handleManageSkills(classItem.id)}
-                  class="flex-1 btn-secondary text-xs py-1"
-                >
-                  <Target class="w-3 h-3 mr-1" />
-                  Temario
-                </button>
-                <button
-                  on:click={() => handleTakeAttendance(classItem.id)}
-                  class="flex-1 btn-secondary text-xs py-1"
-                >
-                  <UserCheck class="w-3 h-3 mr-1" />
-                  Lista
-                </button>
-              </div>
+              {/each}
             </div>
           </div>
-        {/each}
-      </div>
-    {/if}
-  </main>
+        </div>
+      {/each}
+    </div>
+  {/if}
 </div>
 
-<style>
-  .input {
-    @apply bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+<style lang="postcss">
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 </style>

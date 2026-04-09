@@ -1,4 +1,4 @@
-import { a as sanitize_props, b as spread_props, c as slot, i as head, e as escape_html, k as ensure_array_like, l as attr, j as attr_class, d as bind_props, p as pop, f as push } from "../../../../../../chunks/index2.js";
+import { a as sanitize_props, b as spread_props, c as slot, h as head, d as escape_html, e as ensure_array_like, i as attr, f as attr_class, j as bind_props, p as pop, k as push } from "../../../../../../chunks/index.js";
 import "@sveltejs/kit/internal";
 import "../../../../../../chunks/exports.js";
 import "../../../../../../chunks/utils.js";
@@ -10,12 +10,83 @@ import { M as Map_pin } from "../../../../../../chunks/map-pin.js";
 import { G as Graduation_cap } from "../../../../../../chunks/graduation-cap.js";
 import { P as Plus } from "../../../../../../chunks/plus.js";
 import { I as Icon } from "../../../../../../chunks/Icon.js";
-import { C as Chevron_down } from "../../../../../../chunks/chevron-down.js";
 import { T as Trophy } from "../../../../../../chunks/trophy.js";
 import { S as Star } from "../../../../../../chunks/star.js";
 import { Z as Zap } from "../../../../../../chunks/zap.js";
 import { B as Book_open } from "../../../../../../chunks/book-open.js";
 import { S as Search } from "../../../../../../chunks/search.js";
+function Chevron_down($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.542.0 - ISC
+   *
+   * ISC License
+   *
+   * Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2023 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2025.
+   *
+   * Permission to use, copy, modify, and/or distribute this software for any
+   * purpose with or without fee is hereby granted, provided that the above
+   * copyright notice and this permission notice appear in all copies.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+   * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+   * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+   * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+   * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+   * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+   *
+   * ---
+   *
+   * The MIT License (MIT) (for portions derived from Feather)
+   *
+   * Copyright (c) 2013-2023 Cole Bemis
+   *
+   * Permission is hereby granted, free of charge, to any person obtaining a copy
+   * of this software and associated documentation files (the "Software"), to deal
+   * in the Software without restriction, including without limitation the rights
+   * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   * copies of the Software, and to permit persons to whom the Software is
+   * furnished to do so, subject to the following conditions:
+   *
+   * The above copyright notice and this permission notice shall be included in all
+   * copies or substantial portions of the Software.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   * SOFTWARE.
+   *
+   */
+  const iconNode = [["path", { "d": "m6 9 6 6 6-6" }]];
+  Icon($$payload, spread_props([
+    { name: "chevron-down" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name ChevronDown
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJtNiA5IDYgNiA2LTYiIC8+Cjwvc3ZnPgo=) - https://lucide.dev/icons/chevron-down
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$payload2) => {
+        $$payload2.out.push(`<!---->`);
+        slot($$payload2, $$props, "default", {});
+        $$payload2.out.push(`<!---->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
 function Chevron_up($$payload, $$props) {
   const $$sanitized_props = sanitize_props($$props);
   /**
@@ -164,6 +235,7 @@ function _page($$payload, $$props) {
   push();
   let filteredAvailableSkills;
   let data = $$props["data"];
+  const getDifficultyStars = (difficulty) => Array.from({ length: 5 }, (_, i) => i < difficulty);
   let classData = data.class;
   let assignedSkills = data.assignedSkills || [];
   let availableSkillsByCategory = data.availableSkillsByCategory || {};
@@ -223,9 +295,9 @@ function _page($$payload, $$props) {
   }
   $$payload.out.push(`<!--]--></div> <div class="space-y-2"><div class="flex items-center space-x-2 text-sm">`);
   Graduation_cap($$payload, { class: "w-4 h-4 text-slate-500" });
-  $$payload.out.push(`<!----> <span class="text-slate-300">${escape_html(difficultyLabels[classData?.level] || classData?.level)}</span></div> <div class="flex items-center space-x-2 text-sm">`);
+  $$payload.out.push(`<!----> <span class="text-slate-300">${escape_html(classData && difficultyLabels[classData.level] || classData?.level || "Nivel")}</span></div> <div class="flex items-center space-x-2 text-sm">`);
   Target($$payload, { class: "w-4 h-4 text-slate-500" });
-  $$payload.out.push(`<!----> <span class="text-purple-400 font-medium">${escape_html(stats.assigned)} skills asignadas</span></div></div> <div class="space-y-2"><p class="text-sm text-slate-400">Por categoría</p> <div class="space-y-1">`);
+  $$payload.out.push(`<!----> <span class="text-purple-400 font-medium">${escape_html(stats.assigned || 0)} skills asignadas</span></div></div> <div class="space-y-2"><p class="text-sm text-slate-400">Por categoría</p> <div class="space-y-1">`);
   if (stats.byCategory && typeof stats.byCategory === "object") {
     $$payload.out.push("<!--[-->");
     const each_array = ensure_array_like(Object.entries(stats.byCategory));
@@ -240,7 +312,7 @@ function _page($$payload, $$props) {
   }
   $$payload.out.push(`<!--]--></div></div> <div class="space-y-2"><p class="text-sm text-slate-400">Skills disponibles</p> <div class="flex items-center space-x-2">`);
   Plus($$payload, { class: "w-4 h-4 text-slate-500" });
-  $$payload.out.push(`<!----> <span class="text-lg font-bold text-green-400">${escape_html(stats.available)}</span></div></div></div> `);
+  $$payload.out.push(`<!----> <span class="text-lg font-bold text-green-400">${escape_html(stats.available || 0)}</span></div></div></div> `);
   if (classData?.description) {
     $$payload.out.push("<!--[-->");
     $$payload.out.push(`<div class="mt-4 pt-4 border-t border-slate-700"><p class="text-slate-300 text-sm">${escape_html(classData.description)}</p></div>`);
@@ -268,13 +340,13 @@ function _page($$payload, $$props) {
       $$payload.out.push(`<!----></button></div></div> <div class="flex-1"><div class="flex items-center space-x-3 mb-2">`);
       if (categoryIcons[skill.category]) {
         $$payload.out.push("<!--[-->");
-        $$payload.out.push(`<div${attr_class(`p-1 rounded ${categoryColors[skill.category] || "bg-slate-500/20"}`, "svelte-x773vi")}><!---->`);
+        $$payload.out.push(`<div${attr_class(`p-1 rounded ${categoryColors[skill.category] || "bg-slate-500/20"}`, "svelte-obdfba")}><!---->`);
         categoryIcons[skill.category]?.($$payload, { class: "w-4 h-4" });
         $$payload.out.push(`<!----></div>`);
       } else {
         $$payload.out.push("<!--[!-->");
       }
-      $$payload.out.push(`<!--]--> <h3 class="font-semibold text-white">${escape_html(skill.name)}</h3></div> <p class="text-slate-300 text-sm mb-3 leading-relaxed">${escape_html(skill.description)}</p> <div class="flex items-center justify-between"><div class="flex items-center space-x-3"><span class="text-xs text-slate-500">${escape_html(skill.category)}</span> <span${attr_class(`px-2 py-1 rounded-full text-xs font-medium border ${difficultyColors[skill.difficulty]}`, "svelte-x773vi")}>${escape_html(difficultyLabels[skill.difficulty])}</span></div> <span class="text-xs text-slate-500">Añadida: ${escape_html(new Date(skill.assigned_at).toLocaleDateString("es-ES"))}</span></div></div></div> <button class="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-slate-400 hover:text-red-400 ml-3" title="Quitar del temario">`);
+      $$payload.out.push(`<!--]--> <h3 class="font-semibold text-white">${escape_html(skill.name)}</h3></div> <p class="text-slate-300 text-sm mb-3 leading-relaxed">${escape_html(skill.description)}</p> <div class="flex items-center justify-between"><div class="flex items-center space-x-3"><span class="text-xs text-slate-500">${escape_html(skill.category)}</span> <span${attr_class(`px-2 py-1 rounded-full text-xs font-medium border ${difficultyColors[skill.difficulty]}`, "svelte-obdfba")}>${escape_html(difficultyLabels[skill.difficulty])}</span></div> <span class="text-xs text-slate-500">Añadida: ${escape_html(skill.assigned_at ? new Date(skill.assigned_at).toLocaleDateString("es-ES") : "N/A")}</span></div></div></div> <button class="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-slate-400 hover:text-red-400 ml-3" title="Quitar del temario">`);
       Minus($$payload, { class: "w-4 h-4" });
       $$payload.out.push(`<!----></button></div></div>`);
     }
@@ -286,7 +358,7 @@ function _page($$payload, $$props) {
   Search($$payload, {
     class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400"
   });
-  $$payload.out.push(`<!----> <input type="text" placeholder="Buscar skills disponibles..."${attr("value", searchQuery)} class="input pl-10 w-full svelte-x773vi"/></div> `);
+  $$payload.out.push(`<!----> <input type="text" placeholder="Buscar skills disponibles..."${attr("value", searchQuery)} class="input pl-10 w-full svelte-obdfba"/></div> `);
   if (Object.keys(filteredAvailableSkills).length === 0) {
     $$payload.out.push("<!--[-->");
     $$payload.out.push(`<div class="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center">`);
@@ -296,12 +368,12 @@ function _page($$payload, $$props) {
     $$payload.out.push("<!--[!-->");
     const each_array_2 = ensure_array_like(Object.entries(filteredAvailableSkills || {}));
     $$payload.out.push(`<div class="space-y-4"><!--[-->`);
-    for (let $$index_3 = 0, $$length = each_array_2.length; $$index_3 < $$length; $$index_3++) {
-      let [category, skills] = each_array_2[$$index_3];
+    for (let $$index_4 = 0, $$length = each_array_2.length; $$index_4 < $$length; $$index_4++) {
+      let [category, skills] = each_array_2[$$index_4];
       $$payload.out.push(`<div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"><button class="w-full p-4 flex items-center justify-between hover:bg-slate-700/50 transition-colors"><div class="flex items-center space-x-3">`);
       if (categoryIcons[category]) {
         $$payload.out.push("<!--[-->");
-        $$payload.out.push(`<div${attr_class(`p-2 rounded-lg ${categoryColors[category] || "bg-slate-500/20"}`, "svelte-x773vi")}><!---->`);
+        $$payload.out.push(`<div${attr_class(`p-2 rounded-lg ${categoryColors[category] || "bg-slate-500/20"}`, "svelte-obdfba")}><!---->`);
         categoryIcons[category]?.($$payload, { class: "w-5 h-5" });
         $$payload.out.push(`<!----></div>`);
       } else {
@@ -320,9 +392,17 @@ function _page($$payload, $$props) {
         $$payload.out.push("<!--[-->");
         const each_array_3 = ensure_array_like(skills);
         $$payload.out.push(`<div class="border-t border-slate-700"><!--[-->`);
-        for (let $$index_2 = 0, $$length2 = each_array_3.length; $$index_2 < $$length2; $$index_2++) {
-          let skill = each_array_3[$$index_2];
-          $$payload.out.push(`<div class="p-4 border-b border-slate-700 last:border-b-0 hover:bg-slate-700/30 transition-colors"><div class="flex items-start justify-between"><div class="flex-1"><h4 class="font-semibold text-white mb-2">${escape_html(skill.name)}</h4> <p class="text-slate-300 text-sm mb-3 leading-relaxed">${escape_html(skill.description)}</p> <div class="flex items-center space-x-3"><span${attr_class(`px-2 py-1 rounded-full text-xs font-medium border ${difficultyColors[skill.difficulty]}`, "svelte-x773vi")}>${escape_html(difficultyLabels[skill.difficulty])}</span></div></div> <button${attr("disabled", isAssigning, true)} class="p-2 hover:bg-green-500/20 rounded-lg transition-colors text-slate-400 hover:text-green-400 disabled:opacity-50 disabled:cursor-not-allowed ml-3" title="Añadir al temario">`);
+        for (let $$index_3 = 0, $$length2 = each_array_3.length; $$index_3 < $$length2; $$index_3++) {
+          let skill = each_array_3[$$index_3];
+          const each_array_4 = ensure_array_like(getDifficultyStars(skill.skill?.difficulty || skill.difficulty || 0));
+          $$payload.out.push(`<div class="p-4 border-b border-slate-700 last:border-b-0 hover:bg-slate-700/30 transition-colors"><div class="flex items-start justify-between"><div class="flex-1"><h4 class="font-semibold text-white mb-2">${escape_html(skill.name)}</h4> <p class="text-slate-300 text-sm mb-3 leading-relaxed">${escape_html(skill.description)}</p> <div class="flex items-center space-x-3"><!--[-->`);
+          for (let $$index_2 = 0, $$length3 = each_array_4.length; $$index_2 < $$length3; $$index_2++) {
+            let filled = each_array_4[$$index_2];
+            Star($$payload, {
+              class: `w-4 h-4 ${filled ? "text-yellow-400 fill-current" : "text-slate-600"}`
+            });
+          }
+          $$payload.out.push(`<!--]--></div></div> <button${attr("disabled", isAssigning, true)} class="p-2 hover:bg-green-500/20 rounded-lg transition-colors text-slate-400 hover:text-green-400 disabled:opacity-50 disabled:cursor-not-allowed ml-3" title="Añadir al temario">`);
           {
             $$payload.out.push("<!--[!-->");
             Plus($$payload, { class: "w-4 h-4" });

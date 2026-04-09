@@ -1,50 +1,44 @@
 import { json } from "@sveltejs/kit";
-import { createServerClient } from "@supabase/ssr";
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from "../../../../chunks/public.js";
-const POST = async ({ request, cookies }) => {
+import { d as db } from "../../../../chunks/firebase.js";
+import { serverTimestamp, addDoc, collection } from "firebase/firestore";
+const POST = async ({ request, locals }) => {
+  console.log("🏆 API Tournaments - Creating tournament (Firestore)...");
+  if (!locals.user) {
+    return json({ error: "Usuario no autenticado" }, { status: 401 });
+  }
   try {
     const body = await request.json();
-    const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-      cookies: {
-        get: (key) => cookies.get(key),
-        set: (key, value, options) => cookies.set(key, value, { ...options, path: "/" }),
-        remove: (key, options) => cookies.delete(key, { ...options, path: "/" })
-      }
-    });
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const { data, error } = await supabase.from("tournaments").insert({
-      user_id: user.id,
-      name: body.name,
-      description: body.description,
-      format: body.format,
-      time_control: body.time_control,
-      max_players: body.max_players,
-      entry_fee: body.entry_fee,
-      prize_pool: body.prize_pool,
-      start_date: body.start_date,
-      end_date: body.end_date,
-      registration_deadline: body.registration_deadline,
+    const tournamentData = {
+      user_id: locals.user.id,
+      name: body.name || "Torneo sin nombre",
+      description: body.description || null,
+      format: body.format || "swiss",
+      time_control: body.time_control || "10+5",
+      max_players: body.max_players || 16,
+      entry_fee: body.entry_fee || 0,
+      prize_pool: body.prize_pool || 0,
+      start_date: body.start_date || null,
+      end_date: body.end_date || null,
+      registration_deadline: body.registration_deadline || null,
       status: body.status || "draft",
       current_round: body.current_round || 0,
       total_rounds: body.total_rounds || 0,
       players_registered: 0,
-      // Set default value
-      location: body.location,
-      organizer: body.organizer,
-      notes: body.notes,
-      rules: body.rules
-    }).select().single();
-    if (error) {
-      console.error("❌ Error creating tournament:", error);
-      return json({ error: "Failed to create tournament" }, { status: 500 });
-    }
-    return json({ success: true, data });
+      location: body.location || null,
+      organizer: body.organizer || null,
+      notes: body.notes || null,
+      rules: body.rules || null,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp()
+    };
+    const docRef = await addDoc(collection(db, "tournaments"), tournamentData);
+    return json({
+      success: true,
+      data: { id: docRef.id, ...tournamentData }
+    });
   } catch (error) {
     console.error("❌ Error in POST /api/tournaments:", error);
-    return json({ error: "Internal server error" }, { status: 500 });
+    return json({ error: "Error al crear el torneo" }, { status: 500 });
   }
 };
 export {

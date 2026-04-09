@@ -20,366 +20,266 @@
     Activity,
     BookOpen,
     DollarSign,
-    Award
+    Award,
+    X,
+    Sparkles,
+    Zap,
+    Download
   } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import { fade, fly, scale } from 'svelte/transition';
 
-  export let data: PageData;
+  interface StudentReport {
+    student: {
+      id: string;
+      name: string;
+      email: string;
+      college_id: string;
+    };
+    college: {
+      name: string;
+    };
+    progress_summary: {
+      attendance_rate: number;
+      skill_completion_rate: number;
+      current_rating: number;
+      overdue_payments: number;
+    };
+  }
 
-  let searchTerm = '';
-  let collegeFilter = 'all';
-  let statusFilter = 'all'; // all, active, inactive, attention
-  let showFilters = false;
+  let { data } = $props<{ data: PageData & { studentsReports: StudentReport[] } }>();
 
-  // Datos reactivos
-  $: filteredStudents = data.studentsReports?.filter((report) => {
-    const matchesSearch = !searchTerm || 
-      report.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.college.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCollege = collegeFilter === 'all' || report.student.college_id === collegeFilter;
-    
-    const matchesStatus = statusFilter === 'all' || (() => {
-      if (statusFilter === 'active') {
-        return new Date(report.progress_summary.last_activity_date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      }
-      if (statusFilter === 'inactive') {
-        return new Date(report.progress_summary.last_activity_date) <= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      }
-      if (statusFilter === 'attention') {
-        return report.progress_summary.attendance_rate < 80 || 
-               report.progress_summary.overdue_payments > 0 ||
-               report.progress_summary.skill_completion_rate < 50;
-      }
-      return true;
-    })();
-    
-    return matchesSearch && matchesCollege && matchesStatus;
-  }) || [];
+  let searchTerm = $state('');
+  let collegeFilter = $state('all');
+  
+  const filteredStudents = $derived(
+    data.studentsReports?.filter((report) => {
+      const name = report.student.name || '';
+      const email = report.student.email || '';
+      const college = report.college?.name || '';
+      
+      const matchesSearch = !searchTerm || 
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        college.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCollege = collegeFilter === 'all' || report.student.college_id === collegeFilter;
+      
+      return matchesSearch && matchesCollege;
+    }) || []
+  );
 
-  // Obtener lista única de colegios
-  $: colleges = [...new Set(data.studentsReports?.map(r => ({ id: r.student.college_id, name: r.college.name })) || [])];
+  const colleges = $derived([...new Set((data.studentsReports || []).map((r: StudentReport) => ({ id: r.student.college_id, name: r.college.name })) || [])]);
 
-  const handleViewReport = (studentId: string) => {
-    goto(`/reports/${studentId}`);
+  const getStatusTheme = (report: StudentReport) => {
+    if (report.progress_summary.overdue_payments > 0) return 'text-red-400 border-red-500/20 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.1)]';
+    if (report.progress_summary.attendance_rate < 70) return 'text-orange-400 border-orange-500/20 bg-orange-500/10';
+    if (report.progress_summary.attendance_rate >= 90) return 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.1)]';
+    return 'text-blue-400 border-blue-500/20 bg-blue-500/10';
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES');
-  };
-
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
-  };
-
-  const getStudentStatus = (report: any) => {
-    const lastActivity = new Date(report.progress_summary.last_activity_date);
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
-    if (report.progress_summary.overdue_payments > 0) {
-      return { status: 'overdue', label: 'Pagos pendientes', class: 'bg-red-500/20 text-red-400 border-red-500/30' };
-    }
-    if (report.progress_summary.attendance_rate < 70) {
-      return { status: 'low_attendance', label: 'Asistencia baja', class: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
-    }
-    if (lastActivity <= weekAgo) {
-      return { status: 'inactive', label: 'Inactivo', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' };
-    }
-    if (report.progress_summary.attendance_rate >= 90 && report.progress_summary.skill_completion_rate >= 75) {
-      return { status: 'excellent', label: 'Excelente', class: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' };
-    }
-    return { status: 'active', label: 'Activo', class: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
-  };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'attendance': return Calendar;
-      case 'skill': return BookOpen;
-      case 'payment': return DollarSign;
-      case 'tournament': return Trophy;
-      default: return Activity;
-    }
-  };
-
-  const getActivityColor = (status: string) => {
-    switch (status) {
-      case 'positive': return 'text-emerald-400';
-      case 'negative': return 'text-red-400';
-      case 'warning': return 'text-yellow-400';
-      default: return 'text-slate-400';
-    }
+  const getStatusLabel = (report: StudentReport) => {
+    if (report.progress_summary.overdue_payments > 0) return 'AVISO PAGO';
+    if (report.progress_summary.attendance_rate < 70) return 'BAJA ASIST.';
+    if (report.progress_summary.attendance_rate >= 90) return 'EXCEPCIONAL';
+    return 'ESTÁNDAR';
   };
 </script>
 
 <svelte:head>
-  <title>Informes de Progreso - ChessNet</title>
+  <title>Análisis y Reportes - ChessNet</title>
 </svelte:head>
 
-<div class="min-h-screen bg-slate-900">
-  <!-- Header -->
-  <div class="border-b border-slate-700/50 bg-slate-800/50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center py-6">
-        <div class="flex items-center space-x-4">
-          <button
-            on:click={() => goto('/dashboard')}
-            class="p-2 text-slate-400 hover:text-white transition-colors"
-            title="Volver al Dashboard"
-          >
-            <ArrowLeft class="w-5 h-5" />
-          </button>
-          <div class="p-2 bg-teal-500/20 rounded-lg">
-            <BarChart3 class="w-8 h-8 text-teal-400" />
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-white">Informes de Progreso</h1>
-            <p class="text-slate-400">Reportes y análisis por estudiante</p>
-          </div>
+<div class="space-y-10 animate-fade-in pb-20" in:fade>
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div class="space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-primary-500/10 border border-primary-500/20 rounded-2xl flex items-center justify-center text-primary-400 shadow-2xl">
+          <Activity class="w-6 h-6" />
+        </div>
+        <div>
+          <h1 class="text-3xl font-black text-white tracking-tighter uppercase leading-none">Centro Analítico</h1>
+          <p class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mt-1">Métricas de Rendimiento Académico</p>
         </div>
       </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <button class="bg-surface-950/50 border border-surface-900 px-6 py-3 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest hover:border-primary-500/30 transition-all flex items-center gap-2 backdrop-blur-xl group">
+         <Sparkles class="w-4 h-4 text-primary-400 group-hover:animate-pulse" />
+         IA Insights
+      </button>
+      <button class="bg-primary-500 text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg flex items-center gap-2">
+        <Download class="w-4 h-4" />
+        Exportar CSV
+      </button>
     </div>
   </div>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    
-    <!-- Estadísticas Generales -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Total Estudiantes -->
-      <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div class="p-2 bg-blue-500/20 rounded-lg">
-            <Users class="w-6 h-6 text-blue-400" />
-          </div>
-        </div>
-        <h3 class="text-2xl font-bold text-white mb-1">
-          {data.generalStats?.total_students || 0}
-        </h3>
-        <p class="text-slate-400 text-sm">Total estudiantes</p>
-      </div>
-
-      <!-- Estudiantes Activos -->
-      <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div class="p-2 bg-emerald-500/20 rounded-lg">
-            <Activity class="w-6 h-6 text-emerald-400" />
-          </div>
-          <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">
-            {data.generalStats?.active_students || 0}
-          </span>
-        </div>
-        <h3 class="text-2xl font-bold text-white mb-1">Activos</h3>
-        <p class="text-slate-400 text-sm">Última semana</p>
-      </div>
-
-      <!-- Asistencia Promedio -->
-      <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div class="p-2 bg-purple-500/20 rounded-lg">
-            <Calendar class="w-6 h-6 text-purple-400" />
-          </div>
-          {#if (data.generalStats?.average_attendance_rate || 0) >= 85}
-            <TrendingUp class="w-4 h-4 text-emerald-400" />
-          {:else}
-            <TrendingDown class="w-4 h-4 text-red-400" />
-          {/if}
-        </div>
-        <h3 class="text-2xl font-bold text-white mb-1">
-          {formatPercentage(data.generalStats?.average_attendance_rate || 0)}
-        </h3>
-        <p class="text-slate-400 text-sm">Asistencia promedio</p>
-      </div>
-
-      <!-- Progreso Skills -->
-      <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div class="p-2 bg-yellow-500/20 rounded-lg">
-            <Target class="w-6 h-6 text-yellow-400" />
-          </div>
-        </div>
-        <h3 class="text-2xl font-bold text-white mb-1">
-          {formatPercentage(data.generalStats?.average_skill_completion || 0)}
-        </h3>
-        <p class="text-slate-400 text-sm">Skills completadas</p>
-      </div>
+  <!-- Stats Dashboard -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="glass-panel p-8 border-t-4 border-primary-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <Users class="w-24 h-24" />
+       </div>
+       <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Población Total</p>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter">{data.generalStats?.total_students || 0}</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">Alumnos</p>
+       </div>
     </div>
 
-    <!-- Filtros y Búsqueda -->
-    <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 mb-8">
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-        <!-- Búsqueda -->
-        <div class="relative">
-          <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar estudiantes..."
-            bind:value={searchTerm}
-            class="pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600/50 text-white placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 w-full lg:w-80"
-          />
-        </div>
+    <div class="glass-panel p-8 border-t-4 border-blue-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <Activity class="w-24 h-24" />
+       </div>
+       <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Actividad Semanal</p>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter">{data.generalStats?.active_students || 0}</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">Activos</p>
+       </div>
+    </div>
 
-        <!-- Filtros -->
-        <div class="flex items-center space-x-3">
-          <button
-            on:click={() => showFilters = !showFilters}
-            class="flex items-center space-x-2 px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-slate-300 rounded-lg hover:bg-slate-600/50 transition-colors"
-          >
-            <Filter class="w-4 h-4" />
-            <span>Filtros</span>
-            <ChevronDown class="w-4 h-4 transition-transform {showFilters ? 'rotate-180' : ''}" />
-          </button>
-        </div>
+    <div class="glass-panel p-8 border-t-4 border-emerald-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <Calendar class="w-24 h-24" />
+       </div>
+       <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Asistencia Media</p>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter">{data.generalStats?.average_attendance_rate.toFixed(1)}%</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">Global</p>
+       </div>
+    </div>
+
+    <div class="glass-panel p-8 border-t-4 border-purple-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <Award class="w-24 h-24" />
+       </div>
+       <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Progreso Skills</p>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter">{data.generalStats?.average_skill_completion.toFixed(1)}%</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">Completitud</p>
+       </div>
+    </div>
+  </div>
+
+  <!-- Search and Selection Filters -->
+  <div class="flex flex-col md:flex-row gap-4">
+    <div class="flex-grow relative group">
+      <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-600 group-focus-within:text-primary-400 transition-colors" />
+      <input
+        type="text"
+        placeholder="BUSCAR ESTUDIANTE, EMAIL O CENTRO..."
+        bind:value={searchTerm}
+        class="w-full bg-surface-950/50 border border-surface-900 rounded-2xl pl-12 pr-6 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all backdrop-blur-xl"
+      />
+    </div>
+
+    <div class="relative group min-w-[240px]">
+      <School class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-600" />
+      <select 
+        bind:value={collegeFilter} 
+        class="w-full bg-surface-950/50 border border-surface-900 rounded-2xl pl-12 pr-10 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all appearance-none cursor-pointer backdrop-blur-xl"
+      >
+        <option value="all">TODOS LOS CENTROS</option>
+        {#each colleges as col: {id: string, name: string}}
+          <option value={col.id}>{col.name.toUpperCase()}</option>
+        {/each}
+      </select>
+    </div>
+
+    <button 
+      onclick={() => { searchTerm = ''; collegeFilter = 'all'; }}
+      class="bg-surface-900/50 border border-surface-800 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-surface-800 transition-all backdrop-blur-xl"
+    >
+      RESETEAR
+    </button>
+  </div>
+
+  <!-- Results Table -->
+  <div class="glass-panel overflow-hidden border-t-4 border-primary-500 shadow-2xl">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-surface-950/80 border-b border-surface-900 backdrop-blur-xl">
+            <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500">Estudiante / Sede</th>
+            <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">Rendimiento</th>
+            <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">Elo Actual</th>
+            <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">Estatus</th>
+            <th class="px-8 py-5"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-900/50">
+          {#each filteredStudents as report, i}
+            <tr class="hover:bg-primary-500/[0.02] transition-colors group">
+              <td class="px-8 py-6">
+                <div class="flex items-center gap-5">
+                   <div class="w-12 h-12 bg-surface-950 border border-surface-800 rounded-2xl flex items-center justify-center text-primary-400 group-hover:border-primary-500/30 transition-all shadow-xl font-black">
+                      {report.student.name.charAt(0)}
+                   </div>
+                   <div>
+                      <h3 class="text-sm font-black text-white uppercase tracking-tight leading-none group-hover:text-primary-400 transition-colors">{report.student.name}</h3>
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                        <School class="w-3 h-3" />
+                        {report.college.name}
+                      </p>
+                   </div>
+                </div>
+              </td>
+              <td class="px-8 py-6">
+                 <div class="flex flex-col items-center gap-2.5">
+                    <div class="flex items-center gap-6">
+                       <div class="text-center">
+                          <p class="text-[10px] font-black text-white">{report.progress_summary.attendance_rate.toFixed(0)}%</p>
+                          <p class="text-[7px] font-black text-surface-600 uppercase tracking-widest">ASIST.</p>
+                       </div>
+                       <div class="text-center">
+                          <p class="text-[10px] font-black text-white">{report.progress_summary.skill_completion_rate.toFixed(0)}%</p>
+                          <p class="text-[7px] font-black text-surface-600 uppercase tracking-widest">SKILLS</p>
+                       </div>
+                    </div>
+                    <div class="w-24 h-1.5 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
+                       <div class="h-full bg-primary-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style="width: {(report.progress_summary.attendance_rate + report.progress_summary.skill_completion_rate)/2}%"></div>
+                    </div>
+                 </div>
+              </td>
+              <td class="px-8 py-6 text-center">
+                 <div class="inline-block px-4 py-2 bg-surface-950 border border-surface-900 rounded-xl">
+                    <p class="text-lg font-black text-white leading-none">{report.progress_summary.current_rating}</p>
+                    <p class="text-[8px] font-black text-primary-400 uppercase tracking-widest mt-1">ELO RATING</p>
+                 </div>
+              </td>
+              <td class="px-8 py-6 text-center">
+                 <span class={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${getStatusTheme(report)}`}>
+                   {getStatusLabel(report)}
+                 </span>
+              </td>
+              <td class="px-8 py-6 text-right">
+                 <button 
+                   onclick={() => goto(`/reports/${report.student.id}`)}
+                   class="p-3 bg-surface-950 border border-surface-800 rounded-2xl text-surface-500 hover:text-primary-400 hover:border-primary-500/30 transition-all shadow-xl group/btn"
+                 >
+                    <Eye class="w-5 h-5 transition-transform group-hover/btn:scale-110" />
+                 </button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+
+    {#if filteredStudents.length === 0}
+      <div class="p-24 text-center space-y-6">
+         <div class="w-20 h-20 bg-surface-950 border border-surface-900 rounded-3xl flex items-center justify-center mx-auto text-surface-800">
+            <BarChart3 class="w-10 h-10" />
+         </div>
+         <p class="text-[10px] font-black text-surface-600 uppercase tracking-[0.3em]">No hay registros para este filtro</p>
       </div>
-
-      <!-- Panel de filtros expandible -->
-      {#if showFilters}
-        <div class="mt-4 pt-4 border-t border-slate-700/50">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label for="college_filter" class="block text-sm font-medium text-slate-300 mb-2">Centro</label>
-              <select
-                id="college_filter"
-                bind:value={collegeFilter}
-                class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-white rounded-lg focus:ring-2 focus:ring-teal-500/50"
-              >
-                <option value="all">Todos los centros</option>
-                {#each colleges as college}
-                  <option value={college.id}>{college.name}</option>
-                {/each}
-              </select>
-            </div>
-
-            <div>
-              <label for="status_filter" class="block text-sm font-medium text-slate-300 mb-2">Estado</label>
-              <select
-                id="status_filter"
-                bind:value={statusFilter}
-                class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-white rounded-lg focus:ring-2 focus:ring-teal-500/50"
-              >
-                <option value="all">Todos los estados</option>
-                <option value="active">Activos</option>
-                <option value="inactive">Inactivos</option>
-                <option value="attention">Requieren atención</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      {/if}
-    </div>
-
-    <!-- Lista de Estudiantes -->
-    <div class="space-y-6">
-      {#each filteredStudents as report}
-        {@const studentStatus = getStudentStatus(report)}
-        <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg hover:bg-slate-700/30 transition-all duration-200">
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
-              <!-- Información del estudiante -->
-              <div class="flex items-center space-x-4">
-                <div class="p-3 bg-slate-600/50 rounded-lg">
-                  <Users class="w-6 h-6 text-slate-400" />
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold text-white">{report.student.name}</h3>
-                  <p class="text-slate-400">{report.student.email}</p>
-                  <div class="flex items-center space-x-4 mt-1">
-                    <div class="flex items-center space-x-1">
-                      <School class="w-3 h-3 text-slate-500" />
-                      <span class="text-xs text-slate-500">{report.college.name}</span>
-                    </div>
-                    <div class="flex items-center space-x-1">
-                      <Calendar class="w-3 h-3 text-slate-500" />
-                      <span class="text-xs text-slate-500">
-                        Inscrito: {formatDate(report.progress_summary.enrollment_date)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Estado y acciones -->
-              <div class="flex items-center space-x-4">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border {studentStatus.class}">
-                  {studentStatus.label}
-                </span>
-                <button
-                  on:click={() => handleViewReport(report.student.id)}
-                  class="flex items-center space-x-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
-                >
-                  <Eye class="w-4 h-4" />
-                  <span>Ver Informe</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Métricas rápidas -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div class="text-center">
-                <div class="text-lg font-semibold text-white">
-                  {formatPercentage(report.progress_summary.attendance_rate)}
-                </div>
-                <div class="text-xs text-slate-400">Asistencia</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-semibold text-white">
-                  {formatPercentage(report.progress_summary.skill_completion_rate)}
-                </div>
-                <div class="text-xs text-slate-400">Skills</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-semibold text-white">
-                  {report.progress_summary.current_rating}
-                </div>
-                <div class="text-xs text-slate-400">Rating</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-semibold {report.progress_summary.overdue_payments > 0 ? 'text-red-400' : 'text-emerald-400'}">
-                  {report.progress_summary.overdue_payments > 0 ? report.progress_summary.overdue_payments : '✓'}
-                </div>
-                <div class="text-xs text-slate-400">Pagos</div>
-              </div>
-            </div>
-
-            <!-- Actividad reciente -->
-            <div class="border-t border-slate-700/50 pt-4">
-              <h4 class="text-sm font-medium text-slate-300 mb-3">Actividad Reciente</h4>
-              <div class="space-y-2">
-                {#each report.recent_activity.slice(0, 3) as activity}
-                  {@const IconComponent = getActivityIcon(activity.type)}
-                  <div class="flex items-center space-x-3">
-                    <div class="p-1 bg-slate-600/50 rounded">
-                      <IconComponent class="w-3 h-3 {getActivityColor(activity.status)}" />
-                    </div>
-                    <div class="flex-1">
-                      <span class="text-sm text-white">{activity.description}</span>
-                      <span class="text-xs text-slate-400 ml-2">{formatDate(activity.date)}</span>
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </div>
-          </div>
-        </div>
-      {/each}
-
-      {#if filteredStudents.length === 0}
-        <div class="text-center py-12">
-          <BarChart3 class="w-12 h-12 text-slate-600 mx-auto mb-4" />
-          <p class="text-slate-400">No se encontraron estudiantes</p>
-          {#if searchTerm || collegeFilter !== 'all' || statusFilter !== 'all'}
-            <button
-              on:click={() => {
-                searchTerm = '';
-                collegeFilter = 'all';
-                statusFilter = 'all';
-              }}
-              class="mt-2 text-teal-400 hover:text-teal-300 transition-colors"
-            >
-              Limpiar filtros
-            </button>
-          {/if}
-        </div>
-      {/if}
-    </div>
-  </main>
+    {/if}
+  </div>
 </div>
+
+<style lang="postcss">
+  /* Reports dashboard visual enhancements */
+</style>

@@ -26,21 +26,23 @@
     FileText,
     Star,
     Zap,
-    Timer
+    Timer,
+    ChevronRight,
+    Search,
+    Download,
+    Share2,
+    Briefcase
   } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import { fade, fly, scale } from 'svelte/transition';
 
-  export let data: PageData;
+  let { data } = $props<{ data: PageData }>();
 
-  let selectedTab: 'overview' | 'attendance' | 'skills' | 'payments' | 'tournaments' | 'timeline' = 'overview';
+  let selectedTab = $state<'overview' | 'attendance' | 'skills' | 'payments' | 'tournaments' | 'timeline'>('overview');
 
   // Helper functions
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES');
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('es-ES');
+    return new Date(dateString).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
   };
 
   const formatCurrency = (amount: number) => {
@@ -48,10 +50,6 @@
       style: 'currency',
       currency: 'EUR'
     }).format(amount);
-  };
-
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
   };
 
   const getAttendanceIcon = (status: string) => {
@@ -63,49 +61,12 @@
     }
   };
 
-  const getAttendanceColor = (status: string) => {
+  const getAttendanceTheme = (status: string) => {
     switch (status) {
-      case 'P': return 'text-emerald-400';
-      case 'T': return 'text-yellow-400';
-      case 'A': return 'text-red-400';
-      default: return 'text-slate-400';
-    }
-  };
-
-  const getSkillStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'text-emerald-400';
-      case 'in_progress': return 'text-yellow-400';
-      case 'not_started': return 'text-slate-400';
-      default: return 'text-slate-400';
-    }
-  };
-
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid': return 'text-emerald-400';
-      case 'pending': return 'text-yellow-400';
-      case 'overdue': return 'text-red-400';
-      default: return 'text-slate-400';
-    }
-  };
-
-  const getActivityColor = (status: string) => {
-    switch (status) {
-      case 'positive': return 'text-emerald-400';
-      case 'negative': return 'text-red-400';
-      case 'warning': return 'text-yellow-400';
-      default: return 'text-slate-400';
-    }
-  };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'attendance': return Calendar;
-      case 'skill': return BookOpen;
-      case 'payment': return DollarSign;
-      case 'tournament': return Trophy;
-      default: return Activity;
+      case 'P': return 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10';
+      case 'T': return 'text-orange-400 border-orange-500/20 bg-orange-500/10';
+      case 'A': return 'text-red-400 border-red-500/20 bg-red-500/10';
+      default: return 'text-surface-400 border-surface-500/20 bg-surface-500/10';
     }
   };
 
@@ -120,574 +81,643 @@
     return age;
   };
 
-  // Datos del reporte
-  $: report = data.report;
-  $: student = report?.student;
-  $: progress = report?.progress_summary;
+  const report = $derived(data.report);
+  const student = $derived(report?.student);
+  const progress = $derived(report?.progress_summary);
+
+  const tabs = [
+    { id: 'overview', label: 'Resumen', icon: Activity },
+    { id: 'attendance', label: 'Asistencia', icon: Calendar },
+    { id: 'skills', label: 'Habilidades', icon: Zap },
+    { id: 'payments', label: 'Pagos', icon: DollarSign },
+    { id: 'tournaments', label: 'Torneos', icon: Trophy },
+    { id: 'timeline', label: 'Cronología', icon: Timer },
+  ] as const;
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'attendance': return Calendar;
+      case 'skill': return Zap;
+      case 'payment': return DollarSign;
+      case 'tournament': return Trophy;
+      default: return Activity;
+    }
+  };
 </script>
 
 <svelte:head>
-  <title>Informe de {student?.name || 'Estudiante'} - ChessNet</title>
+  <title>Expediente: {student?.name || 'Estudiante'} - ChessNet</title>
 </svelte:head>
 
 {#if !report}
-  <div class="min-h-screen bg-slate-900 flex items-center justify-center">
-    <div class="text-center">
-      <AlertTriangle class="w-12 h-12 text-red-400 mx-auto mb-4" />
-      <h2 class="text-xl font-semibold text-white mb-2">Estudiante no encontrado</h2>
-      <p class="text-slate-400 mb-4">No se pudo cargar el informe del estudiante</p>
+  <div class="min-h-[60vh] flex items-center justify-center p-8" in:fade>
+    <div class="glass-panel p-12 text-center max-w-md space-y-6 border-t-4 border-red-500">
+      <div class="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center text-red-400 mx-auto shadow-2xl">
+        <AlertTriangle class="w-10 h-10" />
+      </div>
+      <div>
+        <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Expediente No Encontrado</h2>
+        <p class="text-[10px] font-black text-surface-500 uppercase tracking-widest mt-2">No se pudo localizar la información analítica de este estudiante.</p>
+      </div>
       <button
-        on:click={() => goto('/reports')}
-        class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
+        onclick={() => goto('/reports')}
+        class="w-full bg-surface-950 border border-surface-900 py-4 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest hover:border-primary-500/50 transition-all flex items-center justify-center gap-3"
       >
-        Volver a Informes
+        <ArrowLeft class="w-4 h-4" />
+        VOLVER AL PANEL
       </button>
     </div>
   </div>
 {:else}
-  <div class="min-h-screen bg-slate-900">
-    <!-- Header -->
-    <div class="border-b border-slate-700/50 bg-slate-800/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between py-6">
-          <div class="flex items-center space-x-4">
-            <button
-              on:click={() => goto('/reports')}
-              class="p-2 text-slate-400 hover:text-white transition-colors"
-              title="Volver a Informes"
-            >
-              <ArrowLeft class="w-5 h-5" />
-            </button>
-            <div class="p-2 bg-teal-500/20 rounded-lg">
-              <User class="w-8 h-8 text-teal-400" />
+  <div class="space-y-10 animate-fade-in pb-20" in:fade>
+    <!-- Header Section -->
+    <div class="flex flex-col xl:flex-row gap-8 items-start justify-between">
+      <div class="flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+        <div class="relative group">
+          <div class="absolute inset-0 bg-primary-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+          <div class="w-32 h-32 bg-surface-950 border-4 border-surface-900 rounded-[2.5rem] flex items-center justify-center text-primary-400 text-5xl font-black shadow-2xl relative z-10 group-hover:border-primary-500/30 transition-all">
+            {student.name.charAt(0)}
+          </div>
+          <div class="absolute -bottom-2 -right-2 bg-primary-500 text-black p-2 rounded-xl shadow-lg z-20">
+            <Trophy class="w-4 h-4" />
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
+            <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-none">{student.name}</h1>
+            <span class="bg-primary-500/10 border border-primary-500/20 text-primary-400 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
+              ID: {student.id.slice(0, 8)}
+            </span>
+          </div>
+          
+          <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-surface-500 text-[10px] font-bold uppercase tracking-widest">
+            <div class="flex items-center gap-2">
+              <School class="w-3 h-3 text-primary-400" />
+              {report.college.name}
             </div>
-            <div>
-              <h1 class="text-2xl font-bold text-white">{student.name}</h1>
-              <p class="text-slate-400">Informe de progreso detallado</p>
+            <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
+            <div class="flex items-center gap-2">
+              <Calendar class="w-3 h-3 text-primary-400" />
+              {calculateAge(student.date_of_birth)} AÑOS
+            </div>
+            <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
+            <div class="flex items-center gap-2">
+              <Clock class="w-3 h-3 text-primary-400" />
+              ACTIVO DESDE {formatDate(progress.enrollment_date)}
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Información del Estudiante -->
-    <div class="bg-slate-800/50 border-b border-slate-700/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Información Personal -->
-          <div class="space-y-4">
-            <h3 class="font-semibold text-white">Información Personal</h3>
-            <div class="space-y-2">
-              <div class="flex items-center space-x-2">
-                <Mail class="w-4 h-4 text-slate-400" />
-                <span class="text-sm text-slate-300">{student.email}</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <Phone class="w-4 h-4 text-slate-400" />
-                <span class="text-sm text-slate-300">{student.phone}</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <Calendar class="w-4 h-4 text-slate-400" />
-                <span class="text-sm text-slate-300">
-                  {calculateAge(student.date_of_birth)} años ({formatDate(student.date_of_birth)})
-                </span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <School class="w-4 h-4 text-slate-400" />
-                <span class="text-sm text-slate-300">{report.college.name}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Métricas Clave -->
-          <div class="space-y-4">
-            <h3 class="font-semibold text-white">Métricas Clave</h3>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="text-center">
-                <div class="text-lg font-bold text-white">{formatPercentage(progress.attendance_rate)}</div>
-                <div class="text-xs text-slate-400">Asistencia</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-bold text-white">{formatPercentage(progress.skill_completion_rate)}</div>
-                <div class="text-xs text-slate-400">Skills</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-bold text-white">{progress.current_rating}</div>
-                <div class="text-xs text-slate-400">Rating</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-bold {progress.overdue_payments > 0 ? 'text-red-400' : 'text-emerald-400'}">
-                  {progress.overdue_payments > 0 ? progress.overdue_payments : '✓'}
-                </div>
-                <div class="text-xs text-slate-400">Pagos</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Estado General -->
-          <div class="space-y-4">
-            <h3 class="font-semibold text-white">Estado General</h3>
-            <div class="space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-400">Inscrito desde:</span>
-                <span class="text-sm text-white">{formatDate(progress.enrollment_date)}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-400">Días activo:</span>
-                <span class="text-sm text-white">{progress.days_enrolled}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-400">Última actividad:</span>
-                <span class="text-sm text-white">{formatDate(progress.last_activity_date)}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-400">Rating cambio:</span>
-                <span class="text-sm {progress.rating_change >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                  {progress.rating_change >= 0 ? '+' : ''}{progress.rating_change}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="flex items-center gap-4 w-full md:w-auto">
+        <button class="flex-1 md:flex-none bg-surface-950/50 border border-surface-900 p-4 rounded-2xl text-white hover:border-primary-500/30 transition-all backdrop-blur-xl group">
+          <Share2 class="w-5 h-5 group-hover:scale-110 transition-transform" />
+        </button>
+        <button class="flex-1 md:flex-none bg-surface-950/50 border border-surface-900 p-4 rounded-2xl text-white hover:border-primary-500/30 transition-all backdrop-blur-xl group">
+          <Download class="w-5 h-5 group-hover:scale-110 transition-transform" />
+        </button>
+        <button class="flex-[3] md:flex-none bg-primary-500 text-black px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg flex items-center justify-center gap-3">
+          <FileText class="w-4 h-4" />
+          GENERAR INFORME PDF
+        </button>
       </div>
     </div>
 
-    <!-- Tabs Navigation -->
-    <div class="border-b border-slate-700/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav class="flex space-x-12">
-          <button
-            on:click={() => selectedTab = 'overview'}
-            class="py-4 px-2 border-b-2 font-medium text-sm transition-colors {selectedTab === 'overview' 
-              ? 'border-teal-500 text-teal-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'}"
-          >
-            Resumen
-          </button>
-          <button
-            on:click={() => selectedTab = 'attendance'}
-            class="py-4 px-2 border-b-2 font-medium text-sm transition-colors {selectedTab === 'attendance' 
-              ? 'border-teal-500 text-teal-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'}"
-          >
-            Asistencia
-          </button>
-          <button
-            on:click={() => selectedTab = 'skills'}
-            class="py-4 px-2 border-b-2 font-medium text-sm transition-colors {selectedTab === 'skills' 
-              ? 'border-teal-500 text-teal-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'}"
-          >
-            Habilidades
-          </button>
-          <button
-            on:click={() => selectedTab = 'payments'}
-            class="py-4 px-2 border-b-2 font-medium text-sm transition-colors {selectedTab === 'payments' 
-              ? 'border-teal-500 text-teal-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'}"
-          >
-            Pagos
-          </button>
-          <button
-            on:click={() => selectedTab = 'tournaments'}
-            class="py-4 px-2 border-b-2 font-medium text-sm transition-colors {selectedTab === 'tournaments' 
-              ? 'border-teal-500 text-teal-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'}"
-          >
-            Torneos
-          </button>
-          <button
-            on:click={() => selectedTab = 'timeline'}
-            class="py-4 px-2 border-b-2 font-medium text-sm transition-colors {selectedTab === 'timeline' 
-              ? 'border-teal-500 text-teal-400' 
-              : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-300'}"
-          >
-            Cronología
-          </button>
-        </nav>
+    <!-- Quick Stats Grid -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="glass-panel p-6 border-l-4 border-primary-500 flex items-center justify-between group">
+         <div>
+            <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Ratio Asistencia</p>
+            <p class="text-3xl font-black text-white tracking-tighter">{progress.attendance_rate.toFixed(1)}%</p>
+         </div>
+         <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400 group-hover:scale-110 transition-transform">
+            <Activity class="w-6 h-6" />
+         </div>
       </div>
-    </div>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
-      <!-- Tab: Resumen -->
+      <div class="glass-panel p-6 border-l-4 border-blue-500 flex items-center justify-between group">
+         <div>
+            <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Chess Rating (ELO)</p>
+            <div class="flex items-baseline gap-2">
+              <p class="text-3xl font-black text-white tracking-tighter">{progress.current_rating}</p>
+              <span class={`text-[10px] font-black ${progress.rating_change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {progress.rating_change >= 0 ? '▲' : '▼'} {Math.abs(progress.rating_change)}
+              </span>
+            </div>
+         </div>
+         <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+            <Trophy class="w-6 h-6" />
+         </div>
+      </div>
+
+      <div class="glass-panel p-6 border-l-4 border-purple-500 flex items-center justify-between group">
+         <div>
+            <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Dominio Skills</p>
+            <p class="text-3xl font-black text-white tracking-tighter">{progress.skill_completion_rate.toFixed(1)}%</p>
+         </div>
+         <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+            <Zap class="w-6 h-6" />
+         </div>
+      </div>
+
+      <div class="glass-panel p-6 border-l-4 border-orange-500 flex items-center justify-between group">
+         <div>
+            <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Balance Financiero</p>
+            <p class={`text-3xl font-black tracking-tighter ${progress.overdue_payments > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+              {progress.overdue_payments > 0 ? `-${progress.overdue_payments}` : 'OK'}
+            </p>
+         </div>
+         <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+            <DollarSign class="w-6 h-6" />
+         </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex flex-wrap gap-2 p-1.5 bg-surface-950/50 border border-surface-900 rounded-[2rem] backdrop-blur-xl">
+      {#each tabs as tab}
+        <button
+          onclick={() => selectedTab = tab.id}
+          class={`flex items-center gap-3 px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            selectedTab === tab.id 
+              ? 'bg-primary-500 text-black shadow-xl scale-[1.02]' 
+              : 'text-surface-500 hover:text-white hover:bg-surface-900'
+          }`}
+        >
+          <tab.icon class="w-4 h-4" />
+          <span class="hidden sm:inline">{tab.label}</span>
+        </button>
+      {/each}
+    </div>
+
+    <!-- Tab Content -->
+    <div class="space-y-8" in:fade={{ duration: 200 }}>
       {#if selectedTab === 'overview'}
-        <div class="space-y-8">
-          
-          <!-- Gráficos de Progreso -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Rating Evolution -->
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-              <h3 class="text-lg font-semibold text-white mb-4">Evolución del Rating</h3>
-              <div class="space-y-4">
-                {#each report.rating_history as entry}
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <div class="text-sm text-white">{entry.event}</div>
-                      <div class="text-xs text-slate-400">{formatDate(entry.date)}</div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Left Column: Details & Notes -->
+          <div class="lg:col-span-2 space-y-8">
+            <!-- Basic Info Card -->
+            <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
+               <div class="p-8 border-b border-surface-900 bg-surface-950/50">
+                  <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
+                    <User class="w-4 h-4 text-primary-400" />
+                    Información de Contacto
+                  </h3>
+               </div>
+               <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div class="space-y-6">
+                    <div class="group">
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">Correo Electrónico</p>
+                      <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
+                        <Mail class="w-4 h-4 text-primary-400" />
+                        {student.email}
+                      </div>
                     </div>
-                    <div class="flex items-center space-x-3">
-                      <span class="text-sm font-medium text-white">{entry.rating}</span>
-                      <span class="text-sm {entry.change >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                        {entry.change >= 0 ? '+' : ''}{entry.change}
-                      </span>
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </div>
-
-            <!-- Skills Distribution -->
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-              <h3 class="text-lg font-semibold text-white mb-4">Distribución de Skills</h3>
-              <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-2">
-                    <CheckCircle class="w-4 h-4 text-emerald-400" />
-                    <span class="text-sm text-slate-300">Completadas</span>
-                  </div>
-                  <span class="text-sm font-medium text-white">{progress.skills_mastered}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-2">
-                    <Clock class="w-4 h-4 text-yellow-400" />
-                    <span class="text-sm text-slate-300">En progreso</span>
-                  </div>
-                  <span class="text-sm font-medium text-white">{progress.skills_in_progress}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-2">
-                    <XCircle class="w-4 h-4 text-slate-400" />
-                    <span class="text-sm text-slate-300">Sin comenzar</span>
-                  </div>
-                  <span class="text-sm font-medium text-white">
-                    {progress.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Notas del Instructor -->
-          {#if student.instructor_notes}
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-              <h3 class="text-lg font-semibold text-white mb-4">Notas del Instructor</h3>
-              <div class="p-4 bg-slate-700/30 rounded-lg">
-                <p class="text-slate-300">{student.instructor_notes}</p>
-              </div>
-            </div>
-          {/if}
-
-          <!-- Resumen de Clases -->
-          <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Clases Inscritas</h3>
-            <div class="space-y-4">
-              {#each report.classes as cls}
-                <div class="p-4 bg-slate-700/30 rounded-lg">
-                  <div class="flex items-center justify-between mb-2">
-                    <h4 class="font-medium text-white">{cls.name}</h4>
-                    <span class="text-sm text-emerald-400">{formatCurrency(cls.price)}/mes</span>
-                  </div>
-                  <div class="text-sm text-slate-400">{cls.schedule}</div>
-                  <div class="text-xs text-slate-500 mt-1">
-                    {formatDate(cls.start_date)} - {formatDate(cls.end_date)}
-                  </div>
-                </div>
-              {/each}
-            </div>
-          </div>
-        </div>
-      {/if}
-
-      <!-- Tab: Asistencia -->
-      {#if selectedTab === 'attendance'}
-        <div class="space-y-8">
-          
-          <!-- Estadísticas de Asistencia -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-              <div class="text-2xl font-bold text-emerald-400">{progress.attended_sessions}</div>
-              <div class="text-sm text-slate-400">Presentes</div>
-            </div>
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-              <div class="text-2xl font-bold text-yellow-400">{progress.late_sessions}</div>
-              <div class="text-sm text-slate-400">Tardanzas</div>
-            </div>
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-              <div class="text-2xl font-bold text-red-400">{progress.absent_sessions}</div>
-              <div class="text-sm text-slate-400">Ausencias</div>
-            </div>
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-              <div class="text-2xl font-bold text-white">{formatPercentage(progress.punctuality_rate)}</div>
-              <div class="text-sm text-slate-400">Puntualidad</div>
-            </div>
-          </div>
-
-          <!-- Historial de Asistencia -->
-          <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Historial de Asistencia</h3>
-            <div class="space-y-3">
-              {#each report.attendance_history as attendance}
-                {@const IconComponent = getAttendanceIcon(attendance.status)}
-                <div class="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
-                  <div class="flex items-center space-x-3">
-                    <IconComponent class="w-5 h-5 {getAttendanceColor(attendance.status)}" />
-                    <div>
-                      <div class="text-sm font-medium text-white">{formatDate(attendance.date)}</div>
-                      <div class="text-xs text-slate-400">
-                        {attendance.status === 'P' ? 'Presente' : 
-                         attendance.status === 'T' ? 'Tardanza' : 'Ausente'}
+                    <div class="group">
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">Teléfono Móvil</p>
+                      <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
+                        <Phone class="w-4 h-4 text-primary-400" />
+                        {student.phone}
                       </div>
                     </div>
                   </div>
-                  {#if attendance.notes}
-                    <div class="text-sm text-slate-300 max-w-md text-right">
-                      {attendance.notes}
-                    </div>
-                  {/if}
-                </div>
-              {/each}
-            </div>
-          </div>
-        </div>
-      {/if}
-
-      <!-- Tab: Skills -->
-      {#if selectedTab === 'skills'}
-        <div class="space-y-8">
-          
-          <!-- Progreso por Categoría -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {#each ['Fundamentos', 'Táctica', 'Finales'] as category}
-              {@const categorySkills = report.skills_progress.filter(s => s.category === category)}
-              {@const completedSkills = categorySkills.filter(s => s.status === 'completed').length}
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-                <h3 class="font-semibold text-white mb-4">{category}</h3>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-white mb-2">
-                    {completedSkills}/{categorySkills.length}
-                  </div>
-                  <div class="text-sm text-slate-400">
-                    {formatPercentage(categorySkills.length > 0 ? (completedSkills / categorySkills.length) * 100 : 0)}
-                  </div>
-                </div>
-              </div>
-            {/each}
-          </div>
-
-          <!-- Lista de Skills -->
-          <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Progreso Detallado</h3>
-            <div class="space-y-4">
-              {#each report.skills_progress as skill}
-                <div class="p-4 bg-slate-700/30 rounded-lg">
-                  <div class="flex items-center justify-between mb-2">
-                    <div>
-                      <h4 class="font-medium text-white">{skill.skill_name}</h4>
-                      <div class="text-sm text-slate-400">{skill.category}</div>
-                    </div>
-                    <div class="text-right">
-                      <div class="text-sm font-medium {getSkillStatusColor(skill.status)}">
-                        {skill.status === 'completed' ? 'Completada' :
-                         skill.status === 'in_progress' ? 'En progreso' : 'Sin comenzar'}
+                  <div class="space-y-6">
+                    <div class="group">
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">Fecha Nacimiento</p>
+                      <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
+                        <Calendar class="w-4 h-4 text-primary-400" />
+                        {formatDate(student.date_of_birth)}
                       </div>
-                      <div class="text-xs text-slate-400">
-                        Nivel {skill.level}/{skill.max_level}
+                    </div>
+                    <div class="group">
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">Última Conexión</p>
+                      <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
+                        <Activity class="w-4 h-4 text-primary-400" />
+                        {formatDate(progress.last_activity_date)}
                       </div>
                     </div>
                   </div>
-                  
-                  <!-- Barra de progreso -->
-                  <div class="w-full bg-slate-600/50 rounded-full h-2 mb-2">
-                    <div 
-                      class="bg-teal-500 h-2 rounded-full transition-all duration-300"
-                      style="width: {(skill.level / skill.max_level) * 100}%"
-                    ></div>
-                  </div>
-                  
-                  {#if skill.completion_date}
-                    <div class="text-xs text-emerald-400 mb-1">
-                      Completada: {formatDate(skill.completion_date)}
-                    </div>
-                  {/if}
-                  
-                  {#if skill.notes}
-                    <div class="text-sm text-slate-300">{skill.notes}</div>
-                  {/if}
+               </div>
+            </div>
+
+            <!-- Instructor Notes -->
+            {#if student.instructor_notes}
+              <div class="glass-panel p-8 border-t-4 border-orange-500">
+                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                  <FileText class="w-4 h-4 text-orange-400" />
+                  Observaciones Técnicas
+                </h3>
+                <div class="p-6 bg-surface-950/80 border border-surface-900 rounded-2xl italic text-surface-300 text-sm leading-relaxed relative overflow-hidden">
+                   <div class="absolute top-0 right-0 p-4 opacity-10">
+                      <BookOpen class="w-12 h-12" />
+                   </div>
+                   "{student.instructor_notes}"
                 </div>
-              {/each}
-            </div>
-          </div>
-        </div>
-      {/if}
-
-      <!-- Tab: Pagos -->
-      {#if selectedTab === 'payments'}
-        <div class="space-y-8">
-          
-          <!-- Resumen de Pagos -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-              <div class="text-2xl font-bold text-white">{progress.total_payments}</div>
-              <div class="text-sm text-slate-400">Total</div>
-            </div>
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-              <div class="text-2xl font-bold text-emerald-400">{progress.paid_payments}</div>
-              <div class="text-sm text-slate-400">Pagados</div>
-            </div>
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-              <div class="text-2xl font-bold text-red-400">{progress.overdue_payments}</div>
-              <div class="text-sm text-slate-400">Vencidos</div>
-            </div>
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-              <div class="text-2xl font-bold text-white">{formatPercentage(progress.payment_compliance)}</div>
-              <div class="text-sm text-slate-400">Cumplimiento</div>
-            </div>
-          </div>
-
-          <!-- Historial de Pagos -->
-          <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-white mb-4">Historial de Pagos</h3>
-            <div class="space-y-3">
-              {#each report.payment_history as payment}
-                <div class="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
-                  <div>
-                    <div class="text-sm font-medium text-white">{payment.description}</div>
-                    <div class="text-xs text-slate-400">
-                      Vencimiento: {formatDate(payment.due_date)}
-                      {#if payment.paid_date}
-                        • Pagado: {formatDate(payment.paid_date)}
-                      {/if}
-                    </div>
-                    {#if payment.payment_method}
-                      <div class="text-xs text-slate-500">
-                        {payment.payment_method} - {payment.payment_reference}
-                      </div>
-                    {/if}
-                  </div>
-                  <div class="text-right">
-                    <div class="text-lg font-semibold text-white">{formatCurrency(payment.amount)}</div>
-                    <div class="text-sm {getPaymentStatusColor(payment.status)}">
-                      {payment.status === 'paid' ? 'Pagado' :
-                       payment.status === 'pending' ? 'Pendiente' : 'Vencido'}
-                    </div>
-                  </div>
-                </div>
-              {/each}
-            </div>
-          </div>
-        </div>
-      {/if}
-
-      <!-- Tab: Torneos -->
-      {#if selectedTab === 'tournaments'}
-        <div class="space-y-8">
-          
-          {#if report.tournament_history.length > 0}
-            <!-- Estadísticas de Torneos -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-                <div class="text-2xl font-bold text-white">{progress.tournaments_participated}</div>
-                <div class="text-sm text-slate-400">Participados</div>
               </div>
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-                <div class="text-2xl font-bold text-emerald-400">{progress.tournament_wins}</div>
-                <div class="text-sm text-slate-400">Victorias</div>
-              </div>
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-                <div class="text-2xl font-bold text-yellow-400">{progress.tournament_draws}</div>
-                <div class="text-sm text-slate-400">Empates</div>
-              </div>
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
-                <div class="text-2xl font-bold text-red-400">{progress.tournament_losses}</div>
-                <div class="text-sm text-slate-400">Derrotas</div>
-              </div>
-            </div>
+            {/if}
 
-            <!-- Historial de Torneos -->
-            {#each report.tournament_history as tournament}
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 class="text-lg font-semibold text-white">{tournament.name}</h3>
-                    <div class="text-sm text-slate-400">
-                      {formatDate(tournament.date)} • {tournament.format} • {tournament.participants} participantes
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-lg font-semibold text-white">
-                      Posición {tournament.final_position}/{tournament.participants}
-                    </div>
-                    <div class="text-sm text-slate-400">{tournament.points} puntos</div>
-                  </div>
-                </div>
-
-                <!-- Partidas del Torneo -->
-                <div class="space-y-2">
-                  <h4 class="font-medium text-slate-300 mb-2">Partidas</h4>
-                  {#each tournament.games as game}
-                    <div class="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
-                      <div class="flex items-center space-x-3">
-                        <div class="text-sm font-medium text-white">R{game.round}</div>
-                        <div class="text-sm text-slate-300">vs {game.opponent}</div>
-                        <div class="text-xs text-slate-400">({game.opponent_rating})</div>
-                      </div>
-                      <div class="flex items-center space-x-2">
-                        <div class="text-xs text-slate-400">{game.color === 'white' ? '⚪' : '⚫'}</div>
-                        <div class="text-sm font-medium {
-                          game.result === '1-0' ? 'text-emerald-400' :
-                          game.result === '0-1' ? 'text-red-400' : 'text-yellow-400'
-                        }">
-                          {game.result}
-                        </div>
-                      </div>
+            <!-- Enrolled Classes -->
+            <div class="glass-panel p-8 border-t-4 border-blue-500">
+               <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                <Briefcase class="w-4 h-4 text-blue-400" />
+                Programas Activos
+               </h3>
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {#each report.classes as cls}
+                    <div class="p-5 bg-surface-950/50 border border-surface-900 rounded-2xl group hover:border-blue-500/30 transition-all">
+                       <div class="flex items-center justify-between mb-3">
+                          <h4 class="text-sm font-black text-white uppercase tracking-tight">{cls.name}</h4>
+                          <span class="text-[10px] font-black text-emerald-400">{formatCurrency(cls.price)}/MES</span>
+                       </div>
+                       <div class="flex items-center gap-2 text-[10px] font-bold text-surface-500 uppercase">
+                          <Clock class="w-3.5 h-3.5" />
+                          {cls.schedule}
+                       </div>
                     </div>
                   {/each}
-                </div>
-              </div>
-            {/each}
-          {:else}
-            <div class="text-center py-12">
-              <Trophy class="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p class="text-slate-400">No ha participado en torneos aún</p>
+               </div>
             </div>
-          {/if}
-        </div>
-      {/if}
+          </div>
 
-      <!-- Tab: Cronología -->
-      {#if selectedTab === 'timeline'}
-        <div class="space-y-8">
-          <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-white mb-6">Cronología de Actividad</h3>
-            <div class="space-y-4">
-              {#each report.activity_timeline as activity}
-                {@const IconComponent = getActivityIcon(activity.type)}
-                <div class="flex items-start space-x-4">
-                  <div class="p-2 bg-slate-600/50 rounded-lg">
-                    <IconComponent class="w-4 h-4 {getActivityColor(activity.status)}" />
-                  </div>
-                  <div class="flex-1">
-                    <div class="flex items-center justify-between">
-                      <h4 class="font-medium text-white">{activity.title}</h4>
-                      <span class="text-xs text-slate-400">{formatDate(activity.date)}</span>
-                    </div>
-                    <p class="text-sm text-slate-300 mt-1">{activity.description}</p>
-                    {#if activity.details && typeof activity.details === 'object'}
-                      <div class="mt-2 text-xs text-slate-400">
-                        {#each Object.entries(activity.details) as [key, value]}
-                          <span class="mr-4">{key}: {value}</span>
-                        {/each}
-                      </div>
-                    {/if}
-                  </div>
+          <!-- Right Column: Performance Charts -->
+          <div class="space-y-8">
+             <!-- Rating Evolution -->
+             <div class="glass-panel p-8 border-t-4 border-emerald-500">
+                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">Trayectoria de Rating</h3>
+                <div class="space-y-4">
+                   {#each report.rating_history as entry}
+                     <div class="flex items-center justify-between p-4 bg-surface-950/50 border border-surface-900 rounded-2xl group hover:bg-surface-950 transition-colors">
+                        <div>
+                           <p class="text-[10px] font-black text-white uppercase tracking-tight">{entry.event}</p>
+                           <p class="text-[8px] font-black text-surface-600 uppercase mt-0.5">{formatDate(entry.date)}</p>
+                        </div>
+                        <div class="text-right">
+                           <p class="text-sm font-black text-white">{entry.rating}</p>
+                           <p class={`text-[9px] font-black ${entry.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                             {entry.change >= 0 ? '+' : ''}{entry.change}
+                           </p>
+                        </div>
+                     </div>
+                   {/each}
                 </div>
-              {/each}
-            </div>
+             </div>
+
+             <!-- Skills Breakdown -->
+             <div class="glass-panel p-8 border-t-4 border-purple-500">
+                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">Estado Habilidades</h3>
+                <div class="space-y-5">
+                   <div class="space-y-2">
+                      <div class="flex justify-between text-[10px] font-black tracking-widest text-emerald-400">
+                        <span>DOMINADAS</span>
+                        <span>{progress.skills_mastered} / {progress.total_skills_assigned}</span>
+                      </div>
+                      <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
+                        <div class="h-full bg-emerald-500" style="width: {progress.total_skills_assigned > 0 ? (progress.skills_mastered/progress.total_skills_assigned)*100 : 0}%"></div>
+                      </div>
+                   </div>
+
+                   <div class="space-y-2">
+                      <div class="flex justify-between text-[10px] font-black tracking-widest text-blue-400">
+                        <span>EN DESARROLLO</span>
+                        <span>{progress.skills_in_progress}</span>
+                      </div>
+                      <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
+                        <div class="h-full bg-blue-500" style="width: {progress.total_skills_assigned > 0 ? (progress.skills_in_progress/progress.total_skills_assigned)*100 : 0}%"></div>
+                      </div>
+                   </div>
+
+                   <div class="space-y-2">
+                      <div class="flex justify-between text-[10px] font-black tracking-widest text-surface-600">
+                        <span>PENDIENTES</span>
+                        <span>{progress.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress}</span>
+                      </div>
+                      <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
+                        <div class="h-full bg-surface-800" style="width: {progress.total_skills_assigned > 0 ? ((progress.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress)/progress.total_skills_assigned)*100 : 0}%"></div>
+                      </div>
+                   </div>
+                </div>
+             </div>
           </div>
         </div>
       {/if}
-    </main>
+
+      {#if selectedTab === 'attendance'}
+        <div class="space-y-8" in:fade>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass-panel p-8 text-center border-b-4 border-emerald-500">
+               <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.attended_sessions}</p>
+               <p class="text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em]">SESIONES PRESENTE</p>
+            </div>
+            <div class="glass-panel p-8 text-center border-b-4 border-orange-500">
+               <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.late_sessions}</p>
+               <p class="text-[9px] font-black text-orange-400 uppercase tracking-[0.2em]">SESIONES TARDE</p>
+            </div>
+            <div class="glass-panel p-8 text-center border-b-4 border-red-500">
+               <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.absent_sessions}</p>
+               <p class="text-[9px] font-black text-red-400 uppercase tracking-[0.2em]">AUSENCIAS TOTALES</p>
+            </div>
+            <div class="glass-panel p-8 text-center border-b-4 border-blue-500">
+               <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.punctuality_rate.toFixed(0)}%</p>
+               <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">RATIO PUNTUALIDAD</p>
+            </div>
+          </div>
+
+          <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
+             <div class="p-8 border-b border-surface-900">
+                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em]">Registro Histórico</h3>
+             </div>
+             <div class="divide-y divide-surface-900/50">
+                {#each report.attendance_history as h}
+                  {@const Icon = getAttendanceIcon(h.status)}
+                  <div class="p-6 flex flex-wrap items-center justify-between gap-4 group hover:bg-surface-950/50 transition-colors">
+                     <div class="flex items-center gap-5">
+                        <div class={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all ${getAttendanceTheme(h.status)}`}>
+                           <Icon class="w-6 h-6" />
+                        </div>
+                        <div>
+                           <p class="text-xs font-black text-white uppercase tracking-tight">{formatDate(h.date)}</p>
+                           <p class="text-[10px] font-bold text-surface-600 uppercase tracking-widest mt-0.5">ESTADO: {h.status === 'P' ? 'PRESENTE' : h.status === 'T' ? 'TARDE' : 'AUSENCIA'}</p>
+                        </div>
+                     </div>
+                     {#if h.notes}
+                        <div class="bg-surface-950 border border-surface-900 px-5 py-3 rounded-xl max-w-sm">
+                           <p class="text-[10px] text-surface-400 italic">"{h.notes}"</p>
+                        </div>
+                     {/if}
+                  </div>
+                {/each}
+             </div>
+          </div>
+        </div>
+      {/if}
+
+      {#if selectedTab === 'skills'}
+        <div class="space-y-8" in:fade>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {#each ['Fundamentos', 'Táctica', 'Finales'] as category}
+              {@const catSkills = report.skills_progress.filter(s => s.category === category)}
+              {@const completed = catSkills.filter(s => s.status === 'completed').length}
+              <div class="glass-panel p-8 flex items-center justify-between border-t-4 border-purple-500">
+                 <div>
+                    <h4 class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">{category}</h4>
+                    <p class="text-3xl font-black text-white tracking-tighter">{completed} / {catSkills.length}</p>
+                 </div>
+                 <div class="w-16 h-16 rounded-full border-4 border-surface-900 flex items-center justify-center relative">
+                    <svg class="absolute inset-0 w-full h-full -rotate-90">
+                       <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="4" class="text-surface-900" />
+                       <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="4" class="text-purple-500" stroke-dasharray="175.9" stroke-dashoffset={175.9 - (175.9 * (completed / (catSkills.length || 1)))} />
+                    </svg>
+                    <span class="text-[10px] font-black text-white">{catSkills.length > 0 ? ((completed/catSkills.length)*100).toFixed(0) : 0}%</span>
+                 </div>
+              </div>
+            {/each}
+          </div>
+
+          <div class="grid grid-cols-1 gap-4">
+             {#each report.skills_progress as skill}
+                <div class="glass-panel p-8 group hover:border-purple-500/30 transition-all border-l-8 {skill.status === 'completed' ? 'border-emerald-500' : skill.status === 'in_progress' ? 'border-blue-500' : 'border-surface-800'}">
+                   <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div class="space-y-2">
+                         <div class="flex items-center gap-3">
+                           <h4 class="text-lg font-black text-white uppercase tracking-tight">{skill.skill_name}</h4>
+                           <span class="text-[8px] font-black text-surface-600 border border-surface-800 px-2 py-0.5 rounded uppercase">{skill.category}</span>
+                         </div>
+                         {#if skill.notes}
+                           <p class="text-[11px] text-surface-400 italic max-w-xl">"{skill.notes}"</p>
+                         {/if}
+                      </div>
+                      
+                      <div class="flex items-center gap-10">
+                         <div class="text-center">
+                            <p class="text-2xl font-black text-white">{skill.level} / {skill.max_level}</p>
+                            <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-1">NIVEL ACTUAL</p>
+                         </div>
+                         <div class="text-right">
+                            <span class={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                               skill.status === 'completed' ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' : 
+                               skill.status === 'in_progress' ? 'text-blue-400 border-blue-500/20 bg-blue-500/10' : 
+                               'text-surface-500 border-surface-800 bg-surface-950'
+                            }`}>
+                               {skill.status === 'completed' ? 'COMPLETADA' : skill.status === 'in_progress' ? 'EN PROCESO' : 'SIN INICIALIZAR'}
+                            </span>
+                            {#if skill.completion_date}
+                              <p class="text-[8px] font-black text-surface-600 uppercase mt-2 tracking-widest">FINALIZADA: {formatDate(skill.completion_date)}</p>
+                            {/if}
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             {/each}
+          </div>
+        </div>
+      {/if}
+
+      {#if selectedTab === 'payments'}
+         <div class="space-y-8" in:fade>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="glass-panel p-8 text-center border-t-4 border-surface-900">
+                 <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.total_payments}</p>
+                 <p class="text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">RECIBOS EMITIDOS</p>
+              </div>
+              <div class="glass-panel p-8 text-center border-t-4 border-emerald-500">
+                 <p class="text-4xl font-black text-emerald-400 tracking-tighter mb-2">{progress.paid_payments}</p>
+                 <p class="text-[9px] font-black text-emerald-500/50 uppercase tracking-[0.2em]">PAGOS LIQUIDADOS</p>
+              </div>
+              <div class="glass-panel p-8 text-center border-t-4 border-red-500">
+                 <p class="text-4xl font-black text-red-400 tracking-tighter mb-2">{progress.overdue_payments}</p>
+                 <p class="text-[9px] font-black text-red-500/50 uppercase tracking-[0.2em]">RECIBOS VENCIDOS</p>
+              </div>
+              <div class="glass-panel p-8 text-center border-t-4 border-blue-500">
+                 <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.payment_compliance.toFixed(0)}%</p>
+                 <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">RATIO CUMPLIMIENTO</p>
+              </div>
+            </div>
+
+            <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
+               <div class="overflow-x-auto">
+                  <table class="w-full text-left">
+                     <thead>
+                        <tr class="bg-surface-950/80 border-b border-surface-900">
+                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500">Concepto / Vencimiento</th>
+                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-right">Importe</th>
+                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">Estado</th>
+                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-right">Referencia</th>
+                        </tr>
+                     </thead>
+                     <tbody class="divide-y divide-surface-900/50">
+                        {#each report.payment_history as pay}
+                          <tr class="hover:bg-primary-500/[0.02] transition-colors group">
+                             <td class="px-8 py-6">
+                                <div>
+                                   <p class="text-xs font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors">{pay.description}</p>
+                                   <p class="text-[9px] font-black text-surface-600 uppercase mt-1 tracking-widest">LÍMITE: {formatDate(pay.due_date)}</p>
+                                </div>
+                             </td>
+                             <td class="px-8 py-6 text-right font-black text-white text-sm">
+                                {formatCurrency(pay.amount)}
+                             </td>
+                             <td class="px-8 py-6 text-center">
+                                <span class={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
+                                   pay.status === 'paid' ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' : 
+                                   pay.status === 'overdue' ? 'text-red-400 border-red-500/20 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 
+                                   'text-orange-400 border-orange-500/20 bg-orange-500/10'
+                                }`}>
+                                   {pay.status === 'paid' ? 'LIQUIDADO' : pay.status === 'overdue' ? 'VENCIDO' : 'PENDIENTE'}
+                                </span>
+                             </td>
+                             <td class="px-8 py-6 text-right">
+                                <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{pay.payment_reference || 'S/REF'}</p>
+                                {#if pay.paid_date}
+                                  <p class="text-[8px] font-bold text-emerald-500/50 uppercase">PAGADO: {formatDate(pay.paid_date)}</p>
+                                {/if}
+                             </td>
+                          </tr>
+                        {/each}
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+         </div>
+      {/if}
+
+      {#if selectedTab === 'tournaments'}
+         <div class="space-y-8" in:fade>
+            {#if report.tournament_history.length > 0}
+               <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div class="glass-panel p-8 text-center border-b-4 border-yellow-500">
+                     <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.tournaments_participated}</p>
+                     <p class="text-[9px] font-black text-yellow-500/50 uppercase tracking-[0.2em]">TORNEOS DISPUTADOS</p>
+                  </div>
+                  <div class="glass-panel p-8 text-center border-b-4 border-emerald-500">
+                     <p class="text-4xl font-black text-emerald-400 tracking-tighter mb-2">{progress.tournament_wins}</p>
+                     <p class="text-[9px] font-black text-emerald-500/50 uppercase tracking-[0.2em]">VICTORIAS TOTALES</p>
+                  </div>
+                  <div class="glass-panel p-8 text-center border-b-4 border-surface-500">
+                     <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.tournament_draws}</p>
+                     <p class="text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">TABLAS / EMPATES</p>
+                  </div>
+                  <div class="glass-panel p-8 text-center border-b-4 border-red-500">
+                     <p class="text-4xl font-black text-red-400 tracking-tighter mb-2">{progress.tournament_losses}</p>
+                     <p class="text-[9px] font-black text-red-500/50 uppercase tracking-[0.2em]">DERROTAS</p>
+                  </div>
+               </div>
+
+               <div class="grid grid-cols-1 gap-8">
+                  {#each report.tournament_history as t}
+                     <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
+                        <div class="p-8 border-b border-surface-900 bg-surface-950/50 flex flex-wrap items-center justify-between gap-6">
+                           <div class="space-y-1">
+                              <h3 class="text-xl font-black text-white uppercase tracking-tighter">{t.name}</h3>
+                              <div class="flex items-center gap-4 text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">
+                                 <span>{formatDate(t.date)}</span>
+                                 <span class="w-1.5 h-1.5 rounded-full bg-surface-800"></span>
+                                 <span>{t.format}</span>
+                                 <span class="w-1.5 h-1.5 rounded-full bg-surface-800"></span>
+                                 <span>{t.participants} PARTICIPANTES</span>
+                              </div>
+                           </div>
+                           <div class="text-right">
+                              <p class="text-2xl font-black text-white tracking-tighter">POSICIÓN: {t.final_position} <span class="text-primary-500">/ {t.participants}</span></p>
+                              <p class="text-[9px] font-black text-primary-400 uppercase tracking-widest mt-1">PUNTUACIÓN: {t.points} PTS</p>
+                           </div>
+                        </div>
+                        <div class="p-8">
+                           <h4 class="text-[9px] font-black text-surface-600 uppercase tracking-[0.2em] mb-4">CRÓNICA DE PARTIDAS</h4>
+                           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {#each t.games as g}
+                                 <div class="p-5 bg-surface-950/80 border border-surface-900 rounded-2xl flex items-center justify-between group hover:border-primary-500/30 transition-all">
+                                    <div class="flex items-center gap-4">
+                                       <div class="w-10 h-10 rounded-xl bg-surface-900 flex items-center justify-center text-[10px] font-black text-surface-400">R{g.round}</div>
+                                       <div>
+                                          <p class="text-[11px] font-black text-white uppercase tracking-tight">{g.opponent}</p>
+                                          <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-0.5">Rating: {g.opponent_rating}</p>
+                                       </div>
+                                    </div>
+                                    <div class="text-right flex flex-col items-end gap-1.5">
+                                       <span class={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${
+                                          g.result === '1-0' ? 'text-emerald-400 border border-emerald-500/20 bg-emerald-500/10' :
+                                          g.result === '0-1' ? 'text-red-400 border border-red-500/20 bg-red-500/10' :
+                                          'text-orange-400 border border-orange-500/20 bg-orange-500/10'
+                                       }`}>
+                                          {g.result === '1-0' ? 'VICTORIA' : g.result === '0-1' ? 'DERROTA' : 'TABLAS'}
+                                       </span>
+                                       <span class="text-[10px]">{g.color === 'white' ? '⚪ BLANCAS' : '⚫ NEGRAS'}</span>
+                                    </div>
+                                 </div>
+                              {/each}
+                           </div>
+                        </div>
+                     </div>
+                  {/each}
+               </div>
+            {:else}
+               <div class="glass-panel p-24 text-center space-y-6">
+                  <div class="w-20 h-20 bg-surface-950 border border-surface-900 rounded-3xl flex items-center justify-center mx-auto text-surface-800">
+                     <Trophy class="w-10 h-10" />
+                  </div>
+                  <div>
+                    <p class="text-[10px] font-black text-surface-500 uppercase tracking-[0.3em]">Sin Participación en Torneos</p>
+                    <p class="text-[9px] font-bold text-surface-700 uppercase tracking-widest mt-2">El estudiante aún no ha registrado actividad competitiva oficial.</p>
+                  </div>
+               </div>
+            {/if}
+         </div>
+      {/if}
+
+      {#if selectedTab === 'timeline'}
+         <div class="max-w-4xl mx-auto space-y-12 py-10" in:fade>
+            <div class="relative">
+               <!-- Vertical Line -->
+               <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-surface-900/50"></div>
+
+               <div class="space-y-12">
+                  {#each report.activity_timeline as act, i}
+                     {@const ActIcon = getActivityIcon(act.type)}
+                     <div class="relative pl-16 group">
+                        <!-- Dot -->
+                        <div class={`absolute left-[1.125rem] top-0 w-3 h-3 rounded-full border-2 border-surface-950 z-10 transition-all group-hover:scale-150 ${
+                           act.status === 'positive' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' :
+                           act.status === 'negative' ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
+                           'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'
+                        }`}></div>
+
+                        <div class="glass-panel p-6 group-hover:border-primary-500/20 transition-all">
+                           <div class="flex items-center justify-between mb-3">
+                              <div class="flex items-center gap-3">
+                                 <div class="p-2 bg-surface-950 rounded-lg text-surface-500 group-hover:text-primary-400 transition-colors">
+                                    <ActIcon class="w-4 h-4" />
+                                 </div>
+                                 <h4 class="text-sm font-black text-white uppercase tracking-tight">{act.title}</h4>
+                              </div>
+                              <span class="text-[9px] font-black text-surface-600 uppercase tracking-widest">{formatDate(act.date)}</span>
+                           </div>
+                           <p class="text-[11px] text-surface-400 leading-relaxed mb-4">{act.description}</p>
+                           
+                           {#if act.details && Object.keys(act.details).length > 0}
+                              <div class="flex flex-wrap gap-4 pt-4 border-t border-surface-900/50">
+                                 {#each Object.entries(act.details) as [key, value]}
+                                    <div class="flex flex-col">
+                                       <span class="text-[8px] font-black text-surface-600 uppercase tracking-widest">{key}</span>
+                                       <span class="text-[10px] font-black text-white uppercase mt-0.5">{value}</span>
+                                    </div>
+                                 {/each}
+                              </div>
+                           {/if}
+                        </div>
+                     </div>
+                  {/each}
+               </div>
+            </div>
+         </div>
+      {/if}
+    </div>
   </div>
 {/if}
+
+<style lang="postcss">
+  /* Transitions and micro-interactions */
+  :global(.glass-panel) {
+    transition: all 300ms;
+  }
+</style>

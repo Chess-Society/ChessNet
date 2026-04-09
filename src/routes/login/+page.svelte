@@ -1,58 +1,45 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { signInWithGoogle } from '$lib/supabase';
+  import { signInWithGoogle } from '$lib/firebase';
   import { showError } from '$lib/utils/toast';
   import { AlertCircle } from 'lucide-svelte';
+  import { goto } from '$app/navigation';
 
-  let isSigningIn = false;
-  let errorMessage = '';
+  let { data } = $props();
 
-  onMount(async () => {
-    console.log('🔄 Login page mounted');
-    
-    // Verificar si hay un error en la URL
-    const error = $page.url.searchParams.get('error');
-    if (error === 'callback_failed') {
-      errorMessage = 'Error en el proceso de autenticación. Por favor, intenta nuevamente.';
-    }
 
-    // Insertar widget Ko-fi directamente como HTML
-    const initKofi = () => {
-      const kofiContainer = document.getElementById('kofi-widget-container');
-      if (kofiContainer) {
-        console.log('🎯 Insertando widget Ko-fi...');
-        kofiContainer.innerHTML = `
-          <a href="https://ko-fi.com/L4L41KZL7F" target="_blank" 
-             class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow-lg transition-colors text-sm font-medium flex items-center space-x-2">
-            <span>☕</span>
-            <span>Apoya el proyecto</span>
-          </a>
-        `;
-        console.log('✅ Widget Ko-fi insertado');
-      }
-    };
-
-    // Iniciar inmediatamente
-    initKofi();
-  });
+  let isSigningIn = $state(false);
+  let errorMessage = $state('');
 
   const handleGoogleSignIn = async () => {
     try {
       isSigningIn = true;
       errorMessage = '';
-      console.log('🔄 Iniciando sesión con Google...');
+      console.log('🔄 Iniciando sesión con Firebase Google...');
       
-      // Obtener redirectTo de la URL
-      const redirectTo = $page.url.searchParams.get('redirectTo') || '/dashboard';
-      console.log('🔄 RedirectTo:', redirectTo);
+      const { user, error } = await signInWithGoogle();
       
-      const { error } = await signInWithGoogle(redirectTo);
       if (error) {
-        console.error('❌ Error en Google OAuth:', error);
+        console.error('❌ Error en Firebase Google Auth:', error);
         errorMessage = 'Error al iniciar sesión con Google. Por favor, intenta nuevamente.';
-      } else {
-        console.log('✅ Redirección a Google iniciada');
+      } else if (user) {
+        console.log('✅ Sesión iniciada correctamente:', user.email);
+        
+        // Crear sesión en el servidor
+        const response = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user })
+        });
+
+        if (response.ok) {
+          // Redirigir al dashboard
+          const redirectTo = $page.url.searchParams.get('redirectTo') || '/dashboard';
+          goto(redirectTo);
+        } else {
+          errorMessage = 'Error al crear la sesión en el servidor.';
+        }
       }
     } catch (error) {
       console.error('❌ Error inesperado:', error);
@@ -61,6 +48,32 @@
       isSigningIn = false;
     }
   };
+
+  onMount(async () => {
+    console.log('🔄 Login page mounted');
+    
+    // Verificar si hay un error en la URL
+    const errorCode = $page.url.searchParams.get('error');
+    if (errorCode) {
+      errorMessage = 'Error en el proceso de autenticación.';
+    }
+
+    // Insertar widget Ko-fi directamente como HTML
+    const initKofi = () => {
+      const kofiContainer = document.getElementById('kofi-widget-container');
+      if (kofiContainer) {
+        kofiContainer.innerHTML = `
+          <a href="https://ko-fi.com/L4L41KZL7F" target="_blank" 
+             class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow-lg transition-colors text-sm font-medium flex items-center space-x-2">
+            <span>☕</span>
+            <span>Apoya el proyecto</span>
+          </a>
+        `;
+      }
+    };
+
+    initKofi();
+  });
 </script>
 
 <svelte:head>
@@ -107,7 +120,7 @@
         {/if}
 
           <button
-            on:click={handleGoogleSignIn}
+            onclick={handleGoogleSignIn}
             disabled={isSigningIn}
             class="w-full flex items-center justify-center px-6 py-4 border border-slate-600/50 rounded-xl bg-gradient-to-r from-slate-700/80 to-slate-600/80 hover:from-slate-600/80 hover:to-slate-500/80 text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >

@@ -1,58 +1,86 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  limit,
+  type DocumentData
+} from "firebase/firestore";
 import type { College } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const collegesApi = {
   // Get all colleges for current user
   async getColleges(): Promise<College[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("colleges")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("name", { ascending: true });
+    const q = query(
+      collection(db, "colleges"),
+      where("user_id", "==", user.uid),
+      orderBy("name", "asc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<College>(doc));
   },
-
 
   // Get colleges by city
   async getCollegesByCity(city: string): Promise<College[]> {
-    const { data, error } = await supabase
-      .from("colleges")
-      .select("*")
-      .eq("city", city)
-      .order("name", { ascending: true });
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
 
-    if (error) throw error;
-    return data || [];
+    const q = query(
+      collection(db, "colleges"),
+      where("user_id", "==", user.uid),
+      where("city", "==", city),
+      orderBy("name", "asc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<College>(doc));
   },
 
   // Get a specific college
   async getCollege(id: string): Promise<College> {
-    const { data, error } = await supabase
-      .from("colleges")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
 
-    if (error) throw error;
-    return data;
+    const docRef = doc(db, "colleges", id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
+      throw new Error("College not found or access denied");
+    }
+
+    return toData<College>(docSnap);
   },
 
-  // Search colleges by name
-  async searchColleges(query: string): Promise<College[]> {
-    const { data, error } = await supabase
-      .from("colleges")
-      .select("*")
-      .ilike("name", `%${query}%`)
-      .order("name", { ascending: true })
-      .limit(20);
+  // Search colleges by name (Simplified since Firestore doesn't support ilike)
+  async searchColleges(queryStr: string): Promise<College[]> {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
 
-    if (error) throw error;
-    return data || [];
+    // Basic implementation: fetch all and filter client-side 
+    // or use a structured search if query is prefix-based.
+    // For simplicity, we fetch recent and filter.
+    const allColleges = await this.getColleges();
+    const searchResult = allColleges.filter(c => 
+      c.name.toLowerCase().includes(queryStr.toLowerCase())
+    ).slice(0, 20);
+
+    return searchResult;
   },
 
   // Create a new college
@@ -64,25 +92,18 @@ export const collegesApi = {
     email?: string;
     website?: string;
   }): Promise<College> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("colleges")
-      .insert({
-        user_id: user.id,
-        name: collegeData.name,
-        city: collegeData.city,
-        address: collegeData.address,
-        phone: collegeData.phone,
-        email: collegeData.email,
-        website: collegeData.website
-      })
-      .select()
-      .single();
+    const docRef = await addDoc(collection(db, "colleges"), {
+      ...collegeData,
+      user_id: user.uid,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<College>(docSnap);
   },
 
   // Update a college
@@ -90,58 +111,57 @@ export const collegesApi = {
     id: string, 
     updates: Partial<Omit<College, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
   ): Promise<College> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("colleges")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .select()
-      .single();
+    const docRef = doc(db, "colleges", id);
+    const docSnap = await getDoc(docRef);
 
-    if (error) throw error;
-    return data;
+    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
+      throw new Error("College not found or access denied");
+    }
+
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString()
+    });
+
+    const updatedSnap = await getDoc(docRef);
+    return toData<College>(updatedSnap);
   },
 
   // Delete a college
   async deleteCollege(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { error } = await supabase
-      .from("colleges")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
+    const docRef = doc(db, "colleges", id);
+    const docSnap = await getDoc(docRef);
 
-    if (error) throw error;
+    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
+      throw new Error("College not found or access denied");
+    }
+
+    await deleteDoc(docRef);
   },
 
-  // Get colleges with class count
+  // Get colleges with class count (Manual count)
   async getCollegesWithClassCount(): Promise<(College & { classes_count: number })[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+    const colleges = await this.getColleges();
+    const result = [];
 
-    const { data, error } = await supabase
-      .from("colleges")
-      .select(`
-        *,
-        classes:classes(count)
-      `)
-      .eq("user_id", user.id)
-      .order("name", { ascending: true });
+    for (const college of colleges) {
+      const classesQuery = query(
+        collection(db, "classes"),
+        where("college_id", "==", college.id)
+      );
+      const classesSnap = await getDocs(classesQuery);
+      result.push({
+        ...college,
+        classes_count: classesSnap.size
+      });
+    }
 
-    if (error) throw error;
-    
-    return data?.map(college => ({
-      ...college,
-      classes_count: college.classes?.[0]?.count || 0
-    })) || [];
+    return result;
   },
-
 };

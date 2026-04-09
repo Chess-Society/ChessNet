@@ -29,30 +29,59 @@ declare module '$env/static/private' {
 	export const TESTSPRITE_API_KEY: string;
 	export const ACSetupSvcPort: string;
 	export const ALLUSERSPROFILE: string;
+	export const ANTIGRAVITY_AGENT: string;
+	export const ANTIGRAVITY_EDITOR_APP_ROOT: string;
+	export const ANTIGRAVITY_TRAJECTORY_ID: string;
 	export const APPDATA: string;
 	export const ChocolateyInstall: string;
 	export const ChocolateyLastPathUpdate: string;
 	export const CHROME_CRASHPAD_PIPE_NAME: string;
+	export const COLOR: string;
 	export const CommonProgramFiles: string;
 	export const CommonProgramW6432: string;
 	export const COMPUTERNAME: string;
 	export const ComSpec: string;
-	export const CURSOR_TRACE_ID: string;
 	export const DriverData: string;
-	export const EFC_5764_1592913036: string;
-	export const ELECTRON_NO_ASAR: string;
-	export const ELECTRON_RUN_AS_NODE: string;
+	export const EDITOR: string;
+	export const EFC_12320_1262719628: string;
+	export const EFC_12320_1592913036: string;
+	export const EFC_12320_2283032206: string;
+	export const EFC_12320_2775293581: string;
+	export const EFC_12320_3789132940: string;
 	export const EnableLog: string;
+	export const FPS_BROWSER_APP_PROFILE_STRING: string;
+	export const FPS_BROWSER_USER_PROFILE_STRING: string;
+	export const HOME: string;
 	export const HOMEDRIVE: string;
 	export const HOMEPATH: string;
+	export const INIT_CWD: string;
 	export const LEVEL_ZERO_V1_SDK_PATH: string;
 	export const LOCALAPPDATA: string;
 	export const LOGONSERVER: string;
+	export const NODE: string;
 	export const NODE_ENV: string;
+	export const npm_command: string;
+	export const npm_config_cache: string;
+	export const npm_config_globalconfig: string;
+	export const npm_config_global_prefix: string;
+	export const npm_config_init_module: string;
+	export const npm_config_local_prefix: string;
+	export const npm_config_node_gyp: string;
+	export const npm_config_noproxy: string;
+	export const npm_config_npm_version: string;
+	export const npm_config_prefix: string;
+	export const npm_config_userconfig: string;
+	export const npm_config_user_agent: string;
+	export const npm_execpath: string;
+	export const npm_lifecycle_event: string;
+	export const npm_lifecycle_script: string;
+	export const npm_node_execpath: string;
+	export const npm_package_json: string;
+	export const npm_package_name: string;
+	export const npm_package_version: string;
 	export const NUMBER_OF_PROCESSORS: string;
 	export const OneDrive: string;
 	export const OneDriveConsumer: string;
-	export const ORIGINAL_XDG_CURRENT_DESKTOP: string;
 	export const OS: string;
 	export const Path: string;
 	export const PATHEXT: string;
@@ -63,6 +92,7 @@ declare module '$env/static/private' {
 	export const ProgramData: string;
 	export const ProgramFiles: string;
 	export const ProgramW6432: string;
+	export const PROMPT: string;
 	export const PSModulePath: string;
 	export const PUBLIC: string;
 	export const RlsSvcPort: string;
@@ -76,17 +106,12 @@ declare module '$env/static/private' {
 	export const USERNAME: string;
 	export const USERPROFILE: string;
 	export const VSCODE_CODE_CACHE_PATH: string;
-	export const VSCODE_CRASH_REPORTER_PROCESS_TYPE: string;
 	export const VSCODE_CWD: string;
-	export const VSCODE_ESM_ENTRYPOINT: string;
-	export const VSCODE_HANDLES_UNCAUGHT_ERRORS: string;
 	export const VSCODE_IPC_HOOK: string;
 	export const VSCODE_NLS_CONFIG: string;
 	export const VSCODE_PID: string;
-	export const VSCODE_PROCESS_TITLE: string;
 	export const windir: string;
 	export const ZES_ENABLE_SYSMAN: string;
-	export const __COMPAT_LAYER: string;
 }
 
 /**
@@ -99,8 +124,13 @@ declare module '$env/static/private' {
  * ```
  */
 declare module '$env/static/public' {
-	export const PUBLIC_SUPABASE_URL: string;
-	export const PUBLIC_SUPABASE_ANON_KEY: string;
+	export const PUBLIC_FIREBASE_API_KEY: string;
+	export const PUBLIC_FIREBASE_AUTH_DOMAIN: string;
+	export const PUBLIC_FIREBASE_PROJECT_ID: string;
+	export const PUBLIC_FIREBASE_STORAGE_BUCKET: string;
+	export const PUBLIC_FIREBASE_MESSAGING_SENDER_ID: string;
+	export const PUBLIC_FIREBASE_APP_ID: string;
+	export const PUBLIC_FIREBASE_MEASUREMENT_ID: string;
 }
 
 /**
@@ -120,30 +150,59 @@ declare module '$env/dynamic/private' {
 		TESTSPRITE_API_KEY: string;
 		ACSetupSvcPort: string;
 		ALLUSERSPROFILE: string;
+		ANTIGRAVITY_AGENT: string;
+		ANTIGRAVITY_EDITOR_APP_ROOT: string;
+		ANTIGRAVITY_TRAJECTORY_ID: string;
 		APPDATA: string;
 		ChocolateyInstall: string;
 		ChocolateyLastPathUpdate: string;
 		CHROME_CRASHPAD_PIPE_NAME: string;
+		COLOR: string;
 		CommonProgramFiles: string;
 		CommonProgramW6432: string;
 		COMPUTERNAME: string;
 		ComSpec: string;
-		CURSOR_TRACE_ID: string;
 		DriverData: string;
-		EFC_5764_1592913036: string;
-		ELECTRON_NO_ASAR: string;
-		ELECTRON_RUN_AS_NODE: string;
+		EDITOR: string;
+		EFC_12320_1262719628: string;
+		EFC_12320_1592913036: string;
+		EFC_12320_2283032206: string;
+		EFC_12320_2775293581: string;
+		EFC_12320_3789132940: string;
 		EnableLog: string;
+		FPS_BROWSER_APP_PROFILE_STRING: string;
+		FPS_BROWSER_USER_PROFILE_STRING: string;
+		HOME: string;
 		HOMEDRIVE: string;
 		HOMEPATH: string;
+		INIT_CWD: string;
 		LEVEL_ZERO_V1_SDK_PATH: string;
 		LOCALAPPDATA: string;
 		LOGONSERVER: string;
+		NODE: string;
 		NODE_ENV: string;
+		npm_command: string;
+		npm_config_cache: string;
+		npm_config_globalconfig: string;
+		npm_config_global_prefix: string;
+		npm_config_init_module: string;
+		npm_config_local_prefix: string;
+		npm_config_node_gyp: string;
+		npm_config_noproxy: string;
+		npm_config_npm_version: string;
+		npm_config_prefix: string;
+		npm_config_userconfig: string;
+		npm_config_user_agent: string;
+		npm_execpath: string;
+		npm_lifecycle_event: string;
+		npm_lifecycle_script: string;
+		npm_node_execpath: string;
+		npm_package_json: string;
+		npm_package_name: string;
+		npm_package_version: string;
 		NUMBER_OF_PROCESSORS: string;
 		OneDrive: string;
 		OneDriveConsumer: string;
-		ORIGINAL_XDG_CURRENT_DESKTOP: string;
 		OS: string;
 		Path: string;
 		PATHEXT: string;
@@ -154,6 +213,7 @@ declare module '$env/dynamic/private' {
 		ProgramData: string;
 		ProgramFiles: string;
 		ProgramW6432: string;
+		PROMPT: string;
 		PSModulePath: string;
 		PUBLIC: string;
 		RlsSvcPort: string;
@@ -167,17 +227,12 @@ declare module '$env/dynamic/private' {
 		USERNAME: string;
 		USERPROFILE: string;
 		VSCODE_CODE_CACHE_PATH: string;
-		VSCODE_CRASH_REPORTER_PROCESS_TYPE: string;
 		VSCODE_CWD: string;
-		VSCODE_ESM_ENTRYPOINT: string;
-		VSCODE_HANDLES_UNCAUGHT_ERRORS: string;
 		VSCODE_IPC_HOOK: string;
 		VSCODE_NLS_CONFIG: string;
 		VSCODE_PID: string;
-		VSCODE_PROCESS_TITLE: string;
 		windir: string;
 		ZES_ENABLE_SYSMAN: string;
-		__COMPAT_LAYER: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}
@@ -195,8 +250,13 @@ declare module '$env/dynamic/private' {
  */
 declare module '$env/dynamic/public' {
 	export const env: {
-		PUBLIC_SUPABASE_URL: string;
-		PUBLIC_SUPABASE_ANON_KEY: string;
+		PUBLIC_FIREBASE_API_KEY: string;
+		PUBLIC_FIREBASE_AUTH_DOMAIN: string;
+		PUBLIC_FIREBASE_PROJECT_ID: string;
+		PUBLIC_FIREBASE_STORAGE_BUCKET: string;
+		PUBLIC_FIREBASE_MESSAGING_SENDER_ID: string;
+		PUBLIC_FIREBASE_APP_ID: string;
+		PUBLIC_FIREBASE_MEASUREMENT_ID: string;
 		[key: `PUBLIC_${string}`]: string | undefined;
 	}
 }

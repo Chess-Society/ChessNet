@@ -1,5 +1,26 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  setDoc,
+  writeBatch,
+  limit,
+  type DocumentData
+} from "firebase/firestore";
 import type { ChessExercise } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const exercisesApi = {
   // Get exercises by school
@@ -12,47 +33,39 @@ export const exercisesApi = {
       offset?: number;
     },
   ): Promise<ChessExercise[]> {
-    let query = supabase
-      .from("chess_exercises")
-      .select("*")
-      .eq("school_id", schoolId)
-      .order("created_at", { ascending: false });
+    let q = query(
+      collection(db, "chess_exercises"),
+      where("school_id", "==", schoolId),
+      orderBy("created_at", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    let data = querySnapshot.docs.map(doc => toData<ChessExercise>(doc));
 
     if (filters?.category) {
-      query = query.eq("category", filters.category);
+      data = data.filter(e => e.category === filters.category);
     }
 
     if (filters?.difficulty) {
-      query = query.eq("difficulty", filters.difficulty);
+      data = data.filter(e => e.difficulty === filters.difficulty);
     }
 
+    // Manual slice for limit/offset
+    if (filters?.offset !== undefined) {
+      data = data.slice(filters.offset);
+    }
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      data = data.slice(0, filters.limit);
     }
 
-    if (filters?.offset) {
-      query = query.range(
-        filters.offset,
-        filters.offset + (filters.limit || 10) - 1,
-      );
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-    return data || [];
+    return data;
   },
 
   // Get a specific exercise
   async getExercise(id: string): Promise<ChessExercise> {
-    const { data, error } = await supabase
-      .from("chess_exercises")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(doc(db, "chess_exercises", id));
+    if (!docSnap.exists()) throw new Error("Exercise not found");
+    return toData<ChessExercise>(docSnap);
   },
 
   // Create a new exercise
@@ -63,21 +76,20 @@ export const exercisesApi = {
       "id" | "school_id" | "created_at" | "updated_at"
     >,
   ): Promise<ChessExercise> {
-    const user = (await supabase.auth.getUser()).data.user;
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("chess_exercises")
-      .insert({
-        school_id: schoolId,
-        ...exercise,
-        created_by: user.id,
-      })
-      .select()
-      .single();
+    const exerciseData = {
+      school_id: schoolId,
+      ...exercise,
+      created_by: user.uid,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "chess_exercises"), exerciseData);
+    const docSnap = await getDoc(docRef);
+    return toData<ChessExercise>(docSnap);
   },
 
   // Update an exercise
@@ -85,28 +97,19 @@ export const exercisesApi = {
     id: string,
     updates: Partial<ChessExercise>,
   ): Promise<ChessExercise> {
-    const { data, error } = await supabase
-      .from("chess_exercises")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+    const docRef = doc(db, "chess_exercises", id);
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<ChessExercise>(docSnap);
   },
 
   // Delete an exercise
   async deleteExercise(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("chess_exercises")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, "chess_exercises", id));
   },
 
   // Record exercise attempt
@@ -118,43 +121,52 @@ export const exercisesApi = {
     timeSpentSeconds: number,
     hintsUsed: number = 0,
   ): Promise<void> {
-    const { error } = await supabase.from("exercise_attempts").insert({
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+
+    await addDoc(collection(db, "exercise_attempts"), {
       exercise_id: exerciseId,
       student_id: studentId,
       moves,
       is_correct: isCorrect,
       time_spent_seconds: timeSpentSeconds,
       hints_used: hintsUsed,
+      attempted_at: new Date().toISOString(),
+      owner_id: user.uid
     });
-
-    if (error) throw error;
   },
-
 
   // Get student's exercise attempts
   async getStudentAttempts(
     studentId: string,
     exerciseId?: string,
   ): Promise<any[]> {
-    let query = supabase
-      .from("exercise_attempts")
-      .select(
-        `
-        *,
-        chess_exercises:exercise_id(*)
-      `,
-      )
-      .eq("student_id", studentId)
-      .order("attempted_at", { ascending: false });
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+
+    let q = query(
+      collection(db, "exercise_attempts"),
+      where("student_id", "==", studentId),
+      orderBy("attempted_at", "desc")
+    );
 
     if (exerciseId) {
-      query = query.eq("exercise_id", exerciseId);
+      q = query(q, where("exercise_id", "==", exerciseId));
     }
 
-    const { data, error } = await query;
+    const querySnapshot = await getDocs(q);
+    const attempts = querySnapshot.docs.map(doc => toData<any>(doc));
 
-    if (error) throw error;
-    return data || [];
+    // Manual join for exercise data
+    for (const attempt of attempts) {
+      if (attempt.exercise_id) {
+        const exerciseSnap = await getDoc(doc(db, "chess_exercises", attempt.exercise_id));
+        if (exerciseSnap.exists()) {
+          attempt.chess_exercises = toData<ChessExercise>(exerciseSnap);
+        }
+      }
+    }
+
+    return attempts;
   },
-
 };

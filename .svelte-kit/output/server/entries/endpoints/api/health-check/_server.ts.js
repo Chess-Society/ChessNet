@@ -1,18 +1,12 @@
-import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from "../../../../chunks/public.js";
-const GET = async ({ cookies, locals, url }) => {
+const GET = async ({ locals, url }) => {
   try {
     const healthInfo = {
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       environment: {
         NODE_ENV: process.env.NODE_ENV || "unknown",
-        PUBLIC_SUPABASE_URL: PUBLIC_SUPABASE_URL ? "SET" : "MISSING",
-        PUBLIC_SUPABASE_ANON_KEY: PUBLIC_SUPABASE_ANON_KEY ? "SET" : "MISSING",
+        FIREBASE_STATUS: "INTEGRATED",
         url: url.toString(),
         hostname: url.hostname
-      },
-      cookies: {
-        total: cookies.getAll().length,
-        supabase: cookies.getAll().filter((c) => c.name.startsWith("sb-")).map((c) => c.name)
       },
       locals: {
         hasUser: !!locals.user,

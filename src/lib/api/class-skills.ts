@@ -1,241 +1,231 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  setDoc,
+  writeBatch,
+  limit,
+  type DocumentData
+} from "firebase/firestore";
 import type { ClassSkill, Skill } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const classSkillsApi = {
   // Get all skills assigned to a class
-  async getClassSkills(classId: string): Promise<(ClassSkill & { skill: Skill })[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+  async getClassSkills(classId: string, userId?: string): Promise<(ClassSkill & { skill: Skill })[]> {
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("class_skills")
-      .select(`
-        *,
-        skills:skill_id(*)
-      `)
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .order("order_index", { ascending: true });
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", uid),
+      where("class_id", "==", classId),
+      orderBy("order_index", "asc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    const classSkills = querySnapshot.docs.map(doc => toData<any>(doc));
+
+    for (const cs of classSkills) {
+      if (cs.skill_id) {
+        const skillDoc = await getDoc(doc(db, "skills", cs.skill_id));
+        if (skillDoc.exists()) {
+          cs.skill = toData<Skill>(skillDoc);
+        }
+      }
+    }
+
+    return classSkills;
   },
 
   // Get all classes where a skill is assigned
   async getSkillClasses(skillId: string): Promise<(ClassSkill & { class: any })[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("class_skills")
-      .select(`
-        *,
-        classes:class_id(*)
-      `)
-      .eq("owner_id", user.id)
-      .eq("skill_id", skillId)
-      .order("created_at", { ascending: false });
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("skill_id", "==", skillId),
+      orderBy("created_at", "desc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    const classSkills = querySnapshot.docs.map(doc => toData<any>(doc));
+
+    for (const cs of classSkills) {
+      if (cs.class_id) {
+        const classDoc = await getDoc(doc(db, "classes", cs.class_id));
+        if (classDoc.exists()) {
+          cs.class = toData<any>(classDoc);
+        }
+      }
+    }
+
+    return classSkills;
   },
 
   // Assign a skill to a class
   async assignSkillToClass(classId: string, skillId: string, orderIndex?: number): Promise<ClassSkill> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
     // Check if already assigned
-    const { data: existing } = await supabase
-      .from("class_skills")
-      .select("id")
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .eq("skill_id", skillId)
-      .single();
-
-    if (existing) {
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("skill_id", "==", skillId)
+    );
+    const existingSnap = await getDocs(q);
+    if (!existingSnap.empty) {
       throw new Error("Skill is already assigned to this class");
     }
 
     // Get next order index if not provided
     if (orderIndex === undefined) {
-      const { data: lastSkill } = await supabase
-        .from("class_skills")
-        .select("order_index")
-        .eq("owner_id", user.id)
-        .eq("class_id", classId)
-        .order("order_index", { ascending: false })
-        .limit(1)
-        .single();
-
-      orderIndex = (lastSkill?.order_index || 0) + 1;
+      const lastQ = query(
+        collection(db, "class_skills"),
+        where("owner_id", "==", user.uid),
+        where("class_id", "==", classId),
+        orderBy("order_index", "desc"),
+        limit(1)
+      );
+      const lastSnap = await getDocs(lastQ);
+      orderIndex = lastSnap.empty ? 1 : (lastSnap.docs[0].data().order_index || 0) + 1;
     }
 
-    const { data, error } = await supabase
-      .from("class_skills")
-      .insert({
-        owner_id: user.id,
-        class_id: classId,
-        skill_id: skillId,
-        order_index: orderIndex
-      })
-      .select()
-      .single();
+    const docRef = await addDoc(collection(db, "class_skills"), {
+      owner_id: user.uid,
+      class_id: classId,
+      skill_id: skillId,
+      order_index: orderIndex,
+      created_at: new Date().toISOString()
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<ClassSkill>(docSnap);
   },
 
   // Assign multiple skills to a class
   async assignSkillsToClass(classId: string, skillIds: string[]): Promise<ClassSkill[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
     // Get current max order index
-    const { data: lastSkill } = await supabase
-      .from("class_skills")
-      .select("order_index")
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .order("order_index", { ascending: false })
-      .limit(1)
-      .single();
+    const lastQ = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      orderBy("order_index", "desc"),
+      limit(1)
+    );
+    const lastSnap = await getDocs(lastQ);
+    let nextOrderIndex = lastSnap.empty ? 1 : (lastSnap.docs[0].data().order_index || 0) + 1;
 
-    let nextOrderIndex = (lastSkill?.order_index || 0) + 1;
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+    const newRefs: any[] = [];
 
-    const skillsToInsert = skillIds.map(skillId => ({
-      owner_id: user.id,
-      class_id: classId,
-      skill_id: skillId,
-      order_index: nextOrderIndex++
-    }));
+    for (const skillId of skillIds) {
+      const docRef = doc(collection(db, "class_skills"));
+      batch.set(docRef, {
+        owner_id: user.uid,
+        class_id: classId,
+        skill_id: skillId,
+        order_index: nextOrderIndex++,
+        created_at: now
+      });
+      newRefs.push(docRef);
+    }
 
-    const { data, error } = await supabase
-      .from("class_skills")
-      .insert(skillsToInsert)
-      .select();
+    await batch.commit();
 
-    if (error) throw error;
-    return data || [];
+    const result: ClassSkill[] = [];
+    for (const ref of newRefs) {
+      const snap = await getDoc(ref);
+      if (snap.exists()) result.push(toData<ClassSkill>(snap));
+    }
+    return result;
   },
 
   // Remove a skill from a class
   async removeSkillFromClass(classId: string, skillId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { error } = await supabase
-      .from("class_skills")
-      .delete()
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .eq("skill_id", skillId);
-
-    if (error) throw error;
+    const q = query(
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("skill_id", "==", skillId)
+    );
+    const snap = await getDocs(q);
+    
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
   },
 
   // Remove multiple skills from a class
   async removeSkillsFromClass(classId: string, skillIds: string[]): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { error } = await supabase
-      .from("class_skills")
-      .delete()
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .in("skill_id", skillIds);
-
-    if (error) throw error;
+    for (const skillId of skillIds) {
+      await this.removeSkillFromClass(classId, skillId);
+    }
   },
 
   // Reorder skills in a class
   async reorderClassSkills(classId: string, skillIds: string[]): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    // Get existing class_skills records
-    const { data: existingSkills, error: fetchError } = await supabase
-      .from("class_skills")
-      .select("id, skill_id")
-      .eq("owner_id", user.id)
-      .eq("class_id", classId);
+    const batch = writeBatch(db);
+    
+    for (let i = 0; i < skillIds.length; i++) {
+        const skillId = skillIds[i];
+        const q = query(
+            collection(db, "class_skills"),
+            where("owner_id", "==", user.uid),
+            where("class_id", "==", classId),
+            where("skill_id", "==", skillId)
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            batch.update(snap.docs[0].ref, { order_index: i });
+        }
+    }
 
-    if (fetchError) throw fetchError;
-
-    // Create updates with new order
-    const updates = skillIds.map((skillId, index) => {
-      const existing = existingSkills?.find(cs => cs.skill_id === skillId);
-      if (!existing) throw new Error(`Skill ${skillId} not found in class ${classId}`);
-      
-      return {
-        id: existing.id,
-        order_index: index
-      };
-    });
-
-    const { error } = await supabase
-      .from("class_skills")
-      .upsert(updates, { onConflict: "id" });
-
-    if (error) throw error;
+    await batch.commit();
   },
 
   // Get class curriculum (skills with details)
   async getClassCurriculum(classId: string): Promise<any[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
-
-    const { data, error } = await supabase
-      .from("class_skills")
-      .select(`
-        *,
-        skills:skill_id(
-          *,
-          categories:category_id(*)
-        )
-      `)
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .order("order_index", { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+    return this.getClassSkills(classId);
   },
 
   // Copy curriculum from one class to another
   async copyCurriculum(fromClassId: string, toClassId: string): Promise<ClassSkill[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
-
-    // Get source class skills
-    const { data: sourceSkills, error: fetchError } = await supabase
-      .from("class_skills")
-      .select("skill_id, order_index")
-      .eq("owner_id", user.id)
-      .eq("class_id", fromClassId)
-      .order("order_index", { ascending: true });
-
-    if (fetchError) throw fetchError;
+    const sourceSkills = await this.getClassSkills(fromClassId);
     if (!sourceSkills || sourceSkills.length === 0) {
       return [];
     }
 
-    // Insert into target class
-    const skillsToInsert = sourceSkills.map(skill => ({
-      owner_id: user.id,
-      class_id: toClassId,
-      skill_id: skill.skill_id,
-      order_index: skill.order_index
-    }));
-
-    const { data, error } = await supabase
-      .from("class_skills")
-      .insert(skillsToInsert)
-      .select();
-
-    if (error) throw error;
-    return data || [];
+    const skillIds = sourceSkills.map(s => s.skill_id);
+    return this.assignSkillsToClass(toClassId, skillIds);
   }
 };

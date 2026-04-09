@@ -1,0 +1,3073 @@
+﻿
+> chessnet-sveltekit@1.0.0 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+
+====================================
+Loading svelte-check in workspace: c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit
+Getting Svelte diagnostics...
+
+node.exe : Browserslist: browsers data (caniuse-lite) 
+is 7 months old. Please run:
+En línea: 1 Carácter: 1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Browsersli 
+   st: b...ld. Please run::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  npx update-browserslist-db@latest
+  Why you should do it regularly: 
+https://github.com/browserslist/update-db#readme
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\lib\components\TournamentCreator.svelte[39m:245:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div>
+              [35m<label class="block text-sm font-medium text-slate-300 mb-2">
+                Nombre del torneo *
+              </label>[36m
+              <input
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\lib\components\TournamentCreator.svelte[39m:259:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="block text-sm font-medium text-slate-300 mb-2">
+                  Formato
+                </label>[36m
+                <select bind:value={formData.format} class="input w-full">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\lib\components\TournamentCreator.svelte[39m:270:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="block text-sm font-medium text-slate-300 mb-2">
+                  Centro educativo
+                </label>[36m
+                <select bind:value={formData.college_id} class="input w-full">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\lib\components\TournamentCreator.svelte[39m:284:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="block text-sm font-medium text-slate-300 mb-2">
+                  Control de tiempo
+                </label>[36m
+                <input
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\lib\components\TournamentCreator.svelte[39m:296:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="block text-sm font-medium text-slate-300 mb-2">
+                  Fecha de inicio
+                </label>[36m
+                <input
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\lib\components\TournamentCreator.svelte[39m:307:17
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m              <div>
+                [35m<label class="block text-sm font-medium text-slate-300 mb-2">
+                  Fecha de fin
+                </label>[36m
+                <input
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\lib\components\TournamentCreator.svelte[39m:319:15
+[33mWarn[39m: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+[36m            <div>
+              [35m<label class="block text-sm font-medium text-slate-300 mb-2">
+                Notas
+              </label>[36m
+              <textarea
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\lib\components\TournamentCreator.svelte[39m:181:21
+[31mError[39m: Expected 0 arguments, but got 1. (ts)
+[36m  // Reactive statements
+  $: filterStudents([35msearchTerm[36m);
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:289:69
+[31mError[39m: Property 'name' does not exist on type 'never'. (ts)
+[36m                    <div>
+                      <h3 class="font-medium text-white">{classItem.[35mname[36m}</h3>
+                      <p class="text-sm text-slate-400">{classItem.centerName} ÔÇó {classItem.time}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:290:68
+[31mError[39m: Property 'centerName' does not exist on type 'never'. (ts)
+[36m                      <h3 class="font-medium text-white">{classItem.name}</h3>
+                      <p class="text-sm text-slate-400">{classItem.[35mcenterName[36m} ÔÇó {classItem.time}</p>
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:290:93
+[31mError[39m: Property 'time' does not exist on type 'never'. (ts)
+[36m                      <h3 class="font-medium text-white">{classItem.name}</h3>
+                      <p class="text-sm text-slate-400">{classItem.centerName} ÔÇó {classItem.[35mtime[36m}</p>
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:294:69
+[31mError[39m: Property 'students' does not exist on type 'never'. (ts)
+[36m                  <div class="flex items-center space-x-2">
+                    <span class="text-sm text-slate-400">{classItem.[35mstudents[36m} estudiantes</span>
+                    <button 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:296:70
+[31mError[39m: Property 'id' does not exist on type 'never'. (ts)
+[36m                    <button 
+                      on:click={() => handleTakeAttendance(classItem.[35mid[36m)}
+                      class="btn-primary text-sm"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:332:76
+[31mError[39m: Property 'className' does not exist on type 'never'. (ts)
+[36m                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-medium text-white text-sm">{attendance.[35mclassName[36m}</h4>
+                    <span class={`text-xs font-medium ${getAttendanceColor(attendance.attendanceRate)}`}>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:333:87
+[31mError[39m: Property 'attendanceRate' does not exist on type 'never'. (ts)
+[36m                    <h4 class="font-medium text-white text-sm">{attendance.className}</h4>
+                    <span class={`text-xs font-medium ${getAttendanceColor(attendance.[35mattendanceRate[36m)}`}>
+                      {attendance.attendanceRate}%
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:334:35
+[31mError[39m: Property 'attendanceRate' does not exist on type 'never'. (ts)
+[36m                    <span class={`text-xs font-medium ${getAttendanceColor(attendance.attendanceRate)}`}>
+                      {attendance.[35mattendanceRate[36m}%
+                    </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:337:70
+[31mError[39m: Property 'centerName' does not exist on type 'never'. (ts)
+[36m                  </div>
+                  <p class="text-xs text-slate-400 mb-1">{attendance.[35mcenterName[36m}</p>
+                  <p class="text-xs text-slate-500">{formatDate(attendance.date)}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:338:76
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m                  <p class="text-xs text-slate-400 mb-1">{attendance.centerName}</p>
+                  <p class="text-xs text-slate-500">{formatDate(attendance.[35mdate[36m)}</p>
+                  <div class="flex items-center justify-between mt-2 text-xs">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:340:62
+[31mError[39m: Property 'present' does not exist on type 'never'. (ts)
+[36m                  <div class="flex items-center justify-between mt-2 text-xs">
+                    <span class="text-green-400">{attendance.[35mpresent[36m} presentes</span>
+                    <span class="text-red-400">{attendance.absent} ausentes</span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\attendance\+page.svelte[39m:341:60
+[31mError[39m: Property 'absent' does not exist on type 'never'. (ts)
+[36m                    <span class="text-green-400">{attendance.present} presentes</span>
+                    <span class="text-red-400">{attendance.[35mabsent[36m} ausentes</span>
+                  </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\+page.svelte[39m:444:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\+page.svelte[39m:343:68
+[31mError[39m: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'. (ts)
+[36m                  <h3 class="font-semibold text-lg text-white">{classItem.name}</h3>
+                  <p class="text-sm text-slate-400">{getSchoolName([35mclassItem.college_id[36m)}</p>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\+page.svelte[39m:349:76
+[31mError[39m: Cannot find name 'getClassStatusColor'. (ts)
+[36m              <div class="flex items-center space-x-2">
+                <span class={`px-2 py-1 rounded-full text-xs font-medium ${[35mgetClassStatusColor[36m(classItem)} bg-slate-700/50`}>
+                  {getClassStatusText(classItem)}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\+page.svelte[39m:350:20
+[31mError[39m: Cannot find name 'getClassStatusText'. (ts)
+[36m                <span class={`px-2 py-1 rounded-full text-xs font-medium ${getClassStatusColor(classItem)} bg-slate-700/50`}>
+                  {[35mgetClassStatusText[36m(classItem)}
+                </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:712:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:57:63
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m  onMount(() => {
+    console.log('Ô£à Individual class page: Class:', classData?.[35mname[36m);
+    console.log('Ô£à Students:', students.length);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:70:27
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m      goto(`/schools/${fromSchool}`);
+    } else if (classData?.[35mcollege_id[36m) {
+      // Si la clase tiene un centro asignado, ir al centro
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:72:34
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m      // Si la clase tiene un centro asignado, ir al centro
+      goto(`/schools/${classData.[35mcollege_id[36m}`);
+    } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:87:27
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m      queryParams.set('from_school', fromSchool);
+    } else if (classData?.[35mcollege_id[36m) {
+      queryParams.set('from_school', classData.college_id);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:88:48
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m    } else if (classData?.college_id) {
+      queryParams.set('from_school', classData.[35mcollege_id[36m);
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:98:76
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m    // Ir directamente al formulario de creaci├│n con contexto de la clase
+    goto(`/students/create?class_id=${classData.id}&college_id=${classData.[35mcollege_id[36m}&return_to=${encodeURIComponent(`/classes/${classData.id}`)}`);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:142:22
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m<svelte:head>
+  <title>{classData?.[35mname[36m || 'Clase'} - ChessNet</title>
+</svelte:head>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:159:58
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m            <div>
+              <h1 class="text-2xl font-bold">{classData?.[35mname[36m}</h1>
+              <p class="text-sm text-slate-400">{classData?.school?.name} ÔÇó {classData?.schedule}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:160:61
+[31mError[39m: Property 'school' does not exist on type '{ id: string; }'. (ts)
+[36m              <h1 class="text-2xl font-bold">{classData?.name}</h1>
+              <p class="text-sm text-slate-400">{classData?.[35mschool[36m?.name} ÔÇó {classData?.schedule}</p>
+            </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:160:89
+[31mError[39m: Property 'schedule' does not exist on type '{ id: string; }'. (ts)
+[36m              <h1 class="text-2xl font-bold">{classData?.name}</h1>
+              <p class="text-sm text-slate-400">{classData?.school?.name} ÔÇó {classData?.[35mschedule[36m}</p>
+            </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:228:59
+[31mError[39m: Property 'schedule' does not exist on type '{ id: string; }'. (ts)
+[36m                  <div>
+                    <p class="text-slate-300">{classData?.[35mschedule[36m}</p>
+                    <p class="text-slate-400 text-sm">Horario de clases</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:236:59
+[31mError[39m: Property 'room' does not exist on type '{ id: string; }'. (ts)
+[36m                  <div>
+                    <p class="text-slate-300">{classData?.[35mroom[36m}</p>
+                    <p class="text-slate-400 text-sm">Aula asignada</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:244:87
+[31mError[39m: Property 'max_students' does not exist on type '{ id: string; }'. (ts)
+[36m                  <div>
+                    <p class="text-slate-300">{classStats.total_students}/{classData?.[35mmax_students[36m} estudiantes</p>
+                    <p class="text-slate-400 text-sm">Ocupaci├│n actual</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:249:33
+[31mError[39m: Property 'price' does not exist on type '{ id: string; }'. (ts)
+[36m
+                {#if classData?.[35mprice[36m}
+                  <div class="flex items-center space-x-3">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:253:75
+[31mError[39m: Property 'price' does not exist on type '{ id: string; }'. (ts)
+[36m                    <div>
+                      <p class="text-slate-300">{formatCurrency(classData.[35mprice[36m)}/mes</p>
+                      <p class="text-slate-400 text-sm">Precio mensual</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:265:44
+[31mError[39m: Property 'start_date' does not exist on type '{ id: string; }'. (ts)
+[36m                    <p class="text-slate-300">
+                      {new Date(classData?.[35mstart_date[36m).toLocaleDateString('es-ES')} - 
+                      {new Date(classData?.end_date).toLocaleDateString('es-ES')}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:266:44
+[31mError[39m: Property 'end_date' does not exist on type '{ id: string; }'. (ts)
+[36m                      {new Date(classData?.start_date).toLocaleDateString('es-ES')} - 
+                      {new Date(classData?.[35mend_date[36m).toLocaleDateString('es-ES')}
+                    </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:275:87
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: string; intermediate: string; advanced: string; mixed: string; }'. (ts)
+[36m                  <div>
+                    <span class={`px-3 py-1 rounded-full text-sm font-medium border ${[35mlevelColors[classData?.level][36m}`}>
+                      {levelLabels[classData?.level]}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:275:110
+[31mError[39m: Property 'level' does not exist on type '{ id: string; }'. (ts)
+[36m                  <div>
+                    <span class={`px-3 py-1 rounded-full text-sm font-medium border ${levelColors[classData?.[35mlevel[36m]}`}>
+                      {levelLabels[classData?.level]}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:276:24
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: string; intermediate: string; advanced: string; mixed: string; }'. (ts)
+[36m                    <span class={`px-3 py-1 rounded-full text-sm font-medium border ${levelColors[classData?.level]}`}>
+                      {[35mlevelLabels[classData?.level][36m}
+                    </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:276:47
+[31mError[39m: Property 'level' does not exist on type '{ id: string; }'. (ts)
+[36m                    <span class={`px-3 py-1 rounded-full text-sm font-medium border ${levelColors[classData?.level]}`}>
+                      {levelLabels[classData?.[35mlevel[36m]}
+                    </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:294:29
+[31mError[39m: Property 'description' does not exist on type '{ id: string; }'. (ts)
+[36m
+            {#if classData?.[35mdescription[36m}
+              <div class="mt-6 p-4 bg-slate-700/50 rounded-lg">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:297:70
+[31mError[39m: Property 'description' does not exist on type '{ id: string; }'. (ts)
+[36m                <h3 class="font-medium text-slate-300 mb-2">Descripci├│n</h3>
+                <p class="text-slate-400 leading-relaxed">{classData.[35mdescription[36m}</p>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:301:29
+[31mError[39m: Property 'instructor_notes' does not exist on type '{ id: string; }'. (ts)
+[36m
+            {#if classData?.[35minstructor_notes[36m}
+              <div class="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:304:69
+[31mError[39m: Property 'instructor_notes' does not exist on type '{ id: string; }'. (ts)
+[36m                <h3 class="font-medium text-blue-300 mb-2">Notas del Instructor</h3>
+                <p class="text-blue-200 leading-relaxed">{classData.[35minstructor_notes[36m}</p>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:326:69
+[31mError[39m: Property 'max_students' does not exist on type '{ id: string; }'. (ts)
+[36m                  <span class="text-slate-400">Plazas disponibles</span>
+                  <span class="font-bold text-blue-400">{classData?.[35mmax_students[36m - classStats.total_students}</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:490:55
+[31mError[39m: Parameter 'n' implicitly has an 'any' type. (ts)
+[36m                      <span class="text-white font-bold text-lg">
+                        {student.name?.split(' ').map([35mn[36m => n[0]).join('').substring(0, 2) || 'XX'}
+                      </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:525:87
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: string; intermediate: string; advanced: string; mixed: string; }'. (ts)
+[36m                  <div class="flex items-center justify-between pt-3 border-t border-slate-700">
+                    <span class={`px-3 py-1 rounded-full text-xs font-medium border ${[35mlevelColors[student.level][36m}`}>
+                      {levelLabels[student.level]}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:526:24
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: string; intermediate: string; advanced: string; mixed: string; }'. (ts)
+[36m                    <span class={`px-3 py-1 rounded-full text-xs font-medium border ${levelColors[student.level]}`}>
+                      {[35mlevelLabels[student.level][36m}
+                    </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\+page.svelte[39m:665:69
+[31mError[39m: Property 'schedule' does not exist on type '{ id: string; }'. (ts)
+[36m                    </p>
+                    <p class="text-sm text-blue-400/80">{classData?.[35mschedule[36m?.split(' ')[2] || '10:00'}</p>
+                  </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:561:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:40:63
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m  onMount(() => {
+    console.log('Ô£à Class attendance page: Class:', classData?.[35mname[36m);
+    console.log('Ô£à Students in class:', students.length);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:50:70
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m    const today = new Date().toISOString().split('T')[0];
+    const todayAttendance = recentAttendance.find(session => session.[35mdate[36m === today);
+    
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:53:47
+[31mError[39m: Property 'records' does not exist on type 'never'. (ts)
+[36m    students.forEach(student => {
+      const existingRecord = todayAttendance?.[35mrecords[36m.find(r => r.student_id === student.id);
+      currentAttendance[student.id] = {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:53:60
+[31mError[39m: Parameter 'r' implicitly has an 'any' type. (ts)
+[36m    students.forEach(student => {
+      const existingRecord = todayAttendance?.records.find([35mr[36m => r.student_id === student.id);
+      currentAttendance[student.id] = {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:62:22
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m  const handleGoBack = () => {
+    goto(`/classes/${[35mclassData[36m.id}`);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:104:21
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m        body: JSON.stringify({
+          class_id: [35mclassData[36m.id,
+          date: selectedDate,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:115:84
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m        // Actualizar el historial local (mock)
+        const existingSessionIndex = recentAttendance.findIndex(session => session.[35mdate[36m === selectedDate);
+        if (existingSessionIndex >= 0) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:117:50
+[31mError[39m: Property 'records' does not exist on type 'never'. (ts)
+[36m        if (existingSessionIndex >= 0) {
+          recentAttendance[existingSessionIndex].[35mrecords[36m = records;
+        } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:119:33
+[31mError[39m: Argument of type '{ date: string; records: AttendanceRecord[]; }' is not assignable to parameter of type 'never'. (ts)
+[36m        } else {
+          recentAttendance.push([35m{ date: selectedDate, records }[36m);
+        }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:121:66
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m        }
+        recentAttendance = [...recentAttendance.sort((a, b) => b.[35mdate[36m.localeCompare(a.date))];
+        
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:121:87
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m        }
+        recentAttendance = [...recentAttendance.sort((a, b) => b.date.localeCompare(a.[35mdate[36m))];
+        
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:197:35
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m<svelte:head>
+  <title>Asistencia - {classData?.[35mname[36m || 'Clase'} - ChessNet</title>
+</svelte:head>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:215:61
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m              <h1 class="text-2xl font-bold">Control de Asistencia</h1>
+              <p class="text-sm text-slate-400">{classData?.[35mname[36m} ÔÇó {classData?.schedule}</p>
+            </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:215:81
+[31mError[39m: Property 'schedule' does not exist on type '{ id: string; }'. (ts)
+[36m              <h1 class="text-2xl font-bold">Control de Asistencia</h1>
+              <p class="text-sm text-slate-400">{classData?.name} ÔÇó {classData?.[35mschedule[36m}</p>
+            </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:324:53
+[31mError[39m: Parameter 'n' implicitly has an 'any' type. (ts)
+[36m                    <span class="text-white font-bold text-lg">
+                      {student.name?.split(' ').map([35mn[36m => n[0]).join('').substring(0, 2) || 'XX'}
+                    </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:340:72
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'AttendanceStatus'. (ts)
+[36m                      <button
+                        on:click={() => handleStatusChange(student.id, [35mstatus[36m)}
+                        class={`p-3 rounded-lg border transition-all ${
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:346:47
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'AttendanceStatus'. (ts)
+[36m                        }`}
+                        title={getStatusLabel([35mstatus[36m)}
+                      >
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:349:47
+[31mError[39m: Argument of type 'string' is not assignable to parameter of type 'AttendanceStatus'. (ts)
+[36m                        <svelte:component 
+                          this={getStatusIcon([35mstatus[36m)} 
+                          class="w-5 h-5" 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:362:70
+[31mError[39m: 'e.target' is possibly 'null'. (ts)
+[36m                      value={currentAttendance[student.id]?.notes || ''}
+                      on:input={(e) => handleNotesChange(student.id, [35me.target[36m.value)}
+                      class="input text-sm w-full"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:362:79
+[31mError[39m: Property 'value' does not exist on type 'EventTarget'. (ts)
+[36m                      value={currentAttendance[student.id]?.notes || ''}
+                      on:input={(e) => handleNotesChange(student.id, e.target.[35mvalue[36m)}
+                      class="input text-sm w-full"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:416:45
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m                        <h3 class="font-semibold">
+                          {new Date(session.[35mdate[36m).toLocaleDateString('es-ES', { 
+                            weekday: 'long', 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:424:36
+[31mError[39m: Property 'records' does not exist on type 'never'. (ts)
+[36m                        <p class="text-sm text-slate-400">
+                          {session.[35mrecords[36m.filter(r => r.status === 'P').length} presentes ÔÇó 
+                          {session.records.filter(r => r.status === 'T').length} tardanzas ÔÇó 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:424:51
+[31mError[39m: Parameter 'r' implicitly has an 'any' type. (ts)
+[36m                        <p class="text-sm text-slate-400">
+                          {session.records.filter([35mr[36m => r.status === 'P').length} presentes ÔÇó 
+                          {session.records.filter(r => r.status === 'T').length} tardanzas ÔÇó 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:425:36
+[31mError[39m: Property 'records' does not exist on type 'never'. (ts)
+[36m                          {session.records.filter(r => r.status === 'P').length} presentes ÔÇó 
+                          {session.[35mrecords[36m.filter(r => r.status === 'T').length} tardanzas ÔÇó 
+                          {session.records.filter(r => r.status === 'A').length} ausentes
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:425:51
+[31mError[39m: Parameter 'r' implicitly has an 'any' type. (ts)
+[36m                          {session.records.filter(r => r.status === 'P').length} presentes ÔÇó 
+                          {session.records.filter([35mr[36m => r.status === 'T').length} tardanzas ÔÇó 
+                          {session.records.filter(r => r.status === 'A').length} ausentes
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:426:36
+[31mError[39m: Property 'records' does not exist on type 'never'. (ts)
+[36m                          {session.records.filter(r => r.status === 'T').length} tardanzas ÔÇó 
+                          {session.[35mrecords[36m.filter(r => r.status === 'A').length} ausentes
+                        </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:426:51
+[31mError[39m: Parameter 'r' implicitly has an 'any' type. (ts)
+[36m                          {session.records.filter(r => r.status === 'T').length} tardanzas ÔÇó 
+                          {session.records.filter([35mr[36m => r.status === 'A').length} ausentes
+                        </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:432:66
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m                    <button 
+                      on:click={() => showHistoryForDate(session.[35mdate[36m)}
+                      class="btn-secondary"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:436:48
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m                      <Eye class="w-4 h-4 mr-2" />
+                      {showingDate === session.[35mdate[36m ? 'Ocultar' : 'Ver Detalles'}
+                    </button>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:440:48
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m
+                  {#if showingDate === session.[35mdate[36m}
+                    <div class="mt-4 pt-4 border-t border-slate-700">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:443:40
+[31mError[39m: Property 'records' does not exist on type 'never'. (ts)
+[36m                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {#each session.[35mrecords[36m as record}
+                          <div class="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:492:34
+[31mError[39m: Property 'student_name' does not exist on type 'never'. (ts)
+[36m                        <span class="text-white font-bold text-sm">
+                          {stats.[35mstudent_name[36m?.split(' ').map(n => n[0]).join('').substring(0, 2) || 'XX'}
+                        </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:492:63
+[31mError[39m: Parameter 'n' implicitly has an 'any' type. (ts)
+[36m                        <span class="text-white font-bold text-sm">
+                          {stats.student_name?.split(' ').map([35mn[36m => n[0]).join('').substring(0, 2) || 'XX'}
+                        </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:496:58
+[31mError[39m: Property 'student_name' does not exist on type 'never'. (ts)
+[36m                      <div>
+                        <h3 class="font-semibold">{stats.[35mstudent_name[36m}</h3>
+                        <p class="text-sm text-slate-400">{stats.total_sessions} sesiones</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:497:66
+[31mError[39m: Property 'total_sessions' does not exist on type 'never'. (ts)
+[36m                        <h3 class="font-semibold">{stats.student_name}</h3>
+                        <p class="text-sm text-slate-400">{stats.[35mtotal_sessions[36m} sesiones</p>
+                      </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:502:86
+[31mError[39m: Property 'attendance_rate' does not exist on type 'never'. (ts)
+[36m                    <div class="text-right">
+                      <div class={`text-2xl font-bold ${getAttendanceRateColor(stats.[35mattendance_rate[36m)}`}>
+                        {stats.attendance_rate}%
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:503:32
+[31mError[39m: Property 'attendance_rate' does not exist on type 'never'. (ts)
+[36m                      <div class={`text-2xl font-bold ${getAttendanceRateColor(stats.attendance_rate)}`}>
+                        {stats.[35mattendance_rate[36m}%
+                      </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:513:79
+[31mError[39m: Property 'present_count' does not exist on type 'never'. (ts)
+[36m                        <CheckCircle class="w-4 h-4 text-green-400 mr-1" />
+                        <span class="text-lg font-bold text-green-400">{stats.[35mpresent_count[36m}</span>
+                      </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:520:80
+[31mError[39m: Property 'late_count' does not exist on type 'never'. (ts)
+[36m                        <Clock class="w-4 h-4 text-yellow-400 mr-1" />
+                        <span class="text-lg font-bold text-yellow-400">{stats.[35mlate_count[36m}</span>
+                      </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:527:77
+[31mError[39m: Property 'absent_count' does not exist on type 'never'. (ts)
+[36m                        <XCircle class="w-4 h-4 text-red-400 mr-1" />
+                        <span class="text-lg font-bold text-red-400">{stats.[35mabsent_count[36m}</span>
+                      </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:536:65
+[31mError[39m: Property 'punctuality_rate' does not exist on type 'never'. (ts)
+[36m                      <span class="text-slate-400">Puntualidad</span>
+                      <span class={getAttendanceRateColor(stats.[35mpunctuality_rate[36m)}>
+                        {stats.punctuality_rate}%
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:537:32
+[31mError[39m: Property 'punctuality_rate' does not exist on type 'never'. (ts)
+[36m                      <span class={getAttendanceRateColor(stats.punctuality_rate)}>
+                        {stats.[35mpunctuality_rate[36m}%
+                      </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:540:32
+[31mError[39m: Property 'last_attendance_date' does not exist on type 'never'. (ts)
+[36m                    </div>
+                    {#if stats.[35mlast_attendance_date[36m}
+                      <div class="flex justify-between text-sm">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\attendance\+page.svelte[39m:544:43
+[31mError[39m: Property 'last_attendance_date' does not exist on type 'never'. (ts)
+[36m                        <span class="text-slate-300">
+                          {new Date(stats.[35mlast_attendance_date[36m).toLocaleDateString('es-ES')}
+                        </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\edit\+page.svelte[39m:416:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\edit\+page.svelte[39m:420:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-primary {
+    [35m@apply[36m bg-primary-600 hover:bg-primary-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\edit\+page.svelte[39m:424:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-secondary {
+    [35m@apply[36m bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center border border-slate-600;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\skills\+page.svelte[39m:556:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:472:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:42:13
+[31mError[39m: Property 'first_name' does not exist on type '{ id: string; }'. (ts)
+[36m  $: filteredAvailableStudents = availableStudents.filter(student =>
+    student.[35mfirst_name[36m.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:43:13
+[31mError[39m: Property 'last_name' does not exist on type '{ id: string; }'. (ts)
+[36m    student.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.[35mlast_name[36m.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.email.toLowerCase().includes(searchQuery.toLowerCase())
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:44:13
+[31mError[39m: Property 'email' does not exist on type '{ id: string; }'. (ts)
+[36m    student.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.[35memail[36m.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:60:61
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m  onMount(() => {
+    console.log('Ô£à Class students page: Class:', classData?.[35mname[36m);
+    console.log('Ô£à Enrolled students:', enrolledStudents.length);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:76:27
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m      goto(`/classes/${fromClass}`);
+    } else if (classData?.[35mcollege_id[36m) {
+      // Si la clase tiene un centro asignado, ir al centro
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:78:34
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m      // Si la clase tiene un centro asignado, ir al centro
+      goto(`/schools/${classData.[35mcollege_id[36m}`);
+    } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:81:24
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m      // Por defecto, volver a la clase
+      goto(`/classes/${[35mclassData[36m.id}`);
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:113:21
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m        body: JSON.stringify({
+          class_id: [35mclassData[36m.id,
+          student_id: studentId
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:131:9
+[31mError[39m: This expression is not callable.
+  Type '{ success: (message: string) => string; error: (message: string) => string; info: (message: string) => string; warning: (message: string) => string; }' has no call signatures. (ts)
+[36m        
+        [35mshowToast[36m(`${student?.first_name} ${student?.last_name} inscrito correctamente`);
+      } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:131:31
+[31mError[39m: Property 'first_name' does not exist on type '{ id: string; }'. (ts)
+[36m        
+        showToast(`${student?.[35mfirst_name[36m} ${student?.last_name} inscrito correctamente`);
+      } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:131:54
+[31mError[39m: Property 'last_name' does not exist on type '{ id: string; }'. (ts)
+[36m        
+        showToast(`${student?.first_name} ${student?.[35mlast_name[36m} inscrito correctamente`);
+      } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:146:34
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m    // Pasar el college_id de la clase como par├ímetro para asignaci├│n autom├ítica
+    const collegeId = classData?.[35mcollege_id[36m;
+    const queryParam = collegeId ? `?college_id=${collegeId}` : '';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:158:68
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m    try {
+      const response = await fetch(`/api/class-students?class_id=${[35mclassData[36m.id}&student_id=${studentId}`, {
+        method: 'DELETE'
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:175:9
+[31mError[39m: This expression is not callable.
+  Type '{ success: (message: string) => string; error: (message: string) => string; info: (message: string) => string; warning: (message: string) => string; }' has no call signatures. (ts)
+[36m        
+        [35mshowToast[36m(`${student?.first_name} ${student?.last_name} desinscrito correctamente`);
+      } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:200:36
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m<svelte:head>
+  <title>Estudiantes - {classData?.[35mname[36m || 'Clase'} - ChessNet</title>
+</svelte:head>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:217:58
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m            <div>
+              <h1 class="text-2xl font-bold">{classData?.[35mname[36m}</h1>
+              <p class="text-sm text-slate-400">Gesti├│n de estudiantes</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:232:102
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m          <button 
+            on:click={() => goto(`/students/create?class_id=${classData?.id}&college_id=${classData?.[35mcollege_id[36m}&return_to=${encodeURIComponent(`/classes/${classData?.id}/students`)}`)}
+            class="btn-primary"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:313:67
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m              <button
+                on:click={() => goto(`/students/create?class_id=${[35mclassData[36m.id}&college_id=${classData.college_id}&return_to=/classes/${classData.id}/students`)}
+                class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:313:94
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m              <button
+                on:click={() => goto(`/students/create?class_id=${classData.id}&college_id=${[35mclassData[36m.college_id}&return_to=/classes/${classData.id}/students`)}
+                class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:313:104
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m              <button
+                on:click={() => goto(`/students/create?class_id=${classData.id}&college_id=${classData.[35mcollege_id[36m}&return_to=/classes/${classData.id}/students`)}
+                class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:313:137
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m              <button
+                on:click={() => goto(`/students/create?class_id=${classData.id}&college_id=${classData.college_id}&return_to=/classes/${[35mclassData[36m.id}/students`)}
+                class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:345:38
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: string; intermediate: string; advanced: string; }'. (ts)
+[36m                        <span>{calculateAge(student.date_of_birth)} a├▒os</span>
+                        <span class={[35mlevelColors[student.chess_level][36m}>
+                          {levelLabels[student.chess_level]}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:346:28
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: string; intermediate: string; advanced: string; }'. (ts)
+[36m                        <span class={levelColors[student.chess_level]}>
+                          {[35mlevelLabels[student.chess_level][36m}
+                        </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:387:63
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m          <button
+            on:click={() => goto(`/students/create?class_id=${[35mclassData[36m.id}&college_id=${classData.college_id}&return_to=/classes/${classData.id}/students`)}
+            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:387:90
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m          <button
+            on:click={() => goto(`/students/create?class_id=${classData.id}&college_id=${[35mclassData[36m.college_id}&return_to=/classes/${classData.id}/students`)}
+            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:387:100
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m          <button
+            on:click={() => goto(`/students/create?class_id=${classData.id}&college_id=${classData.[35mcollege_id[36m}&return_to=/classes/${classData.id}/students`)}
+            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:387:133
+[31mError[39m: 'classData' is possibly 'null'. (ts)
+[36m          <button
+            on:click={() => goto(`/students/create?class_id=${classData.id}&college_id=${classData.college_id}&return_to=/classes/${[35mclassData[36m.id}/students`)}
+            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:429:32
+[31mError[39m: Property 'first_name' does not exist on type '{ id: string; }'. (ts)
+[36m                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {student.[35mfirst_name[36m.charAt(0)}{student.last_name.charAt(0)}
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:429:62
+[31mError[39m: Property 'last_name' does not exist on type '{ id: string; }'. (ts)
+[36m                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {student.first_name.charAt(0)}{student.[35mlast_name[36m.charAt(0)}
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:433:34
+[31mError[39m: Property 'first_name' does not exist on type '{ id: string; }'. (ts)
+[36m                      <h3 class="font-semibold text-white">
+                        {student.[35mfirst_name[36m} {student.last_name}
+                      </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:433:55
+[31mError[39m: Property 'last_name' does not exist on type '{ id: string; }'. (ts)
+[36m                      <h3 class="font-semibold text-white">
+                        {student.first_name} {student.[35mlast_name[36m}
+                      </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:436:53
+[31mError[39m: Property 'date_of_birth' does not exist on type '{ id: string; }'. (ts)
+[36m                      <div class="flex items-center space-x-4 text-sm text-slate-400">
+                        <span>{calculateAge(student.[35mdate_of_birth[36m)} a├▒os</span>
+                        <span class={levelColors[student.chess_level]}>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:437:38
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: string; intermediate: string; advanced: string; }'. (ts)
+[36m                        <span>{calculateAge(student.date_of_birth)} a├▒os</span>
+                        <span class={[35mlevelColors[student.chess_level][36m}>
+                          {levelLabels[student.chess_level]}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:437:58
+[31mError[39m: Property 'chess_level' does not exist on type '{ id: string; }'. (ts)
+[36m                        <span>{calculateAge(student.date_of_birth)} a├▒os</span>
+                        <span class={levelColors[student.[35mchess_level[36m]}>
+                          {levelLabels[student.chess_level]}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:438:28
+[31mError[39m: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: string; intermediate: string; advanced: string; }'. (ts)
+[36m                        <span class={levelColors[student.chess_level]}>
+                          {[35mlevelLabels[student.chess_level][36m}
+                        </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:438:48
+[31mError[39m: Property 'chess_level' does not exist on type '{ id: string; }'. (ts)
+[36m                        <span class={levelColors[student.chess_level]}>
+                          {levelLabels[student.[35mchess_level[36m]}
+                        </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\[classId]\students\+page.svelte[39m:442:42
+[31mError[39m: Property 'email' does not exist on type '{ id: string; }'. (ts)
+[36m                          <Mail class="w-3 h-3" />
+                          <span>{student.[35memail[36m}</span>
+                        </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\create\+page.svelte[39m:265:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\create\+page.svelte[39m:269:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  kbd {
+    [35m@apply[36m font-mono text-xs;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\create\+page.svelte[39m:47:18
+[31mError[39m: Property 'max_students' does not exist on type '{ name: string; college_id: string; }'. (ts)
+[36m    // Validaci├│n opcional de max_students si se proporciona
+    if (formData.[35mmax_students[36m && (formData.max_students < 1 || formData.max_students > 100)) {
+      errors.max_students = 'El n├║mero m├íximo de estudiantes debe estar entre 1 y 100';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\create\+page.svelte[39m:47:44
+[31mError[39m: Property 'max_students' does not exist on type '{ name: string; college_id: string; }'. (ts)
+[36m    // Validaci├│n opcional de max_students si se proporciona
+    if (formData.max_students && (formData.[35mmax_students[36m < 1 || formData.max_students > 100)) {
+      errors.max_students = 'El n├║mero m├íximo de estudiantes debe estar entre 1 y 100';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\classes\create\+page.svelte[39m:47:73
+[31mError[39m: Property 'max_students' does not exist on type '{ name: string; college_id: string; }'. (ts)
+[36m    // Validaci├│n opcional de max_students si se proporciona
+    if (formData.max_students && (formData.max_students < 1 || formData.[35mmax_students[36m > 100)) {
+      errors.max_students = 'El n├║mero m├íximo de estudiantes debe estar entre 1 y 100';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:556:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-primary {
+    [35m@apply[36m bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:560:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-secondary {
+    [35m@apply[36m bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center border border-slate-600;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:152:31
+[31mError[39m: Property 'lowAttendanceClasses' does not exist on type '{}'. (ts)
+[36m          <!-- Alertas -->
+          {#if dashboardStats.[35mlowAttendanceClasses[36m > 0}
+            <div class="flex items-center space-x-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:155:69
+[31mError[39m: Property 'lowAttendanceClasses' does not exist on type '{}'. (ts)
+[36m              <AlertTriangle class="w-4 h-4 text-yellow-400" />
+              <span class="text-sm text-yellow-300">{dashboardStats.[35mlowAttendanceClasses[36m} alerta(s)</span>
+            </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:176:70
+[31mError[39m: Property 'totalCenters' does not exist on type '{}'. (ts)
+[36m            <p class="text-slate-400 text-sm">Centros Educativos</p>
+            <p class="text-3xl font-bold text-white">{dashboardStats.[35mtotalCenters[36m || 0}</p>
+            <p class="text-xs text-green-400 mt-1">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:179:32
+[31mError[39m: Property 'newClassesThisMonth' does not exist on type '{}'. (ts)
+[36m              <ArrowUp class="w-3 h-3 inline mr-1" />
+              +{dashboardStats.[35mnewClassesThisMonth[36m || 0} este mes
+            </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:193:70
+[31mError[39m: Property 'totalStudents' does not exist on type '{}'. (ts)
+[36m            <p class="text-slate-400 text-sm">Estudiantes Activos</p>
+            <p class="text-3xl font-bold text-white">{dashboardStats.[35mtotalStudents[36m || 0}</p>
+            <p class="text-xs text-green-400 mt-1">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:196:32
+[31mError[39m: Property 'newStudentsThisWeek' does not exist on type '{}'. (ts)
+[36m              <ArrowUp class="w-3 h-3 inline mr-1" />
+              +{dashboardStats.[35mnewStudentsThisWeek[36m || 0} esta semana
+            </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:210:78
+[31mError[39m: Property 'occupancyRate' does not exist on type '{}'. (ts)
+[36m            <p class="text-slate-400 text-sm">Ocupaci├│n Global</p>
+            <p class={`text-3xl font-bold ${getOccupancyColor(dashboardStats.[35moccupancyRate[36m || 0)}`}>
+              {dashboardStats.occupancyRate || 0}%
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:211:31
+[31mError[39m: Property 'occupancyRate' does not exist on type '{}'. (ts)
+[36m            <p class={`text-3xl font-bold ${getOccupancyColor(dashboardStats.occupancyRate || 0)}`}>
+              {dashboardStats.[35moccupancyRate[36m || 0}%
+            </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:214:31
+[31mError[39m: Property 'currentOccupancy' does not exist on type '{}'. (ts)
+[36m            <p class="text-xs text-slate-400 mt-1">
+              {dashboardStats.[35mcurrentOccupancy[36m || 0}/{dashboardStats.totalCapacity || 0} plazas
+            </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:214:70
+[31mError[39m: Property 'totalCapacity' does not exist on type '{}'. (ts)
+[36m            <p class="text-xs text-slate-400 mt-1">
+              {dashboardStats.currentOccupancy || 0}/{dashboardStats.[35mtotalCapacity[36m || 0} plazas
+            </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:228:85
+[31mError[39m: Property 'monthlyRevenue' does not exist on type '{}'. (ts)
+[36m            <p class="text-slate-400 text-sm">Ingresos Mensuales</p>
+            <p class="text-3xl font-bold text-white">{formatCurrency(dashboardStats.[35mmonthlyRevenue[36m || 0)}</p>
+            <p class="text-xs text-slate-400 mt-1">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:230:55
+[31mError[39m: Property 'averageClassPrice' does not exist on type '{}'. (ts)
+[36m            <p class="text-xs text-slate-400 mt-1">
+              Promedio {formatCurrency(dashboardStats.[35maverageClassPrice[36m || 0)}/clase
+            </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:266:65
+[31mError[39m: Property 'className' does not exist on type 'Class'. (ts)
+[36m                  <div>
+                    <h3 class="font-medium text-white">{session.[35mclassName[36m}</h3>
+                    <p class="text-sm text-slate-400">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:268:32
+[31mError[39m: Property 'schoolName' does not exist on type 'Class'. (ts)
+[36m                    <p class="text-sm text-slate-400">
+                      {session.[35mschoolName[36m} ÔÇó {session.room}
+                    </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:268:55
+[31mError[39m: Property 'room' does not exist on type 'Class'. (ts)
+[36m                    <p class="text-sm text-slate-400">
+                      {session.schoolName} ÔÇó {session.[35mroom[36m}
+                    </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:275:64
+[31mError[39m: Property 'time' does not exist on type 'Class'. (ts)
+[36m                  <div class="text-right">
+                    <p class="font-medium text-white">{session.[35mtime[36m}</p>
+                    <p class="text-xs text-slate-400">{session.duration} ÔÇó {session.students} estudiantes</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:276:64
+[31mError[39m: Property 'duration' does not exist on type 'Class'. (ts)
+[36m                    <p class="font-medium text-white">{session.time}</p>
+                    <p class="text-xs text-slate-400">{session.[35mduration[36m} ÔÇó {session.students} estudiantes</p>
+                  </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:276:85
+[31mError[39m: Property 'students' does not exist on type 'Class'. (ts)
+[36m                    <p class="font-medium text-white">{session.time}</p>
+                    <p class="text-xs text-slate-400">{session.duration} ÔÇó {session.[35mstudents[36m} estudiantes</p>
+                  </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:279:33
+[31mError[39m: Property 'attendanceTaken' does not exist on type 'Class'. (ts)
+[36m                  
+                  {#if !session.[35mattendanceTaken[36m}
+                    <button 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:310:54
+[31mError[39m: Property 'color' does not exist on type 'never'. (ts)
+[36m            <div class="flex items-start space-x-3">
+              <div class={`p-2 rounded-lg ${activity.[35mcolor[36m === 'green' ? 'bg-green-500/20' : activity.color === 'blue' ? 'bg-blue-500/20' : activity.color === 'purple' ? 'bg-purple-500/20' : activity.color === 'yellow' ? 'bg-yellow-500/20' : 'bg-slate-700/50'}`}>
+                <svelte:component this={getActivityIcon(activity.icon)} class={`w-4 h-4 ${getActivityColor(activity.color)}`} />
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:310:103
+[31mError[39m: Property 'color' does not exist on type 'never'. (ts)
+[36m            <div class="flex items-start space-x-3">
+              <div class={`p-2 rounded-lg ${activity.color === 'green' ? 'bg-green-500/20' : activity.[35mcolor[36m === 'blue' ? 'bg-blue-500/20' : activity.color === 'purple' ? 'bg-purple-500/20' : activity.color === 'yellow' ? 'bg-yellow-500/20' : 'bg-slate-700/50'}`}>
+                <svelte:component this={getActivityIcon(activity.icon)} class={`w-4 h-4 ${getActivityColor(activity.color)}`} />
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:310:150
+[31mError[39m: Property 'color' does not exist on type 'never'. (ts)
+[36m            <div class="flex items-start space-x-3">
+              <div class={`p-2 rounded-lg ${activity.color === 'green' ? 'bg-green-500/20' : activity.color === 'blue' ? 'bg-blue-500/20' : activity.[35mcolor[36m === 'purple' ? 'bg-purple-500/20' : activity.color === 'yellow' ? 'bg-yellow-500/20' : 'bg-slate-700/50'}`}>
+                <svelte:component this={getActivityIcon(activity.icon)} class={`w-4 h-4 ${getActivityColor(activity.color)}`} />
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:310:201
+[31mError[39m: Property 'color' does not exist on type 'never'. (ts)
+[36m            <div class="flex items-start space-x-3">
+              <div class={`p-2 rounded-lg ${activity.color === 'green' ? 'bg-green-500/20' : activity.color === 'blue' ? 'bg-blue-500/20' : activity.color === 'purple' ? 'bg-purple-500/20' : activity.[35mcolor[36m === 'yellow' ? 'bg-yellow-500/20' : 'bg-slate-700/50'}`}>
+                <svelte:component this={getActivityIcon(activity.icon)} class={`w-4 h-4 ${getActivityColor(activity.color)}`} />
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:311:66
+[31mError[39m: Property 'icon' does not exist on type 'never'. (ts)
+[36m              <div class={`p-2 rounded-lg ${activity.color === 'green' ? 'bg-green-500/20' : activity.color === 'blue' ? 'bg-blue-500/20' : activity.color === 'purple' ? 'bg-purple-500/20' : activity.color === 'yellow' ? 'bg-yellow-500/20' : 'bg-slate-700/50'}`}>
+                <svelte:component this={getActivityIcon(activity.[35micon[36m)} class={`w-4 h-4 ${getActivityColor(activity.color)}`} />
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:311:117
+[31mError[39m: Property 'color' does not exist on type 'never'. (ts)
+[36m              <div class={`p-2 rounded-lg ${activity.color === 'green' ? 'bg-green-500/20' : activity.color === 'blue' ? 'bg-blue-500/20' : activity.color === 'purple' ? 'bg-purple-500/20' : activity.color === 'yellow' ? 'bg-yellow-500/20' : 'bg-slate-700/50'}`}>
+                <svelte:component this={getActivityIcon(activity.icon)} class={`w-4 h-4 ${getActivityColor(activity.[35mcolor[36m)}`} />
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:314:77
+[31mError[39m: Property 'message' does not exist on type 'never'. (ts)
+[36m              <div class="flex-1">
+                <p class="text-sm text-slate-300 leading-relaxed">{activity.[35mmessage[36m}</p>
+                <p class="text-xs text-slate-500 mt-1">{formatTimeAgo(activity.timestamp)}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:315:80
+[31mError[39m: Property 'timestamp' does not exist on type 'never'. (ts)
+[36m                <p class="text-sm text-slate-300 leading-relaxed">{activity.message}</p>
+                <p class="text-xs text-slate-500 mt-1">{formatTimeAgo(activity.[35mtimestamp[36m)}</p>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:386:107
+[31mError[39m: Property 'status' does not exist on type 'Class'. (ts)
+[36m              on:click={() => goto(`/classes/${classItem.id}`)}
+              class={`w-full text-left p-4 rounded-lg border transition-colors ${getStatusColor(classItem.[35mstatus[36m)}`}
+            >
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:391:64
+[31mError[39m: Property 'schoolName' does not exist on type 'Class'. (ts)
+[36m                  <h3 class="font-medium text-white">{classItem.name}</h3>
+                  <p class="text-sm text-slate-400">{classItem.[35mschoolName[36m}</p>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:394:34
+[31mError[39m: Property 'status' does not exist on type 'Class'. (ts)
+[36m                <div class="text-right">
+                  {#if classItem.[35mstatus[36m === 'warning'}
+                    <AlertTriangle class="w-5 h-5 text-yellow-400" />
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:405:68
+[31mError[39m: Property 'occupancyRate' does not exist on type 'Class'. (ts)
+[36m                  <span class="text-slate-400">Ocupaci├│n:</span>
+                  <span class={`ml-1 ${getOccupancyColor(classItem.[35moccupancyRate[36m)}`}>
+                    {classItem.students}/{classItem.capacity} ({classItem.occupancyRate}%)
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:406:32
+[31mError[39m: Property 'students' does not exist on type 'Class'. (ts)
+[36m                  <span class={`ml-1 ${getOccupancyColor(classItem.occupancyRate)}`}>
+                    {classItem.[35mstudents[36m}/{classItem.capacity} ({classItem.occupancyRate}%)
+                  </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:406:53
+[31mError[39m: Property 'capacity' does not exist on type 'Class'. (ts)
+[36m                  <span class={`ml-1 ${getOccupancyColor(classItem.occupancyRate)}`}>
+                    {classItem.students}/{classItem.[35mcapacity[36m} ({classItem.occupancyRate}%)
+                  </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:406:75
+[31mError[39m: Property 'occupancyRate' does not exist on type 'Class'. (ts)
+[36m                  <span class={`ml-1 ${getOccupancyColor(classItem.occupancyRate)}`}>
+                    {classItem.students}/{classItem.capacity} ({classItem.[35moccupancyRate[36m}%)
+                  </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:411:69
+[31mError[39m: Property 'attendanceRate' does not exist on type 'Class'. (ts)
+[36m                  <span class="text-slate-400">Asistencia:</span>
+                  <span class={`ml-1 ${getAttendanceColor(classItem.[35mattendanceRate[36m)}`}>{classItem.attendanceRate}%</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:411:99
+[31mError[39m: Property 'attendanceRate' does not exist on type 'Class'. (ts)
+[36m                  <span class="text-slate-400">Asistencia:</span>
+                  <span class={`ml-1 ${getAttendanceColor(classItem.attendanceRate)}`}>{classItem.[35mattendanceRate[36m}%</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\dashboard\+page.svelte[39m:416:53
+[31mError[39m: Property 'nextSession' does not exist on type 'Class'. (ts)
+[36m              <div class="mt-2 text-xs text-slate-500">
+                Pr├│xima sesi├│n: {new Date(classItem.[35mnextSession[36m).toLocaleDateString('es-ES')}
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:212:39
+[31mError[39m: Property 'revenue_growth_percentage' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'revenue_growth_percentage' does not exist on type '{}'. (ts)
+[36m              </div>
+              {#if data.paymentStats?.[35mrevenue_growth_percentage[36m > 0}
+                <div class="flex items-center space-x-1 text-emerald-400">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:215:61
+[31mError[39m: Property 'revenue_growth_percentage' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'revenue_growth_percentage' does not exist on type '{}'. (ts)
+[36m                  <TrendingUp class="w-4 h-4" />
+                  <span class="text-sm">+{data.paymentStats.[35mrevenue_growth_percentage[36m}%</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:217:44
+[31mError[39m: Property 'revenue_growth_percentage' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'revenue_growth_percentage' does not exist on type '{}'. (ts)
+[36m                </div>
+              {:else if data.paymentStats?.[35mrevenue_growth_percentage[36m < 0}
+                <div class="flex items-center space-x-1 text-red-400">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:220:60
+[31mError[39m: Property 'revenue_growth_percentage' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'revenue_growth_percentage' does not exist on type '{}'. (ts)
+[36m                  <TrendingDown class="w-4 h-4" />
+                  <span class="text-sm">{data.paymentStats.[35mrevenue_growth_percentage[36m}%</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:225:50
+[31mError[39m: Property 'total_revenue_this_month' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'total_revenue_this_month' does not exist on type '{}'. (ts)
+[36m            <h3 class="text-2xl font-bold text-white mb-1">
+              {formatCurrency(data.paymentStats?.[35mtotal_revenue_this_month[36m || 0)}
+            </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:237:37
+[31mError[39m: Property 'pending_payments_count' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'pending_payments_count' does not exist on type '{}'. (ts)
+[36m              <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                {data.paymentStats?.[35mpending_payments_count[36m || 0}
+              </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:251:37
+[31mError[39m: Property 'overdue_payments_count' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'overdue_payments_count' does not exist on type '{}'. (ts)
+[36m              <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">
+                {data.paymentStats?.[35moverdue_payments_count[36m || 0}
+              </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:255:50
+[31mError[39m: Property 'overdue_amount' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'overdue_amount' does not exist on type '{}'. (ts)
+[36m            <h3 class="text-2xl font-bold text-white mb-1">
+              {formatCurrency(data.paymentStats?.[35moverdue_amount[36m || 0)}
+            </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:268:50
+[31mError[39m: Property 'average_payment_amount' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'average_payment_amount' does not exist on type '{}'. (ts)
+[36m            <h3 class="text-2xl font-bold text-white mb-1">
+              {formatCurrency(data.paymentStats?.[35maverage_payment_amount[36m || 0)}
+            </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:323:33
+[31mError[39m: Property 'overdue_payments_count' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'overdue_payments_count' does not exist on type '{}'. (ts)
+[36m        <!-- Alertas y Recordatorios -->
+        {#if data.paymentStats?.[35moverdue_payments_count[36m > 0}
+          <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-6">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:330:45
+[31mError[39m: Property 'overdue_payments_count' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'overdue_payments_count' does not exist on type '{}'. (ts)
+[36m                <p class="text-red-300/80">
+                  Tienes {data.paymentStats.[35moverdue_payments_count[36m} pagos vencidos por un total de {formatCurrency(data.paymentStats.overdue_amount)}
+                </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\+page.svelte[39m:330:134
+[31mError[39m: Property 'overdue_amount' does not exist on type 'PaymentStats | { revenue_growth_percentage: number; total_revenue_this_month: any; total_revenue_last_month: number; pending_payments_count: number; overdue_payments_count: number; overdue_amount: any; average_payment_amount: number; } | {}'.
+  Property 'overdue_amount' does not exist on type '{}'. (ts)
+[36m                <p class="text-red-300/80">
+                  Tienes {data.paymentStats.overdue_payments_count} pagos vencidos por un total de {formatCurrency(data.paymentStats.[35moverdue_amount[36m)}
+                </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:29:5
+[31mError[39m: Object literal may only specify known properties, and 'currency' does not exist in type 'CreatePaymentData'. (ts)
+[36m    amount: 0,
+    [35mcurrency[36m: 'EUR',
+    concept: 'monthly_fee',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:52:29
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m      const student = data.students?.find(s => s.id === formData.student_id);
+      return student && cls.[35mcollege_id[36m === student.college_id;
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:52:52
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m      const student = data.students?.find(s => s.id === formData.student_id);
+      return student && cls.college_id === student.[35mcollege_id[36m;
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:55:18
+[31mError[39m: Property 'college_id' does not exist on type '{ id: string; }'. (ts)
+[36m    if (formData.payment_type === 'school' && formData.school_id) {
+      return cls.[35mcollege_id[36m === formData.school_id;
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:66:37
+[31mError[39m: Property 'price' does not exist on type '{ id: string; }'. (ts)
+[36m  $: if (selectedClass && formData.amount === 0) {
+    formData.amount = selectedClass.[35mprice[36m;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:80:41
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m    
+    const entityName = selectedStudent?.[35mname[36m || selectedSchool?.name || '';
+    const className = selectedClass ? ` - ${selectedClass.name}` : '';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:80:65
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m    
+    const entityName = selectedStudent?.name || selectedSchool?.[35mname[36m || '';
+    const className = selectedClass ? ` - ${selectedClass.name}` : '';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:81:59
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m    const entityName = selectedStudent?.name || selectedSchool?.name || '';
+    const className = selectedClass ? ` - ${selectedClass.[35mname[36m}` : '';
+    const periodText = formData.period_start && formData.period_end 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:156:30
+[31mError[39m: Property 'currency' does not exist on type 'CreatePaymentData'. (ts)
+[36m          amount: formData.amount || 0,
+          currency: formData.[35mcurrency[36m || 'EUR',
+          concept: formData.concept || 'monthly_fee',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:161:28
+[31mError[39m: Property 'status' does not exist on type 'CreatePaymentData'. (ts)
+[36m          period_end: formData.period_end || null,
+          status: formData.[35mstatus[36m || 'pending',
+          due_date: formData.due_date || null,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:163:37
+[31mError[39m: Property 'payment_method' does not exist on type 'CreatePaymentData'. (ts)
+[36m          due_date: formData.due_date || null,
+          payment_method: (formData.[35mpayment_method[36m?.trim()) ? formData.payment_method.trim() : null,
+          payment_reference: (formData.payment_reference?.trim()) ? formData.payment_reference.trim() : null,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:163:72
+[31mError[39m: Property 'payment_method' does not exist on type 'CreatePaymentData'. (ts)
+[36m          due_date: formData.due_date || null,
+          payment_method: (formData.payment_method?.trim()) ? formData.[35mpayment_method[36m.trim() : null,
+          payment_reference: (formData.payment_reference?.trim()) ? formData.payment_reference.trim() : null,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:164:40
+[31mError[39m: Property 'payment_reference' does not exist on type 'CreatePaymentData'. (ts)
+[36m          payment_method: (formData.payment_method?.trim()) ? formData.payment_method.trim() : null,
+          payment_reference: (formData.[35mpayment_reference[36m?.trim()) ? formData.payment_reference.trim() : null,
+          invoice_number: (formData.invoice_number?.trim()) ? formData.invoice_number.trim() : null,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:164:78
+[31mError[39m: Property 'payment_reference' does not exist on type 'CreatePaymentData'. (ts)
+[36m          payment_method: (formData.payment_method?.trim()) ? formData.payment_method.trim() : null,
+          payment_reference: (formData.payment_reference?.trim()) ? formData.[35mpayment_reference[36m.trim() : null,
+          invoice_number: (formData.invoice_number?.trim()) ? formData.invoice_number.trim() : null,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:165:37
+[31mError[39m: Property 'invoice_number' does not exist on type 'CreatePaymentData'. (ts)
+[36m          payment_reference: (formData.payment_reference?.trim()) ? formData.payment_reference.trim() : null,
+          invoice_number: (formData.[35minvoice_number[36m?.trim()) ? formData.invoice_number.trim() : null,
+          invoice_date: formData.invoice_date || null,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:165:72
+[31mError[39m: Property 'invoice_number' does not exist on type 'CreatePaymentData'. (ts)
+[36m          payment_reference: (formData.payment_reference?.trim()) ? formData.payment_reference.trim() : null,
+          invoice_number: (formData.invoice_number?.trim()) ? formData.[35minvoice_number[36m.trim() : null,
+          invoice_date: formData.invoice_date || null,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:166:34
+[31mError[39m: Property 'invoice_date' does not exist on type 'CreatePaymentData'. (ts)
+[36m          invoice_number: (formData.invoice_number?.trim()) ? formData.invoice_number.trim() : null,
+          invoice_date: formData.[35minvoice_date[36m || null,
+          notes: (formData.notes?.trim()) ? formData.notes.trim() : null
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:330:57
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                  {#each data.students || [] as student}
+                    <option value={student.id}>{student.[35mname[36m} - {student.email}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:330:74
+[31mError[39m: Property 'email' does not exist on type '{ id: string; }'. (ts)
+[36m                  {#each data.students || [] as student}
+                    <option value={student.id}>{student.name} - {student.[35memail[36m}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:343:74
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                    <div>
+                      <p class="font-medium text-white">{selectedStudent.[35mname[36m}</p>
+                      <p class="text-sm text-slate-400">{selectedStudent.email}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:344:74
+[31mError[39m: Property 'email' does not exist on type '{ id: string; }'. (ts)
+[36m                      <p class="font-medium text-white">{selectedStudent.name}</p>
+                      <p class="text-sm text-slate-400">{selectedStudent.[35memail[36m}</p>
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:361:55
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                  {#each data.schools || [] as school}
+                    <option value={school.id}>{school.[35mname[36m} - {school.city}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:361:71
+[31mError[39m: Property 'city' does not exist on type '{ id: string; }'. (ts)
+[36m                  {#each data.schools || [] as school}
+                    <option value={school.id}>{school.name} - {school.[35mcity[36m}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:374:73
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                    <div>
+                      <p class="font-medium text-white">{selectedSchool.[35mname[36m}</p>
+                      <p class="text-sm text-slate-400">{selectedSchool.city}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:375:73
+[31mError[39m: Property 'city' does not exist on type '{ id: string; }'. (ts)
+[36m                      <p class="font-medium text-white">{selectedSchool.name}</p>
+                      <p class="text-sm text-slate-400">{selectedSchool.[35mcity[36m}</p>
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:421:47
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                {#each filteredClasses as cls}
+                  <option value={cls.id}>{cls.[35mname[36m} - {formatCurrency(cls.price)}</option>
+                {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:421:75
+[31mError[39m: Property 'price' does not exist on type '{ id: string; }'. (ts)
+[36m                {#each filteredClasses as cls}
+                  <option value={cls.id}>{cls.name} - {formatCurrency(cls.[35mprice[36m)}</option>
+                {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:578:37
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                <p class="font-medium text-white">
+                  {selectedStudent?.[35mname[36m || selectedSchool?.name || 'Sin seleccionar'}
+                </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:578:61
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                <p class="font-medium text-white">
+                  {selectedStudent?.name || selectedSchool?.[35mname[36m || 'Sin seleccionar'}
+                </p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\payments\create\+page.svelte[39m:608:59
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                  <span class="text-slate-400">Clase:</span>
+                  <span class="text-white">{selectedClass.[35mname[36m}</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\+page.svelte[39m:156:31
+[31mError[39m: Property 'total_students' does not exist on type '{ total_students: number; active_students: number; average_attendance_rate: number; average_skill_completion: number; students_with_overdue_payments: number; tournament_participants: number; } | {}'.
+  Property 'total_students' does not exist on type '{}'. (ts)
+[36m        <h3 class="text-2xl font-bold text-white mb-1">
+          {data.generalStats?.[35mtotal_students[36m || 0}
+        </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\+page.svelte[39m:168:33
+[31mError[39m: Property 'active_students' does not exist on type '{ total_students: number; active_students: number; average_attendance_rate: number; average_skill_completion: number; students_with_overdue_payments: number; tournament_participants: number; } | {}'.
+  Property 'active_students' does not exist on type '{}'. (ts)
+[36m          <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">
+            {data.generalStats?.[35mactive_students[36m || 0}
+          </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\+page.svelte[39m:181:36
+[31mError[39m: Property 'average_attendance_rate' does not exist on type '{ total_students: number; active_students: number; average_attendance_rate: number; average_skill_completion: number; students_with_overdue_payments: number; tournament_participants: number; } | {}'.
+  Property 'average_attendance_rate' does not exist on type '{}'. (ts)
+[36m          </div>
+          {#if (data.generalStats?.[35maverage_attendance_rate[36m || 0) >= 85}
+            <TrendingUp class="w-4 h-4 text-emerald-400" />
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\+page.svelte[39m:188:48
+[31mError[39m: Property 'average_attendance_rate' does not exist on type '{ total_students: number; active_students: number; average_attendance_rate: number; average_skill_completion: number; students_with_overdue_payments: number; tournament_participants: number; } | {}'.
+  Property 'average_attendance_rate' does not exist on type '{}'. (ts)
+[36m        <h3 class="text-2xl font-bold text-white mb-1">
+          {formatPercentage(data.generalStats?.[35maverage_attendance_rate[36m || 0)}
+        </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\+page.svelte[39m:201:48
+[31mError[39m: Property 'average_skill_completion' does not exist on type '{ total_students: number; active_students: number; average_attendance_rate: number; average_skill_completion: number; students_with_overdue_payments: number; tournament_participants: number; } | {}'.
+  Property 'average_skill_completion' does not exist on type '{}'. (ts)
+[36m        <h3 class="text-2xl font-bold text-white mb-1">
+          {formatPercentage(data.generalStats?.[35maverage_skill_completion[36m || 0)}
+        </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:165:58
+[31mError[39m: 'student' is possibly 'undefined'. (ts)
+[36m            <div>
+              <h1 class="text-2xl font-bold text-white">{[35mstudent[36m.name}</h1>
+              <p class="text-slate-400">Informe de progreso detallado</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:183:55
+[31mError[39m: 'student' is possibly 'undefined'. (ts)
+[36m                <Mail class="w-4 h-4 text-slate-400" />
+                <span class="text-sm text-slate-300">{[35mstudent[36m.email}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:187:55
+[31mError[39m: 'student' is possibly 'undefined'. (ts)
+[36m                <Phone class="w-4 h-4 text-slate-400" />
+                <span class="text-sm text-slate-300">{[35mstudent[36m.phone}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:192:33
+[31mError[39m: 'student' is possibly 'undefined'. (ts)
+[36m                <span class="text-sm text-slate-300">
+                  {calculateAge([35mstudent[36m.date_of_birth)} a├▒os ({formatDate(student.date_of_birth)})
+                </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:192:75
+[31mError[39m: 'student' is possibly 'undefined'. (ts)
+[36m                <span class="text-sm text-slate-300">
+                  {calculateAge(student.date_of_birth)} a├▒os ({formatDate([35mstudent[36m.date_of_birth)})
+                </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:207:77
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-bold text-white">{formatPercentage([35mprogress[36m.attendance_rate)}</div>
+                <div class="text-xs text-slate-400">Asistencia</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:211:77
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-bold text-white">{formatPercentage([35mprogress[36m.skill_completion_rate)}</div>
+                <div class="text-xs text-slate-400">Skills</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:215:60
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-bold text-white">{[35mprogress[36m.current_rating}</div>
+                <div class="text-xs text-slate-400">Rating</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:219:48
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-bold {[35mprogress[36m.overdue_payments > 0 ? 'text-red-400' : 'text-emerald-400'}">
+                  {progress.overdue_payments > 0 ? progress.overdue_payments : 'Ô£ô'}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:220:20
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                <div class="text-lg font-bold {progress.overdue_payments > 0 ? 'text-red-400' : 'text-emerald-400'}">
+                  {[35mprogress[36m.overdue_payments > 0 ? progress.overdue_payments : 'Ô£ô'}
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:220:52
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                <div class="text-lg font-bold {progress.overdue_payments > 0 ? 'text-red-400' : 'text-emerald-400'}">
+                  {progress.overdue_payments > 0 ? [35mprogress[36m.overdue_payments : 'Ô£ô'}
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:233:62
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                <span class="text-sm text-slate-400">Inscrito desde:</span>
+                <span class="text-sm text-white">{formatDate([35mprogress[36m.enrollment_date)}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:237:51
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                <span class="text-sm text-slate-400">D├¡as activo:</span>
+                <span class="text-sm text-white">{[35mprogress[36m.days_enrolled}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:241:62
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                <span class="text-sm text-slate-400">├Ültima actividad:</span>
+                <span class="text-sm text-white">{formatDate([35mprogress[36m.last_activity_date)}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:245:39
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                <span class="text-sm text-slate-400">Rating cambio:</span>
+                <span class="text-sm {[35mprogress[36m.rating_change >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                  {progress.rating_change >= 0 ? '+' : ''}{progress.rating_change}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:246:20
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                <span class="text-sm {progress.rating_change >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                  {[35mprogress[36m.rating_change >= 0 ? '+' : ''}{progress.rating_change}
+                </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:246:60
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                <span class="text-sm {progress.rating_change >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                  {progress.rating_change >= 0 ? '+' : ''}{[35mprogress[36m.rating_change}
+                </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:350:65
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                  </div>
+                  <span class="text-sm font-medium text-white">{[35mprogress[36m.skills_mastered}</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:357:65
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                  </div>
+                  <span class="text-sm font-medium text-white">{[35mprogress[36m.skills_in_progress}</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:365:22
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                  <span class="text-sm font-medium text-white">
+                    {[35mprogress[36m.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress}
+                  </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:365:55
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                  <span class="text-sm font-medium text-white">
+                    {progress.total_skills_assigned - [35mprogress[36m.skills_mastered - progress.skills_in_progress}
+                  </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:365:82
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m                  <span class="text-sm font-medium text-white">
+                    {progress.total_skills_assigned - progress.skills_mastered - [35mprogress[36m.skills_in_progress}
+                  </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:373:16
+[31mError[39m: 'student' is possibly 'undefined'. (ts)
+[36m          <!-- Notas del Instructor -->
+          {#if [35mstudent[36m.instructor_notes}
+            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:377:44
+[31mError[39m: 'student' is possibly 'undefined'. (ts)
+[36m              <div class="p-4 bg-slate-700/30 rounded-lg">
+                <p class="text-slate-300">{[35mstudent[36m.instructor_notes}</p>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:410:65
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+              <div class="text-2xl font-bold text-emerald-400">{[35mprogress[36m.attended_sessions}</div>
+              <div class="text-sm text-slate-400">Presentes</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:414:64
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+              <div class="text-2xl font-bold text-yellow-400">{[35mprogress[36m.late_sessions}</div>
+              <div class="text-sm text-slate-400">Tardanzas</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:418:61
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+              <div class="text-2xl font-bold text-red-400">{[35mprogress[36m.absent_sessions}</div>
+              <div class="text-sm text-slate-400">Ausencias</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:422:76
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+              <div class="text-2xl font-bold text-white">{formatPercentage([35mprogress[36m.punctuality_rate)}</div>
+              <div class="text-sm text-slate-400">Puntualidad</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:532:59
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+              <div class="text-2xl font-bold text-white">{[35mprogress[36m.total_payments}</div>
+              <div class="text-sm text-slate-400">Total</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:536:65
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+              <div class="text-2xl font-bold text-emerald-400">{[35mprogress[36m.paid_payments}</div>
+              <div class="text-sm text-slate-400">Pagados</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:540:61
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+              <div class="text-2xl font-bold text-red-400">{[35mprogress[36m.overdue_payments}</div>
+              <div class="text-sm text-slate-400">Vencidos</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:544:76
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+              <div class="text-2xl font-bold text-white">{formatPercentage([35mprogress[36m.payment_compliance)}</div>
+              <div class="text-sm text-slate-400">Cumplimiento</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:591:61
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+                <div class="text-2xl font-bold text-white">{[35mprogress[36m.tournaments_participated}</div>
+                <div class="text-sm text-slate-400">Participados</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:595:67
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+                <div class="text-2xl font-bold text-emerald-400">{[35mprogress[36m.tournament_wins}</div>
+                <div class="text-sm text-slate-400">Victorias</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:599:66
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+                <div class="text-2xl font-bold text-yellow-400">{[35mprogress[36m.tournament_draws}</div>
+                <div class="text-sm text-slate-400">Empates</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:603:63
+[31mError[39m: 'progress' is possibly 'undefined'. (ts)
+[36m              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 text-center">
+                <div class="text-2xl font-bold text-red-400">{[35mprogress[36m.tournament_losses}</div>
+                <div class="text-sm text-slate-400">Derrotas</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:613:78
+[31mError[39m: Property 'name' does not exist on type 'never'. (ts)
+[36m                  <div>
+                    <h3 class="text-lg font-semibold text-white">{tournament.[35mname[36m}</h3>
+                    <div class="text-sm text-slate-400">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:615:46
+[31mError[39m: Property 'date' does not exist on type 'never'. (ts)
+[36m                    <div class="text-sm text-slate-400">
+                      {formatDate(tournament.[35mdate[36m)} ÔÇó {tournament.format} ÔÇó {tournament.participants} participantes
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:615:67
+[31mError[39m: Property 'format' does not exist on type 'never'. (ts)
+[36m                    <div class="text-sm text-slate-400">
+                      {formatDate(tournament.date)} ÔÇó {tournament.[35mformat[36m} ÔÇó {tournament.participants} participantes
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:615:89
+[31mError[39m: Property 'participants' does not exist on type 'never'. (ts)
+[36m                    <div class="text-sm text-slate-400">
+                      {formatDate(tournament.date)} ÔÇó {tournament.format} ÔÇó {tournament.[35mparticipants[36m} participantes
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:620:44
+[31mError[39m: Property 'final_position' does not exist on type 'never'. (ts)
+[36m                    <div class="text-lg font-semibold text-white">
+                      Posici├│n {tournament.[35mfinal_position[36m}/{tournament.participants}
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:620:72
+[31mError[39m: Property 'participants' does not exist on type 'never'. (ts)
+[36m                    <div class="text-lg font-semibold text-white">
+                      Posici├│n {tournament.final_position}/{tournament.[35mparticipants[36m}
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:622:69
+[31mError[39m: Property 'points' does not exist on type 'never'. (ts)
+[36m                    </div>
+                    <div class="text-sm text-slate-400">{tournament.[35mpoints[36m} puntos</div>
+                  </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\reports\[studentId]\+page.svelte[39m:629:37
+[31mError[39m: Property 'games' does not exist on type 'never'. (ts)
+[36m                  <h4 class="font-medium text-slate-300 mb-2">Partidas</h4>
+                  {#each tournament.[35mgames[36m as game}
+                    <div class="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\schools\[schoolId]\+page.svelte[39m:391:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\schools\[schoolId]\+page.svelte[39m:395:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-primary {
+    [35m@apply[36m px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\schools\[schoolId]\+page.svelte[39m:374:95
+[31mError[39m: Type 'undefined' cannot be used as an index type. (ts)
+[36m              <div class="flex items-center justify-between">
+                <span class={`px-3 py-1 rounded-full text-xs font-medium border ${levelColors[[35mclassItem.level[36m] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
+                  {levelLabels[classItem.level] || classItem.level}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\schools\[schoolId]\+page.svelte[39m:375:32
+[31mError[39m: Type 'undefined' cannot be used as an index type. (ts)
+[36m                <span class={`px-3 py-1 rounded-full text-xs font-medium border ${levelColors[classItem.level] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
+                  {levelLabels[[35mclassItem.level[36m] || classItem.level}
+                </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\schools\[schoolId]\edit\+page.svelte[39m:292:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\schools\[schoolId]\edit\+page.svelte[39m:25:26
+[31mError[39m: Property 'country' does not exist on type 'School'. (ts)
+[36m    city: schoolData?.city || '',
+    country: schoolData?.[35mcountry[36m || 'ES',
+    address: schoolData?.address || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\+page.svelte[39m:309:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:666:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:670:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-primary {
+    [35m@apply[36m bg-primary-600 hover:bg-primary-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:674:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-secondary {
+    [35m@apply[36m bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center border border-slate-600;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:34:22
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m  let formData = {
+    name: skillData?.[35mname[36m || '',
+    description: skillData?.description || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:35:29
+[31mError[39m: Property 'description' does not exist on type '{ id: string; }'. (ts)
+[36m    name: skillData?.name || '',
+    description: skillData?.[35mdescription[36m || '',
+    category_id: skillData?.category_id || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:36:29
+[31mError[39m: Property 'category_id' does not exist on type '{ id: string; }'. (ts)
+[36m    description: skillData?.description || '',
+    category_id: skillData?.[35mcategory_id[36m || '',
+    difficulty: skillData?.difficulty || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:37:28
+[31mError[39m: Property 'difficulty' does not exist on type '{ id: string; }'. (ts)
+[36m    category_id: skillData?.category_id || '',
+    difficulty: skillData?.[35mdifficulty[36m || 1,
+    estimated_hours: skillData?.estimated_hours || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:38:33
+[31mError[39m: Property 'estimated_hours' does not exist on type '{ id: string; }'. (ts)
+[36m    difficulty: skillData?.difficulty || 1,
+    estimated_hours: skillData?.[35mestimated_hours[36m || 1,
+    prerequisites: skillData?.prerequisites || [],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:39:31
+[31mError[39m: Property 'prerequisites' does not exist on type '{ id: string; }'. (ts)
+[36m    estimated_hours: skillData?.estimated_hours || 1,
+    prerequisites: skillData?.[35mprerequisites[36m || [],
+    learning_objectives: skillData?.learning_objectives || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:40:37
+[31mError[39m: Property 'learning_objectives' does not exist on type '{ id: string; }'. (ts)
+[36m    prerequisites: skillData?.prerequisites || [],
+    learning_objectives: skillData?.[35mlearning_objectives[36m || [''],
+    assessment_criteria: skillData?.assessment_criteria || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:41:37
+[31mError[39m: Property 'assessment_criteria' does not exist on type '{ id: string; }'. (ts)
+[36m    learning_objectives: skillData?.learning_objectives || [''],
+    assessment_criteria: skillData?.[35massessment_criteria[36m || [''],
+    resources: skillData?.resources || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:42:27
+[31mError[39m: Property 'resources' does not exist on type '{ id: string; }'. (ts)
+[36m    assessment_criteria: skillData?.assessment_criteria || [''],
+    resources: skillData?.[35mresources[36m || [''],
+    order_index: skillData?.order_index || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:43:29
+[31mError[39m: Property 'order_index' does not exist on type '{ id: string; }'. (ts)
+[36m    resources: skillData?.resources || [''],
+    order_index: skillData?.[35morder_index[36m || 1,
+    active: skillData?.active ?? true
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:44:24
+[31mError[39m: Property 'active' does not exist on type '{ id: string; }'. (ts)
+[36m    order_index: skillData?.order_index || 1,
+    active: skillData?.[35mactive[36m ?? true
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:61:58
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m  onMount(() => {
+    console.log('Ô£Å´©Å Edit skill page loaded:', skillData?.[35mname[36m);
+  });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:92:65
+[31mError[39m: Parameter 'obj' implicitly has an 'any' type. (ts)
+[36m    // Validar que los objetivos no est├®n vac├¡os
+    const validObjectives = formData.learning_objectives.filter([35mobj[36m => obj.trim());
+    if (validObjectives.length === 0) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:98:63
+[31mError[39m: Parameter 'criteria' implicitly has an 'any' type. (ts)
+[36m    // Validar que los criterios no est├®n vac├¡os
+    const validCriteria = formData.assessment_criteria.filter([35mcriteria[36m => criteria.trim());
+    if (validCriteria.length === 0) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:110:72
+[31mError[39m: Parameter 'obj' implicitly has an 'any' type. (ts)
+[36m    // Limpiar arrays de elementos vac├¡os
+    formData.learning_objectives = formData.learning_objectives.filter([35mobj[36m => obj.trim());
+    formData.assessment_criteria = formData.assessment_criteria.filter(criteria => criteria.trim());
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:111:72
+[31mError[39m: Parameter 'criteria' implicitly has an 'any' type. (ts)
+[36m    formData.learning_objectives = formData.learning_objectives.filter(obj => obj.trim());
+    formData.assessment_criteria = formData.assessment_criteria.filter([35mcriteria[36m => criteria.trim());
+    formData.resources = formData.resources.filter(resource => resource.trim());
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:112:52
+[31mError[39m: Parameter 'resource' implicitly has an 'any' type. (ts)
+[36m    formData.assessment_criteria = formData.assessment_criteria.filter(criteria => criteria.trim());
+    formData.resources = formData.resources.filter([35mresource[36m => resource.trim());
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:143:24
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m    formData = {
+      name: skillData?.[35mname[36m || '',
+      description: skillData?.description || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:144:31
+[31mError[39m: Property 'description' does not exist on type '{ id: string; }'. (ts)
+[36m      name: skillData?.name || '',
+      description: skillData?.[35mdescription[36m || '',
+      category_id: skillData?.category_id || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:145:31
+[31mError[39m: Property 'category_id' does not exist on type '{ id: string; }'. (ts)
+[36m      description: skillData?.description || '',
+      category_id: skillData?.[35mcategory_id[36m || '',
+      difficulty: skillData?.difficulty || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:146:30
+[31mError[39m: Property 'difficulty' does not exist on type '{ id: string; }'. (ts)
+[36m      category_id: skillData?.category_id || '',
+      difficulty: skillData?.[35mdifficulty[36m || 1,
+      estimated_hours: skillData?.estimated_hours || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:147:35
+[31mError[39m: Property 'estimated_hours' does not exist on type '{ id: string; }'. (ts)
+[36m      difficulty: skillData?.difficulty || 1,
+      estimated_hours: skillData?.[35mestimated_hours[36m || 1,
+      prerequisites: skillData?.prerequisites || [],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:148:33
+[31mError[39m: Property 'prerequisites' does not exist on type '{ id: string; }'. (ts)
+[36m      estimated_hours: skillData?.estimated_hours || 1,
+      prerequisites: skillData?.[35mprerequisites[36m || [],
+      learning_objectives: skillData?.learning_objectives || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:149:39
+[31mError[39m: Property 'learning_objectives' does not exist on type '{ id: string; }'. (ts)
+[36m      prerequisites: skillData?.prerequisites || [],
+      learning_objectives: skillData?.[35mlearning_objectives[36m || [''],
+      assessment_criteria: skillData?.assessment_criteria || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:150:39
+[31mError[39m: Property 'assessment_criteria' does not exist on type '{ id: string; }'. (ts)
+[36m      learning_objectives: skillData?.learning_objectives || [''],
+      assessment_criteria: skillData?.[35massessment_criteria[36m || [''],
+      resources: skillData?.resources || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:151:29
+[31mError[39m: Property 'resources' does not exist on type '{ id: string; }'. (ts)
+[36m      assessment_criteria: skillData?.assessment_criteria || [''],
+      resources: skillData?.[35mresources[36m || [''],
+      order_index: skillData?.order_index || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:152:31
+[31mError[39m: Property 'order_index' does not exist on type '{ id: string; }'. (ts)
+[36m      resources: skillData?.resources || [''],
+      order_index: skillData?.[35morder_index[36m || 1,
+      active: skillData?.active ?? true
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:153:26
+[31mError[39m: Property 'active' does not exist on type '{ id: string; }'. (ts)
+[36m      order_index: skillData?.order_index || 1,
+      active: skillData?.[35mactive[36m ?? true
+    };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:160:24
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m    return JSON.stringify(formData) !== JSON.stringify({
+      name: skillData?.[35mname[36m || '',
+      description: skillData?.description || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:161:31
+[31mError[39m: Property 'description' does not exist on type '{ id: string; }'. (ts)
+[36m      name: skillData?.name || '',
+      description: skillData?.[35mdescription[36m || '',
+      category_id: skillData?.category_id || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:162:31
+[31mError[39m: Property 'category_id' does not exist on type '{ id: string; }'. (ts)
+[36m      description: skillData?.description || '',
+      category_id: skillData?.[35mcategory_id[36m || '',
+      difficulty: skillData?.difficulty || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:163:30
+[31mError[39m: Property 'difficulty' does not exist on type '{ id: string; }'. (ts)
+[36m      category_id: skillData?.category_id || '',
+      difficulty: skillData?.[35mdifficulty[36m || 1,
+      estimated_hours: skillData?.estimated_hours || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:164:35
+[31mError[39m: Property 'estimated_hours' does not exist on type '{ id: string; }'. (ts)
+[36m      difficulty: skillData?.difficulty || 1,
+      estimated_hours: skillData?.[35mestimated_hours[36m || 1,
+      prerequisites: skillData?.prerequisites || [],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:165:33
+[31mError[39m: Property 'prerequisites' does not exist on type '{ id: string; }'. (ts)
+[36m      estimated_hours: skillData?.estimated_hours || 1,
+      prerequisites: skillData?.[35mprerequisites[36m || [],
+      learning_objectives: skillData?.learning_objectives || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:166:39
+[31mError[39m: Property 'learning_objectives' does not exist on type '{ id: string; }'. (ts)
+[36m      prerequisites: skillData?.prerequisites || [],
+      learning_objectives: skillData?.[35mlearning_objectives[36m || [''],
+      assessment_criteria: skillData?.assessment_criteria || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:167:39
+[31mError[39m: Property 'assessment_criteria' does not exist on type '{ id: string; }'. (ts)
+[36m      learning_objectives: skillData?.learning_objectives || [''],
+      assessment_criteria: skillData?.[35massessment_criteria[36m || [''],
+      resources: skillData?.resources || [''],
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:168:29
+[31mError[39m: Property 'resources' does not exist on type '{ id: string; }'. (ts)
+[36m      assessment_criteria: skillData?.assessment_criteria || [''],
+      resources: skillData?.[35mresources[36m || [''],
+      order_index: skillData?.order_index || 1,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:169:31
+[31mError[39m: Property 'order_index' does not exist on type '{ id: string; }'. (ts)
+[36m      resources: skillData?.resources || [''],
+      order_index: skillData?.[35morder_index[36m || 1,
+      active: skillData?.active ?? true
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:170:26
+[31mError[39m: Property 'active' does not exist on type '{ id: string; }'. (ts)
+[36m      order_index: skillData?.order_index || 1,
+      active: skillData?.[35mactive[36m ?? true
+    });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:179:73
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m  const removeObjective = (index: number) => {
+    formData.learning_objectives = formData.learning_objectives.filter(([35m_[36m, i) => i !== index);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:179:76
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m  const removeObjective = (index: number) => {
+    formData.learning_objectives = formData.learning_objectives.filter((_, [35mi[36m) => i !== index);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:187:73
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m  const removeCriteria = (index: number) => {
+    formData.assessment_criteria = formData.assessment_criteria.filter(([35m_[36m, i) => i !== index);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:187:76
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m  const removeCriteria = (index: number) => {
+    formData.assessment_criteria = formData.assessment_criteria.filter((_, [35mi[36m) => i !== index);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:195:53
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m  const removeResource = (index: number) => {
+    formData.resources = formData.resources.filter(([35m_[36m, i) => i !== index);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:195:56
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m  const removeResource = (index: number) => {
+    formData.resources = formData.resources.filter((_, [35mi[36m) => i !== index);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:200:62
+[31mError[39m: Parameter 'id' implicitly has an 'any' type. (ts)
+[36m    if (formData.prerequisites.includes(skillId)) {
+      formData.prerequisites = formData.prerequisites.filter([35mid[36m => id !== skillId);
+    } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:212:22
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m    const category = categories.find(c => c.id === formData.category_id);
+    return category?.[35mname[36m || 'Seleccionar categor├¡a';
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:217:22
+[31mError[39m: Property 'color' does not exist on type '{ id: string; }'. (ts)
+[36m    const category = categories.find(c => c.id === formData.category_id);
+    return category?.[35mcolor[36m || '#6B7280';
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:226:37
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m<svelte:head>
+  <title>Editar Skill - {skillData?.[35mname[36m || 'Habilidad'} - ChessNet</title>
+</svelte:head>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:244:61
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m              <h1 class="text-2xl font-bold">Editar Habilidad</h1>
+              <p class="text-sm text-slate-400">{skillData?.[35mname[36m}</p>
+            </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:329:59
+[31mError[39m: Property 'name' does not exist on type '{ id: string; }'. (ts)
+[36m                  {#each categories as category}
+                    <option value={category.id}>{category.[35mname[36m}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:651:85
+[31mError[39m: Parameter 'obj' implicitly has an 'any' type. (ts)
+[36m              <div class="text-sm text-slate-400 space-y-1">
+                <p><strong>Objetivos:</strong> {formData.learning_objectives.filter([35mobj[36m => obj.trim()).length}</p>
+                <p><strong>Criterios:</strong> {formData.assessment_criteria.filter(c => c.trim()).length}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:652:85
+[31mError[39m: Parameter 'c' implicitly has an 'any' type. (ts)
+[36m                <p><strong>Objetivos:</strong> {formData.learning_objectives.filter(obj => obj.trim()).length}</p>
+                <p><strong>Criterios:</strong> {formData.assessment_criteria.filter([35mc[36m => c.trim()).length}</p>
+                <p><strong>Recursos:</strong> {formData.resources.filter(r => r.trim()).length}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\[skillId]\edit\+page.svelte[39m:653:74
+[31mError[39m: Parameter 'r' implicitly has an 'any' type. (ts)
+[36m                <p><strong>Criterios:</strong> {formData.assessment_criteria.filter(c => c.trim()).length}</p>
+                <p><strong>Recursos:</strong> {formData.resources.filter([35mr[36m => r.trim()).length}</p>
+                <p><strong>Prerequisitos:</strong> {formData.prerequisites.length}</p>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\create\+page.svelte[39m:299:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\create\+page.svelte[39m:303:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  kbd {
+    [35m@apply[36m font-mono text-xs;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\skills\create\+page.svelte[39m:90:7
+[31mError[39m: This expression is not callable.
+  Type '{ success: (message: string) => string; error: (message: string) => string; info: (message: string) => string; warning: (message: string) => string; }' has no call signatures. (ts)
+[36m      
+      [35mshowToast[36m('Habilidad creada exitosamente');
+      goto('/skills');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\+page.svelte[39m:312:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\+page.svelte[39m:285:61
+[31mError[39m: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'. (ts)
+[36m                <School class="w-4 h-4 text-slate-500" />
+                <span class="text-slate-300">{getSchoolName([35mstudent.college_id[36m)}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\[studentId]\edit\+page.svelte[39m:274:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\[studentId]\edit\+page.svelte[39m:278:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-primary {
+    [35m@apply[36m bg-primary-600 hover:bg-primary-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\[studentId]\edit\+page.svelte[39m:282:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .btn-secondary {
+    [35m@apply[36m bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center border border-slate-600;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\[studentId]\edit\+page.svelte[39m:80:9
+[31mError[39m: Cannot find name 'showToast'. (ts)
+[36m        console.log('Ô£à Student updated successfully:', result);
+        [35mshowToast[36m.success('Estudiante actualizado correctamente');
+        
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\[studentId]\edit\+page.svelte[39m:95:7
+[31mError[39m: Cannot find name 'showError'. (ts)
+[36m      console.error('Error updating student:', error);
+      [35mshowError[36m(error, 'Error al actualizar el estudiante');
+    } finally {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\create\+page.svelte[39m:21:14
+[33mWarn[39m: Component has unused export property 'data'. If it is for external reference only, please consider using `export const data`
+https://svelte.dev/e/export_let_unused (svelte)
+[36m
+  export let [35mdata: PageData[36m;
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\create\+page.svelte[39m:323:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input {
+    [35m@apply[36m bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\students\create\+page.svelte[39m:327:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  kbd {
+    [35m@apply[36m font-mono text-xs;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:42:7
+[31mError[39m: 'tournament.description' is possibly 'undefined'. (ts)
+[36m      tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      [35mtournament.description[36m.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tournament.location.toLowerCase().includes(searchTerm.toLowerCase());
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:43:18
+[31mError[39m: Property 'location' does not exist on type 'Tournament'. (ts)
+[36m      tournament.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tournament.[35mlocation[36m.toLowerCase().includes(searchTerm.toLowerCase());
+    
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:46:64
+[31mError[39m: Property 'format' does not exist on type 'Tournament'. (ts)
+[36m    const matchesStatus = statusFilter === 'all' || tournament.status === statusFilter;
+    const matchesFormat = formatFilter === 'all' || tournament.[35mformat[36m === formatFilter;
+    
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:192:34
+[31mError[39m: Property 'total_tournaments' does not exist on type '{ total_tournaments: number; upcoming_tournaments: number; in_progress_tournaments: number; completed_tournaments: number; total_players_registered: number; total_prize_pool: number; average_players_per_tournament: number; } | {} | {}'.
+  Property 'total_tournaments' does not exist on type '{}'. (ts)
+[36m        <h3 class="text-2xl font-bold text-white mb-1">
+          {data.tournamentStats?.[35mtotal_tournaments[36m || 0}
+        </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:204:36
+[31mError[39m: Property 'in_progress_tournaments' does not exist on type '{ total_tournaments: number; upcoming_tournaments: number; in_progress_tournaments: number; completed_tournaments: number; total_players_registered: number; total_prize_pool: number; average_players_per_tournament: number; } | {} | {}'.
+  Property 'in_progress_tournaments' does not exist on type '{}'. (ts)
+[36m          <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+            {data.tournamentStats?.[35min_progress_tournaments[36m || 0}
+          </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:219:34
+[31mError[39m: Property 'total_players_registered' does not exist on type '{ total_tournaments: number; upcoming_tournaments: number; in_progress_tournaments: number; completed_tournaments: number; total_players_registered: number; total_prize_pool: number; average_players_per_tournament: number; } | {} | {}'.
+  Property 'total_players_registered' does not exist on type '{}'. (ts)
+[36m        <h3 class="text-2xl font-bold text-white mb-1">
+          {data.tournamentStats?.[35mtotal_players_registered[36m || 0}
+        </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:233:49
+[31mError[39m: Property 'total_prize_pool' does not exist on type '{ total_tournaments: number; upcoming_tournaments: number; in_progress_tournaments: number; completed_tournaments: number; total_players_registered: number; total_prize_pool: number; average_players_per_tournament: number; } | {} | {}'.
+  Property 'total_prize_pool' does not exist on type '{}'. (ts)
+[36m        <h3 class="text-2xl font-bold text-white mb-1">
+          {formatCurrency(data.tournamentStats?.[35mtotal_prize_pool[36m || 0)}
+        </h3>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:331:64
+[31mError[39m: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'. (ts)
+[36m                      <Calendar class="w-4 h-4 text-slate-500" />
+                      <span class="text-slate-300">{formatDate([35mtournament.start_date[36m)}</span>
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:339:64
+[31mError[39m: Property 'location' does not exist on type 'Tournament'. (ts)
+[36m                      <MapPin class="w-4 h-4 text-slate-500" />
+                      <span class="text-slate-300">{tournament.[35mlocation[36m}</span>
+                    </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:377:81
+[31mError[39m: Property 'players_registered' does not exist on type 'Tournament'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-semibold {getOccupancyColor(tournament.[35mplayers_registered[36m, tournament.max_players)}">
+                  {tournament.players_registered}/{tournament.max_players}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:377:112
+[31mError[39m: Property 'max_players' does not exist on type 'Tournament'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-semibold {getOccupancyColor(tournament.players_registered, tournament.[35mmax_players[36m)}">
+                  {tournament.players_registered}/{tournament.max_players}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:378:31
+[31mError[39m: Property 'players_registered' does not exist on type 'Tournament'. (ts)
+[36m                <div class="text-lg font-semibold {getOccupancyColor(tournament.players_registered, tournament.max_players)}">
+                  {tournament.[35mplayers_registered[36m}/{tournament.max_players}
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:378:63
+[31mError[39m: Property 'max_players' does not exist on type 'Tournament'. (ts)
+[36m                <div class="text-lg font-semibold {getOccupancyColor(tournament.players_registered, tournament.max_players)}">
+                  {tournament.players_registered}/{tournament.[35mmax_players[36m}
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:385:46
+[31mError[39m: Property 'format' does not exist on type 'Tournament'. (ts)
+[36m                <div class="text-lg font-semibold text-white">
+                  {getFormatLabel(tournament.[35mformat[36m)}
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:392:58
+[31mError[39m: Property 'total_rounds' does not exist on type 'Tournament'. (ts)
+[36m                <div class="text-lg font-semibold text-white">
+                  {tournament.current_round}/{tournament.[35mtotal_rounds[36m}
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:399:46
+[31mError[39m: Property 'entry_fee' does not exist on type 'Tournament'. (ts)
+[36m                <div class="text-lg font-semibold text-emerald-400">
+                  {formatCurrency(tournament.[35mentry_fee[36m)}
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:406:46
+[31mError[39m: Property 'prize_pool' does not exist on type 'Tournament'. (ts)
+[36m                <div class="text-lg font-semibold text-emerald-400">
+                  {formatCurrency(tournament.[35mprize_pool[36m)}
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:416:76
+[31mError[39m: Property 'organizer' does not exist on type 'Tournament'. (ts)
+[36m                <span class="text-slate-400">
+                  Organizado por: <span class="text-slate-300">{tournament.[35morganizer[36m}</span>
+                </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:418:22
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"upcoming"' have no overlap. (ts)
+[36m                </span>
+                {#if [35mtournament.status === 'upcoming'[36m && isRegistrationOpen(tournament)}
+                  <span class="text-emerald-400">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:420:75
+[31mError[39m: Property 'registration_deadline' does not exist on type 'Tournament'. (ts)
+[36m                  <span class="text-emerald-400">
+                    Ô£ô Inscripciones abiertas hasta {formatDate(tournament.[35mregistration_deadline[36m)}
+                  </span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\+page.svelte[39m:422:27
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"upcoming"' have no overlap. (ts)
+[36m                  </span>
+                {:else if [35mtournament.status === 'upcoming'[36m}
+                  <span class="text-red-400">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:54:10
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"in_progress"' have no overlap. (ts)
+[36m  
+  $: if ([35mtournament?.status === 'in_progress'[36m && tournament?.current_round) {
+    loadCurrentRoundPairings();
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:115:15
+[31mError[39m: Type 'string' is not assignable to type '"registered" | "confirmed" | "withdrawn"'. (ts)
+[36m              student_rating: player.student_rating,
+              [35mstatus[36m: player.status,
+              notes: player.notes
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:116:15
+[31mError[39m: Type 'null' is not assignable to type 'string | undefined'. (ts)
+[36m              status: player.status,
+              [35mnotes[36m: player.notes
+            });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:120:17
+[31mError[39m: 'playerError' is of type 'unknown'. (ts)
+[36m            // Si el jugador ya existe, continuar
+            if ([35mplayerError[36m.name === 'ConstraintError') {
+              console.log('ÔÜá´©Å Player already exists:', player.student_name);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:273:24
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"upcoming"' have no overlap. (ts)
+[36m  const handleStartTournament = async () => {
+    if (!tournament || [35mtournament.status !== 'upcoming'[36m) return;
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:308:9
+[31mError[39m: Type '"in_progress"' is not assignable to type '"active" | "planned" | "completed"'. (ts)
+[36m        ...tournament,
+        [35mstatus[36m: 'in_progress',
+        current_round: 1
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:320:44
+[31mError[39m: 'error' is of type 'unknown'. (ts)
+[36m      console.error('ÔØî Error starting tournament:', error);
+      alert(`Error al iniciar el torneo: ${[35merror[36m.message}`);
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:325:12
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"upcoming"' have no overlap. (ts)
+[36m  const canStartTournament = () => {
+    return [35mtournament?.status === 'upcoming'[36m && 
+           registeredPlayers.length >= 2 && 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:327:46
+[31mError[39m: Property 'registration_deadline' does not exist on type 'Tournament'. (ts)
+[36m           registeredPlayers.length >= 2 && 
+           new Date() >= new Date(tournament.[35mregistration_deadline[36m);
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:333:42
+[31mError[39m: Property 'registration_deadline' does not exist on type 'Tournament'. (ts)
+[36m    const now = new Date();
+    const deadline = new Date(tournament.[35mregistration_deadline[36m);
+    return now < deadline && 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:336:12
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned"' and '"cancelled"' have no overlap. (ts)
+[36m           tournament.status !== 'completed' && 
+           [35mtournament.status !== 'cancelled'[36m &&
+           registeredPlayers.length < tournament.max_players;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:337:50
+[31mError[39m: Property 'max_players' does not exist on type 'Tournament'. (ts)
+[36m           tournament.status !== 'cancelled' &&
+           registeredPlayers.length < tournament.[35mmax_players[36m;
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:454:50
+[31mError[39m: Property 'total_rounds' does not exist on type 'Tournament'. (ts)
+[36m      // 3. Verificar si es la ├║ltima ronda
+      if (tournament.current_round >= tournament.[35mtotal_rounds[36m) {
+        console.log('­ƒÅå Last round completed, finishing tournament');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:496:45
+[31mError[39m: 'error' is of type 'unknown'. (ts)
+[36m      console.error('ÔØî Error finishing round:', error);
+      alert(`Error al finalizar la ronda: ${[35merror[36m.message}`);
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:582:24
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"in_progress"' have no overlap. (ts)
+[36m  
+  $: if (tournament && [35mtournament.status === 'in_progress'[36m) {
+    calculateStandings().then(standings => {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:672:66
+[31mError[39m: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'. (ts)
+[36m                <Calendar class="w-4 h-4 text-slate-400" />
+                <span class="text-sm text-slate-300">{formatDate([35mtournament.start_date[36m)}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:680:66
+[31mError[39m: Property 'location' does not exist on type 'Tournament'. (ts)
+[36m                <MapPin class="w-4 h-4 text-slate-400" />
+                <span class="text-sm text-slate-300">{tournament.[35mlocation[36m}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:684:81
+[31mError[39m: Property 'format' does not exist on type 'Tournament'. (ts)
+[36m                <Target class="w-4 h-4 text-slate-400" />
+                <span class="text-sm text-slate-300">{getFormatLabel(tournament.[35mformat[36m)}</span>
+              </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:694:98
+[31mError[39m: Property 'max_players' does not exist on type 'Tournament'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-bold text-white">{registeredPlayers.length}/{tournament.[35mmax_players[36m}</div>
+                <div class="text-xs text-slate-400">Jugadores</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:698:98
+[31mError[39m: Property 'total_rounds' does not exist on type 'Tournament'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-bold text-white">{tournament.current_round}/{tournament.[35mtotal_rounds[36m}</div>
+                <div class="text-xs text-slate-400">Rondas</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:702:92
+[31mError[39m: Property 'entry_fee' does not exist on type 'Tournament'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-bold text-emerald-400">{formatCurrency(tournament.[35mentry_fee[36m)}</div>
+                <div class="text-xs text-slate-400">Inscripci├│n</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:706:92
+[31mError[39m: Property 'prize_pool' does not exist on type 'Tournament'. (ts)
+[36m              <div class="text-center">
+                <div class="text-lg font-bold text-emerald-400">{formatCurrency(tournament.[35mprize_pool[36m)}</div>
+                <div class="text-xs text-slate-400">Premios</div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:820:96
+[31mError[39m: Property 'total_rounds' does not exist on type 'Tournament'. (ts)
+[36m                <div class="flex justify-between text-sm mb-2">
+                  <span class="text-slate-300">Ronda {tournament.current_round} de {tournament.[35mtotal_rounds[36m}</span>
+                  <span class="text-slate-400">{Math.round((tournament.current_round / tournament.total_rounds) * 100)}% completado</span>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:821:61
+[31mError[39m: 'tournament.current_round' is possibly 'undefined'. (ts)
+[36m                  <span class="text-slate-300">Ronda {tournament.current_round} de {tournament.total_rounds}</span>
+                  <span class="text-slate-400">{Math.round(([35mtournament.current_round[36m / tournament.total_rounds) * 100)}% completado</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:821:99
+[31mError[39m: Property 'total_rounds' does not exist on type 'Tournament'. (ts)
+[36m                  <span class="text-slate-300">Ronda {tournament.current_round} de {tournament.total_rounds}</span>
+                  <span class="text-slate-400">{Math.round((tournament.current_round / tournament.[35mtotal_rounds[36m) * 100)}% completado</span>
+                </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:826:37
+[31mError[39m: 'tournament.current_round' is possibly 'undefined'. (ts)
+[36m                    class="bg-orange-500 h-3 rounded-full transition-all duration-300"
+                    style="width: {([35mtournament.current_round[36m / tournament.total_rounds) * 100}%"
+                  ></div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:826:75
+[31mError[39m: Property 'total_rounds' does not exist on type 'Tournament'. (ts)
+[36m                    class="bg-orange-500 h-3 rounded-full transition-all duration-300"
+                    style="width: {(tournament.current_round / tournament.[35mtotal_rounds[36m) * 100}%"
+                  ></div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:850:16
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"in_progress"' have no overlap. (ts)
+[36m          <!-- Emparejamientos actuales -->
+          {#if [35mtournament.status === 'in_progress'[36m && currentRoundPairings.length > 0}
+            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:935:24
+[31mError[39m: 'tournament.current_round' is possibly 'undefined'. (ts)
+[36m                    <span>
+                      {[35mtournament.current_round[36m >= tournament.total_rounds 
+                        ? 'Finalizar Torneo' 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:935:63
+[31mError[39m: Property 'total_rounds' does not exist on type 'Tournament'. (ts)
+[36m                    <span>
+                      {tournament.current_round >= tournament.[35mtotal_rounds[36m 
+                        ? 'Finalizar Torneo' 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:1115:22
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"in_progress"' have no overlap. (ts)
+[36m                <h3 class="text-lg font-semibold text-white">Clasificaci├│n Actual</h3>
+                {#if [35mtournament.status === 'in_progress'[36m}
+                  <button
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\+page.svelte[39m:1187:20
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"in_progress"' have no overlap. (ts)
+[36m                <p class="text-slate-400">
+                  {[35mtournament.status === 'in_progress'[36m 
+                    ? 'No hay resultados a├║n' 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:31:25
+[31mError[39m: Property 'format' does not exist on type 'Tournament'. (ts)
+[36m    description: tournament?.description || '',
+    format: tournament?.[35mformat[36m || 'swiss',
+    time_control: tournament?.time_control || '15+10',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:33:30
+[31mError[39m: Property 'max_players' does not exist on type 'Tournament'. (ts)
+[36m    time_control: tournament?.time_control || '15+10',
+    max_players: tournament?.[35mmax_players[36m || 16,
+    entry_fee: tournament?.entry_fee || 0,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:34:28
+[31mError[39m: Property 'entry_fee' does not exist on type 'Tournament'. (ts)
+[36m    max_players: tournament?.max_players || 16,
+    entry_fee: tournament?.[35mentry_fee[36m || 0,
+    prize_pool: tournament?.prize_pool || 0,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:35:29
+[31mError[39m: Property 'prize_pool' does not exist on type 'Tournament'. (ts)
+[36m    entry_fee: tournament?.entry_fee || 0,
+    prize_pool: tournament?.[35mprize_pool[36m || 0,
+    start_date: tournament?.start_date ? new Date(tournament.start_date).toISOString().slice(0, 16) : '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:38:40
+[31mError[39m: Property 'registration_deadline' does not exist on type 'Tournament'. (ts)
+[36m    end_date: tournament?.end_date ? new Date(tournament.end_date).toISOString().slice(0, 16) : '',
+    registration_deadline: tournament?.[35mregistration_deadline[36m ? new Date(tournament.registration_deadline).toISOString().slice(0, 16) : '',
+    location: tournament?.location || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:38:84
+[31mError[39m: Property 'registration_deadline' does not exist on type 'Tournament'. (ts)
+[36m    end_date: tournament?.end_date ? new Date(tournament.end_date).toISOString().slice(0, 16) : '',
+    registration_deadline: tournament?.registration_deadline ? new Date(tournament.[35mregistration_deadline[36m).toISOString().slice(0, 16) : '',
+    location: tournament?.location || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:39:27
+[31mError[39m: Property 'location' does not exist on type 'Tournament'. (ts)
+[36m    registration_deadline: tournament?.registration_deadline ? new Date(tournament.registration_deadline).toISOString().slice(0, 16) : '',
+    location: tournament?.[35mlocation[36m || '',
+    organizer: tournament?.organizer || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:40:28
+[31mError[39m: Property 'organizer' does not exist on type 'Tournament'. (ts)
+[36m    location: tournament?.location || '',
+    organizer: tournament?.[35morganizer[36m || '',
+    notes: tournament?.notes || '',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:41:24
+[31mError[39m: Property 'notes' does not exist on type 'Tournament'. (ts)
+[36m    organizer: tournament?.organizer || '',
+    notes: tournament?.[35mnotes[36m || '',
+    rules: tournament?.rules || ''
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:42:24
+[31mError[39m: Property 'rules' does not exist on type 'Tournament'. (ts)
+[36m    notes: tournament?.notes || '',
+    rules: tournament?.[35mrules[36m || ''
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\[tournamentId]\edit\+page.svelte[39m:537:16
+[31mError[39m: This comparison appears to be unintentional because the types '"active" | "planned" | "completed"' and '"in_progress"' have no overlap. (ts)
+[36m          <!-- Advertencias -->
+          {#if [35mtournament?.status === 'in_progress'[36m || tournament?.status === 'completed'}
+            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\create\+page.svelte[39m:58:19
+[31mError[39m: Property 'auto_prize_pool' does not exist on type '{ name: string; description: string; format: "swiss" | "round_robin" | "knockout" | "single_elimination"; time_control: string; max_players: number; entry_fee: number; prize_pool: number; ... 12 more ...; total_rounds: number; }'. Did you mean 'prize_pool'? (ts)
+[36m  // Reactive calculations
+  $: if (formData.[35mauto_prize_pool[36m) {
+    formData.prize_pool = formData.max_players * formData.entry_fee * 0.8; // 80% del total recaudado
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\create\+page.svelte[39m:64:64
+[31mError[39m: Property 'custom_location' does not exist on type '{ name: string; description: string; format: "swiss" | "round_robin" | "knockout" | "single_elimination"; time_control: string; max_players: number; entry_fee: number; prize_pool: number; ... 12 more ...; total_rounds: number; }'. (ts)
+[36m
+  $: finalLocation = formData.location === 'custom' ? formData.[35mcustom_location[36m : formData.location;
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\create\+page.svelte[39m:184:24
+[31mError[39m: Property 'user_id' does not exist on type '{ name: string; description: string | null; format: "swiss" | "round_robin" | "knockout" | "single_elimination"; time_control: string; max_players: number; entry_fee: number; prize_pool: number; ... 10 more ...; rules: string | null; }'. (ts)
+[36m        // Use IndexedDB for local development
+        tournamentData.[35muser_id[36m = 'dev-user-123'; // Mock user ID for local dev
+        newTournament = await tournamentDB.createTournament(tournamentData);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\create\+page.svelte[39m:185:61
+[31mError[39m: Argument of type '{ name: string; description: string | null; format: "swiss" | "round_robin" | "knockout" | "single_elimination"; time_control: string; max_players: number; entry_fee: number; prize_pool: number; ... 10 more ...; rules: string | null; }' is not assignable to parameter of type 'Omit<Tournament, "id" | "created_at" | "updated_at">'.
+  Property 'user_id' is missing in type '{ name: string; description: string | null; format: "swiss" | "round_robin" | "knockout" | "single_elimination"; time_control: string; max_players: number; entry_fee: number; prize_pool: number; ... 10 more ...; rules: string | null; }' but required in type 'Omit<Tournament, "id" | "created_at" | "updated_at">'. (ts)
+[36m        tournamentData.user_id = 'dev-user-123'; // Mock user ID for local dev
+        newTournament = await tournamentDB.createTournament([35mtournamentData[36m);
+      } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\create\+page.svelte[39m:584:44
+[31mError[39m: Property 'auto_prize_pool' does not exist on type '{ name: string; description: string; format: "swiss" | "round_robin" | "knockout" | "single_elimination"; time_control: string; max_players: number; entry_fee: number; prize_pool: number; ... 12 more ...; total_rounds: number; }'. Did you mean 'prize_pool'? (ts)
+[36m                    type="checkbox"
+                    bind:checked={formData.[35mauto_prize_pool[36m}
+                    class="rounded border-slate-600 text-orange-500 focus:ring-orange-500/50"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\create\+page.svelte[39m:590:32
+[31mError[39m: Property 'auto_prize_pool' does not exist on type '{ name: string; description: string; format: "swiss" | "round_robin" | "knockout" | "single_elimination"; time_control: string; max_players: number; entry_fee: number; prize_pool: number; ... 12 more ...; total_rounds: number; }'. Did you mean 'prize_pool'? (ts)
+[36m                
+                {#if !formData.[35mauto_prize_pool[36m}
+                  <div class="relative">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\(app)\tournaments\create\+page.svelte[39m:676:42
+[31mError[39m: Property 'custom_location' does not exist on type '{ name: string; description: string; format: "swiss" | "round_robin" | "knockout" | "single_elimination"; time_control: string; max_players: number; entry_fee: number; prize_pool: number; ... 12 more ...; total_rounds: number; }'. (ts)
+[36m                    type="text"
+                    bind:value={formData.[35mcustom_location[36m}
+                    placeholder="Escribe la ubicaci├│n personalizada"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32msrc\routes\debug\+page.svelte[39m:76:31
+[31mError[39m: 'error' is of type 'unknown'. (ts)
+[36m      console.error('ÔØî Error en debug:', error);
+      debugInfo = `ÔØî Error: ${[35merror[36m.message}`;
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32mtests\chessnet.spec.ts[39m:85:69
+[31mError[39m: 'error' is of type 'unknown'. 
+[36m      } catch (error) {
+        console.log(`Navigation test for ${section.path} skipped: ${[35merror[36m.message}`);
+      }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\ChessNet-\chessnet-sveltekit\[32mtests\chessnet.spec.ts[39m:220:72
+[31mError[39m: 'error' is of type 'unknown'. 
+[36m      } catch (error) {
+        console.log(`Form validation test for ${createPage} skipped: ${[35merror[36m.message}`);
+        continue;
+[39m
+
+====================================
+[31msvelte-check found 393 errors and 35 warnings in 28 files
+[39m

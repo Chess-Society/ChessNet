@@ -1,44 +1,20 @@
 import { writable } from "svelte/store";
-import { supabase } from "$lib/supabase";
-import type { User, Session } from "@supabase/supabase-js";
+import { auth } from "$lib/firebase";
+import { onAuthStateChanged, type User } from "firebase/auth";
 
-// Store simplificado solo para UI - la autenticación se maneja en el servidor
+// Store simplificado para UI
 export const user = writable<User | null>(null);
-export const session = writable<Session | null>(null);
-export const loading = writable<boolean>(false);
+export const loading = writable<boolean>(true);
 
-// Inicializar auth state solo para sincronización de UI
-export const initAuth = async () => {
-  try {
-    console.log('🔄 Initializing auth store for UI...');
+// Inicializar auth state
+export const initAuth = () => {
+  console.log('🔄 Initializing Firebase auth store for UI...');
+  
+  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    console.log("🔄 Firebase auth state changed:", firebaseUser ? firebaseUser.email : 'none');
+    user.set(firebaseUser);
+    loading.set(false);
+  });
 
-    // Obtener sesión inicial
-    const { data: { session: initialSession }, error } = await supabase.auth.getSession();
-
-    if (error) {
-      console.error("❌ Error getting session:", error);
-      session.set(null);
-      user.set(null);
-      return;
-    }
-
-    console.log('📋 Initial session for UI:', initialSession ? 'found' : 'none');
-    session.set(initialSession);
-    user.set(initialSession?.user ?? null);
-
-    // Escuchar cambios de auth para sincronizar UI
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log("🔄 Auth state changed for UI:", event, newSession?.user?.email || 'none');
-      session.set(newSession);
-      user.set(newSession?.user ?? null);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  } catch (error) {
-    console.error("❌ Error initializing auth store:", error);
-    session.set(null);
-    user.set(null);
-  }
+  return unsubscribe;
 };

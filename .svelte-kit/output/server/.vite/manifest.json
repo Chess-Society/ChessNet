@@ -13,14 +13,14 @@
     "file": "chunks/Icon.js",
     "name": "Icon",
     "imports": [
-      "_index2.js"
+      "_index.js"
     ]
   },
   "_activity.js": {
     "file": "chunks/activity.js",
     "name": "activity",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -28,7 +28,7 @@
     "file": "chunks/arrow-left.js",
     "name": "arrow-left",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -36,7 +36,7 @@
     "file": "chunks/award.js",
     "name": "award",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -44,7 +44,7 @@
     "file": "chunks/book-open.js",
     "name": "book-open",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -52,7 +52,7 @@
     "file": "chunks/calendar.js",
     "name": "calendar",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -60,15 +60,15 @@
     "file": "chunks/chart-column.js",
     "name": "chart-column",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
-  "_chevron-down.js": {
-    "file": "chunks/chevron-down.js",
-    "name": "chevron-down",
+  "_check.js": {
+    "file": "chunks/check.js",
+    "name": "check",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -76,7 +76,7 @@
     "file": "chunks/chevron-right.js",
     "name": "chevron-right",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -84,7 +84,7 @@
     "file": "chunks/circle-alert.js",
     "name": "circle-alert",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -92,7 +92,15 @@
     "file": "chunks/circle-check-big.js",
     "name": "circle-check-big",
     "imports": [
-      "_index2.js",
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
+  "_circle-user.js": {
+    "file": "chunks/circle-user.js",
+    "name": "circle-user",
+    "imports": [
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -100,7 +108,22 @@
     "file": "chunks/circle-x.js",
     "name": "circle-x",
     "imports": [
-      "_index2.js",
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
+  "_classes.js": {
+    "file": "chunks/classes.js",
+    "name": "classes",
+    "imports": [
+      "_firebase.js"
+    ]
+  },
+  "_clipboard-check.js": {
+    "file": "chunks/clipboard-check.js",
+    "name": "clipboard-check",
+    "imports": [
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -108,7 +131,7 @@
     "file": "chunks/clock.js",
     "name": "clock",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -116,7 +139,15 @@
     "file": "chunks/dollar-sign.js",
     "name": "dollar-sign",
     "imports": [
-      "_index2.js",
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
+  "_download.js": {
+    "file": "chunks/download.js",
+    "name": "download",
+    "imports": [
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -132,7 +163,7 @@
     "file": "chunks/eye.js",
     "name": "eye",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -144,31 +175,27 @@
     "file": "chunks/file-text.js",
     "name": "file-text",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
-  "_funnel.js": {
-    "file": "chunks/funnel.js",
-    "name": "funnel",
-    "imports": [
-      "_index2.js",
-      "_Icon.js"
-    ]
-  },
-  "_globe.js": {
-    "file": "chunks/globe.js",
-    "name": "globe",
-    "imports": [
-      "_index2.js",
-      "_Icon.js"
-    ]
+  "_firebase.js": {
+    "file": "chunks/firebase.js",
+    "name": "firebase"
   },
   "_graduation-cap.js": {
     "file": "chunks/graduation-cap.js",
     "name": "graduation-cap",
     "imports": [
-      "_index2.js",
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
+  "_history.js": {
+    "file": "chunks/history.js",
+    "name": "history",
+    "imports": [
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -176,32 +203,48 @@
     "file": "chunks/index.js",
     "name": "index",
     "imports": [
-      "_index2.js"
+      "_false.js"
     ]
   },
   "_index2.js": {
     "file": "chunks/index2.js",
     "name": "index",
     "imports": [
-      "_false.js"
+      "_index.js"
+    ]
+  },
+  "_info.js": {
+    "file": "chunks/info.js",
+    "name": "info",
+    "imports": [
+      "_index.js",
+      "_Icon.js"
     ]
   },
   "_internal.js": {
     "file": "chunks/internal.js",
     "name": "internal",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_environment.js"
     ],
     "dynamicImports": [
       "src/hooks.server.ts"
     ]
   },
+  "_layout-dashboard.js": {
+    "file": "chunks/layout-dashboard.js",
+    "name": "layout-dashboard",
+    "imports": [
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
   "_mail.js": {
     "file": "chunks/mail.js",
     "name": "mail",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -209,7 +252,22 @@
     "file": "chunks/map-pin.js",
     "name": "map-pin",
     "imports": [
-      "_index2.js",
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
+  "_payments.js": {
+    "file": "chunks/payments.js",
+    "name": "payments",
+    "imports": [
+      "_firebase.js"
+    ]
+  },
+  "_pen-line.js": {
+    "file": "chunks/pen-line.js",
+    "name": "pen-line",
+    "imports": [
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -217,15 +275,7 @@
     "file": "chunks/phone.js",
     "name": "phone",
     "imports": [
-      "_index2.js",
-      "_Icon.js"
-    ]
-  },
-  "_play.js": {
-    "file": "chunks/play.js",
-    "name": "play",
-    "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -233,7 +283,15 @@
     "file": "chunks/plus.js",
     "name": "plus",
     "imports": [
-      "_index2.js",
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
+  "_refresh-cw.js": {
+    "file": "chunks/refresh-cw.js",
+    "name": "refresh-cw",
+    "imports": [
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -241,7 +299,7 @@
     "file": "chunks/rotate-ccw.js",
     "name": "rotate-ccw",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -249,7 +307,7 @@
     "file": "chunks/save.js",
     "name": "save",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -257,15 +315,22 @@
     "file": "chunks/school.js",
     "name": "school",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
+    ]
+  },
+  "_schools.js": {
+    "file": "chunks/schools.js",
+    "name": "schools",
+    "imports": [
+      "_firebase.js"
     ]
   },
   "_search.js": {
     "file": "chunks/search.js",
     "name": "search",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -273,7 +338,7 @@
     "file": "chunks/settings.js",
     "name": "settings",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -288,7 +353,15 @@
     "file": "chunks/shield.js",
     "name": "shield",
     "imports": [
-      "_index2.js",
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
+  "_sparkles.js": {
+    "file": "chunks/sparkles.js",
+    "name": "sparkles",
+    "imports": [
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -296,7 +369,7 @@
     "file": "chunks/square-pen.js",
     "name": "square-pen",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -304,7 +377,7 @@
     "file": "chunks/star.js",
     "name": "star",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -312,51 +385,58 @@
     "file": "chunks/state.svelte.js",
     "name": "state.svelte",
     "imports": [
-      "_index2.js"
+      "_index.js"
     ]
   },
   "_stores.js": {
     "file": "chunks/stores.js",
     "name": "stores",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js"
+    ]
+  },
+  "_students.js": {
+    "file": "chunks/students.js",
+    "name": "students",
+    "imports": [
+      "_firebase.js"
     ]
   },
   "_subscriptions.js": {
     "file": "chunks/subscriptions.js",
     "name": "subscriptions"
   },
-  "_supabase.js": {
-    "file": "chunks/supabase.js",
-    "name": "supabase",
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
   "_target.js": {
     "file": "chunks/target.js",
     "name": "target",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
+    ]
+  },
+  "_timer.js": {
+    "file": "chunks/timer.js",
+    "name": "timer",
+    "imports": [
+      "_index.js",
+      "_Icon.js"
+    ]
+  },
+  "_tournaments.js": {
+    "file": "chunks/tournaments.js",
+    "name": "tournaments",
+    "imports": [
+      "_firebase.js"
     ]
   },
   "_trash-2.js": {
     "file": "chunks/trash-2.js",
     "name": "trash-2",
     "imports": [
-      "_index2.js",
-      "_Icon.js"
-    ]
-  },
-  "_trending-down.js": {
-    "file": "chunks/trending-down.js",
-    "name": "trending-down",
-    "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -364,7 +444,7 @@
     "file": "chunks/trending-up.js",
     "name": "trending-up",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -372,7 +452,7 @@
     "file": "chunks/triangle-alert.js",
     "name": "triangle-alert",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -380,7 +460,7 @@
     "file": "chunks/trophy.js",
     "name": "trophy",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -388,7 +468,7 @@
     "file": "chunks/user-check.js",
     "name": "user-check",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -396,7 +476,7 @@
     "file": "chunks/user-plus.js",
     "name": "user-plus",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -404,7 +484,7 @@
     "file": "chunks/user.js",
     "name": "user",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -412,7 +492,7 @@
     "file": "chunks/users.js",
     "name": "users",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -424,7 +504,7 @@
     "file": "chunks/x.js",
     "name": "x",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -432,7 +512,7 @@
     "file": "chunks/zap.js",
     "name": "zap",
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_Icon.js"
     ]
   },
@@ -457,7 +537,7 @@
       "_environment.js",
       "_exports.js",
       "_utils.js",
-      "_index.js",
+      "_index2.js",
       "_internal.js",
       "_shared.js"
     ]
@@ -466,19 +546,22 @@
     "file": "chunks/hooks.server.js",
     "name": "hooks.server",
     "src": "src/hooks.server.ts",
-    "isDynamicEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
+    "isDynamicEntry": true
   },
   "src/lib/stores/tournaments.ts": {
-    "file": "chunks/tournaments.js",
+    "file": "chunks/tournaments2.js",
     "name": "tournaments",
     "src": "src/lib/stores/tournaments.ts",
     "isDynamicEntry": true,
     "imports": [
-      "_index.js"
+      "_index2.js"
     ]
+  },
+  "src/lib/utils/mockData.ts": {
+    "file": "chunks/mockData.js",
+    "name": "mockData",
+    "src": "src/lib/utils/mockData.ts",
+    "isDynamicEntry": true
   },
   "src/routes/(app)/+layout.server.ts": {
     "file": "entries/pages/(app)/_layout.server.ts.js",
@@ -492,12 +575,28 @@
     "src": "src/routes/(app)/+layout.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
+      "_stores.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
+      "_trophy.js",
       "_user.js",
-      "_chevron-down.js"
+      "_shield.js",
+      "_Icon.js",
+      "_search.js",
+      "_layout-dashboard.js",
+      "_settings.js",
+      "_zap.js",
+      "_school.js",
+      "_graduation-cap.js",
+      "_users.js",
+      "_circle-check-big.js",
+      "_dollar-sign.js",
+      "_target.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.CuN2SJlL.css"
     ]
   },
   "src/routes/(app)/+layout.ts": {
@@ -512,7 +611,10 @@
     "src": "src/routes/(app)/attendance/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_schools.js",
+      "_students.js",
+      "_classes.js",
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/attendance/+page.svelte": {
@@ -521,22 +623,26 @@
     "src": "src/routes/(app)/attendance/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_arrow-left.js",
+      "_activity.js",
       "_calendar.js",
       "_users.js",
-      "_chart-column.js",
+      "_trending-up.js",
       "_triangle-alert.js",
       "_school.js",
       "_eye.js",
-      "_user-check.js",
       "_chevron-right.js",
+      "_timer.js",
       "_clock.js",
+      "_clipboard-check.js",
       "_circle-check-big.js",
-      "_target.js"
+      "_chart-column.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/classes/+page.server.ts": {
@@ -545,7 +651,8 @@
     "src": "src/routes/(app)/classes/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_classes.js",
+      "_schools.js"
     ]
   },
   "src/routes/(app)/classes/+page.svelte": {
@@ -554,29 +661,25 @@
     "src": "src/routes/(app)/classes/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_arrow-left.js",
       "_graduation-cap.js",
       "_plus.js",
-      "_activity.js",
       "_users.js",
+      "_activity.js",
       "_school.js",
       "_search.js",
-      "_funnel.js",
       "_square-pen.js",
       "_trash-2.js",
-      "_calendar.js",
       "_book-open.js",
+      "_user-check.js",
       "_eye.js",
-      "_user-plus.js",
-      "_target.js",
-      "_user-check.js"
+      "_user-plus.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CTmvBST1.css"
+      "_app/immutable/assets/_page.CuN2SJlL.css"
     ]
   },
   "src/routes/(app)/classes/[classId]/+page.server.ts": {
@@ -585,7 +688,7 @@
     "src": "src/routes/(app)/classes/[classId]/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/classes/[classId]/+page.svelte": {
@@ -594,26 +697,27 @@
     "src": "src/routes/(app)/classes/[classId]/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
       "_arrow-left.js",
       "_graduation-cap.js",
-      "_user-check.js",
+      "_clipboard-check.js",
       "_settings.js",
       "_chart-column.js",
       "_users.js",
       "_target.js",
-      "_calendar.js",
+      "_Icon.js",
       "_clock.js",
       "_map-pin.js",
+      "_calendar.js",
       "_dollar-sign.js",
-      "_trending-up.js",
-      "_user-plus.js"
+      "_user-plus.js",
+      "_trophy.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CTmvBST1.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/classes/[classId]/attendance/+page.server.ts": {
@@ -622,7 +726,7 @@
     "src": "src/routes/(app)/classes/[classId]/attendance/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/classes/[classId]/attendance/+page.svelte": {
@@ -631,22 +735,23 @@
     "src": "src/routes/(app)/classes/[classId]/attendance/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
       "_arrow-left.js",
       "_user-check.js",
-      "_calendar.js",
+      "_zap.js",
+      "_history.js",
       "_chart-column.js",
+      "_calendar.js",
       "_circle-check-big.js",
+      "_save.js",
       "_circle-x.js",
-      "_users.js",
-      "_clock.js",
-      "_save.js"
+      "_clock.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CTmvBST1.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/classes/[classId]/edit/+page.server.ts": {
@@ -655,7 +760,8 @@
     "src": "src/routes/(app)/classes/[classId]/edit/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_classes.js",
+      "_schools.js"
     ]
   },
   "src/routes/(app)/classes/[classId]/edit/+page.svelte": {
@@ -664,22 +770,22 @@
     "src": "src/routes/(app)/classes/[classId]/edit/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
       "_arrow-left.js",
-      "_book-open.js",
-      "_rotate-ccw.js",
-      "_eye.js",
+      "_pen-line.js",
+      "_x.js",
       "_save.js",
-      "_target.js",
+      "_book-open.js",
       "_clock.js",
       "_users.js",
-      "_circle-check-big.js"
+      "_triangle-alert.js",
+      "_rotate-ccw.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CZC7LjMR.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/classes/[classId]/skills/+page.server.ts": {
@@ -688,7 +794,8 @@
     "src": "src/routes/(app)/classes/[classId]/skills/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_classes.js",
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/classes/[classId]/skills/+page.svelte": {
@@ -697,7 +804,7 @@
     "src": "src/routes/(app)/classes/[classId]/skills/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -708,7 +815,6 @@
       "_graduation-cap.js",
       "_plus.js",
       "_Icon.js",
-      "_chevron-down.js",
       "_trophy.js",
       "_star.js",
       "_zap.js",
@@ -716,7 +822,7 @@
       "_search.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CTmvBST1.css"
+      "_app/immutable/assets/_page.JgCys7rs.css"
     ]
   },
   "src/routes/(app)/classes/[classId]/students/+page.server.ts": {
@@ -725,7 +831,7 @@
     "src": "src/routes/(app)/classes/[classId]/students/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/classes/[classId]/students/+page.svelte": {
@@ -734,7 +840,7 @@
     "src": "src/routes/(app)/classes/[classId]/students/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -753,7 +859,7 @@
       "_mail.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CTmvBST1.css"
+      "_app/immutable/assets/_page.CLO6ryew.css"
     ]
   },
   "src/routes/(app)/classes/create/+page.server.ts": {
@@ -762,7 +868,7 @@
     "src": "src/routes/(app)/classes/create/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_schools.js"
     ]
   },
   "src/routes/(app)/classes/create/+page.svelte": {
@@ -771,7 +877,7 @@
     "src": "src/routes/(app)/classes/create/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -780,10 +886,11 @@
       "_graduation-cap.js",
       "_x.js",
       "_save.js",
-      "_school.js"
+      "_school.js",
+      "_info.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.rNbfElzI.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/dashboard/+page.server.ts": {
@@ -792,7 +899,9 @@
     "src": "src/routes/(app)/dashboard/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_schools.js",
+      "_students.js",
+      "_classes.js"
     ]
   },
   "src/routes/(app)/dashboard/+page.svelte": {
@@ -801,38 +910,48 @@
     "src": "src/routes/(app)/dashboard/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_triangle-alert.js",
-      "_Icon.js",
+      "_layout-dashboard.js",
+      "_sparkles.js",
+      "_calendar.js",
       "_school.js",
+      "_Icon.js",
       "_users.js",
-      "_trending-up.js",
+      "_zap.js",
       "_dollar-sign.js",
       "_clock.js",
-      "_calendar.js",
       "_graduation-cap.js",
+      "_map-pin.js",
       "_user-check.js",
       "_circle-check-big.js",
       "_activity.js",
-      "_chevron-right.js",
-      "_target.js",
-      "_trophy.js",
-      "_chart-column.js",
+      "_triangle-alert.js",
       "_plus.js",
-      "_user-plus.js"
+      "_user-plus.js",
+      "_trophy.js",
+      "_chart-column.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.padAxwvq.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/payments/+page.server.ts": {
     "file": "entries/pages/(app)/payments/_page.server.ts.js",
     "name": "entries/pages/(app)/payments/_page.server.ts",
     "src": "src/routes/(app)/payments/+page.server.ts",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_payments.js",
+      "_schools.js",
+      "_students.js",
+      "_classes.js"
+    ],
+    "dynamicImports": [
+      "src/lib/utils/mockData.ts"
+    ]
   },
   "src/routes/(app)/payments/+page.svelte": {
     "file": "entries/pages/(app)/payments/_page.svelte.js",
@@ -840,20 +959,24 @@
     "src": "src/routes/(app)/payments/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_arrow-left.js",
-      "_dollar-sign.js",
+      "_Icon.js",
       "_plus.js",
+      "_history.js",
+      "_users.js",
+      "_school.js",
       "_trending-up.js",
-      "_trending-down.js",
+      "_dollar-sign.js",
       "_clock.js",
       "_triangle-alert.js",
       "_chart-column.js",
-      "_users.js",
-      "_school.js"
+      "_chevron-right.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.BF3d2zYt.css"
     ]
   },
   "src/routes/(app)/payments/create/+page.server.ts": {
@@ -862,7 +985,7 @@
     "src": "src/routes/(app)/payments/create/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/payments/create/+page.svelte": {
@@ -871,7 +994,7 @@
     "src": "src/routes/(app)/payments/create/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -888,7 +1011,10 @@
     "file": "entries/pages/(app)/reports/_page.server.ts.js",
     "name": "entries/pages/(app)/reports/_page.server.ts",
     "src": "src/routes/(app)/reports/+page.server.ts",
-    "isEntry": true
+    "isEntry": true,
+    "dynamicImports": [
+      "src/lib/utils/mockData.ts"
+    ]
   },
   "src/routes/(app)/reports/+page.svelte": {
     "file": "entries/pages/(app)/reports/_page.svelte.js",
@@ -896,33 +1022,33 @@
     "src": "src/routes/(app)/reports/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_arrow-left.js",
-      "_chart-column.js",
-      "_users.js",
       "_activity.js",
+      "_sparkles.js",
+      "_download.js",
+      "_users.js",
       "_calendar.js",
-      "_trending-up.js",
-      "_trending-down.js",
-      "_target.js",
+      "_award.js",
       "_search.js",
-      "_funnel.js",
-      "_chevron-down.js",
       "_school.js",
       "_eye.js",
-      "_trophy.js",
-      "_dollar-sign.js",
-      "_book-open.js"
+      "_chart-column.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/reports/[studentId]/+page.server.ts": {
     "file": "entries/pages/(app)/reports/_studentId_/_page.server.ts.js",
     "name": "entries/pages/(app)/reports/_studentId_/_page.server.ts",
     "src": "src/routes/(app)/reports/[studentId]/+page.server.ts",
-    "isEntry": true
+    "isEntry": true,
+    "dynamicImports": [
+      "src/lib/utils/mockData.ts"
+    ]
   },
   "src/routes/(app)/reports/[studentId]/+page.svelte": {
     "file": "entries/pages/(app)/reports/_studentId_/_page.svelte.js",
@@ -930,20 +1056,30 @@
     "src": "src/routes/(app)/reports/[studentId]/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
       "_triangle-alert.js",
       "_arrow-left.js",
+      "_trophy.js",
+      "_school.js",
+      "_calendar.js",
+      "_clock.js",
+      "_Icon.js",
+      "_download.js",
+      "_file-text.js",
+      "_activity.js",
+      "_zap.js",
+      "_dollar-sign.js",
       "_user.js",
       "_mail.js",
       "_phone.js",
-      "_calendar.js",
-      "_school.js",
-      "_circle-check-big.js",
-      "_clock.js",
-      "_circle-x.js"
+      "_book-open.js",
+      "_timer.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.Dx6L3xuN.css"
     ]
   },
   "src/routes/(app)/schools/+page.server.ts": {
@@ -952,7 +1088,8 @@
     "src": "src/routes/(app)/schools/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_schools.js",
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/schools/+page.svelte": {
@@ -961,21 +1098,24 @@
     "src": "src/routes/(app)/schools/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_supabase.js",
-      "_arrow-left.js",
-      "_plus.js",
       "_school.js",
+      "_refresh-cw.js",
+      "_plus.js",
       "_book-open.js",
       "_users.js",
-      "_map-pin.js",
+      "_search.js",
       "_square-pen.js",
       "_trash-2.js",
+      "_map-pin.js",
       "_calendar.js",
       "_eye.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.NwyI1wIu.css"
     ]
   },
   "src/routes/(app)/schools/[schoolId]/+page.server.ts": {
@@ -984,7 +1124,9 @@
     "src": "src/routes/(app)/schools/[schoolId]/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_schools.js",
+      "_classes.js",
+      "_students.js"
     ]
   },
   "src/routes/(app)/schools/[schoolId]/+page.svelte": {
@@ -993,26 +1135,27 @@
     "src": "src/routes/(app)/schools/[schoolId]/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
       "_arrow-left.js",
       "_school.js",
+      "_map-pin.js",
+      "_activity.js",
       "_square-pen.js",
       "_plus.js",
-      "_map-pin.js",
-      "_phone.js",
-      "_mail.js",
-      "_globe.js",
       "_graduation-cap.js",
       "_users.js",
       "_target.js",
       "_trending-up.js",
-      "_trash-2.js"
+      "_book-open.js",
+      "_star.js",
+      "_trash-2.js",
+      "_chevron-right.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.Cr3CJKP9.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/schools/[schoolId]/edit/+page.server.ts": {
@@ -1021,7 +1164,7 @@
     "src": "src/routes/(app)/schools/[schoolId]/edit/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_schools.js"
     ]
   },
   "src/routes/(app)/schools/[schoolId]/edit/+page.svelte": {
@@ -1030,22 +1173,21 @@
     "src": "src/routes/(app)/schools/[schoolId]/edit/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
       "_arrow-left.js",
-      "_school.js",
       "_x.js",
       "_save.js",
       "_Icon.js",
       "_map-pin.js",
       "_phone.js",
       "_mail.js",
-      "_globe.js"
+      "_check.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CuqeQYZU.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/schools/[schoolId]/lessons/+page.server.ts": {
@@ -1060,7 +1202,7 @@
     "src": "src/routes/(app)/schools/[schoolId]/lessons/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1082,7 +1224,7 @@
     "src": "src/routes/(app)/schools/[schoolId]/tournaments/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1104,13 +1246,18 @@
     "src": "src/routes/(app)/schools/create/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_supabase.js",
       "_arrow-left.js",
-      "_school.js"
+      "_school.js",
+      "_check.js",
+      "_map-pin.js",
+      "_sparkles.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/skills/+page.server.ts": {
@@ -1119,7 +1266,7 @@
     "src": "src/routes/(app)/skills/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/skills/+page.svelte": {
@@ -1128,24 +1275,25 @@
     "src": "src/routes/(app)/skills/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_arrow-left.js",
       "_target.js",
       "_plus.js",
       "_book-open.js",
       "_zap.js",
       "_star.js",
       "_search.js",
-      "_funnel.js",
+      "_x.js",
       "_trophy.js",
       "_square-pen.js",
-      "_trash-2.js"
+      "_trash-2.js",
+      "_calendar.js",
+      "_chevron-right.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CTmvBST1.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/skills/[skillId]/edit/+page.server.ts": {
@@ -1154,7 +1302,7 @@
     "src": "src/routes/(app)/skills/[skillId]/edit/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/(app)/skills/[skillId]/edit/+page.svelte": {
@@ -1163,7 +1311,7 @@
     "src": "src/routes/(app)/skills/[skillId]/edit/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1181,7 +1329,7 @@
       "_clock.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CZC7LjMR.css"
+      "_app/immutable/assets/_page.5vts_k91.css"
     ]
   },
   "src/routes/(app)/skills/create/+page.server.ts": {
@@ -1196,7 +1344,7 @@
     "src": "src/routes/(app)/skills/create/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1206,7 +1354,7 @@
       "_save.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.rNbfElzI.css"
+      "_app/immutable/assets/_page.xlwNN2_s.css"
     ]
   },
   "src/routes/(app)/students/+page.server.ts": {
@@ -1215,7 +1363,8 @@
     "src": "src/routes/(app)/students/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_students.js",
+      "_schools.js"
     ]
   },
   "src/routes/(app)/students/+page.svelte": {
@@ -1224,22 +1373,20 @@
     "src": "src/routes/(app)/students/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_arrow-left.js",
       "_users.js",
       "_plus.js",
-      "_school.js",
-      "_calendar.js",
       "_search.js",
-      "_funnel.js",
+      "_school.js",
       "_square-pen.js",
-      "_trash-2.js"
+      "_trash-2.js",
+      "_chevron-right.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CTmvBST1.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/students/[studentId]/edit/+page.server.ts": {
@@ -1248,7 +1395,8 @@
     "src": "src/routes/(app)/students/[studentId]/edit/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_students.js",
+      "_schools.js"
     ]
   },
   "src/routes/(app)/students/[studentId]/edit/+page.svelte": {
@@ -1257,18 +1405,20 @@
     "src": "src/routes/(app)/students/[studentId]/edit/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_stores.js",
       "_arrow-left.js",
-      "_user.js",
+      "_circle-user.js",
       "_rotate-ccw.js",
-      "_save.js"
+      "_save.js",
+      "_user.js",
+      "_file-text.js",
+      "_school.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CZC7LjMR.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/students/create/+page.server.ts": {
@@ -1277,7 +1427,7 @@
     "src": "src/routes/(app)/students/create/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_schools.js"
     ]
   },
   "src/routes/(app)/students/create/+page.svelte": {
@@ -1286,20 +1436,22 @@
     "src": "src/routes/(app)/students/create/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
       "_stores.js",
       "_arrow-left.js",
-      "_users.js",
+      "_circle-user.js",
       "_x.js",
       "_save.js",
+      "_activity.js",
       "_user.js",
-      "_file-text.js"
+      "_file-text.js",
+      "_book-open.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.rNbfElzI.css"
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/tournaments/+page.server.ts": {
@@ -1308,7 +1460,8 @@
     "src": "src/routes/(app)/tournaments/+page.server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_tournaments.js",
+      "_students.js"
     ]
   },
   "src/routes/(app)/tournaments/+page.svelte": {
@@ -1317,35 +1470,36 @@
     "src": "src/routes/(app)/tournaments/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_arrow-left.js",
       "_trophy.js",
       "_plus.js",
-      "_play.js",
+      "_timer.js",
       "_users.js",
       "_award.js",
-      "_trending-up.js",
       "_search.js",
-      "_funnel.js",
-      "_chevron-down.js",
       "_calendar.js",
-      "_clock.js",
       "_map-pin.js",
+      "_zap.js",
       "_eye.js",
       "_settings.js",
-      "_trash-2.js",
-      "_circle-alert.js",
-      "_circle-check-big.js"
+      "_trash-2.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/(app)/tournaments/[tournamentId]/+page.server.ts": {
     "file": "entries/pages/(app)/tournaments/_tournamentId_/_page.server.ts.js",
     "name": "entries/pages/(app)/tournaments/_tournamentId_/_page.server.ts",
     "src": "src/routes/(app)/tournaments/[tournamentId]/+page.server.ts",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_tournaments.js",
+      "_students.js"
+    ]
   },
   "src/routes/(app)/tournaments/[tournamentId]/+page.svelte": {
     "file": "entries/pages/(app)/tournaments/_tournamentId_/_page.svelte.js",
@@ -1353,7 +1507,7 @@
     "src": "src/routes/(app)/tournaments/[tournamentId]/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1365,11 +1519,12 @@
       "_map-pin.js",
       "_target.js",
       "_user-plus.js",
-      "_play.js",
+      "_Icon.js",
       "_trash-2.js",
       "_settings.js",
       "_circle-check-big.js",
-      "_circle-x.js"
+      "_circle-x.js",
+      "_pen-line.js"
     ],
     "dynamicImports": [
       "src/lib/stores/tournaments.ts",
@@ -1382,7 +1537,10 @@
     "file": "entries/pages/(app)/tournaments/_tournamentId_/edit/_page.server.ts.js",
     "name": "entries/pages/(app)/tournaments/_tournamentId_/edit/_page.server.ts",
     "src": "src/routes/(app)/tournaments/[tournamentId]/edit/+page.server.ts",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_tournaments.js"
+    ]
   },
   "src/routes/(app)/tournaments/[tournamentId]/edit/+page.svelte": {
     "file": "entries/pages/(app)/tournaments/_tournamentId_/edit/_page.svelte.js",
@@ -1390,7 +1548,7 @@
     "src": "src/routes/(app)/tournaments/[tournamentId]/edit/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1406,7 +1564,11 @@
     "file": "entries/pages/(app)/tournaments/create/_page.server.ts.js",
     "name": "entries/pages/(app)/tournaments/create/_page.server.ts",
     "src": "src/routes/(app)/tournaments/create/+page.server.ts",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_students.js",
+      "_schools.js"
+    ]
   },
   "src/routes/(app)/tournaments/create/+page.svelte": {
     "file": "entries/pages/(app)/tournaments/create/_page.svelte.js",
@@ -1414,7 +1576,7 @@
     "src": "src/routes/(app)/tournaments/create/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1439,20 +1601,25 @@
     "src": "src/routes/(app)/upgrade/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
       "_subscriptions.js",
-      "_arrow-left.js",
-      "_Icon.js",
+      "_sparkles.js",
       "_users.js",
       "_school.js",
       "_trophy.js",
+      "_Icon.js",
       "_target.js",
+      "_activity.js",
+      "_check.js",
       "_zap.js",
-      "_shield.js",
-      "_star.js"
+      "_star.js",
+      "_shield.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.tn0RQdqM.css"
     ]
   },
   "src/routes/+error.svelte": {
@@ -1461,9 +1628,10 @@
     "src": "src/routes/+error.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_stores.js",
       "_triangle-alert.js",
+      "_refresh-cw.js",
       "_Icon.js"
     ]
   },
@@ -1479,10 +1647,10 @@
     "src": "src/routes/+layout.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
       "_index.js",
+      "_index2.js",
       "_x.js",
-      "_Icon.js",
+      "_info.js",
       "_triangle-alert.js",
       "_circle-x.js",
       "_circle-check-big.js",
@@ -1491,7 +1659,7 @@
       "_state.svelte.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.CskrTwTx.css"
+      "_app/immutable/assets/_layout.BUXBwPg7.css"
     ]
   },
   "src/routes/+page.server.ts": {
@@ -1506,7 +1674,7 @@
     "src": "src/routes/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js"
+      "_index.js"
     ]
   },
   "src/routes/api/attendance/+server.ts": {
@@ -1515,14 +1683,17 @@
     "src": "src/routes/api/attendance/+server.ts",
     "isEntry": true
   },
+  "src/routes/api/auth/session/+server.ts": {
+    "file": "entries/endpoints/api/auth/session/_server.ts.js",
+    "name": "entries/endpoints/api/auth/session/_server.ts",
+    "src": "src/routes/api/auth/session/+server.ts",
+    "isEntry": true
+  },
   "src/routes/api/check-auth/+server.ts": {
     "file": "entries/endpoints/api/check-auth/_server.ts.js",
     "name": "entries/endpoints/api/check-auth/_server.ts",
     "src": "src/routes/api/check-auth/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
+    "isEntry": true
   },
   "src/routes/api/class-skills/+server.ts": {
     "file": "entries/endpoints/api/class-skills/_server.ts.js",
@@ -1535,9 +1706,8 @@
     "name": "entries/endpoints/api/class-students/_server.ts",
     "src": "src/routes/api/class-students/+server.ts",
     "isEntry": true,
-    "dynamicImports": [
-      "virtual:env/static/public",
-      "virtual:env/static/public"
+    "imports": [
+      "_firebase.js"
     ]
   },
   "src/routes/api/classes/+server.ts": {
@@ -1546,8 +1716,7 @@
     "src": "src/routes/api/classes/+server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public",
-      "_supabase.js"
+      "_firebase.js"
     ]
   },
   "src/routes/api/classes/[id]/+server.ts": {
@@ -1556,167 +1725,14 @@
     "src": "src/routes/api/classes/[id]/+server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-auth/+server.ts": {
-    "file": "entries/endpoints/api/debug-auth/_server.ts.js",
-    "name": "entries/endpoints/api/debug-auth/_server.ts",
-    "src": "src/routes/api/debug-auth/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-classes-detailed/+server.ts": {
-    "file": "entries/endpoints/api/debug-classes-detailed/_server.ts.js",
-    "name": "entries/endpoints/api/debug-classes-detailed/_server.ts",
-    "src": "src/routes/api/debug-classes-detailed/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-classes-schema/+server.ts": {
-    "file": "entries/endpoints/api/debug-classes-schema/_server.ts.js",
-    "name": "entries/endpoints/api/debug-classes-schema/_server.ts",
-    "src": "src/routes/api/debug-classes-schema/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-classes/+server.ts": {
-    "file": "entries/endpoints/api/debug-classes/_server.ts.js",
-    "name": "entries/endpoints/api/debug-classes/_server.ts",
-    "src": "src/routes/api/debug-classes/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-colleges-schema/+server.ts": {
-    "file": "entries/endpoints/api/debug-colleges-schema/_server.ts.js",
-    "name": "entries/endpoints/api/debug-colleges-schema/_server.ts",
-    "src": "src/routes/api/debug-colleges-schema/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-colleges-test/+server.ts": {
-    "file": "entries/endpoints/api/debug-colleges-test/_server.ts.js",
-    "name": "entries/endpoints/api/debug-colleges-test/_server.ts",
-    "src": "src/routes/api/debug-colleges-test/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-colleges/+server.ts": {
-    "file": "entries/endpoints/api/debug-colleges/_server.ts.js",
-    "name": "entries/endpoints/api/debug-colleges/_server.ts",
-    "src": "src/routes/api/debug-colleges/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-oauth/+server.ts": {
-    "file": "entries/endpoints/api/debug-oauth/_server.ts.js",
-    "name": "entries/endpoints/api/debug-oauth/_server.ts",
-    "src": "src/routes/api/debug-oauth/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-schools-detailed/+server.ts": {
-    "file": "entries/endpoints/api/debug-schools-detailed/_server.ts.js",
-    "name": "entries/endpoints/api/debug-schools-detailed/_server.ts",
-    "src": "src/routes/api/debug-schools-detailed/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-schools-post/+server.ts": {
-    "file": "entries/endpoints/api/debug-schools-post/_server.ts.js",
-    "name": "entries/endpoints/api/debug-schools-post/_server.ts",
-    "src": "src/routes/api/debug-schools-post/+server.ts",
-    "isEntry": true
-  },
-  "src/routes/api/debug-schools-simple/+server.ts": {
-    "file": "entries/endpoints/api/debug-schools-simple/_server.ts.js",
-    "name": "entries/endpoints/api/debug-schools-simple/_server.ts",
-    "src": "src/routes/api/debug-schools-simple/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-simple/+server.ts": {
-    "file": "entries/endpoints/api/debug-simple/_server.ts.js",
-    "name": "entries/endpoints/api/debug-simple/_server.ts",
-    "src": "src/routes/api/debug-simple/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-student-creation/+server.ts": {
-    "file": "entries/endpoints/api/debug-student-creation/_server.ts.js",
-    "name": "entries/endpoints/api/debug-student-creation/_server.ts",
-    "src": "src/routes/api/debug-student-creation/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-students-schema/+server.ts": {
-    "file": "entries/endpoints/api/debug-students-schema/_server.ts.js",
-    "name": "entries/endpoints/api/debug-students-schema/_server.ts",
-    "src": "src/routes/api/debug-students-schema/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-students/+server.ts": {
-    "file": "entries/endpoints/api/debug-students/_server.ts.js",
-    "name": "entries/endpoints/api/debug-students/_server.ts",
-    "src": "src/routes/api/debug-students/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/debug-supabase/+server.ts": {
-    "file": "entries/endpoints/api/debug-supabase/_server.ts.js",
-    "name": "entries/endpoints/api/debug-supabase/_server.ts",
-    "src": "src/routes/api/debug-supabase/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/api/diagnostic-oauth/+server.ts": {
-    "file": "entries/endpoints/api/diagnostic-oauth/_server.ts.js",
-    "name": "entries/endpoints/api/diagnostic-oauth/_server.ts",
-    "src": "src/routes/api/diagnostic-oauth/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/api/health-check/+server.ts": {
     "file": "entries/endpoints/api/health-check/_server.ts.js",
     "name": "entries/endpoints/api/health-check/_server.ts",
     "src": "src/routes/api/health-check/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
+    "isEntry": true
   },
   "src/routes/api/payments/+server.ts": {
     "file": "entries/endpoints/api/payments/_server.ts.js",
@@ -1724,7 +1740,7 @@
     "src": "src/routes/api/payments/+server.ts",
     "isEntry": true,
     "imports": [
-      "_supabase.js"
+      "_payments.js"
     ]
   },
   "src/routes/api/schools/+server.ts": {
@@ -1733,7 +1749,7 @@
     "src": "src/routes/api/schools/+server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/api/schools/[id]/+server.ts": {
@@ -1742,17 +1758,14 @@
     "src": "src/routes/api/schools/[id]/+server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/api/skills/+server.ts": {
     "file": "entries/endpoints/api/skills/_server.ts.js",
     "name": "entries/endpoints/api/skills/_server.ts",
     "src": "src/routes/api/skills/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
+    "isEntry": true
   },
   "src/routes/api/students/+server.ts": {
     "file": "entries/endpoints/api/students/_server.ts.js",
@@ -1760,31 +1773,22 @@
     "src": "src/routes/api/students/+server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/api/students/[studentId]/+server.ts": {
     "file": "entries/endpoints/api/students/_studentId_/_server.ts.js",
     "name": "entries/endpoints/api/students/_studentId_/_server.ts",
     "src": "src/routes/api/students/[studentId]/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
+    "isEntry": true
   },
   "src/routes/api/subscriptions/+server.ts": {
     "file": "entries/endpoints/api/subscriptions/_server.ts.js",
     "name": "entries/endpoints/api/subscriptions/_server.ts",
     "src": "src/routes/api/subscriptions/+server.ts",
-    "isEntry": true
-  },
-  "src/routes/api/test-auth/+server.ts": {
-    "file": "entries/endpoints/api/test-auth/_server.ts.js",
-    "name": "entries/endpoints/api/test-auth/_server.ts",
-    "src": "src/routes/api/test-auth/+server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/api/tournaments/+server.ts": {
@@ -1793,26 +1797,14 @@
     "src": "src/routes/api/tournaments/+server.ts",
     "isEntry": true,
     "imports": [
-      "virtual:env/static/public"
+      "_firebase.js"
     ]
   },
   "src/routes/api/whoami/+server.ts": {
     "file": "entries/endpoints/api/whoami/_server.ts.js",
     "name": "entries/endpoints/api/whoami/_server.ts",
     "src": "src/routes/api/whoami/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
-  },
-  "src/routes/auth/callback/+server.ts": {
-    "file": "entries/endpoints/auth/callback/_server.ts.js",
-    "name": "entries/endpoints/auth/callback/_server.ts",
-    "src": "src/routes/auth/callback/+server.ts",
-    "isEntry": true,
-    "imports": [
-      "virtual:env/static/public"
-    ]
+    "isEntry": true
   },
   "src/routes/debug-auth/+page.svelte": {
     "file": "entries/pages/debug-auth/_page.svelte.js",
@@ -1820,7 +1812,7 @@
     "src": "src/routes/debug-auth/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js"
@@ -1832,7 +1824,7 @@
     "src": "src/routes/debug/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js"
+      "_index.js"
     ]
   },
   "src/routes/legal/cookies/+page.svelte": {
@@ -1841,7 +1833,7 @@
     "src": "src/routes/legal/cookies/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1857,7 +1849,7 @@
     "src": "src/routes/legal/privacy/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1873,7 +1865,7 @@
     "src": "src/routes/legal/terms/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
@@ -1894,24 +1886,12 @@
     "src": "src/routes/login/+page.svelte",
     "isEntry": true,
     "imports": [
-      "_index2.js",
+      "_index.js",
       "_exports.js",
       "_utils.js",
       "_state.svelte.js",
-      "_supabase.js",
+      "_firebase.js",
       "_circle-alert.js"
     ]
-  },
-  "src/routes/logout/+server.ts": {
-    "file": "entries/endpoints/logout/_server.ts.js",
-    "name": "entries/endpoints/logout/_server.ts",
-    "src": "src/routes/logout/+server.ts",
-    "isEntry": true
-  },
-  "virtual:env/static/public": {
-    "file": "chunks/public.js",
-    "name": "public",
-    "src": "virtual:env/static/public",
-    "isDynamicEntry": true
   }
 }

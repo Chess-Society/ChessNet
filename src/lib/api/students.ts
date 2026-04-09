@@ -1,289 +1,237 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  setDoc,
+  writeBatch,
+  type DocumentData
+} from "firebase/firestore";
 import type { Student, Attendance, CreateStudentForm } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const studentsApi = {
   // Get all students for the current user
-  async getMyStudents(): Promise<Student[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+  async getMyStudents(userId?: string): Promise<Student[]> {
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("students")
-      .select(`
-        *,
-        classes:class_id(*)
-      `)
-      .eq("user_id", user.id)
-      .order("name", { ascending: true });
+    const q = query(
+      collection(db, "students"),
+      where("user_id", "==", uid),
+      orderBy("name", "asc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<Student>(doc));
   },
 
-  // Get students by class (using class_students bridge table)
-  async getStudentsByClass(classId: string): Promise<Student[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+  // Get students by school
+  async getStudentsBySchool(schoolId: string): Promise<Student[]> {
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("class_students")
-      .select(`
-        students:student_id(*)
-      `)
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .eq("status", "active");
+    const q = query(
+      collection(db, "students"),
+      where("user_id", "==", user.uid),
+      where("school_id", "==", schoolId),
+      orderBy("name", "asc")
+    );
 
-    if (error) throw error;
-    return data?.map((item: any) => item.students).filter(Boolean) || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<Student>(doc));
   },
 
   // Get a specific student
-  async getStudent(id: string): Promise<Student> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+  async getStudent(id: string, userId?: string): Promise<Student> {
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("students")
-      .select(`
-        *,
-        classes:class_id(*)
-      `)
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
+    const docRef = doc(db, "students", id);
+    const docSnap = await getDoc(docRef);
 
-    if (error) throw error;
-    return data;
+    if (!docSnap.exists() || docSnap.data()?.user_id !== uid) {
+      throw new Error("Student not found or access denied");
+    }
+
+    return toData<Student>(docSnap);
   },
 
   // Create a new student
   async createStudent(studentData: CreateStudentForm): Promise<Student> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("students")
-      .insert({
-        user_id: user.id,
-        name: studentData.name,
-        class_id: studentData.class_id,
-        first_name: studentData.first_name,
-        last_name: studentData.last_name,
-        date_of_birth: studentData.date_of_birth,
-        grade: studentData.grade,
-        parent_email: studentData.parent_email,
-        parent_phone: studentData.parent_phone,
-        notes: studentData.notes
-      })
-      .select()
-      .single();
+    const docRef = await addDoc(collection(db, "students"), {
+      ...studentData,
+      user_id: user.uid,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<Student>(docSnap);
   },
 
   // Update a student
   async updateStudent(id: string, updates: Partial<CreateStudentForm>): Promise<Student> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("students")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .select()
-      .single();
+    const docRef = doc(db, "students", id);
+    const docSnap = await getDoc(docRef);
 
-    if (error) throw error;
-    return data;
+    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
+      throw new Error("Student not found or access denied");
+    }
+
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    });
+
+    const updatedSnap = await getDoc(docRef);
+    return toData<Student>(updatedSnap);
   },
 
   // Delete a student
   async deleteStudent(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { error } = await supabase
-      .from("students")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
+    const docRef = doc(db, "students", id);
+    const docSnap = await getDoc(docRef);
 
-    if (error) throw error;
-  },
-
-  // Get student's classes (using class_students bridge table)
-  async getStudentClasses(studentId: string): Promise<any[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
-
-    const { data, error } = await supabase
-      .from("class_students")
-      .select(`
-        classes:class_id(*)
-      `)
-      .eq("owner_id", user.id)
-      .eq("student_id", studentId)
-      .eq("status", "active");
-
-    if (error) throw error;
-    return data?.map((item: any) => item.classes).filter(Boolean) || [];
-  },
-
-  // Get student attendance
-  async getStudentAttendance(
-    studentId: string,
-    classId?: string,
-    startDate?: string,
-    endDate?: string,
-  ): Promise<Attendance[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
-
-    let query = supabase
-      .from("attendance")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("student_id", studentId)
-      .order("date", { ascending: false });
-
-    if (classId) {
-      query = query.eq("class_id", classId);
+    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
+      throw new Error("Student not found or access denied");
     }
 
-    if (startDate) {
-      query = query.gte("date", startDate);
-    }
-
-    if (endDate) {
-      query = query.lte("date", endDate);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-    return data || [];
+    await deleteDoc(docRef);
   },
 
-  // Get student attendance summary (using view)
-  async getStudentAttendanceSummary(studentId: string): Promise<any> {
-    const { data: { user } } = await supabase.auth.getUser();
+  // Bulk create students
+  async bulkCreateStudents(students: CreateStudentForm[]): Promise<void> {
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("v_student_attendance")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("student_id", studentId)
-      .single();
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
 
-    if (error) throw error;
-    return data;
+    students.forEach(student => {
+      const docRef = doc(collection(db, "students"));
+      batch.set(docRef, {
+        ...student,
+        user_id: user.uid,
+        created_at: now,
+        updated_at: now,
+      });
+    });
+
+    await batch.commit();
   },
 
-  // Mark attendance
-  async markAttendance(
-    classId: string,
-    studentId: string,
-    date: string,
-    status: "P" | "T" | "A",
-    notes?: string,
-  ): Promise<Attendance> {
-    const { data: { user } } = await supabase.auth.getUser();
+  // --- Attendance ---
+
+  // Save attendance for multiple students
+  async saveAttendance(classId: string, date: string, attendanceList: { student_id: string; status: string; notes?: string }[]): Promise<void> {
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("attendance")
-      .upsert({
-        user_id: user.id,
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+
+    for (const item of attendanceList) {
+      // Use composite ID for unique attendance record per student/class/date
+      const attendanceId = `${item.student_id}_${classId}_${date}`;
+      const docRef = doc(db, "attendance", attendanceId);
+      
+      batch.set(docRef, {
+        user_id: user.uid,
         class_id: classId,
-        student_id: studentId,
-        date,
-        status,
-        notes,
-        created_by: user.id,
-      })
-      .select()
-      .single();
+        student_id: item.student_id,
+        date: date,
+        status: item.status,
+        notes: item.notes || "",
+        updated_at: now
+      });
+    }
 
-    if (error) throw error;
-    return data;
+    await batch.commit();
   },
 
-  // Mark attendance for multiple students
-  async markMultipleAttendance(
-    classId: string,
-    attendanceRecords: Array<{
-      student_id: string;
-      date: string;
-      status: "P" | "T" | "A";
-      notes?: string;
-    }>
-  ): Promise<Attendance[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+  // Get attendance records for a student
+  async getStudentAttendance(studentId: string): Promise<Attendance[]> {
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const recordsToInsert = attendanceRecords.map(record => ({
-      user_id: user.id,
-      class_id: classId,
-      student_id: record.student_id,
-      date: record.date,
-      status: record.status,
-      notes: record.notes,
-      created_by: user.id
-    }));
+    const q = query(
+      collection(db, "attendance"),
+      where("user_id", "==", user.uid),
+      where("student_id", "==", studentId),
+      orderBy("date", "desc")
+    );
 
-    const { data, error } = await supabase
-      .from("attendance")
-      .upsert(recordsToInsert)
-      .select();
-
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<Attendance>(doc));
   },
 
-  // Delete attendance record
-  async deleteAttendance(
-    classId: string,
-    studentId: string,
-    date: string,
-  ): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+  // Get student attendance summary (manual implementation)
+  async getStudentAttendanceSummary(studentId: string): Promise<any> {
+    const attendance = await this.getStudentAttendance(studentId);
+    
+    const present = attendance.filter(a => a.status === 'P').length;
+    const absent = attendance.filter(a => a.status === 'A').length;
+    const late = attendance.filter(a => a.status === 'T').length;
+    const total = attendance.length;
 
-    const { error } = await supabase
-      .from("attendance")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("class_id", classId)
-      .eq("student_id", studentId)
-      .eq("date", date);
-
-    if (error) throw error;
+    return {
+      student_id: studentId,
+      present_count: present,
+      absent_count: absent,
+      late_count: late,
+      total_sessions: total,
+      attendance_rate: total > 0 ? (present / total) * 100 : 0
+    };
   },
 
-  // Get student skills progress
+  // --- Skills & Progress ---
+
+  // Get student skill levels
   async getStudentSkills(studentId: string): Promise<any[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("student_skills")
-      .select(`
-        *,
-        skills:skill_id(*)
-      `)
-      .eq("user_id", user.id)
-      .eq("student_id", studentId)
-      .order("updated_at", { ascending: false });
+    const q = query(
+      collection(db, "student_skills"),
+      where("user_id", "==", user.uid),
+      where("student_id", "==", studentId)
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    const studentSkills = querySnapshot.docs.map(doc => toData<any>(doc));
+
+    // Fetch skill details
+    for (const ss of studentSkills) {
+      if (ss.skill_id) {
+        const skillDoc = await getDoc(doc(db, "skills", ss.skill_id));
+        if (skillDoc.exists()) {
+          ss.skills = toData<any>(skillDoc);
+        }
+      }
+    }
+
+    return studentSkills;
   },
 
   // Update student skill progress
@@ -294,43 +242,40 @@ export const studentsApi = {
     mastered: boolean,
     notes?: string
   ): Promise<any> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("student_skills")
-      .upsert({
-        user_id: user.id,
-        student_id: studentId,
-        skill_id: skillId,
-        level,
-        mastered,
-        notes,
-        last_practiced: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    const skillProgressId = `${studentId}_${skillId}`;
+    const docRef = doc(db, "student_skills", skillProgressId);
+    
+    const docData = {
+      user_id: user.uid,
+      student_id: studentId,
+      skill_id: skillId,
+      level,
+      mastered,
+      notes: notes || "",
+      last_practiced: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    if (error) throw error;
-    return data;
+    await setDoc(docRef, docData, { merge: true });
+    const docSnap = await getDoc(docRef);
+    return toData<any>(docSnap);
   },
 
-  // Get students with attendance summary
+  // Get students with attendance summary (Simplificado)
   async getStudentsWithAttendance(): Promise<any[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("students")
-      .select(`
-        *,
-        v_student_attendance!inner(*)
-      `)
-      .eq("user_id", user.id)
-      .order("name", { ascending: true });
+    const students = await this.getMyStudents();
+    
+    // Inyectamos un resumen manual para cada estudiante
+    for (const s of students) {
+      (s as any).v_student_attendance = await this.getStudentAttendanceSummary(s.id);
+    }
 
-    if (error) throw error;
-    return data || [];
+    return students;
   }
 };

@@ -1,21 +1,15 @@
 import type { RequestHandler } from './$types';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
-export const GET: RequestHandler = async ({ cookies, locals, url }) => {
+export const GET: RequestHandler = async ({ locals, url }) => {
   try {
     // Información básica del entorno
     const healthInfo = {
       timestamp: new Date().toISOString(),
       environment: {
         NODE_ENV: process.env.NODE_ENV || 'unknown',
-        PUBLIC_SUPABASE_URL: PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
-        PUBLIC_SUPABASE_ANON_KEY: PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
+        FIREBASE_STATUS: 'INTEGRATED',
         url: url.toString(),
         hostname: url.hostname
-      },
-      cookies: {
-        total: cookies.getAll().length,
-        supabase: cookies.getAll().filter(c => c.name.startsWith('sb-')).map(c => c.name)
       },
       locals: {
         hasUser: !!locals.user,

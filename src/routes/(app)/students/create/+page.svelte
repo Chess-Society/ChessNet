@@ -7,323 +7,264 @@
     Save,
     X,
     User,
-    Mail,
-    Phone,
-    Calendar,
-    GraduationCap,
-    School,
     FileText,
-    AlertTriangle
+    Zap,
+    History,
+    ChevronRight,
+    Search,
+    BookOpen,
+    UserCircle,
+    Activity
   } from 'lucide-svelte';
-  import { showToast, showError } from '$lib/utils/toast';
   import type { PageData } from './$types';
+  import { fade, fly, scale } from 'svelte/transition';
 
-  export let data: PageData;
+  let { data } = $props<{ data: PageData }>();
 
-  let formData = {
+  let formData = $state({
     first_name: '',
     last_name: '',
     notes: ''
-  };
+  });
 
-  let isSubmitting = false;
-  let errors: Record<string, string> = {};
+  let isSubmitting = $state(false);
+  let errors = $state<Record<string, string>>({});
 
-  // Obtener parámetros de la URL
-  $: classId = $page.url.searchParams.get('class_id');
-  $: collegeId = $page.url.searchParams.get('college_id');
-  $: returnTo = $page.url.searchParams.get('return_to');
-  $: isFromClass = !!classId;
-  $: isFromCollege = !!collegeId;
+  // URL context
+  const classId = $derived($page.url.searchParams.get('class_id'));
+  const collegeId = $derived($page.url.searchParams.get('college_id'));
+  const returnTo = $derived($page.url.searchParams.get('return_to'));
+  const isFromClass = $derived(!!classId);
 
   const handleGoBack = () => {
-    if (returnTo) {
-      goto(returnTo);
-    } else if (isFromClass && classId) {
-      goto(`/classes/${classId}/students`);
-    } else {
-      goto('/students');
-    }
+    if (returnTo) goto(returnTo);
+    else if (isFromClass && classId) goto(`/classes/${classId}/students`);
+    else goto('/students');
   };
 
   const validateForm = () => {
     errors = {};
-    // No hay validaciones específicas para los campos que existen
+    if (!formData.first_name.trim()) errors.first_name = 'El nombre es obligatorio';
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      showError('Por favor, corrige los errores en el formulario');
-      return;
-    }
+    if (!validateForm() || isSubmitting) return;
 
     try {
       isSubmitting = true;
-
-      console.log('👥 Creating student:', formData);
-      
-      // Filtrar solo los campos que existen en la tabla students
       const studentData = {
-        name: `${formData.first_name?.trim() || ''} ${formData.last_name?.trim() || ''}`.trim() || 'Estudiante sin nombre',
-        first_name: (formData.first_name?.trim() && formData.first_name.trim() !== '') ? formData.first_name.trim() : null,
-        last_name: (formData.last_name?.trim() && formData.last_name.trim() !== '') ? formData.last_name.trim() : null,
-        notes: (formData.notes?.trim() && formData.notes.trim() !== '') ? formData.notes.trim() : null,
+        name: `${formData.first_name.trim()} ${formData.last_name.trim()}`.trim(),
+        first_name: formData.first_name.trim() || null,
+        last_name: formData.last_name.trim() || null,
+        notes: formData.notes.trim() || null,
         college_id: collegeId || null
       };
       
       const response = await fetch('/api/students', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(studentData),
       });
 
       const result = await response.json();
 
-      if (!response.ok) {
-        console.error('❌ API Error Response:', result);
-        const errorMessage = result.details ? 
-          `${result.error}: ${result.details}` : 
-          result.error || 'Error al crear el estudiante';
-        throw new Error(errorMessage);
-      }
+      if (!response.ok) throw new Error(result.error || 'Error');
       
-      showToast.success(`Estudiante ${formData.first_name} ${formData.last_name} creado exitosamente`);
-      
-      // Si viene desde una clase, inscribir automáticamente al estudiante
+      // Auto-enroll if from class
       if (isFromClass && classId && result.student) {
-        try {
-          const enrollResponse = await fetch('/api/class-students', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              class_id: classId,
-              student_id: result.student.id
-            }),
-          });
-
-          if (enrollResponse.ok) {
-            showToast.success(`Estudiante inscrito automáticamente en la clase`);
-            if (returnTo) {
-              goto(returnTo);
-            } else {
-              goto(`/classes/${classId}/students`);
-            }
-          } else {
-            showToast.warning(`Estudiante creado, pero no se pudo inscribir en la clase`);
-            if (returnTo) {
-              goto(returnTo);
-            } else {
-              goto('/students');
-            }
-          }
-        } catch (enrollError) {
-          console.error('Error enrolling student:', enrollError);
-          showToast.warning(`Estudiante creado, pero no se pudo inscribir en la clase`);
-          if (returnTo) {
-            goto(returnTo);
-          } else {
-            goto('/students');
-          }
-        }
-      } else {
-        if (returnTo) {
-          goto(returnTo);
-        } else {
-          goto('/students');
-        }
+        await fetch('/api/class-students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ class_id: classId, student_id: result.student.id }),
+        });
       }
+      
+      goto(returnTo || (isFromClass ? `/classes/${classId}/students` : '/students'));
     } catch (error) {
-      console.error('Error creating student:', error);
-      showError(error instanceof Error ? error.message : 'Error al crear el estudiante');
+      alert('❌ Error al crear el estudiante');
     } finally {
       isSubmitting = false;
     }
   };
-
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
       handleSubmit();
     }
   };
-
 </script>
 
 <svelte:head>
-  <title>Nuevo Estudiante - ChessNet</title>
+  <title>Nueva Matrícula - ChessNet</title>
 </svelte:head>
 
 <svelte:window on:keydown={handleKeyDown} />
 
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+<div class="max-w-4xl mx-auto space-y-10 animate-fade-in pb-20" in:fade>
   <!-- Header -->
-  <header class="border-b border-slate-700 bg-slate-800/50 backdrop-blur">
-    <div class="container mx-auto px-4 py-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <button on:click={handleGoBack} class="p-2 hover:bg-slate-700 rounded-lg transition-colors">
-            <ArrowLeft class="w-5 h-5" />
-          </button>
-          <div class="flex items-center space-x-3">
-            <div class="p-2 bg-green-500/20 rounded-lg">
-              <Users class="w-6 h-6 text-green-500" />
-            </div>
-            <div>
-              <h1 class="text-2xl font-bold">
-                {isFromClass ? 'Nuevo Estudiante para Clase' : 'Nuevo Estudiante'}
-              </h1>
-              {#if isFromClass}
-                <p class="text-slate-400 text-sm">El estudiante se inscribirá automáticamente en la clase</p>
-              {/if}
-              <p class="text-sm text-slate-400">
-                {isFromClass ? 'Crear e inscribir estudiante en la clase' : 'Registrar un nuevo alumno'}
-              </p>
-            </div>
-          </div>
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div class="space-y-4">
+      <button 
+        onclick={handleGoBack}
+        class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
+      >
+        <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+        Regresar
+      </button>
+
+      <div class="flex items-center gap-6">
+        <div class="w-16 h-16 bg-primary-500/10 border border-primary-500/20 rounded-3xl flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/10">
+          <UserCircle class="w-8 h-8" />
         </div>
-        
-        <div class="flex items-center space-x-3">
-          <button on:click={handleGoBack} class="btn-secondary">
-            <X class="w-4 h-4 mr-2" />
-            Cancelar
-          </button>
-          <button 
-            on:click={handleSubmit} 
-            disabled={isSubmitting}
-            class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {#if isSubmitting}
-              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Creando...
-            {:else}
-              <Save class="w-4 h-4 mr-2" />
-              Crear Estudiante
-            {/if}
-          </button>
+        <div>
+          <h1 class="text-3xl font-black text-white tracking-tighter uppercase leading-none">Matriculación</h1>
+          <p class="text-surface-500 text-sm font-medium uppercase tracking-widest mt-1">Nuevo Registro de Alumno</p>
         </div>
       </div>
     </div>
-  </header>
 
-  <main class="container mx-auto px-4 py-8 max-w-4xl">
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-8">
-      <form on:submit|preventDefault={handleSubmit} class="space-y-8">
-        
-        <!-- Mensaje informativo si viene desde una clase -->
-        {#if isFromClass}
-          <div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <div class="flex items-center">
-              <div class="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-              <p class="text-blue-300 text-sm">
-                <strong>Inscripción automática:</strong> Este estudiante se inscribirá automáticamente en la clase desde donde se está creando.
-              </p>
-            </div>
-          </div>
+    <div class="flex items-center gap-3">
+      <button 
+        onclick={handleGoBack}
+        class="bg-surface-950 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-surface-800 hover:border-surface-700 transition-all flex items-center gap-2"
+      >
+        <X class="w-4 h-4" />
+        Cancelar
+      </button>
+      <button 
+        onclick={handleSubmit}
+        disabled={isSubmitting}
+        class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/10 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {#if isSubmitting}
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
+        {:else}
+          <Save class="w-4 h-4" />
         {/if}
-        
-        <!-- Información Personal -->
-        <div>
-          <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
-            <User class="w-5 h-5 mr-2" />
-            Información Personal
-          </h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Nombre -->
-            <div>
-              <label for="first_name" class="block text-sm font-medium text-slate-300 mb-2">
-                Nombre
-              </label>
+        Confirmar Alta
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <!-- Main Form Section -->
+    <div class="lg:col-span-2 space-y-8">
+      {#if isFromClass}
+        <div class="glass-panel p-6 border-l-4 border-blue-500 flex items-center gap-4 animate-bounce-subtle">
+           <div class="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">
+              <Activity class="w-5 h-5" />
+           </div>
+           <div>
+              <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none mb-1">Inscripción Activa</p>
+              <p class="text-[10px] font-bold text-surface-500 uppercase tracking-tight">El alumno será añadido a la clase automáticamente</p>
+           </div>
+        </div>
+      {/if}
+
+      <section class="glass-panel p-10 space-y-10">
+        <div class="flex items-center gap-3 border-b border-surface-900 pb-6">
+           <User class="w-5 h-5 text-primary-400" />
+           <h2 class="text-lg font-black text-white uppercase tracking-tight">Identificación del Alumno</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+           <div class="space-y-3">
+              <label for="first_name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Nombre(s) *</label>
               <input
                 id="first_name"
                 type="text"
                 bind:value={formData.first_name}
-                placeholder="Nombre del estudiante"
-                class="input w-full"
-                class:border-red-500={errors.first_name}
+                placeholder="EJ: JUAN CARLOS"
+                class={`w-full bg-surface-950 border rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white outline-none transition-all placeholder:text-surface-800 ${errors.first_name ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-surface-900 focus:border-primary-500/50'}`}
               />
               {#if errors.first_name}
-                <p class="text-red-400 text-sm mt-1">{errors.first_name}</p>
+                <p class="text-red-400 text-[10px] font-bold uppercase tracking-tight ml-4">{errors.first_name}</p>
               {/if}
-            </div>
+           </div>
 
-            <!-- Apellidos -->
-            <div>
-              <label for="last_name" class="block text-sm font-medium text-slate-300 mb-2">
-                Apellidos
-              </label>
+           <div class="space-y-3">
+              <label for="last_name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Apellidos</label>
               <input
                 id="last_name"
                 type="text"
                 bind:value={formData.last_name}
-                placeholder="Apellidos del estudiante"
-                class="input w-full"
-                class:border-red-500={errors.last_name}
+                placeholder="EJ: PÉREZ RODRÍGUEZ"
+                class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all placeholder:text-surface-800"
               />
-              {#if errors.last_name}
-                <p class="text-red-400 text-sm mt-1">{errors.last_name}</p>
-              {/if}
-            </div>
-
-          </div>
+           </div>
         </div>
+      </section>
 
+      <section class="glass-panel p-10 space-y-10">
+         <div class="flex items-center gap-3 border-b border-surface-900 pb-6">
+            <FileText class="w-5 h-5 text-primary-400" />
+            <h2 class="text-lg font-black text-white uppercase tracking-tight">Expediente y Notas</h2>
+         </div>
 
-        <!-- Información Adicional -->
-        <div>
-          <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
-            <FileText class="w-5 h-5 mr-2" />
-            Información Adicional
-          </h2>
-          
-          <div class="grid grid-cols-1 gap-6">
-            <!-- Notas -->
-            <div>
-              <label for="notes" class="block text-sm font-medium text-slate-300 mb-2">
-                <FileText class="w-4 h-4 inline mr-1" />
-                Notas adicionales
-              </label>
-              <textarea
-                id="notes"
-                bind:value={formData.notes}
-                placeholder="Información adicional sobre el estudiante, nivel, características especiales..."
-                rows="3"
-                class="input w-full resize-none"
-              ></textarea>
-            </div>
-          </div>
-        </div>
-
-        <!-- Información adicional -->
-        <div class="bg-slate-700/50 rounded-lg p-4">
-          <h3 class="text-sm font-medium text-slate-300 mb-2">💡 Consejos para registrar estudiantes</h3>
-          <ul class="text-sm text-slate-400 space-y-1">
-            <li>• Todos los campos son opcionales - puedes completar la información más tarde</li>
-            <li>• El nombre y apellidos se combinarán automáticamente para el nombre completo</li>
-            <li>• Las notas te ayudarán a recordar características especiales del estudiante</li>
-          </ul>
-        </div>
-
-        <!-- Atajo de teclado -->
-        <div class="text-xs text-slate-500 text-center">
-          Presiona <kbd class="px-2 py-1 bg-slate-700 rounded text-slate-300">Ctrl + Enter</kbd> para crear rápidamente
-        </div>
-      </form>
+         <div class="space-y-3">
+            <label for="notes" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Resumen Inicial</label>
+            <textarea
+              id="notes"
+              bind:value={formData.notes}
+              placeholder="Escribe aquí observaciones iniciales, nivel estimado o cualquier dato relevante para su seguimiento..."
+              class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white h-48 resize-none focus:border-primary-500/50 outline-none transition-all placeholder:text-surface-800"
+            ></textarea>
+         </div>
+      </section>
     </div>
-  </main>
+
+    <!-- Stats/Guidance Column -->
+    <div class="space-y-8">
+       <section class="glass-panel p-8 space-y-8 border-t-4 border-primary-500">
+          <div class="flex items-center gap-3">
+             <BookOpen class="w-5 h-5 text-primary-400" />
+             <h3 class="text-sm font-black text-white uppercase tracking-tighter">Guía de Registro</h3>
+          </div>
+
+          <div class="space-y-6">
+             <div class="flex gap-4">
+                <div class="w-8 h-8 bg-surface-950 rounded-lg flex items-center justify-center text-[10px] font-black text-primary-400 border border-surface-800">01</div>
+                <p class="text-[10px] font-bold text-surface-500 uppercase tracking-tight leading-relaxed">
+                   Usa <span class="text-white">MAYÚSCULAS</span> para mantener la consistencia en el sistema.
+                </p>
+             </div>
+             <div class="flex gap-4">
+                <div class="w-8 h-8 bg-surface-950 rounded-lg flex items-center justify-center text-[10px] font-black text-primary-400 border border-surface-800">02</div>
+                <p class="text-[10px] font-bold text-surface-500 uppercase tracking-tight leading-relaxed">
+                   Puedes dejar campos vacíos y editarlos más tarde desde el <span class="text-white">perfil del alumno</span>.
+                </p>
+             </div>
+             <div class="flex gap-4">
+                <div class="w-8 h-8 bg-surface-950 rounded-lg flex items-center justify-center text-[10px] font-black text-primary-400 border border-surface-800">03</div>
+                <p class="text-[10px] font-bold text-surface-500 uppercase tracking-tight leading-relaxed">
+                   Presiona <span class="text-white">CTRL + ENTER</span> para finalizar el registro rápidamente.
+                </p>
+             </div>
+          </div>
+       </section>
+
+       <!-- Preview Card -->
+       <section class="glass-panel p-8 space-y-6">
+          <h3 class="text-xs font-black text-surface-500 uppercase tracking-widest border-b border-surface-900 pb-4 italic">Vista Previa</h3>
+          <div class="p-6 bg-surface-950 rounded-2xl border border-surface-900 space-y-4">
+             <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-surface-900 rounded-xl flex items-center justify-center text-primary-400 font-black">
+                   {formData.first_name ? formData.first_name.charAt(0).toUpperCase() : '?'}
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-white uppercase truncate max-w-[120px]">
+                    {formData.first_name || 'SIN NOMBRE'} {formData.last_name || ''}
+                  </p>
+                  <p class="text-[8px] font-black text-primary-400 uppercase tracking-widest">NUEVO ASPIRANTE</p>
+                </div>
+             </div>
+          </div>
+       </section>
+    </div>
+  </div>
 </div>
 
-<style>
-  .input {
-    @apply bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
-  }
-  
-  kbd {
-    @apply font-mono text-xs;
-  }
+<style lang="postcss">
+  /* Student creation specialized layout */
 </style>

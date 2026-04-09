@@ -1,36 +1,18 @@
 import type { RequestHandler } from './$types';
-import { createServerClient } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
-export const GET: RequestHandler = async ({ cookies, locals }) => {
+export const GET: RequestHandler = async ({ locals }) => {
   try {
-    // Crear cliente de Supabase
-    const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-      cookies: {
-        get: (key) => cookies.get(key),
-        set: (key, value, options) => {
-          cookies.set(key, value, { ...options, path: '/' });
-        },
-        remove: (key, options) => {
-          cookies.delete(key, { ...options, path: '/' });
-        },
-      },
-    });
-
-    // Obtener sesión
-    const { data: { session }, error } = await supabase.auth.getSession();
-
     const response = {
-      authenticated: !!session && !!locals.user,
+      authenticated: !!locals.user,
       user: locals.user,
-      session: session ? {
+      session: locals.user ? {
         user: {
-          id: session.user.id,
-          email: session.user.email
+          id: locals.user.id,
+          email: locals.user.email
         },
-        expires_at: session.expires_at
+        expires_at: Math.floor(Date.now() / 1000) + 3600 // Mock expiration
       } : null,
-      error: error?.message || null
+      error: null
     };
 
     return new Response(JSON.stringify(response), {

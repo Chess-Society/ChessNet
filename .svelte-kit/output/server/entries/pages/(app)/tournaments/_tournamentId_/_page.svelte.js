@@ -1,4 +1,4 @@
-import { i as head, e as escape_html, j as attr_class, h as stringify, o as attr_style, k as ensure_array_like, d as bind_props, p as pop, f as push } from "../../../../../chunks/index2.js";
+import { a as sanitize_props, b as spread_props, c as slot, h as head, d as escape_html, f as attr_class, l as stringify, o as attr_style, e as ensure_array_like, j as bind_props, p as pop, k as push } from "../../../../../chunks/index.js";
 import "@sveltejs/kit/internal";
 import "../../../../../chunks/exports.js";
 import "../../../../../chunks/utils.js";
@@ -12,11 +12,91 @@ import { C as Clock } from "../../../../../chunks/clock.js";
 import { M as Map_pin } from "../../../../../chunks/map-pin.js";
 import { T as Target } from "../../../../../chunks/target.js";
 import { U as User_plus } from "../../../../../chunks/user-plus.js";
-import { P as Play, a as Pen_line } from "../../../../../chunks/play.js";
+import { I as Icon } from "../../../../../chunks/Icon.js";
 import { T as Trash_2 } from "../../../../../chunks/trash-2.js";
 import { S as Settings } from "../../../../../chunks/settings.js";
 import { C as Circle_check_big } from "../../../../../chunks/circle-check-big.js";
 import { C as Circle_x } from "../../../../../chunks/circle-x.js";
+import { P as Pen_line } from "../../../../../chunks/pen-line.js";
+function Play($$payload, $$props) {
+  const $$sanitized_props = sanitize_props($$props);
+  /**
+   * @license lucide-svelte v0.542.0 - ISC
+   *
+   * ISC License
+   *
+   * Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2023 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2025.
+   *
+   * Permission to use, copy, modify, and/or distribute this software for any
+   * purpose with or without fee is hereby granted, provided that the above
+   * copyright notice and this permission notice appear in all copies.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+   * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+   * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+   * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+   * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+   * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+   *
+   * ---
+   *
+   * The MIT License (MIT) (for portions derived from Feather)
+   *
+   * Copyright (c) 2013-2023 Cole Bemis
+   *
+   * Permission is hereby granted, free of charge, to any person obtaining a copy
+   * of this software and associated documentation files (the "Software"), to deal
+   * in the Software without restriction, including without limitation the rights
+   * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   * copies of the Software, and to permit persons to whom the Software is
+   * furnished to do so, subject to the following conditions:
+   *
+   * The above copyright notice and this permission notice shall be included in all
+   * copies or substantial portions of the Software.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   * SOFTWARE.
+   *
+   */
+  const iconNode = [
+    [
+      "path",
+      {
+        "d": "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"
+      }
+    ]
+  ];
+  Icon($$payload, spread_props([
+    { name: "play" },
+    $$sanitized_props,
+    {
+      /**
+       * @component @name Play
+       * @description Lucide SVG icon component, renders SVG Element with children.
+       *
+       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8cGF0aCBkPSJNNSA1YTIgMiAwIDAgMSAzLjAwOC0xLjcyOGwxMS45OTcgNi45OThhMiAyIDAgMCAxIC4wMDMgMy40NThsLTEyIDdBMiAyIDAgMCAxIDUgMTl6IiAvPgo8L3N2Zz4K) - https://lucide.dev/icons/play
+       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
+       *
+       * @param {Object} props - Lucide icons props and any valid SVG attribute
+       * @returns {FunctionalComponent} Svelte component
+       *
+       */
+      iconNode,
+      children: ($$payload2) => {
+        $$payload2.out.push(`<!---->`);
+        slot($$payload2, $$props, "default", {});
+        $$payload2.out.push(`<!---->`);
+      },
+      $$slots: { default: true }
+    }
+  ]));
+}
 function _page($$payload, $$props) {
   push();
   let tournament, registeredPlayers, rounds, pairings;
@@ -25,7 +105,7 @@ function _page($$payload, $$props) {
   const loadCurrentRoundPairings = async () => {
     if (!tournament?.id || !tournament?.current_round) return;
     try {
-      const { tournamentDB } = await import("../../../../../chunks/tournaments.js");
+      const { tournamentDB } = await import("../../../../../chunks/tournaments2.js");
       const pairings2 = await tournamentDB.getRoundPairings(tournament.id, tournament.current_round);
       currentRoundPairings = pairings2;
       console.log(`✅ Loaded ${pairings2.length} pairings for round ${tournament.current_round}`);
@@ -37,7 +117,7 @@ function _page($$payload, $$props) {
   const syncMockDataToIndexedDB = async () => {
     if (!tournament) return;
     try {
-      const { tournamentDB } = await import("../../../../../chunks/tournaments.js");
+      const { tournamentDB } = await import("../../../../../chunks/tournaments2.js");
       const existingTournament = await tournamentDB.getTournament(tournament.id);
       if (!existingTournament) {
         console.log("🔄 Syncing mock tournament to IndexedDB:", tournament.id);
@@ -85,7 +165,7 @@ function _page($$payload, $$props) {
   };
   const clearDuplicateTournaments = async () => {
     try {
-      const { tournamentDB } = await import("../../../../../chunks/tournaments.js");
+      const { tournamentDB } = await import("../../../../../chunks/tournaments2.js");
       const database = await tournamentDB.init();
       const transaction = database.transaction(["tournaments"], "readwrite");
       const store = transaction.objectStore("tournaments");
@@ -197,7 +277,7 @@ function _page($$payload, $$props) {
   const calculateStandings = async () => {
     if (!tournament) return [];
     try {
-      const { tournamentDB } = await import("../../../../../chunks/tournaments.js");
+      const { tournamentDB } = await import("../../../../../chunks/tournaments2.js");
       const allPairings = await tournamentDB.getAllTournamentPairings(tournament.id);
       const updatedPlayers = await tournamentDB.getTournamentPlayers(tournament.id);
       const playerStats = /* @__PURE__ */ new Map();

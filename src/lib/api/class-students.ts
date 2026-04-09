@@ -1,63 +1,101 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  setDoc,
+  writeBatch,
+  type DocumentData
+} from "firebase/firestore";
 import type { ClassStudent, Student } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const classStudentsApi = {
   // Get all students enrolled in a class
   async getClassStudents(classId: string): Promise<(ClassStudent & { student: Student })[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("class_students")
-      .select(`
-        *,
-        students:student_id(*)
-      `)
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .eq("status", "active")
-      .order("enrolled_at", { ascending: true });
+    const q = query(
+      collection(db, "class_students"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("status", "==", "active"),
+      orderBy("enrolled_at", "asc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    const enrollments = querySnapshot.docs.map(doc => toData<any>(doc));
+
+    for (const enrollment of enrollments) {
+      if (enrollment.student_id) {
+        const studentDoc = await getDoc(doc(db, "students", enrollment.student_id));
+        if (studentDoc.exists()) {
+          enrollment.student = toData<Student>(studentDoc);
+        }
+      }
+    }
+
+    return enrollments;
   },
 
   // Get all classes where a student is enrolled
   async getStudentClasses(studentId: string): Promise<(ClassStudent & { class: any })[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("class_students")
-      .select(`
-        *,
-        classes:class_id(*)
-      `)
-      .eq("owner_id", user.id)
-      .eq("student_id", studentId)
-      .eq("status", "active")
-      .order("enrolled_at", { ascending: false });
+    const q = query(
+      collection(db, "class_students"),
+      where("owner_id", "==", user.uid),
+      where("student_id", "==", studentId),
+      where("status", "==", "active"),
+      orderBy("enrolled_at", "desc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    const enrollments = querySnapshot.docs.map(doc => toData<any>(doc));
+
+    for (const enrollment of enrollments) {
+      if (enrollment.class_id) {
+        const classDoc = await getDoc(doc(db, "classes", enrollment.class_id));
+        if (classDoc.exists()) {
+          enrollment.class = toData<any>(classDoc);
+        }
+      }
+    }
+
+    return enrollments;
   },
 
   // Enroll a student in a class
   async enrollStudent(classId: string, studentId: string): Promise<ClassStudent> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
     // Check if already enrolled
-    const { data: existing } = await supabase
-      .from("class_students")
-      .select("id, status")
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .eq("student_id", studentId)
-      .single();
-
-    if (existing) {
-      if (existing.status === "active") {
+    const q = query(
+      collection(db, "class_students"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("student_id", "==", studentId)
+    );
+    const existingSnap = await getDocs(q);
+    
+    if (!existingSnap.empty) {
+      const existing = existingSnap.docs[0];
+      const data = existing.data();
+      if (data.status === "active") {
         throw new Error("Student is already enrolled in this class");
       } else {
         // Reactivate enrollment
@@ -65,70 +103,75 @@ export const classStudentsApi = {
       }
     }
 
-    const { data, error } = await supabase
-      .from("class_students")
-      .insert({
-        owner_id: user.id,
-        class_id: classId,
-        student_id: studentId,
-        status: "active"
-      })
-      .select()
-      .single();
+    const docRef = await addDoc(collection(db, "class_students"), {
+      owner_id: user.uid,
+      class_id: classId,
+      student_id: studentId,
+      status: "active",
+      enrolled_at: new Date().toISOString()
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<ClassStudent>(docSnap);
   },
 
   // Enroll multiple students in a class
   async enrollStudents(classId: string, studentIds: string[]): Promise<ClassStudent[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const enrollmentsToInsert = studentIds.map(studentId => ({
-      owner_id: user.id,
-      class_id: classId,
-      student_id: studentId,
-      status: "active" as const
-    }));
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+    const newRefs: any[] = [];
 
-    const { data, error } = await supabase
-      .from("class_students")
-      .insert(enrollmentsToInsert)
-      .select();
+    for (const studentId of studentIds) {
+      const docRef = doc(collection(db, "class_students"));
+      batch.set(docRef, {
+        owner_id: user.uid,
+        class_id: classId,
+        student_id: studentId,
+        status: "active",
+        enrolled_at: now
+      });
+      newRefs.push(docRef);
+    }
 
-    if (error) throw error;
-    return data || [];
+    await batch.commit();
+
+    const result: ClassStudent[] = [];
+    for (const ref of newRefs) {
+      const snap = await getDoc(ref);
+      if (snap.exists()) result.push(toData<ClassStudent>(snap));
+    }
+    return result;
   },
 
-  // Remove a student from a class (soft delete - change status)
+  // Remove a student from a class
   async unenrollStudent(classId: string, studentId: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { error } = await supabase
-      .from("class_students")
-      .update({ status: "inactive" })
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .eq("student_id", studentId);
-
-    if (error) throw error;
+    const q = query(
+      collection(db, "class_students"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("student_id", "==", studentId)
+    );
+    const snap = await getDocs(q);
+    
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.update(d.ref, { status: "inactive" }));
+    await batch.commit();
   },
 
   // Remove multiple students from a class
   async unenrollStudents(classId: string, studentIds: string[]): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { error } = await supabase
-      .from("class_students")
-      .update({ status: "inactive" })
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .in("student_id", studentIds);
-
-    if (error) throw error;
+    for (const studentId of studentIds) {
+      await this.unenrollStudent(classId, studentId);
+    }
   },
 
   // Update enrollment status
@@ -136,109 +179,111 @@ export const classStudentsApi = {
     enrollmentId: string, 
     status: "active" | "inactive" | "suspended"
   ): Promise<ClassStudent> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("class_students")
-      .update({ status })
-      .eq("id", enrollmentId)
-      .eq("owner_id", user.id)
-      .select()
-      .single();
+    const docRef = doc(db, "class_students", enrollmentId);
+    await updateDoc(docRef, { status });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<ClassStudent>(docSnap);
   },
 
-  // Get class occupancy (number of enrolled students)
+  // Get class occupancy
   async getClassOccupancy(classId: string): Promise<number> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { count, error } = await supabase
-      .from("class_students")
-      .select("*", { count: "exact", head: true })
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .eq("status", "active");
-
-    if (error) throw error;
-    return count || 0;
+    const q = query(
+      collection(db, "class_students"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("status", "==", "active")
+    );
+    
+    const snap = await getDocs(q);
+    return snap.size;
   },
 
   // Get all class occupancies for user
   async getAllClassOccupancies(): Promise<{ class_id: string; enrolled: number }[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("v_class_occupancy")
-      .select("*")
-      .eq("owner_id", user.id);
+    const q = query(
+      collection(db, "class_students"),
+      where("owner_id", "==", user.uid),
+      where("status", "==", "active")
+    );
+    
+    const snap = await getDocs(q);
+    const enrollments = snap.docs.map(doc => doc.data());
+    
+    const countMap = enrollments.reduce((acc, e) => {
+      acc[e.class_id] = (acc[e.class_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-    if (error) throw error;
-    return data || [];
+    return Object.entries(countMap).map(([class_id, enrolled]) => ({ class_id, enrolled }));
   },
 
   // Get students not enrolled in a specific class
   async getAvailableStudents(classId: string): Promise<Student[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
     // Get all user's students
-    const { data: allStudents, error: studentsError } = await supabase
-      .from("students")
-      .select("*")
-      .eq("user_id", user.id);
-
-    if (studentsError) throw studentsError;
+    const studentsQuery = query(
+      collection(db, "students"),
+      where("user_id", "==", user.uid)
+    );
+    const studentsSnap = await getDocs(studentsQuery);
+    const allStudents = studentsSnap.docs.map(doc => toData<Student>(doc));
 
     // Get enrolled student IDs
-    const { data: enrolledStudents, error: enrolledError } = await supabase
-      .from("class_students")
-      .select("student_id")
-      .eq("owner_id", user.id)
-      .eq("class_id", classId)
-      .eq("status", "active");
-
-    if (enrolledError) throw enrolledError;
-
-    const enrolledIds = new Set(enrolledStudents?.map(e => e.student_id) || []);
+    const enrolledQuery = query(
+      collection(db, "class_students"),
+      where("owner_id", "==", user.uid),
+      where("class_id", "==", classId),
+      where("status", "==", "active")
+    );
+    const enrolledSnap = await getDocs(enrolledQuery);
+    const enrolledIds = new Set(enrolledSnap.docs.map(e => e.data().student_id));
     
     // Filter out enrolled students
-    return allStudents?.filter(student => !enrolledIds.has(student.id)) || [];
+    return allStudents.filter(student => !enrolledIds.has(student.id));
   },
 
   // Transfer students from one class to another
   async transferStudents(fromClassId: string, toClassId: string, studentIds: string[]): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
-
-    // Start transaction-like operations
-    // 1. Unenroll from source class
     await this.unenrollStudents(fromClassId, studentIds);
-    
-    // 2. Enroll in target class
     await this.enrollStudents(toClassId, studentIds);
   },
 
   // Get enrollment history for a student
   async getStudentEnrollmentHistory(studentId: string): Promise<ClassStudent[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("class_students")
-      .select(`
-        *,
-        classes:class_id(name, level)
-      `)
-      .eq("owner_id", user.id)
-      .eq("student_id", studentId)
-      .order("enrolled_at", { ascending: false });
+    const q = query(
+      collection(db, "class_students"),
+      where("owner_id", "==", user.uid),
+      where("student_id", "==", studentId),
+      orderBy("enrolled_at", "desc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    const enrollments = querySnapshot.docs.map(doc => toData<any>(doc));
+
+    for (const enrollment of enrollments) {
+      if (enrollment.class_id) {
+        const classDoc = await getDoc(doc(db, "classes", enrollment.class_id));
+        if (classDoc.exists()) {
+          enrollment.classes = toData<any>(classDoc);
+        }
+      }
+    }
+
+    return enrollments;
   }
 };

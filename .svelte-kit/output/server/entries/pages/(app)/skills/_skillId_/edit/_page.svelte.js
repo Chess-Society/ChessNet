@@ -1,4 +1,4 @@
-import { a as sanitize_props, b as spread_props, c as slot, k as ensure_array_like, i as head, e as escape_html, l as attr, j as attr_class, m as maybe_selected, d as bind_props, p as pop, f as push } from "../../../../../../chunks/index2.js";
+import { a as sanitize_props, b as spread_props, c as slot, e as ensure_array_like, h as head, d as escape_html, i as attr, f as attr_class, m as maybe_selected, j as bind_props, p as pop, k as push } from "../../../../../../chunks/index.js";
 import "@sveltejs/kit/internal";
 import "../../../../../../chunks/exports.js";
 import "../../../../../../chunks/utils.js";
@@ -269,28 +269,28 @@ function _page($$payload, $$props) {
   $$payload.out.push(`<!----></div> <div><h1 class="text-2xl font-bold">Editar Habilidad</h1> <p class="text-sm text-slate-400">${escape_html(skillData?.name)}</p></div></div></div> <div class="flex items-center space-x-3">`);
   if (hasChanges()) {
     $$payload.out.push("<!--[-->");
-    $$payload.out.push(`<button class="btn-secondary svelte-mlurok">`);
+    $$payload.out.push(`<button class="btn-secondary svelte-1d2g1mw">`);
     Rotate_ccw($$payload, { class: "w-4 h-4 mr-2" });
     $$payload.out.push(`<!----> Descartar Cambios</button>`);
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--> <button class="btn-secondary svelte-mlurok">`);
+  $$payload.out.push(`<!--]--> <button class="btn-secondary svelte-1d2g1mw">`);
   Eye($$payload, { class: "w-4 h-4 mr-2" });
-  $$payload.out.push(`<!----> ${escape_html("Vista Previa")}</button> <button${attr("disabled", !hasChanges(), true)} class="btn-primary svelte-mlurok">`);
+  $$payload.out.push(`<!----> ${escape_html("Vista Previa")}</button> <button${attr("disabled", !hasChanges(), true)} class="btn-primary svelte-1d2g1mw">`);
   {
     $$payload.out.push("<!--[!-->");
     Save($$payload, { class: "w-4 h-4 mr-2" });
     $$payload.out.push(`<!----> Guardar Cambios`);
   }
-  $$payload.out.push(`<!--]--></button></div></div></div></header> <main class="container mx-auto px-4 py-8"><div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-2 space-y-8"><div class="bg-slate-800 border border-slate-700 rounded-xl p-6"><h2 class="text-xl font-semibold mb-6">Información Básica</h2> <div class="space-y-6"><div><label for="name" class="block text-sm font-medium text-slate-300 mb-2">Nombre de la Habilidad *</label> <input id="name" type="text"${attr("value", formData.name)}${attr_class(`input w-full ${errors.name ? "border-red-500" : ""}`, "svelte-mlurok")} placeholder="Ej: Movimiento de Peones"/> `);
+  $$payload.out.push(`<!--]--></button></div></div></div></header> <main class="container mx-auto px-4 py-8"><div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-2 space-y-8"><div class="bg-slate-800 border border-slate-700 rounded-xl p-6"><h2 class="text-xl font-semibold mb-6">Información Básica</h2> <div class="space-y-6"><div><label for="name" class="block text-sm font-medium text-slate-300 mb-2">Nombre de la Habilidad *</label> <input id="name" type="text"${attr("value", formData.name)}${attr_class(`input w-full ${errors.name ? "border-red-500" : ""}`, "svelte-1d2g1mw")} placeholder="Ej: Movimiento de Peones"/> `);
   if (errors.name) {
     $$payload.out.push("<!--[-->");
     $$payload.out.push(`<p class="text-red-400 text-sm mt-1">${escape_html(errors.name)}</p>`);
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div> <div><label for="description" class="block text-sm font-medium text-slate-300 mb-2">Descripción Detallada *</label> <textarea id="description"${attr_class(`input w-full h-24 resize-none ${errors.description ? "border-red-500" : ""}`, "svelte-mlurok")} placeholder="Describe qué aprenderá el estudiante con esta habilidad...">`);
+  $$payload.out.push(`<!--]--></div> <div><label for="description" class="block text-sm font-medium text-slate-300 mb-2">Descripción Detallada *</label> <textarea id="description"${attr_class(`input w-full h-24 resize-none ${errors.description ? "border-red-500" : ""}`, "svelte-1d2g1mw")} placeholder="Describe qué aprenderá el estudiante con esta habilidad...">`);
   const $$body = escape_html(formData.description);
   if ($$body) {
     $$payload.out.push(`${$$body}`);
@@ -302,7 +302,7 @@ function _page($$payload, $$props) {
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div> <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="category_id" class="block text-sm font-medium text-slate-300 mb-2">Categoría *</label> <select id="category_id"${attr_class(`input w-full ${errors.category_id ? "border-red-500" : ""}`, "svelte-mlurok")}>`);
+  $$payload.out.push(`<!--]--></div> <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="category_id" class="block text-sm font-medium text-slate-300 mb-2">Categoría *</label> <select id="category_id"${attr_class(`input w-full ${errors.category_id ? "border-red-500" : ""}`, "svelte-1d2g1mw")}>`);
   $$payload.select_value = formData.category_id;
   $$payload.out.push(`<option value=""${maybe_selected($$payload, "")}>Seleccionar categoría</option><!--[-->`);
   for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
@@ -318,7 +318,7 @@ function _page($$payload, $$props) {
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div> <div><label for="difficulty" class="block text-sm font-medium text-slate-300 mb-2">Nivel de Dificultad *</label> <select id="difficulty"${attr_class(`input w-full ${errors.difficulty ? "border-red-500" : ""}`, "svelte-mlurok")}>`);
+  $$payload.out.push(`<!--]--></div> <div><label for="difficulty" class="block text-sm font-medium text-slate-300 mb-2">Nivel de Dificultad *</label> <select id="difficulty"${attr_class(`input w-full ${errors.difficulty ? "border-red-500" : ""}`, "svelte-1d2g1mw")}>`);
   $$payload.select_value = formData.difficulty;
   $$payload.out.push(`<!--[-->`);
   for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
@@ -334,21 +334,21 @@ function _page($$payload, $$props) {
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div></div> <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="estimated_hours" class="block text-sm font-medium text-slate-300 mb-2">Horas Estimadas</label> <input id="estimated_hours" type="number"${attr("value", formData.estimated_hours)}${attr_class(`input w-full ${errors.estimated_hours ? "border-red-500" : ""}`, "svelte-mlurok")} min="0.5" max="20" step="0.5"/> `);
+  $$payload.out.push(`<!--]--></div></div> <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="estimated_hours" class="block text-sm font-medium text-slate-300 mb-2">Horas Estimadas</label> <input id="estimated_hours" type="number"${attr("value", formData.estimated_hours)}${attr_class(`input w-full ${errors.estimated_hours ? "border-red-500" : ""}`, "svelte-1d2g1mw")} min="0.5" max="20" step="0.5"/> `);
   if (errors.estimated_hours) {
     $$payload.out.push("<!--[-->");
     $$payload.out.push(`<p class="text-red-400 text-sm mt-1">${escape_html(errors.estimated_hours)}</p>`);
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div> <div><label for="order_index" class="block text-sm font-medium text-slate-300 mb-2">Orden en la Categoría</label> <input id="order_index" type="number"${attr("value", formData.order_index)} class="input w-full svelte-mlurok" min="1"/></div></div></div></div> <div class="bg-slate-800 border border-slate-700 rounded-xl p-6"><div class="flex items-center justify-between mb-6"><h2 class="text-xl font-semibold">Objetivos de Aprendizaje</h2> <button class="btn-secondary text-sm svelte-mlurok">`);
+  $$payload.out.push(`<!--]--></div> <div><label for="order_index" class="block text-sm font-medium text-slate-300 mb-2">Orden en la Categoría</label> <input id="order_index" type="number"${attr("value", formData.order_index)} class="input w-full svelte-1d2g1mw" min="1"/></div></div></div></div> <div class="bg-slate-800 border border-slate-700 rounded-xl p-6"><div class="flex items-center justify-between mb-6"><h2 class="text-xl font-semibold">Objetivos de Aprendizaje</h2> <button class="btn-secondary text-sm svelte-1d2g1mw">`);
   Plus($$payload, { class: "w-4 h-4 mr-1" });
   $$payload.out.push(`<!----> Añadir Objetivo</button></div> <div class="space-y-4"><!--[-->`);
   for (let index = 0, $$length = each_array_2.length; index < $$length; index++) {
     each_array_2[index];
     $$payload.out.push(`<div class="flex items-start space-x-3"><div class="p-2 bg-green-500/20 rounded-lg mt-1">`);
     Lightbulb($$payload, { class: "w-4 h-4 text-green-400" });
-    $$payload.out.push(`<!----></div> <div class="flex-1"><textarea class="input w-full h-16 resize-none svelte-mlurok" placeholder="Describe qué debe lograr el estudiante...">`);
+    $$payload.out.push(`<!----></div> <div class="flex-1"><textarea class="input w-full h-16 resize-none svelte-1d2g1mw" placeholder="Describe qué debe lograr el estudiante...">`);
     const $$body_1 = escape_html(formData.learning_objectives[index]);
     if ($$body_1) {
       $$payload.out.push(`${$$body_1}`);
@@ -371,14 +371,14 @@ function _page($$payload, $$props) {
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div></div> <div class="bg-slate-800 border border-slate-700 rounded-xl p-6"><div class="flex items-center justify-between mb-6"><h2 class="text-xl font-semibold">Criterios de Evaluación</h2> <button class="btn-secondary text-sm svelte-mlurok">`);
+  $$payload.out.push(`<!--]--></div></div> <div class="bg-slate-800 border border-slate-700 rounded-xl p-6"><div class="flex items-center justify-between mb-6"><h2 class="text-xl font-semibold">Criterios de Evaluación</h2> <button class="btn-secondary text-sm svelte-1d2g1mw">`);
   Plus($$payload, { class: "w-4 h-4 mr-1" });
   $$payload.out.push(`<!----> Añadir Criterio</button></div> <div class="space-y-4"><!--[-->`);
   for (let index = 0, $$length = each_array_3.length; index < $$length; index++) {
     each_array_3[index];
     $$payload.out.push(`<div class="flex items-start space-x-3"><div class="p-2 bg-blue-500/20 rounded-lg mt-1">`);
     Award($$payload, { class: "w-4 h-4 text-blue-400" });
-    $$payload.out.push(`<!----></div> <div class="flex-1"><textarea class="input w-full h-16 resize-none svelte-mlurok" placeholder="¿Cómo sabrás que el estudiante ha dominado esta habilidad?">`);
+    $$payload.out.push(`<!----></div> <div class="flex-1"><textarea class="input w-full h-16 resize-none svelte-1d2g1mw" placeholder="¿Cómo sabrás que el estudiante ha dominado esta habilidad?">`);
     const $$body_2 = escape_html(formData.assessment_criteria[index]);
     if ($$body_2) {
       $$payload.out.push(`${$$body_2}`);
@@ -423,14 +423,14 @@ function _page($$payload, $$props) {
     }
     $$payload.out.push(`<!--]--></div> <p class="text-xs text-slate-400 mt-3">Los estudiantes deben dominar estas habilidades antes de empezar con esta</p>`);
   }
-  $$payload.out.push(`<!--]--></div> <div class="bg-slate-800 border border-slate-700 rounded-xl p-6"><div class="flex items-center justify-between mb-6"><h2 class="text-xl font-semibold">Recursos Educativos</h2> <button class="btn-secondary text-sm svelte-mlurok">`);
+  $$payload.out.push(`<!--]--></div> <div class="bg-slate-800 border border-slate-700 rounded-xl p-6"><div class="flex items-center justify-between mb-6"><h2 class="text-xl font-semibold">Recursos Educativos</h2> <button class="btn-secondary text-sm svelte-1d2g1mw">`);
   Plus($$payload, { class: "w-4 h-4 mr-1" });
   $$payload.out.push(`<!----> Añadir Recurso</button></div> <div class="space-y-4"><!--[-->`);
   for (let index = 0, $$length = each_array_6.length; index < $$length; index++) {
     each_array_6[index];
     $$payload.out.push(`<div class="flex items-center space-x-3"><div class="p-2 bg-orange-500/20 rounded-lg">`);
     Book_open($$payload, { class: "w-4 h-4 text-orange-400" });
-    $$payload.out.push(`<!----></div> <div class="flex-1"><input${attr("value", formData.resources[index])} class="input w-full svelte-mlurok" placeholder="Ej: Tablero de ajedrez físico, software educativo..."/></div> <button class="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-red-400">`);
+    $$payload.out.push(`<!----></div> <div class="flex-1"><input${attr("value", formData.resources[index])} class="input w-full svelte-1d2g1mw" placeholder="Ej: Tablero de ajedrez físico, software educativo..."/></div> <button class="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-red-400">`);
     Trash_2($$payload, { class: "w-4 h-4" });
     $$payload.out.push(`<!----></button></div>`);
   }

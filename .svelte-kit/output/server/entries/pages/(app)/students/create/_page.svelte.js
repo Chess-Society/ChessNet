@@ -1,84 +1,73 @@
-import { w as store_get, i as head, e as escape_html, l as attr, j as attr_class, x as unsubscribe_stores, d as bind_props, p as pop, f as push } from "../../../../../chunks/index2.js";
+import { q as store_get, h as head, i as attr, f as attr_class, d as escape_html, u as unsubscribe_stores, p as pop, k as push } from "../../../../../chunks/index.js";
 import "@sveltejs/kit/internal";
 import "../../../../../chunks/exports.js";
 import "../../../../../chunks/utils.js";
 import "../../../../../chunks/state.svelte.js";
 import { p as page } from "../../../../../chunks/stores.js";
 import { A as Arrow_left } from "../../../../../chunks/arrow-left.js";
-import { U as Users } from "../../../../../chunks/users.js";
+import { C as Circle_user } from "../../../../../chunks/circle-user.js";
 import { X } from "../../../../../chunks/x.js";
 import { S as Save } from "../../../../../chunks/save.js";
+import { A as Activity } from "../../../../../chunks/activity.js";
 import { U as User } from "../../../../../chunks/user.js";
 import { F as File_text } from "../../../../../chunks/file-text.js";
+import { B as Book_open } from "../../../../../chunks/book-open.js";
 function _page($$payload, $$props) {
   push();
   var $$store_subs;
-  let classId, isFromClass;
-  let data = $$props["data"];
+  let { data } = $$props;
   let formData = { first_name: "", last_name: "", notes: "" };
   let isSubmitting = false;
   let errors = {};
-  classId = store_get($$store_subs ??= {}, "$page", page).url.searchParams.get("class_id");
+  const classId = store_get($$store_subs ??= {}, "$page", page).url.searchParams.get("class_id");
   store_get($$store_subs ??= {}, "$page", page).url.searchParams.get("college_id");
   store_get($$store_subs ??= {}, "$page", page).url.searchParams.get("return_to");
-  isFromClass = !!classId;
+  const isFromClass = !!classId;
   head($$payload, ($$payload2) => {
-    $$payload2.title = `<title>Nuevo Estudiante - ChessNet</title>`;
+    $$payload2.title = `<title>Nueva Matrícula - ChessNet</title>`;
   });
-  $$payload.out.push(`<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"><header class="border-b border-slate-700 bg-slate-800/50 backdrop-blur"><div class="container mx-auto px-4 py-4"><div class="flex items-center justify-between"><div class="flex items-center space-x-4"><button class="p-2 hover:bg-slate-700 rounded-lg transition-colors">`);
-  Arrow_left($$payload, { class: "w-5 h-5" });
-  $$payload.out.push(`<!----></button> <div class="flex items-center space-x-3"><div class="p-2 bg-green-500/20 rounded-lg">`);
-  Users($$payload, { class: "w-6 h-6 text-green-500" });
-  $$payload.out.push(`<!----></div> <div><h1 class="text-2xl font-bold">${escape_html(isFromClass ? "Nuevo Estudiante para Clase" : "Nuevo Estudiante")}</h1> `);
-  if (isFromClass) {
-    $$payload.out.push("<!--[-->");
-    $$payload.out.push(`<p class="text-slate-400 text-sm">El estudiante se inscribirá automáticamente en la clase</p>`);
-  } else {
-    $$payload.out.push("<!--[!-->");
-  }
-  $$payload.out.push(`<!--]--> <p class="text-sm text-slate-400">${escape_html(isFromClass ? "Crear e inscribir estudiante en la clase" : "Registrar un nuevo alumno")}</p></div></div></div> <div class="flex items-center space-x-3"><button class="btn-secondary">`);
-  X($$payload, { class: "w-4 h-4 mr-2" });
-  $$payload.out.push(`<!----> Cancelar</button> <button${attr("disabled", isSubmitting, true)} class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">`);
+  $$payload.out.push(`<div class="max-w-4xl mx-auto space-y-10 animate-fade-in pb-20"><div class="flex flex-col md:flex-row md:items-end justify-between gap-8"><div class="space-y-4"><button class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest">`);
+  Arrow_left($$payload, {
+    class: "w-4 h-4 transition-transform group-hover:-translate-x-1"
+  });
+  $$payload.out.push(`<!----> Regresar</button> <div class="flex items-center gap-6"><div class="w-16 h-16 bg-primary-500/10 border border-primary-500/20 rounded-3xl flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/10">`);
+  Circle_user($$payload, { class: "w-8 h-8" });
+  $$payload.out.push(`<!----></div> <div><h1 class="text-3xl font-black text-white tracking-tighter uppercase leading-none">Matriculación</h1> <p class="text-surface-500 text-sm font-medium uppercase tracking-widest mt-1">Nuevo Registro de Alumno</p></div></div></div> <div class="flex items-center gap-3"><button class="bg-surface-950 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-surface-800 hover:border-surface-700 transition-all flex items-center gap-2">`);
+  X($$payload, { class: "w-4 h-4" });
+  $$payload.out.push(`<!----> Cancelar</button> <button${attr("disabled", isSubmitting, true)} class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/10 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">`);
   {
     $$payload.out.push("<!--[!-->");
-    Save($$payload, { class: "w-4 h-4 mr-2" });
-    $$payload.out.push(`<!----> Crear Estudiante`);
+    Save($$payload, { class: "w-4 h-4" });
   }
-  $$payload.out.push(`<!--]--></button></div></div></div></header> <main class="container mx-auto px-4 py-8 max-w-4xl"><div class="bg-slate-800 border border-slate-700 rounded-xl p-8"><form class="space-y-8">`);
+  $$payload.out.push(`<!--]--> Confirmar Alta</button></div></div> <div class="grid grid-cols-1 lg:grid-cols-3 gap-10"><div class="lg:col-span-2 space-y-8">`);
   if (isFromClass) {
     $$payload.out.push("<!--[-->");
-    $$payload.out.push(`<div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg"><div class="flex items-center"><div class="w-2 h-2 bg-blue-400 rounded-full mr-3"></div> <p class="text-blue-300 text-sm"><strong>Inscripción automática:</strong> Este estudiante se inscribirá automáticamente en la clase desde donde se está creando.</p></div></div>`);
+    $$payload.out.push(`<div class="glass-panel p-6 border-l-4 border-blue-500 flex items-center gap-4 animate-bounce-subtle"><div class="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400">`);
+    Activity($$payload, { class: "w-5 h-5" });
+    $$payload.out.push(`<!----></div> <div><p class="text-[10px] font-black text-blue-400 uppercase tracking-widest leading-none mb-1">Inscripción Activa</p> <p class="text-[10px] font-bold text-surface-500 uppercase tracking-tight">El alumno será añadido a la clase automáticamente</p></div></div>`);
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--> <div><h2 class="text-xl font-semibold text-white mb-6 flex items-center">`);
-  User($$payload, { class: "w-5 h-5 mr-2" });
-  $$payload.out.push(`<!----> Información Personal</h2> <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="first_name" class="block text-sm font-medium text-slate-300 mb-2">Nombre</label> <input id="first_name" type="text"${attr("value", formData.first_name)} placeholder="Nombre del estudiante"${attr_class("input w-full svelte-1vhlwa4", void 0, { "border-red-500": errors.first_name })}/> `);
+  $$payload.out.push(`<!--]--> <section class="glass-panel p-10 space-y-10"><div class="flex items-center gap-3 border-b border-surface-900 pb-6">`);
+  User($$payload, { class: "w-5 h-5 text-primary-400" });
+  $$payload.out.push(`<!----> <h2 class="text-lg font-black text-white uppercase tracking-tight">Identificación del Alumno</h2></div> <div class="grid grid-cols-1 md:grid-cols-2 gap-8"><div class="space-y-3"><label for="first_name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Nombre(s) *</label> <input id="first_name" type="text"${attr("value", formData.first_name)} placeholder="EJ: JUAN CARLOS"${attr_class(`w-full bg-surface-950 border rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white outline-none transition-all placeholder:text-surface-800 ${errors.first_name ? "border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : "border-surface-900 focus:border-primary-500/50"}`)}/> `);
   if (errors.first_name) {
     $$payload.out.push("<!--[-->");
-    $$payload.out.push(`<p class="text-red-400 text-sm mt-1">${escape_html(errors.first_name)}</p>`);
+    $$payload.out.push(`<p class="text-red-400 text-[10px] font-bold uppercase tracking-tight ml-4">${escape_html(errors.first_name)}</p>`);
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div> <div><label for="last_name" class="block text-sm font-medium text-slate-300 mb-2">Apellidos</label> <input id="last_name" type="text"${attr("value", formData.last_name)} placeholder="Apellidos del estudiante"${attr_class("input w-full svelte-1vhlwa4", void 0, { "border-red-500": errors.last_name })}/> `);
-  if (errors.last_name) {
-    $$payload.out.push("<!--[-->");
-    $$payload.out.push(`<p class="text-red-400 text-sm mt-1">${escape_html(errors.last_name)}</p>`);
-  } else {
-    $$payload.out.push("<!--[!-->");
-  }
-  $$payload.out.push(`<!--]--></div></div></div> <div><h2 class="text-xl font-semibold text-white mb-6 flex items-center">`);
-  File_text($$payload, { class: "w-5 h-5 mr-2" });
-  $$payload.out.push(`<!----> Información Adicional</h2> <div class="grid grid-cols-1 gap-6"><div><label for="notes" class="block text-sm font-medium text-slate-300 mb-2">`);
-  File_text($$payload, { class: "w-4 h-4 inline mr-1" });
-  $$payload.out.push(`<!----> Notas adicionales</label> <textarea id="notes" placeholder="Información adicional sobre el estudiante, nivel, características especiales..." rows="3" class="input w-full resize-none svelte-1vhlwa4">`);
+  $$payload.out.push(`<!--]--></div> <div class="space-y-3"><label for="last_name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Apellidos</label> <input id="last_name" type="text"${attr("value", formData.last_name)} placeholder="EJ: PÉREZ RODRÍGUEZ" class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all placeholder:text-surface-800"/></div></div></section> <section class="glass-panel p-10 space-y-10"><div class="flex items-center gap-3 border-b border-surface-900 pb-6">`);
+  File_text($$payload, { class: "w-5 h-5 text-primary-400" });
+  $$payload.out.push(`<!----> <h2 class="text-lg font-black text-white uppercase tracking-tight">Expediente y Notas</h2></div> <div class="space-y-3"><label for="notes" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Resumen Inicial</label> <textarea id="notes" placeholder="Escribe aquí observaciones iniciales, nivel estimado o cualquier dato relevante para su seguimiento..." class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white h-48 resize-none focus:border-primary-500/50 outline-none transition-all placeholder:text-surface-800">`);
   const $$body = escape_html(formData.notes);
   if ($$body) {
     $$payload.out.push(`${$$body}`);
   }
-  $$payload.out.push(`</textarea></div></div></div> <div class="bg-slate-700/50 rounded-lg p-4"><h3 class="text-sm font-medium text-slate-300 mb-2">💡 Consejos para registrar estudiantes</h3> <ul class="text-sm text-slate-400 space-y-1"><li>• Todos los campos son opcionales - puedes completar la información más tarde</li> <li>• El nombre y apellidos se combinarán automáticamente para el nombre completo</li> <li>• Las notas te ayudarán a recordar características especiales del estudiante</li></ul></div> <div class="text-xs text-slate-500 text-center">Presiona <kbd class="px-2 py-1 bg-slate-700 rounded text-slate-300 svelte-1vhlwa4">Ctrl + Enter</kbd> para crear rápidamente</div></form></div></main></div>`);
+  $$payload.out.push(`</textarea></div></section></div> <div class="space-y-8"><section class="glass-panel p-8 space-y-8 border-t-4 border-primary-500"><div class="flex items-center gap-3">`);
+  Book_open($$payload, { class: "w-5 h-5 text-primary-400" });
+  $$payload.out.push(`<!----> <h3 class="text-sm font-black text-white uppercase tracking-tighter">Guía de Registro</h3></div> <div class="space-y-6"><div class="flex gap-4"><div class="w-8 h-8 bg-surface-950 rounded-lg flex items-center justify-center text-[10px] font-black text-primary-400 border border-surface-800">01</div> <p class="text-[10px] font-bold text-surface-500 uppercase tracking-tight leading-relaxed">Usa <span class="text-white">MAYÚSCULAS</span> para mantener la consistencia en el sistema.</p></div> <div class="flex gap-4"><div class="w-8 h-8 bg-surface-950 rounded-lg flex items-center justify-center text-[10px] font-black text-primary-400 border border-surface-800">02</div> <p class="text-[10px] font-bold text-surface-500 uppercase tracking-tight leading-relaxed">Puedes dejar campos vacíos y editarlos más tarde desde el <span class="text-white">perfil del alumno</span>.</p></div> <div class="flex gap-4"><div class="w-8 h-8 bg-surface-950 rounded-lg flex items-center justify-center text-[10px] font-black text-primary-400 border border-surface-800">03</div> <p class="text-[10px] font-bold text-surface-500 uppercase tracking-tight leading-relaxed">Presiona <span class="text-white">CTRL + ENTER</span> para finalizar el registro rápidamente.</p></div></div></section> <section class="glass-panel p-8 space-y-6"><h3 class="text-xs font-black text-surface-500 uppercase tracking-widest border-b border-surface-900 pb-4 italic">Vista Previa</h3> <div class="p-6 bg-surface-950 rounded-2xl border border-surface-900 space-y-4"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-surface-900 rounded-xl flex items-center justify-center text-primary-400 font-black">${escape_html("?")}</div> <div><p class="text-[10px] font-black text-white uppercase truncate max-w-[120px]">${escape_html("SIN NOMBRE")} ${escape_html("")}</p> <p class="text-[8px] font-black text-primary-400 uppercase tracking-widest">NUEVO ASPIRANTE</p></div></div></div></section></div></div></div>`);
   if ($$store_subs) unsubscribe_stores($$store_subs);
-  bind_props($$props, { data });
   pop();
 }
 export {

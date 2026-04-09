@@ -1,62 +1,12 @@
 // @ts-nocheck
 import type { PageServerLoad } from './$types';
-import { createServerClient } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { schoolsApi } from '$lib/api/schools';
+import { db } from '$lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
-export const load = async ({ locals, url, cookies }: Parameters<PageServerLoad>[0]) => {
-  // El middleware en hooks.server.ts ya maneja la protección de rutas
+export const load = async ({ locals }: Parameters<PageServerLoad>[0]) => {
   console.log('📚 Schools page server load - User:', locals.user?.email || 'none');
-  
-  // ===== BYPASS PARA DESARROLLO LOCAL =====
-  const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  
-  if (isLocalDev) {
-    console.log('🔧 DEV MODE: Schools page - Using REAL data from Supabase (should be empty for new user)');
-    
-    // Usar datos reales de Supabase incluso en desarrollo local
-    const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-      cookies: {
-        get: (key) => cookies.get(key),
-        set: (key, value, options) => cookies.set(key, value, options),
-        remove: (key, options) => cookies.delete(key, options),
-      },
-    });
 
-    try {
-      // Obtener centros del usuario
-      const { data: schools, error: schoolsError } = await supabase
-        .from('colleges')
-        .select('*')
-        .eq('user_id', locals.user.id)
-        .order('created_at', { ascending: false });
-
-      if (schoolsError) {
-        console.error('❌ Error fetching schools in DEV MODE:', schoolsError);
-        return {
-          user: locals.user,
-          schools: []
-        };
-      }
-
-      console.log('✅ DEV MODE: Schools loaded with REAL data:', schools?.length || 0, 'schools');
-
-      return {
-        user: locals.user,
-        schools: schools || []
-      };
-
-    } catch (err: any) {
-      console.error('❌ Error in DEV MODE schools:', err);
-      return {
-        user: locals.user,
-        schools: []
-      };
-    }
-  }
-  
-  // ===== LÓGICA PARA PRODUCCIÓN =====
-  console.log('🌐 PRODUCTION MODE: Schools page - Fetching from Supabase');
-  
   if (!locals.user) {
     return {
       user: null,
@@ -64,37 +14,40 @@ export const load = async ({ locals, url, cookies }: Parameters<PageServerLoad>[
     };
   }
 
-  const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-    cookies: {
-      get: (key) => cookies.get(key),
-      set: (key, value, options) => cookies.set(key, value, options),
-      remove: (key, options) => cookies.delete(key, options),
-    },
-  });
-
   try {
-    // Obtener centros del usuario
-    const { data: schools, error: schoolsError } = await supabase
-      .from('colleges')
-      .select('*')
-      .eq('user_id', locals.user.id)
-      .order('created_at', { ascending: false });
+    // Usar la API de centros que ya maneja membresías
+    const schools = await schoolsApi.getMySchools(locals.user.id);
 
-    if (schoolsError) {
-      console.error('❌ Error fetching schools:', schoolsError);
+    // Enriquecer con estadísticas (conteo de clases y alumnos)
+    const enrichedSchools = await Promise.all(schools.map(async (school) => {
+      // Contar clases
+      const qClasses = query(
+        collection(db, "classes"),
+        where("college_id", "==", school.id)
+      );
+      const snapClasses = await getDocs(qClasses);
+      
+      // Contar estudiantes
+      const qStudents = query(
+        collection(db, "students"),
+        where("college_id", "==", school.id)
+      );
+      const snapStudents = await getDocs(qStudents);
+
       return {
-        user: locals.user,
-        schools: []
+        ...school,
+        classes_count: snapClasses.size,
+        students_count: snapStudents.size
       };
-    }
+    }));
 
     return {
       user: locals.user,
-      schools: schools || []
+      schools: enrichedSchools
     };
 
   } catch (err: any) {
-    console.error('❌ Error in schools production mode:', err);
+    console.error('❌ Error in schools page load:', err);
     return {
       user: locals.user,
       schools: []

@@ -1,12 +1,13 @@
-import { i as head, l as attr, p as pop, f as push } from "../../../chunks/index2.js";
+import { h as head, i as attr, p as pop, k as push } from "../../../chunks/index.js";
 import "@sveltejs/kit/internal";
 import "../../../chunks/exports.js";
 import "../../../chunks/utils.js";
 import "../../../chunks/state.svelte.js";
-import "../../../chunks/supabase.js";
+import "../../../chunks/firebase.js";
 import { C as Circle_alert } from "../../../chunks/circle-alert.js";
 function _page($$payload, $$props) {
   push();
+  let { data } = $$props;
   let isSigningIn = false;
   head($$payload, ($$payload2) => {
     $$payload2.title = `<title>Iniciar Sesión - ChessNet</title>`;

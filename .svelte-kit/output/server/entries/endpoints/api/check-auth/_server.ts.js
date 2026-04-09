@@ -1,30 +1,17 @@
-import { createServerClient } from "@supabase/ssr";
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from "../../../../chunks/public.js";
-const GET = async ({ cookies, locals }) => {
+const GET = async ({ locals }) => {
   try {
-    const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-      cookies: {
-        get: (key) => cookies.get(key),
-        set: (key, value, options) => {
-          cookies.set(key, value, { ...options, path: "/" });
-        },
-        remove: (key, options) => {
-          cookies.delete(key, { ...options, path: "/" });
-        }
-      }
-    });
-    const { data: { session }, error } = await supabase.auth.getSession();
     const response = {
-      authenticated: !!session && !!locals.user,
+      authenticated: !!locals.user,
       user: locals.user,
-      session: session ? {
+      session: locals.user ? {
         user: {
-          id: session.user.id,
-          email: session.user.email
+          id: locals.user.id,
+          email: locals.user.email
         },
-        expires_at: session.expires_at
+        expires_at: Math.floor(Date.now() / 1e3) + 3600
+        // Mock expiration
       } : null,
-      error: error?.message || null
+      error: null
     };
     return new Response(JSON.stringify(response), {
       headers: {

@@ -22,11 +22,40 @@
   import type { PageData } from './$types';
 
   export let data: PageData;
+  
+  interface ExtendedSkill {
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+    created_at?: string;
+    assigned_at?: string;
+    order?: number;
+    assignment_id?: string;
+    skill?: {
+      name: string;
+      description: string;
+      category: string;
+      difficulty: number;
+    };
+  }
 
-  let classData = data.class;
-  let assignedSkills = data.assignedSkills || [];
-  let availableSkillsByCategory = data.availableSkillsByCategory || {};
-  let stats = data.stats || { assigned: 0, available: 0, byCategory: {} };
+  const getDifficultyStars = (difficulty: number) => Array.from({ length: 5 }, (_, i) => i < difficulty);
+
+  interface LocalClass {
+    id: string;
+    name: string;
+    level: string;
+    schedule: string;
+    room?: string;
+    description?: string;
+  }
+
+  let classData = data.class as unknown as LocalClass;
+  let assignedSkills = (data.assignedSkills as unknown as ExtendedSkill[]) || [];
+  let availableSkillsByCategory = (data.availableSkillsByCategory as unknown as Record<string, ExtendedSkill[]>) || {};
+  let stats = data.stats || { assigned: 0, available: 0, byCategory: {} as Record<string, number> };
   
   let searchQuery = '';
   let isAssigning = false;
@@ -44,26 +73,26 @@
     return acc;
   }, {} as typeof availableSkillsByCategory);
 
-  const difficultyColors = {
+  const difficultyColors: Record<string, string> = {
     beginner: 'text-green-400 bg-green-500/20 border-green-500/30',
     intermediate: 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30',
     advanced: 'text-red-400 bg-red-500/20 border-red-500/30'
   };
 
-  const difficultyLabels = {
+  const difficultyLabels: Record<string, string> = {
     beginner: 'Principiante',
     intermediate: 'Intermedio',
     advanced: 'Avanzado'
   };
 
-  const categoryIcons = {
+  const categoryIcons: Record<string, any> = {
     'Fundamentos': BookOpen,
     'Táctica': Zap,
     'Finales': Star,
     'Aperturas': Trophy
   };
 
-  const categoryColors = {
+  const categoryColors: Record<string, string> = {
     'Fundamentos': 'text-blue-400 bg-blue-500/20',
     'Táctica': 'text-yellow-400 bg-yellow-500/20',
     'Finales': 'text-purple-400 bg-purple-500/20',
@@ -82,7 +111,7 @@
   });
 
   const handleGoBack = () => {
-    goto(`/classes/${classData.id}`);
+    goto(`/classes/${classData?.id}`);
   };
 
   const handleAssignSkill = async (skillId: string) => {
@@ -95,7 +124,7 @@
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          class_id: classData.id,
+          class_id: classData?.id,
           skill_id: skillId
         })
       });
@@ -136,22 +165,23 @@
           }
           
           // Actualizar estadísticas
-          stats.assigned += 1;
-          stats.available -= 1;
-          if (!stats.byCategory[skillToMove.category]) {
-            stats.byCategory[skillToMove.category] = 0;
+          const s = stats as any;
+          s.assigned += 1;
+          s.available -= 1;
+          if (!s.byCategory[skillToMove.category]) {
+            s.byCategory[skillToMove.category] = 0;
           }
-          stats.byCategory[skillToMove.category]++;
+          s.byCategory[skillToMove.category]++;
         }
         
-        showToast(`Skill "${skillToMove?.name}" asignada correctamente`);
+        showToast.success(`Skill "${skillToMove?.name}" asignada correctamente`);
       } else {
         const error = await response.json();
-        showError(error.error || 'Error al asignar la skill');
+        showToast.error(error.error || 'Error al asignar la skill');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assigning skill:', error);
-      showError('Error al asignar la skill');
+      showToast.error('Error al asignar la skill');
     } finally {
       isAssigning = false;
     }
@@ -164,7 +194,7 @@
     }
 
     try {
-      const response = await fetch(`/api/class-skills?class_id=${classData.id}&skill_id=${skillId}`, {
+      const response = await fetch(`/api/class-skills?class_id=${classData?.id}&skill_id=${skillId}`, {
         method: 'DELETE'
       });
 
@@ -184,22 +214,23 @@
           assignedSkills = assignedSkills.filter(s => s.id !== skillId);
           
           // Actualizar estadísticas
-          stats.assigned -= 1;
-          stats.available += 1;
-          stats.byCategory[skill.category]--;
-          if (stats.byCategory[skill.category] === 0) {
-            delete stats.byCategory[skill.category];
+          const s = stats as any;
+          s.assigned -= 1;
+          s.available += 1;
+          s.byCategory[skill.category]--;
+          if (s.byCategory[skill.category] === 0) {
+            delete s.byCategory[skill.category];
           }
         }
         
-        showToast(`Skill "${skill?.name}" removida del temario`);
+        showToast.success(`Skill "${skill?.name}" removida del temario`);
       } else {
         const error = await response.json();
-        showError(error.error || 'Error al quitar la skill');
+        showToast.error(error.error || 'Error al quitar la skill');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error unassigning skill:', error);
-      showError('Error al quitar la skill');
+      showToast.error('Error al quitar la skill');
     }
   };
 
@@ -293,19 +324,19 @@
         <div class="space-y-2">
           <div class="flex items-center space-x-2 text-sm">
             <GraduationCap class="w-4 h-4 text-slate-500" />
-            <span class="text-slate-300">{difficultyLabels[classData?.level] || classData?.level}</span>
+            <span class="text-slate-300">{(classData && (difficultyLabels as any)[(classData as any).level]) || (classData as any)?.level || 'Nivel'}</span>
           </div>
           <div class="flex items-center space-x-2 text-sm">
             <Target class="w-4 h-4 text-slate-500" />
-            <span class="text-purple-400 font-medium">{stats.assigned} skills asignadas</span>
+            <span class="text-purple-400 font-medium">{(stats as any).assigned || 0} skills asignadas</span>
           </div>
         </div>
 
         <div class="space-y-2">
           <p class="text-sm text-slate-400">Por categoría</p>
           <div class="space-y-1">
-            {#if stats.byCategory && typeof stats.byCategory === 'object'}
-              {#each Object.entries(stats.byCategory) as [category, count]}
+            {#if (stats as any).byCategory && typeof (stats as any).byCategory === 'object'}
+              {#each Object.entries((stats as any).byCategory) as [category, count]}
                 <div class="flex items-center justify-between text-sm">
                   <span class="text-slate-300">{category}</span>
                   <span class="text-slate-400">{count}</span>
@@ -319,7 +350,7 @@
           <p class="text-sm text-slate-400">Skills disponibles</p>
           <div class="flex items-center space-x-2">
             <Plus class="w-4 h-4 text-slate-500" />
-            <span class="text-lg font-bold text-green-400">{stats.available}</span>
+            <span class="text-lg font-bold text-green-400">{(stats as any).available || 0}</span>
           </div>
         </div>
       </div>
@@ -394,12 +425,12 @@
                       <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                           <span class="text-xs text-slate-500">{skill.category}</span>
-                          <span class={`px-2 py-1 rounded-full text-xs font-medium border ${difficultyColors[skill.difficulty]}`}>
-                            {difficultyLabels[skill.difficulty]}
+                          <span class={`px-2 py-1 rounded-full text-xs font-medium border ${(difficultyColors as any)[skill.difficulty]}`}>
+                            {(difficultyLabels as any)[skill.difficulty]}
                           </span>
                         </div>
                         <span class="text-xs text-slate-500">
-                          Añadida: {new Date(skill.assigned_at).toLocaleDateString('es-ES')}
+                          Añadida: {skill.assigned_at ? new Date(skill.assigned_at).toLocaleDateString('es-ES') : 'N/A'}
                         </span>
                       </div>
                     </div>
@@ -425,7 +456,7 @@
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-semibold text-white flex items-center">
             <Plus class="w-5 h-5 mr-2" />
-            Skills Disponibles ({stats.available})
+            Skills Disponibles ({(stats as any).available})
           </h2>
         </div>
 
@@ -488,9 +519,9 @@
                             <h4 class="font-semibold text-white mb-2">{skill.name}</h4>
                             <p class="text-slate-300 text-sm mb-3 leading-relaxed">{skill.description}</p>
                             <div class="flex items-center space-x-3">
-                              <span class={`px-2 py-1 rounded-full text-xs font-medium border ${difficultyColors[skill.difficulty]}`}>
-                                {difficultyLabels[skill.difficulty]}
-                              </span>
+                              {#each getDifficultyStars(skill.skill?.difficulty || (skill as any).difficulty || 0) as filled}
+                                <Star class={`w-4 h-4 ${filled ? 'text-yellow-400 fill-current' : 'text-slate-600'}`} />
+                              {/each}
                             </div>
                           </div>
                           
@@ -522,6 +553,18 @@
 
 <style>
   .input {
-    @apply bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+    background-color: rgb(51 65 85); /* slate-700 */
+    border: 1px solid rgb(71 85 105); /* slate-600 */
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: white;
+    outline: none;
+  }
+  .input::placeholder {
+    color: rgb(148 163 184); /* slate-400 */
+  }
+  .input:focus {
+    border-color: #10b981; /* primary-500 */
+    box-shadow: 0 0 0 1px #10b981;
   }
 </style>

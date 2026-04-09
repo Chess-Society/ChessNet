@@ -16,50 +16,22 @@
     BarChart3,
     Target,
     Eye,
-    Plus
+    Plus,
+    Activity,
+    ClipboardCheck,
+    Timer
   } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import { fade, fly, scale } from 'svelte/transition';
 
-  export let data: PageData;
+  let { data } = $props<{ data: PageData }>();
 
-  let user = data.user;
-  let attendanceData = data.attendanceData;
-
-  onMount(() => {
-    console.log('📊 Attendance Dashboard loaded - User:', user?.email || 'none');
-    console.log('📊 Attendance data:', attendanceData);
-  });
-
-  const handleTakeAttendance = (classId: string) => {
-    goto(`/classes/${classId}/attendance`);
-  };
-
-  const handleViewClass = (classId: string) => {
-    goto(`/classes/${classId}`);
-  };
-
-  const handleViewCenter = (centerId: string) => {
-    goto(`/schools/${centerId}`);
-  };
-
-  const getAttendanceColor = (rate: number) => {
-    if (rate >= 90) return 'text-green-400';
-    if (rate >= 75) return 'text-yellow-400';
-    return 'text-red-400';
-  };
-
-  const getAttendanceBgColor = (rate: number) => {
-    if (rate >= 90) return 'bg-green-500/10 border-green-500/30';
-    if (rate >= 75) return 'bg-yellow-500/10 border-yellow-500/30';
-    return 'bg-red-500/10 border-red-500/30';
-  };
-
-  const formatTime = (timeString: string) => {
-    return new Date(timeString).toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  const attendanceData = $derived((data.attendanceData || {
+    todayStats: { totalClasses: 0, classesWithAttendance: 0, totalStudents: 0, presentStudents: 0, attendanceRate: 0, absentStudents: 0 },
+    centersWithClasses: [],
+    upcomingClasses: [],
+    recentAttendance: []
+  }) as any);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -72,326 +44,302 @@
 </script>
 
 <svelte:head>
-  <title>Control de Asistencia - ChessNet</title>
+  <title>Asistencia - ChessNet</title>
 </svelte:head>
 
-<div class="min-h-screen bg-slate-900">
-  <!-- Header -->
-  <header class="bg-slate-800 border-b border-slate-700">
-    <div class="container mx-auto px-4 py-6">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <button 
-            on:click={() => goto('/dashboard')}
-            class="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-          >
-            <ArrowLeft class="w-5 h-5 text-slate-400" />
-          </button>
-          <div>
-            <h1 class="text-2xl font-bold text-white">Control de Asistencia</h1>
-            <p class="text-slate-400">Gestiona las asistencias de todos tus centros</p>
-          </div>
+<div class="space-y-10 animate-fade-in pb-20" in:fade>
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div class="space-y-4 text-center md:text-left">
+      <div class="flex items-center justify-center md:justify-start gap-3">
+        <div class="w-12 h-12 bg-primary-500/10 border border-primary-500/20 rounded-2xl flex items-center justify-center text-primary-400">
+           <Activity class="w-6 h-6" />
         </div>
-        
-        <div class="flex items-center space-x-4">
-          <div class="text-right">
-            <p class="text-sm text-slate-400">Hoy</p>
-            <p class="font-semibold text-white">{new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="container mx-auto px-4 py-8">
-    <!-- Métricas principales -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Total Clases Hoy -->
-      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-slate-400 text-sm">Clases Hoy</p>
-            <p class="text-3xl font-bold text-white">{attendanceData.todayStats.totalClasses}</p>
-            <p class="text-xs text-slate-400 mt-1">
-              {attendanceData.todayStats.classesWithAttendance} con lista pasada
-            </p>
-          </div>
-          <div class="p-3 bg-blue-500/20 rounded-lg">
-            <Calendar class="w-6 h-6 text-blue-500" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Total Estudiantes -->
-      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-slate-400 text-sm">Estudiantes</p>
-            <p class="text-3xl font-bold text-white">{attendanceData.todayStats.totalStudents}</p>
-            <p class="text-xs text-slate-400 mt-1">
-              {attendanceData.todayStats.presentStudents} presentes
-            </p>
-          </div>
-          <div class="p-3 bg-green-500/20 rounded-lg">
-            <Users class="w-6 h-6 text-green-500" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Tasa de Asistencia -->
-      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-slate-400 text-sm">Asistencia</p>
-            <p class={`text-3xl font-bold ${getAttendanceColor(attendanceData.todayStats.attendanceRate)}`}>
-              {attendanceData.todayStats.attendanceRate}%
-            </p>
-            <p class="text-xs text-slate-400 mt-1">
-              {attendanceData.todayStats.absentStudents} ausentes
-            </p>
-          </div>
-          <div class="p-3 bg-purple-500/20 rounded-lg">
-            <BarChart3 class="w-6 h-6 text-purple-500" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Ausencias -->
-      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-slate-400 text-sm">Ausencias</p>
-            <p class="text-3xl font-bold text-red-400">{attendanceData.todayStats.absentStudents}</p>
-            <p class="text-xs text-slate-400 mt-1">
-              {attendanceData.todayStats.totalStudents - attendanceData.todayStats.absentStudents} presentes
-            </p>
-          </div>
-          <div class="p-3 bg-red-500/20 rounded-lg">
-            <AlertTriangle class="w-6 h-6 text-red-500" />
-          </div>
+        <div>
+           <h1 class="text-3xl font-black text-white tracking-tighter uppercase leading-none">Control de Asistencia</h1>
+           <p class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mt-1">Seguimiento en tiempo real</p>
         </div>
       </div>
     </div>
 
-    <!-- Contenido principal -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Centros y Clases -->
-      <div class="lg:col-span-2 space-y-6">
-        <!-- Centros con clases -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-white">Centros y Clases</h2>
-            <div class="flex items-center space-x-2">
-              <School class="w-4 h-4 text-slate-400" />
-              <span class="text-sm text-slate-400">{attendanceData.centersWithClasses.length} centros</span>
-            </div>
+    <div class="bg-surface-950/50 border border-surface-900 px-6 py-4 rounded-3xl flex items-center gap-6 shadow-2xl backdrop-blur-xl">
+       <div class="text-right">
+          <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest">Estado del Sistema</p>
+          <div class="flex items-center gap-2 justify-end">
+             <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+             <p class="text-xs font-black text-white uppercase tracking-tighter">OPERATIVO</p>
           </div>
+       </div>
+       <div class="w-px h-8 bg-surface-900"></div>
+       <div class="text-right">
+          <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest">Hoy</p>
+          <p class="text-xs font-black text-white uppercase tracking-tighter">{new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</p>
+       </div>
+    </div>
+  </div>
 
-          {#if attendanceData.centersWithClasses.length === 0}
-            <div class="text-center py-8">
-              <School class="w-12 h-12 text-slate-600 mx-auto mb-3" />
-              <p class="text-slate-400">No hay centros con clases programadas</p>
-            </div>
-          {:else}
-            <div class="space-y-4">
-              {#each attendanceData.centersWithClasses as center}
-                <div class="bg-slate-700/50 rounded-lg p-4">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-3">
-                      <div class="p-2 bg-blue-500/20 rounded-lg">
-                        <School class="w-5 h-5 text-blue-400" />
-                      </div>
-                      <div>
-                        <h3 class="font-medium text-white">{center.name}</h3>
-                        <p class="text-sm text-slate-400">{center.city}</p>
-                      </div>
-                    </div>
-                    <button 
-                      on:click={() => handleViewCenter(center.id)}
-                      class="p-2 hover:bg-slate-600 rounded-lg transition-colors"
-                    >
-                      <Eye class="w-4 h-4 text-slate-400" />
-                    </button>
-                  </div>
+  <!-- Realtime Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="glass-panel p-6 border-t-4 border-primary-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <Calendar class="w-24 h-24" />
+       </div>
+       <div class="flex items-baseline justify-between mb-2">
+          <h3 class="text-[10px] font-black text-surface-500 uppercase tracking-widest">Clases Hoy</h3>
+          <span class="text-[10px] font-black text-primary-400 bg-primary-400/10 px-2 py-0.5 rounded uppercase">On Air</span>
+       </div>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter">{attendanceData.todayStats.totalClasses}</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">ACTIVA(S)</p>
+       </div>
+    </div>
 
-                  <div class="grid grid-cols-3 gap-4 mb-4 text-sm">
-                    <div>
-                      <span class="text-slate-400">Clases:</span>
-                      <span class="text-white ml-1">{center.classesToday}/{center.totalClasses}</span>
-                    </div>
-                    <div>
-                      <span class="text-slate-400">Estudiantes:</span>
-                      <span class="text-white ml-1">{center.totalStudents}</span>
-                    </div>
-                    <div>
-                      <span class="text-slate-400">Asistencia:</span>
-                      <span class={`ml-1 ${getAttendanceColor(center.attendanceRate)}`}>{center.attendanceRate}%</span>
-                    </div>
-                  </div>
+    <div class="glass-panel p-6 border-t-4 border-blue-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <Users class="w-24 h-24" />
+       </div>
+       <div class="flex items-baseline justify-between mb-2">
+          <h3 class="text-[10px] font-black text-surface-500 uppercase tracking-widest">Alumnos</h3>
+          <p class="text-[10px] font-black text-blue-400 uppercase">Presentes</p>
+       </div>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter">{attendanceData.todayStats.presentStudents}</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">/ {attendanceData.todayStats.totalStudents}</p>
+       </div>
+    </div>
 
-                  <!-- Clases del centro -->
-                  {#if center.classes.length > 0}
-                    <div class="space-y-2">
-                      {#each center.classes as classItem}
-                        <div class="flex items-center justify-between p-3 bg-slate-600/50 rounded-lg">
-                          <div class="flex items-center space-x-3">
-                            <div class="p-1.5 bg-green-500/20 rounded-lg">
-                              <UserCheck class="w-4 h-4 text-green-400" />
-                            </div>
-                            <div>
-                              <h4 class="font-medium text-white">{classItem.name}</h4>
-                              <p class="text-sm text-slate-400">
-                                {classItem.time} • {classItem.present}/{classItem.students} estudiantes
-                              </p>
-                            </div>
-                          </div>
-                          <div class="flex items-center space-x-2">
-                            <span class={`text-sm font-medium ${getAttendanceColor(classItem.attendanceRate)}`}>
-                              {classItem.attendanceRate}%
-                            </span>
-                            <button 
-                              on:click={() => handleTakeAttendance(classItem.id)}
-                              class="p-1.5 hover:bg-slate-500 rounded-lg transition-colors"
-                              title="Ver detalles de asistencia"
-                            >
-                              <ChevronRight class="w-4 h-4 text-slate-400" />
-                            </button>
-                          </div>
-                        </div>
-                      {/each}
-                    </div>
-                  {/if}
-                </div>
-              {/each}
-            </div>
-          {/if}
+    <div class="glass-panel p-6 border-t-4 border-purple-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <TrendingUp class="w-24 h-24" />
+       </div>
+       <div class="flex items-baseline justify-between mb-2">
+          <h3 class="text-[10px] font-black text-surface-500 uppercase tracking-widest">Tasa Global</h3>
+          <TrendingUp class="w-3.5 h-3.5 text-purple-400" />
+       </div>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter">{attendanceData.todayStats.attendanceRate}%</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">MEDIA</p>
+       </div>
+    </div>
+
+    <div class="glass-panel p-6 border-t-4 border-red-500 relative overflow-hidden group">
+       <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+          <AlertTriangle class="w-24 h-24" />
+       </div>
+       <div class="flex items-baseline justify-between mb-2">
+          <h3 class="text-[10px] font-black text-surface-500 uppercase tracking-widest">Ausencias</h3>
+          <span class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_red]"></span>
+       </div>
+       <div class="flex items-end gap-3">
+          <p class="text-4xl font-black text-white tracking-tighter">{attendanceData.todayStats.absentStudents}</p>
+          <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">FALTAS</p>
+       </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <div class="lg:col-span-2 space-y-10">
+      <!-- Active Monitoring -->
+      <section class="space-y-6">
+        <div class="flex items-center justify-between px-2">
+           <h2 class="text-xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+             <School class="w-5 h-5 text-primary-400" />
+             Actividad por Centro
+           </h2>
         </div>
 
-        <!-- Próximas clases -->
-        {#if attendanceData.upcomingClasses.length > 0}
-          <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-xl font-semibold text-white">Próximas Clases</h2>
-              <div class="flex items-center space-x-2">
-                <Clock class="w-4 h-4 text-slate-400" />
-                <span class="text-sm text-slate-400">{attendanceData.upcomingClasses.length} programadas</span>
+        {#if attendanceData.centersWithClasses.length === 0}
+          <div class="glass-panel p-16 text-center space-y-4">
+             <div class="w-16 h-16 bg-surface-950 rounded-full border border-surface-900 flex items-center justify-center mx-auto text-surface-800">
+                <Calendar class="w-8 h-8" />
+             </div>
+             <p class="text-[10px] font-black text-surface-600 uppercase tracking-widest">Sin sesiones activas en este momento</p>
+          </div>
+        {:else}
+          <div class="space-y-6">
+            {#each attendanceData.centersWithClasses as center, i}
+              <div class="glass-panel overflow-hidden border-l-4 border-primary-500" in:fly={{ y: 20, delay: i * 100 }}>
+                 <div class="p-8">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-8 border-b border-surface-900">
+                       <div class="flex items-center gap-5">
+                          <div class="w-14 h-14 bg-surface-950 border border-surface-800 rounded-2xl flex items-center justify-center text-primary-400 shadow-2xl">
+                             <School class="w-7 h-7" />
+                          </div>
+                          <div>
+                             <h3 class="text-xl font-black text-white uppercase tracking-tighter">{center.name}</h3>
+                             <p class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em]">{center.city} • {center.classes.length} GRUPOS</p>
+                          </div>
+                       </div>
+                       
+                       <div class="flex items-center gap-8">
+                          <div class="text-right">
+                             <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mb-1">Rendimiento</p>
+                             <div class="flex items-center gap-3 justify-end text-lg font-black text-white">
+                                {center.attendanceRate}%
+                                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/30"></div>
+                             </div>
+                          </div>
+                          <button 
+                            onclick={() => goto(`/schools/${center.id}`)}
+                            class="p-3 bg-surface-950 border border-surface-900 rounded-xl text-surface-500 hover:text-primary-400 hover:border-primary-500/30 transition-all shadow-lg"
+                          >
+                            <Eye class="w-5 h-5" />
+                          </button>
+                       </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       {#each center.classes as cls}
+                          <div class="p-5 bg-surface-950/40 border border-surface-900 rounded-2xl hover:border-primary-500/20 transition-all group">
+                             <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                   <div class="w-1.5 h-1.5 rounded-full bg-primary-500"></div>
+                                   <h4 class="text-xs font-black text-white uppercase truncate">{cls.name}</h4>
+                                </div>
+                                <span class="text-[9px] font-black text-surface-600 bg-surface-900 px-2 py-0.5 rounded uppercase tracking-tighter">{cls.time}</span>
+                             </div>
+
+                             <div class="flex items-end justify-between">
+                                <div class="space-y-2">
+                                   <div class="flex items-center gap-2">
+                                      <span class="text-[10px] font-black text-white">{cls.present}</span>
+                                      <span class="text-[10px] font-black text-surface-600">/ {cls.students}</span>
+                                   </div>
+                                   <div class="w-32 h-1.5 bg-surface-900 rounded-full overflow-hidden">
+                                      <div 
+                                        class="h-full bg-primary-500 transition-all duration-1000" 
+                                        style="width: {cls.attendanceRate}%"
+                                      ></div>
+                                   </div>
+                                </div>
+                                <button 
+                                  onclick={() => goto(`/classes/${cls.id}/attendance`)}
+                                  class="flex items-center gap-2 text-[9px] font-black text-primary-400 uppercase tracking-widest hover:text-white transition-colors"
+                                >
+                                  Pasar Lista
+                                  <ChevronRight class="w-3.5 h-3.5" />
+                                </button>
+                             </div>
+                          </div>
+                       {/each}
+                    </div>
+                 </div>
               </div>
-            </div>
-
-            <div class="space-y-3">
-              {#each attendanceData.upcomingClasses as classItem}
-                <div class="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
-                  <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-orange-500/20 rounded-lg">
-                      <Clock class="w-5 h-5 text-orange-400" />
-                    </div>
-                    <div>
-                      <h3 class="font-medium text-white">{classItem.name}</h3>
-                      <p class="text-sm text-slate-400">{classItem.centerName} • {classItem.time}</p>
-                    </div>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    <span class="text-sm text-slate-400">{classItem.students} estudiantes</span>
-                    <button 
-                      on:click={() => handleTakeAttendance(classItem.id)}
-                      class="btn-primary text-sm"
-                    >
-                      <UserCheck class="w-4 h-4 mr-1" />
-                      Pasar Lista
-                    </button>
-                  </div>
-                </div>
-              {/each}
-            </div>
+            {/each}
           </div>
         {/if}
-      </div>
+      </section>
 
-      <!-- Panel lateral -->
-      <div class="space-y-6">
-        <!-- Asistencias recientes -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold text-white">Asistencias Recientes</h2>
-            <div class="flex items-center space-x-2">
-              <CheckCircle class="w-4 h-4 text-slate-400" />
-              <span class="text-sm text-slate-400">{attendanceData.recentAttendance.length}</span>
-            </div>
-          </div>
-
-          {#if attendanceData.recentAttendance.length === 0}
-            <div class="text-center py-6">
-              <CheckCircle class="w-8 h-8 text-slate-600 mx-auto mb-2" />
-              <p class="text-slate-400 text-sm">No hay asistencias recientes</p>
-            </div>
-          {:else}
-            <div class="space-y-3">
-              {#each attendanceData.recentAttendance as attendance}
-                <div class="p-3 bg-slate-700/50 rounded-lg">
-                  <div class="flex items-center justify-between mb-2">
-                    <h4 class="font-medium text-white text-sm">{attendance.className}</h4>
-                    <span class={`text-xs font-medium ${getAttendanceColor(attendance.attendanceRate)}`}>
-                      {attendance.attendanceRate}%
-                    </span>
-                  </div>
-                  <p class="text-xs text-slate-400 mb-1">{attendance.centerName}</p>
-                  <p class="text-xs text-slate-500">{formatDate(attendance.date)}</p>
-                  <div class="flex items-center justify-between mt-2 text-xs">
-                    <span class="text-green-400">{attendance.present} presentes</span>
-                    <span class="text-red-400">{attendance.absent} ausentes</span>
-                  </div>
+      <!-- Upcoming Queue -->
+      {#if attendanceData.upcomingClasses.length > 0}
+        <section class="space-y-6">
+           <h2 class="text-xl font-black text-white uppercase tracking-tight flex items-center gap-3 px-2">
+             <Timer class="w-5 h-5 text-blue-400" />
+             En Cola de Inicio
+           </h2>
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {#each attendanceData.upcomingClasses as cls}
+                <div class="glass-panel p-5 flex items-center justify-between group hover:border-blue-500/30 transition-all">
+                   <div class="flex items-center gap-4">
+                      <div class="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                        <Clock class="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 class="text-sm font-black text-white uppercase tracking-tight leading-tight">{cls.name}</h4>
+                        <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mt-0.5">{cls.time}</p>
+                      </div>
+                   </div>
+                   <button 
+                     onclick={() => goto(`/classes/${cls.id}/attendance`)}
+                     class="p-2.5 bg-surface-950 border border-surface-900 rounded-xl text-surface-600 hover:text-primary-400 hover:border-primary-500/30 transition-all shadow-xl"
+                     title="Abrir Control de Asistencia"
+                   >
+                     <ClipboardCheck class="w-5 h-5" />
+                   </button>
                 </div>
               {/each}
-            </div>
-          {/if}
-        </div>
-
-        <!-- Acciones rápidas -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <h2 class="text-xl font-semibold text-white mb-6">Acciones Rápidas</h2>
-          
-          <div class="space-y-3">
-            <button 
-              on:click={() => goto('/classes')}
-              class="w-full flex items-center justify-between p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="p-1.5 bg-blue-500/20 rounded-lg">
-                  <Target class="w-4 h-4 text-blue-400" />
-                </div>
-                <span class="text-white">Ver Todas las Clases</span>
-              </div>
-              <ChevronRight class="w-4 h-4 text-slate-400" />
-            </button>
-
-            <button 
-              on:click={() => goto('/students')}
-              class="w-full flex items-center justify-between p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="p-1.5 bg-green-500/20 rounded-lg">
-                  <Users class="w-4 h-4 text-green-400" />
-                </div>
-                <span class="text-white">Gestionar Estudiantes</span>
-              </div>
-              <ChevronRight class="w-4 h-4 text-slate-400" />
-            </button>
-
-            <button 
-              on:click={() => goto('/reports')}
-              class="w-full flex items-center justify-between p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="p-1.5 bg-purple-500/20 rounded-lg">
-                  <BarChart3 class="w-4 h-4 text-purple-400" />
-                </div>
-                <span class="text-white">Ver Informes</span>
-              </div>
-              <ChevronRight class="w-4 h-4 text-slate-400" />
-            </button>
-          </div>
-        </div>
-      </div>
+           </div>
+        </section>
+      {/if}
     </div>
-  </main>
+
+    <!-- Sidebar Activity -->
+    <div class="space-y-10">
+      <section class="glass-panel p-8 space-y-8">
+        <h2 class="text-lg font-black text-white uppercase tracking-tight flex items-center gap-3">
+          <CheckCircle class="w-5 h-5 text-emerald-400" />
+          Registros Recientes
+        </h2>
+        
+        {#if attendanceData.recentAttendance.length === 0}
+          <div class="text-center py-10">
+            <p class="text-[10px] font-black text-surface-700 uppercase tracking-widest">Sin actividad reciente</p>
+          </div>
+        {:else}
+          <div class="space-y-8">
+            {#each attendanceData.recentAttendance as rec, i}
+              <div class="relative pl-8 border-l-2 border-surface-900 pb-2" in:fade={{ delay: i * 50 }}>
+                <div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] border-2 border-surface-950"></div>
+                
+                <div class="flex items-center justify-between mb-2">
+                   <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest">{formatDate(rec.date)}</p>
+                   <span class="text-[10px] font-black text-emerald-400">{rec.attendanceRate}%</span>
+                </div>
+                
+                <h4 class="text-xs font-black text-white uppercase tracking-tighter mb-1">{rec.className}</h4>
+                <p class="text-[9px] font-bold text-surface-400 uppercase tracking-widest truncate">{rec.centerName}</p>
+                
+                <div class="flex gap-2 mt-4">
+                  <span class="px-2 py-1 bg-surface-950 text-emerald-400 text-[8px] font-black rounded border border-surface-900 uppercase tracking-widest">{rec.present} Presente(s)</span>
+                  <span class="px-2 py-1 bg-surface-950 text-red-400 text-[8px] font-black rounded border border-surface-900 uppercase tracking-widest">{rec.absent} Falta(s)</span>
+                </div>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </section>
+
+      <!-- Direct Shortcuts -->
+      <section class="space-y-4">
+         <h3 class="text-[10px] font-black text-surface-500 uppercase tracking-[0.3em] px-2 italic">Accesos Rápidos</h3>
+         <div class="space-y-3">
+            <button 
+              onclick={() => goto('/reports')}
+              class="w-full glass-panel p-5 flex items-center justify-between group hover:border-primary-500/30 transition-all text-left"
+            >
+               <div class="flex items-center gap-4">
+                  <div class="p-3 bg-surface-950 rounded-xl text-primary-400 border border-surface-900 group-hover:scale-110 transition-transform">
+                     <BarChart3 class="w-5 h-5" />
+                  </div>
+                  <div>
+                     <p class="text-[10px] font-black text-white uppercase">Informes Mensuales</p>
+                     <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest">Analizar Tendencias</p>
+                  </div>
+               </div>
+               <ChevronRight class="w-4 h-4 text-surface-700" />
+            </button>
+
+            <button 
+              onclick={() => goto('/classes')}
+              class="w-full glass-panel p-5 flex items-center justify-between group hover:border-primary-500/30 transition-all text-left"
+            >
+               <div class="flex items-center gap-4">
+                  <div class="p-3 bg-surface-950 rounded-xl text-blue-400 border border-surface-900 group-hover:scale-110 transition-transform">
+                     <Users class="w-5 h-5" />
+                  </div>
+                  <div>
+                     <p class="text-[10px] font-black text-white uppercase">Todos los Grupos</p>
+                     <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest">Gestión Académica</p>
+                  </div>
+               </div>
+               <ChevronRight class="w-4 h-4 text-surface-700" />
+            </button>
+         </div>
+      </section>
+    </div>
+  </div>
 </div>
+
+<style lang="postcss">
+  /* Attendance styles */
+</style>

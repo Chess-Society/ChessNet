@@ -10,7 +10,7 @@ return {
 	assets: new Set(["favicon.ico"]),
 	mimeTypes: {},
 	_: {
-		client: {start:"_app/immutable/entry/start.BglEn1Ad.js",app:"_app/immutable/entry/app.Cdm4_bHE.js",imports:["_app/immutable/entry/start.BglEn1Ad.js","_app/immutable/chunks/C4nH6oDz.js","_app/immutable/chunks/YexrlwXk.js","_app/immutable/chunks/D3mFRmBv.js","_app/immutable/entry/app.Cdm4_bHE.js","_app/immutable/chunks/D9Z9MdNV.js","_app/immutable/chunks/D3mFRmBv.js","_app/immutable/chunks/Cx3jsHvJ.js","_app/immutable/chunks/BdNEL7Gq.js","_app/immutable/chunks/XcqJ2fRq.js","_app/immutable/chunks/YexrlwXk.js","_app/immutable/chunks/e-6vUUpC.js","_app/immutable/chunks/BGDtNXH4.js","_app/immutable/chunks/BBsIh7Kw.js","_app/immutable/chunks/DunMdFG0.js","_app/immutable/chunks/Cv2-KBoE.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
+		client: {start:"_app/immutable/entry/start.DCr9goUL.js",app:"_app/immutable/entry/app.DBY4yC0O.js",imports:["_app/immutable/entry/start.DCr9goUL.js","_app/immutable/chunks/jCKqsZiR.js","_app/immutable/chunks/BuijjFxb.js","_app/immutable/chunks/Bpv75Ngb.js","_app/immutable/entry/app.DBY4yC0O.js","_app/immutable/chunks/D9Z9MdNV.js","_app/immutable/chunks/Bpv75Ngb.js","_app/immutable/chunks/C9ZkF2k7.js","_app/immutable/chunks/B37GFagT.js","_app/immutable/chunks/BuijjFxb.js","_app/immutable/chunks/D3nlvN1e.js","_app/immutable/chunks/BfAaTREW.js","_app/immutable/chunks/QBEKSanO.js","_app/immutable/chunks/CEgkY6kx.js","_app/immutable/chunks/70moWVVj.js"],stylesheets:[],fonts:[],uses_env_dynamic_public:false},
 		nodes: [
 			__memo(() => import('./nodes/0.js')),
 			__memo(() => import('./nodes/1.js')),
@@ -72,6 +72,13 @@ return {
 				endpoint: __memo(() => import('./entries/endpoints/api/attendance/_server.ts.js'))
 			},
 			{
+				id: "/api/auth/session",
+				pattern: /^\/api\/auth\/session\/?$/,
+				params: [],
+				page: null,
+				endpoint: __memo(() => import('./entries/endpoints/api/auth/session/_server.ts.js'))
+			},
+			{
 				id: "/api/check-auth",
 				pattern: /^\/api\/check-auth\/?$/,
 				params: [],
@@ -105,125 +112,6 @@ return {
 				params: [{"name":"id","optional":false,"rest":false,"chained":false}],
 				page: null,
 				endpoint: __memo(() => import('./entries/endpoints/api/classes/_id_/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-auth",
-				pattern: /^\/api\/debug-auth\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-auth/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-classes-detailed",
-				pattern: /^\/api\/debug-classes-detailed\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-classes-detailed/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-classes-schema",
-				pattern: /^\/api\/debug-classes-schema\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-classes-schema/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-classes",
-				pattern: /^\/api\/debug-classes\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-classes/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-colleges-schema",
-				pattern: /^\/api\/debug-colleges-schema\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-colleges-schema/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-colleges-test",
-				pattern: /^\/api\/debug-colleges-test\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-colleges-test/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-colleges",
-				pattern: /^\/api\/debug-colleges\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-colleges/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-oauth",
-				pattern: /^\/api\/debug-oauth\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-oauth/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-schools-detailed",
-				pattern: /^\/api\/debug-schools-detailed\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-schools-detailed/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-schools-post",
-				pattern: /^\/api\/debug-schools-post\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-schools-post/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-schools-simple",
-				pattern: /^\/api\/debug-schools-simple\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-schools-simple/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-simple",
-				pattern: /^\/api\/debug-simple\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-simple/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-student-creation",
-				pattern: /^\/api\/debug-student-creation\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-student-creation/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-students-schema",
-				pattern: /^\/api\/debug-students-schema\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-students-schema/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-students",
-				pattern: /^\/api\/debug-students\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-students/_server.ts.js'))
-			},
-			{
-				id: "/api/debug-supabase",
-				pattern: /^\/api\/debug-supabase\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/debug-supabase/_server.ts.js'))
-			},
-			{
-				id: "/api/diagnostic-oauth",
-				pattern: /^\/api\/diagnostic-oauth\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/diagnostic-oauth/_server.ts.js'))
 			},
 			{
 				id: "/api/health-check",
@@ -282,13 +170,6 @@ return {
 				endpoint: __memo(() => import('./entries/endpoints/api/subscriptions/_server.ts.js'))
 			},
 			{
-				id: "/api/test-auth",
-				pattern: /^\/api\/test-auth\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/api/test-auth/_server.ts.js'))
-			},
-			{
 				id: "/api/tournaments",
 				pattern: /^\/api\/tournaments\/?$/,
 				params: [],
@@ -308,13 +189,6 @@ return {
 				params: [],
 				page: { layouts: [0,2,], errors: [1,,], leaf: 4 },
 				endpoint: null
-			},
-			{
-				id: "/auth/callback",
-				pattern: /^\/auth\/callback\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/auth/callback/_server.ts.js'))
 			},
 			{
 				id: "/(app)/classes",
@@ -413,13 +287,6 @@ return {
 				params: [],
 				page: { layouts: [0,], errors: [1,], leaf: 39 },
 				endpoint: null
-			},
-			{
-				id: "/logout",
-				pattern: /^\/logout\/?$/,
-				params: [],
-				page: null,
-				endpoint: __memo(() => import('./entries/endpoints/logout/_server.ts.js'))
 			},
 			{
 				id: "/(app)/payments",

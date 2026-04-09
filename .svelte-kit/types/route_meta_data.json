@@ -12,6 +12,9 @@
 	"/api/attendance": [
 		"src/routes/api/attendance/+server.ts"
 	],
+	"/api/auth/session": [
+		"src/routes/api/auth/session/+server.ts"
+	],
 	"/api/check-auth": [
 		"src/routes/api/check-auth/+server.ts"
 	],
@@ -26,57 +29,6 @@
 	],
 	"/api/classes/[id]": [
 		"src/routes/api/classes/[id]/+server.ts"
-	],
-	"/api/debug-auth": [
-		"src/routes/api/debug-auth/+server.ts"
-	],
-	"/api/debug-classes-detailed": [
-		"src/routes/api/debug-classes-detailed/+server.ts"
-	],
-	"/api/debug-classes-schema": [
-		"src/routes/api/debug-classes-schema/+server.ts"
-	],
-	"/api/debug-classes": [
-		"src/routes/api/debug-classes/+server.ts"
-	],
-	"/api/debug-colleges-schema": [
-		"src/routes/api/debug-colleges-schema/+server.ts"
-	],
-	"/api/debug-colleges-test": [
-		"src/routes/api/debug-colleges-test/+server.ts"
-	],
-	"/api/debug-colleges": [
-		"src/routes/api/debug-colleges/+server.ts"
-	],
-	"/api/debug-oauth": [
-		"src/routes/api/debug-oauth/+server.ts"
-	],
-	"/api/debug-schools-detailed": [
-		"src/routes/api/debug-schools-detailed/+server.ts"
-	],
-	"/api/debug-schools-post": [
-		"src/routes/api/debug-schools-post/+server.ts"
-	],
-	"/api/debug-schools-simple": [
-		"src/routes/api/debug-schools-simple/+server.ts"
-	],
-	"/api/debug-simple": [
-		"src/routes/api/debug-simple/+server.ts"
-	],
-	"/api/debug-student-creation": [
-		"src/routes/api/debug-student-creation/+server.ts"
-	],
-	"/api/debug-students-schema": [
-		"src/routes/api/debug-students-schema/+server.ts"
-	],
-	"/api/debug-students": [
-		"src/routes/api/debug-students/+server.ts"
-	],
-	"/api/debug-supabase": [
-		"src/routes/api/debug-supabase/+server.ts"
-	],
-	"/api/diagnostic-oauth": [
-		"src/routes/api/diagnostic-oauth/+server.ts"
 	],
 	"/api/health-check": [
 		"src/routes/api/health-check/+server.ts"
@@ -102,9 +54,6 @@
 	"/api/subscriptions": [
 		"src/routes/api/subscriptions/+server.ts"
 	],
-	"/api/test-auth": [
-		"src/routes/api/test-auth/+server.ts"
-	],
 	"/api/tournaments": [
 		"src/routes/api/tournaments/+server.ts"
 	],
@@ -116,9 +65,6 @@
 		"src/routes/(app)/+layout.ts",
 		"src/routes/(app)/+layout.server.ts",
 		"src/routes/+layout.server.ts"
-	],
-	"/auth/callback": [
-		"src/routes/auth/callback/+server.ts"
 	],
 	"/(app)/classes": [
 		"src/routes/(app)/classes/+page.server.ts",
@@ -186,9 +132,6 @@
 	"/login": [
 		"src/routes/login/+page.server.ts",
 		"src/routes/+layout.server.ts"
-	],
-	"/logout": [
-		"src/routes/logout/+server.ts"
 	],
 	"/(app)/payments": [
 		"src/routes/(app)/payments/+page.server.ts",

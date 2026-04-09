@@ -1,29 +1,45 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  setDoc,
+  writeBatch,
+  limit,
+  type DocumentData
+} from "firebase/firestore";
 import type { CurriculumUnit, Lesson } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const lessonsApi = {
   // Get curriculum units by school
   async getCurriculumUnits(schoolId: string): Promise<CurriculumUnit[]> {
-    const { data, error } = await supabase
-      .from("curriculum_units")
-      .select("*")
-      .eq("school_id", schoolId)
-      .order("order_index");
+    const q = query(
+      collection(db, "curriculum_units"),
+      where("school_id", "==", schoolId),
+      orderBy("order_index")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<CurriculumUnit>(doc));
   },
 
   // Get a specific curriculum unit
   async getCurriculumUnit(id: string): Promise<CurriculumUnit> {
-    const { data, error } = await supabase
-      .from("curriculum_units")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(doc(db, "curriculum_units", id));
+    if (!docSnap.exists()) throw new Error("Curriculum unit not found");
+    return toData<CurriculumUnit>(docSnap);
   },
 
   // Create a new curriculum unit
@@ -35,31 +51,29 @@ export const lessonsApi = {
     color?: string,
   ): Promise<CurriculumUnit> {
     // Get the next order index
-    const { data: lastUnit } = await supabase
-      .from("curriculum_units")
-      .select("order_index")
-      .eq("school_id", schoolId)
-      .order("order_index", { ascending: false })
-      .limit(1);
+    const q = query(
+      collection(db, "curriculum_units"),
+      where("school_id", "==", schoolId),
+      orderBy("order_index", "desc"),
+      limit(1)
+    );
+    const lastSnap = await getDocs(q);
+    const nextOrderIndex = !lastSnap.empty ? (lastSnap.docs[0].data().order_index || 0) + 1 : 0;
 
-    const nextOrderIndex =
-      lastUnit && lastUnit.length > 0 ? lastUnit[0].order_index + 1 : 0;
+    const unitData = {
+      school_id: schoolId,
+      title,
+      description: description || null,
+      level: level || null,
+      color: color || null,
+      order_index: nextOrderIndex,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    const { data, error } = await supabase
-      .from("curriculum_units")
-      .insert({
-        school_id: schoolId,
-        title,
-        description,
-        level,
-        color,
-        order_index: nextOrderIndex,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "curriculum_units"), unitData);
+    const docSnap = await getDoc(docRef);
+    return toData<CurriculumUnit>(docSnap);
   },
 
   // Update a curriculum unit
@@ -67,71 +81,50 @@ export const lessonsApi = {
     id: string,
     updates: Partial<CurriculumUnit>,
   ): Promise<CurriculumUnit> {
-    const { data, error } = await supabase
-      .from("curriculum_units")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+    const docRef = doc(db, "curriculum_units", id);
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<CurriculumUnit>(docSnap);
   },
 
   // Delete a curriculum unit
   async deleteCurriculumUnit(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("curriculum_units")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, "curriculum_units", id));
   },
 
   // Reorder curriculum units
   async reorderCurriculumUnits(
     units: { id: string; order_index: number }[],
   ): Promise<void> {
-    const updates = units.map((unit) =>
-      supabase
-        .from("curriculum_units")
-        .update({ order_index: unit.order_index })
-        .eq("id", unit.id),
-    );
-
-    const results = await Promise.all(updates);
-    const errors = results.filter((result) => result.error);
-
-    if (errors.length > 0) {
-      throw new Error("Error reordering curriculum units");
-    }
+    const batch = writeBatch(db);
+    units.forEach(unit => {
+      const docRef = doc(db, "curriculum_units", unit.id);
+      batch.update(docRef, { order_index: unit.order_index });
+    });
+    await batch.commit();
   },
 
   // Get lessons by unit
   async getLessonsByUnit(unitId: string): Promise<Lesson[]> {
-    const { data, error } = await supabase
-      .from("lessons")
-      .select("*")
-      .eq("unit_id", unitId)
-      .order("order_index");
+    const q = query(
+      collection(db, "lessons"),
+      where("unit_id", "==", unitId),
+      orderBy("order_index")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<Lesson>(doc));
   },
 
   // Get a specific lesson
   async getLesson(id: string): Promise<Lesson> {
-    const { data, error } = await supabase
-      .from("lessons")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(doc(db, "lessons", id));
+    if (!docSnap.exists()) throw new Error("Lesson not found");
+    return toData<Lesson>(docSnap);
   },
 
   // Create a new lesson
@@ -145,87 +138,72 @@ export const lessonsApi = {
     difficulty?: string,
   ): Promise<Lesson> {
     // Get the next order index
-    const { data: lastLesson } = await supabase
-      .from("lessons")
-      .select("order_index")
-      .eq("unit_id", unitId)
-      .order("order_index", { ascending: false })
-      .limit(1);
+    const q = query(
+      collection(db, "lessons"),
+      where("unit_id", "==", unitId),
+      orderBy("order_index", "desc"),
+      limit(1)
+    );
+    const lastSnap = await getDocs(q);
+    const nextOrderIndex = !lastSnap.empty ? (lastSnap.docs[0].data().order_index || 0) + 1 : 0;
 
-    const nextOrderIndex =
-      lastLesson && lastLesson.length > 0 ? lastLesson[0].order_index + 1 : 0;
+    const lessonData = {
+      unit_id: unitId,
+      title,
+      description: description || null,
+      content: content || null,
+      objectives: objectives || [],
+      duration_minutes: durationMinutes || 60,
+      difficulty: difficulty || null,
+      order_index: nextOrderIndex,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    const { data, error } = await supabase
-      .from("lessons")
-      .insert({
-        unit_id: unitId,
-        title,
-        description,
-        content,
-        objectives,
-        duration_minutes: durationMinutes || 60,
-        difficulty,
-        order_index: nextOrderIndex,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "lessons"), lessonData);
+    const docSnap = await getDoc(docRef);
+    return toData<Lesson>(docSnap);
   },
 
   // Update a lesson
   async updateLesson(id: string, updates: Partial<Lesson>): Promise<Lesson> {
-    const { data, error } = await supabase
-      .from("lessons")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+    const docRef = doc(db, "lessons", id);
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<Lesson>(docSnap);
   },
 
   // Delete a lesson
   async deleteLesson(id: string): Promise<void> {
-    const { error } = await supabase.from("lessons").delete().eq("id", id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, "lessons", id));
   },
 
   // Reorder lessons
   async reorderLessons(
     lessons: { id: string; order_index: number }[],
   ): Promise<void> {
-    const updates = lessons.map((lesson) =>
-      supabase
-        .from("lessons")
-        .update({ order_index: lesson.order_index })
-        .eq("id", lesson.id),
-    );
-
-    const results = await Promise.all(updates);
-    const errors = results.filter((result) => result.error);
-
-    if (errors.length > 0) {
-      throw new Error("Error reordering lessons");
-    }
+    const batch = writeBatch(db);
+    lessons.forEach(lesson => {
+      const docRef = doc(db, "lessons", lesson.id);
+      batch.update(docRef, { order_index: lesson.order_index });
+    });
+    await batch.commit();
   },
 
   // Get lesson resources
   async getLessonResources(lessonId: string): Promise<any[]> {
-    const { data, error } = await supabase
-      .from("lesson_resources")
-      .select("*")
-      .eq("lesson_id", lessonId)
-      .order("order_index");
+    const q = query(
+      collection(db, "lesson_resources"),
+      where("lesson_id", "==", lessonId),
+      orderBy("order_index")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<any>(doc));
   },
 
   // Add resource to lesson
@@ -238,57 +216,41 @@ export const lessonsApi = {
     content?: any,
   ): Promise<any> {
     // Get the next order index
-    const { data: lastResource } = await supabase
-      .from("lesson_resources")
-      .select("order_index")
-      .eq("lesson_id", lessonId)
-      .order("order_index", { ascending: false })
-      .limit(1);
+    const q = query(
+      collection(db, "lesson_resources"),
+      where("lesson_id", "==", lessonId),
+      orderBy("order_index", "desc"),
+      limit(1)
+    );
+    const lastSnap = await getDocs(q);
+    const nextOrderIndex = !lastSnap.empty ? (lastSnap.docs[0].data().order_index || 0) + 1 : 0;
 
-    const nextOrderIndex =
-      lastResource && lastResource.length > 0
-        ? lastResource[0].order_index + 1
-        : 0;
+    const resourceData = {
+      lesson_id: lessonId,
+      title,
+      type,
+      url: url || null,
+      file_path: filePath || null,
+      content: content || null,
+      order_index: nextOrderIndex,
+      created_at: new Date().toISOString()
+    };
 
-    const { data, error } = await supabase
-      .from("lesson_resources")
-      .insert({
-        lesson_id: lessonId,
-        title,
-        type,
-        url,
-        file_path: filePath,
-        content,
-        order_index: nextOrderIndex,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "lesson_resources"), resourceData);
+    const docSnap = await getDoc(docRef);
+    return toData<any>(docSnap);
   },
 
   // Update lesson resource
   async updateLessonResource(id: string, updates: any): Promise<any> {
-    const { data, error } = await supabase
-      .from("lesson_resources")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = doc(db, "lesson_resources", id);
+    await updateDoc(docRef, updates);
+    const docSnap = await getDoc(docRef);
+    return toData<any>(docSnap);
   },
 
   // Delete lesson resource
   async deleteLessonResource(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("lesson_resources")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, "lesson_resources", id));
   },
-
 };

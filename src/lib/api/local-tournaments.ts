@@ -1,5 +1,21 @@
 import { LocalTournamentStorage } from '$lib/storage/local-storage';
-import { supabase } from '$lib/supabase';
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  setDoc,
+  writeBatch,
+  limit,
+  type DocumentData
+} from "firebase/firestore";
 import type { 
   LocalTournament, 
   LocalTournamentPlayer, 
@@ -11,6 +27,11 @@ import type {
   TournamentStats,
   Student
 } from '$lib/types';
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export class LocalTournamentsApi {
   private storage: LocalTournamentStorage;
@@ -31,6 +52,7 @@ export class LocalTournamentsApi {
       time_control: formData.time_control,
       startAt: formData.startAt,
       endAt: formData.endAt,
+      user_id: this.userId,
       roundsPlanned: formData.roundsPlanned || this.calculateDefaultRounds(formData.selected_students.length, formData.format),
       notes: formData.notes
     });
@@ -91,17 +113,15 @@ export class LocalTournamentsApi {
 
   // Player management
   async addPlayer(tournamentId: string, studentId: string): Promise<LocalTournamentPlayer> {
-    // Get student info from Supabase
-    const { data: student, error } = await supabase
-      .from('students')
-      .select('name, first_name, last_name')
-      .eq('id', studentId)
-      .eq('user_id', this.userId)
-      .single();
+    // Get student info from Firestore
+    const studentDoc = await getDoc(doc(db, "students", studentId));
+    
+    if (!studentDoc.exists()) throw new Error('Student not found');
+    const studentData = studentDoc.data();
+    
+    if (studentData.user_id !== this.userId) throw new Error('Student does not belong to user');
 
-    if (error) throw new Error('Student not found');
-
-    const studentName = student.name || `${student.first_name || ''} ${student.last_name || ''}`.trim();
+    const studentName = studentData.name || `${studentData.first_name || ''} ${studentData.last_name || ''}`.trim();
 
     return this.storage.addPlayer({
       tournament_id: tournamentId,
@@ -140,7 +160,7 @@ export class LocalTournamentsApi {
       await this.createRound(tournamentId, roundNo);
     }
 
-    let pairings: LocalTournamentPairing[];
+    let pairings: Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[];
 
     switch (tournament.format) {
       case 'swiss':
@@ -157,11 +177,12 @@ export class LocalTournamentsApi {
     }
 
     // Save pairings
+    const savedPairings: LocalTournamentPairing[] = [];
     for (const pairing of pairings) {
-      await this.storage.createPairing(pairing);
+      savedPairings.push(await this.storage.createPairing(pairing));
     }
 
-    return pairings;
+    return savedPairings;
   }
 
   async updateResult(
@@ -300,10 +321,10 @@ export class LocalTournamentsApi {
     tournamentId: string, 
     roundNo: number, 
     players: LocalTournamentPlayer[]
-  ): Promise<LocalTournamentPairing[]> {
+  ): Promise<Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[]> {
     const standings = await this.calculateStandings(tournamentId);
     const availablePlayers = [...standings];
-    const pairings: LocalTournamentPairing[] = [];
+    const pairings: Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[] = [];
     let board = 1;
 
     // Shuffle players with same points for first round
@@ -379,9 +400,9 @@ export class LocalTournamentsApi {
     tournamentId: string, 
     roundNo: number, 
     players: LocalTournamentPlayer[]
-  ): Promise<LocalTournamentPairing[]> {
+  ): Promise<Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[]> {
     const n = players.length;
-    const pairings: LocalTournamentPairing[] = [];
+    const pairings: Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[] = [];
     
     if (n < 2) return pairings;
 
@@ -398,7 +419,7 @@ export class LocalTournamentsApi {
         student_id: 'bye', 
         student_name: 'BYE',
         createdAt: new Date().toISOString()
-      });
+      } as any);
     }
 
     const totalPlayers = playersArray.length;
@@ -459,8 +480,8 @@ export class LocalTournamentsApi {
     tournamentId: string, 
     roundNo: number, 
     players: LocalTournamentPlayer[]
-  ): Promise<LocalTournamentPairing[]> {
-    const pairings: LocalTournamentPairing[] = [];
+  ): Promise<Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[]> {
+    const pairings: Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[] = [];
     
     if (roundNo === 1) {
       // First round: pair all players
@@ -575,10 +596,10 @@ let apiInstance: LocalTournamentsApi | null = null;
 
 export const getLocalTournamentsApi = async (): Promise<LocalTournamentsApi> => {
   if (!apiInstance) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
     
-    apiInstance = new LocalTournamentsApi(user.id);
+    apiInstance = new LocalTournamentsApi(user.uid);
   }
   return apiInstance;
 };

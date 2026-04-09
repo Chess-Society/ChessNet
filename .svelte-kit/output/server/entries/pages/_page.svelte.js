@@ -1,4 +1,4 @@
-import { i as head } from "../../chunks/index2.js";
+import { h as head } from "../../chunks/index.js";
 function _page($$payload) {
   head($$payload, ($$payload2) => {
     $$payload2.title = `<title>ChessNet - Plataforma Educativa de Ajedrez</title>`;

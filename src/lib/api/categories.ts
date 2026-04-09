@@ -1,48 +1,63 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  type DocumentData
+} from "firebase/firestore";
 import type { Category } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const categoriesApi = {
   // Get all categories
   async getCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("name", { ascending: true });
+    const q = query(
+      collection(db, "categories"),
+      orderBy("name", "asc")
+    );
 
-    if (error) throw error;
-    return data || [];
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<Category>(doc));
   },
 
   // Get a specific category
   async getCategory(id: string): Promise<Category> {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const docRef = doc(db, "categories", id);
+    const docSnap = await getDoc(docRef);
 
-    if (error) throw error;
-    return data;
+    if (!docSnap.exists()) {
+      throw new Error("Category not found");
+    }
+
+    return toData<Category>(docSnap);
   },
 
-  // Create a new category (admin only)
+  // Create a new category (admin only - though we don't have roles check yet)
   async createCategory(
     name: string,
     description?: string,
     color?: string
   ): Promise<Category> {
-    const { data, error } = await supabase
-      .from("categories")
-      .insert({
-        name,
-        description,
-        color: color || '#3b82f6'
-      })
-      .select()
-      .single();
+    const docRef = await addDoc(collection(db, "categories"), {
+      name,
+      description: description || "",
+      color: color || '#3b82f6',
+      created_at: new Date().toISOString()
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<Category>(docSnap);
   },
 
   // Update a category (admin only)
@@ -50,42 +65,39 @@ export const categoriesApi = {
     id: string, 
     updates: Partial<Pick<Category, 'name' | 'description' | 'color'>>
   ): Promise<Category> {
-    const { data, error } = await supabase
-      .from("categories")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+    const docRef = doc(db, "categories", id);
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString()
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<Category>(docSnap);
   },
 
   // Delete a category (admin only)
   async deleteCategory(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("categories")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+    const docRef = doc(db, "categories", id);
+    await deleteDoc(docRef);
   },
 
   // Get categories with skill count
   async getCategoriesWithSkillCount(): Promise<(Category & { skills_count: number })[]> {
-    const { data, error } = await supabase
-      .from("categories")
-      .select(`
-        *,
-        skills:skills(count)
-      `)
-      .order("name", { ascending: true });
+    const categories = await this.getCategories();
+    const result = [];
 
-    if (error) throw error;
-    
-    return data?.map(category => ({
-      ...category,
-      skills_count: category.skills?.[0]?.count || 0
-    })) || [];
+    for (const category of categories) {
+      const q = query(
+        collection(db, "skills"),
+        where("category_id", "==", category.id)
+      );
+      const snap = await getDocs(q);
+      result.push({
+        ...category,
+        skills_count: snap.size
+      });
+    }
+
+    return result;
   }
 };

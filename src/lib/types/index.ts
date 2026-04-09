@@ -4,7 +4,7 @@ export interface User {
   email: string;
   full_name?: string;
   avatar_url?: string;
-  created_at: string;
+  created_at?: string;
 }
 
 // Profile Types
@@ -62,6 +62,7 @@ export interface Student {
   id: string;
   user_id: string;
   class_id?: string;
+  college_id?: string;
   name: string;
   first_name?: string;
   last_name?: string;
@@ -71,6 +72,7 @@ export interface Student {
   parent_phone?: string;
   avatar?: string;
   notes?: string;
+  active?: boolean;
   settings?: Record<string, any>;
   created_at: string;
   updated_at: string;
@@ -430,6 +432,77 @@ export interface ChessPosition {
   best_move?: string;
 }
 
+export interface Badge {
+  id: string;
+  school_id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  criteria: any;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface StudentBadge {
+  id: string;
+  student_id: string;
+  badge_id: string;
+  earned_at: string;
+  badges?: Badge;
+}
+
+export interface StudentStats {
+  id: string;
+  student_id: string;
+  points: number;
+  level: number;
+  streak_days: number;
+  exercises_completed: number;
+  lessons_completed: number;
+  tournaments_participated: number;
+  total_play_time_seconds: number;
+  last_activity: string;
+  updated_at: string;
+}
+
+export interface CurriculumUnit {
+  id: string;
+  school_id: string;
+  title: string;
+  description?: string;
+  level?: string;
+  color?: string;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Lesson {
+  id: string;
+  unit_id: string;
+  title: string;
+  description?: string;
+  content?: any;
+  objectives: string[];
+  duration_minutes: number;
+  difficulty?: string;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface School extends College {}
+
+export interface Membership {
+  id: string;
+  school_id: string;
+  user_id: string;
+  role: "owner" | "admin" | "teacher" | "assistant" | "viewer";
+  created_at: string;
+  profiles?: any;
+}
+
 export interface ChessExercise {
   id: string;
   title: string;
@@ -603,6 +676,53 @@ export interface CreateTournamentForm {
   roundsPlanned?: number;
   notes?: string;
   selected_students: string[]; // Student IDs to register
+}
+
+// Tournament main object
+export interface Tournament {
+  id: string;
+  name: string;
+  description?: string;
+  type: "swiss" | "round_robin" | "elimination" | "team";
+  status: "planned" | "active" | "completed";
+  start_date?: string;
+  end_date?: string;
+  max_participants?: number;
+  time_control?: string;
+  school_id: string;
+  current_round?: number;
+  created_by: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// Tournament participants (players in a tournament)
+export interface TournamentParticipant {
+  id: string;
+  tournament_id: string;
+  student_id: string;
+  rating: number;
+  score: number;
+  tiebreak_score?: number;
+  created_at: string;
+  students?: Student; // For joined data
+}
+
+// Tournament matches/pairings
+export interface TournamentMatch {
+  id: string;
+  tournament_id: string;
+  round: number;
+  board_number: number;
+  player1_id: string;
+  player2_id: string;
+  result?: "1-0" | "0-1" | "1/2-1/2" | "bye" | "forfeit" | "*";
+  moves?: string[];
+  game_duration_seconds?: number;
+  played_at?: string;
+  created_at: string;
+  player1?: Student;
+  player2?: Student;
 }
 
 // Tournament filters and queries

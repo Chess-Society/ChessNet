@@ -1,92 +1,16 @@
-import { a as sanitize_props, b as spread_props, c as slot, k as ensure_array_like, w as store_get, j as attr_class, h as stringify, e as escape_html, x as unsubscribe_stores, p as pop, f as push } from "../../chunks/index2.js";
-import { w as writable } from "../../chunks/index.js";
+import "clsx";
+import { e as ensure_array_like, q as store_get, f as attr_class, l as stringify, d as escape_html, u as unsubscribe_stores, p as pop, k as push } from "../../chunks/index.js";
+import { w as writable } from "../../chunks/index2.js";
 import { X } from "../../chunks/x.js";
-import { I as Icon } from "../../chunks/Icon.js";
+import { I as Info } from "../../chunks/info.js";
 import { T as Triangle_alert } from "../../chunks/triangle-alert.js";
 import { C as Circle_x } from "../../chunks/circle-x.js";
 import { C as Circle_check_big } from "../../chunks/circle-check-big.js";
-import "clsx";
 import "@sveltejs/kit/internal";
 import "../../chunks/exports.js";
 import "../../chunks/utils.js";
 import "../../chunks/state.svelte.js";
 const toasts = writable([]);
-function Info($$payload, $$props) {
-  const $$sanitized_props = sanitize_props($$props);
-  /**
-   * @license lucide-svelte v0.542.0 - ISC
-   *
-   * ISC License
-   *
-   * Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2023 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2025.
-   *
-   * Permission to use, copy, modify, and/or distribute this software for any
-   * purpose with or without fee is hereby granted, provided that the above
-   * copyright notice and this permission notice appear in all copies.
-   *
-   * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-   * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-   * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-   * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-   * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-   * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-   *
-   * ---
-   *
-   * The MIT License (MIT) (for portions derived from Feather)
-   *
-   * Copyright (c) 2013-2023 Cole Bemis
-   *
-   * Permission is hereby granted, free of charge, to any person obtaining a copy
-   * of this software and associated documentation files (the "Software"), to deal
-   * in the Software without restriction, including without limitation the rights
-   * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-   * copies of the Software, and to permit persons to whom the Software is
-   * furnished to do so, subject to the following conditions:
-   *
-   * The above copyright notice and this permission notice shall be included in all
-   * copies or substantial portions of the Software.
-   *
-   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-   * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-   * SOFTWARE.
-   *
-   */
-  const iconNode = [
-    ["circle", { "cx": "12", "cy": "12", "r": "10" }],
-    ["path", { "d": "M12 16v-4" }],
-    ["path", { "d": "M12 8h.01" }]
-  ];
-  Icon($$payload, spread_props([
-    { name: "info" },
-    $$sanitized_props,
-    {
-      /**
-       * @component @name Info
-       * @description Lucide SVG icon component, renders SVG Element with children.
-       *
-       * @preview ![img](data:image/svg+xml;base64,PHN2ZyAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogIHdpZHRoPSIyNCIKICBoZWlnaHQ9IjI0IgogIHZpZXdCb3g9IjAgMCAyNCAyNCIKICBmaWxsPSJub25lIgogIHN0cm9rZT0iIzAwMCIgc3R5bGU9ImJhY2tncm91bmQtY29sb3I6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDJweCIKICBzdHJva2Utd2lkdGg9IjIiCiAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogIHN0cm9rZS1saW5lam9pbj0icm91bmQiCj4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgLz4KICA8cGF0aCBkPSJNMTIgMTZ2LTQiIC8+CiAgPHBhdGggZD0iTTEyIDhoLjAxIiAvPgo8L3N2Zz4K) - https://lucide.dev/icons/info
-       * @see https://lucide.dev/guide/packages/lucide-svelte - Documentation
-       *
-       * @param {Object} props - Lucide icons props and any valid SVG attribute
-       * @returns {FunctionalComponent} Svelte component
-       *
-       */
-      iconNode,
-      children: ($$payload2) => {
-        $$payload2.out.push(`<!---->`);
-        slot($$payload2, $$props, "default", {});
-        $$payload2.out.push(`<!---->`);
-      },
-      $$slots: { default: true }
-    }
-  ]));
-}
 function Toast($$payload, $$props) {
   push();
   var $$store_subs;
@@ -141,9 +65,10 @@ function CookieBanner($$payload, $$props) {
   pop();
 }
 function _layout($$payload, $$props) {
+  let { children } = $$props;
   console.log("🔄 Layout mounted - Auth store DISABLED, using server-side auth only");
-  $$payload.out.push(`<main class="min-h-screen bg-slate-900 text-slate-100"><!---->`);
-  slot($$payload, $$props, "default", {});
+  $$payload.out.push(`<main class="min-h-screen bg-slate-900 text-slate-100">`);
+  children($$payload);
   $$payload.out.push(`<!----> `);
   Toast($$payload);
   $$payload.out.push(`<!----> `);

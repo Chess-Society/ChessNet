@@ -1,4 +1,4 @@
-import { k as ensure_array_like, i as head, l as attr, j as attr_class, e as escape_html, m as maybe_selected, d as bind_props, p as pop, f as push } from "../../../../../chunks/index2.js";
+import { e as ensure_array_like, h as head, i as attr, f as attr_class, d as escape_html, m as maybe_selected, j as bind_props, p as pop, k as push } from "../../../../../chunks/index.js";
 import "@sveltejs/kit/internal";
 import "../../../../../chunks/exports.js";
 import "../../../../../chunks/utils.js";
@@ -51,14 +51,14 @@ function _page($$payload, $$props) {
     Save($$payload, { class: "w-4 h-4 mr-2" });
     $$payload.out.push(`<!----> Crear Habilidad`);
   }
-  $$payload.out.push(`<!--]--></button></div></div></div></header> <main class="container mx-auto px-4 py-8 max-w-2xl"><div class="bg-slate-800 border border-slate-700 rounded-xl p-8"><form class="space-y-6"><div><label for="name" class="block text-sm font-medium text-slate-300 mb-2">Nombre de la habilidad</label> <input id="name" type="text"${attr("value", formData.name)} placeholder="Ej: Movimiento de peones, Táctica de clavada..."${attr_class("input w-full svelte-1vhlwa4", void 0, { "border-red-500": errors.name })}/> `);
+  $$payload.out.push(`<!--]--></button></div></div></div></header> <main class="container mx-auto px-4 py-8 max-w-2xl"><div class="bg-slate-800 border border-slate-700 rounded-xl p-8"><form class="space-y-6"><div><label for="name" class="block text-sm font-medium text-slate-300 mb-2">Nombre de la habilidad</label> <input id="name" type="text"${attr("value", formData.name)} placeholder="Ej: Movimiento de peones, Táctica de clavada..."${attr_class("input w-full svelte-ddqlwm", void 0, { "border-red-500": errors.name })}/> `);
   if (errors.name) {
     $$payload.out.push("<!--[-->");
     $$payload.out.push(`<p class="text-red-400 text-sm mt-1">${escape_html(errors.name)}</p>`);
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div> <div><label for="description" class="block text-sm font-medium text-slate-300 mb-2">Descripción</label> <textarea id="description" placeholder="Describe qué aprenderá el estudiante con esta habilidad..." rows="4"${attr_class("input w-full resize-none svelte-1vhlwa4", void 0, { "border-red-500": errors.description })}>`);
+  $$payload.out.push(`<!--]--></div> <div><label for="description" class="block text-sm font-medium text-slate-300 mb-2">Descripción</label> <textarea id="description" placeholder="Describe qué aprenderá el estudiante con esta habilidad..." rows="4"${attr_class("input w-full resize-none svelte-ddqlwm", void 0, { "border-red-500": errors.description })}>`);
   const $$body = escape_html(formData.description);
   if ($$body) {
     $$payload.out.push(`${$$body}`);
@@ -70,7 +70,7 @@ function _page($$payload, $$props) {
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div> <div><label for="category_id" class="block text-sm font-medium text-slate-300 mb-2">Categoría</label> <select id="category_id"${attr_class("input w-full svelte-1vhlwa4", void 0, { "border-red-500": errors.category_id })}>`);
+  $$payload.out.push(`<!--]--></div> <div><label for="category_id" class="block text-sm font-medium text-slate-300 mb-2">Categoría</label> <select id="category_id"${attr_class("input w-full svelte-ddqlwm", void 0, { "border-red-500": errors.category_id })}>`);
   $$payload.select_value = formData.category_id;
   $$payload.out.push(`<option value=""${maybe_selected($$payload, "")}>Selecciona una categoría</option><!--[-->`);
   for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
@@ -86,7 +86,7 @@ function _page($$payload, $$props) {
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div> <div><label for="level" class="block text-sm font-medium text-slate-300 mb-2">Nivel</label> <select id="level" class="input w-full svelte-1vhlwa4">`);
+  $$payload.out.push(`<!--]--></div> <div><label for="level" class="block text-sm font-medium text-slate-300 mb-2">Nivel</label> <select id="level" class="input w-full svelte-ddqlwm">`);
   $$payload.select_value = formData.level;
   $$payload.out.push(`<!--[-->`);
   for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
@@ -95,7 +95,7 @@ function _page($$payload, $$props) {
   }
   $$payload.out.push(`<!--]-->`);
   $$payload.select_value = void 0;
-  $$payload.out.push(`</select></div> <div><label for="icon" class="block text-sm font-medium text-slate-300 mb-2">Icono (opcional)</label> <input id="icon" type="text"${attr("value", formData.icon)} placeholder="Ej: ♟️, 🏰, ⚔️" class="input w-full svelte-1vhlwa4"/></div> <div><label for="resource_link" class="block text-sm font-medium text-slate-300 mb-2">Enlace de recurso (opcional)</label> <input id="resource_link" type="url"${attr("value", formData.resource_link)} placeholder="https://ejemplo.com/recurso" class="input w-full svelte-1vhlwa4"/></div> <div><label for="order_index" class="block text-sm font-medium text-slate-300 mb-2">Orden de aparición</label> <input id="order_index" type="number" min="0"${attr("value", formData.order_index)} class="input w-full svelte-1vhlwa4"/> <p class="text-xs text-slate-400 mt-1">Número para ordenar las habilidades (0 = primero)</p></div> <div class="bg-slate-700/50 rounded-lg p-4"><h3 class="text-sm font-medium text-slate-300 mb-2">💡 Consejos para crear habilidades</h3> <ul class="text-sm text-slate-400 space-y-1"><li>• Sé específico en el nombre (ej: "Enroque corto" vs "Enroque")</li> <li>• La descripción debe explicar qué aprenderá el estudiante</li> <li>• Organiza por categorías para facilitar la búsqueda</li> <li>• Ajusta la dificultad según el nivel requerido</li></ul></div> <div class="text-xs text-slate-500 text-center">Presiona <kbd class="px-2 py-1 bg-slate-700 rounded text-slate-300 svelte-1vhlwa4">Ctrl + Enter</kbd> para crear rápidamente</div></form></div></main></div>`);
+  $$payload.out.push(`</select></div> <div><label for="icon" class="block text-sm font-medium text-slate-300 mb-2">Icono (opcional)</label> <input id="icon" type="text"${attr("value", formData.icon)} placeholder="Ej: ♟️, 🏰, ⚔️" class="input w-full svelte-ddqlwm"/></div> <div><label for="resource_link" class="block text-sm font-medium text-slate-300 mb-2">Enlace de recurso (opcional)</label> <input id="resource_link" type="url"${attr("value", formData.resource_link)} placeholder="https://ejemplo.com/recurso" class="input w-full svelte-ddqlwm"/></div> <div><label for="order_index" class="block text-sm font-medium text-slate-300 mb-2">Orden de aparición</label> <input id="order_index" type="number" min="0"${attr("value", formData.order_index)} class="input w-full svelte-ddqlwm"/> <p class="text-xs text-slate-400 mt-1">Número para ordenar las habilidades (0 = primero)</p></div> <div class="bg-slate-700/50 rounded-lg p-4"><h3 class="text-sm font-medium text-slate-300 mb-2">💡 Consejos para crear habilidades</h3> <ul class="text-sm text-slate-400 space-y-1"><li>• Sé específico en el nombre (ej: "Enroque corto" vs "Enroque")</li> <li>• La descripción debe explicar qué aprenderá el estudiante</li> <li>• Organiza por categorías para facilitar la búsqueda</li> <li>• Ajusta la dificultad según el nivel requerido</li></ul></div> <div class="text-xs text-slate-500 text-center">Presiona <kbd class="px-2 py-1 bg-slate-700 rounded text-slate-300 svelte-ddqlwm">Ctrl + Enter</kbd> para crear rápidamente</div></form></div></main></div>`);
   bind_props($$props, { data });
   pop();
 }

@@ -69,8 +69,8 @@ ChessNet es una plataforma educativa completa de ajedrez diseñada para colegios
 
 - **Frontend**: SvelteKit 5 + TypeScript
 - **Styling**: Tailwind CSS
-- **Base de Datos**: Supabase (PostgreSQL)
-- **Autenticación**: Supabase Auth con Google OAuth
+- **Base de Datos**: Firebase Firestore (NoSQL)
+- **Autenticación**: Firebase Auth con Google OAuth
 - **Chess Engine**: chess.js
 - **UI Components**: Lucide Svelte (iconos)
 
@@ -78,7 +78,7 @@ ChessNet es una plataforma educativa completa de ajedrez diseñada para colegios
 
 - Node.js 18+
 - npm o yarn
-- Cuenta de Supabase
+- Proyecto de Firebase configurado
 - Cuenta de Google (para OAuth)
 
 ## 🚀 Instalación
@@ -96,42 +96,30 @@ cd chessnet-sveltekit
 npm install
 ```
 
-### 3. Configurar Supabase
+### 3. Configurar Firebase
 
-1. Crea un nuevo proyecto en [Supabase](https://supabase.com)
-2. Ve a Settings > API y copia:
-   - Project URL
-   - Anon public key
+1. Crea un nuevo proyecto en [Firebase Console](https://console.firebase.google.com)
+2. Habilita **Authentication** (Google Sign-in)
+3. Crea una base de datos **Firestore**
+4. Registra una Web App y copia el objeto `firebaseConfig`
 
 ### 4. Configurar variables de entorno
 
-Crea un archivo `.env` en la raíz del proyecto:
+Crea un archivo `.env` en la raíz del proyecto basándote en `env.example`:
 
 ```env
-PUBLIC_SUPABASE_URL=tu_supabase_url_aqui
-PUBLIC_SUPABASE_ANON_KEY=tu_supabase_anon_key_aqui
+PUBLIC_FIREBASE_API_KEY=tu_api_key
+PUBLIC_FIREBASE_AUTH_DOMAIN=tu_project.firebaseapp.com
+PUBLIC_FIREBASE_PROJECT_ID=tu_project_id
+...
 ```
 
-### 5. Configurar la base de datos
+### 5. Configurar Firestore
 
-Ejecuta los siguientes archivos SQL en el SQL Editor de Supabase en este orden:
+1. Define las reglas de seguridad en la consola de Firebase o vía CLI.
+2. La estructura se inicializará automáticamente al usar la aplicación.
 
-1. `supabase/schema.sql` - Esquema de la base de datos
-2. `supabase/policies.sql` - Políticas de seguridad (RLS)
-3. `supabase/seed.sql` - Datos iniciales
-
-### 6. Configurar Google OAuth
-
-1. Ve a Authentication > Providers en Supabase
-2. Habilita Google OAuth
-3. Configura las credenciales de Google OAuth:
-   - Ve a [Google Cloud Console](https://console.cloud.google.com)
-   - Crea un nuevo proyecto o selecciona uno existente
-   - Habilita la Google+ API
-   - Crea credenciales OAuth 2.0
-   - Añade las URLs de redirección de Supabase
-
-### 7. Ejecutar el proyecto
+### 6. Ejecutar el proyecto
 
 ```bash
 npm run dev
@@ -145,17 +133,13 @@ El proyecto estará disponible en `http://localhost:5173`
 chessnet-sveltekit/
 ├── src/
 │   ├── lib/
-│   │   ├── api/              # APIs para Supabase
+│   │   ├── api/              # APIs para interacción con Firestore
 │   │   ├── components/       # Componentes reutilizables
 │   │   ├── stores/           # Stores de Svelte
 │   │   ├── types/            # Tipos TypeScript
 │   │   └── utils/            # Utilidades
 │   ├── routes/               # Páginas de la aplicación
 │   └── app.html              # Template HTML principal
-├── supabase/
-│   ├── schema.sql            # Esquema de la base de datos
-│   ├── policies.sql          # Políticas de seguridad
-│   └── seed.sql              # Datos iniciales
 └── README.md
 ```
 

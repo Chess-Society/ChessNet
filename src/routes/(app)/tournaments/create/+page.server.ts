@@ -1,83 +1,38 @@
 import type { PageServerLoad } from './$types';
+import { studentsApi } from '$lib/api/students';
+import { schoolsApi } from '$lib/api/schools';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ locals }) => {
   console.log('🏆 Create tournament page server load - User:', locals.user?.email || 'none');
   
-  // ===== BYPASS PARA DESARROLLO LOCAL =====
-  const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  
-  if (isLocalDev) {
-    console.log('🔧 DEV MODE: Create tournament page - Providing mock data');
-    
-    // Mock de estudiantes disponibles para el torneo
-    const availableStudents = [
-      {
-        id: 'mock-student-1',
-        name: 'Ana García Martín',
-        rating: 1250,
-        college: 'Escuela de Ajedrez Madrid Centro',
-        email: 'ana.garcia@email.com'
-      },
-      {
-        id: 'mock-student-2',
-        name: 'Carlos López Silva',
-        rating: 1180,
-        college: 'Escuela de Ajedrez Madrid Centro',
-        email: 'carlos.lopez@email.com'
-      },
-      {
-        id: 'mock-student-3',
-        name: 'María Rodríguez Pérez',
-        rating: 1480,
-        college: 'Club de Ajedrez Barcelona',
-        email: 'maria.rodriguez@email.com'
-      },
-      {
-        id: 'mock-student-4',
-        name: 'David González Torres',
-        rating: 1320,
-        college: 'Club de Ajedrez Barcelona',
-        email: 'david.gonzalez@email.com'
-      },
-      {
-        id: 'mock-student-5',
-        name: 'Laura Martínez Vega',
-        rating: 1150,
-        college: 'Escuela de Ajedrez Madrid Centro',
-        email: 'laura.martinez@email.com'
-      },
-      {
-        id: 'mock-student-6',
-        name: 'Pedro Ruiz Sánchez',
-        rating: 1200,
-        college: 'Club de Ajedrez Barcelona',
-        email: 'pedro.ruiz@email.com'
-      },
-      {
-        id: 'mock-student-7',
-        name: 'Isabel Torres Moreno',
-        rating: 1350,
-        college: 'Escuela de Ajedrez Madrid Centro',
-        email: 'isabel.torres@email.com'
-      },
-      {
-        id: 'mock-student-8',
-        name: 'Miguel Ángel Fernández',
-        rating: 1280,
-        college: 'Club de Ajedrez Barcelona',
-        email: 'miguel.fernandez@email.com'
-      }
-    ];
+  if (!locals.user) {
+    return {
+      user: null,
+      availableStudents: [],
+      availableLocations: []
+    };
+  }
 
-    // Mock de ubicaciones disponibles
+  try {
+    // Obtener estudiantes y centros del usuario desde Firebase
+    const [students, schools] = await Promise.all([
+      studentsApi.getMyStudents(locals.user.id),
+      schoolsApi.getMySchools(locals.user.id)
+    ]);
+
+    // Formatear estudiantes para la UI
+    const availableStudents = students.map(s => ({
+      id: s.id,
+      name: s.name,
+      rating: 1200, // Rating base predeterminado
+      college: (s as any).college_name || 'Sin centro',
+      email: s.parent_email || ''
+    }));
+
+    // Formatear ubicaciones disponibles (nombres de los centros)
     const availableLocations = [
-      'Escuela de Ajedrez Madrid Centro',
-      'Club de Ajedrez Barcelona',
-      'Centro Cultural Madrid Norte',
-      'Biblioteca Municipal Sur',
-      'Online - Plataforma ChessNet',
-      'Aula Magna Universidad Complutense',
-      'Salón de Actos IES Cervantes'
+      ...schools.map(s => s.name),
+      'Online - Plataforma ChessNet'
     ];
 
     return {
@@ -85,11 +40,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       availableStudents,
       availableLocations
     };
+
+  } catch (err: any) {
+    console.error('❌ Error in tournament create page server load:', err);
+    return {
+      user: locals.user,
+      availableStudents: [],
+      availableLocations: []
+    };
   }
-  
-  return {
-    user: locals.user,
-    availableStudents: [],
-    availableLocations: []
-  };
 };

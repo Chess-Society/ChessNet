@@ -1,187 +1,103 @@
-import { k as ensure_array_like, i as head, e as escape_html, l as attr, j as attr_class, h as stringify, d as bind_props, p as pop, f as push } from "../../../../chunks/index2.js";
+import { e as ensure_array_like, h as head, d as escape_html, i as attr, m as maybe_selected, o as attr_style, f as attr_class, l as stringify, p as pop, k as push } from "../../../../chunks/index.js";
 import "@sveltejs/kit/internal";
 import "../../../../chunks/exports.js";
 import "../../../../chunks/utils.js";
 import "../../../../chunks/state.svelte.js";
-import { A as Arrow_left } from "../../../../chunks/arrow-left.js";
-import { C as Chart_column } from "../../../../chunks/chart-column.js";
-import { U as Users } from "../../../../chunks/users.js";
 import { A as Activity } from "../../../../chunks/activity.js";
+import { S as Sparkles } from "../../../../chunks/sparkles.js";
+import { D as Download } from "../../../../chunks/download.js";
+import { U as Users } from "../../../../chunks/users.js";
 import { C as Calendar } from "../../../../chunks/calendar.js";
-import { T as Trending_up } from "../../../../chunks/trending-up.js";
-import { T as Trending_down } from "../../../../chunks/trending-down.js";
-import { T as Target } from "../../../../chunks/target.js";
+import { A as Award } from "../../../../chunks/award.js";
 import { S as Search } from "../../../../chunks/search.js";
-import { F as Funnel } from "../../../../chunks/funnel.js";
-import { C as Chevron_down } from "../../../../chunks/chevron-down.js";
 import { S as School } from "../../../../chunks/school.js";
 import { E as Eye } from "../../../../chunks/eye.js";
-import { T as Trophy } from "../../../../chunks/trophy.js";
-import { D as Dollar_sign } from "../../../../chunks/dollar-sign.js";
-import { B as Book_open } from "../../../../chunks/book-open.js";
+import { C as Chart_column } from "../../../../chunks/chart-column.js";
 function _page($$payload, $$props) {
   push();
-  let filteredStudents;
-  let data = $$props["data"];
+  let { data } = $$props;
   let searchTerm = "";
   let collegeFilter = "all";
-  let statusFilter = "all";
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("es-ES");
-  };
-  const formatPercentage = (value) => {
-    return `${value.toFixed(1)}%`;
-  };
-  const getStudentStatus = (report) => {
-    const lastActivity = new Date(report.progress_summary.last_activity_date);
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1e3);
-    if (report.progress_summary.overdue_payments > 0) {
-      return {
-        status: "overdue",
-        label: "Pagos pendientes",
-        class: "bg-red-500/20 text-red-400 border-red-500/30"
-      };
-    }
-    if (report.progress_summary.attendance_rate < 70) {
-      return {
-        status: "low_attendance",
-        label: "Asistencia baja",
-        class: "bg-orange-500/20 text-orange-400 border-orange-500/30"
-      };
-    }
-    if (lastActivity <= weekAgo) {
-      return {
-        status: "inactive",
-        label: "Inactivo",
-        class: "bg-gray-500/20 text-gray-400 border-gray-500/30"
-      };
-    }
-    if (report.progress_summary.attendance_rate >= 90 && report.progress_summary.skill_completion_rate >= 75) {
-      return {
-        status: "excellent",
-        label: "Excelente",
-        class: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-      };
-    }
-    return {
-      status: "active",
-      label: "Activo",
-      class: "bg-blue-500/20 text-blue-400 border-blue-500/30"
-    };
-  };
-  const getActivityIcon = (type) => {
-    switch (type) {
-      case "attendance":
-        return Calendar;
-      case "skill":
-        return Book_open;
-      case "payment":
-        return Dollar_sign;
-      case "tournament":
-        return Trophy;
-      default:
-        return Activity;
-    }
-  };
-  const getActivityColor = (status) => {
-    switch (status) {
-      case "positive":
-        return "text-emerald-400";
-      case "negative":
-        return "text-red-400";
-      case "warning":
-        return "text-yellow-400";
-      default:
-        return "text-slate-400";
-    }
-  };
-  filteredStudents = data.studentsReports?.filter((report) => {
+  const filteredStudents = data.studentsReports?.filter((report) => {
+    report.student.name || "";
+    report.student.email || "";
+    report.college?.name || "";
     const matchesSearch = !searchTerm;
     const matchesCollege = collegeFilter === "all";
-    const matchesStatus = statusFilter === "all";
-    return matchesSearch && matchesCollege && matchesStatus;
+    return matchesSearch && matchesCollege;
   }) || [];
-  [
-    ...new Set(data.studentsReports?.map((r) => ({ id: r.student.college_id, name: r.college.name })) || [])
+  const colleges = [
+    ...new Set((data.studentsReports || []).map((r) => ({ id: r.student.college_id, name: r.college.name })) || [])
   ];
+  const getStatusTheme = (report) => {
+    if (report.progress_summary.overdue_payments > 0) return "text-red-400 border-red-500/20 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.1)]";
+    if (report.progress_summary.attendance_rate < 70) return "text-orange-400 border-orange-500/20 bg-orange-500/10";
+    if (report.progress_summary.attendance_rate >= 90) return "text-emerald-400 border-emerald-500/20 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.1)]";
+    return "text-blue-400 border-blue-500/20 bg-blue-500/10";
+  };
+  const getStatusLabel = (report) => {
+    if (report.progress_summary.overdue_payments > 0) return "AVISO PAGO";
+    if (report.progress_summary.attendance_rate < 70) return "BAJA ASIST.";
+    if (report.progress_summary.attendance_rate >= 90) return "EXCEPCIONAL";
+    return "ESTÁNDAR";
+  };
+  const each_array = ensure_array_like(colleges);
   const each_array_1 = ensure_array_like(filteredStudents);
   head($$payload, ($$payload2) => {
-    $$payload2.title = `<title>Informes de Progreso - ChessNet</title>`;
+    $$payload2.title = `<title>Análisis y Reportes - ChessNet</title>`;
   });
-  $$payload.out.push(`<div class="min-h-screen bg-slate-900"><div class="border-b border-slate-700/50 bg-slate-800/50"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between items-center py-6"><div class="flex items-center space-x-4"><button class="p-2 text-slate-400 hover:text-white transition-colors" title="Volver al Dashboard">`);
-  Arrow_left($$payload, { class: "w-5 h-5" });
-  $$payload.out.push(`<!----></button> <div class="p-2 bg-teal-500/20 rounded-lg">`);
-  Chart_column($$payload, { class: "w-8 h-8 text-teal-400" });
-  $$payload.out.push(`<!----></div> <div><h1 class="text-2xl font-bold text-white">Informes de Progreso</h1> <p class="text-slate-400">Reportes y análisis por estudiante</p></div></div></div></div></div> <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"><div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6"><div class="flex items-center justify-between mb-4"><div class="p-2 bg-blue-500/20 rounded-lg">`);
-  Users($$payload, { class: "w-6 h-6 text-blue-400" });
-  $$payload.out.push(`<!----></div></div> <h3 class="text-2xl font-bold text-white mb-1">${escape_html(data.generalStats?.total_students || 0)}</h3> <p class="text-slate-400 text-sm">Total estudiantes</p></div> <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6"><div class="flex items-center justify-between mb-4"><div class="p-2 bg-emerald-500/20 rounded-lg">`);
-  Activity($$payload, { class: "w-6 h-6 text-emerald-400" });
-  $$payload.out.push(`<!----></div> <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">${escape_html(data.generalStats?.active_students || 0)}</span></div> <h3 class="text-2xl font-bold text-white mb-1">Activos</h3> <p class="text-slate-400 text-sm">Última semana</p></div> <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6"><div class="flex items-center justify-between mb-4"><div class="p-2 bg-purple-500/20 rounded-lg">`);
-  Calendar($$payload, { class: "w-6 h-6 text-purple-400" });
-  $$payload.out.push(`<!----></div> `);
-  if ((data.generalStats?.average_attendance_rate || 0) >= 85) {
-    $$payload.out.push("<!--[-->");
-    Trending_up($$payload, { class: "w-4 h-4 text-emerald-400" });
-  } else {
-    $$payload.out.push("<!--[!-->");
-    Trending_down($$payload, { class: "w-4 h-4 text-red-400" });
-  }
-  $$payload.out.push(`<!--]--></div> <h3 class="text-2xl font-bold text-white mb-1">${escape_html(formatPercentage(data.generalStats?.average_attendance_rate || 0))}</h3> <p class="text-slate-400 text-sm">Asistencia promedio</p></div> <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6"><div class="flex items-center justify-between mb-4"><div class="p-2 bg-yellow-500/20 rounded-lg">`);
-  Target($$payload, { class: "w-6 h-6 text-yellow-400" });
-  $$payload.out.push(`<!----></div></div> <h3 class="text-2xl font-bold text-white mb-1">${escape_html(formatPercentage(data.generalStats?.average_skill_completion || 0))}</h3> <p class="text-slate-400 text-sm">Skills completadas</p></div></div> <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6 mb-8"><div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0"><div class="relative">`);
+  $$payload.out.push(`<div class="space-y-10 animate-fade-in pb-20"><div class="flex flex-col md:flex-row md:items-end justify-between gap-8"><div class="space-y-4"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-primary-500/10 border border-primary-500/20 rounded-2xl flex items-center justify-center text-primary-400 shadow-2xl">`);
+  Activity($$payload, { class: "w-6 h-6" });
+  $$payload.out.push(`<!----></div> <div><h1 class="text-3xl font-black text-white tracking-tighter uppercase leading-none">Centro Analítico</h1> <p class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mt-1">Métricas de Rendimiento Académico</p></div></div></div> <div class="flex items-center gap-4"><button class="bg-surface-950/50 border border-surface-900 px-6 py-3 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest hover:border-primary-500/30 transition-all flex items-center gap-2 backdrop-blur-xl group">`);
+  Sparkles($$payload, { class: "w-4 h-4 text-primary-400 group-hover:animate-pulse" });
+  $$payload.out.push(`<!----> IA Insights</button> <button class="bg-primary-500 text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg flex items-center gap-2">`);
+  Download($$payload, { class: "w-4 h-4" });
+  $$payload.out.push(`<!----> Exportar CSV</button></div></div> <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"><div class="glass-panel p-8 border-t-4 border-primary-500 relative overflow-hidden group"><div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">`);
+  Users($$payload, { class: "w-24 h-24" });
+  $$payload.out.push(`<!----></div> <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Población Total</p> <div class="flex items-end gap-3"><p class="text-4xl font-black text-white tracking-tighter">${escape_html(data.generalStats?.total_students || 0)}</p> <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">Alumnos</p></div></div> <div class="glass-panel p-8 border-t-4 border-blue-500 relative overflow-hidden group"><div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">`);
+  Activity($$payload, { class: "w-24 h-24" });
+  $$payload.out.push(`<!----></div> <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Actividad Semanal</p> <div class="flex items-end gap-3"><p class="text-4xl font-black text-white tracking-tighter">${escape_html(data.generalStats?.active_students || 0)}</p> <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">Activos</p></div></div> <div class="glass-panel p-8 border-t-4 border-emerald-500 relative overflow-hidden group"><div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">`);
+  Calendar($$payload, { class: "w-24 h-24" });
+  $$payload.out.push(`<!----></div> <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Asistencia Media</p> <div class="flex items-end gap-3"><p class="text-4xl font-black text-white tracking-tighter">${escape_html(data.generalStats?.average_attendance_rate.toFixed(1))}%</p> <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">Global</p></div></div> <div class="glass-panel p-8 border-t-4 border-purple-500 relative overflow-hidden group"><div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">`);
+  Award($$payload, { class: "w-24 h-24" });
+  $$payload.out.push(`<!----></div> <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-2">Progreso Skills</p> <div class="flex items-end gap-3"><p class="text-4xl font-black text-white tracking-tighter">${escape_html(data.generalStats?.average_skill_completion.toFixed(1))}%</p> <p class="text-[10px] font-bold text-surface-600 uppercase mb-2">Completitud</p></div></div></div> <div class="flex flex-col md:flex-row gap-4"><div class="flex-grow relative group">`);
   Search($$payload, {
-    class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400"
+    class: "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-600 group-focus-within:text-primary-400 transition-colors"
   });
-  $$payload.out.push(`<!----> <input type="text" placeholder="Buscar estudiantes..."${attr("value", searchTerm)} class="pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600/50 text-white placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 w-full lg:w-80"/></div> <div class="flex items-center space-x-3"><button class="flex items-center space-x-2 px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-slate-300 rounded-lg hover:bg-slate-600/50 transition-colors">`);
-  Funnel($$payload, { class: "w-4 h-4" });
-  $$payload.out.push(`<!----> <span>Filtros</span> `);
-  Chevron_down($$payload, {
-    class: `w-4 h-4 transition-transform ${stringify("")}`
+  $$payload.out.push(`<!----> <input type="text" placeholder="BUSCAR ESTUDIANTE, EMAIL O CENTRO..."${attr("value", searchTerm)} class="w-full bg-surface-950/50 border border-surface-900 rounded-2xl pl-12 pr-6 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all backdrop-blur-xl"/></div> <div class="relative group min-w-[240px]">`);
+  School($$payload, {
+    class: "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-600"
   });
-  $$payload.out.push(`<!----></button></div></div> `);
-  {
-    $$payload.out.push("<!--[!-->");
+  $$payload.out.push(`<!----> <select class="w-full bg-surface-950/50 border border-surface-900 rounded-2xl pl-12 pr-10 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all appearance-none cursor-pointer backdrop-blur-xl">`);
+  $$payload.select_value = collegeFilter;
+  $$payload.out.push(`<option value="all"${maybe_selected($$payload, "all")}>TODOS LOS CENTROS</option><!--[-->`);
+  for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+    let col = each_array[$$index];
+    $$payload.out.push(`<option${attr("value", col.id)}${maybe_selected($$payload, col.id)}>${escape_html(col.name.toUpperCase())}</option>`);
   }
-  $$payload.out.push(`<!--]--></div> <div class="space-y-6"><!--[-->`);
-  for (let $$index_2 = 0, $$length = each_array_1.length; $$index_2 < $$length; $$index_2++) {
-    let report = each_array_1[$$index_2];
-    const studentStatus = getStudentStatus(report);
-    const each_array_2 = ensure_array_like(report.recent_activity.slice(0, 3));
-    $$payload.out.push(`<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg hover:bg-slate-700/30 transition-all duration-200"><div class="p-6"><div class="flex items-center justify-between mb-4"><div class="flex items-center space-x-4"><div class="p-3 bg-slate-600/50 rounded-lg">`);
-    Users($$payload, { class: "w-6 h-6 text-slate-400" });
-    $$payload.out.push(`<!----></div> <div><h3 class="text-lg font-semibold text-white">${escape_html(report.student.name)}</h3> <p class="text-slate-400">${escape_html(report.student.email)}</p> <div class="flex items-center space-x-4 mt-1"><div class="flex items-center space-x-1">`);
-    School($$payload, { class: "w-3 h-3 text-slate-500" });
-    $$payload.out.push(`<!----> <span class="text-xs text-slate-500">${escape_html(report.college.name)}</span></div> <div class="flex items-center space-x-1">`);
-    Calendar($$payload, { class: "w-3 h-3 text-slate-500" });
-    $$payload.out.push(`<!----> <span class="text-xs text-slate-500">Inscrito: ${escape_html(formatDate(report.progress_summary.enrollment_date))}</span></div></div></div></div> <div class="flex items-center space-x-4"><span${attr_class(`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${stringify(studentStatus.class)}`)}>${escape_html(studentStatus.label)}</span> <button class="flex items-center space-x-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors">`);
-    Eye($$payload, { class: "w-4 h-4" });
-    $$payload.out.push(`<!----> <span>Ver Informe</span></button></div></div> <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4"><div class="text-center"><div class="text-lg font-semibold text-white">${escape_html(formatPercentage(report.progress_summary.attendance_rate))}</div> <div class="text-xs text-slate-400">Asistencia</div></div> <div class="text-center"><div class="text-lg font-semibold text-white">${escape_html(formatPercentage(report.progress_summary.skill_completion_rate))}</div> <div class="text-xs text-slate-400">Skills</div></div> <div class="text-center"><div class="text-lg font-semibold text-white">${escape_html(report.progress_summary.current_rating)}</div> <div class="text-xs text-slate-400">Rating</div></div> <div class="text-center"><div${attr_class(`text-lg font-semibold ${stringify(report.progress_summary.overdue_payments > 0 ? "text-red-400" : "text-emerald-400")}`)}>${escape_html(report.progress_summary.overdue_payments > 0 ? report.progress_summary.overdue_payments : "✓")}</div> <div class="text-xs text-slate-400">Pagos</div></div></div> <div class="border-t border-slate-700/50 pt-4"><h4 class="text-sm font-medium text-slate-300 mb-3">Actividad Reciente</h4> <div class="space-y-2"><!--[-->`);
-    for (let $$index_1 = 0, $$length2 = each_array_2.length; $$index_1 < $$length2; $$index_1++) {
-      let activity = each_array_2[$$index_1];
-      const IconComponent = getActivityIcon(activity.type);
-      $$payload.out.push(`<div class="flex items-center space-x-3"><div class="p-1 bg-slate-600/50 rounded">`);
-      IconComponent($$payload, {
-        class: `w-3 h-3 ${stringify(getActivityColor(activity.status))}`
-      });
-      $$payload.out.push(`<!----></div> <div class="flex-1"><span class="text-sm text-white">${escape_html(activity.description)}</span> <span class="text-xs text-slate-400 ml-2">${escape_html(formatDate(activity.date))}</span></div></div>`);
-    }
-    $$payload.out.push(`<!--]--></div></div></div></div>`);
+  $$payload.out.push(`<!--]-->`);
+  $$payload.select_value = void 0;
+  $$payload.out.push(`</select></div> <button class="bg-surface-900/50 border border-surface-800 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-surface-800 transition-all backdrop-blur-xl">RESETEAR</button></div> <div class="glass-panel overflow-hidden border-t-4 border-primary-500 shadow-2xl"><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="bg-surface-950/80 border-b border-surface-900 backdrop-blur-xl"><th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500">Estudiante / Sede</th><th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">Rendimiento</th><th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">Elo Actual</th><th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">Estatus</th><th class="px-8 py-5"></th></tr></thead><tbody class="divide-y divide-surface-900/50"><!--[-->`);
+  for (let i = 0, $$length = each_array_1.length; i < $$length; i++) {
+    let report = each_array_1[i];
+    $$payload.out.push(`<tr class="hover:bg-primary-500/[0.02] transition-colors group"><td class="px-8 py-6"><div class="flex items-center gap-5"><div class="w-12 h-12 bg-surface-950 border border-surface-800 rounded-2xl flex items-center justify-center text-primary-400 group-hover:border-primary-500/30 transition-all shadow-xl font-black">${escape_html(report.student.name.charAt(0))}</div> <div><h3 class="text-sm font-black text-white uppercase tracking-tight leading-none group-hover:text-primary-400 transition-colors">${escape_html(report.student.name)}</h3> <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mt-1.5 flex items-center gap-2">`);
+    School($$payload, { class: "w-3 h-3" });
+    $$payload.out.push(`<!----> ${escape_html(report.college.name)}</p></div></div></td><td class="px-8 py-6"><div class="flex flex-col items-center gap-2.5"><div class="flex items-center gap-6"><div class="text-center"><p class="text-[10px] font-black text-white">${escape_html(report.progress_summary.attendance_rate.toFixed(0))}%</p> <p class="text-[7px] font-black text-surface-600 uppercase tracking-widest">ASIST.</p></div> <div class="text-center"><p class="text-[10px] font-black text-white">${escape_html(report.progress_summary.skill_completion_rate.toFixed(0))}%</p> <p class="text-[7px] font-black text-surface-600 uppercase tracking-widest">SKILLS</p></div></div> <div class="w-24 h-1.5 bg-surface-950 rounded-full border border-surface-900 overflow-hidden"><div class="h-full bg-primary-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"${attr_style(`width: ${stringify((report.progress_summary.attendance_rate + report.progress_summary.skill_completion_rate) / 2)}%`)}></div></div></div></td><td class="px-8 py-6 text-center"><div class="inline-block px-4 py-2 bg-surface-950 border border-surface-900 rounded-xl"><p class="text-lg font-black text-white leading-none">${escape_html(report.progress_summary.current_rating)}</p> <p class="text-[8px] font-black text-primary-400 uppercase tracking-widest mt-1">ELO RATING</p></div></td><td class="px-8 py-6 text-center"><span${attr_class(`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${getStatusTheme(report)}`)}>${escape_html(getStatusLabel(report))}</span></td><td class="px-8 py-6 text-right"><button class="p-3 bg-surface-950 border border-surface-800 rounded-2xl text-surface-500 hover:text-primary-400 hover:border-primary-500/30 transition-all shadow-xl group/btn">`);
+    Eye($$payload, {
+      class: "w-5 h-5 transition-transform group-hover/btn:scale-110"
+    });
+    $$payload.out.push(`<!----></button></td></tr>`);
   }
-  $$payload.out.push(`<!--]--> `);
+  $$payload.out.push(`<!--]--></tbody></table></div> `);
   if (filteredStudents.length === 0) {
     $$payload.out.push("<!--[-->");
-    $$payload.out.push(`<div class="text-center py-12">`);
-    Chart_column($$payload, { class: "w-12 h-12 text-slate-600 mx-auto mb-4" });
-    $$payload.out.push(`<!----> <p class="text-slate-400">No se encontraron estudiantes</p> `);
-    {
-      $$payload.out.push("<!--[!-->");
-    }
-    $$payload.out.push(`<!--]--></div>`);
+    $$payload.out.push(`<div class="p-24 text-center space-y-6"><div class="w-20 h-20 bg-surface-950 border border-surface-900 rounded-3xl flex items-center justify-center mx-auto text-surface-800">`);
+    Chart_column($$payload, { class: "w-10 h-10" });
+    $$payload.out.push(`<!----></div> <p class="text-[10px] font-black text-surface-600 uppercase tracking-[0.3em]">No hay registros para este filtro</p></div>`);
   } else {
     $$payload.out.push("<!--[!-->");
   }
-  $$payload.out.push(`<!--]--></div></main></div>`);
-  bind_props($$props, { data });
+  $$payload.out.push(`<!--]--></div></div>`);
   pop();
 }
 export {

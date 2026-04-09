@@ -1,68 +1,39 @@
-import { createServerClient } from "@supabase/ssr";
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from "../../../../chunks/public.js";
-const load = async ({ locals, url, cookies }) => {
+import { s as schoolsApi } from "../../../../chunks/schools.js";
+import { d as db } from "../../../../chunks/firebase.js";
+import { query, collection, where, getDocs } from "firebase/firestore";
+const load = async ({ locals }) => {
   console.log("📚 Schools page server load - User:", locals.user?.email || "none");
-  const isLocalDev = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-  if (isLocalDev) {
-    console.log("🔧 DEV MODE: Schools page - Using REAL data from Supabase (should be empty for new user)");
-    const supabase2 = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-      cookies: {
-        get: (key) => cookies.get(key),
-        set: (key, value, options) => cookies.set(key, value, options),
-        remove: (key, options) => cookies.delete(key, options)
-      }
-    });
-    try {
-      const { data: schools, error: schoolsError } = await supabase2.from("colleges").select("*").eq("user_id", locals.user.id).order("created_at", { ascending: false });
-      if (schoolsError) {
-        console.error("❌ Error fetching schools in DEV MODE:", schoolsError);
-        return {
-          user: locals.user,
-          schools: []
-        };
-      }
-      console.log("✅ DEV MODE: Schools loaded with REAL data:", schools?.length || 0, "schools");
-      return {
-        user: locals.user,
-        schools: schools || []
-      };
-    } catch (err) {
-      console.error("❌ Error in DEV MODE schools:", err);
-      return {
-        user: locals.user,
-        schools: []
-      };
-    }
-  }
-  console.log("🌐 PRODUCTION MODE: Schools page - Fetching from Supabase");
   if (!locals.user) {
     return {
       user: null,
       schools: []
     };
   }
-  const supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-    cookies: {
-      get: (key) => cookies.get(key),
-      set: (key, value, options) => cookies.set(key, value, options),
-      remove: (key, options) => cookies.delete(key, options)
-    }
-  });
   try {
-    const { data: schools, error: schoolsError } = await supabase.from("colleges").select("*").eq("user_id", locals.user.id).order("created_at", { ascending: false });
-    if (schoolsError) {
-      console.error("❌ Error fetching schools:", schoolsError);
+    const schools = await schoolsApi.getMySchools(locals.user.id);
+    const enrichedSchools = await Promise.all(schools.map(async (school) => {
+      const qClasses = query(
+        collection(db, "classes"),
+        where("college_id", "==", school.id)
+      );
+      const snapClasses = await getDocs(qClasses);
+      const qStudents = query(
+        collection(db, "students"),
+        where("college_id", "==", school.id)
+      );
+      const snapStudents = await getDocs(qStudents);
       return {
-        user: locals.user,
-        schools: []
+        ...school,
+        classes_count: snapClasses.size,
+        students_count: snapStudents.size
       };
-    }
+    }));
     return {
       user: locals.user,
-      schools: schools || []
+      schools: enrichedSchools
     };
   } catch (err) {
-    console.error("❌ Error in schools production mode:", err);
+    console.error("❌ Error in schools page load:", err);
     return {
       user: locals.user,
       schools: []

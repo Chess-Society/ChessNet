@@ -1,33 +1,62 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  serverTimestamp,
+  type DocumentData
+} from "firebase/firestore";
 import type {
   Tournament,
   TournamentParticipant,
   TournamentMatch,
+  Student
 } from "$lib/types";
 
+// Helper para convertir documentos de Firestore a objetos con ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
+
 export const tournamentsApi = {
+  // Get all tournaments for the current user (or specified user)
+  async getMyTournaments(userId?: string): Promise<Tournament[]> {
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
+    const q = query(
+      collection(db, "tournaments"),
+      where("user_id", "==", uid),
+      orderBy("created_at", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<Tournament>(doc));
+  },
+
   // Get tournaments by school
   async getTournamentsBySchool(schoolId: string): Promise<Tournament[]> {
-    const { data, error } = await supabase
-      .from("tournaments")
-      .select("*")
-      .eq("school_id", schoolId)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    const q = query(
+      collection(db, "tournaments"),
+      where("school_id", "==", schoolId),
+      orderBy("created_at", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<Tournament>(doc));
   },
 
   // Get a specific tournament
   async getTournament(id: string): Promise<Tournament> {
-    const { data, error } = await supabase
-      .from("tournaments")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = doc(db, "tournaments", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) throw new Error("Tournament not found");
+    return toData<Tournament>(docSnap);
   },
 
   // Create a new tournament
@@ -40,28 +69,29 @@ export const tournamentsApi = {
     endDate?: string,
     maxParticipants?: number,
     timeControl?: string,
+    userId?: string
   ): Promise<Tournament> {
-    const user = (await supabase.auth.getUser()).data.user;
-    if (!user) throw new Error("User not authenticated");
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+    
+    const docData = {
+      school_id: schoolId,
+      user_id: uid, // Use user_id as in other collections
+      name,
+      description: description || "",
+      type,
+      start_date: startDate || null,
+      end_date: endDate || null,
+      max_participants: maxParticipants || null,
+      time_control: timeControl || "",
+      created_by: uid,
+      status: "planned",
+      created_at: new Date().toISOString()
+    };
 
-    const { data, error } = await supabase
-      .from("tournaments")
-      .insert({
-        school_id: schoolId,
-        name,
-        description,
-        type,
-        start_date: startDate,
-        end_date: endDate,
-        max_participants: maxParticipants,
-        time_control: timeControl,
-        created_by: user.id,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "tournaments"), docData);
+    const docSnap = await getDoc(docRef);
+    return toData<Tournament>(docSnap);
   },
 
   // Update a tournament
@@ -69,70 +99,64 @@ export const tournamentsApi = {
     id: string,
     updates: Partial<Tournament>,
   ): Promise<Tournament> {
-    const { data, error } = await supabase
-      .from("tournaments")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = doc(db, "tournaments", id);
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString()
+    });
+    const docSnap = await getDoc(docRef);
+    return toData<Tournament>(docSnap);
   },
 
   // Delete a tournament
   async deleteTournament(id: string): Promise<void> {
-    const { error } = await supabase.from("tournaments").delete().eq("id", id);
-
-    if (error) throw error;
+    const docRef = doc(db, "tournaments", id);
+    await deleteDoc(docRef);
   },
 
   // Start a tournament
   async startTournament(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("tournaments")
-      .update({
-        status: "active",
-        start_date: new Date().toISOString().split("T")[0],
-      })
-      .eq("id", id);
-
-    if (error) throw error;
+    const docRef = doc(db, "tournaments", id);
+    await updateDoc(docRef, {
+      status: "active",
+      start_date: new Date().toISOString().split("T")[0],
+    });
   },
 
   // Complete a tournament
   async completeTournament(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("tournaments")
-      .update({
-        status: "completed",
-        end_date: new Date().toISOString().split("T")[0],
-      })
-      .eq("id", id);
-
-    if (error) throw error;
+    const docRef = doc(db, "tournaments", id);
+    await updateDoc(docRef, {
+      status: "completed",
+      end_date: new Date().toISOString().split("T")[0],
+    });
   },
 
-  // Get tournament participants
+  // Get tournament participants (con students incrustados para compatibilidad)
   async getTournamentParticipants(
     tournamentId: string,
   ): Promise<TournamentParticipant[]> {
-    const { data, error } = await supabase
-      .from("tournament_participants")
-      .select(
-        `
-        *,
-        students:student_id(*)
-      `,
-      )
-      .eq("tournament_id", tournamentId)
-      .order("score", { ascending: false });
+    const q = query(
+      collection(db, "tournament_participants"),
+      where("tournament_id", "==", tournamentId),
+      orderBy("score", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    const participants = querySnapshot.docs.map(doc => toData<TournamentParticipant>(doc));
+    
+    // FETCH STUDENTS (Equivalent to join)
+    // Para simplificar, obtenemos los datos de cada estudiante
+    // En una app real, esto podría optimizarse con un query 'in'
+    for (const p of participants) {
+      if (p.student_id) {
+        const studentDoc = await getDoc(doc(db, "students", p.student_id));
+        if (studentDoc.exists()) {
+          p.students = toData<Student>(studentDoc);
+        }
+      }
+    }
 
-    if (error) throw error;
-    return data || [];
+    return participants;
   },
 
   // Add participant to tournament
@@ -141,28 +165,23 @@ export const tournamentsApi = {
     studentId: string,
     rating?: number,
   ): Promise<TournamentParticipant> {
-    const { data, error } = await supabase
-      .from("tournament_participants")
-      .insert({
-        tournament_id: tournamentId,
-        student_id: studentId,
-        rating,
-      })
-      .select()
-      .single();
+    const docData = {
+      tournament_id: tournamentId,
+      student_id: studentId,
+      rating: rating || 1200,
+      score: 0,
+      tiebreak_score: 0,
+      created_at: new Date().toISOString()
+    };
 
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "tournament_participants"), docData);
+    const docSnap = await getDoc(docRef);
+    return toData<TournamentParticipant>(docSnap);
   },
 
   // Remove participant from tournament
   async removeParticipant(participantId: string): Promise<void> {
-    const { error } = await supabase
-      .from("tournament_participants")
-      .delete()
-      .eq("id", participantId);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, "tournament_participants", participantId));
   },
 
   // Update participant score
@@ -171,18 +190,13 @@ export const tournamentsApi = {
     score: number,
     tiebreakScore?: number,
   ): Promise<TournamentParticipant> {
-    const { data, error } = await supabase
-      .from("tournament_participants")
-      .update({
-        score,
-        tiebreak_score: tiebreakScore,
-      })
-      .eq("id", participantId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = doc(db, "tournament_participants", participantId);
+    await updateDoc(docRef, {
+      score,
+      tiebreak_score: tiebreakScore || 0,
+    });
+    const docSnap = await getDoc(docRef);
+    return toData<TournamentParticipant>(docSnap);
   },
 
   // Get tournament matches
@@ -190,29 +204,39 @@ export const tournamentsApi = {
     tournamentId: string,
     round?: number,
   ): Promise<TournamentMatch[]> {
-    let query = supabase
-      .from("tournament_matches")
-      .select(
-        `
-        *,
-        player1:player1_id(*),
-        player2:player2_id(*)
-      `,
-      )
-      .eq("tournament_id", tournamentId);
+    let q = query(
+      collection(db, "tournament_matches"),
+      where("tournament_id", "==", tournamentId)
+    );
 
     if (round !== undefined) {
-      query = query.eq("round", round);
+      q = query(q, where("round", "==", round));
     }
 
-    query = query
-      .order("round", { ascending: true })
-      .order("board_number", { ascending: true });
+    // Nota: Firestore requiere índices compuestos para múltiples filtros + orderBy
+    // Para evitar errores inmediatos, si hay round, ordenamos en memoria o aceptamos el requerimiento de índice
+    const querySnapshot = await getDocs(q);
+    let matches = querySnapshot.docs.map(doc => toData<TournamentMatch>(doc));
+    
+    // Sort manually to avoid needing complex indexes during initial migration
+    matches.sort((a, b) => {
+      if (a.round !== b.round) return a.round - b.round;
+      return (a.board_number || 0) - (b.board_number || 0);
+    });
 
-    const { data, error } = await query;
+    // Populate players (joins)
+    for (const m of matches) {
+      if (m.player1_id) {
+        const p1Doc = await getDoc(doc(db, "students", m.player1_id));
+        if (p1Doc.exists()) m.player1 = toData<Student>(p1Doc);
+      }
+      if (m.player2_id) {
+        const p2Doc = await getDoc(doc(db, "students", m.player2_id));
+        if (p2Doc.exists()) m.player2 = toData<Student>(p2Doc);
+      }
+    }
 
-    if (error) throw error;
-    return data || [];
+    return matches;
   },
 
   // Create tournament matches
@@ -220,18 +244,20 @@ export const tournamentsApi = {
     tournamentId: string,
     matches: Omit<TournamentMatch, "id" | "tournament_id" | "created_at">[],
   ): Promise<TournamentMatch[]> {
-    const matchesWithTournament = matches.map((match) => ({
-      ...match,
-      tournament_id: tournamentId,
-    }));
+    const createdMatches: TournamentMatch[] = [];
+    
+    for (const match of matches) {
+      const docData = {
+        ...match,
+        tournament_id: tournamentId,
+        created_at: new Date().toISOString()
+      };
+      const docRef = await addDoc(collection(db, "tournament_matches"), docData);
+      const docSnap = await getDoc(docRef);
+      createdMatches.push(toData<TournamentMatch>(docSnap));
+    }
 
-    const { data, error } = await supabase
-      .from("tournament_matches")
-      .insert(matchesWithTournament)
-      .select();
-
-    if (error) throw error;
-    return data || [];
+    return createdMatches;
   },
 
   // Update match result
@@ -241,20 +267,14 @@ export const tournamentsApi = {
     moves?: string[],
     gameDurationSeconds?: number,
   ): Promise<TournamentMatch> {
-    const { data, error } = await supabase
-      .from("tournament_matches")
-      .update({
-        result,
-        moves,
-        game_duration_seconds: gameDurationSeconds,
-        played_at: new Date().toISOString(),
-      })
-      .eq("id", matchId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = doc(db, "tournament_matches", matchId);
+    await updateDoc(docRef, {
+      result,
+      moves: moves || [],
+      game_duration_seconds: gameDurationSeconds || 0,
+      played_at: new Date().toISOString(),
+    });
+    const docSnap = await getDoc(docRef);
+    return toData<TournamentMatch>(docSnap);
   },
-
 };

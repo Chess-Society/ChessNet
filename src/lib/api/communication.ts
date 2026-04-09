@@ -1,5 +1,26 @@
-import { supabase } from "$lib/supabase";
+import { db, auth } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  setDoc,
+  writeBatch,
+  limit,
+  type DocumentData
+} from "firebase/firestore";
 import type { Announcement, Student } from "$lib/types";
+
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
 
 export const communicationApi = {
   // Get announcements by school
@@ -12,47 +33,40 @@ export const communicationApi = {
       offset?: number;
     },
   ): Promise<Announcement[]> {
-    let query = supabase
-      .from("announcements")
-      .select("*")
-      .eq("school_id", schoolId)
-      .order("created_at", { ascending: false });
+    let q = query(
+      collection(db, "announcements"),
+      where("school_id", "==", schoolId),
+      orderBy("created_at", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    let data = querySnapshot.docs.map(doc => toData<Announcement>(doc));
 
     if (filters?.type) {
-      query = query.eq("type", filters.type);
+      data = data.filter(a => a.type === filters.type);
     }
 
     if (filters?.isPublished !== undefined) {
-      query = query.eq("is_published", filters.isPublished);
+      data = data.filter(a => a.is_published === filters.isPublished);
     }
 
+    // Handle offset and limit manually
+    if (filters?.offset !== undefined) {
+      data = data.slice(filters.offset);
+    }
+    
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      data = data.slice(0, filters.limit);
     }
 
-    if (filters?.offset) {
-      query = query.range(
-        filters.offset,
-        filters.offset + (filters.limit || 10) - 1,
-      );
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-    return data || [];
+    return data;
   },
 
   // Get a specific announcement
   async getAnnouncement(id: string): Promise<Announcement> {
-    const { data, error } = await supabase
-      .from("announcements")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(doc(db, "announcements", id));
+    if (!docSnap.exists()) throw new Error("Announcement not found");
+    return toData<Announcement>(docSnap);
   },
 
   // Create a new announcement
@@ -67,29 +81,28 @@ export const communicationApi = {
     isPublished: boolean = false,
     expiresAt?: string,
   ): Promise<Announcement> {
-    const user = (await supabase.auth.getUser()).data.user;
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("announcements")
-      .insert({
-        school_id: schoolId,
-        title,
-        content,
-        type,
-        target_type: targetType,
-        target_id: targetId,
-        priority,
-        is_published: isPublished,
-        published_at: isPublished ? new Date().toISOString() : null,
-        expires_at: expiresAt,
-        created_by: user.id,
-      })
-      .select()
-      .single();
+    const announcementData = {
+      school_id: schoolId,
+      title,
+      content,
+      type,
+      target_type: targetType,
+      target_id: targetId || null,
+      priority,
+      is_published: isPublished,
+      published_at: isPublished ? new Date().toISOString() : null,
+      expires_at: expiresAt || null,
+      created_by: user.uid,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "announcements"), announcementData);
+    const docSnap = await getDoc(docRef);
+    return toData<Announcement>(docSnap);
   },
 
   // Update an announcement
@@ -97,62 +110,36 @@ export const communicationApi = {
     id: string,
     updates: Partial<Announcement>,
   ): Promise<Announcement> {
-    const { data, error } = await supabase
-      .from("announcements")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+    const docRef = doc(db, "announcements", id);
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<Announcement>(docSnap);
   },
 
   // Delete an announcement
   async deleteAnnouncement(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("announcements")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, "announcements", id));
   },
 
   // Publish an announcement
   async publishAnnouncement(id: string): Promise<Announcement> {
-    const { data, error } = await supabase
-      .from("announcements")
-      .update({
-        is_published: true,
-        published_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return this.updateAnnouncement(id, {
+      is_published: true,
+      published_at: new Date().toISOString(),
+    });
   },
 
   // Unpublish an announcement
   async unpublishAnnouncement(id: string): Promise<Announcement> {
-    const { data, error } = await supabase
-      .from("announcements")
-      .update({
-        is_published: false,
-        published_at: null,
-      })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return this.updateAnnouncement(id, {
+      is_published: false,
+      published_at: undefined,
+    });
   },
-
 
   // Send message to parent
   async sendParentMessage(
@@ -166,36 +153,29 @@ export const communicationApi = {
       | "achievement"
       | "general" = "general",
   ): Promise<any> {
-    const user = (await supabase.auth.getUser()).data.user;
+    const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
-    const { data, error } = await supabase
-      .from("parent_messages")
-      .insert({
-        student_id: studentId,
-        title,
-        content,
-        type,
-        sent_by: user.id,
-      })
-      .select()
-      .single();
+    const messageData = {
+      student_id: studentId,
+      title,
+      content,
+      type,
+      sent_by: user.uid,
+      is_read: false,
+      created_at: new Date().toISOString()
+    };
 
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "parent_messages"), messageData);
+    const docSnap = await getDoc(docRef);
+    return toData<any>(docSnap);
   },
 
   // Mark message as read
   async markMessageAsRead(messageId: string): Promise<any> {
-    const { data, error } = await supabase
-      .from("parent_messages")
-      .update({ is_read: true })
-      .eq("id", messageId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docRef = doc(db, "parent_messages", messageId);
+    await updateDoc(docRef, { is_read: true });
+    const docSnap = await getDoc(docRef);
+    return toData<any>(docSnap);
   },
-
 };

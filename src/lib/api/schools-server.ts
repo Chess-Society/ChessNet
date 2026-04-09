@@ -1,63 +1,63 @@
-import { createServerClient } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import type { School, Membership } from '$lib/types';
-import type { Cookies } from '@sveltejs/kit';
+import { db } from "$lib/firebase";
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  type DocumentData
+} from "firebase/firestore";
+import type { School, Membership } from "$lib/types";
+import type { Cookies } from "@sveltejs/kit";
 
-// Función para crear cliente de Supabase en el servidor
-function createSupabaseServerClient(cookies: Cookies) {
-  return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-    auth: {
-      flowType: 'pkce'
-    },
-    cookies: {
-      get: (key) => {
-        return cookies.get(key);
-      },
-      set: (key, value, options) => {
-        cookies.set(key, value, { 
-          ...options, 
-          path: '/',
-          httpOnly: true,
-          secure: true,
-          sameSite: 'lax'
-        });
-      },
-      remove: (key, options) => {
-        cookies.delete(key, { ...options, path: '/' });
-      },
-    },
-  });
-}
+// Helper to convert Firestore document to data with ID
+const toData = <T>(doc: any): T => {
+  return { id: doc.id, ...doc.data() } as T;
+};
+
+// Note: On the server, we typically use firebase-admin.
+// Using the Web SDK on the server will not have an authenticated user by default.
+// These functions are adapted to be used with the Web SDK, but authorization 
+// should be handled by checking the user in locals (populated by hooks).
 
 export const schoolsServerApi = {
-  // Get all schools for the current user
-  async getMySchools(cookies: Cookies): Promise<School[]> {
-    const supabase = createSupabaseServerClient(cookies);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+  // Get all schools for a specific user
+  async getMySchools(cookies: Cookies, userId?: string): Promise<School[]> {
+    // In a real Firebase setup, userId would be retrieved from a session cookie verified in hooks.server.ts
+    // For now, we'll try to use the userId if provided, or expect it to be handled by the caller.
+    if (!userId) {
+      console.warn("⚠️ getMySchools called without userId on server");
+      return [];
+    }
 
-    const { data, error } = await supabase
-      .from("colleges")
-      .select("*")
-      .eq("user_id", user.id); // Usar user_id directamente
+    // First find memberships for this user
+    const membershipsQuery = query(
+      collection(db, "memberships"),
+      where("user_id", "==", userId)
+    );
+    const membershipsSnapshot = await getDocs(membershipsQuery);
+    const schoolIds = membershipsSnapshot.docs.map(doc => doc.data().school_id);
 
-    if (error) throw error;
-    return data || [];
+    if (schoolIds.length === 0) return [];
+
+    // Then fetch the schools
+    const schoolsQuery = query(
+      collection(db, "colleges"),
+      where("__name__", "in", schoolIds)
+    );
+    const schoolsSnapshot = await getDocs(schoolsQuery);
+    return schoolsSnapshot.docs.map(doc => toData<School>(doc));
   },
 
   // Get a specific school
   async getSchool(id: string, cookies: Cookies): Promise<School> {
-    const supabase = createSupabaseServerClient(cookies);
-    
-    const { data, error } = await supabase
-      .from("colleges")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(doc(db, "colleges", id));
+    if (!docSnap.exists()) throw new Error("School not found");
+    return toData<School>(docSnap);
   },
 
   // Create a new school
@@ -65,72 +65,46 @@ export const schoolsServerApi = {
     name: string,
     cookies: Cookies,
     city?: string,
+    userId?: string
   ): Promise<School> {
-    const supabase = createSupabaseServerClient(cookies);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+    if (!userId) throw new Error("User ID required for school creation on server");
 
-    console.log('🏫 Creating school for user:', user.email, 'with owner_id:', user.id);
+    console.log('🏫 Creating school for user:', userId);
 
-    const { data, error } = await supabase
-      .from("colleges")
-      .insert({
-        name,
-        city,
-        user_id: user.id, // Usar user_id en lugar de owner_id
-        created_by: user.id, // También establecer created_by
-      })
-      .select()
-      .single();
+    const schoolData = {
+      name,
+      city: city || null,
+      user_id: userId,
+      created_by: userId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    if (error) {
-      console.error('❌ Error creating school:', error);
-      throw error;
-    }
-
-    console.log('✅ School created successfully:', data.id);
+    const docRef = await addDoc(collection(db, "colleges"), schoolData);
+    console.log('✅ School created successfully:', docRef.id);
 
     // Create membership for the owner
-    await this.addMember(data.id, user.id, "owner", cookies);
+    await this.addMember(docRef.id, userId, "owner", cookies);
 
-    // Initialize default data for the school
-    try {
-      await supabase.rpc("initialize_school_data", { school_uuid: data.id });
-      console.log('✅ School data initialized successfully');
-    } catch (initError) {
-      console.warn('⚠️ Warning: Could not initialize school data:', initError);
-      // No lanzar error, la escuela se creó correctamente
-    }
-
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<School>(docSnap);
   },
 
   // Update a school
   async updateSchool(id: string, updates: Partial<School>, cookies: Cookies): Promise<School> {
-    const supabase = createSupabaseServerClient(cookies);
-    
-    const { data, error } = await supabase
-      .from("colleges")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+    const docRef = doc(db, "colleges", id);
+    await updateDoc(docRef, {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    });
 
-    if (error) throw error;
-    return data;
+    const docSnap = await getDoc(docRef);
+    return toData<School>(docSnap);
   },
 
   // Delete a school
   async deleteSchool(id: string, cookies: Cookies): Promise<void> {
-    const supabase = createSupabaseServerClient(cookies);
-    
-    const { error } = await supabase.from("colleges").delete().eq("id", id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, "colleges", id));
   },
 
   // Add a member to a school
@@ -140,54 +114,42 @@ export const schoolsServerApi = {
     role: "owner" | "admin" | "teacher" | "assistant" | "viewer",
     cookies: Cookies
   ): Promise<Membership> {
-    const supabase = createSupabaseServerClient(cookies);
-    
-    const { data, error } = await supabase
-      .from("memberships")
-      .insert({
-        school_id: schoolId,
-        user_id: userId,
-        role,
-      })
-      .select()
-      .single();
+    const membershipData = {
+      school_id: schoolId,
+      user_id: userId,
+      role,
+      created_at: new Date().toISOString()
+    };
 
-    if (error) throw error;
-    return data;
+    const docRef = await addDoc(collection(db, "memberships"), membershipData);
+    const docSnap = await getDoc(docRef);
+    return toData<Membership>(docSnap);
   },
 
   // Check if user is member of school
-  async isMember(schoolId: string, cookies: Cookies): Promise<boolean> {
-    const supabase = createSupabaseServerClient(cookies);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+  async isMember(schoolId: string, cookies: Cookies, userId?: string): Promise<boolean> {
+    if (!userId) return false;
 
-    const { data, error } = await supabase
-      .from("memberships")
-      .select("id")
-      .eq("school_id", schoolId)
-      .eq("user_id", user.id)
-      .single();
-
-    return !error && !!data;
+    const q = query(
+      collection(db, "memberships"),
+      where("school_id", "==", schoolId),
+      where("user_id", "==", userId)
+    );
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
   },
 
   // Get user's role in school
-  async getUserRole(schoolId: string, cookies: Cookies): Promise<string | null> {
-    const supabase = createSupabaseServerClient(cookies);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+  async getUserRole(schoolId: string, cookies: Cookies, userId?: string): Promise<string | null> {
+    if (!userId) return null;
 
-    const { data, error } = await supabase
-      .from("memberships")
-      .select("role")
-      .eq("school_id", schoolId)
-      .eq("user_id", user.id)
-      .single();
-
-    if (error) return null;
-    return data.role;
+    const q = query(
+      collection(db, "memberships"),
+      where("school_id", "==", schoolId),
+      where("user_id", "==", userId)
+    );
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    return snapshot.docs[0].data().role;
   },
 };

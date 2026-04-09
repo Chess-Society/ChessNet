@@ -1,4 +1,4 @@
-import { a as sanitize_props, b as spread_props, c as slot } from "./index2.js";
+import { a as sanitize_props, b as spread_props, c as slot } from "./index.js";
 import { I as Icon } from "./Icon.js";
 function Trophy($$payload, $$props) {
   const $$sanitized_props = sanitize_props($$props);

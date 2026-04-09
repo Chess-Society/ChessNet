@@ -1,4 +1,4 @@
-import { H as HYDRATION_ERROR, y as get_next_sibling, z as define_property, A as set_active_reaction, B as set_active_effect, C as is_array, D as active_effect, E as active_reaction, F as init_operations, G as get_first_child, I as COMMENT_NODE, J as HYDRATION_START, K as HYDRATION_END, L as hydration_failed, M as clear_text_content, N as array_from, O as component_root, P as is_passive_event, Q as create_text, R as branch, S as push, T as component_context, U as pop, V as set, W as LEGACY_PROPS, X as get, Y as flushSync, Z as mutable_source, _ as render, f as push$1, $ as setContext, p as pop$1 } from "./index2.js";
+import { H as HYDRATION_ERROR, y as get_next_sibling, z as define_property, A as set_active_reaction, B as set_active_effect, C as is_array, D as active_effect, E as active_reaction, F as init_operations, G as get_first_child, I as COMMENT_NODE, J as HYDRATION_START, K as HYDRATION_END, L as hydration_failed, M as clear_text_content, N as array_from, O as component_root, P as is_passive_event, Q as create_text, R as branch, S as push, T as component_context, U as pop, V as set, W as LEGACY_PROPS, X as get, Y as flushSync, Z as mutable_source, _ as render, k as push$1, $ as setContext, p as pop$1 } from "./index.js";
 import "clsx";
 import "./environment.js";
 let public_env = {};
@@ -554,7 +554,7 @@ const options = {
 		<div class="error">
 			<span class="status">` + status + '</span>\n			<div class="message">\n				<h1>' + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
   },
-  version_hash: "w6uv1"
+  version_hash: "1kzuwnt"
 };
 async function get_hooks() {
   let handle;

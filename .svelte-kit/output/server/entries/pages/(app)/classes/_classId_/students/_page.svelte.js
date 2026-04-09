@@ -1,4 +1,4 @@
-import { a as sanitize_props, b as spread_props, c as slot, i as head, e as escape_html, k as ensure_array_like, j as attr_class, u as clsx, l as attr, d as bind_props, p as pop, f as push } from "../../../../../../chunks/index2.js";
+import { a as sanitize_props, b as spread_props, c as slot, h as head, d as escape_html, e as ensure_array_like, f as attr_class, w as clsx, i as attr, j as bind_props, p as pop, k as push } from "../../../../../../chunks/index.js";
 import "@sveltejs/kit/internal";
 import "../../../../../../chunks/exports.js";
 import "../../../../../../chunks/utils.js";
@@ -167,7 +167,7 @@ function _page($$payload, $$props) {
     $$payload.out.push(`<div class="space-y-3"><!--[-->`);
     for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
       let student = each_array[$$index];
-      $$payload.out.push(`<div class="bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors"><div class="flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">${escape_html(student.first_name.charAt(0))}${escape_html(student.last_name.charAt(0))}</div> <div><h3 class="font-semibold text-white">${escape_html(student.first_name)} ${escape_html(student.last_name)}</h3> <div class="flex items-center space-x-4 text-sm text-slate-400"><span>${escape_html(calculateAge(student.date_of_birth))} años</span> <span${attr_class(clsx(levelColors[student.chess_level]), "svelte-x773vi")}>${escape_html(levelLabels[student.chess_level])}</span> <div class="flex items-center space-x-1">`);
+      $$payload.out.push(`<div class="bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors"><div class="flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">${escape_html(student.first_name.charAt(0))}${escape_html(student.last_name.charAt(0))}</div> <div><h3 class="font-semibold text-white">${escape_html(student.first_name)} ${escape_html(student.last_name)}</h3> <div class="flex items-center space-x-4 text-sm text-slate-400"><span>${escape_html(calculateAge(student.date_of_birth))} años</span> <span${attr_class(clsx(levelColors[student.chess_level]), "svelte-arozio")}>${escape_html(levelLabels[student.chess_level])}</span> <div class="flex items-center space-x-1">`);
       Calendar($$payload, { class: "w-3 h-3" });
       $$payload.out.push(`<!----> <span>${escape_html(new Date(student.enrolled_at).toLocaleDateString("es-ES"))}</span></div></div></div></div> <button class="p-2 hover:bg-blue-500/20 rounded-lg transition-colors text-slate-400 hover:text-blue-400" title="Editar estudiante">`);
       Square_pen($$payload, { class: "w-4 h-4" });
@@ -185,7 +185,7 @@ function _page($$payload, $$props) {
   Search($$payload, {
     class: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400"
   });
-  $$payload.out.push(`<!----> <input type="text" placeholder="Buscar estudiantes disponibles..."${attr("value", searchQuery)} class="input pl-10 w-full svelte-x773vi"/></div> `);
+  $$payload.out.push(`<!----> <input type="text" placeholder="Buscar estudiantes disponibles..."${attr("value", searchQuery)} class="input pl-10 w-full svelte-arozio"/></div> `);
   if (stats.available <= 0) {
     $$payload.out.push("<!--[-->");
     $$payload.out.push(`<div class="bg-slate-800 border border-red-500/30 rounded-xl p-6 text-center">`);
@@ -204,7 +204,7 @@ function _page($$payload, $$props) {
       $$payload.out.push(`<div class="space-y-3"><!--[-->`);
       for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
         let student = each_array_1[$$index_1];
-        $$payload.out.push(`<div class="bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors"><div class="flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">${escape_html(student.first_name.charAt(0))}${escape_html(student.last_name.charAt(0))}</div> <div><h3 class="font-semibold text-white">${escape_html(student.first_name)} ${escape_html(student.last_name)}</h3> <div class="flex items-center space-x-4 text-sm text-slate-400"><span>${escape_html(calculateAge(student.date_of_birth))} años</span> <span${attr_class(clsx(levelColors[student.chess_level]), "svelte-x773vi")}>${escape_html(levelLabels[student.chess_level])}</span> <div class="flex items-center space-x-1">`);
+        $$payload.out.push(`<div class="bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors"><div class="flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">${escape_html(student.first_name.charAt(0))}${escape_html(student.last_name.charAt(0))}</div> <div><h3 class="font-semibold text-white">${escape_html(student.first_name)} ${escape_html(student.last_name)}</h3> <div class="flex items-center space-x-4 text-sm text-slate-400"><span>${escape_html(calculateAge(student.date_of_birth))} años</span> <span${attr_class(clsx(levelColors[student.chess_level]), "svelte-arozio")}>${escape_html(levelLabels[student.chess_level])}</span> <div class="flex items-center space-x-1">`);
         Mail($$payload, { class: "w-3 h-3" });
         $$payload.out.push(`<!----> <span>${escape_html(student.email)}</span></div></div></div></div> <button${attr("disabled", isEnrolling, true)} class="p-2 hover:bg-green-500/20 rounded-lg transition-colors text-slate-400 hover:text-green-400 disabled:opacity-50 disabled:cursor-not-allowed" title="Inscribir estudiante">`);
         {
