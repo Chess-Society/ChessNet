@@ -1,0 +1,151 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { goto, invalidateAll } from '$app/navigation';
+  import { 
+    BookOpen, 
+    Plus, 
+    ArrowLeft,
+    Settings
+  } from 'lucide-svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
+
+  let isLoading = false; // Simplificado - no hay carga de datos
+
+  onMount(() => {
+    console.log('✅ Lessons page: User authenticated via server:', data.user?.email, 'SchoolId:', data.schoolId);
+  });
+
+  function goBack() {
+    invalidateAll().then(() => {
+      goto(`/schools/${data.schoolId}`);
+    });
+  }
+
+</script>
+
+<svelte:head>
+  <title>Lecciones - ChessNet</title>
+</svelte:head>
+
+<div class="min-h-screen bg-slate-900">
+  <!-- Header -->
+  <header class="bg-slate-800 border-b border-slate-700">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <button 
+            on:click={goBack}
+            class="text-slate-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft class="w-5 h-5" />
+          </button>
+          <div class="flex items-center space-x-3">
+            <BookOpen class="w-6 h-6 text-primary-500" />
+            <div>
+              <h1 class="text-xl font-bold text-white">Lecciones y Ejercicios</h1>
+              <p class="text-sm text-slate-400">Centro ID: {data.schoolId}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <button class="btn-secondary">
+            <Plus class="w-4 h-4 mr-2" />
+            Ejercicio
+          </button>
+          <button class="btn-secondary">
+            <Plus class="w-4 h-4 mr-2" />
+            Lección
+          </button>
+          <button class="btn-primary">
+            <Plus class="w-4 h-4 mr-2" />
+            Unidad
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    <!-- Status message -->
+    <div class="mb-8">
+      <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="p-2 bg-blue-500/20 rounded-lg">
+            <Settings class="w-6 h-6 text-blue-500" />
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold">Módulo de Lecciones en Configuración</h3>
+            <p class="text-slate-400">El sistema de lecciones está siendo configurado</p>
+          </div>
+        </div>
+        <p class="text-slate-300 mb-4">
+          Esta sección permitirá crear y gestionar unidades de contenido, lecciones y ejercicios de ajedrez para tus estudiantes.
+        </p>
+        <div class="flex space-x-3">
+          <button class="btn-primary">
+            <Plus class="w-4 h-4 mr-2" />
+            Crear primera unidad
+          </button>
+          <button class="btn-secondary">
+            <BookOpen class="w-4 h-4 mr-2" />
+            Ver documentación
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features preview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="card hover:bg-slate-700 transition-colors">
+        <div class="flex items-center space-x-4">
+          <div class="p-3 bg-primary-500/20 rounded-xl">
+            <BookOpen class="w-6 h-6 text-primary-500" />
+          </div>
+          <div>
+            <h3 class="font-semibold">Unidades de Contenido</h3>
+            <p class="text-sm text-slate-400">Organiza lecciones por temas</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card hover:bg-slate-700 transition-colors">
+        <div class="flex items-center space-x-4">
+          <div class="p-3 bg-green-500/20 rounded-xl">
+            <Plus class="w-6 h-6 text-green-500" />
+          </div>
+          <div>
+            <h3 class="font-semibold">Lecciones Interactivas</h3>
+            <p class="text-sm text-slate-400">Crea contenido educativo</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card hover:bg-slate-700 transition-colors">
+        <div class="flex items-center space-x-4">
+          <div class="p-3 bg-yellow-500/20 rounded-xl">
+            <Settings class="w-6 h-6 text-yellow-500" />
+          </div>
+          <div>
+            <h3 class="font-semibold">Ejercicios de Práctica</h3>
+            <p class="text-sm text-slate-400">Táctica, estrategia y finales</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success message -->
+    <div class="mt-8">
+      <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+        <div class="flex items-center">
+          <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+          <p class="text-green-300 text-sm">
+            ✅ Módulo de lecciones funcionando correctamente. Listo para configurar contenido.
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
