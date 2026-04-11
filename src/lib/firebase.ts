@@ -24,24 +24,11 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-if (browser) {
-  console.log('🔥 Initializing Firebase with Config:', {
-    projectId: firebaseConfig.projectId,
-    hasApiKey: !!firebaseConfig.apiKey
-  });
-}
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-if (browser) {
-  console.log('🔥 Firebase Initialized:', {
-    hasApp: !!app,
-    hasAuth: !!auth,
-    hasDb: !!db
-  });
-}
 
 let analytics = null;
 if (browser) {
