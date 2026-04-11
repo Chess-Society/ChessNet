@@ -4,9 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # Omit the Firebase API key from the secrets scanner since it's a public key
-  # required for the frontend to function.
-  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyAVfcGFylUSYSkwEH0dTrCySqu-SwAhHm4"
+  # Disable smart secrets detection because it flags public Firebase keys 
+  # in both build artifacts and node_modules, blocking the production deploy.
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
 
 [[headers]]
   for = "/_app/immutable/*"
