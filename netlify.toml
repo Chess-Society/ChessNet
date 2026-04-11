@@ -4,6 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  # Omit the Firebase API key from the secrets scanner since it's a public key
+  # required for the frontend to function.
+  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyAVfcGFylUSYSkwEH0dTrCySqu-SwAhHm4"
 
 [[headers]]
   for = "/_app/immutable/*"
