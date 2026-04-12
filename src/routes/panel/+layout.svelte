@@ -135,7 +135,7 @@
               <a href="/panel/configuracion" class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
                 <Settings class="w-4 h-4" /> Configuración
               </a>
-              {#if email === 'andreslgumuzio@gmail.com'}
+              {#if email === 'andrelgumuzio@gmail.com'}
                 <a href="/admin" class="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition-colors">
                   <Key class="w-4 h-4" /> Panel Admin
                 </a>
