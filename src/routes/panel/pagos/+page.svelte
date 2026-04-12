@@ -189,8 +189,8 @@
             
             <div class="p-8 space-y-6">
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Alumno</label>
-                    <select bind:value={newPayment.studentId} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all">
+                    <label for="student-select" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Alumno</label>
+                    <select id="student-select" bind:value={newPayment.studentId} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all">
                         <option value="">Seleccionar alumno...</option>
                         {#each students as s}
                             <option value={s.id}>{s.name}</option>
@@ -200,18 +200,18 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Monto (€)</label>
-                        <input type="number" bind:value={newPayment.amount} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all" />
+                        <label for="payment-amount" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Monto (€)</label>
+                        <input id="payment-amount" type="number" bind:value={newPayment.amount} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all" />
                     </div>
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Fecha</label>
-                        <input type="date" bind:value={newPayment.date} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all" />
+                        <label for="payment-date" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Fecha</label>
+                        <input id="payment-date" type="date" bind:value={newPayment.date} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all" />
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Concepto</label>
-                    <input type="text" bind:value={newPayment.concept} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all" />
+                    <label for="payment-concept" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Concepto</label>
+                    <input id="payment-concept" type="text" bind:value={newPayment.concept} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all" />
                 </div>
 
                 <button 

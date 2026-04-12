@@ -74,22 +74,24 @@
 
               <div class="flex-grow space-y-6 w-full">
                   <div class="space-y-2">
-                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nombre Público</label>
+                      <label for="public-name" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nombre Público</label>
                       <input 
+                        id="public-name"
                         type="text" 
-                        bind:value={config.teacherName}
-                        placeholder="Ej. Maestro Magnus"
-                        class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none transition-all"
+                        bind:value={appStore.settings.teacherName}
+                        placeholder="Ej. Academia GM"
+                        class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-primary-500 outline-none transition-all placeholder:text-slate-600"
                       />
                   </div>
 
                   <div class="space-y-2">
-                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Correo Electrónico</label>
+                      <label for="public-email" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Correo Electrónico</label>
                       <input 
+                        id="public-email"
                         type="email" 
-                        value={auth.currentUser?.email}
-                        disabled
-                        class="w-full bg-slate-900/50 border border-slate-800/50 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed"
+                        bind:value={appStore.settings.teacherEmail}
+                        placeholder="contacto@academia.com"
+                        class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-primary-500 outline-none transition-all placeholder:text-slate-600"
                       />
                       <p class="text-[10px] text-slate-600 mt-1 italic">El correo no puede ser modificado por seguridad.</p>
                   </div>

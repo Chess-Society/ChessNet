@@ -46,6 +46,7 @@
     "chessboardjs": "^0.0.1",
     "firebase": "^12.10.0",
     "localforage": "^1.10.0",
-    "lucide-svelte": "^0.542.0"
+    "lucide-svelte": "^0.542.0",
+    "stripe": "^22.0.1"
   }
 }

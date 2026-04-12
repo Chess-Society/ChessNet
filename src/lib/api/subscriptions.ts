@@ -117,30 +117,60 @@ const mockUserLimits: UserPlanLimits = {
  */
 export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
   try {
-    // En desarrollo local, usar datos mock
-    if (typeof window !== 'undefined' && 
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-      console.log('🔧 DEV MODE: Usando planes mock');
-      return mockPlans;
-    }
-
-    // En producción, hacer fetch a Supabase
-    const response = await fetch('/api/subscriptions/plans', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
+    // Definimos los planes basados en el diseño de ChessNet
+    return [
+      {
+        id: 'plan-free',
+        name: 'free',
+        display_name: 'Ajedrecista',
+        description: 'Perfecto para empezar o gestionar una pequeña escuela local.',
+        price_annual: 0,
+        currency: 'EUR',
+        max_students: 12,
+        max_classes: 2,
+        max_colleges: 1,
+        max_tournaments: 0,
+        max_storage_mb: 50,
+        max_custom_skills: 0,
+        features: [
+          '1 Centro / Colegio',
+          '2 Clases simultáneas',
+          'Hasta 12 Alumnos totales',
+          'Pase de lista y Asistencia'
+        ],
+        is_active: true,
+        sort_order: 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: 'plan-premium',
+        name: 'premium',
+        display_name: 'Maestro Premium',
+        description: 'Todas las herramientas sin límites para un control profesional total.',
+        price_annual: 12, // 1€/mes * 12
+        currency: 'EUR',
+        max_students: -1,
+        max_classes: -1,
+        max_colleges: -1,
+        max_tournaments: -1,
+        max_storage_mb: 2000,
+        max_custom_skills: -1,
+        features: [
+          'Centros y Clases Ilimitados',
+          'Alumnos Ilimitados',
+          'Gestión de Torneos (Emparejamientos)',
+          'Informes PDF y Diplomas',
+          'Exportación de datos (Excel/PDF)'
+        ],
+        is_active: true,
+        sort_order: 2,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.plans || [];
+    ];
   } catch (error) {
     console.error('❌ Error fetching subscription plans:', error);
-    // Fallback a mock data en caso de error
     return mockPlans;
   }
 };
@@ -241,46 +271,37 @@ export const getUpgradeData = async (): Promise<SubscriptionUpgradeData> => {
 };
 
 /**
- * Inicia el proceso de upgrade con PayPal
+ * Inicia el proceso de upgrade con Stripe
  */
-export const initiateUpgrade = async (planName: string): Promise<{ success: boolean; payment_url?: string; error?: string }> => {
+export const initiateUpgrade = async (planName: string, uid?: string, email?: string): Promise<{ success: boolean; payment_url?: string; error?: string }> => {
   try {
     console.log(`🚀 Iniciando upgrade a plan: ${planName}`);
 
-    // En desarrollo local, simular éxito
-    if (typeof window !== 'undefined' && 
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-      console.log('🔧 DEV MODE: Simulando upgrade exitoso');
-      
-      // Simular redirección a PayPal (en real sería la URL real)
-      return {
-        success: true,
-        payment_url: `https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_xclick&business=chessnetappweb@gmail.com&item_name=ChessNet%20${planName}&amount=${planName === 'professional' ? '39.00' : '99.00'}&currency_code=EUR`
-      };
-    }
-
-    // En producción, crear sesión de pago real
-    const response = await fetch('/api/subscriptions/create-payment', {
+    const response = await fetch('/api/stripe/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        plan_name: planName
+        plan_name: planName === 'premium' ? 'Maestro Premium' : planName,
+        price_id: 'price_1T6H9xRBnPDD6EfR0BmyYKYf',
+        uid: uid,
+        user_email: email
       })
     });
 
     if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error initiating upgrade:', error);
     return {
       success: false,
-      error: 'Error al iniciar el proceso de upgrade. Por favor, intenta nuevamente.'
+      error: error.message || 'Error al iniciar el proceso de upgrade. Por favor, intenta nuevamente.'
     };
   }
 };

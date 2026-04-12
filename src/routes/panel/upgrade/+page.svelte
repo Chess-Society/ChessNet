@@ -18,9 +18,9 @@
     CreditCard,
     Activity
   } from 'lucide-svelte';
-  import type { PageData } from './$types';
   import { initiateUpgrade } from '$lib/api/subscriptions';
   import { fade, fly, scale } from 'svelte/transition';
+  import { auth } from '$lib/firebase';
 
   let { data } = $props<{ data: PageData }>();
 
@@ -34,8 +34,15 @@
     isUpgrading = true;
     selectedPlan = planName;
     
+    const user = auth.currentUser;
+    if (!user) {
+      alert('Debes iniciar sesión para realizar el upgrade');
+      isUpgrading = false;
+      return;
+    }
+    
     try {
-      const result = await initiateUpgrade(planName);
+      const result = await initiateUpgrade(planName, user.uid, user.email || undefined);
       if (result.success && result.payment_url) {
         window.location.href = result.payment_url;
       } else {
@@ -57,8 +64,7 @@
   const getPlanIcon = (planName: string): any => {
     switch (planName) {
       case 'free': return Shield;
-      case 'professional': return Star;
-      case 'academy': return Crown;
+      case 'premium': return Crown;
       default: return Zap;
     }
   };
@@ -154,8 +160,8 @@
             </div>
             <h3 class="text-2xl font-black text-white uppercase tracking-tighter mb-2">{plan.display_name}</h3>
             <div class="flex items-baseline justify-center gap-1 mb-4">
-              <span class="text-4xl font-black text-white">€{plan.price_annual}</span>
-              <span class="text-surface-500 text-sm font-bold">/año</span>
+              <span class="text-4xl font-black text-white">€{plan.name === 'premium' ? '1' : plan.price_annual}</span>
+              <span class="text-surface-500 text-sm font-bold">/mes</span>
             </div>
             <p class="text-surface-500 text-sm">{plan.description}</p>
           </div>

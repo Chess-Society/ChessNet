@@ -1,10 +1,30 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { CheckCircle, X, School } from 'lucide-svelte';
-  import { Scale } from 'lucide-svelte';
+  import { CheckCircle, X, School, Scale } from 'lucide-svelte';
+  import { initiateUpgrade } from '$lib/api/subscriptions';
+  import { auth } from '$lib/firebase';
 
   function goToLogin() {
     goto('/login');
+  }
+
+  async function handleSubscribe() {
+    const user = auth.currentUser;
+    if (!user) {
+      goto('/login?redirect=/precios');
+      return;
+    }
+
+    try {
+      const result = await initiateUpgrade('premium', user.uid, user.email || undefined);
+      if (result.success && result.payment_url) {
+        window.location.href = result.payment_url;
+      } else {
+        alert(result.error || 'Error al iniciar suscripción');
+      }
+    } catch (e) {
+      alert('Error de conexión');
+    }
   }
 </script>
 
@@ -93,7 +113,12 @@
               <li class="flex gap-x-3"><CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Exportación de datos (Excel/PDF)</li>
             </ul>
           </div>
-          <a href="https://buy.stripe.com/test_5kAcN87vU8Xv06s8w8?client_reference_id=beta_user" target="_blank" class="mt-8 block rounded-md px-3 py-3 text-center text-sm font-bold leading-6 bg-indigo-600 text-white shadow-xl hover:bg-indigo-500 transition-all transform hover:-translate-y-1">Suscribirse Ahora</a>
+          <button 
+            onclick={handleSubscribe} 
+            class="mt-8 block rounded-md px-3 py-3 text-center text-sm font-bold leading-6 bg-indigo-600 text-white shadow-xl hover:bg-indigo-500 transition-all transform hover:-translate-y-1 w-full"
+          >
+            Suscribirse Ahora
+          </button>
         </div>
       </div>
     </div>
@@ -189,7 +214,7 @@
       <a href="https://discord.gg/G7SrFtJHnr" target="_blank" rel="noreferrer" class="text-slate-400 hover:text-emerald-400">Discord</a>
     </div>
     <div class="mt-8 md:order-1 md:mt-0">
-      <p class="text-center text-xs leading-5 text-slate-500">© {new Date().getFullYear()} ChessNet. Hecho con <span class="text-red-500">❤</span> para el ajedrez.</p>
+      <p class="text-center text-xs leading-5 text-slate-500">© {new Date().getFullYear()} ChessNet. Hecho con <span class="text-red-500">?</span> para el ajedrez.</p>
     </div>
   </div>
 </footer>
