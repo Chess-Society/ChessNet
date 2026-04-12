@@ -1,14 +1,27 @@
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ locals }) => {
+export const GET: RequestHandler = async ({ locals, cookies }) => {
   try {
+    let user = locals.user;
+
+    if (!user) {
+      const session = cookies.get('sb-auth-token');
+      if (session) {
+        try {
+          user = JSON.parse(decodeURIComponent(session));
+        } catch (e) {
+          user = null;
+        }
+      }
+    }
+
     const response = {
-      authenticated: !!locals.user,
-      user: locals.user,
-      session: locals.user ? {
+      authenticated: !!user,
+      user: user,
+      session: user ? {
         user: {
-          id: locals.user.id,
-          email: locals.user.email
+          id: user.id || user.uid,
+          email: user.email
         },
         expires_at: Math.floor(Date.now() / 1000) + 3600 // Mock expiration
       } : null,

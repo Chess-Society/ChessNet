@@ -16,15 +16,9 @@
   [headers.values]
     cache-control = "public, immutable, max-age=31536000"
 
-[[redirects]]
-  from = "/students/*"
-  to = "/panel/alumnos"
-  status = 301
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+
+
 
 [[headers]]
   for = "/*.html"
