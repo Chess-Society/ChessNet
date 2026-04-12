@@ -1,3 +1,4 @@
+<script lang="ts">
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { LogOut, Settings, Home, Key } from 'lucide-svelte';
@@ -19,7 +20,7 @@
   let currentRoute = $derived($page.url.pathname);
 
   // Breadcrumbs dinámicos idénticos a gh-pages
-  let breadcrumbName = $derived(() => {
+  let breadcrumbName = $derived.by(() => {
     let parts = currentRoute.replace('/panel', '').split('/').filter(e => e);
     if (parts.length === 0) return 'Resumen';
     
