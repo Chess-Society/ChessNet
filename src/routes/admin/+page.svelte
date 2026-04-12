@@ -2,20 +2,21 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { db, auth } from '$lib/firebase';
-  import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
+  import { collection, query, onSnapshot, orderBy, limit, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
   import { onAuthStateChanged } from 'firebase/auth';
   import { fade, slide, scale } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
+  import { Settings, UserCheck, Clock, ShieldCheck, Mail, LogOut, ChevronRight, Edit3, Trophy } from 'lucide-svelte';
 
-  const ADMIN_EMAIL = 'andrelgumuzio@gmail.com';
+  const ADMIN_EMAILS = ['andreslgumuzio@gmail.com', 'andrelgumuzio@gmail.com'];
 
   let users = $state<any[]>([]);
   let stats = $derived({
     total: users.length,
-    premium: users.filter(u => u.config?.settings?.subscription?.plan === 'premium').length,
-    free: users.filter(u => u.config?.settings?.subscription?.plan !== 'premium').length,
+    premium: users.filter(u => u.settings?.plan === 'premium' || u.config?.settings?.subscription?.plan === 'premium').length,
+    free: users.filter(u => u.settings?.plan !== 'premium' && u.config?.settings?.subscription?.plan !== 'premium').length,
     recent: users.filter(u => {
-        const date = new Date(u.createdAt);
+        const date = u.createdAt ? new Date(u.createdAt) : new Date();
         const now = new Date();
         const diffTime = Math.abs(now.getTime() - date.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -27,6 +28,11 @@
   let isAuthorized = $state(false);
   let error = $state('');
 
+  // Modales y Edición
+  let selectedUser = $state<any>(null);
+  let showEditModal = $state(false);
+  let isSaving = $state(false);
+
   onMount(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -34,7 +40,7 @@
         return;
       }
 
-      if (user.email !== ADMIN_EMAIL) {
+      if (!ADMIN_EMAILS.includes(user.email || '')) {
         console.error('🚫 Acceso denegado: No autorizado');
         goto('/');
         return;
@@ -52,6 +58,7 @@
   function startMonitoring() {
     isLoading = true;
     try {
+      // Monitoreamos la colección de usuarios
       const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(100));
       
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -74,7 +81,74 @@
     }
   }
 
-  function formatDate(dateStr: string) {
+  async function handleGrantPremium(userId: string, days: number) {
+    isSaving = true;
+    try {
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + days);
+        
+        // Actualizamos tanto en el doc de usuario como en su configuración de app
+        const userDocRef = doc(db, 'users', userId);
+        const appDataRef = doc(db, 'users', userId, 'appData', 'v1');
+
+        const updatePayload = {
+            'settings.plan': 'premium',
+            'settings.planExpiresAt': expirationDate.toISOString(),
+            'updatedAt': new Date().toISOString()
+        };
+
+        await updateDoc(userDocRef, updatePayload);
+        
+        // También actualizamos el config dentro de appData para que el frontend lo vea
+        const snap = await getDoc(appDataRef);
+        if (snap.exists()) {
+            const currentData = snap.data();
+            await updateDoc(appDataRef, {
+                'settings.plan': 'premium',
+                'settings.planExpiresAt': expirationDate.toISOString()
+            });
+        }
+
+        console.log(`✅ Plan Premium concedido por ${days} días`);
+        showEditModal = false;
+    } catch (err: any) {
+        alert('Error al conceder plan: ' + err.message);
+    } finally {
+        isSaving = false;
+    }
+  }
+
+  async function handleRevokePremium(userId: string) {
+    if (!confirm('¿Estás seguro de revocar el plan Premium?')) return;
+    isSaving = true;
+    try {
+        const userDocRef = doc(db, 'users', userId);
+        const appDataRef = doc(db, 'users', userId, 'appData', 'v1');
+
+        await updateDoc(userDocRef, {
+            'settings.plan': 'free',
+            'settings.planExpiresAt': null
+        });
+
+        await updateDoc(appDataRef, {
+            'settings.plan': 'free',
+            'settings.planExpiresAt': null
+        });
+
+        showEditModal = false;
+    } catch (err: any) {
+        alert('Error: ' + err.message);
+    } finally {
+        isSaving = false;
+    }
+  }
+
+  function openEditModal(user: any) {
+    selectedUser = user;
+    showEditModal = true;
+  }
+
+  function formatDate(dateStr: any) {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('es-ES', {
       day: '2-digit',
@@ -82,147 +156,199 @@
       year: 'numeric'
     });
   }
+
+  function getPlanStatus(user: any) {
+    const plan = user.settings?.plan || user.config?.settings?.subscription?.plan || 'free';
+    const expiresAt = user.settings?.planExpiresAt;
+    
+    if (plan === 'premium') {
+        if (expiresAt && new Date(expiresAt) < new Date()) return 'expired';
+        return 'premium';
+    }
+    return 'free';
+  }
 </script>
 
 <svelte:head>
-  <title>Admin Dashboard - ChessNet</title>
+  <title>Admin HQ - ChessNet</title>
 </svelte:head>
 
-<div class="min-h-screen bg-[#0f172a] text-white font-sans p-4 md:p-8">
+<div class="min-h-screen bg-[#0f172a] text-white font-sans p-4 md:p-8 selection:bg-emerald-500/30">
+  
+  <!-- Background Elements -->
+  <div class="fixed inset-0 z-0 opacity-20 pointer-events-none">
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+  </div>
+  <div class="fixed top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[128px] pointer-events-none"></div>
+
   {#if !isAuthorized}
-    <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4" in:fade>
+    <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4 relative z-10" in:fade>
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-      <p class="text-slate-400">Verificando credenciales de administrador...</p>
+      <p class="text-slate-400 font-medium tracking-wide font-display uppercase text-xs">Acceso Restringido</p>
     </div>
   {:else}
-    <div class="max-w-7xl mx-auto space-y-8" in:fade>
+    <div class="max-w-7xl mx-auto space-y-8 relative z-10" in:fade>
       
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-            <Logo size="w-10 h-10" iconSize="w-5 h-5" />
+      <!-- Top Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="flex items-center gap-5">
+          <div class="relative group">
+            <div class="absolute -inset-2 bg-emerald-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="relative p-3.5 bg-[#1e293b]/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-xl">
+              <Logo size="w-10 h-10" iconSize="w-6 h-6" />
+            </div>
           </div>
           <div>
-            <h1 class="text-2xl font-bold tracking-tight">Panel de Administración</h1>
-            <p class="text-slate-400 text-sm">Monitorización global en tiempo real</p>
+            <h1 class="text-3xl font-extrabold tracking-tight text-white mb-1">Centro de Mando</h1>
+            <div class="flex items-center gap-2 text-slate-400 text-xs font-medium uppercase tracking-widest">
+                <ShieldCheck class="w-3.5 h-3.5 text-emerald-500" />
+                Acceso Super-Admin
+                <span class="mx-2 text-slate-700">|</span>
+                <span class="text-emerald-500/80">Sincronización Activa</span>
+            </div>
           </div>
         </div>
         
         <div class="flex items-center gap-3">
-          <div class="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2">
-            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-            LIVE
+          <div class="px-4 py-2 rounded-xl bg-slate-900/50 border border-slate-700/50 flex items-center gap-3 shadow-inner">
+            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span class="text-[10px] font-bold text-slate-300 tracking-tighter uppercase tabular-nums">Real-time Node</span>
           </div>
           <button 
             onclick={() => window.location.reload()}
-            class="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400"
-            title="Refrescar"
+            class="p-2.5 bg-[#1e293b] hover:bg-slate-800 border border-slate-700 rounded-xl transition-all text-slate-400 hover:text-white shadow-lg"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            <Settings class="w-5 h-5" />
           </button>
         </div>
       </div>
 
       {#if error}
-        <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm" in:slide>
+        <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3" in:slide>
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           {error}
         </div>
       {/if}
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-[#1e293b]/50 backdrop-blur-xl border border-slate-700/50 p-6 rounded-2xl hover:border-emerald-500/30 transition-all group">
-          <p class="text-slate-400 text-sm font-medium mb-1">Total Profesores</p>
-          <div class="flex items-baseline gap-2">
-            <h3 class="text-3xl font-bold text-white group-hover:text-emerald-400 transition-colors uppercase tabular-nums">
-              {stats.total}
-            </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-3xl group relative overflow-hidden transition-all hover:border-emerald-500/20 shadow-2xl">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Mail class="w-12 h-12" />
+          </div>
+          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-3">Total Profesores</p>
+          <h3 class="text-4xl font-extrabold text-white tabular-nums tracking-tighter group-hover:text-emerald-400 transition-colors">
+            {stats.total}
+          </h3>
+        </div>
+
+        <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-3xl group relative overflow-hidden transition-all hover:border-purple-500/20 shadow-2xl">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Trophy class="w-12 h-12" />
+          </div>
+          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-3">Maestros Premium</p>
+          <div class="flex items-baseline gap-3">
+              <h3 class="text-4xl font-extrabold text-purple-400 tabular-nums tracking-tighter">
+                {stats.premium}
+              </h3>
+              <span class="text-xs font-bold text-slate-600">
+                {stats.total > 0 ? ((stats.premium / stats.total) * 100).toFixed(0) : 0}%
+              </span>
           </div>
         </div>
 
-        <div class="bg-[#1e293b]/50 backdrop-blur-xl border border-slate-700/50 p-6 rounded-2xl hover:border-purple-500/30 transition-all group">
-          <p class="text-slate-400 text-sm font-medium mb-1">Maestros Premium</p>
-          <div class="flex items-baseline gap-2">
-            <h3 class="text-3xl font-bold text-purple-400 tabular-nums">{stats.premium}</h3>
-            <span class="text-xs text-slate-500">
-              {stats.total > 0 ? ((stats.premium / stats.total) * 100).toFixed(1) : 0}%
-            </span>
+        <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-3xl group relative overflow-hidden transition-all hover:border-blue-500/20 shadow-2xl">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <UserCheck class="w-12 h-12" />
           </div>
+          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-3">Registros (7d)</p>
+          <h3 class="text-4xl font-extrabold text-blue-400 tabular-nums tracking-tighter">
+            {stats.recent}
+          </h3>
         </div>
 
-        <div class="bg-[#1e293b]/50 backdrop-blur-xl border border-slate-700/50 p-6 rounded-2xl hover:border-blue-500/30 transition-all group">
-          <p class="text-slate-400 text-sm font-medium mb-1">Registros (7d)</p>
-          <div class="flex items-baseline gap-2">
-            <h3 class="text-3xl font-bold text-blue-400 tabular-nums">{stats.recent}</h3>
+        <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-3xl group relative overflow-hidden transition-all hover:border-slate-500/20 shadow-2xl">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Clock class="w-12 h-12" />
           </div>
-        </div>
-
-        <div class="bg-[#1e293b]/50 backdrop-blur-xl border border-slate-700/50 p-6 rounded-2xl hover:border-slate-500/30 transition-all group">
-          <p class="text-slate-400 text-sm font-medium mb-1">Ajedrecistas (Free)</p>
-          <div class="flex items-baseline gap-2">
-            <h3 class="text-3xl font-bold text-slate-400 tabular-nums">{stats.free}</h3>
-          </div>
+          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-3">Tasa Conversión</p>
+          <h3 class="text-4xl font-extrabold text-slate-300 tabular-nums tracking-tighter">
+            {stats.total > 0 ? ((stats.premium / stats.total) * 100).toFixed(1) : 0}%
+          </h3>
         </div>
       </div>
 
-      <!-- Users Table -->
-      <div class="bg-[#1e293b]/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden">
-        <div class="p-6 border-b border-slate-700/50 flex items-center justify-between bg-slate-800/20">
-            <h3 class="font-bold flex items-center gap-2">
-                <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                Profesores Registrados
-            </h3>
-            <div class="text-xs text-slate-500">Mostrando últimos 100</div>
+      <!-- Main Content Area -->
+      <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden">
+        <div class="p-8 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5">
+            <div>
+                <h3 class="text-xl font-bold flex items-center gap-3">
+                    Directorio de Profesores
+                </h3>
+                <p class="text-slate-500 text-xs mt-1">Gestión avanzada de permisos y planes</p>
+            </div>
+            <div class="relative w-full sm:w-64">
+                <input 
+                    type="text" 
+                    placeholder="Buscar por email..." 
+                    class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500/30 outline-none transition-all"
+                />
+            </div>
         </div>
         
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="text-slate-400 text-[10px] uppercase tracking-widest bg-slate-800/30">
-                <th class="px-6 py-4 font-bold">Profesor</th>
-                <th class="px-6 py-4 font-bold">Email</th>
-                <th class="px-6 py-4 font-bold">Plan</th>
-                <th class="px-6 py-4 font-bold">Registro</th>
-                <th class="px-6 py-4 font-bold">ID (UID)</th>
+              <tr class="text-slate-500 text-[10px] uppercase font-black tracking-[0.2em] bg-white/5">
+                <th class="px-8 py-5">Nombre / Email</th>
+                <th class="px-8 py-5">Estado Plan</th>
+                <th class="px-8 py-5">Registro</th>
+                <th class="px-8 py-5 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-700/30">
+            <tbody class="divide-y divide-white/5">
               {#if isLoading}
-                <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">Cargando base de datos...</td>
-                </tr>
+                <tr><td colspan="4" class="px-8 py-20 text-center text-slate-600 italic">Analizando base de datos...</td></tr>
               {:else if users.length === 0}
-                <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">No hay profesores registrados todavía</td>
-                </tr>
+                <tr><td colspan="4" class="px-8 py-20 text-center text-slate-600 italic">No se han encontrado registros</td></tr>
               {:else}
                 {#each users as user (user.id)}
-                  <tr class="hover:bg-white/5 transition-colors group" in:scale={{duration: 200, start: 0.98}}>
-                    <td class="px-6 py-4">
-                      <div class="font-bold text-white group-hover:text-emerald-400 transition-colors">
-                        {user.displayName || 'Sin nombre'}
+                  {@const status = getPlanStatus(user)}
+                  <tr class="hover:bg-white/5 transition-all group" in:fade={{duration: 200}}>
+                    <td class="px-8 py-5">
+                      <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center font-bold text-slate-300 shadow-lg border border-white/5 group-hover:scale-110 transition-transform">
+                            {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="font-bold text-white group-hover:text-emerald-400 transition-colors">{user.displayName || 'Maestro Anónimo'}</div>
+                            <div class="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">{user.id}</div>
+                        </div>
                       </div>
                     </td>
-                    <td class="px-6 py-4">
-                      <span class="text-slate-400 text-sm select-all">{user.email}</span>
+                    <td class="px-8 py-5">
+                        <div class="flex items-center gap-3">
+                            {#if status === 'premium'}
+                                <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-black px-2.5 py-1 rounded-lg border border-emerald-500/30">PREMIUM</span>
+                                <span class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Hasta {formatDate(user.settings?.planExpiresAt)}</span>
+                            {:else if status === 'expired'}
+                                <span class="bg-amber-500/10 text-amber-500 text-[10px] font-black px-2.5 py-1 rounded-lg border border-amber-500/30 text-decoration-line-through">EXPIRED</span>
+                            {:else}
+                                <span class="bg-slate-800/50 text-slate-600 text-[10px] font-black px-2.5 py-1 rounded-lg border border-slate-700/50">AJEDRECISTA</span>
+                            {/if}
+                        </div>
                     </td>
-                    <td class="px-6 py-4 text-center">
-                        {#if user.config?.settings?.subscription?.plan === 'premium'}
-                            <span class="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-400 text-[10px] font-bold border border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.1)]">PREMIUM</span>
-                        {:else}
-                            <span class="px-2 py-0.5 rounded-md bg-slate-700/20 text-slate-400 text-[10px] font-bold border border-slate-600/30">FREE</span>
-                        {/if}
+                    <td class="px-8 py-5">
+                      <div class="text-xs text-slate-400 font-medium">{formatDate(user.createdAt)}</div>
+                      <div class="text-slate-600 text-[10px] lowercase max-w-[150px] truncate">{user.email}</div>
                     </td>
-                    <td class="px-6 py-4">
-                      <span class="text-slate-500 text-xs">{formatDate(user.createdAt)}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="text-[9px] font-mono text-slate-600 uppercase tracking-tighter truncate max-w-[80px] block" title={user.id}>{user.id}</span>
+                    <td class="px-8 py-5 text-right">
+                        <button 
+                            onclick={() => openEditModal(user)}
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg hover:shadow-emerald-600/20 active:scale-95"
+                        >
+                            Gestionar
+                        </button>
                     </td>
                   </tr>
                 {/each}
@@ -230,18 +356,102 @@
             </tbody>
           </table>
         </div>
-        
-        <div class="p-4 bg-slate-800/10 border-t border-slate-700/50 text-center">
-            <p class="text-[10px] text-slate-600 uppercase tracking-widest font-bold">ChessNet Global Admin Engine v1.0</p>
-        </div>
       </div>
-
     </div>
   {/if}
+
+  <!-- Modals -->
+  {#if showEditModal && selectedUser}
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0f172a]/80 backdrop-blur-sm" transition:fade>
+        <div class="bg-[#1e293b] w-full max-w-lg rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden" in:scale={{start: 0.95}}>
+            <div class="p-8 border-b border-white/5 bg-white/5 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold tracking-tight">Gestionar Profesor</h3>
+                    <p class="text-slate-400 text-xs mt-1">{selectedUser.email}</p>
+                </div>
+                <button onclick={() => showEditModal = false} class="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-white transition-colors">
+                    <LogOut class="w-5 h-5 rotate-180" />
+                </button>
+            </div>
+
+            <div class="p-8 space-y-8">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Conceder Periodo Premium</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button 
+                            onclick={() => handleGrantPremium(selectedUser.id, 3)}
+                            disabled={isSaving}
+                            class="px-4 py-3 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 border border-slate-700 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
+                        >
+                            3 Días (Trial)
+                        </button>
+                        <button 
+                            onclick={() => handleGrantPremium(selectedUser.id, 7)}
+                            disabled={isSaving}
+                            class="px-4 py-3 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 border border-slate-700 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
+                        >
+                            7 Días (Cortesía)
+                        </button>
+                        <button 
+                            onclick={() => handleGrantPremium(selectedUser.id, 15)}
+                            disabled={isSaving}
+                            class="px-4 py-3 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 border border-slate-700 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
+                        >
+                            15 Días (Extend.)
+                        </button>
+                        <button 
+                            onclick={() => handleGrantPremium(selectedUser.id, 30)}
+                            disabled={isSaving}
+                            class="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/50 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
+                        >
+                            30 Días (Mes)
+                        </button>
+                    </div>
+                </div>
+
+                {#if getPlanStatus(selectedUser) === 'premium'}
+                    <div class="pt-6 border-t border-white/5">
+                        <button 
+                            onclick={() => handleRevokePremium(selectedUser.id)}
+                            disabled={isSaving}
+                            class="w-full px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
+                        >
+                            Revocar Plan Premium
+                        </button>
+                    </div>
+                {/if}
+            </div>
+
+            <div class="p-6 bg-slate-900/50 text-center">
+                <p class="text-[9px] text-slate-600 uppercase font-black">ChessNet Admin Engine v1.0 • Acceso Super-Admin</p>
+            </div>
+        </div>
+    </div>
+  {/if}
+
 </div>
 
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
+  :global(body) {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-display {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  h1, h3 {
+    font-family: 'Outfit', sans-serif;
+  }
+
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 </style>
