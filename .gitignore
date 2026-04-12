@@ -19,7 +19,5 @@ v1/
 check_out.txt
 check_output.txt
 check_results_v4_utf8.txt
-
-# OS
-.DS_Store
-Thumbs.db
+# Backups
+LEGACY_RESOURCES_BACKUP/
