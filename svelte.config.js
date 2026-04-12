@@ -8,7 +8,10 @@ const config = {
     adapter: adapter({
       edge: false, // Use standard functions for better compatibility with Firebase
       split: false
-    })
+    }),
+    paths: {
+      relative: false
+    }
   }
 };
 
