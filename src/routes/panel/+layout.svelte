@@ -59,15 +59,12 @@
 
   const handleGoHome = () => goto('/panel');
 
-  let isAuthInitialized = $state(false);
+  // Desactivamos SSR para el panel para evitar problemas de hidratación con Firebase
+  export const ssr = false;
+
+  let isAuthInitialized = $state(auth.currentUser !== null);
 
   onMount(() => {
-    // 1. Si el usuario ya está en memoria (Firease SDK lo recuperó rápido), desbloqueamos ya
-    if (auth.currentUser) {
-      isAuthInitialized = true;
-    }
-
-    // 2. Suscriptor para cambios de estado (incluido el primer login)
     const unsubscribe = auth.onAuthStateChanged((user) => {
       isAuthInitialized = true;
       if (!user) {
@@ -75,13 +72,10 @@
       }
     });
 
-    // 3. Seguro anti-hang: Si en 2 segundos no ha habido respuesta, forzamos carga
+    // Seguro de 3 segundos por si acaso
     const timeout = setTimeout(() => {
-      if (!isAuthInitialized) {
-        console.warn('⚠️ Auth initialization timed out, forcing UI unlock');
-        isAuthInitialized = true;
-      }
-    }, 2000);
+      isAuthInitialized = true;
+    }, 3000);
 
     return () => {
       unsubscribe();
@@ -93,6 +87,7 @@
 
 <div class="min-h-screen bg-[#0f172a] text-slate-200 font-sans selection:bg-emerald-500/30">
   <header class="fixed inset-x-0 top-0 z-50 transition-all duration-300 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800">
+    <!-- El header se mantiene igual -->
     <div class="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between gap-4">
       <div class="flex items-center gap-6 min-w-0">
         
@@ -179,11 +174,13 @@
         {#if !isAuthInitialized}
             <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4" in:fade>
                 <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500"></div>
-                <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Cargando Entorno...</p>
+                <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Iniciando ChessNet Pro...</p>
             </div>
-        {:else}
-            {@render children()}
         {/if}
+        
+        <div class={isAuthInitialized ? 'block' : 'hidden'}>
+            {@render children()}
+        </div>
     </div>
   </main>
 </div>
