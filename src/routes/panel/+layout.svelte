@@ -62,13 +62,31 @@
   let isAuthInitialized = $state(false);
 
   onMount(() => {
+    // 1. Si el usuario ya está en memoria (Firease SDK lo recuperó rápido), desbloqueamos ya
+    if (auth.currentUser) {
+      isAuthInitialized = true;
+    }
+
+    // 2. Suscriptor para cambios de estado (incluido el primer login)
     const unsubscribe = auth.onAuthStateChanged((user) => {
       isAuthInitialized = true;
       if (!user) {
         goto('/login');
       }
     });
-    return unsubscribe;
+
+    // 3. Seguro anti-hang: Si en 2 segundos no ha habido respuesta, forzamos carga
+    const timeout = setTimeout(() => {
+      if (!isAuthInitialized) {
+        console.warn('⚠️ Auth initialization timed out, forcing UI unlock');
+        isAuthInitialized = true;
+      }
+    }, 2000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   });
 
 </script>
