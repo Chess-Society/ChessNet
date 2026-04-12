@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { CheckCircle, ArrowRight, BookOpen, Users, Trophy, ChevronRight } from 'lucide-svelte';
+  import { CheckCircle, ArrowRight, BookOpen, Users, Trophy, ChevronRight, School } from 'lucide-svelte';
   import Logo from '$lib/components/Logo.svelte';
 
   let { data } = $props();

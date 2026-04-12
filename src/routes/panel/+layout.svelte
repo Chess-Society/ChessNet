@@ -61,7 +61,7 @@
   onMount(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        appStore.init(user.uid);
+        // El appStore se inicializa automáticamente mediante su propio listener de Auth
       } else {
         goto('/login');
       }
@@ -88,11 +88,11 @@
             <Home class="w-4 h-4 text-slate-700" />
           </button>
           
-          {#if breadcrumbName()}
+          {#if breadcrumbName}
             <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m9 18 6-6-6-6"/>
             </svg>
-            <span class="capitalize text-slate-300 font-medium">{breadcrumbName()}</span>
+            <span class="capitalize text-slate-300 font-medium">{breadcrumbName}</span>
           {/if}
         </nav>
       </div>
