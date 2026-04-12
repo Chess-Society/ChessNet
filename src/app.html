@@ -19,5 +19,20 @@
   >
     <div style="display: contents" class="h-full">%sveltekit.body%</div>
     
+    <script>
+      // Clean up any legacy Service Workers from previous versions (Svelte 4/gh-pages)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            console.log('🧹 Removing legacy Service Worker:', registration.scope);
+            registration.unregister();
+          }
+          if (registrations.length > 0) {
+            console.log('🔄 Reloading to ensure clean state...');
+            window.location.reload();
+          }
+        });
+      }
+    </script>
   </body>
 </html>

@@ -31,14 +31,20 @@
       
       if (user) {
         successMessage = true;
+        console.log('✅ Google Login Exitoso:', user.email);
         
-        // Creamos la sesión en el servidor para que layout.server.ts lo reconozca
-        const response = await fetch('/api/auth/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user })
-        });
+        try {
+          // Creamos la sesión en el servidor para que layout.server.ts lo reconozca
+          await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user })
+          });
+        } catch (e) {
+          console.warn('⚠️ No se pudo crear sesión en servidor, continuando como SPA pura...');
+        }
 
+        console.log('🚀 Redirigiendo a /panel...');
         setTimeout(() => {
           goto('/panel');
         }, 800);

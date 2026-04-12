@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-netlify';
+import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -6,8 +6,11 @@ const config = {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter({
-      edge: false, // Usa Netlify Functions estándar
-      split: false // Agrupa APIs para evitar cold-starts multiples
+      pages: 'build',
+      assets: 'build',
+      fallback: 'index.html', // Crucial for pure SPA on Netlify
+      precompress: false,
+      strict: false
     })
   }
 };
