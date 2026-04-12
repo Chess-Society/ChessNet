@@ -12,9 +12,9 @@
   let isLoggingOut = $state(false);
 
   // Reactividad del store
-  let teacherName = $derived($appStore.settings.teacherName || auth.currentUser?.displayName || 'Profe de Ajedrez');
-  let teacherAvatar = $derived($appStore.settings.teacherAvatar || auth.currentUser?.photoURL || null);
-  let plan = $derived($appStore.settings.plan || 'free');
+  let teacherName = $derived($appStore?.settings?.teacherName || auth.currentUser?.displayName || 'Profe de Ajedrez');
+  let teacherAvatar = $derived($appStore?.settings?.teacherAvatar || auth.currentUser?.photoURL || null);
+  let plan = $derived($appStore?.settings?.plan || 'free');
   let email = $derived(auth.currentUser?.email || 'profesor@chessnet.com');
   
   let currentRoute = $derived($page.url.pathname);
