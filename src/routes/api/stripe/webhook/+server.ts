@@ -1,25 +1,25 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/firebase';
 import { doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 
-const stripe = new Stripe(STRIPE_SECRET_KEY);
+const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
 
 export const POST: RequestHandler = async ({ request }) => {
   const body = await request.text();
   const sig = request.headers.get('stripe-signature');
 
-  if (!sig || !STRIPE_WEBHOOK_SECRET || STRIPE_WEBHOOK_SECRET === 'whsec_...') {
+  if (!sig || !env.STRIPE_WEBHOOK_SECRET || env.STRIPE_WEBHOOK_SECRET === 'whsec_...') {
     console.warn('⚠️ Webhook recibido sin secreto de firma configurado. Saltando verificación (solo para desarrollo inicial).');
   }
 
   let event;
 
   try {
-    if (sig && STRIPE_WEBHOOK_SECRET && STRIPE_WEBHOOK_SECRET !== 'whsec_...') {
-      event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET);
+    if (sig && env.STRIPE_WEBHOOK_SECRET && env.STRIPE_WEBHOOK_SECRET !== 'whsec_...') {
+      event = stripe.webhooks.constructEvent(body, sig, env.STRIPE_WEBHOOK_SECRET);
     } else {
       event = JSON.parse(body);
     }
