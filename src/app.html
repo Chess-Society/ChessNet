@@ -2,6 +2,27 @@
 <html lang="es" class="h-full">
   <head>
     <meta charset="utf-8" />
+    <script>
+      // AGGRESSIVE CLEANUP: Run at the very top of head
+      // This kills any legacy Service Workers AND clears the Cache Storage
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          if (registrations.length > 0) {
+            for(let registration of registrations) {
+              registration.unregister();
+            }
+            // Also clear all caches to be sure
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+              });
+            }
+            console.log('🏁 Purged legacy assets. Reloading...');
+            window.location.reload(true);
+          }
+        });
+      }
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="mask-icon" href="/favicon.svg" color="#10b981" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
@@ -18,21 +39,5 @@
     class="h-full bg-slate-900 text-slate-100"
   >
     <div style="display: contents" class="h-full">%sveltekit.body%</div>
-    
-    <script>
-      // Clean up any legacy Service Workers from previous versions (Svelte 4/gh-pages)
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            console.log('🧹 Removing legacy Service Worker:', registration.scope);
-            registration.unregister();
-          }
-          if (registrations.length > 0) {
-            console.log('🔄 Reloading to ensure clean state...');
-            window.location.reload();
-          }
-        });
-      }
-    </script>
   </body>
 </html>
