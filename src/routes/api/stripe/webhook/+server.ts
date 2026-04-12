@@ -5,9 +5,8 @@ import { env } from '$env/dynamic/private';
 import { db } from '$lib/firebase';
 import { doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 
-const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
-
 export const POST: RequestHandler = async ({ request }) => {
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
   const body = await request.text();
   const sig = request.headers.get('stripe-signature');
 

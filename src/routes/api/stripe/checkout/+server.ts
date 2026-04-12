@@ -3,9 +3,8 @@ import type { RequestHandler } from './$types';
 import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
 
-const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
-
 export const POST: RequestHandler = async ({ request, url }) => {
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
   try {
     const { plan_name, price_id, uid, user_email } = await request.json();
 
