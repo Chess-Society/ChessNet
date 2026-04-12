@@ -22,6 +22,8 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { auth } from '$lib/firebase';
 
+  import type { PageData } from './$types';
+
   let { data } = $props<{ data: PageData }>();
 
   let upgradeData = $derived(data.upgradeData);

@@ -3,8 +3,33 @@ import { db, auth } from '$lib/firebase';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
+// Interfaces para el estado global
+export interface AppSettings {
+  plan: string;
+  teacherName: string;
+  teacherAvatar: string;
+  teacherEmail?: string;
+  [key: string]: any;
+}
+
+export interface AppState {
+  centers: any[];
+  students: any[];
+  classes: any[];
+  skills: any[];
+  tournaments: any[];
+  attendance: any[];
+  payments: any[];
+  plans: any[];
+  leads: any[];
+  reports: any[];
+  unlockedAchievements: any[];
+  settings: AppSettings;
+  dashboardLayout: string[];
+}
+
 // Estado inicial idéntico al original de gh-pages
-const initialState = {
+const initialState: AppState = {
   centers: [],
   students: [],
   classes: [],

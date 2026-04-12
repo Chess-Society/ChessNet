@@ -78,7 +78,7 @@
                       <input 
                         id="public-name"
                         type="text" 
-                        bind:value={appStore.settings.teacherName}
+                        bind:value={$appStore.settings.teacherName}
                         placeholder="Ej. Academia GM"
                         class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-primary-500 outline-none transition-all placeholder:text-slate-600"
                       />
@@ -89,7 +89,7 @@
                       <input 
                         id="public-email"
                         type="email" 
-                        bind:value={appStore.settings.teacherEmail}
+                        bind:value={$appStore.settings.teacherEmail}
                         placeholder="contacto@academia.com"
                         class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-primary-500 outline-none transition-all placeholder:text-slate-600"
                       />
