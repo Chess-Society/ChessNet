@@ -1,0 +1,25 @@
+# SvelteKit / Node
+node_modules
+.svelte-kit
+build
+.netlify
+.env
+.env.*
+!.env.example
+*.log
+
+# ChessNet Legacy / Backups
+ChessNet-
+ChessNet-repo-tmp
+chessnet-preview
+deploy-*
+gh-pages-*
+temp_*
+v1/
+check_out.txt
+check_output.txt
+check_results_v4_utf8.txt
+
+# OS
+.DS_Store
+Thumbs.db
