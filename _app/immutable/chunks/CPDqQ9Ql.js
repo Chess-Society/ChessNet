@@ -1,0 +1,1 @@
+import{A as o,B as v,b as y,E as f,C as l,F as m,G as p,H as i,J as T,I as A}from"./0MC4xOQl.js";import{B as E}from"./BIYOSaNE.js";function g(d,_,e){var s;o&&(s=A,v());var r=new E(d);y(()=>{var a=_()??null;if(o){var h=l(s),c=h===T,u=a!==null;if(c!==u){var t=m();p(t),r.anchor=t,i(!1),r.ensure(a,a&&(n=>e(n,a))),i(!0);return}}r.ensure(a,a&&(n=>e(n,a)))},f)}export{g as c};
