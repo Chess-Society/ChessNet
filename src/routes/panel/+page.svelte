@@ -257,17 +257,86 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
     <div class="lg:col-span-2 space-y-8">
       
-      <!-- ATTENTION REQUIRED SECTION (Dynamic from original) -->
-      {#if stats.totalStudents === 0}
-        <div class="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-8 text-center" in:fly={{y: 20}}>
-            <div class="inline-block p-4 bg-indigo-600/20 rounded-full mb-4">
-                <Users class="w-8 h-8 text-indigo-400" />
+      <!-- ONBOARDING CHECKLIST -->
+      {@const hasSchools = $appStore.schools.length > 0}
+      {@const hasClasses = $appStore.classes.length > 0}
+      {@const hasStudents = $appStore.students.length > 0}
+      {@const isFullyBoarded = hasSchools && hasClasses && hasStudents}
+
+      {#if !isFullyBoarded}
+        <div class="bg-[#1e293b] border-2 border-indigo-500/30 rounded-3xl p-8 relative overflow-hidden group mb-8" in:fly={{y: 20}}>
+            <!-- Background Glow -->
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-600/10 blur-[100px] rounded-full group-hover:bg-indigo-600/20 transition-all duration-700"></div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row gap-8 items-center">
+                <div class="flex-1 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+                            <Zap class="w-5 h-5 fill-indigo-400" />
+                        </div>
+                        <h3 class="text-xl font-bold text-white tracking-tight">Checklist de Inicio Rápido</h3>
+                    </div>
+                    <p class="text-slate-400 text-sm max-w-md">Completa estos pasos para tener tu academia de ajedrez totalmente operativa y lista para tus alumnos.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-auto">
+                    <!-- Step 1: Centers -->
+                    <button 
+                      onclick={() => goto('/panel/centros')}
+                      class="flex items-center gap-3 p-4 rounded-2xl border transition-all {hasSchools ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 hover:border-indigo-500/50 text-slate-400'}"
+                    >
+                        <div class="p-2 rounded-lg {hasSchools ? 'bg-emerald-500/20' : 'bg-slate-800'}">
+                            {#if hasSchools}
+                                <CheckCircle class="w-4 h-4" />
+                            {:else}
+                                <School class="w-4 h-4" />
+                            {/if}
+                        </div>
+                        <div class="text-left">
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">Paso 1</p>
+                            <p class="text-xs font-bold whitespace-nowrap">Crear Centro</p>
+                        </div>
+                    </button>
+
+                    <!-- Step 2: Classes -->
+                    <button 
+                      onclick={() => goto('/panel/clases')}
+                      disabled={!hasSchools}
+                      class="flex items-center gap-3 p-4 rounded-2xl border transition-all {!hasSchools ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800' : hasClasses ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 hover:border-indigo-500/50 text-slate-400'}"
+                    >
+                        <div class="p-2 rounded-lg {hasClasses ? 'bg-emerald-500/20' : 'bg-slate-800'}">
+                            {#if hasClasses}
+                                <CheckCircle class="w-4 h-4" />
+                            {:else}
+                                <GraduationCap class="w-4 h-4" />
+                            {/if}
+                        </div>
+                        <div class="text-left">
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">Paso 2</p>
+                            <p class="text-xs font-bold whitespace-nowrap">Crear Clase</p>
+                        </div>
+                    </button>
+
+                    <!-- Step 3: Students -->
+                    <button 
+                      onclick={() => goto('/panel/alumnos')}
+                      disabled={!hasClasses}
+                      class="flex items-center gap-3 p-4 rounded-2xl border transition-all {!hasClasses ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800' : hasStudents ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 hover:border-indigo-500/50 text-slate-400'}"
+                    >
+                        <div class="p-2 rounded-lg {hasStudents ? 'bg-emerald-500/20' : 'bg-slate-800'}">
+                            {#if hasStudents}
+                                <CheckCircle class="w-4 h-4" />
+                            {:else}
+                                <Users class="w-4 h-4" />
+                            {/if}
+                        </div>
+                        <div class="text-left">
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">Paso 3</p>
+                            <p class="text-xs font-bold whitespace-nowrap">Añadir Alumno</p>
+                        </div>
+                    </button>
+                </div>
             </div>
-            <h3 class="text-xl font-bold text-white mb-2">¡Empecemos tu academia!</h3>
-            <p class="text-slate-400 mb-6 max-w-md mx-auto">Parece que aún no tienes alumnos registrados. El primer paso es añadir a tus estudiantes para gestionar sus clases.</p>
-            <button onclick={() => goto('/panel/alumnos')} class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-indigo-900/20 flex items-center gap-2 mx-auto">
-                <Plus class="w-5 h-5" /> Añadir Primer Alumno
-            </button>
         </div>
       {/if}
 

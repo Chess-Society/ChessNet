@@ -75,14 +75,60 @@
     />
   </div>
 
-  {#if filteredClasses.length === 0}
+  {#if classes.length === 0}
+    {@const hasSchools = schools.length > 0}
+    <div class="bg-[#1e293b]/40 border-2 border-slate-800 border-dashed rounded-[3rem] p-16 md:p-32 text-center space-y-8" in:fade>
+      <div class="relative inline-block">
+        <div class="w-32 h-32 bg-purple-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-purple-500/20 text-purple-400 animate-bounce-subtle">
+          <GraduationCap class="w-16 h-16" />
+        </div>
+        {#if !hasSchools}
+          <div class="absolute -bottom-2 -right-2 bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-xl">
+             <School class="w-6 h-6 text-orange-400" />
+          </div>
+        {:else}
+          <div class="absolute -bottom-2 -right-2 bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-xl">
+             <Plus class="w-6 h-6 text-emerald-500" />
+          </div>
+        {/if}
+      </div>
+      
+      <div class="max-w-md mx-auto space-y-3">
+        {#if !hasSchools}
+          <h2 class="text-2xl font-bold text-white tracking-tight">Primero, necesitamos un centro</h2>
+          <p class="text-slate-500 text-lg leading-relaxed">Antes de organizar tus clases, debes registrar el colegio, club o centro donde se impartirán.</p>
+        {:else}
+          <h2 class="text-2xl font-bold text-white tracking-tight">Define tus grupos de estudio</h2>
+          <p class="text-slate-500 text-lg leading-relaxed">Crea tu primera clase para empezar a gestionar horarios y pasar lista a tus alumnos.</p>
+        {/if}
+      </div>
+
+      {#if !hasSchools}
+        <button 
+          onclick={() => goto('/panel/centros')}
+          class="bg-orange-600 hover:bg-orange-500 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-orange-900/40 flex items-center gap-3 mx-auto group ring-4 ring-orange-600/10"
+        >
+          <School class="w-5 h-5" />
+          IR A CENTROS
+        </button>
+      {:else}
+        <button 
+          onclick={() => goto('/panel/clases/create')}
+          class="bg-purple-600 hover:bg-purple-500 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-purple-900/40 flex items-center gap-3 mx-auto group ring-4 ring-purple-600/10"
+        >
+          <Plus class="w-5 h-5 transition-transform group-hover:rotate-90" />
+          CREAR MI PRIMERA CLASE
+        </button>
+      {/if}
+    </div>
+  {:else if filteredClasses.length === 0}
     <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
       <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
-        <GraduationCap class="w-10 h-10" />
+        <Search class="w-10 h-10" />
       </div>
       <div class="space-y-2">
-        <h2 class="text-xl font-bold text-white">No hay clases configuradas</h2>
-        <p class="text-slate-500 text-sm">Crea tu primer grupo para empezar a pasar lista y gestionar alumnos.</p>
+        <h2 class="text-xl font-bold text-white">No se encuentran clases</h2>
+        <p class="text-slate-500 text-sm">Ajusta tu búsqueda o crea una nueva clase.</p>
       </div>
     </div>
   {:else}

@@ -75,14 +75,28 @@
   </div>
 
   {#if filteredSchools().length === 0}
-    <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
-      <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
-        <School class="w-10 h-10" />
+    <div class="bg-[#1e293b]/40 border-2 border-slate-800 border-dashed rounded-[3rem] p-16 md:p-32 text-center space-y-8" in:fade>
+      <div class="relative inline-block">
+        <div class="w-32 h-32 bg-indigo-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-indigo-500/20 text-indigo-400 animate-bounce-subtle">
+          <School class="w-16 h-16" />
+        </div>
+        <div class="absolute -bottom-2 -right-2 bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-xl">
+           <Plus class="w-6 h-6 text-emerald-500" />
+        </div>
       </div>
-      <div class="space-y-2">
-        <h2 class="text-xl font-bold text-white">No hay centros registrados</h2>
-        <p class="text-slate-500 text-sm">Empieza añadiendo el primer colegio o club donde enseñas.</p>
+      
+      <div class="max-w-md mx-auto space-y-3">
+        <h2 class="text-2xl font-bold text-white tracking-tight">Todo gran maestro necesita un lugar donde enseñar</h2>
+        <p class="text-slate-500 text-lg leading-relaxed">Añade tu primer colegio o club para empezar a organizar tu imperio del ajedrez.</p>
       </div>
+
+      <button 
+        onclick={() => goto('/panel/centros/create')}
+        class="bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-900/40 flex items-center gap-3 mx-auto group ring-4 ring-indigo-600/10"
+      >
+        <Plus class="w-5 h-5 transition-transform group-hover:rotate-90" />
+        CREAR MI PRIMER CENTRO
+      </button>
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

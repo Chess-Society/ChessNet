@@ -125,10 +125,56 @@
   </div>
 
   <!-- Students Grid -->
-  {#if filteredStudents().length === 0}
+  {#if students.length === 0}
+    {@const hasClasses = $appStore.classes.length > 0}
+    <div class="bg-[#1e293b]/40 border-2 border-slate-800 border-dashed rounded-[3rem] p-16 md:p-32 text-center space-y-8" in:fade>
+      <div class="relative inline-block">
+        <div class="w-32 h-32 bg-emerald-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-emerald-500/20 text-emerald-400 animate-bounce-subtle">
+          <Users class="w-16 h-16" />
+        </div>
+        {#if !hasClasses}
+          <div class="absolute -bottom-2 -right-2 bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-xl">
+             <GraduationCap class="w-6 h-6 text-orange-400" />
+          </div>
+        {:else}
+          <div class="absolute -bottom-2 -right-2 bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-xl">
+             <Plus class="w-6 h-6 text-emerald-500" />
+          </div>
+        {/if}
+      </div>
+      
+      <div class="max-w-md mx-auto space-y-3">
+        {#if !hasClasses}
+          <h2 class="text-2xl font-bold text-white tracking-tight">Necesitamos una clase primero</h2>
+          <p class="text-slate-500 text-lg leading-relaxed">No puedes matricular alumnos sin tener una clase asignada para ellos. Empieza creando tu primera clase.</p>
+        {:else}
+          <h2 class="text-2xl font-bold text-white tracking-tight">Tu comunidad te espera</h2>
+          <p class="text-slate-500 text-lg leading-relaxed">Matricula a tus primeros alumnos para empezar a registrar sus logros y nivel de juego.</p>
+        {/if}
+      </div>
+
+      {#if !hasClasses}
+        <button 
+          onclick={() => goto('/panel/clases')}
+          class="bg-orange-600 hover:bg-orange-500 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-orange-900/40 flex items-center gap-3 mx-auto group ring-4 ring-orange-600/10"
+        >
+          <GraduationCap class="w-5 h-5" />
+          IR A CLASES
+        </button>
+      {:else}
+        <button 
+          onclick={() => goto('/panel/alumnos/create')}
+          class="bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-emerald-900/40 flex items-center gap-3 mx-auto group ring-4 ring-emerald-600/10"
+        >
+          <Plus class="w-5 h-5 transition-transform group-hover:rotate-90" />
+          MATRICULAR ALUMNO
+        </button>
+      {/if}
+    </div>
+  {:else if filteredStudents().length === 0}
     <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
       <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
-        <Users class="w-10 h-10" />
+        <Search class="w-10 h-10" />
       </div>
       <div class="space-y-2">
         <h2 class="text-xl font-bold text-white">No se encuentran alumnos</h2>
