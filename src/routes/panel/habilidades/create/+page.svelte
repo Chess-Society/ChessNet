@@ -297,10 +297,27 @@
 
 <style>
   .input {
-    @apply bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+    background-color: #334155;
+    border: 1px solid #475569;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: white;
+    transition: all 0.2s;
+  }
+  
+  .input::placeholder {
+    color: #94a3b8;
+  }
+  
+  .input:focus {
+    border-color: #8b5cf6;
+    outline: none;
+    box-shadow: 0 0 0 1px #8b5cf6;
   }
   
   kbd {
-    @apply font-mono text-xs;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
 </style>

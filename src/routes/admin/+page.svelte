@@ -77,8 +77,9 @@
 
   // Reactividad refinada
   let isAuthorized = $derived(
-    data?.isAdmin || 
-    ($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()))
+    data?.isAdmin ||
+      ($authUser?.email &&
+        ADMIN_EMAILS.includes($authUser.email.toLowerCase())),
   );
 
   // Modales y Edición
@@ -794,8 +795,8 @@
                 <button
                   onclick={handleToggleMaintenance}
                   class="w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all {maintenanceMode
-                    ? "bg-red-500 text-white shadow-lg shadow-red-500/20"
-                    : "bg-white/5 text-red-400 border border-red-500/20 hover:bg-red-500/10"}"
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                    : 'bg-white/5 text-red-400 border border-red-500/20 hover:bg-red-500/10'}"
                 >
                   {maintenanceMode
                     ? "Desactivar Bloqueo"
@@ -861,9 +862,9 @@
                         >
                         <td class="p-5">
                           <span
-                            class="px-2 py-0.5 {log.status === "error"
-                              ? "bg-red-500/10 text-red-400 border-red-500/20"
-                              : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"} text-[9px] font-bold rounded-lg uppercase tracking-tighter border"
+                            class="px-2 py-0.5 {log.status === 'error'
+                              ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'} text-[9px] font-bold rounded-lg uppercase tracking-tighter border"
                           >
                             {log.status || "Success"}
                           </span>
