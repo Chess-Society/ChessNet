@@ -105,32 +105,9 @@
       </div>
     </div>
 
-    <!-- Mock Dashboard Preview -->
-    <div class="relative w-full max-w-6xl mx-auto -mt-20 lg:-mt-32 opacity-90 hover:opacity-100 transition-opacity duration-700">
-      <div class="relative rounded-xl bg-slate-900/50 backdrop-blur-xl border border-slate-700 p-2 shadow-2xl">
-        <div class="rounded-lg bg-[#0f172a] overflow-hidden border border-slate-800 h-[300px] md:h-[500px] flex items-center justify-center relative">
-          <div class="absolute inset-x-0 top-0 h-12 bg-slate-900 border-b border-slate-700 flex items-center px-4 gap-2">
-            <div class="w-3 h-3 rounded-full bg-red-500"></div>
-            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <div class="w-3 h-3 rounded-full bg-green-500"></div>
-            <div class="ml-4 w-64 h-6 bg-slate-800 rounded"></div>
-          </div>
-          <div class="grid grid-cols-4 gap-4 p-8 w-full mt-12 mx-auto max-w-5xl opacity-50">
-            <div class="col-span-1 h-32 bg-slate-800 rounded-xl animate-pulse"></div>
-            <div class="col-span-1 h-32 bg-slate-800 rounded-xl animate-pulse delay-75"></div>
-            <div class="col-span-1 h-32 bg-slate-800 rounded-xl animate-pulse delay-150"></div>
-            <div class="col-span-1 h-32 bg-slate-800 rounded-xl animate-pulse delay-200"></div>
-            <div class="col-span-3 h-64 bg-slate-800 rounded-xl animate-pulse mt-4 delay-300"></div>
-            <div class="col-span-1 h-64 bg-slate-800 rounded-xl animate-pulse mt-4 delay-500"></div>
-          </div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <button onclick={data.isAuthenticated ? goToPanel : goToLogin} class="bg-slate-900/80 backdrop-blur border border-slate-600 text-white px-6 py-3 rounded-xl font-bold hover:scale-110 transition-transform cursor-pointer shadow-2xl">
-              Entrar a la Demo Interactiva
-            </button>
-          </div>
-        </div>
-      </div>
-      <div class="absolute inset-x-8 -bottom-12 h-12 bg-gradient-to-b from-emerald-500/20 to-transparent blur-2xl -z-10 mx-auto w-3/4"></div>
+    <!-- CTA Section Hero -->
+    <div class="mt-16 flex justify-center">
+       <div class="h-1 w-24 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full opacity-50"></div>
     </div>
   </div>
 

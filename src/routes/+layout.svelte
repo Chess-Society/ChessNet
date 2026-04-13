@@ -4,11 +4,15 @@
   import KofiWidget from '$lib/components/KofiWidget.svelte';
   import '../app.css';
 
+  import { onMount } from 'svelte';
+  import { initAuth } from '$lib/stores/auth';
+
   let { children } = $props();
 
-  // Auth store disabled - using server-side authentication only
-  // This prevents conflicts between server and client auth validation
-  console.log('🔄 Layout mounted - Auth store DISABLED, using server-side auth only');
+  onMount(() => {
+    const unsubscribe = initAuth();
+    return unsubscribe;
+  });
 </script>
 
 <main class="min-h-screen bg-slate-900 text-slate-100">

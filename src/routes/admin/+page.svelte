@@ -4,6 +4,7 @@
   import { db, auth } from '$lib/firebase';
   import { collection, query, onSnapshot, orderBy, limit, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
   import { onAuthStateChanged } from 'firebase/auth';
+  import { user as authUser, loading as authLoading } from '$lib/stores/auth';
   import { fade, slide, scale } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
   import { Settings, UserCheck, Clock, ShieldCheck, Mail, LogOut, ChevronRight, Edit3, Trophy } from 'lucide-svelte';
@@ -26,7 +27,6 @@
 
   let isLoading = $state(true);
   let isAuthorized = $state(false);
-  let isInitialized = $state(false); // Added for safety timeout
   let error = $state('');
 
   // Modales y Edición
@@ -34,48 +34,22 @@
   let showEditModal = $state(false);
   let isSaving = $state(false);
 
-  onMount(() => {
-    console.log('🛡️ Admin Guard: Initializing...');
-    
-    // Safety timeout to prevent infinite loading
-    const safetyTimer = setTimeout(() => {
-      if (!isInitialized) {
-        console.warn('⚠️ Admin Guard: Safety timeout triggered');
-        isInitialized = true;
-        isLoading = false;
-      }
-    }, 3000);
-
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      console.log('👤 Admin Guard: Auth state changed', user?.email);
-      
-      if (!user) {
-        console.log('🚶 No user, redirecting to login');
+  $effect(() => {
+    if (!$authLoading) {
+      if (!$authUser) {
         goto('/login');
         return;
       }
 
-      if (!ADMIN_EMAILS.includes(user.email || '')) {
-        console.error('🚫 Acceso denegado: No autorizado para admin');
-        goto('/panel'); // Redirect back to panel if not admin
+      if (!ADMIN_EMAILS.includes($authUser.email || '')) {
+        isAuthorized = false;
+        isLoading = false;
         return;
       }
 
       isAuthorized = true;
-      isInitialized = true;
-      clearTimeout(safetyTimer);
       startMonitoring();
-    }, (err) => {
-      console.error('❌ Auth error in Admin:', err);
-      isInitialized = true;
-      isLoading = false;
-      error = 'Error de autenticación. Por favor, reintenta.';
-    });
-
-    return () => {
-      unsubscribeAuth();
-      clearTimeout(safetyTimer);
-    };
+    }
   });
 
   function startMonitoring() {
@@ -204,10 +178,10 @@
   </div>
   <div class="fixed top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[128px] pointer-events-none"></div>
 
-  {#if !isInitialized}
+  {#if $authLoading}
     <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4 relative z-10" in:fade>
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-      <p class="text-slate-400 font-medium tracking-wide font-display uppercase text-xs">Cargando Administración...</p>
+      <p class="text-slate-400 font-medium tracking-wide font-display uppercase text-xs">Verificando Credenciales...</p>
     </div>
   {:else if !isAuthorized}
     <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4 relative z-10" in:fade>

@@ -8,15 +8,17 @@
   import { auth, signOut } from '$lib/firebase';
   import { onMount } from 'svelte';
 
+  import { user as authUser, loading as authLoading } from '$lib/stores/auth';
+  
   let { children } = $props();
 
   let isLoggingOut = $state(false);
 
-  // Reactividad del store
-  let teacherName = $derived($appStore?.settings?.teacherName || auth.currentUser?.displayName || 'Profe de Ajedrez');
-  let teacherAvatar = $derived($appStore?.settings?.teacherAvatar || auth.currentUser?.photoURL || null);
+  // Reactividad del store - SIN fallbacks genéricos
+  let teacherName = $derived($appStore?.settings?.teacherName || $authUser?.displayName || ($authLoading ? '...' : 'Usuario'));
+  let teacherAvatar = $derived($appStore?.settings?.teacherAvatar || $authUser?.photoURL || null);
   let plan = $derived($appStore?.settings?.plan || 'free');
-  let email = $derived(auth.currentUser?.email || 'profesor@chessnet.com');
+  let email = $derived($authUser?.email || '');
   
   let currentRoute = $derived($page.url.pathname);
 
@@ -62,25 +64,12 @@
   // Desactivamos SSR para el panel para evitar problemas de hidratación con Firebase
   export const ssr = false;
 
-  let isAuthInitialized = $state(auth.currentUser !== null);
-
-  onMount(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      isAuthInitialized = true;
-      if (!user) {
-        goto('/login');
-      }
-    });
-
-    // Seguro de 3 segundos por si acaso
-    const timeout = setTimeout(() => {
-      isAuthInitialized = true;
-    }, 3000);
-
-    return () => {
-      unsubscribe();
-      clearTimeout(timeout);
-    };
+  // Redirección si no hay usuario después de cargar
+  $effect(() => {
+    if (!$authLoading && !$authUser) {
+      console.log('🚶 No hay usuario detectado, redirigiendo a login...');
+      goto('/login');
+    }
   });
 
 </script>
@@ -171,14 +160,14 @@
 
   <main class="pt-[72px] pb-6 min-h-screen overflow-x-hidden md:px-4">
     <div class="max-w-7xl mx-auto">
-        {#if !isAuthInitialized}
+        {#if $authLoading}
             <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4" in:fade>
                 <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500"></div>
-                <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Iniciando ChessNet Pro...</p>
+                <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Verificando sesión...</p>
             </div>
         {/if}
         
-        <div class={isAuthInitialized ? 'block' : 'hidden'}>
+        <div class={!$authLoading && $authUser ? 'block' : 'hidden'}>
             {@render children()}
         </div>
     </div>
