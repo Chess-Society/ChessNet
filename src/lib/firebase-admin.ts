@@ -12,14 +12,12 @@ import { env as publicEnv } from '$env/dynamic/public';
  */
 
 if (!admin.apps.length) {
-    try {
-        const projectId = publicEnv.PUBLIC_FIREBASE_PROJECT_ID;
-        const clientEmail = privateEnv.FB_CLIENT_EMAIL;
-        const privateKey = privateEnv.FB_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    const projectId = privateEnv.FB_PROJECT_ID || publicEnv.PUBLIC_FIREBASE_PROJECT_ID;
+    const clientEmail = privateEnv.FB_CLIENT_EMAIL;
+    const privateKey = privateEnv.FB_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-        if (!clientEmail || !privateKey) {
-            console.warn('⚠️ Firebase Admin no inicializado: Faltan FB_CLIENT_EMAIL o FB_PRIVATE_KEY');
-        } else {
+    if (clientEmail && privateKey) {
+        try {
             admin.initializeApp({
                 credential: admin.credential.cert({
                     projectId,
@@ -27,12 +25,16 @@ if (!admin.apps.length) {
                     privateKey,
                 }),
             });
-            console.log('✅ Firebase Admin SDK inicializado correctamente');
+            console.log('✅ Firebase Admin SDK inicializado');
+        } catch (error) {
+            console.error('❌ Error inicializando Firebase Admin SDK:', error);
         }
-    } catch (error) {
-        console.error('❌ Error inicializando Firebase Admin SDK:', error);
+    } else {
+        console.warn('⚠️ Firebase Admin no inicializado: Faltan credenciales.');
     }
 }
 
-export const adminDb = getFirestore();
-export const adminAuth = getAuth();
+// Exportamos proxies o getters para evitar el error "no-app" durante el build si no hay credenciales
+export const adminDb = admin.apps.length ? getFirestore() : null as any as ReturnType<typeof getFirestore>;
+export const adminAuth = admin.apps.length ? getAuth() : null as any as ReturnType<typeof getAuth>;
+
