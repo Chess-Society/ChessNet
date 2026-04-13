@@ -111,7 +111,7 @@
                   <p class="text-white font-bold">Plan Actual: <span class="text-indigo-400 capitalize">{$appStore.settings.plan || 'Gratis'}</span></p>
                   <p class="text-xs text-slate-500 mt-1">Siguiente fecha de cobro: 01 de Mayo, 2026</p>
               </div>
-              <a href="/panel/planes" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-indigo-500/20">
+              <a href="/precios" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-indigo-500/20">
                   Gestionar Plan
               </a>
           </div>

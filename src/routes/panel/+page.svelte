@@ -234,7 +234,7 @@
             onclick={() => {
               if (editMode) return;
               if (action.premium && $appStore.settings.plan === 'free') {
-                goto('/panel/planes');
+                goto('/precios');
               } else {
                 goto(action.link);
               }

@@ -1,67 +1,58 @@
-import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
-import { schoolsApi } from '$lib/api/schools';
-import { studentsApi } from '$lib/api/students';
-import { classesApi } from '$lib/api/classes';
+import { authenticate } from '$lib/server/auth';
+import { adminDb } from '$lib/firebase-admin';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
-  console.log('📊 Dashboard server load - User:', locals.user?.email || 'none');
-
-  // Si hay un código de OAuth en la URL, redirigir al callback (Firebase maneja esto distinto pero mantenemos por compatibilidad)
-  const code = url.searchParams.get('code');
-  if (code) {
-    throw redirect(302, `/auth/callback?code=${code}`);
+export const load: PageServerLoad = async (event) => {
+  const { user } = await authenticate(event);
+  
+  if (!user) {
+    return { user: null };
   }
 
-  if (!locals.user) {
-    return {
-      user: null
-    };
-  }
+  const uid = user.uid;
 
   try {
-    // Obtener datos reales de Firebase usando las APIs consolidadas
-    const [schools, students, classes] = await Promise.all([
-      schoolsApi.getMySchools(),
-      studentsApi.getMyStudents(),
-      classesApi.getMyClasses()
+    const [schoolsSnap, studentsSnap, classesSnap] = await Promise.all([
+      adminDb.collection("schools").where("owner_id", "==", uid).get(),
+      adminDb.collection("students").where("owner_id", "==", uid).get(),
+      adminDb.collection("classes").where("owner_id", "==", uid).get()
     ]);
+
+    const schools = schoolsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const students = studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const classes = classesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     const dashboardStats = {
       totalCenters: schools.length,
       totalStudents: students.length,
       totalClasses: classes.length,
       activeStudents: students.filter(s => (s as any).active !== false).length,
-      monthlyRevenue: 0, // Implementar cuando el sistema de pagos esté listo
-      upcomingSessions: classes.filter(c => c.active !== false).length 
+      monthlyRevenue: 0,
+      upcomingSessions: classes.filter(c => (c as any).active !== false).length 
     };
 
-    // Enriquecer centros con estadísticas básicas
     const centersWithStats = schools.map(school => {
-      const schoolClasses = classes.filter(c => c.school_id === school.id);
-      const schoolStudents = students.filter(s => s.school_id === school.id);
+      const schoolClasses = classes.filter(c => (c as any).school_id === school.id);
+      const schoolStudents = students.filter(s => (s as any).school_id === school.id);
 
       return {
         id: school.id,
-        name: school.name,
-        city: school.city || 'Sin ciudad',
+        name: (school as any).name,
+        city: (school as any).city || 'Sin ciudad',
         totalClasses: schoolClasses.length,
         totalStudents: schoolStudents.length,
         occupancyRate: schoolClasses.length > 0 ? Math.round((schoolStudents.length / (schoolClasses.length * 15)) * 100) : 0,
-        attendanceRate: 0, // Implementar con sistema de asistencia
+        attendanceRate: 0,
         monthlyRevenue: 0,
         lastActivity: (school as any).updated_at || (school as any).created_at
       };
     });
 
-    console.log('✅ Dashboard loaded successfully from Firebase');
-
     return {
-      user: locals.user,
+      user,
       dashboardStats,
       centersWithStats,
       featuredClasses: classes.slice(0, 3),
-      recentActivity: [], // Implementar log de actividades si es necesario
+      recentActivity: [],
       upcomingSessionsToday: classes.slice(0, 4)
     };
 

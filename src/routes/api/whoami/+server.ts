@@ -1,21 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { authenticate } from '$lib/server/auth';
 
-export const GET: RequestHandler = async ({ locals, cookies }) => {
-  console.log('🔍 WhoAmI - Checking server-side authentication (Firebase)...');
+export const GET: RequestHandler = async (event) => {
+  console.log('🔍 WhoAmI - Checking server-side authentication (Firebase Admin)...');
   
-  let user = locals.user;
-
-  if (!user) {
-    const session = cookies.get('sb-auth-token');
-    if (session) {
-      try {
-        user = JSON.parse(decodeURIComponent(session));
-      } catch (e) {
-        user = null;
-      }
-    }
-  }
+  const { user } = await authenticate(event);
 
   if (!user) {
     console.log('❌ WhoAmI - No user found');
@@ -28,11 +18,11 @@ export const GET: RequestHandler = async ({ locals, cookies }) => {
   console.log('✅ WhoAmI - User authenticated:', user.email);
   return json({ 
     user: {
-      id: user.id || user.uid,
+      id: user.uid,
       email: user.email,
-      full_name: user.full_name || user.displayName || null,
-      avatar_url: user.avatar_url || user.photoURL || null,
-      created_at: user.created_at || new Date().toISOString()
+      full_name: user.displayName || null,
+      avatar_url: user.photoURL || null,
+      isAdmin: user.isAdmin || false
     },
     error: null
   });

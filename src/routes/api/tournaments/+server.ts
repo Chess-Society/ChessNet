@@ -2,13 +2,16 @@ import { json } from '@sveltejs/kit';
 import { adminDb } from '$lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import type { RequestHandler } from './$types';
+import { authenticate } from '$lib/server/auth';
 
-export const POST: RequestHandler = async ({ request, locals }) => {
-  if (!locals.user) {
+export const POST: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const uid = locals.user.uid;
+  const { request } = event;
+  const uid = user.uid;
 
   try {
     const body = await request.json();

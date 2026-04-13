@@ -22,7 +22,7 @@
 
   let plan = $derived($appStore.settings.plan || 'free');
   let studentsCount = $derived($appStore.students.length);
-  let isLimitReached = $derived(plan === 'free' && studentsCount >= 20);
+  let isLimitReached = $derived(plan === 'free' && studentsCount >= 12);
 
   let formData = $state({
     first_name: '',
@@ -57,7 +57,7 @@
 
   const handleSubmit = async () => {
     if (isLimitReached) {
-      goto('/panel/planes');
+      goto('/precios');
       return;
     }
     if (!validateForm() || isSubmitting) return;
@@ -183,10 +183,10 @@
         </div>
         <div class="flex-grow text-center md:text-left">
           <h3 class="text-xl font-black text-white uppercase tracking-tight">¡Límite del Plan Gratuito alcanzado!</h3>
-          <p class="text-indigo-200/60 text-sm mt-1 font-medium">Has alcanzado el máximo de 20 alumnos. Mejora a Premium para gestionar una academia ilimitada y desbloquear informes avanzados.</p>
+          <p class="text-indigo-200/60 text-sm mt-1 font-medium">Has alcanzado el máximo de 12 alumnos. Mejora a Premium para gestionar una academia ilimitada y desbloquear informes avanzados.</p>
         </div>
         <a 
-          href="/panel/planes"
+          href="/precios"
           class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 whitespace-nowrap active:scale-95"
         >
           Mejorar Ahora

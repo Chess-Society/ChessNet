@@ -3,9 +3,9 @@ import { error, redirect } from '@sveltejs/kit';
 
 export async function getUserPlan(uid: string) {
     try {
-        const doc = await adminDb.collection('app_settings').doc(uid).get();
+        const doc = await adminDb.collection('user_subscriptions').doc(uid).get();
         if (!doc.exists) return 'free';
-        return doc.data()?.settings?.plan || 'free';
+        return doc.data()?.plan_name || 'free';
     } catch (err) {
         console.error('Error fetching user plan:', err);
         return 'free';
@@ -18,9 +18,13 @@ export async function checkPlanGating(event: any, requiredPlan: 'free' | 'premiu
     }
 
     const plan = await getUserPlan(event.locals.user.uid);
+    const isAdmin = event.locals.isAdmin;
+    
+    // Admins have full access
+    if (isAdmin) return;
     
     if (requiredPlan === 'premium' && plan !== 'premium') {
-        throw redirect(303, '/panel/planes?reason=premium_required');
+        throw redirect(303, '/precios?reason=premium_required');
     }
 }
 

@@ -1,38 +1,9 @@
-import { adminAuth } from '$lib/firebase-admin';
-import { redirect } from '@sveltejs/kit';
-import { ADMIN_EMAILS } from '$lib/constants';
+import { requireUser, authenticate } from '$lib/server/auth';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ cookies, url }) => {
-    const sessionCookie = cookies.get('__session');
-    let user = null;
-    let isAdmin = false;
-
-    if (sessionCookie && adminAuth) {
-        try {
-            const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
-            user = {
-                uid: decodedClaims.uid,
-                email: decodedClaims.email,
-                name: decodedClaims.name,
-                picture: decodedClaims.picture
-            };
-
-            const userEmail = user.email?.trim().toLowerCase();
-            isAdmin = userEmail 
-                ? ADMIN_EMAILS.map(e => e.trim().toLowerCase()).includes(userEmail) 
-                : false;
-
-        } catch (error) {
-            console.error('Layout: Error verificando sesión:', error);
-            cookies.delete('__session', { path: '/' });
-        }
-    }
-
-    // Gating global del panel
-    if (!user && !url.pathname.includes('/login')) {
-        throw redirect(303, '/login');
-    }
+export const load: LayoutServerLoad = async (event) => {
+    await requireUser(event);
+    const { user, isAdmin } = await authenticate(event);
 
     return {
         user,

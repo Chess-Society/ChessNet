@@ -2,13 +2,16 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { authenticate } from '$lib/server/auth';
 
-export const GET: RequestHandler = async ({ url, locals }) => {
-  if (!locals.user) {
+export const GET: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const uid = locals.user.uid;
+  const { url } = event;
+  const uid = user.uid;
   const classId = url.searchParams.get('class_id');
   const studentId = url.searchParams.get('student_id');
   const date = url.searchParams.get('date');
@@ -52,12 +55,14 @@ export const GET: RequestHandler = async ({ url, locals }) => {
   }
 };
 
-export const POST: RequestHandler = async ({ request, locals }) => {
-  if (!locals.user) {
+export const POST: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const uid = locals.user.uid;
+  const { request } = event;
+  const uid = user.uid;
 
   try {
     const body = await request.json();
@@ -115,12 +120,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   }
 };
 
-export const PUT: RequestHandler = async ({ request, locals }) => {
-  if (!locals.user) {
+export const PUT: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const uid = locals.user.uid;
+  const { request } = event;
+  const uid = user.uid;
 
   try {
     const body = await request.json();

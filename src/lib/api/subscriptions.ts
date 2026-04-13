@@ -46,6 +46,7 @@ const PLANS: SubscriptionPlan[] = [
     name: 'premium',
     display_name: 'Maestro Premium',
     description: 'Todas las herramientas sin límites para un control profesional total.',
+    price_monthly: 1,
     price_annual: 12,
     currency: 'EUR',
     max_students: -1,
@@ -133,11 +134,21 @@ export const getUserCurrentPlan = async (userId?: string): Promise<UserPlanLimit
  * Actualmente configurado para permitir todo (Acceso Completo) según requerimiento de UX
  */
 export const checkUserLimit = async (
-  limitType: string,
+  limitType: 'max_students' | 'max_classes' | 'max_schools' | 'max_tournaments',
   currentCount: number = 0
 ): Promise<boolean> => {
-  // Actualmente permitimos todo para facilitar el onboarding
-  return true;
+  try {
+    const userLimits = await getUserCurrentPlan();
+    const limit = userLimits[limitType];
+    
+    // -1 significa ilimitado
+    if (limit === -1) return true;
+    
+    return currentCount < limit;
+  } catch (error) {
+    console.error('❌ Error checking user limit:', error);
+    return true; // En caso de duda, permitimos seguir operando pero logueamos el error
+  }
 };
 
 /**
@@ -195,6 +206,7 @@ export const initiateUpgrade = async (planName: string, uid?: string, email?: st
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         plan_name: planName === 'premium' ? 'Maestro Premium' : planName,
+        price_id: 'price_1T6H9xRBnPDD6EfR0BmyYKYf',
         uid: uid || auth.currentUser?.uid,
         user_email: email || auth.currentUser?.email
       })

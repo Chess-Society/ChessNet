@@ -3,12 +3,15 @@ import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
-export const GET: RequestHandler = async ({ locals }) => {
-  if (!locals.user) {
+import { authenticate } from '$lib/server/auth';
+
+export const GET: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const uid = locals.user.uid;
+  const uid = user.uid;
 
   try {
     const snapshot = await adminDb.collection("schools")
@@ -26,12 +29,14 @@ export const GET: RequestHandler = async ({ locals }) => {
   }
 };
 
-export const POST: RequestHandler = async ({ request, locals }) => {
-  if (!locals.user) {
+export const POST: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const uid = locals.user.uid;
+  const { request } = event;
+  const uid = user.uid;
 
   try {
     const body = await request.json();
@@ -64,12 +69,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   }
 };
 
-export const PUT: RequestHandler = async ({ request, locals }) => {
-  if (!locals.user) {
+export const PUT: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const uid = locals.user.uid;
+  const { request } = event;
+  const uid = user.uid;
 
   try {
     const body = await request.json();
@@ -79,8 +86,8 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'ID del centro requerido' }, { status: 400 });
     }
 
-    const schoolRef = adminDb.collection("schools").doc(schoolId);
-    const schoolSnap = await schoolRef.get();
+    const schoolRef = adminDb.collection("schools").doc(schoolId).get();
+    const schoolSnap = await schoolRef;
 
     if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== uid) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
@@ -94,7 +101,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
     delete updateData.owner_id;
     delete updateData.created_at;
 
-    await schoolRef.update(updateData);
+    await adminDb.collection("schools").doc(schoolId).update(updateData);
 
     return json({ 
       success: true,
@@ -107,12 +114,14 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
   }
 };
 
-export const DELETE: RequestHandler = async ({ request, locals }) => {
-  if (!locals.user) {
+export const DELETE: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const uid = locals.user.uid;
+  const { request } = event;
+  const uid = user.uid;
 
   try {
     const body = await request.json();

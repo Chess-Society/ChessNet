@@ -1,15 +1,17 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
+import { authenticate } from '$lib/server/auth';
 
-export const GET: RequestHandler = async ({ locals }) => {
-  if (!locals.user) {
+export const GET: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
     const snapshot = await adminDb.collection("classes")
-      .where("owner_id", "==", locals.user.uid)
+      .where("owner_id", "==", user.uid)
       .orderBy("created_at", "desc")
       .get();
       
@@ -21,16 +23,18 @@ export const GET: RequestHandler = async ({ locals }) => {
   }
 };
 
-export const POST: RequestHandler = async ({ request, locals }) => {
-  if (!locals.user) {
+export const POST: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
+    const { request } = event;
     const body = await request.json();
     const classData = {
       ...body,
-      owner_id: locals.user.uid,
+      owner_id: user.uid,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -43,19 +47,21 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   }
 };
 
-export const DELETE: RequestHandler = async ({ request, locals }) => {
-  if (!locals.user) {
+export const DELETE: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
+    const { request } = event;
     const { id } = await request.json();
     if (!id) return json({ error: 'ID requerido' }, { status: 400 });
 
     const docRef = adminDb.collection("classes").doc(id);
     const docSnap = await docRef.get();
 
-    if (!docSnap.exists || docSnap.data()?.owner_id !== locals.user.uid) {
+    if (!docSnap.exists || docSnap.data()?.owner_id !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
