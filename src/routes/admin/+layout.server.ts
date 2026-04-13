@@ -13,9 +13,7 @@ export const load: LayoutServerLoad = async ({ cookies, url }) => {
             const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
             user = {
                 uid: decodedClaims.uid,
-                email: decodedClaims.email,
-                name: decodedClaims.name,
-                picture: decodedClaims.picture
+                email: decodedClaims.email
             };
 
             const userEmail = user.email?.trim().toLowerCase();
@@ -24,14 +22,12 @@ export const load: LayoutServerLoad = async ({ cookies, url }) => {
                 : false;
 
         } catch (error) {
-            console.error('Layout: Error verificando sesión:', error);
             cookies.delete('__session', { path: '/' });
         }
     }
 
-    // Gating global del panel
-    if (!user && !url.pathname.includes('/login')) {
-        throw redirect(303, '/login');
+    if (!isAdmin) {
+        throw redirect(303, user ? '/panel' : '/login');
     }
 
     return {

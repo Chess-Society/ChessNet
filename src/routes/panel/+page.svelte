@@ -231,14 +231,23 @@
           class="relative transition-all duration-200 {draggedId === action.id ? 'scale-105 z-10 opacity-50' : ''}"
         >
           <button 
-            onclick={() => !editMode && goto(action.link)}
-            class="group flex flex-col items-center justify-center p-4 bg-[#1e293b] hover:bg-slate-800 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300 w-full aspect-square md:aspect-auto md:h-32 shadow-lg hover:shadow-xl hover:-translate-y-1 relative {editMode ? 'cursor-move border-dashed border-slate-500' : 'cursor-pointer'} {action.premium && $appStore.settings.plan === 'free' ? 'opacity-75 grayscale-[0.5]' : ''}"
+            onclick={() => {
+              if (editMode) return;
+              if (action.premium && $appStore.settings.plan === 'free') {
+                goto('/panel/planes');
+              } else {
+                goto(action.link);
+              }
+            }}
+            class="group flex flex-col items-center justify-center p-4 bg-[#1e293b] hover:bg-slate-800 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300 w-full aspect-square md:aspect-auto md:h-32 shadow-lg hover:shadow-xl hover:-translate-y-1 relative {editMode ? 'cursor-move border-dashed border-slate-500' : 'cursor-pointer'} {action.premium && $appStore.settings.plan === 'free' ? 'border-slate-800' : ''}"
           >
-            {#if action.premium && $appStore.settings.plan === 'free'}
-               <div class="absolute -top-1 -right-1 bg-slate-900 border border-slate-700 p-1.5 rounded-lg shadow-xl z-20">
-                 <Trophy class="w-3 h-3 text-slate-400" />
-               </div>
-            {/if}
+             {#if action.premium && $appStore.settings.plan === 'free'}
+                <div class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] rounded-2xl z-10 flex items-center justify-center">
+                   <div class="bg-slate-900/90 border border-slate-700 p-2 rounded-xl shadow-2xl scale-90 group-hover:scale-100 transition-transform">
+                     <Zap class="w-4 h-4 text-indigo-400 fill-indigo-400/20" />
+                   </div>
+                </div>
+             {/if}
             
             {#if action.badge}
               <span class="absolute top-2 left-2 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">

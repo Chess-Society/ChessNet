@@ -2,8 +2,13 @@ import type { PageServerLoad } from './$types';
 import { tournamentsApi } from '$lib/api/tournaments';
 import { studentsApi } from '$lib/api/students';
 
-export const load: PageServerLoad = async ({ locals }) => {
+import { checkPlanGating } from '$lib/server/plans';
+
+export const load: PageServerLoad = async (event) => {
+  const { locals } = event;
   console.log('🏆 Tournaments page server load - User:', locals.user?.email || 'none');
+
+  await checkPlanGating(event, 'premium');
 
   if (!locals.user) {
     return {

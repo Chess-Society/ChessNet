@@ -34,11 +34,14 @@
         console.log('✅ Google Login Exitoso:', user.email);
         
         try {
-          // Creamos la sesión en el servidor para que layout.server.ts lo reconozca
+          // Obtenemos el ID Token de Firebase para enviarlo al servidor
+          const idToken = await user.getIdToken();
+          
+          // Creamos la sesión en el servidor
           await fetch('/api/auth/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user })
+            body: JSON.stringify({ token: idToken })
           });
         } catch (e) {
           console.warn('⚠️ No se pudo crear sesión en servidor, continuando como SPA pura...');

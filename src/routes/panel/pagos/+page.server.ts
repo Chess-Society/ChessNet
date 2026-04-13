@@ -4,8 +4,11 @@ import { schoolsApi } from '$lib/api/schools';
 import { studentsApi } from '$lib/api/students';
 import { classesApi } from '$lib/api/classes';
 import { error } from '@sveltejs/kit';
+import { checkPlanGating } from '$lib/server/plans';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async (event) => {
+  const { locals, url } = event;
+  await checkPlanGating(event, 'premium');
   console.log('💰 Payments page server load - User:', locals.user?.email || 'none');
 
   // ===== BYPASS PARA DESARROLLO LOCAL =====

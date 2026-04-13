@@ -1,34 +1,21 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/firebase';
-import { 
-  collection, 
-  getDocs, 
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query, 
-  where, 
-  orderBy,
-  serverTimestamp,
-  getDoc
-} from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export const GET: RequestHandler = async ({ locals }) => {
-  console.log('🏫 API Schools - Fetching schools...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
+  const uid = locals.user.uid;
+
   try {
-    const q = query(
-      collection(db, "schools"), 
-      where("owner_id", "==", locals.user.id),
-      orderBy("created_at", "desc")
-    );
-    const snapshot = await getDocs(q);
+    const snapshot = await adminDb.collection("schools")
+      .where("owner_id", "==", uid)
+      .orderBy("created_at", "desc")
+      .get();
+    
     const schools = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     return json({ schools });
@@ -40,11 +27,11 @@ export const GET: RequestHandler = async ({ locals }) => {
 };
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-  console.log('🏫 API Schools - Creating school...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
+
+  const uid = locals.user.uid;
 
   try {
     const body = await request.json();
@@ -57,13 +44,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const schoolData = {
       name: name.trim(),
       city: city?.trim() || null,
-      owner_id: locals.user.id,
-      created_by: locals.user.id,
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp()
+      owner_id: uid,
+      created_by: uid,
+      created_at: FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp()
     };
 
-    const docRef = await addDoc(collection(db, "schools"), schoolData);
+    const docRef = await adminDb.collection("schools").add(schoolData);
     
     return json({ 
       success: true,
@@ -77,12 +64,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   }
 };
 
-export const PUT: RequestHandler = async ({ request, locals, params }) => {
-  console.log('🏫 API Schools - Updating school...');
-
+export const PUT: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
+
+  const uid = locals.user.uid;
 
   try {
     const body = await request.json();
@@ -92,22 +79,22 @@ export const PUT: RequestHandler = async ({ request, locals, params }) => {
       return json({ error: 'ID del centro requerido' }, { status: 400 });
     }
 
-    const schoolRef = doc(db, "schools", schoolId);
-    const schoolSnap = await getDoc(schoolRef);
+    const schoolRef = adminDb.collection("schools").doc(schoolId);
+    const schoolSnap = await schoolRef.get();
 
-    if (!schoolSnap.exists() || schoolSnap.data().owner_id !== locals.user.id) {
+    if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== uid) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 
     const updateData = {
       ...body,
-      updated_at: serverTimestamp()
+      updated_at: FieldValue.serverTimestamp()
     };
     delete updateData.id;
     delete updateData.owner_id;
     delete updateData.created_at;
 
-    await updateDoc(schoolRef, updateData);
+    await schoolRef.update(updateData);
 
     return json({ 
       success: true,
@@ -121,11 +108,11 @@ export const PUT: RequestHandler = async ({ request, locals, params }) => {
 };
 
 export const DELETE: RequestHandler = async ({ request, locals }) => {
-  console.log('🗑️ API Schools - Deleting school...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
+
+  const uid = locals.user.uid;
 
   try {
     const body = await request.json();
@@ -135,14 +122,14 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'ID del centro requerido' }, { status: 400 });
     }
 
-    const schoolRef = doc(db, "schools", id);
-    const schoolSnap = await getDoc(schoolRef);
+    const schoolRef = adminDb.collection("schools").doc(id);
+    const schoolSnap = await schoolRef.get();
 
-    if (!schoolSnap.exists() || schoolSnap.data().owner_id !== locals.user.id) {
+    if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== uid) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 
-    await deleteDoc(schoolRef);
+    await schoolRef.delete();
 
     return json({ success: true, message: 'Centro eliminado correctamente' });
 

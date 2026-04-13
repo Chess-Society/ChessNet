@@ -1,24 +1,20 @@
 import { json } from '@sveltejs/kit';
-import { db } from '$lib/firebase';
-import { 
-  collection, 
-  addDoc,
-  serverTimestamp
-} from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-  console.log('🏆 API Tournaments - Creating tournament (Firestore)...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
+
+  const uid = locals.user.uid;
 
   try {
     const body = await request.json();
     
     const tournamentData = {
-      owner_id: locals.user.id,
+      owner_id: uid,
       name: body.name || 'Torneo sin nombre',
       description: body.description || null,
       format: body.format || 'swiss',
@@ -37,11 +33,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       organizer: body.organizer || null,
       notes: body.notes || null,
       rules: body.rules || null,
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp()
+      created_at: FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp()
     };
 
-    const docRef = await addDoc(collection(db, "tournaments"), tournamentData);
+    const docRef = await adminDb.collection("tournaments").add(tournamentData);
 
     return json({ 
       success: true, 

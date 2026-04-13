@@ -1,16 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/firebase';
-import { 
-  updateDoc,
-  doc,
-  getDoc,
-  serverTimestamp
-} from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
 
 export const PUT: RequestHandler = async ({ request, params, locals }) => {
-  console.log('✏️ API Classes - Updating class...');
-  
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
@@ -18,30 +10,25 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
   try {
     const { id } = params;
     const body = await request.json();
-    const { name, school_id } = body;
     
     if (!id) {
       return json({ error: 'ID de la clase requerido' }, { status: 400 });
     }
 
-    const classRef = doc(db, "classes", id);
-    const classSnap = await getDoc(classRef);
+    const classRef = adminDb.collection("classes").doc(id);
+    const classSnap = await classRef.get();
 
-    if (!classSnap.exists() || classSnap.data().user_id !== locals.user.id) {
+    if (!classSnap.exists || classSnap.data()?.owner_id !== locals.user.uid) {
       return json({ error: 'Clase no encontrada o acceso denegado' }, { status: 404 });
     }
 
-    const updateData: any = {
-      updated_at: serverTimestamp()
-    };
-    if (name !== undefined) updateData.name = name.trim();
-    if (school_id !== undefined) updateData.school_id = school_id;
+    const { id: _, owner_id: __, created_at: ___, ...updateData } = body;
+    updateData.updated_at = new Date().toISOString();
 
-    await updateDoc(classRef, updateData);
+    await classRef.update(updateData);
 
     return json({ 
       success: true, 
-      class: { id, ...classSnap.data(), ...updateData },
       message: 'Clase actualizada correctamente'
     });
 
@@ -52,8 +39,6 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
 };
 
 export const PATCH: RequestHandler = async ({ request, params, locals }) => {
-  console.log('🩹 API Classes - Patching class...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
@@ -66,16 +51,16 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
       return json({ error: 'ID de la clase requerido' }, { status: 400 });
     }
 
-    const classRef = doc(db, "classes", id);
-    const classSnap = await getDoc(classRef);
+    const classRef = adminDb.collection("classes").doc(id);
+    const classSnap = await classRef.get();
 
-    if (!classSnap.exists() || classSnap.data().user_id !== locals.user.id) {
+    if (!classSnap.exists || classSnap.data()?.owner_id !== locals.user.uid) {
       return json({ error: 'Clase no encontrada o acceso denegado' }, { status: 404 });
     }
 
-    await updateDoc(classRef, {
+    await classRef.update({
       ...body,
-      updated_at: serverTimestamp()
+      updated_at: new Date().toISOString()
     });
 
     return json({ success: true });

@@ -1,24 +1,16 @@
 import type { PageServerLoad } from './$types';
-import { ADMIN_EMAILS } from '$lib/constants';
+import { error } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ cookies }) => {
-    const session = cookies.get('sb-auth-token');
-    let user = null;
-    
-    if (session) {
-        try {
-            user = JSON.parse(decodeURIComponent(session));
-        } catch (e) {
-            user = null;
-        }
+export const load: PageServerLoad = async ({ locals }) => {
+    // El hook ya se encarga de verificar si es admin
+    if (!locals.user || !locals.isAdmin) {
+        throw error(403, 'Acceso denegado: Se requieren permisos de administrador');
     }
 
-    const isAuthorized = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
-
-    console.log(`🛡️ [Admin Load] User: ${user?.email || 'Guest'}, Authorized: ${isAuthorized}`);
+    console.log(`🛡️ [Admin Load] User: ${locals.user.email}, Authorized: true`);
 
     return {
-        user,
-        isAdmin: !!isAuthorized
+        user: locals.user,
+        isAdmin: true
     };
 };

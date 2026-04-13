@@ -1,6 +1,9 @@
 import type { PageServerLoad } from './$types';
+import { checkPlanGating } from '$lib/server/plans';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async (event) => {
+  const { locals, url } = event;
+  await checkPlanGating(event, 'premium');
   console.log('📊 Reports page server load - User:', locals.user?.email || 'none');
 
   // ===== BYPASS PARA DESARROLLO LOCAL =====

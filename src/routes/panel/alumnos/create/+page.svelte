@@ -8,15 +8,21 @@
     X,
     User,
     FileText,
-    Plus,
-    Activity,
-    BookOpen,
-    UserCircle
+    Plus, 
+    Activity, 
+    BookOpen, 
+    UserCircle,
+    Zap
   } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
+  import { appStore } from '$lib/stores/appStore';
 
   let { data } = $props<{ data: PageData }>();
+
+  let plan = $derived($appStore.settings.plan || 'free');
+  let studentsCount = $derived($appStore.students.length);
+  let isLimitReached = $derived(plan === 'free' && studentsCount >= 20);
 
   let formData = $state({
     first_name: '',
@@ -50,6 +56,10 @@
   };
 
   const handleSubmit = async () => {
+    if (isLimitReached) {
+      goto('/panel/planes');
+      return;
+    }
     if (!validateForm() || isSubmitting) return;
 
     try {
@@ -165,6 +175,24 @@
         </button>
       </div>
     </div>
+
+    {#if isLimitReached}
+      <div class="bg-indigo-950/30 border border-indigo-500/50 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6 animate-pulse shadow-2xl shadow-indigo-500/10" in:fly={{ y: 20 }}>
+        <div class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 shrink-0">
+          <Zap class="w-8 h-8 fill-indigo-400/20" />
+        </div>
+        <div class="flex-grow text-center md:text-left">
+          <h3 class="text-xl font-black text-white uppercase tracking-tight">¡Límite del Plan Gratuito alcanzado!</h3>
+          <p class="text-indigo-200/60 text-sm mt-1 font-medium">Has alcanzado el máximo de 20 alumnos. Mejora a Premium para gestionar una academia ilimitada y desbloquear informes avanzados.</p>
+        </div>
+        <a 
+          href="/panel/planes"
+          class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-600/20 whitespace-nowrap active:scale-95"
+        >
+          Mejorar Ahora
+        </a>
+      </div>
+    {/if}
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
       <!-- Main Form Section -->

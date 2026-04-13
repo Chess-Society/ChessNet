@@ -1,15 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { db } from '$lib/firebase';
-import { 
-  doc, 
-  getDoc, 
-  collection, 
-  query, 
-  where, 
-  getDocs,
-  documentId
-} from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   const classId = params.classId;
@@ -19,56 +10,49 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   }
 
   try {
-    const classRef = doc(db, "classes", classId);
-    const classSnap = await getDoc(classRef);
+    const classSnap = await adminDb.collection("classes").doc(classId).get();
 
-    if (!classSnap.exists() || classSnap.data().owner_id !== locals.user.id) {
+    if (!classSnap.exists || classSnap.data()?.owner_id !== locals.user.uid) {
       throw error(404, 'Clase no encontrada');
     }
 
     const classData = { id: classSnap.id, ...classSnap.data() };
 
     // Estudiantes inscritos
-    const qEnrollments = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", locals.user.id),
-      where("class_id", "==", classId)
-    );
-    const enrollmentsSnap = await getDocs(qEnrollments);
+    const enrollmentsSnap = await adminDb.collection("class_students")
+      .where("owner_id", "==", locals.user.uid)
+      .where("class_id", "==", classId)
+      .get();
+      
     const studentIds = enrollmentsSnap.docs.map(doc => doc.data().student_id);
     
     let students: any[] = [];
     if (studentIds.length > 0) {
-      // Fetch students in chunks of 10 (Firestore 'in' limit)
-      for (let i = 0; i < studentIds.length; i += 10) {
-        const chunk = studentIds.slice(i, i + 10);
-        const qStudents = query(
-          collection(db, "students"),
-          where(documentId(), "in", chunk)
-        );
-        const studentsSnap = await getDocs(qStudents);
+      // Fetch students in chunks of 30 (Firebase Admin 'in' limit is higher than client, but let's use 10 for safety/consistency)
+      for (let i = 0; i < studentIds.length; i += 30) {
+        const chunk = studentIds.slice(i, i + 30);
+        const studentsSnap = await adminDb.collection("students")
+          .where("__name__", "in", chunk)
+          .get();
         students = [...students, ...studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))];
       }
     }
     
     // Skill de la clase
-    const qClassSkills = query(
-      collection(db, "class_skills"),
-      where("owner_id", "==", locals.user.id),
-      where("class_id", "==", classId)
-    );
-    const classSkillsSnap = await getDocs(qClassSkills);
+    const classSkillsSnap = await adminDb.collection("class_skills")
+      .where("owner_id", "==", locals.user.uid)
+      .where("class_id", "==", classId)
+      .get();
+      
     const skillIds = classSkillsSnap.docs.map(doc => doc.data().skill_id);
     
     let skillsMap = new Map();
     if (skillIds.length > 0) {
-      for (let i = 0; i < skillIds.length; i += 10) {
-        const chunk = skillIds.slice(i, i + 10);
-        const qDetailedSkills = query(
-          collection(db, "skills"),
-          where(documentId(), "in", chunk)
-        );
-        const detailsSnap = await getDocs(qDetailedSkills);
+      for (let i = 0; i < skillIds.length; i += 30) {
+        const chunk = skillIds.slice(i, i + 30);
+        const detailsSnap = await adminDb.collection("skills")
+          .where("__name__", "in", chunk)
+          .get();
         detailsSnap.docs.forEach(doc => {
           skillsMap.set(doc.id, { id: doc.id, ...doc.data() });
         });
@@ -84,13 +68,11 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       };
     }).sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
 
-    // Attendance stats (placeholder logic for now, using Firestore)
-    const qAttendance = query(
-      collection(db, "attendance"),
-      where("owner_id", "==", locals.user.id),
-      where("class_id", "==", classId)
-    );
-    const attendanceSnap = await getDocs(qAttendance);
+    // Attendance stats
+    const attendanceSnap = await adminDb.collection("attendance")
+      .where("owner_id", "==", locals.user.uid)
+      .where("class_id", "==", classId)
+      .get();
     const sessions = new Set(attendanceSnap.docs.map(doc => doc.data().date)).size;
 
     return {

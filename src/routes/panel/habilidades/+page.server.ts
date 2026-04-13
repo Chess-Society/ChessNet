@@ -1,22 +1,25 @@
 import type { PageServerLoad } from './$types';
-import { db } from '$lib/firebase';
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
 import { error } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ locals }) => {
-  console.log('🎯 Skills page server load - User:', locals.user?.id);
+import { checkPlanGating } from '$lib/server/plans';
+
+export const load: PageServerLoad = async (event) => {
+  const { locals } = event;
+  console.log('🎯 Skills page server load - User:', locals.user?.uid);
+  
+  await checkPlanGating(event, 'premium');
 
   if (!locals.user) {
     throw error(401, 'Usuario no autenticado');
   }
 
   try {
-    const q = query(
-      collection(db, "skills"),
-      where("user_id", "==", locals.user.id),
-      orderBy("created_at", "desc")
-    );
-    const skillsSnap = await getDocs(q);
+    const skillsSnap = await adminDb.collection("skills")
+      .where("owner_id", "==", locals.user.uid)
+      .orderBy("created_at", "desc")
+      .get();
+
     const skills = skillsSnap.docs.map(doc => {
       const data = doc.data();
       // Mapear dificultad de número a string si es necesario para el frontend

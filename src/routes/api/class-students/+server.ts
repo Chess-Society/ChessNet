@@ -1,22 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/firebase';
-import { 
-  collection, 
-  getDocs, 
-  addDoc,
-  deleteDoc,
-  doc,
-  query, 
-  where, 
-  serverTimestamp,
-  getDoc,
-  updateDoc
-} from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
-  console.log('👥 API Class-Students - Fetching enrollments...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
@@ -25,20 +11,17 @@ export const GET: RequestHandler = async ({ url, locals }) => {
   const studentId = url.searchParams.get('student_id');
 
   try {
-    let q = query(
-      collection(db, "class_students"), 
-      where("owner_id", "==", locals.user.id)
-    );
+    let query = adminDb.collection("class_students").where("owner_id", "==", locals.user.uid);
 
     if (classId) {
-      q = query(q, where("class_id", "==", classId));
+      query = query.where("class_id", "==", classId);
     }
 
     if (studentId) {
-      q = query(q, where("student_id", "==", studentId));
+      query = query.where("student_id", "==", studentId);
     }
 
-    const snapshot = await getDocs(q);
+    const snapshot = await query.get();
     const classStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     return json({ class_students: classStudents });
@@ -50,8 +33,6 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 };
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-  console.log('👥 API Class-Students - Creating enrollment...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
@@ -64,14 +45,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'class_id and student_id are required' }, { status: 400 });
     }
 
-    // Check for existing enrollment first to prevent duplicates
-    const q = query(
-      collection(db, "class_students"),
-      where("class_id", "==", class_id),
-      where("student_id", "==", student_id),
-      where("owner_id", "==", locals.user.id)
-    );
-    const existingSnap = await getDocs(q);
+    // Comprobar si ya está inscrito
+    const existingSnap = await adminDb.collection("class_students")
+      .where("class_id", "==", class_id)
+      .where("student_id", "==", student_id)
+      .where("owner_id", "==", locals.user.uid)
+      .get();
+      
     if (!existingSnap.empty) {
       return json({ error: 'Estudiante ya inscrito' }, { status: 409 });
     }
@@ -79,11 +59,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const enrollmentData = {
       class_id,
       student_id,
-      owner_id: locals.user!.id,
-      enrolled_at: serverTimestamp()
+      owner_id: locals.user.uid,
+      enrolled_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "class_students"), enrollmentData);
+    const docRef = await adminDb.collection("class_students").add(enrollmentData);
     
     return json({ class_student: { id: docRef.id, ...enrollmentData } });
 
@@ -94,8 +74,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 };
 
 export const DELETE: RequestHandler = async ({ url, locals }) => {
-  console.log('🗑️ API Class-Students - Removing enrollment...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
@@ -108,21 +86,19 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
   }
 
   try {
-    const q = query(
-      collection(db, "class_students"),
-      where("class_id", "==", classId),
-      where("student_id", "==", studentId),
-      where("owner_id", "==", locals.user!.id)
-    );
-    
-    const snapshot = await getDocs(q);
+    const snapshot = await adminDb.collection("class_students")
+      .where("class_id", "==", classId)
+      .where("student_id", "==", studentId)
+      .where("owner_id", "==", locals.user.uid)
+      .get();
+      
     if (snapshot.empty) {
       return json({ error: 'Inscripción no encontrada' }, { status: 404 });
     }
 
-    // Eliminar el documento (o documentos si hay duplicados por error)
-    const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-    await Promise.all(deletePromises);
+    const batch = adminDb.batch();
+    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
 
     return json({ success: true, message: 'Estudiante desinscrito correctamente' });
 
@@ -131,4 +107,3 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
     return json({ error: 'Error al eliminar la inscripción' }, { status: 500 });
   }
 };
-

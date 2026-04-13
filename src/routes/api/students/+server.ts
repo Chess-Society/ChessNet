@@ -1,88 +1,90 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/firebase';
-import { 
-  collection, 
-  getDocs, 
-  addDoc,
-  query, 
-  where, 
-  orderBy,
-  serverTimestamp
-} from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
 
 export const GET: RequestHandler = async ({ locals }) => {
-  console.log('👥 API Students - Fetching students (Firestore)...');
-
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
-    const q = query(
-      collection(db, "students"), 
-      where("owner_id", "==", locals.user.id),
-      orderBy("created_at", "desc")
-    );
-    const snapshot = await getDocs(q);
+    const snapshot = await adminDb.collection("students")
+      .where("owner_id", "==", locals.user.uid)
+      .orderBy("createdAt", "desc")
+      .get();
+      
     const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
     return json({ students });
-
   } catch (error: any) {
     console.error('❌ Error in GET students API:', error.message);
-    return json({ error: 'Error al obtener los estudiantes' }, { status: 500 });
+    return json({ error: 'Error al obtener los alumnos' }, { status: 500 });
   }
 };
 
-export const POST: RequestHandler = async ({ request, locals, url }) => {
-  console.log('👥 API Students - Creating student (Firestore)...');
-
+export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
-    const {
-      name,
-      first_name,
-      last_name,
-      date_of_birth,
-      grade,
-      parent_email,
-      parent_phone,
-      avatar,
-      notes,
-      settings,
-      school_id
-    } = body;
+    // 1. Verificar plan y límites
+    const settingsDoc = await adminDb.collection("app_settings").doc(locals.user.uid).get();
+    const settings = settingsDoc.exists ? settingsDoc.data()?.settings : { plan: 'free' };
+    const plan = settings?.plan || 'free';
 
+    // 2. Contar alumnos actuales
+    const countSnapshot = await adminDb.collection("students")
+      .where("owner_id", "==", locals.user.uid)
+      .count()
+      .get();
+    
+    const studentCount = countSnapshot.data().count;
+
+    // 3. Aplicar gating (Límite: 12 alumnos para plan free)
+    if (plan === 'free' && studentCount >= 12) {
+      return json({ 
+        error: 'Límite alcanzado', 
+        message: 'Has alcanzado el límite de 12 alumnos del plan gratuito. ¡Pásate a Premium para gestionar alumnos ilimitados!',
+        code: 'LIMIT_REACHED'
+      }, { status: 403 });
+    }
+
+    const body = await request.json();
     const studentData = {
-      owner_id: locals.user.id,
-      name: name?.trim() || 'Estudiante sin nombre',
-      first_name: first_name?.trim() || null,
-      last_name: last_name?.trim() || null,
-      date_of_birth: date_of_birth || null,
-      grade: grade?.trim() || null,
-      parent_email: parent_email?.trim() || null,
-      parent_phone: parent_phone?.trim() || null,
-      avatar: avatar?.trim() || null,
-      notes: notes?.trim() || null,
-      school_id: school_id?.trim() || null,
-      settings: settings || {},
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp()
+      ...body,
+      owner_id: locals.user.uid,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "students"), studentData);
-    
-    return json({ 
-      student: { id: docRef.id, ...studentData } 
-    });
-
+    const docRef = await adminDb.collection("students").add(studentData);
+    return json({ success: true, student: { id: docRef.id, ...studentData } });
   } catch (error: any) {
     console.error('❌ Error in POST students API:', error.message);
-    return json({ error: 'Error al crear el estudiante' }, { status: 500 });
+    return json({ error: 'Error al crear el alumno' }, { status: 500 });
+  }
+};
+
+export const DELETE: RequestHandler = async ({ request, locals }) => {
+  if (!locals.user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  try {
+    const { id } = await request.json();
+    if (!id) return json({ error: 'ID requerido' }, { status: 400 });
+
+    const docRef = adminDb.collection("students").doc(id);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists || docSnap.data()?.owner_id !== locals.user.uid) {
+      return json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    await docRef.delete();
+    return json({ success: true });
+  } catch (error: any) {
+    console.error('❌ Error in DELETE students API:', error.message);
+    return json({ error: 'Error al eliminar el alumno' }, { status: 500 });
   }
 };

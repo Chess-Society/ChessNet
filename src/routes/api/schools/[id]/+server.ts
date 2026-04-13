@@ -1,51 +1,34 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { db } from '$lib/firebase';
-import { 
-  doc, 
-  getDoc, 
-  updateDoc, 
-  serverTimestamp 
-} from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
 
 export const PUT: RequestHandler = async ({ request, locals, params }) => {
-  console.log('🏫 API Schools [id] - Updating school (Firestore)...');
-  
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
     const schoolId = params.id;
+    const body = await request.json();
     
     if (!schoolId) {
       return json({ error: 'ID del centro requerido' }, { status: 400 });
     }
 
-    const schoolRef = doc(db, "schools", schoolId);
-    const schoolSnap = await getDoc(schoolRef);
+    const schoolRef = adminDb.collection("schools").doc(schoolId);
+    const schoolSnap = await schoolRef.get();
 
-    if (!schoolSnap.exists() || schoolSnap.data().owner_id !== locals.user.id) {
+    if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== locals.user.uid) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 
-    const updateData = {
-      ...body,
-      updated_at: serverTimestamp()
-    };
+    const { id: _, owner_id: __, created_at: ___, ...updateData } = body;
+    updateData.updated_at = new Date().toISOString();
 
-    // Remove immutable fields if present in body
-    delete updateData.id;
-    delete updateData.owner_id;
-    delete updateData.created_at;
+    await schoolRef.update(updateData);
 
-    await updateDoc(schoolRef, updateData);
-
-    const updatedSnap = await getDoc(schoolRef);
     return json({ 
       success: true, 
-      school: { id: updatedSnap.id, ...updatedSnap.data() },
       message: 'Centro actualizado correctamente'
     });
 
