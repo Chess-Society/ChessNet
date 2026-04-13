@@ -31,15 +31,15 @@
   let errors = $state<Record<string, string>>({});
 
   // URL context
-  const classId = $derived($page.url.searchParams.get('class_id'));
-  const collegeId = $derived($page.url.searchParams.get('college_id'));
-  const returnTo = $derived($page.url.searchParams.get('return_to'));
+  const classId = $derived($page.url.searchParams.get('classId'));
+  const schoolId = $derived($page.url.searchParams.get('schoolId'));
+  const returnTo = $derived($page.url.searchParams.get('returnTo'));
   const isFromClass = $derived(!!classId);
 
   const handleGoBack = () => {
     if (returnTo) goto(returnTo);
-    else if (isFromClass && classId) goto(`/classes/${classId}/students`);
-    else goto('/students');
+    else if (isFromClass && classId) goto(`/panel/clases/${classId}`);
+    else goto('/panel/alumnos');
   };
 
   const validateForm = () => {
@@ -58,7 +58,7 @@
         first_name: formData.first_name.trim() || null,
         last_name: formData.last_name.trim() || null,
         notes: formData.notes.trim() || null,
-        college_id: collegeId || null
+        school_id: schoolId || null
       };
       
       const response = await fetch('/api/students', {
@@ -80,7 +80,7 @@
         });
       }
       
-      goto(returnTo || (isFromClass ? `/classes/${classId}/students` : '/students'));
+      goto(returnTo || (isFromClass ? `/panel/clases/${classId}` : '/panel/alumnos'));
     } catch (error) {
       alert('❌ Error al crear el estudiante');
     } finally {

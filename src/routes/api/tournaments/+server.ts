@@ -18,7 +18,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const body = await request.json();
     
     const tournamentData = {
-      user_id: locals.user.id,
+      owner_id: locals.user.id,
       name: body.name || 'Torneo sin nombre',
       description: body.description || null,
       format: body.format || 'swiss',

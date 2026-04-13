@@ -59,9 +59,9 @@
   const handleGoBack = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromSchool = urlParams.get('from_school');
-    if (fromSchool) goto(`/schools/${fromSchool}`);
-    else if (classData?.college_id) goto(`/schools/${classData.college_id}`);
-    else goto('/classes');
+    if (fromSchool) goto(`/panel/centros/${fromSchool}`);
+    else if (classData?.school_id) goto(`/panel/centros/${classData.school_id}`);
+    else goto('/panel/clases');
   };
 
   const formatCurrency = (amount: number) => {
@@ -106,14 +106,14 @@
 
     <div class="flex items-center gap-3">
       <button 
-        onclick={() => goto(`/classes/${classData.id}/attendance`)}
+        onclick={() => goto(`/panel/clases/${classData.id}/attendance`)}
         class="bg-surface-950 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-surface-800 hover:border-primary-500/50 transition-all flex items-center gap-3"
       >
         <ClipboardCheck class="w-4 h-4 text-primary-400" />
         Asistencia
       </button>
       <button 
-        onclick={() => goto(`/classes/${classData.id}/edit`)}
+        onclick={() => goto(`/panel/clases/${classData.id}/edit`)}
         class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/20 flex items-center gap-3"
       >
         <Settings class="w-4 h-4" />
@@ -218,7 +218,7 @@
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <button 
-            onclick={() => goto(`/students/create?class_id=${classData.id}&college_id=${classData.college_id}`)}
+            onclick={() => goto(`/panel/alumnos/create?classId=${classData.id}&schoolId=${classData.school_id}`)}
             class="glass-panel p-8 text-left hover:border-primary-500/50 transition-all group relative overflow-hidden"
           >
             <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -230,7 +230,7 @@
           </button>
 
           <button 
-            onclick={() => goto(`/classes/${classData.id}/attendance`)}
+            onclick={() => goto(`/panel/clases/${classData.id}/attendance`)}
             class="glass-panel p-8 text-left hover:border-emerald-500/50 transition-all group relative overflow-hidden"
           >
             <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -306,7 +306,7 @@
          <h2 class="text-xl font-black text-white uppercase tracking-tighter">Estudiantes Registrados</h2>
          <div class="flex items-center gap-3">
              <button 
-               onclick={() => goto(`/classes/${classData.id}/students`)}
+               onclick={() => goto(`/panel/clases/${classData.id}/students`)}
                class="bg-surface-950 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-surface-800 hover:border-primary-500/50 transition-all flex items-center gap-2"
              >
                <Users class="w-4 h-4" />
@@ -325,7 +325,7 @@
               <p class="text-surface-500 text-xs font-medium">Comienza por añadir tu primer estudiante a este grupo.</p>
             </div>
             <button 
-              onclick={() => goto(`/students/create?class_id=${classData.id}`)}
+              onclick={() => goto(`/panel/alumnos/create?classId=${classData.id}`)}
               class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all"
             >
               Crear Nuevo Estudiante
@@ -362,7 +362,7 @@
                         <span class="text-[10px] font-black uppercase tracking-widest text-surface-500">{student.active ? 'ACTIVO' : 'INACTIVO'}</span>
                      </div>
                      <button 
-                       onclick={() => goto(`/students/${student.id}`)}
+                       onclick={() => goto(`/panel/alumnos/${student.id}`)}
                        class="p-2 bg-surface-950 rounded-xl border border-surface-800 hover:text-primary-400 transition-colors"
                      >
                        <Eye class="w-4 h-4" />
@@ -379,7 +379,7 @@
       <div class="flex items-center justify-between">
          <h2 class="text-xl font-black text-white uppercase tracking-tighter">Temario Programado</h2>
          <button 
-           onclick={() => goto(`/classes/${classData.id}/skills`)}
+           onclick={() => goto(`/panel/clases/${classData.id}/skills`)}
            class="bg-primary-500 text-black px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all flex items-center gap-2"
          >
            <Plus class="w-4 h-4" />

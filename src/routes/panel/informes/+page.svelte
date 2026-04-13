@@ -15,12 +15,12 @@
 
   // Datos reactivos
   let students = $derived($appStore.students || []);
-  let centers = $derived($appStore.centers || []);
+  let schools = $derived($appStore.schools || []);
   let attendance = $derived($appStore.attendance || []);
 
   const stats = $derived(() => {
     const totalStudents = students.length;
-    const totalCenters = centers.length;
+    const totalSchools = schools.length;
     
     // Distribución por nivel
     const levels: Record<string, number> = {};
@@ -29,14 +29,14 @@
       levels[level] = (levels[level] || 0) + 1;
     });
 
-    return { totalStudents, totalCenters, levels };
+    return { totalStudents, totalSchools, levels };
   });
 
   // Datos para gráfico de barras de alumnos por centro
   const studentsPerCenter = $derived(() => {
-    return centers.map(c => ({
-      name: c.name,
-      count: students.filter(s => s.college_id === c.id || s.centerId === c.id).length
+    return schools.map(s => ({
+      name: s.name,
+      count: students.filter(student => student.school_id === s.id).length
     })).sort((a,b) => b.count - a.count);
   });
 

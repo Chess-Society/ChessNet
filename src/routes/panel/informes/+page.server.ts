@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     // Generar reportes basados en los datos centralizados
     const mockStudentsReports = mockStudents.slice(0, 10).map(student => {
-      const school = mockSchools.find(s => s.id === student.college_id);
+      const school = mockSchools.find(s => s.id === student.school_id);
       const studentClasses = mockClasses.filter(c => c.school_id === school?.id).slice(0, 2);
       const studentPayments = mockPayments.filter(p => p.student_id === student.id);
 
@@ -23,10 +23,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
           email: student.parent_email,
           phone: student.parent_phone,
           date_of_birth: student.date_of_birth,
-          college_id: student.college_id,
+          school_id: student.school_id,
           created_at: student.created_at
         },
-        college: {
+        school: {
           id: school?.id || 'unknown',
           name: school?.name || 'Sin colegio'
         },

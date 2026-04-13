@@ -1,4 +1,4 @@
-import { db, toData, getUserPath } from "$lib/firebase";
+import { db, auth, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -18,9 +18,12 @@ import type { Badge, StudentBadge, StudentStats } from "$lib/types";
 export const gamificationApi = {
   // Get badges by school
   async getBadgesBySchool(schoolId: string): Promise<Badge[]> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
     const q = query(
-      collection(db, userPath, "badges"),
+      collection(db, "badges"),
+      where("owner_id", "==", user.uid),
       where("school_id", "==", schoolId),
       where("is_active", "==", true),
       orderBy("created_at")
@@ -32,8 +35,7 @@ export const gamificationApi = {
 
   // Get a specific badge
   async getBadge(id: string): Promise<Badge> {
-    const userPath = getUserPath();
-    const docSnap = await getDoc(doc(db, userPath, "badges", id));
+    const docSnap = await getDoc(doc(db, "badges", id));
     if (!docSnap.exists()) throw new Error("Badge not found");
     return toData<Badge>(docSnap);
   },
@@ -47,8 +49,11 @@ export const gamificationApi = {
     color: string = "#3b82f6",
     criteria: any,
   ): Promise<Badge> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
     const badgeData = {
+      owner_id: user.uid,
       school_id: schoolId,
       name,
       description,
@@ -59,15 +64,14 @@ export const gamificationApi = {
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, userPath, "badges"), badgeData);
+    const docRef = await addDoc(collection(db, "badges"), badgeData);
     const docSnap = await getDoc(docRef);
     return toData<Badge>(docSnap);
   },
 
   // Update a badge
   async updateBadge(id: string, updates: Partial<Badge>): Promise<Badge> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "badges", id);
+    const docRef = doc(db, "badges", id);
     await updateDoc(docRef, updates);
 
     const docSnap = await getDoc(docRef);
@@ -76,15 +80,17 @@ export const gamificationApi = {
 
   // Delete a badge
   async deleteBadge(id: string): Promise<void> {
-    const userPath = getUserPath();
-    await deleteDoc(doc(db, userPath, "badges", id));
+    await deleteDoc(doc(db, "badges", id));
   },
 
   // Get student badges
   async getStudentBadges(studentId: string): Promise<StudentBadge[]> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
     const q = query(
-      collection(db, userPath, "student_badges"),
+      collection(db, "student_badges"),
+      where("owner_id", "==", user.uid),
       where("student_id", "==", studentId),
       orderBy("earned_at", "desc")
     );
@@ -95,7 +101,7 @@ export const gamificationApi = {
     // Manual join for badge data
     for (const sb of studentBadges) {
       if (sb.badge_id) {
-        const badgeSnap = await getDoc(doc(db, userPath, "badges", sb.badge_id));
+        const badgeSnap = await getDoc(doc(db, "badges", sb.badge_id));
         if (badgeSnap.exists()) {
           sb.badges = toData<Badge>(badgeSnap);
         }
@@ -107,23 +113,29 @@ export const gamificationApi = {
 
   // Award badge to student
   async awardBadge(studentId: string, badgeId: string): Promise<StudentBadge> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
     const sbData = {
+      owner_id: user.uid,
       student_id: studentId,
       badge_id: badgeId,
       earned_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, userPath, "student_badges"), sbData);
+    const docRef = await addDoc(collection(db, "student_badges"), sbData);
     const docSnap = await getDoc(docRef);
     return toData<StudentBadge>(docSnap);
   },
 
   // Remove badge from student
   async removeBadge(studentId: string, badgeId: string): Promise<void> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
     const q = query(
-      collection(db, userPath, "student_badges"),
+      collection(db, "student_badges"),
+      where("owner_id", "==", user.uid),
       where("student_id", "==", studentId),
       where("badge_id", "==", badgeId)
     );
@@ -135,8 +147,7 @@ export const gamificationApi = {
 
   // Get student statistics
   async getStudentStats(studentId: string): Promise<StudentStats | null> {
-    const userPath = getUserPath();
-    const docSnap = await getDoc(doc(db, userPath, "student_stats", studentId));
+    const docSnap = await getDoc(doc(db, "student_stats", studentId));
     if (!docSnap.exists()) return null;
     return toData<StudentStats>(docSnap);
   },
@@ -146,10 +157,13 @@ export const gamificationApi = {
     studentId: string,
     updates: Partial<StudentStats>,
   ): Promise<StudentStats> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "student_stats", studentId);
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
+    const docRef = doc(db, "student_stats", studentId);
     const data = {
       ...updates,
+      owner_id: user.uid,
       student_id: studentId,
       last_activity: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -292,8 +306,11 @@ export const gamificationApi = {
     activityType: string,
     activityData?: any,
   ): Promise<void> {
-    const userPath = getUserPath();
-    await addDoc(collection(db, userPath, "activity_logs"), {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
+    await addDoc(collection(db, "activity_logs"), {
+      owner_id: user.uid,
       student_id: studentId,
       activity_type: activityType,
       activity_data: activityData || null,
@@ -303,13 +320,12 @@ export const gamificationApi = {
 
   // Check and award badges
   async checkAndAwardBadges(studentId: string): Promise<Badge[]> {
-    const userPath = getUserPath();
     const studentStats = await this.getStudentStats(studentId);
     const studentBadges = await this.getStudentBadges(studentId);
     const earnedBadgeIds = studentBadges.map((sb) => sb.badge_id);
 
     // Get student's school_id
-    const studentDoc = await getDoc(doc(db, userPath, "students", studentId));
+    const studentDoc = await getDoc(doc(db, "students", studentId));
     if (!studentDoc.exists()) return [];
     
     const schoolId = studentDoc.data().school_id;

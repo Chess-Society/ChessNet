@@ -74,9 +74,3 @@ export const toData = <T>(doc: any): T => {
   return { id: doc.id, ...doc.data() } as T;
 };
 
-// Helper for user-specific collection paths
-export const getUserPath = (userId?: string) => {
-  const uid = userId || auth.currentUser?.uid;
-  if (!uid) throw new Error("User not authenticated");
-  return `users/${uid}`;
-};

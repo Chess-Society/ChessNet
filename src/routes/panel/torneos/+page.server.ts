@@ -17,8 +17,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   try {
     // Obtener torneos y estudiantes del usuario mediante Firebase API en paralelo
     const [tournaments, students] = await Promise.all([
-      tournamentsApi.getMyTournaments(locals.user.id),
-      studentsApi.getMyStudents(locals.user.id)
+      tournamentsApi.getMyTournaments(),
+      studentsApi.getMyStudents()
     ]);
 
     // Filtrar estudiantes activos y mapearlos al formato que espera la UI
@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ locals }) => {
         first_name: s.first_name || '',
         last_name: s.last_name || '',
         chess_level: (s as any).chess_level || 'beginner',
-        school_id: s.college_id || ''
+        school_id: s.school_id || ''
       }));
 
     // Calcular estadísticas

@@ -72,15 +72,15 @@
   };
 
   const handleCreateClass = () => {
-    goto(`/classes/create?school_id=${school.id}`);
+    goto(`/panel/clases/create?schoolId=${school.id}`);
   };
 
   const handleEditClass = (classId: string) => {
-    goto(`/classes/${classId}/edit`);
+    goto(`/panel/clases/${classId}/edit`);
   };
 
   const handleViewClass = (classId: string) => {
-    goto(`/classes/${classId}`);
+    goto(`/panel/clases/${classId}`);
   };
 </script>
 
@@ -93,7 +93,7 @@
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
     <div class="space-y-4">
       <button 
-        onclick={() => goto('/schools')}
+        onclick={() => goto('/panel/centros')}
         class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
       >
         <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -124,14 +124,14 @@
 
     <div class="flex items-center gap-3">
       <button 
-        onclick={() => goto(`/schools/${school.id}/edit`)}
+        onclick={() => goto(`/panel/centros/${school.id}/edit`)}
         class="btn-ghost flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
       >
         <Edit class="w-4 h-4" />
         Configurar Sede
       </button>
       <button 
-        onclick={() => goto(`/classes/create?school_id=${school.id}`)}
+        onclick={() => goto(`/panel/clases/create?schoolId=${school.id}`)}
         class="bg-primary-500 text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2"
       >
         <Plus class="w-4 h-4" />

@@ -22,9 +22,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     
     // Obtener la clase, skills asignadas y todas las skills del usuario en paralelo
     const [classData, assignedClassSkills, allSkills] = await Promise.all([
-      classesApi.getClass(classId, locals.user.id),
-      classSkillsApi.getClassSkills(classId, locals.user.id),
-      skillsApi.getMySkills(locals.user.id)
+      classesApi.getClass(classId),
+      classSkillsApi.getClassSkills(classId),
+      skillsApi.getMySkills()
     ]);
     
     if (!classData) {

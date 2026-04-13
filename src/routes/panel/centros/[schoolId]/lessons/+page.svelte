@@ -19,7 +19,7 @@
 
   function goBack() {
     invalidateAll().then(() => {
-      goto(`/schools/${data.schoolId}`);
+      goto(`/panel/centros/${data.schoolId}`);
     });
   }
 

@@ -1,4 +1,4 @@
-import { db, auth, toData, getUserPath } from "$lib/firebase";
+import { db, auth, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -10,8 +10,7 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc,
-  serverTimestamp,
-  type DocumentData
+  serverTimestamp
 } from "firebase/firestore";
 import type {
   Tournament,
@@ -21,10 +20,14 @@ import type {
 } from "$lib/types";
 
 export const tournamentsApi = {
-  // Get all tournaments for the current user (or specified user)
+  // Get all tournaments for the current user
   async getMyTournaments(userId?: string): Promise<Tournament[]> {
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
     const q = query(
-      collection(db, getUserPath(userId), "tournaments"),
+      collection(db, "tournaments"),
+      where("owner_id", "==", uid),
       orderBy("created_at", "desc")
     );
     const querySnapshot = await getDocs(q);
@@ -33,8 +36,12 @@ export const tournamentsApi = {
 
   // Get tournaments by school
   async getTournamentsBySchool(schoolId: string): Promise<Tournament[]> {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
     const q = query(
-      collection(db, getUserPath(), "tournaments"),
+      collection(db, "tournaments"),
+      where("owner_id", "==", uid),
       where("school_id", "==", schoolId),
       orderBy("created_at", "desc")
     );
@@ -44,10 +51,17 @@ export const tournamentsApi = {
 
   // Get a specific tournament
   async getTournament(id: string): Promise<Tournament> {
-    const docRef = doc(db, getUserPath(), "tournaments", id);
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
+    const docRef = doc(db, "tournaments", id);
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) throw new Error("Tournament not found");
-    return toData<Tournament>(docSnap);
+    
+    const tournament = toData<Tournament>(docSnap);
+    if (tournament.owner_id !== uid) throw new Error("Access denied");
+    
+    return tournament;
   },
 
   // Create a new tournament
@@ -62,9 +76,11 @@ export const tournamentsApi = {
     timeControl?: string,
     userId?: string
   ): Promise<Tournament> {
-    const userPath = getUserPath(userId);
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
     
     const docData = {
+      owner_id: uid,
       school_id: schoolId,
       name,
       description: description || "",
@@ -73,12 +89,12 @@ export const tournamentsApi = {
       end_date: endDate || null,
       max_participants: maxParticipants || null,
       time_control: timeControl || "",
-      created_by: auth.currentUser?.uid,
+      created_by: uid,
       status: "planned",
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, userPath, "tournaments"), docData);
+    const docRef = await addDoc(collection(db, "tournaments"), docData);
     const docSnap = await getDoc(docRef);
     return toData<Tournament>(docSnap);
   },
@@ -88,7 +104,7 @@ export const tournamentsApi = {
     id: string,
     updates: Partial<Tournament>,
   ): Promise<Tournament> {
-    const docRef = doc(db, getUserPath(), "tournaments", id);
+    const docRef = doc(db, "tournaments", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString()
@@ -99,13 +115,13 @@ export const tournamentsApi = {
 
   // Delete a tournament
   async deleteTournament(id: string): Promise<void> {
-    const docRef = doc(db, getUserPath(), "tournaments", id);
+    const docRef = doc(db, "tournaments", id);
     await deleteDoc(docRef);
   },
 
   // Start a tournament
   async startTournament(id: string): Promise<void> {
-    const docRef = doc(db, getUserPath(), "tournaments", id);
+    const docRef = doc(db, "tournaments", id);
     await updateDoc(docRef, {
       status: "active",
       start_date: new Date().toISOString().split("T")[0],
@@ -114,7 +130,7 @@ export const tournamentsApi = {
 
   // Complete a tournament
   async completeTournament(id: string): Promise<void> {
-    const docRef = doc(db, getUserPath(), "tournaments", id);
+    const docRef = doc(db, "tournaments", id);
     await updateDoc(docRef, {
       status: "completed",
       end_date: new Date().toISOString().split("T")[0],
@@ -125,9 +141,12 @@ export const tournamentsApi = {
   async getTournamentParticipants(
     tournamentId: string,
   ): Promise<TournamentParticipant[]> {
-    const userPath = getUserPath();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
     const q = query(
-      collection(db, userPath, "tournament_participants"),
+      collection(db, "tournament_participants"),
+      where("owner_id", "==", uid),
       where("tournament_id", "==", tournamentId),
       orderBy("score", "desc")
     );
@@ -137,7 +156,7 @@ export const tournamentsApi = {
     // FETCH STUDENTS (Equivalent to join)
     for (const p of participants) {
       if (p.student_id) {
-        const studentDoc = await getDoc(doc(db, userPath, "students", p.student_id));
+        const studentDoc = await getDoc(doc(db, "students", p.student_id));
         if (studentDoc.exists()) {
           p.students = toData<Student>(studentDoc);
         }
@@ -153,8 +172,11 @@ export const tournamentsApi = {
     studentId: string,
     rating?: number,
   ): Promise<TournamentParticipant> {
-    const userPath = getUserPath();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
     const docData = {
+      owner_id: uid,
       tournament_id: tournamentId,
       student_id: studentId,
       rating: rating || 1200,
@@ -163,14 +185,14 @@ export const tournamentsApi = {
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, userPath, "tournament_participants"), docData);
+    const docRef = await addDoc(collection(db, "tournament_participants"), docData);
     const docSnap = await getDoc(docRef);
     return toData<TournamentParticipant>(docSnap);
   },
 
   // Remove participant from tournament
   async removeParticipant(participantId: string): Promise<void> {
-    const docRef = doc(db, getUserPath(), "tournament_participants", participantId);
+    const docRef = doc(db, "tournament_participants", participantId);
     await deleteDoc(docRef);
   },
 
@@ -180,7 +202,7 @@ export const tournamentsApi = {
     score: number,
     tiebreakScore?: number,
   ): Promise<TournamentParticipant> {
-    const docRef = doc(db, getUserPath(), "tournament_participants", participantId);
+    const docRef = doc(db, "tournament_participants", participantId);
     await updateDoc(docRef, {
       score,
       tiebreak_score: tiebreakScore || 0,
@@ -194,9 +216,12 @@ export const tournamentsApi = {
     tournamentId: string,
     round?: number,
   ): Promise<TournamentMatch[]> {
-    const userPath = getUserPath();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
     let q = query(
-      collection(db, userPath, "tournament_matches"),
+      collection(db, "tournament_matches"),
+      where("owner_id", "==", uid),
       where("tournament_id", "==", tournamentId)
     );
 
@@ -215,11 +240,11 @@ export const tournamentsApi = {
     // Populate players (joins)
     for (const m of matches) {
       if (m.player1_id) {
-        const p1Doc = await getDoc(doc(db, userPath, "students", m.player1_id));
+        const p1Doc = await getDoc(doc(db, "students", m.player1_id));
         if (p1Doc.exists()) m.player1 = toData<Student>(p1Doc);
       }
       if (m.player2_id) {
-        const p2Doc = await getDoc(doc(db, userPath, "students", m.player2_id));
+        const p2Doc = await getDoc(doc(db, "students", m.player2_id));
         if (p2Doc.exists()) m.player2 = toData<Student>(p2Doc);
       }
     }
@@ -232,16 +257,19 @@ export const tournamentsApi = {
     tournamentId: string,
     matches: Omit<TournamentMatch, "id" | "tournament_id" | "created_at">[],
   ): Promise<TournamentMatch[]> {
-    const userPath = getUserPath();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
     const createdMatches: TournamentMatch[] = [];
     
     for (const match of matches) {
       const docData = {
         ...match,
+        owner_id: uid,
         tournament_id: tournamentId,
         created_at: new Date().toISOString()
       };
-      const docRef = await addDoc(collection(db, userPath, "tournament_matches"), docData);
+      const docRef = await addDoc(collection(db, "tournament_matches"), docData);
       const docSnap = await getDoc(docRef);
       createdMatches.push(toData<TournamentMatch>(docSnap));
     }
@@ -256,7 +284,7 @@ export const tournamentsApi = {
     moves?: string[],
     gameDurationSeconds?: number,
   ): Promise<TournamentMatch> {
-    const docRef = doc(db, getUserPath(), "tournament_matches", matchId);
+    const docRef = doc(db, "tournament_matches", matchId);
     await updateDoc(docRef, {
       result,
       moves: moves || [],

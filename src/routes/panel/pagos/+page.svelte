@@ -28,8 +28,8 @@
 
   const filteredPayments = $derived(() => {
     return payments
-      .filter(p => getStudentName(p.student_id || p.studentId || '').toLowerCase().includes(searchQuery.toLowerCase()))
-      .sort((a,b) => (b.paid_date || b.date || '').localeCompare(a.paid_date || a.date || ''));
+      .filter(p => getStudentName(p.student_id || p.student_id || '').toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort((a,b) => (b.paid_date || (b as any).date || '').localeCompare(a.paid_date || (a as any).date || ''));
   });
 
   // Métricas financieras
@@ -40,7 +40,7 @@
     
     const monthlyTotal = payments
       .filter(p => {
-        const d = new Date(p.paid_date || p.date || '');
+        const d = new Date(p.paid_date || p.paid_date || '');
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
       .reduce((acc, p) => acc + p.amount, 0);
@@ -154,16 +154,16 @@
                               <td class="px-6 py-4">
                                   <div class="flex items-center gap-3">
                                       <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-[10px] font-bold text-teal-500">
-                                          {getStudentName(p.student_id || p.studentId || '')[0]}
+                                          {getStudentName(p.student_id || p.student_id || '')[0]}
                                       </div>
-                                      <span class="text-sm font-bold text-white">{getStudentName(p.student_id || p.studentId || '')}</span>
+                                      <span class="text-sm font-bold text-white">{getStudentName(p.student_id || p.student_id || '')}</span>
                                   </div>
                               </td>
                               <td class="px-6 py-4">
                                   <span class="text-xs text-slate-400 capitalize">{p.concept.replace('_', ' ')}</span>
                               </td>
                               <td class="px-6 py-4">
-                                  <span class="text-xs text-slate-500">{new Date(p.paid_date || p.date || '').toLocaleDateString('es-ES')}</span>
+                                  <span class="text-xs text-slate-500">{new Date(p.paid_date || p.paid_date || '').toLocaleDateString('es-ES')}</span>
                               </td>
                               <td class="px-6 py-4 text-right">
                                   <span class="text-sm font-bold text-teal-400">{p.amount}€</span>

@@ -45,23 +45,23 @@
 
   // Reactividad con appStore
   let students = $derived($appStore.students || []);
-  let centers = $derived($appStore.centers || []);
+  let schools = $derived($appStore.schools || []);
   let classes = $derived($appStore.classes || []);
 
   // Reactive variables
   let filteredClasses = $derived(classes.filter((cls: any) => {
     if (formData.payment_type === 'student' && formData.student_id) {
       const student = students.find((s: any) => s.id === formData.student_id);
-      return student && cls.college_id === student.college_id;
+      return student && cls.school_id === student.school_id;
     }
     if (formData.payment_type === 'school' && formData.school_id) {
-      return cls.college_id === formData.school_id;
+      return cls.school_id === formData.school_id;
     }
     return true;
   }));
 
   let selectedStudent = $derived(students.find((s: any) => s.id === formData.student_id));
-  let selectedSchool = $derived(centers.find((s: any) => s.id === formData.school_id));
+  let selectedSchool = $derived(schools.find((s: any) => s.id === formData.school_id));
   let selectedClass = $derived(classes.find((c: any) => c.id === formData.class_id));
 
   // Auto-fill amount when class is selected
@@ -369,7 +369,7 @@
                   class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-white rounded-lg focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
                 >
                   <option value="">Selecciona un centro</option>
-                  {#each centers as school}
+                  {#each schools as school}
                     <option value={school.id}>{school.name} - {school.city}</option>
                   {/each}
                 </select>

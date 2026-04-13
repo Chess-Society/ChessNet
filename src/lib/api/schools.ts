@@ -1,63 +1,110 @@
-import { db, auth, toData, getUserPath } from "$lib/firebase";
+import { db, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
   getDoc, 
   getDocs, 
   query, 
+  where,
   orderBy,
   addDoc, 
   updateDoc, 
   deleteDoc
 } from "firebase/firestore";
 import type { School } from "$lib/types";
+import { getOwnerId, getOwnedQuery } from "./base";
 
 export const schoolsApi = {
-  // Obtener todos los colegios del usuario actual
-  async getMySchools(userId?: string): Promise<School[]> {
-    const userPath = getUserPath(userId);
-    const q = query(
-      collection(db, userPath, "colleges"),
-      orderBy("created_at", "desc")
-    );
+  /**
+   * Obtiene todos los centros (escuelas/colegios) del profesor actual.
+   */
+  async getMySchools(): Promise<School[]> {
+    const ownerId = await getOwnerId();
+    const q = query(getOwnedQuery("schools"), orderBy("name", "asc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => toData<School>(doc));
   },
 
-  // Obtener un colegio específico
-  async getSchool(id: string, userId?: string): Promise<School> {
-    const userPath = getUserPath(userId);
-    const docRef = doc(db, userPath, "colleges", id);
-    const docSnap = await getDoc(docRef);
+  /**
+   * Obtiene centros filtrados por ciudad.
+   */
+  async getSchoolsByCity(city: string): Promise<School[]> {
+    const ownerId = await getOwnerId();
+    const q = query(
+      getOwnedQuery("schools"),
+      where("city", "==", city),
+      orderBy("name", "asc")
+    );
 
-    if (!docSnap.exists()) throw new Error("Colegio no encontrado");
-    return toData<School>(docSnap);
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => toData<School>(doc));
   },
 
-  // Crear un nuevo colegio
-  async createSchool(
-    name: string,
-    city?: string,
-  ): Promise<School> {
-    const userPath = getUserPath();
+  /**
+   * Obtiene un centro específico por ID.
+   */
+  async getSchool(id: string): Promise<School> {
+    const docRef = doc(db, "schools", id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) throw new Error("Centro no encontrado");
     
-    const schoolData = {
-      name,
-      city: city || null,
+    const data = toData<School>(docSnap);
+    const ownerId = await getOwnerId();
+    
+    if (data.owner_id !== ownerId) {
+      throw new Error("Acceso denegado");
+    }
+    
+    return data;
+  },
+
+  /**
+   * Busca centros por coincidencia parcial en el nombre.
+   */
+  async searchSchools(queryStr: string): Promise<School[]> {
+    const allSchools = await this.getMySchools();
+    return allSchools.filter(s => 
+      s.name.toLowerCase().includes(queryStr.toLowerCase())
+    ).slice(0, 20);
+  },
+
+  /**
+   * Crea un nuevo centro.
+   */
+  async createSchool(schoolData: {
+    name: string;
+    city?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+  }): Promise<School> {
+    const ownerId = await getOwnerId();
+    
+    const data = {
+      ...schoolData,
+      owner_id: ownerId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, userPath, "colleges"), schoolData);
+    const docRef = await addDoc(collection(db, "schools"), data);
     const docSnap = await getDoc(docRef);
     return toData<School>(docSnap);
   },
 
-  // Actualizar un colegio
+  /**
+   * Actualiza los datos de un centro.
+   */
   async updateSchool(id: string, updates: Partial<School>): Promise<School> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "colleges", id);
+    const ownerId = await getOwnerId();
+    const docRef = doc(db, "schools", id);
     
+    // Verificación de seguridad previa a la actualización
+    const current = await this.getSchool(id);
+    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -67,28 +114,37 @@ export const schoolsApi = {
     return toData<School>(docSnap);
   },
 
-  // Eliminar un colegio
+  /**
+   * Elimina un centro.
+   */
   async deleteSchool(id: string): Promise<void> {
-    const userPath = getUserPath();
-    await deleteDoc(doc(db, userPath, "colleges", id));
+    const ownerId = await getOwnerId();
+    const current = await this.getSchool(id);
+    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    
+    await deleteDoc(doc(db, "schools", id));
   },
 
-  // Métodos de compatibilidad
-  async getSchoolMembers(schoolId: string): Promise<any[]> {
-    return [];
-  },
+  /**
+   * Obtiene centros junto con el recuento de clases asociadas.
+   */
+  async getSchoolsWithClassCount(): Promise<(School & { classes_count: number })[]> {
+    const ownerId = await getOwnerId();
+    const schools = await this.getMySchools();
+    const result = [];
 
-  async isMember(schoolId: string): Promise<boolean> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "colleges", schoolId);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists();
-  },
+    for (const school of schools) {
+      const classesQuery = query(
+        getOwnedQuery("classes"),
+        where("school_id", "==", school.id)
+      );
+      const classesSnap = await getDocs(classesQuery);
+      result.push({
+        ...school,
+        classes_count: classesSnap.size
+      });
+    }
 
-  async getUserRole(schoolId: string): Promise<string | null> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "colleges", schoolId);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? "owner" : null;
+    return result;
   }
 };

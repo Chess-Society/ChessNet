@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
   
   try {
-    const schools = await schoolsApi.getMySchools(locals.user.id);
+    const schools = await schoolsApi.getMySchools();
     
     console.log('✅ Schools loaded successfully:', schools?.length || 0);
     return {

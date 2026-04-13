@@ -70,7 +70,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     // Resumen por centros
     const schoolSummaries = mockSchools.map(school => {
-      const schoolPayments = enrichedPayments.filter(p => p.school_id === school.id || (p.student && mockStudents.find(s => s.id === p.student_id)?.college_id === school.id));
+      const schoolPayments = enrichedPayments.filter(p => p.school_id === school.id || (p.student && mockStudents.find(s => s.id === p.student_id)?.school_id === school.id));
       return {
         school_id: school.id,
         school_name: school.name,
@@ -104,13 +104,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     const userId = locals.user.id;
     // Obtener centros y estudiantes del usuario desde Firebase API
     const [schools, allStudents] = await Promise.all([
-      schoolsApi.getMySchools(userId),
-      studentsApi.getMyStudents(userId)
+      schoolsApi.getMySchools(),
+      studentsApi.getMyStudents()
     ]);
 
     // Obtener todas las clases de todos los centros
     const allSchoolsWithClasses = await Promise.all(schools.map(async (school) => {
-      const classes = await classesApi.getClassesBySchool(school.id, userId);
+      const classes = await classesApi.getClassesBySchool(school.id);
       return { ...school, classes };
     }));
 

@@ -54,7 +54,7 @@ interface MockSkill {
 
 interface MockStudent {
     id: string;
-    college_id: string; // Usamos college_id para mantener consistencia con la BD
+    school_id: string; // Usamos school_id para mantener consistencia con la BD
     name: string;
     first_name: string;
     last_name: string;
@@ -150,7 +150,7 @@ export const generateMockStudents = (schools: MockSchool[], countPerSchool: numb
 
             students.push({
                 id: `mock-student-${school.id}-${i + 1}`,
-                college_id: school.id,
+                school_id: school.id,
                 name: `${firstName} ${lastName1} ${lastName2}`,
                 first_name: firstName,
                 last_name: `${lastName1} ${lastName2}`,
@@ -186,7 +186,7 @@ export const generateMockPayments = (students: MockStudent[], schools: MockSchoo
             payments.push({
                 id: `mock-payment-${student.id}-${i}`,
                 student_id: student.id,
-                school_id: student.college_id,
+                school_id: student.school_id,
                 amount: amount,
                 status: status,
                 concept: getRandomElement(concepts),
@@ -221,7 +221,7 @@ export const mockSkills = generateMockSkills();
 
 // Helpers para obtener datos relacionados
 export const getMockSchoolClasses = (schoolId: string) => mockClasses.filter(c => c.school_id === schoolId);
-export const getMockSchoolStudents = (schoolId: string) => mockStudents.filter(s => s.college_id === schoolId);
+export const getMockSchoolStudents = (schoolId: string) => mockStudents.filter(s => s.school_id === schoolId);
 export const getMockClassStudents = (classId: string) => {
     // Simulación: asignamos aleatoriamente estudiantes de ese colegio a la clase
     const schoolId = mockClasses.find(c => c.id === classId)?.school_id;

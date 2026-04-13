@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
 
     // Verificar propiedad
-    const ownerId = (tournament as any).user_id || tournament.created_by;
+    const ownerId = tournament.owner_id;
     if (ownerId && ownerId !== locals.user.id) {
       throw error(403, 'No tienes permiso para editar este torneo');
     }

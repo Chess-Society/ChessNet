@@ -1,4 +1,4 @@
-import { db, auth, toData, getUserPath } from "$lib/firebase";
+import { db, auth, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -26,18 +26,16 @@ import type {
   PaymentMethod
 } from '$lib/types';
 
-// Check if we are in development environment
-const isLocalDev = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
 export const paymentsApi = {
   // Obtener todos los pagos con filtros
   async getPayments(filters?: PaymentFilters, userId?: string): Promise<PaymentWithDetails[]> {
-    const userPath = getUserPath(userId);
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
 
     try {
       let q = query(
-        collection(db, userPath, "payments"),
+        collection(db, "payments"),
+        where("owner_id", "==", uid),
         orderBy("created_at", "desc")
       );
 
@@ -63,15 +61,15 @@ export const paymentsApi = {
       // Manual join for details
       for (const payment of payments) {
         if (payment.student_id) {
-          const studentSnap = await getDoc(doc(db, userPath, "students", payment.student_id));
+          const studentSnap = await getDoc(doc(db, "students", payment.student_id));
           if (studentSnap.exists()) payment.student = toData<any>(studentSnap);
         }
         if (payment.school_id) {
-          const schoolSnap = await getDoc(doc(db, userPath, "colleges", payment.school_id));
+          const schoolSnap = await getDoc(doc(db, "schools", payment.school_id));
           if (schoolSnap.exists()) payment.school = toData<any>(schoolSnap);
         }
         if (payment.class_id) {
-          const classSnap = await getDoc(doc(db, userPath, "classes", payment.class_id));
+          const classSnap = await getDoc(doc(db, "classes", payment.class_id));
           if (classSnap.exists()) payment.class = toData<any>(classSnap);
         }
       }
@@ -85,24 +83,28 @@ export const paymentsApi = {
 
   // Obtener un pago específico
   async getPayment(paymentId: string): Promise<PaymentWithDetails | null> {
-    const userPath = getUserPath();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
     try {
-      const docSnap = await getDoc(doc(db, userPath, "payments", paymentId));
+      const docSnap = await getDoc(doc(db, "payments", paymentId));
       if (!docSnap.exists()) return null;
 
       const payment = toData<PaymentWithDetails>(docSnap);
+      
+      if (payment.owner_id !== uid) return null;
 
       // Manual joins
       if (payment.student_id) {
-        const studentSnap = await getDoc(doc(db, userPath, "students", payment.student_id));
+        const studentSnap = await getDoc(doc(db, "students", payment.student_id));
         if (studentSnap.exists()) payment.student = toData<any>(studentSnap);
       }
       if (payment.school_id) {
-        const schoolSnap = await getDoc(doc(db, userPath, "colleges", payment.school_id));
+        const schoolSnap = await getDoc(doc(db, "schools", payment.school_id));
         if (schoolSnap.exists()) payment.school = toData<any>(schoolSnap);
       }
       if (payment.class_id) {
-        const classSnap = await getDoc(doc(db, userPath, "classes", payment.class_id));
+        const classSnap = await getDoc(doc(db, "classes", payment.class_id));
         if (classSnap.exists()) payment.class = toData<any>(classSnap);
       }
 
@@ -115,18 +117,20 @@ export const paymentsApi = {
 
   // Crear un nuevo pago
   async createPayment(paymentData: CreatePaymentData): Promise<Payment> {
-    const userPath = getUserPath();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
 
     try {
       const data = {
         ...paymentData,
+        owner_id: uid,
         currency: 'EUR',
         status: 'pending',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      const docRef = await addDoc(collection(db, userPath, "payments"), data);
+      const docRef = await addDoc(collection(db, "payments"), data);
       const docSnap = await getDoc(docRef);
       return toData<Payment>(docSnap);
     } catch (error) {
@@ -137,9 +141,8 @@ export const paymentsApi = {
 
   // Actualizar un pago
   async updatePayment(paymentId: string, updates: Partial<Payment>): Promise<Payment> {
-    const userPath = getUserPath();
     try {
-      const docRef = doc(db, userPath, "payments", paymentId);
+      const docRef = doc(db, "payments", paymentId);
       await updateDoc(docRef, {
         ...updates,
         updated_at: new Date().toISOString()
@@ -167,14 +170,16 @@ export const paymentsApi = {
 
   // Obtener estadísticas de pagos
   async getPaymentStats(userId?: string): Promise<PaymentStats> {
-    const userPath = getUserPath(userId);
+    const uid = userId || auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
 
     try {
       const now = new Date();
       const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       
       const q = query(
-        collection(db, userPath, "payments")
+        collection(db, "payments"),
+        where("owner_id", "==", uid)
       );
       const snapshot = await getDocs(q);
       const allPayments = snapshot.docs.map(doc => doc.data() as Payment);
@@ -208,9 +213,8 @@ export const paymentsApi = {
   },
 
   async deletePayment(paymentId: string): Promise<void> {
-    const userPath = getUserPath();
     try {
-      await deleteDoc(doc(db, userPath, "payments", paymentId));
+      await deleteDoc(doc(db, "payments", paymentId));
     } catch (error) {
       console.error('Error in deletePayment:', error);
       throw error;

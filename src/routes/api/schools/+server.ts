@@ -24,8 +24,8 @@ export const GET: RequestHandler = async ({ locals }) => {
 
   try {
     const q = query(
-      collection(db, "colleges"), 
-      where("user_id", "==", locals.user.id),
+      collection(db, "schools"), 
+      where("owner_id", "==", locals.user.id),
       orderBy("created_at", "desc")
     );
     const snapshot = await getDocs(q);
@@ -57,13 +57,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const schoolData = {
       name: name.trim(),
       city: city?.trim() || null,
-      user_id: locals.user.id,
+      owner_id: locals.user.id,
       created_by: locals.user.id,
       created_at: serverTimestamp(),
       updated_at: serverTimestamp()
     };
 
-    const docRef = await addDoc(collection(db, "colleges"), schoolData);
+    const docRef = await addDoc(collection(db, "schools"), schoolData);
     
     return json({ 
       success: true,
@@ -92,10 +92,10 @@ export const PUT: RequestHandler = async ({ request, locals, params }) => {
       return json({ error: 'ID del centro requerido' }, { status: 400 });
     }
 
-    const schoolRef = doc(db, "colleges", schoolId);
+    const schoolRef = doc(db, "schools", schoolId);
     const schoolSnap = await getDoc(schoolRef);
 
-    if (!schoolSnap.exists() || schoolSnap.data().user_id !== locals.user.id) {
+    if (!schoolSnap.exists() || schoolSnap.data().owner_id !== locals.user.id) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 
@@ -104,7 +104,7 @@ export const PUT: RequestHandler = async ({ request, locals, params }) => {
       updated_at: serverTimestamp()
     };
     delete updateData.id;
-    delete updateData.user_id;
+    delete updateData.owner_id;
     delete updateData.created_at;
 
     await updateDoc(schoolRef, updateData);
@@ -135,10 +135,10 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'ID del centro requerido' }, { status: 400 });
     }
 
-    const schoolRef = doc(db, "colleges", id);
+    const schoolRef = doc(db, "schools", id);
     const schoolSnap = await getDoc(schoolRef);
 
-    if (!schoolSnap.exists() || schoolSnap.data().user_id !== locals.user.id) {
+    if (!schoolSnap.exists() || schoolSnap.data().owner_id !== locals.user.id) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 

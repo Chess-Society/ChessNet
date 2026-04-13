@@ -17,21 +17,21 @@
   let searchQuery = $state('');
 
   // Datos reactivos desde el store
-  let centers = $derived($appStore.centers || []);
+  let schools = $derived($appStore.schools || []);
   let students = $derived($appStore.students || []);
 
-  const filteredCenters = $derived(() => {
-    return centers.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredSchools = $derived(() => {
+    return schools.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
   });
 
-  const getStudentCount = (centerId: string) => {
-    return students.filter(s => s.centerId === centerId).length;
+  const getStudentCount = (school_id: string) => {
+    return students.filter(s => s.school_id === school_id).length;
   };
 
-  const deleteCenter = (id: string) => {
-    const center = centers.find(c => c.id === id);
-    if (confirm(`¿Eliminar el centro ${center?.name}? Esto no eliminará a los alumnos, pero quedarán sin centro asignado.`)) {
-      appStore.removeCenter(id);
+  const deleteSchool = (id: string) => {
+    const school = schools.find(s => s.id === id);
+    if (confirm(`¿Eliminar el centro ${school?.name}? Esto no eliminará a los alumnos, pero quedarán sin centro asignado.`)) {
+      appStore.removeSchool(id);
     }
   };
 </script>
@@ -74,7 +74,7 @@
     />
   </div>
 
-  {#if filteredCenters().length === 0}
+  {#if filteredSchools().length === 0}
     <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
       <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
         <School class="w-10 h-10" />
@@ -86,7 +86,7 @@
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each filteredCenters() as center, i}
+      {#each filteredSchools() as school, i}
         <div 
           class="bg-[#1e293b]/60 border border-slate-800 rounded-3xl p-6 hover:border-blue-500/30 transition-all group relative overflow-hidden"
           in:fly={{ y: 20, delay: i * 50 }}
@@ -94,26 +94,26 @@
           <div class="flex items-center justify-between mb-6 relative z-10">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-blue-500 font-bold text-lg group-hover:scale-110 transition-all">
-                {center.name[0].toUpperCase()}
+                {school.name[0].toUpperCase()}
               </div>
               <div>
-                <h3 class="text-white font-bold leading-tight group-hover:text-blue-400 transition-colors">{center.name}</h3>
+                <h3 class="text-white font-bold leading-tight group-hover:text-blue-400 transition-colors">{school.name}</h3>
                 <div class="flex items-center gap-1.5 text-slate-500 text-[11px] mt-0.5 uppercase tracking-wide">
                     <MapPin class="w-3 h-3" />
-                    {center.location || 'Ubicación no definida'}
+                    {school.location || 'Ubicación no definida'}
                 </div>
               </div>
             </div>
 
             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                 <button 
-                  onclick={() => goto(`/panel/centros/${center.id}/edit`)}
+                  onclick={() => goto(`/panel/centros/${school.id}/edit`)}
                   class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 hover:text-blue-400 hover:border-blue-500/30 transition-all"
                 >
                   <Edit class="w-4 h-4" />
                 </button>
                 <button 
-                  onclick={() => deleteCenter(center.id)}
+                  onclick={() => deleteSchool(school.id)}
                   class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 hover:text-red-400 hover:border-red-500/30 transition-all"
                 >
                   <Trash2 class="w-4 h-4" />
@@ -125,12 +125,12 @@
             <div class="flex items-center gap-4">
                <div class="flex items-center gap-1.5">
                   <Users class="w-4 h-4 text-slate-500" />
-                  <span class="text-xs font-bold text-white">{getStudentCount(center.id)} Alumnos</span>
+                  <span class="text-xs font-bold text-white">{getStudentCount(school.id)} Alumnos</span>
                </div>
             </div>
 
             <button 
-              onclick={() => goto(`/panel/centros/${center.id}`)}
+              onclick={() => goto(`/panel/centros/${school.id}`)}
               class="flex items-center gap-1 text-[10px] font-bold text-blue-500 uppercase tracking-wider hover:text-white transition-all group/btn"
             >
               GESTIONAR

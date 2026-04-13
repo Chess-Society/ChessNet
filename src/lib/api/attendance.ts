@@ -1,6 +1,6 @@
-import { db, auth, toData, getUserPath } from "$lib/firebase";
+import { db, toData } from "$lib/firebase";
+import { getOwnerId, getOwnedQuery } from "./base";
 import { 
-  collection, 
   doc, 
   getDoc, 
   getDocs, 
@@ -9,7 +9,8 @@ import {
   orderBy, 
   setDoc,
   deleteDoc,
-  writeBatch
+  writeBatch,
+  collection
 } from "firebase/firestore";
 import type { 
   Attendance, 
@@ -31,10 +32,10 @@ export const attendanceApi = {
    * Get attendance records with optional filters
    */
   async get(filters: AttendanceFilters = {}) {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
 
     let q = query(
-      collection(db, userPath, 'attendance'),
+      getOwnedQuery('attendance'),
       orderBy('date', 'desc')
     );
 
@@ -60,13 +61,13 @@ export const attendanceApi = {
     // Fetch details (Manual Join)
     for (const record of records) {
       if (record.student_id) {
-        const studentDoc = await getDoc(doc(db, userPath, "students", record.student_id));
+        const studentDoc = await getDoc(doc(db, "students", record.student_id));
         if (studentDoc.exists()) {
           record.student = { id: studentDoc.id, name: studentDoc.data().name, email: studentDoc.data().email };
         }
       }
       if (record.class_id) {
-        const classDoc = await getDoc(doc(db, userPath, "classes", record.class_id));
+        const classDoc = await getDoc(doc(db, "classes", record.class_id));
         if (classDoc.exists()) {
           record.class = { id: classDoc.id, name: classDoc.data().name, schedule: classDoc.data().schedule };
         }
@@ -80,10 +81,8 @@ export const attendanceApi = {
    * Get attendance for a specific class and date
    */
   async getByClassAndDate(classId: string, date: string) {
-    const userPath = getUserPath();
-
     const q = query(
-      collection(db, userPath, 'attendance'),
+      getOwnedQuery('attendance'),
       where('class_id', '==', classId),
       where('date', '==', date)
     );
@@ -94,7 +93,7 @@ export const attendanceApi = {
     // Fetch student details
     for (const record of records) {
       if (record.student_id) {
-        const studentDoc = await getDoc(doc(db, userPath, "students", record.student_id));
+        const studentDoc = await getDoc(doc(db, "students", record.student_id));
         if (studentDoc.exists()) {
           record.student = { id: studentDoc.id, name: studentDoc.data().name, email: studentDoc.data().email };
         }
@@ -114,11 +113,13 @@ export const attendanceApi = {
     status: AttendanceStatus, 
     notes?: string
   ) {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
+
     const attendanceId = `${studentId}_${classId}_${date}`;
-    const docRef = doc(db, userPath, "attendance", attendanceId);
+    const docRef = doc(db, "attendance", attendanceId);
     
     const attendanceData = {
+      owner_id: ownerId,
       student_id: studentId,
       class_id: classId,
       date,
@@ -137,16 +138,18 @@ export const attendanceApi = {
    * Mark attendance for multiple students (bulk operation)
    */
   async markBulkAttendance(records: AttendanceRecord[], classId: string, date: string) {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
+
     const batch = writeBatch(db);
     const now = new Date().toISOString();
     const result: string[] = [];
 
     for (const record of records) {
       const attendanceId = `${record.student_id}_${classId}_${date}`;
-      const docRef = doc(db, userPath, "attendance", attendanceId);
+      const docRef = doc(db, "attendance", attendanceId);
       
       const data = {
+        owner_id: ownerId,
         student_id: record.student_id,
         class_id: classId,
         date,
@@ -164,7 +167,7 @@ export const attendanceApi = {
     // Fetching created records
     const updatedRecords: Attendance[] = [];
     for (const id of result) {
-      const snap = await getDoc(doc(db, userPath, "attendance", id));
+      const snap = await getDoc(doc(db, "attendance", id));
       if (snap.exists()) {
         updatedRecords.push(toData<Attendance>(snap));
       }
@@ -177,7 +180,7 @@ export const attendanceApi = {
    * Delete attendance record
    */
   async delete(id: string) {
-    const docRef = doc(db, getUserPath(), "attendance", id);
+    const docRef = doc(db, "attendance", id);
     await deleteDoc(docRef);
   },
 
@@ -189,10 +192,8 @@ export const attendanceApi = {
    * Get attendance statistics for a student
    */
   async getStudentStats(studentId: string, classId?: string, dateFrom?: string, dateTo?: string): Promise<StudentAttendanceStats> {
-    const userPath = getUserPath();
-
     let q = query(
-      collection(db, userPath, 'attendance'),
+      getOwnedQuery('attendance'),
       where('student_id', '==', studentId)
     );
 
@@ -223,7 +224,7 @@ export const attendanceApi = {
     }
 
     // Fetch student name
-    const studentDoc = await getDoc(doc(db, userPath, "students", studentId));
+    const studentDoc = await getDoc(doc(db, "students", studentId));
     const studentName = studentDoc.exists() ? studentDoc.data().name : 'Unknown Student';
 
     const presentCount = data.filter(r => r.status === 'P').length;
@@ -255,16 +256,14 @@ export const attendanceApi = {
    * Get attendance statistics for a class
    */
   async getClassStats(classId: string, dateFrom?: string, dateTo?: string): Promise<ClassAttendanceStats> {
-    const userPath = getUserPath();
-
     // Get class info
-    const classDoc = await getDoc(doc(db, userPath, "classes", classId));
+    const classDoc = await getDoc(doc(db, "classes", classId));
     if (!classDoc.exists()) throw new Error("Class not found");
     const classData = classDoc.data();
 
     // Get all attendance records for the class
     let q = query(
-      collection(db, userPath, 'attendance'),
+      getOwnedQuery('attendance'),
       where('class_id', '==', classId)
     );
 
@@ -305,7 +304,7 @@ export const attendanceApi = {
 
     for (const [studentId, studentRecords] of Object.entries(studentGroups)) {
       const records = studentRecords as any[];
-      const studentDoc = await getDoc(doc(db, userPath, "students", studentId));
+      const studentDoc = await getDoc(doc(db, "students", studentId));
       const studentName = studentDoc.exists() ? studentDoc.data().name : 'Unknown Student';
 
       const presentCount = records.filter(r => r.status === 'P').length;
@@ -386,11 +385,9 @@ export const attendanceApi = {
    * Get attendance overview for a specific date range
    */
   async getCalendarEvents(dateFrom: string, dateTo: string): Promise<AttendanceCalendarEvent[]> {
-    const userPath = getUserPath();
-
     // Get all classes for user
     const classesQuery = query(
-      collection(db, userPath, 'classes'),
+      getOwnedQuery('classes'),
       where('active', '==', true)
     );
     const classesSnap = await getDocs(classesQuery);
@@ -401,16 +398,14 @@ export const attendanceApi = {
     }
 
     // Get attendance data for the date range
-    const attendanceQuery = query(
-      collection(db, userPath, 'attendance')
-    );
+    const attendanceQuery = getOwnedQuery('attendance');
     const attendanceSnap = await getDocs(attendanceQuery);
     let attendance = attendanceSnap.docs.map(doc => doc.data());
     
-    attendance = attendance.filter(a => a.date >= dateFrom && a.date <= dateTo);
+    attendance = attendance.filter((a: any) => a.date >= dateFrom && a.date <= dateTo);
 
     // Group attendance by class and date
-    const attendanceMap = attendance.reduce((acc, record) => {
+    const attendanceMap = attendance.reduce((acc: any, record: any) => {
       const key = `${record.class_id}-${record.date}`;
       if (!acc[key]) {
         acc[key] = { present: 0, total: 0 };
@@ -432,7 +427,7 @@ export const attendanceApi = {
 
       for (const classItem of classes) {
         const key = `${classItem.id}-${dateStr}`;
-        const attendanceData = attendanceMap[key];
+        const attendanceData = (attendanceMap as any)[key];
 
         if (attendanceData) {
           events.push({

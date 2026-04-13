@@ -99,7 +99,7 @@
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
     <div class="space-y-4">
       <button 
-        onclick={() => goto(`/classes/${classData.id}`)}
+        onclick={() => goto(`/panel/clases/${classData.id}`)}
         class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
       >
         <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />

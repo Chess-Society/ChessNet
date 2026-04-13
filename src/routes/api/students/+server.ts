@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ locals }) => {
   try {
     const q = query(
       collection(db, "students"), 
-      where("user_id", "==", locals.user.id),
+      where("owner_id", "==", locals.user.id),
       orderBy("created_at", "desc")
     );
     const snapshot = await getDocs(q);
@@ -55,11 +55,11 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
       avatar,
       notes,
       settings,
-      college_id
+      school_id
     } = body;
 
     const studentData = {
-      user_id: locals.user.id,
+      owner_id: locals.user.id,
       name: name?.trim() || 'Estudiante sin nombre',
       first_name: first_name?.trim() || null,
       last_name: last_name?.trim() || null,
@@ -69,7 +69,7 @@ export const POST: RequestHandler = async ({ request, locals, url }) => {
       parent_phone: parent_phone?.trim() || null,
       avatar: avatar?.trim() || null,
       notes: notes?.trim() || null,
-      college_id: college_id?.trim() || null,
+      school_id: school_id?.trim() || null,
       settings: settings || {},
       created_at: serverTimestamp(),
       updated_at: serverTimestamp()

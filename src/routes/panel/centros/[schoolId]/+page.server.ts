@@ -15,18 +15,18 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   try {
     // Obtener el colegio y sus clases desde Firebase API
     const [school, schoolClasses, schoolStudents] = await Promise.all([
-      schoolsApi.getSchool(schoolId, locals.user.id),
-      classesApi.getClassesBySchool(schoolId, locals.user.id),
-      studentsApi.getStudentsBySchool(schoolId) // Nota: getStudentsBySchool no soporta userId aún, pero usa auth.currentUser
+      schoolsApi.getSchool(schoolId),
+      classesApi.getClassesBySchool(schoolId),
+      studentsApi.getStudentsBySchool(schoolId)
     ]);
 
     // Recalcular estadísticas basadas en datos reales
     const stats = {
       totalClasses: schoolClasses.length,
-      activeClasses: schoolClasses.filter(c => c.active !== false).length,
-      inactiveClasses: schoolClasses.filter(c => c.active === false).length,
+      activeClasses: schoolClasses.filter((c: any) => c.active !== false).length,
+      inactiveClasses: schoolClasses.filter((c: any) => c.active === false).length,
       totalStudents: schoolStudents.length,
-      totalCapacity: schoolClasses.reduce((sum, c: any) => sum + (c.max_students || 0), 0),
+      totalCapacity: schoolClasses.reduce((sum: number, c: any) => sum + (c.max_students || 0), 0),
       occupancyRate: schoolClasses.length > 0 ? Math.round((schoolStudents.length / (schoolClasses.length * 15)) * 100) : 0,
       levels: {
         beginner: schoolClasses.filter((c: any) => c.level === 'beginner').length,

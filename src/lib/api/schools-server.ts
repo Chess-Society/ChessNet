@@ -46,7 +46,7 @@ export const schoolsServerApi = {
 
     // Then fetch the schools
     const schoolsQuery = query(
-      collection(db, "colleges"),
+      collection(db, "schools"),
       where("__name__", "in", schoolIds)
     );
     const schoolsSnapshot = await getDocs(schoolsQuery);
@@ -55,7 +55,7 @@ export const schoolsServerApi = {
 
   // Get a specific school
   async getSchool(id: string, cookies: Cookies): Promise<School> {
-    const docSnap = await getDoc(doc(db, "colleges", id));
+    const docSnap = await getDoc(doc(db, "schools", id));
     if (!docSnap.exists()) throw new Error("School not found");
     return toData<School>(docSnap);
   },
@@ -74,13 +74,12 @@ export const schoolsServerApi = {
     const schoolData = {
       name,
       city: city || null,
-      user_id: userId,
-      created_by: userId,
+      owner_id: userId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "colleges"), schoolData);
+    const docRef = await addDoc(collection(db, "schools"), schoolData);
     console.log('✅ School created successfully:', docRef.id);
 
     // Create membership for the owner
@@ -92,7 +91,7 @@ export const schoolsServerApi = {
 
   // Update a school
   async updateSchool(id: string, updates: Partial<School>, cookies: Cookies): Promise<School> {
-    const docRef = doc(db, "colleges", id);
+    const docRef = doc(db, "schools", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -104,7 +103,7 @@ export const schoolsServerApi = {
 
   // Delete a school
   async deleteSchool(id: string, cookies: Cookies): Promise<void> {
-    await deleteDoc(doc(db, "colleges", id));
+    await deleteDoc(doc(db, "schools", id));
   },
 
   // Add a member to a school

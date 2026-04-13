@@ -113,11 +113,13 @@ export const createExercise = (
   description: string,
   position: ChessPosition,
   solution: string[],
+  owner_id: string,
   difficulty: "beginner" | "intermediate" | "advanced" = "beginner",
   category: "tactics" | "strategy" | "endgame" | "opening" = "tactics",
 ): ChessExercise => {
   return {
     id: crypto.randomUUID(),
+    owner_id,
     title,
     description,
     position,

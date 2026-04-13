@@ -21,7 +21,7 @@ export interface Profile {
 // Category Types
 export interface Category {
   id: string;
-  user_id?: string;
+  owner_id: string;
   name: string;
   description?: string;
   color?: string;
@@ -30,26 +30,27 @@ export interface Category {
   created_at: string;
 }
 
-// College/Center Types
-export interface College {
+// School/Center Types
+export interface School {
   id: string;
-  user_id: string;
+  owner_id: string;
   name: string;
   city?: string;
   address?: string;
   phone?: string;
   email?: string;
   website?: string;
-  location?: string; // Compatibilidad para mapas/ubicación
+  location?: string;
   created_at: string;
   updated_at: string;
 }
 
-// Class Types (por usuario - user_id)
+// Class Types
 export interface Class {
   id: string;
-  user_id: string;
-  college_id?: string;
+  owner_id: string;
+  school_id: string;
+  school_name?: string;
   name: string;
   description?: string;
   level?: "beginner" | "intermediate" | "advanced";
@@ -58,41 +59,38 @@ export interface Class {
   active?: boolean;
   price?: number;
   settings?: Record<string, any>;
-  centerId?: string; // Compatibilidad
-  studentIds?: string[]; // Compatibilidad para conteo
+  studentIds?: string[];
   created_at: string;
   updated_at: string;
 }
 
-// Student Types (por usuario - user_id)
+// Student Types
 export interface Student {
   id: string;
-  user_id: string;
-  class_id?: string;
-  college_id?: string;
+  owner_id: string;
+  school_id: string;
   name: string;
+  email?: string;
   first_name?: string;
   last_name?: string;
   date_of_birth?: string;
   grade?: string;
+  level?: string;
   parent_email?: string;
   parent_phone?: string;
   avatar?: string;
   notes?: string;
   rating?: number;
-  level?: string; // Compatibility alias
-  centerId?: string; // Compatibility alias for college_id
-  email?: string; // Compatibility alias for parent_email
   active?: boolean;
   settings?: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
 
-// Skill Types (por usuario - user_id)
+// Skill Types (por usuario - owner_id)
 export interface Skill {
   id: string;
-  user_id: string;
+  owner_id: string;
   category_id?: string;
   name: string;
   description?: string;
@@ -137,23 +135,12 @@ export interface ClassStudent {
 
 // Tracking Types (por usuario - user_id)
 
-// Attendance Types
-export interface Attendance {
-  id: string;
-  user_id: string;
-  class_id: string;
-  student_id: string;
-  date: string;
-  status: "P" | "T" | "A"; // Presente, Tarde, Ausente
-  notes?: string;
-  created_by?: string;
-  created_at: string;
-}
+// Attendance Types (Moved and merged below)
 
 // Student Skills (progreso alumno por skill)
 export interface StudentSkill {
   id: string;
-  user_id: string;
+  owner_id: string;
   student_id: string;
   skill_id: string;
   level: number; // 0-100
@@ -172,7 +159,7 @@ export type AttendanceStatus = 'P' | 'T' | 'A'; // Presente, Tardanza, Ausente
 
 export interface Attendance {
   id: string;
-  user_id: string;
+  owner_id: string;
   student_id: string;
   class_id: string;
   date: string; // YYYY-MM-DD format
@@ -257,7 +244,7 @@ export type PaymentMethod = 'cash' | 'transfer' | 'card' | 'paypal' | 'bizum' | 
 
 export interface Payment {
   id: string;
-  user_id: string;
+  owner_id: string;
   payment_type: PaymentType;
   student_id?: string;
   school_id?: string;
@@ -276,15 +263,13 @@ export interface Payment {
   invoice_number?: string;
   invoice_date?: string;
   notes?: string;
-  studentId?: string; // Compatibility alias
-  date?: string; // Compatibility alias for paid_date/due_date
   created_at: string;
   updated_at: string;
 }
 
 export interface PaymentWithDetails extends Payment {
   student?: Student;
-  school?: College;
+  school?: School;
   class?: Class;
 }
 
@@ -382,7 +367,7 @@ export interface ClassOccupancy {
 
 // Student Attendance View
 export interface StudentAttendance {
-  user_id: string;
+  owner_id: string;
   student_id: string;
   marks: number;
   p_count: number;
@@ -396,7 +381,8 @@ export interface StudentAttendance {
 // Communication Types
 export interface Announcement {
   id: string;
-  college_id: string;
+  school_id: string;
+  owner_id: string;
   title: string;
   content: string;
   type?: "general" | "class" | "student" | "event";
@@ -414,7 +400,7 @@ export interface Announcement {
 // Extended Types with Relations
 
 export interface ClassWithDetails extends Class {
-  college?: College;
+  school?: School;
   students_count?: number;
   skills_count?: number;
 }
@@ -461,6 +447,7 @@ export interface ChessPosition {
 
 export interface Badge {
   id: string;
+  owner_id: string;
   school_id: string;
   name: string;
   description: string;
@@ -473,6 +460,7 @@ export interface Badge {
 
 export interface StudentBadge {
   id: string;
+  owner_id: string;
   student_id: string;
   badge_id: string;
   earned_at: string;
@@ -481,6 +469,7 @@ export interface StudentBadge {
 
 export interface StudentStats {
   id: string;
+  owner_id: string;
   student_id: string;
   points: number;
   level: number;
@@ -495,6 +484,7 @@ export interface StudentStats {
 
 export interface CurriculumUnit {
   id: string;
+  owner_id: string;
   school_id: string;
   title: string;
   description?: string;
@@ -507,6 +497,7 @@ export interface CurriculumUnit {
 
 export interface Lesson {
   id: string;
+  owner_id: string;
   unit_id: string;
   title: string;
   description?: string;
@@ -519,10 +510,9 @@ export interface Lesson {
   updated_at: string;
 }
 
-export interface School extends College {}
-
 export interface Membership {
   id: string;
+  owner_id: string;
   school_id: string;
   user_id: string;
   role: "owner" | "admin" | "teacher" | "assistant" | "viewer";
@@ -540,7 +530,7 @@ export interface ChessExercise {
   category: "tactics" | "strategy" | "endgame" | "opening";
   hints?: string[];
   explanation?: string;
-  created_by?: string;
+  owner_id: string;
   created_at: string;
   updated_at?: string;
 }
@@ -548,7 +538,7 @@ export interface ChessExercise {
 // Lead Types (CRM)
 export interface Lead {
   id: string;
-  user_id: string;
+  owner_id: string;
   name: string;
   email?: string;
   phone?: string;
@@ -579,7 +569,7 @@ export interface PaginatedResponse<T> {
 // Form Types
 export interface CreateClassForm {
   name: string;
-  college_id?: string;
+  school_id?: string;
   description?: string;
   level?: "beginner" | "intermediate" | "advanced";
   schedule?: string;
@@ -638,8 +628,8 @@ export interface StudentSkillForm {
 // Tournament main object
 export interface LocalTournament {
   id: string;
-  user_id: string;
-  college_id?: string;
+  owner_id: string;
+  school_id?: string;
   name: string;
   format: "swiss" | "round_robin" | "knockout";
   time_control?: string; // e.g., "15+10"
@@ -647,7 +637,6 @@ export interface LocalTournament {
   startAt?: string;
   endAt?: string;
   prize_pool?: number;
-  prizePool?: number; // Alias para compatibilidad con código existente
   max_players?: number;
   roundsPlanned?: number;
   notes?: string;
@@ -728,7 +717,7 @@ export interface LocalTournamentComplete extends LocalTournament {
 export interface CreateTournamentForm {
   name: string;
   format: "swiss" | "round_robin" | "knockout";
-  college_id?: string;
+  school_id?: string;
   time_control?: string;
   location?: string;
   startAt?: string;
@@ -764,7 +753,7 @@ export interface Tournament {
   current_round?: number;
   total_rounds?: number;
   players_registered?: number;
-  created_by: string;
+  owner_id: string;
   created_at: string;
   updated_at?: string;
 }
@@ -772,6 +761,7 @@ export interface Tournament {
 // Tournament participants (players in a tournament)
 export interface TournamentParticipant {
   id: string;
+  owner_id: string;
   tournament_id: string;
   student_id: string;
   rating: number;
@@ -784,6 +774,7 @@ export interface TournamentParticipant {
 // Tournament matches/pairings
 export interface TournamentMatch {
   id: string;
+  owner_id: string;
   tournament_id: string;
   round: number;
   board_number: number;
@@ -801,7 +792,7 @@ export interface TournamentMatch {
 // Tournament filters and queries
 export interface TournamentFilters {
   format?: "swiss" | "round_robin" | "knockout";
-  college_id?: string;
+  school_id?: string;
   status?: "planned" | "active" | "completed";
   startDate?: string;
   endDate?: string;
@@ -830,7 +821,7 @@ export interface SubscriptionPlan {
   currency: string;
   max_students: number; // -1 = unlimited
   max_classes: number;
-  max_colleges: number;
+  max_schools: number;
   max_tournaments: number;
   max_storage_mb: number;
   max_custom_skills: number;
@@ -887,7 +878,7 @@ export interface UserPlanLimits {
   expires_at?: string;
   max_students: number;
   max_classes: number;
-  max_colleges: number;
+  max_schools: number;
   max_tournaments: number;
   max_storage_mb: number;
   max_custom_skills: number;
@@ -901,7 +892,7 @@ export interface SubscriptionUpgradeData {
   usage_stats: {
     students_count: number;
     classes_count: number;
-    colleges_count: number;
+    schools_count: number;
     tournaments_count: number;
     storage_used_mb: number;
     custom_skills_count: number;

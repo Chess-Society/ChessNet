@@ -18,22 +18,22 @@
 
   // Filtros
   let searchQuery = $state('');
-  let selectedCenter = $state('');
+  let selectedSchool = $state('');
 
   // Datos reactivos desde el store
   let students = $derived($appStore.students || []);
-  let centers = $derived($appStore.centers || []);
+  let schools = $derived($appStore.schools || []);
 
   const filteredStudents = $derived(() => {
     return students.filter(s => {
       const nameMatch = s.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const centerMatch = !selectedCenter || s.centerId === selectedCenter;
-      return nameMatch && centerMatch;
+      const schoolMatch = !selectedSchool || s.school_id === selectedSchool;
+      return nameMatch && schoolMatch;
     });
   });
 
-  const getCenterName = (id: string | undefined) => {
-    return centers.find(c => c.id === id)?.name || 'Sin centro';
+  const getSchoolName = (id: string | undefined) => {
+    return schools.find(s => s.id === id)?.name || 'Sin centro';
   };
 
   const deleteStudent = (id: string) => {
@@ -106,18 +106,18 @@
     <div class="relative group min-w-[240px]">
       <School class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
       <select 
-        bind:value={selectedCenter} 
+        bind:value={selectedSchool} 
         class="w-full bg-[#1e293b]/50 border border-slate-800 rounded-2xl pl-12 pr-10 py-4 text-sm text-white focus:border-emerald-500/50 outline-none transition-all appearance-none cursor-pointer backdrop-blur-xl"
       >
         <option value="">Todos los centros</option>
-        {#each centers as center}
-          <option value={center.id}>{center.name}</option>
+        {#each schools as school}
+          <option value={school.id}>{school.name}</option>
         {/each}
       </select>
     </div>
 
     <button 
-      onclick={() => { searchQuery = ''; selectedCenter = ''; }}
+      onclick={() => { searchQuery = ''; selectedSchool = ''; }}
       class="bg-slate-800/50 border border-slate-700 text-white px-6 py-4 rounded-2xl text-sm font-bold hover:bg-slate-700 transition-all backdrop-blur-xl"
     >
       Resetear
@@ -149,7 +149,7 @@
               </div>
               <div>
                 <h3 class="text-white font-bold leading-tight group-hover:text-emerald-400 transition-colors">{student.name}</h3>
-                <p class="text-[11px] text-slate-500 uppercase tracking-widest mt-0.5">{getCenterName(student.centerId)}</p>
+                <p class="text-[11px] text-slate-500 uppercase tracking-widest mt-0.5">{getSchoolName(student.school_id)}</p>
               </div>
             </div>
 

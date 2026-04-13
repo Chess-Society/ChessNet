@@ -65,7 +65,7 @@
   let stats = $derived({
     totalStudents: $appStore.students.length,
     monthlyRevenue: $appStore.payments.filter(p => {
-      const dateStr = p.date || p.paid_date || p.due_date;
+      const dateStr = (p as any).date || p.paid_date || p.due_date;
       if (!dateStr) return false;
       const date = new Date(dateStr);
       const now = new Date();
@@ -95,13 +95,13 @@
     });
 
     $appStore.payments.slice(-3).reverse().forEach(p => {
-      const student = $appStore.students.find(s => s.id === p.studentId || s.id === p.student_id);
+      const student = $appStore.students.find(s => s.id === (p as any).studentId || s.id === p.student_id);
       activities.push({ 
         message: `Pago: ${p.amount}€ - ${student?.name || 'Desconocido'}`, 
         time: 'reciente', 
         icon: DollarSign, 
         color: 'text-teal-400',
-        timestamp: new Date(p.date || p.paid_date || p.due_date || Date.now()).getTime()
+        timestamp: new Date((p as any).date || p.paid_date || p.due_date || Date.now()).getTime()
       });
     });
 
@@ -156,7 +156,7 @@
       const year = d.getFullYear();
       return $appStore.payments
         .filter(p => {
-          const dateStr = p.date || p.paid_date || p.due_date;
+          const dateStr = (p as any).date || p.paid_date || p.due_date;
           if (!dateStr) return false;
           const pd = new Date(dateStr);
           return pd.getMonth() === month && pd.getFullYear() === year;

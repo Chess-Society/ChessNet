@@ -70,7 +70,7 @@
       });
 
       if (!response.ok) throw new Error('Error al actualizar');
-      goto(`/schools/${schoolData.id}`);
+      goto(`/panel/centros/${schoolData.id}`);
     } catch (error) {
       alert('Error al actualizar el centro');
     } finally {
@@ -88,7 +88,7 @@
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
     <div class="space-y-4">
       <button 
-        onclick={() => goto(`/schools/${schoolData.id}`)}
+        onclick={() => goto(`/panel/centros/${schoolData.id}`)}
         class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
       >
         <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -108,7 +108,7 @@
 
     <div class="flex items-center gap-3">
       <button 
-        onclick={() => goto(`/schools/${schoolData.id}`)}
+        onclick={() => goto(`/panel/centros/${schoolData.id}`)}
         class="btn-ghost flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
         disabled={isSubmitting}
       >

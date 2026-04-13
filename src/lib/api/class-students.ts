@@ -1,4 +1,4 @@
-import { db, toData, getUserPath } from "$lib/firebase";
+import { db, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -12,14 +12,16 @@ import {
   writeBatch
 } from "firebase/firestore";
 import type { ClassStudent, Student } from "$lib/types";
+import { getOwnerId, getOwnedQuery } from "./base";
 
 export const classStudentsApi = {
-  // Get all students enrolled in a class
+  /**
+   * Obtiene todos los alumnos inscritos activamente en una clase.
+   */
   async getClassStudents(classId: string): Promise<(ClassStudent & { student: Student })[]> {
-    const userPath = getUserPath();
-
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, userPath, "class_students"),
+      getOwnedQuery("class_students"),
       where("class_id", "==", classId),
       where("status", "==", "active"),
       orderBy("enrolled_at", "asc")
@@ -30,7 +32,7 @@ export const classStudentsApi = {
 
     for (const enrollment of enrollments) {
       if (enrollment.student_id) {
-        const studentDoc = await getDoc(doc(db, userPath, "students", enrollment.student_id));
+        const studentDoc = await getDoc(doc(db, "students", enrollment.student_id));
         if (studentDoc.exists()) {
           enrollment.student = toData<Student>(studentDoc);
         }
@@ -40,12 +42,13 @@ export const classStudentsApi = {
     return enrollments;
   },
 
-  // Get all classes where a student is enrolled
+  /**
+   * Obtiene todas las clases en las que un alumno está inscrito.
+   */
   async getStudentClasses(studentId: string): Promise<(ClassStudent & { class: any })[]> {
-    const userPath = getUserPath();
-
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, userPath, "class_students"),
+      getOwnedQuery("class_students"),
       where("student_id", "==", studentId),
       where("status", "==", "active"),
       orderBy("enrolled_at", "desc")
@@ -56,7 +59,7 @@ export const classStudentsApi = {
 
     for (const enrollment of enrollments) {
       if (enrollment.class_id) {
-        const classDoc = await getDoc(doc(db, userPath, "classes", enrollment.class_id));
+        const classDoc = await getDoc(doc(db, "classes", enrollment.class_id));
         if (classDoc.exists()) {
           enrollment.class = toData<any>(classDoc);
         }
@@ -66,13 +69,15 @@ export const classStudentsApi = {
     return enrollments;
   },
 
-  // Enroll a student in a class
+  /**
+   * Inscribe a un alumno en una clase.
+   */
   async enrollStudent(classId: string, studentId: string): Promise<ClassStudent> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
 
-    // Check if already enrolled
+    // Verificar si ya existe una inscripción
     const q = query(
-      collection(db, userPath, "class_students"),
+      getOwnedQuery("class_students"),
       where("class_id", "==", classId),
       where("student_id", "==", studentId)
     );
@@ -81,35 +86,40 @@ export const classStudentsApi = {
     if (!existingSnap.empty) {
       const existing = existingSnap.docs[0];
       const data = existing.data();
-      if (data.status === "active") {
-        throw new Error("Student is already enrolled in this class");
+      if ((data as any).status === "active") {
+        throw new Error("El alumno ya está inscrito en esta clase");
       } else {
-        // Reactivate enrollment
+        // Reactivar inscripción
         return this.updateEnrollmentStatus(existing.id, "active");
       }
     }
 
-    const docRef = await addDoc(collection(db, userPath, "class_students"), {
+    const docData = {
+      owner_id: ownerId,
       class_id: classId,
       student_id: studentId,
       status: "active",
       enrolled_at: new Date().toISOString()
-    });
+    };
 
+    const docRef = await addDoc(collection(db, "class_students"), docData);
     const docSnap = await getDoc(docRef);
     return toData<ClassStudent>(docSnap);
   },
 
-  // Enroll multiple students in a class
+  /**
+   * Inscribe a múltiples alumnos en una clase.
+   */
   async enrollStudents(classId: string, studentIds: string[]): Promise<ClassStudent[]> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
     const newRefs: any[] = [];
 
     for (const studentId of studentIds) {
-      const docRef = doc(collection(db, userPath, "class_students"));
+      const docRef = doc(collection(db, "class_students"));
       batch.set(docRef, {
+        owner_id: ownerId,
         class_id: classId,
         student_id: studentId,
         status: "active",
@@ -128,12 +138,13 @@ export const classStudentsApi = {
     return result;
   },
 
-  // Remove a student from a class
+  /**
+   * Desinscribe (desactiva) a un alumno de una clase.
+   */
   async unenrollStudent(classId: string, studentId: string): Promise<void> {
-    const userPath = getUserPath();
-
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, userPath, "class_students"),
+      getOwnedQuery("class_students"),
       where("class_id", "==", classId),
       where("student_id", "==", studentId)
     );
@@ -144,32 +155,43 @@ export const classStudentsApi = {
     await batch.commit();
   },
 
-  // Remove multiple students from a class
+  /**
+   * Desinscribe a múltiples alumnos de una clase.
+   */
   async unenrollStudents(classId: string, studentIds: string[]): Promise<void> {
     for (const studentId of studentIds) {
       await this.unenrollStudent(classId, studentId);
     }
   },
 
-  // Update enrollment status
+  /**
+   * Actualiza el estado de una inscripción.
+   */
   async updateEnrollmentStatus(
     enrollmentId: string, 
     status: "active" | "inactive" | "suspended"
   ): Promise<ClassStudent> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "class_students", enrollmentId);
-    await updateDoc(docRef, { status });
+    const ownerId = await getOwnerId();
+    const docRef = doc(db, "class_students", enrollmentId);
+    
+    // Verificación de propiedad
+    const snapBefore = await getDoc(docRef);
+    if (snapBefore.exists() && snapBefore.data().owner_id !== ownerId) {
+        throw new Error("No autorizado");
+    }
 
+    await updateDoc(docRef, { status });
     const docSnap = await getDoc(docRef);
     return toData<ClassStudent>(docSnap);
   },
 
-  // Get class occupancy
+  /**
+   * Obtiene la ocupación actual de una clase.
+   */
   async getClassOccupancy(classId: string): Promise<number> {
-    const userPath = getUserPath();
-
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, userPath, "class_students"),
+      getOwnedQuery("class_students"),
       where("class_id", "==", classId),
       where("status", "==", "active")
     );
@@ -178,62 +200,65 @@ export const classStudentsApi = {
     return snap.size;
   },
 
-  // Get all class occupancies for user
+  /**
+   * Obtiene la ocupación de todas las clases del profesor.
+   */
   async getAllClassOccupancies(): Promise<{ class_id: string; enrolled: number }[]> {
-    const userPath = getUserPath();
-
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, userPath, "class_students"),
+      getOwnedQuery("class_students"),
       where("status", "==", "active")
     );
     
     const snap = await getDocs(q);
     const enrollments = snap.docs.map(doc => doc.data());
     
-    const countMap = enrollments.reduce((acc, e) => {
+    const countMap = enrollments.reduce((acc: any, e: any) => {
       acc[e.class_id] = (acc[e.class_id] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    return Object.entries(countMap).map(([class_id, enrolled]) => ({ class_id, enrolled }));
+    return Object.entries(countMap).map(([class_id, enrolled]) => ({ class_id, enrolled: enrolled as number }));
   },
 
-  // Get students not enrolled in a specific class
+  /**
+   * Obtiene alumnos que aún NO están inscritos en una clase específica.
+   */
   async getAvailableStudents(classId: string): Promise<Student[]> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
 
-    // Get all user's students
-    const studentsQuery = query(
-      collection(db, userPath, "students")
-    );
+    // Obtener todos los alumnos del profesor
+    const studentsQuery = query(getOwnedQuery("students"));
     const studentsSnap = await getDocs(studentsQuery);
     const allStudents = studentsSnap.docs.map(doc => toData<Student>(doc));
 
-    // Get enrolled student IDs
+    // Obtener IDs de alumnos ya inscritos
     const enrolledQuery = query(
-      collection(db, userPath, "class_students"),
+      getOwnedQuery("class_students"),
       where("class_id", "==", classId),
       where("status", "==", "active")
     );
     const enrolledSnap = await getDocs(enrolledQuery);
-    const enrolledIds = new Set(enrolledSnap.docs.map(e => e.data().student_id));
+    const enrolledIds = new Set(enrolledSnap.docs.map(e => (e.data() as any).student_id));
     
-    // Filter out enrolled students
     return allStudents.filter(student => !enrolledIds.has(student.id));
   },
 
-  // Transfer students from one class to another
+  /**
+   * Transfiere alumnos de una clase a otra.
+   */
   async transferStudents(fromClassId: string, toClassId: string, studentIds: string[]): Promise<void> {
     await this.unenrollStudents(fromClassId, studentIds);
     await this.enrollStudents(toClassId, studentIds);
   },
 
-  // Get enrollment history for a student
+  /**
+   * Obtiene el historial de inscripciones de un alumno.
+   */
   async getStudentEnrollmentHistory(studentId: string): Promise<ClassStudent[]> {
-    const userPath = getUserPath();
-
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, userPath, "class_students"),
+      getOwnedQuery("class_students"),
       where("student_id", "==", studentId),
       orderBy("enrolled_at", "desc")
     );
@@ -243,7 +268,7 @@ export const classStudentsApi = {
 
     for (const enrollment of enrollments) {
       if (enrollment.class_id) {
-        const classDoc = await getDoc(doc(db, userPath, "classes", enrollment.class_id));
+        const classDoc = await getDoc(doc(db, "classes", enrollment.class_id));
         if (classDoc.exists()) {
           enrollment.classes = toData<any>(classDoc);
         }

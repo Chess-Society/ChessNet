@@ -19,14 +19,14 @@
 
   // Datos reactivos desde el store
   let classes = $derived($appStore.classes || []);
-  let centers = $derived($appStore.centers || []);
+  let schools = $derived($appStore.schools || []);
 
   const filteredClasses = $derived(
     classes.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const getCenterName = (id: string | undefined) => {
-    return centers.find(c => c.id === id)?.name || 'Sin centro';
+  const getSchoolName = (id: string | undefined) => {
+    return schools.find(s => s.id === id)?.name || 'Sin centro';
   };
 
   const deleteClass = (id: string) => {
@@ -99,7 +99,7 @@
               </div>
               <div>
                 <h3 class="text-white font-bold leading-tight group-hover:text-purple-400 transition-colors">{cls.name}</h3>
-                <p class="text-[11px] text-slate-500 uppercase tracking-widest mt-0.5">{getCenterName(cls.centerId)}</p>
+                <p class="text-[11px] text-slate-500 uppercase tracking-widest mt-0.5">{getSchoolName(cls.school_id)}</p>
               </div>
             </div>
 

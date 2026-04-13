@@ -1,4 +1,4 @@
-import { db, toData, getUserPath } from "$lib/firebase";
+import { db, auth, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -16,9 +16,12 @@ import type { Category } from "$lib/types";
 export const categoriesApi = {
   // Get all categories
   async getCategories(): Promise<Category[]> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
     const q = query(
-      collection(db, userPath, "categories"),
+      collection(db, "categories"),
+      where("owner_id", "==", user.uid),
       orderBy("name", "asc")
     );
 
@@ -28,8 +31,7 @@ export const categoriesApi = {
 
   // Get a specific category
   async getCategory(id: string): Promise<Category> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "categories", id);
+    const docRef = doc(db, "categories", id);
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
@@ -45,8 +47,11 @@ export const categoriesApi = {
     description?: string,
     color?: string
   ): Promise<Category> {
-    const userPath = getUserPath();
-    const docRef = await addDoc(collection(db, userPath, "categories"), {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
+    const docRef = await addDoc(collection(db, "categories"), {
+      owner_id: user.uid,
       name,
       description: description || "",
       color: color || '#3b82f6',
@@ -62,8 +67,7 @@ export const categoriesApi = {
     id: string, 
     updates: Partial<Pick<Category, 'name' | 'description' | 'color'>>
   ): Promise<Category> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "categories", id);
+    const docRef = doc(db, "categories", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString()
@@ -75,20 +79,22 @@ export const categoriesApi = {
 
   // Delete a category
   async deleteCategory(id: string): Promise<void> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "categories", id);
+    const docRef = doc(db, "categories", id);
     await deleteDoc(docRef);
   },
 
   // Get categories with skill count
   async getCategoriesWithSkillCount(): Promise<(Category & { skills_count: number })[]> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
     const categories = await this.getCategories();
     const result = [];
 
     for (const category of categories) {
       const q = query(
-        collection(db, userPath, "skills"),
+        collection(db, "skills"),
+        where("owner_id", "==", user.uid),
         where("category_id", "==", category.id)
       );
       const snap = await getDocs(q);

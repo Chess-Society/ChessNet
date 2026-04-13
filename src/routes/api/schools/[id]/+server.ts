@@ -23,10 +23,10 @@ export const PUT: RequestHandler = async ({ request, locals, params }) => {
       return json({ error: 'ID del centro requerido' }, { status: 400 });
     }
 
-    const schoolRef = doc(db, "colleges", schoolId);
+    const schoolRef = doc(db, "schools", schoolId);
     const schoolSnap = await getDoc(schoolRef);
 
-    if (!schoolSnap.exists() || schoolSnap.data().user_id !== locals.user.id) {
+    if (!schoolSnap.exists() || schoolSnap.data().owner_id !== locals.user.id) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 
@@ -37,7 +37,7 @@ export const PUT: RequestHandler = async ({ request, locals, params }) => {
 
     // Remove immutable fields if present in body
     delete updateData.id;
-    delete updateData.user_id;
+    delete updateData.owner_id;
     delete updateData.created_at;
 
     await updateDoc(schoolRef, updateData);

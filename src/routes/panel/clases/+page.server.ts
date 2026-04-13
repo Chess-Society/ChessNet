@@ -27,8 +27,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   try {
     // Obtener clases y centros del usuario desde Firebase
     const [classes, schools] = await Promise.all([
-      classesApi.getMyClasses(locals.user.id),
-      schoolsApi.getMySchools(locals.user.id)
+      classesApi.getMyClasses(),
+      schoolsApi.getMySchools()
     ]);
 
     // Calcular estadísticas
@@ -36,8 +36,8 @@ export const load: PageServerLoad = async ({ locals }) => {
     let totalCapacity = 0;
     
     classes.forEach(c => {
-      if (c.college_id) {
-        schoolCounts[c.college_id] = (schoolCounts[c.college_id] || 0) + 1;
+      if (c.school_id) {
+        schoolCounts[c.school_id] = (schoolCounts[c.school_id] || 0) + 1;
       }
       totalCapacity += (c.max_students || 0);
     });

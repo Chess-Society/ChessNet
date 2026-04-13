@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -11,42 +11,29 @@ import {
   updateDoc, 
   deleteDoc,
   setDoc,
-  writeBatch,
-  type DocumentData
+  writeBatch
 } from "firebase/firestore";
 import type { Student, Attendance, CreateStudentForm } from "$lib/types";
-
-// Helper to convert Firestore document to data with ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
-
-// Helper for user path
-const getUserPath = (userId?: string) => {
-  const uid = userId || auth.currentUser?.uid;
-  if (!uid) throw new Error("User not authenticated");
-  return `users/${uid}`;
-};
+import { getOwnerId, getOwnedQuery } from "./base";
 
 export const studentsApi = {
-  // Get all students for the current user
-  async getMyStudents(userId?: string): Promise<Student[]> {
-    const uid = userId || auth.currentUser?.uid;
-    if (!uid) throw new Error("User not authenticated");
-
-    const q = query(
-      collection(db, getUserPath(uid), "students"),
-      orderBy("name", "asc")
-    );
-
+  /**
+   * Obtiene todos los alumnos del profesor actual.
+   */
+  async getMyStudents(): Promise<Student[]> {
+    const ownerId = await getOwnerId();
+    const q = query(getOwnedQuery("students"), orderBy("name", "asc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => toData<Student>(doc));
   },
 
-  // Get students by school
+  /**
+   * Obtiene los alumnos de un centro específico.
+   */
   async getStudentsBySchool(schoolId: string): Promise<Student[]> {
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, getUserPath(), "students"),
+      getOwnedQuery("students"),
       where("school_id", "==", schoolId),
       orderBy("name", "asc")
     );
@@ -55,35 +42,53 @@ export const studentsApi = {
     return querySnapshot.docs.map(doc => toData<Student>(doc));
   },
 
-  // Get a specific student
-  async getStudent(id: string, userId?: string): Promise<Student> {
-    const docRef = doc(db, getUserPath(userId), "students", id);
+  /**
+   * Obtiene un alumno específico por ID.
+   */
+  async getStudent(id: string): Promise<Student> {
+    const docRef = doc(db, "students", id);
     const docSnap = await getDoc(docRef);
 
-    if (!docSnap.exists()) {
-      throw new Error("Student not found or access denied");
+    if (!docSnap.exists()) throw new Error("Alumno no encontrado");
+
+    const data = toData<Student>(docSnap);
+    const ownerId = await getOwnerId();
+    
+    if (data.owner_id !== ownerId) {
+      throw new Error("Acceso denegado");
     }
 
-    return toData<Student>(docSnap);
+    return data;
   },
 
-  // Create a new student
+  /**
+   * Crea un nuevo alumno.
+   */
   async createStudent(studentData: CreateStudentForm): Promise<Student> {
-    const userPath = getUserPath();
-    const docRef = await addDoc(collection(db, userPath, "students"), {
+    const ownerId = await getOwnerId();
+
+    const data = {
       ...studentData,
+      owner_id: ownerId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    });
+    };
 
+    const docRef = await addDoc(collection(db, "students"), data);
     const docSnap = await getDoc(docRef);
     return toData<Student>(docSnap);
   },
 
-  // Update a student
+  /**
+   * Actualiza un alumno.
+   */
   async updateStudent(id: string, updates: Partial<CreateStudentForm>): Promise<Student> {
-    const docRef = doc(db, getUserPath(), "students", id);
+    const ownerId = await getOwnerId();
+    const docRef = doc(db, "students", id);
     
+    const current = await this.getStudent(id);
+    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -93,22 +98,30 @@ export const studentsApi = {
     return toData<Student>(updatedSnap);
   },
 
-  // Delete a student
+  /**
+   * Elimina un alumno.
+   */
   async deleteStudent(id: string): Promise<void> {
-    const docRef = doc(db, getUserPath(), "students", id);
-    await deleteDoc(docRef);
+    const ownerId = await getOwnerId();
+    const current = await this.getStudent(id);
+    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+
+    await deleteDoc(doc(db, "students", id));
   },
 
-  // Bulk create students
+  /**
+   * Creación masiva de alumnos.
+   */
   async bulkCreateStudents(students: CreateStudentForm[]): Promise<void> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
 
     students.forEach(student => {
-      const docRef = doc(collection(db, userPath, "students"));
+      const docRef = doc(collection(db, "students"));
       batch.set(docRef, {
         ...student,
+        owner_id: ownerId,
         created_at: now,
         updated_at: now,
       });
@@ -117,20 +130,22 @@ export const studentsApi = {
     await batch.commit();
   },
 
-  // --- Attendance ---
+  // --- Asistencia ---
 
-  // Save attendance for multiple students
+  /**
+   * Guarda múltiples registros de asistencia.
+   */
   async saveAttendance(classId: string, date: string, attendanceList: { student_id: string; status: string; notes?: string }[]): Promise<void> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
 
     for (const item of attendanceList) {
-      // Use composite ID for unique attendance record per student/class/date
       const attendanceId = `${item.student_id}_${classId}_${date}`;
-      const docRef = doc(db, userPath, "attendance", attendanceId);
+      const docRef = doc(db, "attendance", attendanceId);
       
       batch.set(docRef, {
+        owner_id: ownerId,
         class_id: classId,
         student_id: item.student_id,
         date: date,
@@ -143,10 +158,13 @@ export const studentsApi = {
     await batch.commit();
   },
 
-  // Get attendance records for a student
+  /**
+   * Obtiene el historial de asistencia de un alumno.
+   */
   async getStudentAttendance(studentId: string): Promise<Attendance[]> {
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, getUserPath(), "attendance"),
+      getOwnedQuery("attendance"),
       where("student_id", "==", studentId),
       orderBy("date", "desc")
     );
@@ -155,12 +173,14 @@ export const studentsApi = {
     return querySnapshot.docs.map(doc => toData<Attendance>(doc));
   },
 
-  // Get student attendance summary (manual implementation)
+  /**
+   * Resumen de asistencia de un alumno.
+   */
   async getStudentAttendanceSummary(studentId: string): Promise<any> {
     const attendance = await this.getStudentAttendance(studentId);
     
-    const present = attendance.filter(a => a.status === 'P').length;
-    const absent = attendance.filter(a => a.status === 'A').length;
+    const present = attendance.filter((a: any) => a.status === 'P').length;
+    const absent = attendance.filter((a: any) => a.status === 'A').length;
     const late = attendance.filter(a => a.status === 'T').length;
     const total = attendance.length;
 
@@ -174,25 +194,24 @@ export const studentsApi = {
     };
   },
 
-  // --- Skills & Progress ---
+  // --- Habilidades y Progreso ---
 
-  // Get student skill levels
+  /**
+   * Obtiene el nivel de habilidades de un alumno.
+   */
   async getStudentSkills(studentId: string): Promise<any[]> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
     const q = query(
-      collection(db, userPath, "student_skills"),
+      getOwnedQuery("student_skills"),
       where("student_id", "==", studentId)
     );
 
     const querySnapshot = await getDocs(q);
     const studentSkills = querySnapshot.docs.map(doc => toData<any>(doc));
 
-    // Fetch skill details
     for (const ss of studentSkills) {
       if (ss.skill_id) {
-        // Here we assume skills are still in root or in userPath? 
-        // Based on the appStore refactor, skills were in userPath/skills
-        const skillDoc = await getDoc(doc(db, userPath, "skills", ss.skill_id));
+        const skillDoc = await getDoc(doc(db, "skills", ss.skill_id));
         if (skillDoc.exists()) {
           ss.skills = toData<any>(skillDoc);
         }
@@ -202,7 +221,9 @@ export const studentsApi = {
     return studentSkills;
   },
 
-  // Update student skill progress
+  /**
+   * Actualiza el progreso de una habilidad.
+   */
   async updateStudentSkill(
     studentId: string,
     skillId: string,
@@ -210,11 +231,12 @@ export const studentsApi = {
     mastered: boolean,
     notes?: string
   ): Promise<any> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
     const skillProgressId = `${studentId}_${skillId}`;
-    const docRef = doc(db, userPath, "student_skills", skillProgressId);
+    const docRef = doc(db, "student_skills", skillProgressId);
     
-    const docData = {
+    const data = {
+      owner_id: ownerId,
       student_id: studentId,
       skill_id: skillId,
       level,
@@ -224,20 +246,21 @@ export const studentsApi = {
       updated_at: new Date().toISOString()
     };
 
-    await setDoc(docRef, docData, { merge: true });
+    await setDoc(docRef, data, { merge: true });
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);
   },
 
-  // Get students with attendance summary (Simplificado)
+  /**
+   * Obtiene alumnos con su resumen de asistencia inyectado.
+   */
   async getStudentsWithAttendance(): Promise<any[]> {
     const students = await this.getMyStudents();
     
-    // Inyectamos un resumen manual para cada estudiante
     for (const s of students) {
       (s as any).v_student_attendance = await this.getStudentAttendanceSummary(s.id);
     }
 
     return students;
   }
-};
+};

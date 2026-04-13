@@ -1,4 +1,4 @@
-import { db, toData, getUserPath } from "$lib/firebase";
+import { db, auth, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -16,11 +16,13 @@ import type { Skill, CreateSkillForm } from "$lib/types";
 
 export const skillsApi = {
   // Get all skills for the current user
-  async getMySkills(userId?: string): Promise<Skill[]> {
-    const userPath = getUserPath(userId);
+  async getMySkills(): Promise<Skill[]> {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
 
     const q = query(
-      collection(db, userPath, "skills"),
+      collection(db, "skills"),
+      where("owner_id", "==", user.uid),
       orderBy("order_index", "asc")
     );
 
@@ -30,7 +32,7 @@ export const skillsApi = {
     // Fetch category info for each skill
     for (const skill of skills) {
       if (skill.category_id) {
-        const catDoc = await getDoc(doc(db, userPath, "categories", skill.category_id));
+        const catDoc = await getDoc(doc(db, "categories", skill.category_id));
         if (catDoc.exists()) {
           (skill as any).categories = toData<any>(catDoc);
         }
@@ -42,10 +44,12 @@ export const skillsApi = {
 
   // Get skills by category
   async getSkillsByCategory(categoryId: string): Promise<Skill[]> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
 
     const q = query(
-      collection(db, userPath, "skills"),
+      collection(db, "skills"),
+      where("owner_id", "==", user.uid),
       where("category_id", "==", categoryId),
       orderBy("order_index", "asc")
     );
@@ -56,9 +60,7 @@ export const skillsApi = {
 
   // Get a specific skill
   async getSkill(id: string): Promise<Skill> {
-    const userPath = getUserPath();
-
-    const docRef = doc(db, userPath, "skills", id);
+    const docRef = doc(db, "skills", id);
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
@@ -69,7 +71,7 @@ export const skillsApi = {
 
     // Fetch category info
     if (skill.category_id) {
-      const catDoc = await getDoc(doc(db, userPath, "categories", skill.category_id));
+      const catDoc = await getDoc(doc(db, "categories", skill.category_id));
       if (catDoc.exists()) {
         (skill as any).categories = toData<any>(catDoc);
       }
@@ -80,9 +82,11 @@ export const skillsApi = {
 
   // Create a new skill
   async createSkill(skillData: CreateSkillForm): Promise<Skill> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
 
-    const docRef = await addDoc(collection(db, userPath, "skills"), {
+    const docRef = await addDoc(collection(db, "skills"), {
+      owner_id: user.uid,
       name: skillData.name,
       category_id: skillData.category_id,
       description: skillData.description || "",
@@ -100,8 +104,7 @@ export const skillsApi = {
 
   // Update a skill
   async updateSkill(id: string, updates: Partial<CreateSkillForm>): Promise<Skill> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "skills", id);
+    const docRef = doc(db, "skills", id);
 
     await updateDoc(docRef, {
       ...updates,
@@ -114,18 +117,17 @@ export const skillsApi = {
 
   // Delete a skill
   async deleteSkill(id: string): Promise<void> {
-    const docRef = doc(db, getUserPath(), "skills", id);
+    const docRef = doc(db, "skills", id);
     await deleteDoc(docRef);
   },
 
   // Reorder skills
   async reorderSkills(skillIds: string[]): Promise<void> {
-    const userPath = getUserPath();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
 
     skillIds.forEach((id, index) => {
-      const docRef = doc(db, userPath, "skills", id);
+      const docRef = doc(db, "skills", id);
       batch.update(docRef, {
         order_index: index,
         updated_at: now
@@ -137,11 +139,13 @@ export const skillsApi = {
 
   // Get skills with progress for a specific student
   async getSkillsWithProgress(studentId: string): Promise<(Skill & { progress?: any })[]> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
 
     // Fetch student skills first
     const progressQuery = query(
-      collection(db, userPath, "student_skills"),
+      collection(db, "student_skills"),
+      where("owner_id", "==", user.uid),
       where("student_id", "==", studentId)
     );
     const progressSnap = await getDocs(progressQuery);
@@ -160,10 +164,12 @@ export const skillsApi = {
 
   // Get skills assigned to a class
   async getClassSkills(classId: string): Promise<Skill[]> {
-    const userPath = getUserPath();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
 
     const q = query(
-      collection(db, userPath, "class_skills"),
+      collection(db, "class_skills"),
+      where("owner_id", "==", user.uid),
       where("class_id", "==", classId),
       orderBy("order_index", "asc")
     );
@@ -173,7 +179,7 @@ export const skillsApi = {
 
     const skills: Skill[] = [];
     for (const sid of skillIds) {
-      const skillDoc = await getDoc(doc(db, userPath, "skills", sid));
+      const skillDoc = await getDoc(doc(db, "skills", sid));
       if (skillDoc.exists()) {
         skills.push(toData<Skill>(skillDoc));
       }

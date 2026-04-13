@@ -16,8 +16,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   try {
     // Obtener estudiantes y centros del usuario desde Firebase
     const [students, schools] = await Promise.all([
-      studentsApi.getMyStudents(locals.user.id),
-      schoolsApi.getMySchools(locals.user.id)
+      studentsApi.getMyStudents(),
+      schoolsApi.getMySchools()
     ]);
 
     // Formatear estudiantes para la UI
@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       id: s.id,
       name: s.name,
       rating: 1200, // Rating base predeterminado
-      college: (s as any).college_name || 'Sin centro',
+      school_name: (s as any).school_name || 'Sin centro',
       email: s.parent_email || ''
     }));
 

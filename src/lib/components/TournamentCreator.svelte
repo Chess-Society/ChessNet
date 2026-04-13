@@ -13,11 +13,11 @@
   } from 'lucide-svelte';
   import { getLocalTournamentsApi } from '$lib/api/local-tournaments';
   import { studentsApi } from '$lib/api/students';
-  import { collegesApi } from '$lib/api/colleges';
+  import { schoolsApi } from '$lib/api/schools';
   import type { 
     CreateTournamentForm, 
     Student, 
-    College,
+    School,
     LocalTournament
   } from '$lib/types';
 
@@ -32,7 +32,7 @@
   let formData = $state<CreateTournamentForm>({
     name: '',
     format: 'swiss',
-    college_id: '',
+    school_id: '',
     time_control: '',
     startAt: '',
     endAt: '',
@@ -49,7 +49,7 @@
 
   // Data
   let students = $state<Student[]>([]);
-  let colleges = $state<College[]>([]);
+  let schools = $state<School[]>([]);
   let searchTerm = $state('');
 
   // Form validation
@@ -96,7 +96,7 @@
   function resetForm() {
     formData.name = '';
     formData.format = 'swiss';
-    formData.college_id = '';
+    formData.school_id = '';
     formData.time_control = '';
     formData.startAt = '';
     formData.endAt = '';
@@ -112,13 +112,13 @@
   async function loadData() {
     try {
       isLoading = true;
-      const [studentsData, collegesData] = await Promise.all([
+      const [studentsData, schoolsData] = await Promise.all([
         studentsApi.getMyStudents(),
-        collegesApi.getColleges()
+        schoolsApi.getMySchools()
       ]);
       
       students = studentsData;
-      colleges = collegesData;
+      schools = schoolsData;
     } catch (err) {
       console.error('Error loading data:', err);
       error = 'Error al cargar los datos';
@@ -268,13 +268,13 @@
               </div>
 
               <div>
-                <label for="tournament-college" class="block text-sm font-medium text-slate-300 mb-2">
+                <label for="tournament-school" class="block text-sm font-medium text-slate-300 mb-2">
                   Centro educativo
                 </label>
-                <select id="tournament-college" bind:value={formData.college_id} class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
+                <select id="tournament-school" bind:value={formData.school_id} class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
                   <option value="">Sin centro específico</option>
-                  {#each colleges as college}
-                    <option value={college.id}>{college.name}</option>
+                  {#each schools as school}
+                    <option value={school.id}>{school.name}</option>
                   {/each}
                 </select>
               </div>

@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const classRef = doc(db, "classes", classId);
     const classSnap = await getDoc(classRef);
 
-    if (!classSnap.exists() || classSnap.data().user_id !== locals.user.id) {
+    if (!classSnap.exists() || classSnap.data().owner_id !== locals.user.id) {
       throw error(404, 'Clase no encontrada');
     }
 
@@ -31,6 +31,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     // Estudiantes inscritos
     const qEnrollments = query(
       collection(db, "class_students"),
+      where("owner_id", "==", locals.user.id),
       where("class_id", "==", classId)
     );
     const enrollmentsSnap = await getDocs(qEnrollments);
@@ -53,6 +54,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     // Skill de la clase
     const qClassSkills = query(
       collection(db, "class_skills"),
+      where("owner_id", "==", locals.user.id),
       where("class_id", "==", classId)
     );
     const classSkillsSnap = await getDocs(qClassSkills);
@@ -85,6 +87,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     // Attendance stats (placeholder logic for now, using Firestore)
     const qAttendance = query(
       collection(db, "attendance"),
+      where("owner_id", "==", locals.user.id),
       where("class_id", "==", classId)
     );
     const attendanceSnap = await getDocs(qAttendance);

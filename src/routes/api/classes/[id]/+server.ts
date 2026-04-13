@@ -18,7 +18,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
   try {
     const { id } = params;
     const body = await request.json();
-    const { name, college_id } = body;
+    const { name, school_id } = body;
     
     if (!id) {
       return json({ error: 'ID de la clase requerido' }, { status: 400 });
@@ -35,7 +35,7 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
       updated_at: serverTimestamp()
     };
     if (name !== undefined) updateData.name = name.trim();
-    if (college_id !== undefined) updateData.college_id = college_id;
+    if (school_id !== undefined) updateData.school_id = school_id;
 
     await updateDoc(classRef, updateData);
 

@@ -1,10 +1,9 @@
-import { db, auth, toData, getUserPath } from "$lib/firebase";
+import { db, auth, toData } from "$lib/firebase";
 import { 
   doc, 
   getDoc, 
   setDoc,
-  updateDoc,
-  serverTimestamp 
+  updateDoc
 } from "firebase/firestore";
 import type { 
   SubscriptionPlan, 
@@ -27,12 +26,12 @@ const PLANS: SubscriptionPlan[] = [
     currency: 'EUR',
     max_students: 12,
     max_classes: 2,
-    max_colleges: 1,
+    max_schools: 1,
     max_tournaments: 0,
     max_storage_mb: 50,
     max_custom_skills: 0,
     features: [
-      '1 Centro / Colegio',
+      '1 Centro / Escuela',
       '2 Clases simultáneas',
       'Hasta 12 Alumnos totales',
       'Pase de lista y Asistencia'
@@ -51,7 +50,7 @@ const PLANS: SubscriptionPlan[] = [
     currency: 'EUR',
     max_students: -1,
     max_classes: -1,
-    max_colleges: -1,
+    max_schools: -1,
     max_tournaments: -1,
     max_storage_mb: 2000,
     max_custom_skills: -1,
@@ -75,12 +74,12 @@ const DEFAULT_LIMITS: UserPlanLimits = {
   status: 'active',
   max_students: 12,
   max_classes: 2,
-  max_colleges: 1,
+  max_schools: 1,
   max_tournaments: 0,
   max_storage_mb: 50,
   max_custom_skills: 0,
   features: [
-    '1 Centro / Colegio',
+    '1 Centro / Escuela',
     '2 Clases simultáneas',
     'Hasta 12 Alumnos totales',
     'Pase de lista y Asistencia'
@@ -102,11 +101,12 @@ export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
  * Obtiene el plan actual del usuario y sus límites desde Firestore
  */
 export const getUserCurrentPlan = async (userId?: string): Promise<UserPlanLimits> => {
-  const userPath = getUserPath(userId);
-  if (!userPath) return DEFAULT_LIMITS;
+  const uid = userId || auth.currentUser?.uid;
+  if (!uid) return DEFAULT_LIMITS;
 
   try {
-    const docRef = doc(db, userPath, "settings", "subscription");
+    // Usamos una colección raíz 'user_subscriptions' donde el ID del documento es el UID
+    const docRef = doc(db, "user_subscriptions", uid);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -152,11 +152,10 @@ export const getUpgradeData = async (): Promise<SubscriptionUpgradeData> => {
 
     const currentPlan = plans.find(plan => plan.name === userLimits.plan_name) || plans[0];
 
-    // Estas estadísticas se calcularían consultando las colecciones anidadas correspondientes
     const usageStats = {
       students_count: 0,
       classes_count: 0,
-      colleges_count: 0,
+      schools_count: 0,
       tournaments_count: 0,
       storage_used_mb: 0,
       custom_skills_count: 0
@@ -177,7 +176,7 @@ export const getUpgradeData = async (): Promise<SubscriptionUpgradeData> => {
       usage_stats: {
         students_count: 0,
         classes_count: 0,
-        colleges_count: 0,
+        schools_count: 0,
         tournaments_count: 0,
         storage_used_mb: 0,
         custom_skills_count: 0
@@ -196,7 +195,6 @@ export const initiateUpgrade = async (planName: string, uid?: string, email?: st
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         plan_name: planName === 'premium' ? 'Maestro Premium' : planName,
-        price_id: 'price_1T6H9xRBnPDD6EfR0BmyYKYf', // Este ID debería venir de configuración/env
         uid: uid || auth.currentUser?.uid,
         user_email: email || auth.currentUser?.email
       })

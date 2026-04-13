@@ -67,7 +67,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
             status: 'active',
             max_students: 15,
             max_classes: 3,
-            max_colleges: 1,
+            max_schools: 1,
             max_tournaments: 2,
             max_storage_mb: 100,
             max_custom_skills: 5

@@ -39,7 +39,7 @@
   }
 
   function goToDashboard() {
-    goto('/dashboard');
+    goto('/panel');
   }
 
   function clearCookies() {

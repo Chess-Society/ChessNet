@@ -69,16 +69,16 @@
     
     if (fromSchool) {
       // Si viene de un centro específico, volver al centro
-      goto(`/schools/${fromSchool}`);
+      goto(`/panel/centros/${fromSchool}`);
     } else if (fromClass) {
       // Si viene de una clase específica, volver a la clase
-      goto(`/classes/${fromClass}`);
-    } else if (classData?.college_id) {
+      goto(`/panel/clases/${fromClass}`);
+    } else if (classData?.school_id) {
       // Si la clase tiene un centro asignado, ir al centro
-      goto(`/schools/${classData.college_id}`);
+      goto(`/panel/centros/${classData.school_id}`);
     } else {
       // Por defecto, volver a la clase
-      goto(`/classes/${classData.id}`);
+      goto(`/panel/clases/${classData.id}`);
     }
   };
 
@@ -142,10 +142,10 @@
   };
 
   const handleEditStudent = (studentId: string) => {
-    // Pasar el college_id de la clase como parámetro para asignación automática
-    const collegeId = classData?.college_id;
-    const queryParam = collegeId ? `?college_id=${collegeId}` : '';
-    goto(`/students/${studentId}/edit${queryParam}`);
+    // Pasar el school_id de la clase como parámetro para asignación automática
+    const schoolId = classData?.school_id;
+    const queryParam = schoolId ? `?schoolId=${schoolId}` : '';
+    goto(`/panel/alumnos/${studentId}/edit${queryParam}`);
   };
 
   const handleUnenrollStudent = async (studentId: string) => {
@@ -222,14 +222,14 @@
         
         <div class="flex items-center space-x-3">
           <button 
-            on:click={() => goto(`/classes/${classData?.id}`)}
+            on:click={() => goto(`/panel/clases/${classData?.id}`)}
             class="btn-secondary"
           >
             <Eye class="w-4 h-4 mr-2" />
             Ver Clase
           </button>
           <button 
-            on:click={() => goto(`/students/create?class_id=${classData?.id}&college_id=${classData?.college_id}&return_to=${encodeURIComponent(`/classes/${classData?.id}/students`)}`)}
+            on:click={() => goto(`/panel/alumnos/create?classId=${classData?.id}&schoolId=${classData?.school_id}&returnTo=/panel/clases/${classData?.id}/students`)}
             class="btn-primary"
           >
             <UserPlus class="w-4 h-4 mr-2" />
@@ -310,7 +310,7 @@
             <p class="text-slate-500 mb-4">Comienza inscribiendo estudiantes en esta clase</p>
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
               <button
-                on:click={() => goto(`/students/create?class_id=${classData.id}&college_id=${classData.college_id}&return_to=/classes/${classData.id}/students`)}
+                on:click={() => goto(`/panel/alumnos/create?classId=${classData.id}&schoolId=${classData.school_id}&returnTo=/panel/clases/${classData.id}/students`)}
                 class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center space-x-2"
               >
                 <UserPlus class="w-4 h-4" />
@@ -384,7 +384,7 @@
             Estudiantes Disponibles ({filteredAvailableStudents.length})
           </h2>
           <button
-            on:click={() => goto(`/students/create?class_id=${classData.id}&college_id=${classData.college_id}&return_to=/classes/${classData.id}/students`)}
+            on:click={() => goto(`/panel/alumnos/create?classId=${classData.id}&schoolId=${classData.school_id}&returnTo=/panel/clases/${classData.id}/students`)}
             class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center space-x-2"
           >
             <UserPlus class="w-4 h-4" />

@@ -120,7 +120,7 @@
         <p class="text-[10px] font-black text-surface-500 uppercase tracking-widest mt-2">No se pudo localizar la información analítica de este estudiante.</p>
       </div>
       <button
-        onclick={() => goto('/reports')}
+        onclick={() => goto('/panel/informes')}
         class="w-full bg-surface-950 border border-surface-900 py-4 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest hover:border-primary-500/50 transition-all flex items-center justify-center gap-3"
       >
         <ArrowLeft class="w-4 h-4" />
@@ -154,7 +154,7 @@
           <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-surface-500 text-[10px] font-bold uppercase tracking-widest">
             <div class="flex items-center gap-2">
               <School class="w-3 h-3 text-primary-400" />
-              {report.college.name}
+              {report.school.name}
             </div>
             <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
             <div class="flex items-center gap-2">

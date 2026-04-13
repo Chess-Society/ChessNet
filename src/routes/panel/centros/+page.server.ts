@@ -15,21 +15,21 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     // Usar la API de centros que ya maneja membresías
-    const schools = await schoolsApi.getMySchools(locals.user.id);
+    const schools = await schoolsApi.getMySchools();
 
     // Enriquecer con estadísticas (conteo de clases y alumnos)
     const enrichedSchools = await Promise.all(schools.map(async (school) => {
       // Contar clases
       const qClasses = query(
         collection(db, "classes"),
-        where("college_id", "==", school.id)
+        where("school_id", "==", school.id)
       );
       const snapClasses = await getDocs(qClasses);
       
       // Contar estudiantes
       const qStudents = query(
         collection(db, "students"),
-        where("college_id", "==", school.id)
+        where("school_id", "==", school.id)
       );
       const snapStudents = await getDocs(qStudents);
 

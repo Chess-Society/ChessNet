@@ -111,7 +111,7 @@
   });
 
   const handleGoBack = () => {
-    goto(`/classes/${classData?.id}`);
+    goto(`/panel/clases/${classData?.id}`);
   };
 
   const handleAssignSkill = async (skillId: string) => {

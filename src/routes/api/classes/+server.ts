@@ -24,7 +24,7 @@ export const GET: RequestHandler = async ({ locals }) => {
   try {
     const q = query(
       collection(db, "classes"), 
-      where("user_id", "==", locals.user.id),
+      where("owner_id", "==", locals.user.id),
       orderBy("created_at", "desc")
     );
     const snapshot = await getDocs(q);
@@ -47,12 +47,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const { name, college_id } = body;
+    const { name, school_id } = body;
 
     const classData = {
-      user_id: locals.user.id,
+      owner_id: locals.user.id,
       name: name?.trim() || 'Clase sin nombre',
-      college_id: college_id?.trim() || null,
+      school_id: school_id?.trim() || null,
       created_at: serverTimestamp(),
       updated_at: serverTimestamp()
     };
@@ -85,7 +85,7 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
     const classRef = doc(db, "classes", id);
     const classSnap = await getDoc(classRef);
 
-    if (!classSnap.exists() || classSnap.data().user_id !== locals.user.id) {
+    if (!classSnap.exists() || classSnap.data().owner_id !== locals.user.id) {
       return json({ error: 'Clase no encontrada o acceso denegado' }, { status: 404 });
     }
 

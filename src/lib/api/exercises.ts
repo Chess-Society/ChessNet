@@ -1,4 +1,4 @@
-import { db, toData, getUserPath } from "$lib/firebase";
+import { db, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -12,9 +12,12 @@ import {
   deleteDoc
 } from "firebase/firestore";
 import type { ChessExercise } from "$lib/types";
+import { getOwnerId, getOwnedQuery } from "./base";
 
 export const exercisesApi = {
-  // Get exercises by school
+  /**
+   * Obtiene ejercicios filtrados por centro y criterios adicionales.
+   */
   async getExercisesBySchool(
     schoolId: string,
     filters?: {
@@ -24,9 +27,9 @@ export const exercisesApi = {
       offset?: number;
     },
   ): Promise<ChessExercise[]> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
     let q = query(
-      collection(db, userPath, "chess_exercises"),
+      getOwnedQuery("chess_exercises"),
       where("school_id", "==", schoolId),
       orderBy("created_at", "desc")
     );
@@ -42,7 +45,6 @@ export const exercisesApi = {
       data = data.filter(e => e.difficulty === filters.difficulty);
     }
 
-    // Manual slice for limit/offset
     if (filters?.offset !== undefined) {
       data = data.slice(filters.offset);
     }
@@ -53,43 +55,59 @@ export const exercisesApi = {
     return data;
   },
 
-  // Get a specific exercise
+  /**
+   * Obtiene un ejercicio específico.
+   */
   async getExercise(id: string): Promise<ChessExercise> {
-    const userPath = getUserPath();
-    const docSnap = await getDoc(doc(db, userPath, "chess_exercises", id));
-    if (!docSnap.exists()) throw new Error("Exercise not found");
-    return toData<ChessExercise>(docSnap);
+    const ownerId = await getOwnerId();
+    const docSnap = await getDoc(doc(db, "chess_exercises", id));
+    
+    if (!docSnap.exists()) throw new Error("Ejercicio no encontrado");
+    
+    const data = toData<ChessExercise>(docSnap);
+    if (data.owner_id !== ownerId) throw new Error("Acceso denegado");
+    
+    return data;
   },
 
-  // Create a new exercise
+  /**
+   * Crea un nuevo ejercicio.
+   */
   async createExercise(
     schoolId: string,
     exercise: Omit<
       ChessExercise,
-      "id" | "school_id" | "created_at" | "updated_at"
+      "id" | "school_id" | "created_at" | "updated_at" | "owner_id"
     >,
   ): Promise<ChessExercise> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
 
-    const exerciseData = {
-      school_id: schoolId,
+    const data = {
       ...exercise,
+      school_id: schoolId,
+      owner_id: ownerId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, userPath, "chess_exercises"), exerciseData);
+    const docRef = await addDoc(collection(db, "chess_exercises"), data);
     const docSnap = await getDoc(docRef);
     return toData<ChessExercise>(docSnap);
   },
 
-  // Update an exercise
+  /**
+   * Actualiza un ejercicio.
+   */
   async updateExercise(
     id: string,
     updates: Partial<ChessExercise>,
   ): Promise<ChessExercise> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "chess_exercises", id);
+    const ownerId = await getOwnerId();
+    const docRef = doc(db, "chess_exercises", id);
+    
+    const current = await this.getExercise(id);
+    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -99,13 +117,20 @@ export const exercisesApi = {
     return toData<ChessExercise>(docSnap);
   },
 
-  // Delete an exercise
+  /**
+   * Elimina un ejercicio.
+   */
   async deleteExercise(id: string): Promise<void> {
-    const userPath = getUserPath();
-    await deleteDoc(doc(db, userPath, "chess_exercises", id));
+    const ownerId = await getOwnerId();
+    const current = await this.getExercise(id);
+    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    
+    await deleteDoc(doc(db, "chess_exercises", id));
   },
 
-  // Record exercise attempt
+  /**
+   * Registra un intento de resolución de ejercicio.
+   */
   async recordAttempt(
     exerciseId: string,
     studentId: string,
@@ -114,9 +139,10 @@ export const exercisesApi = {
     timeSpentSeconds: number,
     hintsUsed: number = 0,
   ): Promise<void> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
 
-    await addDoc(collection(db, userPath, "exercise_attempts"), {
+    await addDoc(collection(db, "exercise_attempts"), {
+      owner_id: ownerId,
       exercise_id: exerciseId,
       student_id: studentId,
       moves,
@@ -127,15 +153,17 @@ export const exercisesApi = {
     });
   },
 
-  // Get student's exercise attempts
+  /**
+   * Obtiene los intentos de un alumno.
+   */
   async getStudentAttempts(
     studentId: string,
     exerciseId?: string,
   ): Promise<any[]> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
 
     let q = query(
-      collection(db, userPath, "exercise_attempts"),
+      getOwnedQuery("exercise_attempts"),
       where("student_id", "==", studentId),
       orderBy("attempted_at", "desc")
     );
@@ -147,10 +175,9 @@ export const exercisesApi = {
     const querySnapshot = await getDocs(q);
     const attempts = querySnapshot.docs.map(doc => toData<any>(doc));
 
-    // Manual join for exercise data
     for (const attempt of attempts) {
       if (attempt.exercise_id) {
-        const exerciseSnap = await getDoc(doc(db, userPath, "chess_exercises", attempt.exercise_id));
+        const exerciseSnap = await getDoc(doc(db, "chess_exercises", attempt.exercise_id));
         if (exerciseSnap.exists()) {
           attempt.chess_exercises = toData<ChessExercise>(exerciseSnap);
         }

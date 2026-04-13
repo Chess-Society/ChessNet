@@ -1,4 +1,4 @@
-import { db, toData, getUserPath } from "$lib/firebase";
+import { db, toData } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -12,9 +12,12 @@ import {
   deleteDoc
 } from "firebase/firestore";
 import type { Announcement } from "$lib/types";
+import { getOwnerId, getOwnedQuery } from "./base";
 
 export const communicationApi = {
-  // Get announcements by school
+  /**
+   * Obtiene anuncios filtrados por centro y otros criterios.
+   */
   async getAnnouncementsBySchool(
     schoolId: string,
     filters?: {
@@ -24,9 +27,9 @@ export const communicationApi = {
       offset?: number;
     },
   ): Promise<Announcement[]> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
     let q = query(
-      collection(db, userPath, "announcements"),
+      getOwnedQuery("announcements"),
       where("school_id", "==", schoolId),
       orderBy("created_at", "desc")
     );
@@ -42,7 +45,6 @@ export const communicationApi = {
       data = data.filter(a => a.is_published === filters.isPublished);
     }
 
-    // Handle offset and limit manually
     if (filters?.offset !== undefined) {
       data = data.slice(filters.offset);
     }
@@ -54,15 +56,24 @@ export const communicationApi = {
     return data;
   },
 
-  // Get a specific announcement
+  /**
+   * Obtiene un anuncio específico.
+   */
   async getAnnouncement(id: string): Promise<Announcement> {
-    const userPath = getUserPath();
-    const docSnap = await getDoc(doc(db, userPath, "announcements", id));
-    if (!docSnap.exists()) throw new Error("Announcement not found");
-    return toData<Announcement>(docSnap);
+    const ownerId = await getOwnerId();
+    const docSnap = await getDoc(doc(db, "announcements", id));
+    
+    if (!docSnap.exists()) throw new Error("Anuncio no encontrado");
+    
+    const data = toData<Announcement>(docSnap);
+    if (data.owner_id !== ownerId) throw new Error("Acceso denegado");
+
+    return data;
   },
 
-  // Create a new announcement
+  /**
+   * Crea un nuevo anuncio.
+   */
   async createAnnouncement(
     schoolId: string,
     title: string,
@@ -74,9 +85,10 @@ export const communicationApi = {
     isPublished: boolean = false,
     expiresAt?: string,
   ): Promise<Announcement> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
 
-    const announcementData = {
+    const data = {
+      owner_id: ownerId,
       school_id: schoolId,
       title,
       content,
@@ -91,18 +103,24 @@ export const communicationApi = {
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, userPath, "announcements"), announcementData);
+    const docRef = await addDoc(collection(db, "announcements"), data);
     const docSnap = await getDoc(docRef);
     return toData<Announcement>(docSnap);
   },
 
-  // Update an announcement
+  /**
+   * Actualiza un anuncio.
+   */
   async updateAnnouncement(
     id: string,
     updates: Partial<Announcement>,
   ): Promise<Announcement> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "announcements", id);
+    const ownerId = await getOwnerId();
+    const docRef = doc(db, "announcements", id);
+    
+    const current = await this.getAnnouncement(id);
+    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -112,13 +130,20 @@ export const communicationApi = {
     return toData<Announcement>(docSnap);
   },
 
-  // Delete an announcement
+  /**
+   * Elimina un anuncio.
+   */
   async deleteAnnouncement(id: string): Promise<void> {
-    const userPath = getUserPath();
-    await deleteDoc(doc(db, userPath, "announcements", id));
+    const ownerId = await getOwnerId();
+    const current = await this.getAnnouncement(id);
+    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    
+    await deleteDoc(doc(db, "announcements", id));
   },
 
-  // Publish an announcement
+  /**
+   * Publica un anuncio.
+   */
   async publishAnnouncement(id: string): Promise<Announcement> {
     return this.updateAnnouncement(id, {
       is_published: true,
@@ -126,7 +151,9 @@ export const communicationApi = {
     });
   },
 
-  // Unpublish an announcement
+  /**
+   * Despublica un anuncio.
+   */
   async unpublishAnnouncement(id: string): Promise<Announcement> {
     return this.updateAnnouncement(id, {
       is_published: false,
@@ -134,7 +161,9 @@ export const communicationApi = {
     });
   },
 
-  // Send message to parent
+  /**
+   * Envía un mensaje a los padres de un alumno.
+   */
   async sendParentMessage(
     studentId: string,
     title: string,
@@ -146,9 +175,10 @@ export const communicationApi = {
       | "achievement"
       | "general" = "general",
   ): Promise<any> {
-    const userPath = getUserPath();
+    const ownerId = await getOwnerId();
 
     const messageData = {
+      owner_id: ownerId,
       student_id: studentId,
       title,
       content,
@@ -157,15 +187,24 @@ export const communicationApi = {
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, userPath, "parent_messages"), messageData);
+    const docRef = await addDoc(collection(db, "parent_messages"), messageData);
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);
   },
 
-  // Mark message as read
+  /**
+   * Marca un mensaje como leído.
+   */
   async markMessageAsRead(messageId: string): Promise<any> {
-    const userPath = getUserPath();
-    const docRef = doc(db, userPath, "parent_messages", messageId);
+    const ownerId = await getOwnerId();
+    const docRef = doc(db, "parent_messages", messageId);
+    
+    // Verificación de propiedad para mensajes
+    const docSnapBefore = await getDoc(docRef);
+    if (docSnapBefore.exists() && docSnapBefore.data().owner_id !== ownerId) {
+        throw new Error("No autorizado");
+    }
+
     await updateDoc(docRef, { is_read: true });
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);

@@ -24,14 +24,14 @@ export const load: PageServerLoad = async ({ locals }) => {
     const userId = locals.user.id;
     // Obtener centros y estudiantes del usuario desde Firebase API
     const [schools, allStudents] = await Promise.all([
-      schoolsApi.getMySchools(userId),
-      studentsApi.getMyStudents(userId)
+      schoolsApi.getMySchools(),
+      studentsApi.getMyStudents()
     ]);
 
     // Obtener todas las clases de todos los centros
     const allSchoolsWithClasses = await Promise.all(schools.map(async (school: any) => {
-      const classes = await classesApi.getClassesBySchool(school.id, userId);
-      const schoolStudents = allStudents.filter(s => s.college_id === school.id);
+      const classes = await classesApi.getClassesBySchool(school.id);
+      const schoolStudents = allStudents.filter(s => s.school_id === school.id);
 
       return {
         id: school.id,

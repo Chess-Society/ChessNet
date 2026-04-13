@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       tournamentsApi.getTournament(tournamentId),
       tournamentsApi.getTournamentParticipants(tournamentId),
       tournamentsApi.getTournamentMatches(tournamentId),
-      studentsApi.getMyStudents(locals.user.id)
+      studentsApi.getMyStudents()
     ]);
 
     if (!tournament) {
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     // Verificar propiedad (si el modelo incluye user_id o created_by)
     // Nota: Usamos created_by o user_id según lo que definimos en la API
-    const ownerId = (tournament as any).user_id || tournament.created_by;
+    const ownerId = tournament.owner_id;
     if (ownerId && ownerId !== locals.user.id) {
       throw error(403, 'No tienes permiso para ver este torneo');
     }
@@ -96,7 +96,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         id: s.id,
         name: s.name,
         rating: 1200, // Rating base
-        college: (s as any).college_name || 'Sin centro',
+        school_name: (s as any).school_name || 'Sin centro',
         email: s.parent_email || ''
       }));
 

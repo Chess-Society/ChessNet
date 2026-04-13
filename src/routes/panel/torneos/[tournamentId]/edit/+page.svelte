@@ -144,8 +144,7 @@
 
       await tournamentDB.updateTournament(tournament.id, updates);
       
-      console.log('✅ Tournament updated successfully');
-      goto(`/tournaments/${tournament.id}`);
+      goto(`/panel/torneos/${tournament.id}`);
       
     } catch (error) {
       console.error('❌ Error updating tournament:', error);
@@ -188,7 +187,7 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
           <button 
-            on:click={() => goto(`/tournaments/${tournament.id}`)}
+            onclick={() => goto(`/panel/torneos/${tournament.id}`)}
             class="p-2 hover:bg-slate-700 rounded-lg transition-colors"
           >
             <ArrowLeft class="w-5 h-5 text-slate-400" />
@@ -209,7 +208,7 @@
   </header>
 
   <main class="container mx-auto px-4 py-8">
-    <form on:submit|preventDefault={handleSubmit} class="max-w-4xl mx-auto">
+    <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="max-w-4xl mx-auto">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Formulario principal -->
         <div class="lg:col-span-2 space-y-6">
@@ -524,7 +523,7 @@
 
               <button
                 type="button"
-                on:click={() => goto(`/tournaments/${tournament.id}`)}
+                onclick={() => goto(`/panel/torneos/${tournament.id}`)}
                 class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-colors"
               >
                 <ArrowLeft class="w-4 h-4" />

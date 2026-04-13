@@ -115,7 +115,7 @@
           {#each [
             { label: 'Estudiantes', icon: Users, current: upgradeData.usage_stats.students_count, max: upgradeData.user_limits.max_students },
             { label: 'Clases', icon: School, current: upgradeData.usage_stats.classes_count, max: upgradeData.user_limits.max_classes },
-            { label: 'Centros', icon: School, current: upgradeData.usage_stats.colleges_count, max: upgradeData.user_limits.max_colleges },
+            { label: 'Centros', icon: School, current: upgradeData.usage_stats.schools_count, max: upgradeData.user_limits.max_schools },
             { label: 'Torneos', icon: Trophy, current: upgradeData.usage_stats.tournaments_count, max: upgradeData.user_limits.max_tournaments },
             { label: 'Storage', icon: HardDrive, current: upgradeData.usage_stats.storage_used_mb, max: upgradeData.user_limits.max_storage_mb },
             { label: 'Skills', icon: Target, current: upgradeData.usage_stats.custom_skills_count, max: upgradeData.user_limits.max_custom_skills }

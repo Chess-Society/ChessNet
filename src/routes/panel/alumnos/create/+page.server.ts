@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     // Obtener centros del usuario desde Firebase API
-    const schools = await schoolsApi.getMySchools(locals.user.id);
+    const schools = await schoolsApi.getMySchools();
 
     return { 
       user: locals.user, 

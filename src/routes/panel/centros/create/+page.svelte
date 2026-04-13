@@ -34,7 +34,7 @@
       if (!response.ok) throw new Error(result.error || 'Error al crear el centro');
 
       showToast.success('Centro creado correctamente');
-      goto(`/schools/${result.school.id}`);
+      goto(`/panel/centros/${result.school.id}`);
     } catch (error) {
       showError(error, 'Error al crear el centro');
     } finally {
@@ -51,7 +51,7 @@
   <!-- Breadcrumb & Title -->
   <div class="space-y-4">
     <button 
-      onclick={() => goto('/schools')}
+      onclick={() => goto('/panel/centros')}
       class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
     >
       <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -111,7 +111,7 @@
         <div class="flex items-center justify-end gap-4 pt-4 border-t border-surface-900">
           <button
             type="button"
-            onclick={() => goto('/schools')}
+            onclick={() => goto('/panel/centros')}
             class="px-6 py-3 text-surface-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors"
           >
             Cancelar

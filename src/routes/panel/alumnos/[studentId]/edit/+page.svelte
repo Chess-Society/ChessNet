@@ -25,7 +25,7 @@
     name: '',
     first_name: '',
     last_name: '',
-    college_id: '',
+    school_id: '',
     notes: ''
   });
 
@@ -35,7 +35,7 @@
         name: studentData.name || '',
         first_name: studentData.first_name || '',
         last_name: studentData.last_name || '',
-        college_id: studentData.college_id || '',
+        school_id: studentData.school_id || '',
         notes: studentData.notes || ''
       };
     }
@@ -62,7 +62,7 @@
 
       if (response.ok) {
         const returnTo = $page.url.searchParams.get('return_to');
-        goto(returnTo || '/students');
+        goto(returnTo || '/panel/alumnos');
       } else {
         throw new Error('Error saving');
       }
@@ -77,7 +77,7 @@
     formData.name !== (studentData?.name || '') ||
     formData.first_name !== (studentData?.first_name || '') ||
     formData.last_name !== (studentData?.last_name || '') ||
-    formData.college_id !== (studentData?.college_id || '') ||
+    formData.school_id !== (studentData?.school_id || '') ||
     formData.notes !== (studentData?.notes || '')
   );
 
@@ -86,7 +86,7 @@
       name: studentData?.name || '',
       first_name: studentData?.first_name || '',
       last_name: studentData?.last_name || '',
-      college_id: studentData?.college_id || '',
+      school_id: studentData?.school_id || '',
       notes: studentData?.notes || ''
     };
     errors = {};
@@ -102,7 +102,7 @@
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
     <div class="space-y-4">
       <button 
-        onclick={() => goto('/students')}
+        onclick={() => goto('/panel/alumnos')}
         class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
       >
         <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -220,7 +220,7 @@
 
           <div class="space-y-4">
              <select
-               bind:value={formData.college_id}
+               bind:value={formData.school_id}
                class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-5 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer"
              >
                <option value="">SIN ASIGNAR</option>

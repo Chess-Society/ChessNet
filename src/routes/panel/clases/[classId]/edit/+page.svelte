@@ -30,7 +30,7 @@
   let formData = $state({
     name: '',
     description: '',
-    college_id: '',
+    school_id: '',
     schedule: '',
     max_students: 12,
     level: 'beginner'
@@ -41,7 +41,7 @@
       formData = {
         name: classData.name || '',
         description: classData.description || '',
-        college_id: classData.college_id || '',
+        school_id: classData.school_id || '',
         schedule: classData.schedule || '',
         max_students: classData.max_students || 12,
         level: classData.level || 'beginner'
@@ -62,7 +62,7 @@
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = 'El nombre es obligatorio';
-    if (!formData.college_id) newErrors.college_id = 'Debes seleccionar un centro';
+    if (!formData.school_id) newErrors.school_id = 'Debes seleccionar un centro';
     if (formData.max_students < 1) newErrors.max_students = 'Capacidad mínima es 1';
     errors = newErrors;
     return Object.keys(newErrors).length === 0;
@@ -80,7 +80,7 @@
       });
 
       if (!response.ok) throw new Error('Error al actualizar');
-      goto(`/classes/${classData.id}`);
+      goto(`/panel/clases/${classData.id}`);
     } catch (error) {
       alert('Error al guardar cambios');
     } finally {
@@ -98,7 +98,7 @@
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
     <div class="space-y-4">
       <button 
-        onclick={() => goto(`/classes/${classData.id}`)}
+        onclick={() => goto(`/panel/clases/${classData.id}`)}
         class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
       >
         <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -118,7 +118,7 @@
 
     <div class="flex items-center gap-3">
       <button 
-        onclick={() => goto(`/classes/${classData.id}`)}
+        onclick={() => goto(`/panel/clases/${classData.id}`)}
         class="btn-ghost flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
         disabled={isSubmitting}
       >
@@ -163,10 +163,10 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label for="college" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Centro Educativo</label>
+              <label for="school" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Centro Educativo</label>
               <select 
-                id="college"
-                bind:value={formData.college_id}
+                id="school"
+                bind:value={formData.school_id}
                 class="w-full bg-surface-950 border border-surface-800 rounded-xl px-5 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all cursor-pointer"
               >
                 {#each schools as s}

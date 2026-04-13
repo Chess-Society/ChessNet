@@ -37,7 +37,7 @@
   ];
 
   const handleGoBack = () => {
-    goto('/skills');
+    goto('/panel/habilidades');
   };
 
   const validateForm = () => {

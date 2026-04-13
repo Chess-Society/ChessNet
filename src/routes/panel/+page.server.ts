@@ -22,9 +22,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   try {
     // Obtener datos reales de Firebase usando las APIs consolidadas
     const [schools, students, classes] = await Promise.all([
-      schoolsApi.getMySchools(locals.user.id),
-      studentsApi.getMyStudents(locals.user.id),
-      classesApi.getMyClasses(locals.user.id)
+      schoolsApi.getMySchools(),
+      studentsApi.getMyStudents(),
+      classesApi.getMyClasses()
     ]);
 
     const dashboardStats = {
@@ -38,8 +38,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     // Enriquecer centros con estadísticas básicas
     const centersWithStats = schools.map(school => {
-      const schoolClasses = classes.filter(c => c.college_id === school.id);
-      const schoolStudents = students.filter(s => s.college_id === school.id);
+      const schoolClasses = classes.filter(c => c.school_id === school.id);
+      const schoolStudents = students.filter(s => s.school_id === school.id);
 
       return {
         id: school.id,

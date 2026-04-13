@@ -14,8 +14,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   try {
     // Obtener la clase y los centros disponibles desde Firebase
     const [classData, schools] = await Promise.all([
-      classesApi.getClass(params.classId, locals.user.id),
-      schoolsApi.getMySchools(locals.user.id)
+      classesApi.getClass(params.classId),
+      schoolsApi.getMySchools()
     ]);
 
     if (!classData) {

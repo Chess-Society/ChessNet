@@ -17,15 +17,15 @@ export const load: PageServerLoad = async ({ locals }) => {
   try {
     // Obtener estudiantes y centros del usuario desde Firebase
     const [students, schools] = await Promise.all([
-      studentsApi.getMyStudents(locals.user.id),
-      schoolsApi.getMySchools(locals.user.id)
+      studentsApi.getMyStudents(),
+      schoolsApi.getMySchools()
     ]);
 
     // Calcular estadísticas
     const schoolCounts: Record<string, number> = {};
     students.forEach((s) => {
-      if (s.college_id) {
-        schoolCounts[s.college_id] = (schoolCounts[s.college_id] || 0) + 1;
+      if (s.school_id) {
+        schoolCounts[s.school_id] = (schoolCounts[s.school_id] || 0) + 1;
       }
     });
 

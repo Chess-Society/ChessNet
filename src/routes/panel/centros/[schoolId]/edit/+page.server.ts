@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
   try {
     // Obtener datos del centro desde Firebase API
-    const school = await schoolsApi.getSchool(schoolId, locals.user.id);
+    const school = await schoolsApi.getSchool(schoolId);
 
     return { 
       user: locals.user, 
