@@ -1,4 +1,5 @@
-import { LocalTournamentStorage } from '$lib/storage/local-storage';
+import { appStore } from '$lib/stores/appStore';
+import { get } from 'svelte/store';
 import { db, auth } from "$lib/firebase";
 import { 
   collection, 
@@ -34,18 +35,15 @@ const toData = <T>(doc: any): T => {
 };
 
 export class LocalTournamentsApi {
-  private storage: LocalTournamentStorage;
   private userId: string;
 
   constructor(userId: string) {
     this.userId = userId;
-    this.storage = new LocalTournamentStorage(userId);
   }
 
   // Tournament CRUD operations
   async createTournament(formData: CreateTournamentForm): Promise<LocalTournament> {
-    // Create tournament
-    const tournament = await this.storage.createTournament({
+    const tournamentData = {
       name: formData.name,
       format: formData.format,
       college_id: formData.college_id,
@@ -55,45 +53,49 @@ export class LocalTournamentsApi {
       user_id: this.userId,
       roundsPlanned: formData.roundsPlanned || this.calculateDefaultRounds(formData.selected_students.length, formData.format),
       notes: formData.notes
-    });
+    };
+
+    const id = await appStore.addLocalTournament(tournamentData);
+    const tournament = { ...tournamentData, id } as LocalTournament;
 
     // Add selected students as players
     for (const studentId of formData.selected_students) {
-      await this.addPlayer(tournament.id, studentId);
+      await this.addPlayer(id, studentId);
     }
 
     return tournament;
   }
 
-  async getTournament(id: string, collegeId?: string): Promise<LocalTournament | null> {
-    return this.storage.getTournament(id, collegeId);
+  async getTournament(id: string): Promise<LocalTournament | null> {
+    const store = get(appStore);
+    return store.localTournaments.find(t => t.id === id) || null;
   }
 
-  async updateTournament(id: string, updates: Partial<LocalTournament>, collegeId?: string): Promise<LocalTournament | null> {
-    return this.storage.updateTournament(id, updates, collegeId);
+  async updateTournament(id: string, updates: Partial<LocalTournament>): Promise<void> {
+    await appStore.updateLocalTournament(id, updates);
   }
 
-  async deleteTournament(id: string, collegeId?: string): Promise<void> {
-    return this.storage.deleteTournament(id, collegeId);
+  async deleteTournament(id: string): Promise<void> {
+    await appStore.removeLocalTournament(id);
   }
 
   async getAllTournaments(filters?: TournamentFilters): Promise<LocalTournament[]> {
-    let tournaments = await this.storage.getAllTournaments(filters?.college_id);
+    let tournaments = get(appStore).localTournaments;
 
     // Apply filters
     if (filters) {
+      if (filters.college_id) {
+        tournaments = tournaments.filter(t => t.college_id === filters.college_id);
+      }
       if (filters.format) {
         tournaments = tournaments.filter(t => t.format === filters.format);
       }
-      
       if (filters.status) {
         tournaments = tournaments.filter(t => this.getTournamentStatus(t) === filters.status);
       }
-      
       if (filters.startDate) {
         tournaments = tournaments.filter(t => !t.startAt || t.startAt >= filters.startDate!);
       }
-      
       if (filters.endDate) {
         tournaments = tournaments.filter(t => !t.endAt || t.endAt <= filters.endDate!);
       }
@@ -102,28 +104,34 @@ export class LocalTournamentsApi {
     return tournaments;
   }
 
-  async getTournamentComplete(id: string, collegeId?: string): Promise<LocalTournamentComplete | null> {
-    const complete = await this.storage.getTournamentComplete(id, collegeId);
-    if (complete) {
-      // Calculate standings
-      complete.standings = await this.calculateStandings(id);
-    }
-    return complete;
+  async getTournamentComplete(id: string): Promise<LocalTournamentComplete | null> {
+    const tournament = await this.getTournament(id);
+    if (!tournament) return null;
+
+    const players = await this.getTournamentPlayers(id);
+    const pairings = await this.getTournamentPairings(id);
+    const rounds = get(appStore).localTournamentRounds.filter(r => r.tournament_id === id);
+    const standings = await this.calculateStandings(id);
+
+    return {
+      ...tournament,
+      players,
+      pairings,
+      rounds,
+      standings
+    };
   }
 
   // Player management
-  async addPlayer(tournamentId: string, studentId: string): Promise<LocalTournamentPlayer> {
-    // Get student info from Firestore
-    const studentDoc = await getDoc(doc(db, "students", studentId));
+  async addPlayer(tournamentId: string, studentId: string): Promise<void> {
+    const store = get(appStore);
+    const student = store.students.find(s => s.id === studentId);
     
-    if (!studentDoc.exists()) throw new Error('Student not found');
-    const studentData = studentDoc.data();
-    
-    if (studentData.user_id !== this.userId) throw new Error('Student does not belong to user');
+    if (!student) throw new Error('Student not found in memory');
 
-    const studentName = studentData.name || `${studentData.first_name || ''} ${studentData.last_name || ''}`.trim();
+    const studentName = student.name || `${student.first_name || ''} ${student.last_name || ''}`.trim();
 
-    return this.storage.addPlayer({
+    await appStore.addLocalTournamentPlayer({
       tournament_id: tournamentId,
       student_id: studentId,
       student_name: studentName
@@ -131,23 +139,23 @@ export class LocalTournamentsApi {
   }
 
   async removePlayer(tournamentId: string, studentId: string): Promise<void> {
-    return this.storage.removePlayer(tournamentId, studentId);
+    await appStore.removeLocalTournamentPlayer(tournamentId, studentId);
   }
 
   async getTournamentPlayers(tournamentId: string): Promise<LocalTournamentPlayer[]> {
-    return this.storage.getTournamentPlayers(tournamentId);
+    return get(appStore).localTournamentPlayers.filter(p => p.tournament_id === tournamentId);
   }
 
   // Round and pairing management
   async createRound(tournamentId: string, roundNo: number): Promise<void> {
-    await this.storage.createRound({
+    await appStore.addLocalTournamentRound({
       tournament_id: tournamentId,
       round_no: roundNo,
       startedAt: new Date().toISOString()
     });
   }
 
-  async generatePairings(tournamentId: string, roundNo: number): Promise<LocalTournamentPairing[]> {
+  async generatePairings(tournamentId: string, roundNo: number): Promise<void> {
     const tournament = await this.getTournament(tournamentId);
     if (!tournament) throw new Error('Tournament not found');
 
@@ -155,12 +163,12 @@ export class LocalTournamentsApi {
     if (players.length === 0) throw new Error('No players in tournament');
 
     // Create round if it doesn't exist
-    const rounds = await this.storage.getTournamentRounds(tournamentId);
+    const rounds = get(appStore).localTournamentRounds.filter(r => r.tournament_id === tournamentId);
     if (!rounds.find(r => r.round_no === roundNo)) {
       await this.createRound(tournamentId, roundNo);
     }
 
-    let pairings: Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[];
+    let pairings: any[];
 
     switch (tournament.format) {
       case 'swiss':
@@ -177,12 +185,9 @@ export class LocalTournamentsApi {
     }
 
     // Save pairings
-    const savedPairings: LocalTournamentPairing[] = [];
     for (const pairing of pairings) {
-      savedPairings.push(await this.storage.createPairing(pairing));
+      await appStore.addLocalTournamentPairing(pairing);
     }
-
-    return savedPairings;
   }
 
   async updateResult(
@@ -194,19 +199,26 @@ export class LocalTournamentsApi {
     const points_white = result === "1-0" ? 1 : result === "1/2-1/2" ? 0.5 : 0;
     const points_black = result === "0-1" ? 1 : result === "1/2-1/2" ? 0.5 : 0;
 
-    await this.storage.updatePairing(tournamentId, roundNo, board, {
-      result,
-      points_white,
-      points_black
-    });
+    const pairings = await this.getRoundPairings(tournamentId, roundNo);
+    const pairing = pairings.find(p => p.board === board);
+    
+    if (pairing) {
+      await appStore.updateLocalTournamentPairing(pairing.id, {
+        result,
+        points_white,
+        points_black
+      });
+    }
   }
 
   async getRoundPairings(tournamentId: string, roundNo: number): Promise<LocalTournamentPairing[]> {
-    return this.storage.getRoundPairings(tournamentId, roundNo);
+    return get(appStore).localTournamentPairings.filter(p => 
+      p.tournament_id === tournamentId && p.round_no === roundNo
+    );
   }
 
   async getTournamentPairings(tournamentId: string): Promise<LocalTournamentPairing[]> {
-    return this.storage.getTournamentPairings(tournamentId);
+    return get(appStore).localTournamentPairings.filter(p => p.tournament_id === tournamentId);
   }
 
   // Standings and statistics
@@ -585,9 +597,9 @@ export class LocalTournamentsApi {
     }
   }
 
-  // Cleanup
+  // Cleanup is handled by appStore on logout
   async cleanup(): Promise<void> {
-    return this.storage.cleanup();
+    return;
   }
 }
 

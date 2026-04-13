@@ -21,33 +21,36 @@
     Layers,
     Zap
   } from 'lucide-svelte';
+  import type { Skill } from '$lib/types';
   import type { PageData } from './$types';
 
-  export let data: PageData;
+  const { data } = $props<{ data: PageData }>();
+  
+  const skillData = $derived(data.skill);
+  const categories = $derived(data.categories || []);
+  const availablePrerequisites = $derived(data.availablePrerequisites || []);
 
-  let skillData = data.skill;
-  let categories = data.categories || [];
-  let availablePrerequisites = data.availablePrerequisites || [];
-
-  // Form data
-  let formData = {
+  // Form data state
+  let formData = $state({
     name: skillData?.name || '',
     description: skillData?.description || '',
     category_id: skillData?.category_id || '',
     difficulty: skillData?.difficulty || 1,
     estimated_hours: skillData?.estimated_hours || 1,
-    prerequisites: skillData?.prerequisites || [],
-    learning_objectives: skillData?.learning_objectives || [''],
-    assessment_criteria: skillData?.assessment_criteria || [''],
-    resources: skillData?.resources || [''],
+    prerequisites: (skillData?.prerequisites || []) as string[],
+    learning_objectives: (skillData?.learning_objectives || ['']) as string[],
+    assessment_criteria: (skillData?.assessment_criteria || ['']) as string[],
+    resources: (skillData?.resources || ['']) as string[],
+    icon: skillData?.icon || '',
+    resource_link: skillData?.resource_link || '',
     order_index: skillData?.order_index || 1,
     active: skillData?.active ?? true
-  };
+  });
 
-  // Form state
-  let isSubmitting = false;
-  let errors: Record<string, string> = {};
-  let showPreview = false;
+  // Form UI state
+  let isSubmitting = $state(false);
+  let errors: Record<string, string> = $state({});
+  let showPreview = $state(false);
 
   const difficultyLevels = [
     { value: 1, label: 'Muy Fácil', color: 'text-green-400', description: 'Conceptos básicos' },
@@ -89,13 +92,13 @@
     }
 
     // Validar que los objetivos no estén vacíos
-    const validObjectives = formData.learning_objectives.filter(obj => obj.trim());
+    const validObjectives = formData.learning_objectives.filter((obj: string) => obj.trim());
     if (validObjectives.length === 0) {
       errors.learning_objectives = 'Debe haber al menos un objetivo de aprendizaje';
     }
 
     // Validar que los criterios no estén vacíos
-    const validCriteria = formData.assessment_criteria.filter(criteria => criteria.trim());
+    const validCriteria = formData.assessment_criteria.filter((criteria: string) => criteria.trim());
     if (validCriteria.length === 0) {
       errors.assessment_criteria = 'Debe haber al menos un criterio de evaluación';
     }
@@ -107,9 +110,9 @@
     if (!validateForm() || isSubmitting) return;
 
     // Limpiar arrays de elementos vacíos
-    formData.learning_objectives = formData.learning_objectives.filter(obj => obj.trim());
-    formData.assessment_criteria = formData.assessment_criteria.filter(criteria => criteria.trim());
-    formData.resources = formData.resources.filter(resource => resource.trim());
+    formData.learning_objectives = formData.learning_objectives.filter((obj: string) => obj.trim());
+    formData.assessment_criteria = formData.assessment_criteria.filter((criteria: string) => criteria.trim());
+    formData.resources = formData.resources.filter((resource: string) => resource.trim());
 
     isSubmitting = true;
 
@@ -125,14 +128,18 @@
 
       if (response.ok) {
         console.log('✅ Skill updated successfully');
-        alert('✅ Habilidad actualizada correctamente');
-        goto('/skills');
+        import('$lib/utils/toast').then(({ showToast }) => {
+          showToast.success('Habilidad actualizada correctamente');
+        });
+        goto('/panel/habilidades');
       } else {
         throw new Error('Error updating skill');
       }
     } catch (error) {
       console.error('Error updating skill:', error);
-      alert('❌ Error al actualizar la habilidad');
+      import('$lib/utils/toast').then(({ showError }) => {
+        showError(error, 'Error al actualizar la habilidad');
+      });
     } finally {
       isSubmitting = false;
     }
@@ -149,6 +156,8 @@
       learning_objectives: skillData?.learning_objectives || [''],
       assessment_criteria: skillData?.assessment_criteria || [''],
       resources: skillData?.resources || [''],
+      icon: skillData?.icon || '',
+      resource_link: skillData?.resource_link || '',
       order_index: skillData?.order_index || 1,
       active: skillData?.active ?? true
     };
@@ -166,6 +175,8 @@
       learning_objectives: skillData?.learning_objectives || [''],
       assessment_criteria: skillData?.assessment_criteria || [''],
       resources: skillData?.resources || [''],
+      icon: skillData?.icon || '',
+      resource_link: skillData?.resource_link || '',
       order_index: skillData?.order_index || 1,
       active: skillData?.active ?? true
     });
@@ -176,7 +187,7 @@
   };
 
   const removeObjective = (index: number) => {
-    formData.learning_objectives = formData.learning_objectives.filter((_, i) => i !== index);
+    formData.learning_objectives = formData.learning_objectives.filter((_: string, i: number) => i !== index);
   };
 
   const addCriteria = () => {
@@ -184,7 +195,7 @@
   };
 
   const removeCriteria = (index: number) => {
-    formData.assessment_criteria = formData.assessment_criteria.filter((_, i) => i !== index);
+    formData.assessment_criteria = formData.assessment_criteria.filter((_: string, i: number) => i !== index);
   };
 
   const addResource = () => {
@@ -192,7 +203,7 @@
   };
 
   const removeResource = (index: number) => {
-    formData.resources = formData.resources.filter((_, i) => i !== index);
+    formData.resources = formData.resources.filter((_: string, i: number) => i !== index);
   };
 
   const togglePrerequisite = (skillId: string) => {
@@ -204,16 +215,16 @@
   };
 
   const getDifficultyInfo = () => {
-    return difficultyLevels.find(level => level.value === formData.difficulty) || difficultyLevels[0];
+    return difficultyLevels.find((level: any) => level.value === formData.difficulty) || difficultyLevels[0];
   };
 
   const getSelectedCategoryName = () => {
-    const category = categories.find(c => c.id === formData.category_id);
+    const category = categories.find((c: any) => c.id === formData.category_id);
     return category?.name || 'Seleccionar categoría';
   };
 
   const getSelectedCategoryColor = () => {
-    const category = categories.find(c => c.id === formData.category_id);
+    const category = categories.find((c: any) => c.id === formData.category_id);
     return category?.color || '#6B7280';
   };
 
@@ -232,7 +243,7 @@
     <div class="container mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
-          <button on:click={handleGoBack} class="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+          <button onclick={handleGoBack} class="p-2 hover:bg-slate-700 rounded-lg transition-colors text-white">
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div class="flex items-center space-x-3">
@@ -240,7 +251,7 @@
               <Target class="w-6 h-6 text-purple-500" />
             </div>
             <div>
-              <h1 class="text-2xl font-bold">Editar Habilidad</h1>
+              <h1 class="text-2xl font-bold text-white">Editar Habilidad</h1>
               <p class="text-sm text-slate-400">{skillData?.name}</p>
             </div>
           </div>
@@ -248,16 +259,16 @@
         
         <div class="flex items-center space-x-3">
           {#if hasChanges()}
-            <button on:click={resetToOriginal} class="btn-secondary">
-              <RotateCcw class="w-4 h-4 mr-2" />
+            <button onclick={resetToOriginal} class="btn-secondary">
+              <ArrowLeft class="w-4 h-4 mr-2" />
               Descartar Cambios
             </button>
           {/if}
-          <button on:click={() => showPreview = !showPreview} class="btn-secondary">
+          <button onclick={() => showPreview = !showPreview} class="btn-secondary">
             <Eye class="w-4 h-4 mr-2" />
             {showPreview ? 'Ocultar' : 'Vista Previa'}
           </button>
-          <button on:click={handleSubmit} disabled={isSubmitting || !hasChanges()} class="btn-primary">
+          <button onclick={handleSubmit} disabled={isSubmitting || !hasChanges()} class="btn-primary">
             {#if isSubmitting}
               <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               Guardando...
@@ -395,8 +406,8 @@
         <!-- Objetivos de aprendizaje -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold">Objetivos de Aprendizaje</h2>
-            <button on:click={addObjective} class="btn-secondary text-sm">
+            <h2 class="text-xl font-semibold text-white">Objetivos de Aprendizaje</h2>
+            <button onclick={addObjective} class="btn-secondary text-sm">
               <Plus class="w-4 h-4 mr-1" />
               Añadir Objetivo
             </button>
@@ -417,7 +428,7 @@
                 </div>
                 {#if formData.learning_objectives.length > 1}
                   <button
-                    on:click={() => removeObjective(index)}
+                    onclick={() => removeObjective(index)}
                     class="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-red-400"
                   >
                     <Trash2 class="w-4 h-4" />
@@ -434,8 +445,8 @@
         <!-- Criterios de evaluación -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold">Criterios de Evaluación</h2>
-            <button on:click={addCriteria} class="btn-secondary text-sm">
+            <h2 class="text-xl font-semibold text-white">Criterios de Evaluación</h2>
+            <button onclick={addCriteria} class="btn-secondary text-sm">
               <Plus class="w-4 h-4 mr-1" />
               Añadir Criterio
             </button>
@@ -456,7 +467,7 @@
                 </div>
                 {#if formData.assessment_criteria.length > 1}
                   <button
-                    on:click={() => removeCriteria(index)}
+                    onclick={() => removeCriteria(index)}
                     class="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-red-400"
                   >
                     <Trash2 class="w-4 h-4" />
@@ -483,7 +494,7 @@
                   <input
                     type="checkbox"
                     checked={formData.prerequisites.includes(skill.id)}
-                    on:change={() => togglePrerequisite(skill.id)}
+                    onchange={() => togglePrerequisite(skill.id)}
                     class="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500 focus:ring-2"
                   />
                   <div class="flex-1">
@@ -509,8 +520,8 @@
         <!-- Recursos -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold">Recursos Educativos</h2>
-            <button on:click={addResource} class="btn-secondary text-sm">
+            <h2 class="text-xl font-semibold text-white">Recursos Educativos</h2>
+            <button onclick={addResource} class="btn-secondary text-sm">
               <Plus class="w-4 h-4 mr-1" />
               Añadir Recurso
             </button>
@@ -530,7 +541,7 @@
                   />
                 </div>
                 <button
-                  on:click={() => removeResource(index)}
+                  onclick={() => removeResource(index)}
                   class="p-2 hover:bg-red-500/20 rounded-lg transition-colors text-red-400"
                 >
                   <Trash2 class="w-4 h-4" />
@@ -586,7 +597,7 @@
                   <span class="text-slate-400 text-sm">Prerequisitos:</span>
                   <div class="mt-1 space-y-1">
                     {#each formData.prerequisites as prereqId}
-                      {#each availablePrerequisites.filter(s => s.id === prereqId) as prereq}
+                      {#each availablePrerequisites.filter((s: Skill) => s.id === prereqId) as prereq}
                         <div class="text-xs text-slate-300 bg-slate-700/50 rounded px-2 py-1">
                           {prereq.name}
                         </div>

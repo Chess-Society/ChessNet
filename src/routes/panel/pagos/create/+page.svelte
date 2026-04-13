@@ -14,10 +14,8 @@
     CreditCard,
     Banknote
   } from 'lucide-svelte';
-  import type { PageData } from './$types';
+  import { appStore } from '$lib/stores/appStore';
   import type { PaymentType, PaymentConcept, CreatePaymentData } from '$lib/types';
-
-  export let data: PageData;
 
   // Form data
   let formData: CreatePaymentData = {
@@ -41,50 +39,59 @@
   };
 
   // UI state
-  let isSubmitting = false;
-  let showPreview = false;
-  let errors: Record<string, string> = {};
+  let isSubmitting = $state(false);
+  let showPreview = $state(false);
+  let errors: Record<string, string> = $state({});
+
+  // Reactividad con appStore
+  let students = $derived($appStore.students || []);
+  let centers = $derived($appStore.centers || []);
+  let classes = $derived($appStore.classes || []);
 
   // Reactive variables
-  $: filteredClasses = data.classes?.filter(cls => {
+  let filteredClasses = $derived(classes.filter((cls: any) => {
     if (formData.payment_type === 'student' && formData.student_id) {
-      const student = data.students?.find(s => s.id === formData.student_id);
+      const student = students.find((s: any) => s.id === formData.student_id);
       return student && cls.college_id === student.college_id;
     }
     if (formData.payment_type === 'school' && formData.school_id) {
       return cls.college_id === formData.school_id;
     }
-    return data.classes || [];
-  }) || [];
+    return true;
+  }));
 
-  $: selectedStudent = data.students?.find(s => s.id === formData.student_id);
-  $: selectedSchool = data.schools?.find(s => s.id === formData.school_id);
-  $: selectedClass = data.classes?.find(c => c.id === formData.class_id);
+  let selectedStudent = $derived(students.find((s: any) => s.id === formData.student_id));
+  let selectedSchool = $derived(centers.find((s: any) => s.id === formData.school_id));
+  let selectedClass = $derived(classes.find((c: any) => c.id === formData.class_id));
 
   // Auto-fill amount when class is selected
-  $: if (selectedClass && formData.amount === 0) {
-    formData.amount = selectedClass.price;
-  }
+  $effect(() => {
+    if (selectedClass && formData.amount === 0) {
+      formData.amount = selectedClass.price || 0;
+    }
+  });
 
   // Auto-generate description
-  $: if (formData.concept && (selectedStudent || selectedSchool)) {
-    const conceptLabels = {
-      monthly_fee: 'Mensualidad',
-      registration: 'Inscripción',
-      tournament: 'Torneo',
-      material: 'Material educativo',
-      private_lesson: 'Clase particular',
-      other: 'Otros servicios'
-    };
-    
-    const entityName = selectedStudent?.name || selectedSchool?.name || '';
-    const className = selectedClass ? ` - ${selectedClass.name}` : '';
-    const periodText = formData.period_start && formData.period_end 
-      ? ` (${formatDate(formData.period_start)} - ${formatDate(formData.period_end)})`
-      : '';
-    
-    formData.description = `${conceptLabels[formData.concept]} ${entityName}${className}${periodText}`;
-  }
+  $effect(() => {
+    if (formData.concept && (selectedStudent || selectedSchool)) {
+      const conceptLabels: Record<string, string> = {
+        monthly_fee: 'Mensualidad',
+        registration: 'Inscripción',
+        tournament: 'Torneo',
+        material: 'Material educativo',
+        private_lesson: 'Clase particular',
+        other: 'Otros servicios'
+      };
+      
+      const entityName = selectedStudent?.name || selectedSchool?.name || '';
+      const className = selectedClass ? ` - ${selectedClass.name}` : '';
+      const periodText = formData.period_start && formData.period_end 
+        ? ` (${formatDate(formData.period_start)} - ${formatDate(formData.period_end)})`
+        : '';
+      
+      formData.description = `${conceptLabels[formData.concept] || ''} ${entityName}${className}${periodText}`.trim();
+    }
+  });
 
   // Set default due date (next month, day 5)
   onMount(() => {
@@ -104,6 +111,10 @@
     errors = {};
   };
 
+  const handleGoBack = () => {
+    goto('/panel/pagos');
+  };
+
   const validateForm = (): boolean => {
     errors = {};
 
@@ -120,7 +131,7 @@
     }
 
     // Validaciones opcionales - solo validar formato si se proporciona
-    if (formData.amount && formData.amount <= 0) {
+    if (formData.amount !== null && formData.amount <= 0) {
       errors.amount = 'El importe debe ser mayor a 0';
     }
 
@@ -149,22 +160,22 @@
         },
         body: JSON.stringify({
           payment_type: formData.payment_type || 'student',
-          student_id: (formData.payment_type === 'student' && formData.student_id?.trim()) ? formData.student_id.trim() : null,
-          school_id: (formData.payment_type === 'school' && formData.school_id?.trim()) ? formData.school_id.trim() : null,
-          class_id: (formData.class_id?.trim()) ? formData.class_id.trim() : null,
-          amount: formData.amount || 0,
+          student_id: (formData.payment_type === 'student' && formData.student_id?.trim()) ? formData.student_id.trim() : undefined,
+          school_id: (formData.payment_type === 'school' && formData.school_id?.trim()) ? formData.school_id.trim() : undefined,
+          class_id: (formData.class_id?.trim()) ? formData.class_id.trim() : undefined,
+          amount: Number(formData.amount) || 0,
           currency: formData.currency || 'EUR',
           concept: formData.concept || 'monthly_fee',
-          description: (formData.description?.trim()) ? formData.description.trim() : null,
-          period_start: formData.period_start || null,
-          period_end: formData.period_end || null,
+          description: (formData.description?.trim()) ? formData.description.trim() : undefined,
+          period_start: formData.period_start || undefined,
+          period_end: formData.period_end || undefined,
           status: formData.status || 'pending',
-          due_date: formData.due_date || null,
-          payment_method: (formData.payment_method?.trim()) ? formData.payment_method.trim() : null,
-          payment_reference: (formData.payment_reference?.trim()) ? formData.payment_reference.trim() : null,
-          invoice_number: (formData.invoice_number?.trim()) ? formData.invoice_number.trim() : null,
-          invoice_date: formData.invoice_date || null,
-          notes: (formData.notes?.trim()) ? formData.notes.trim() : null
+          due_date: formData.due_date || undefined,
+          payment_method: (formData.payment_method?.trim()) ? formData.payment_method.trim() : undefined,
+          payment_reference: (formData.payment_reference?.trim()) ? formData.payment_reference.trim() : undefined,
+          invoice_number: (formData.invoice_number?.trim()) ? formData.invoice_number.trim() : undefined,
+          invoice_date: formData.invoice_date || undefined,
+          notes: (formData.notes?.trim()) ? formData.notes.trim() : undefined
         })
       });
 
@@ -172,7 +183,7 @@
 
       if (result.success) {
         // Redirect to payments page with success message
-        goto('/payments?created=true');
+        goto('/panel/pagos?created=true');
       } else {
         throw new Error(result.error || 'Error al crear el pago');
       }
@@ -184,7 +195,8 @@
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
+    if (amount === undefined || amount === null) return '0,00 €';
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
       currency: 'EUR'
@@ -219,7 +231,7 @@
       <div class="flex items-center justify-between py-6">
         <div class="flex items-center space-x-4">
           <button
-            on:click={() => goto('/payments')}
+            onclick={handleGoBack}
             class="p-2 text-slate-400 hover:text-white transition-colors"
           >
             <ArrowLeft class="w-5 h-5" />
@@ -234,7 +246,7 @@
         </div>
         
         <button
-          on:click={() => showPreview = !showPreview}
+          onclick={() => showPreview = !showPreview}
           class="flex items-center space-x-2 px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-slate-300 rounded-lg hover:bg-slate-600/50 transition-colors"
         >
           <FileText class="w-4 h-4" />
@@ -260,7 +272,7 @@
                 type="radio"
                 bind:group={formData.payment_type}
                 value="student"
-                on:change={handlePaymentTypeChange}
+                onchange={handlePaymentTypeChange}
                 class="sr-only"
               />
               <div class="p-4 border-2 rounded-lg cursor-pointer transition-all {formData.payment_type === 'student' 
@@ -283,7 +295,7 @@
                 type="radio"
                 bind:group={formData.payment_type}
                 value="school"
-                on:change={handlePaymentTypeChange}
+                onchange={handlePaymentTypeChange}
                 class="sr-only"
               />
               <div class="p-4 border-2 rounded-lg cursor-pointer transition-all {formData.payment_type === 'school' 
@@ -326,7 +338,7 @@
                   class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-white rounded-lg focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
                 >
                   <option value="">Selecciona un estudiante</option>
-                  {#each data.students || [] as student}
+                  {#each students as student}
                     <option value={student.id}>{student.name} - {student.email}</option>
                   {/each}
                 </select>
@@ -357,7 +369,7 @@
                   class="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-white rounded-lg focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50"
                 >
                   <option value="">Selecciona un centro</option>
-                  {#each data.schools || [] as school}
+                  {#each centers as school}
                     <option value={school.id}>{school.name} - {school.city}</option>
                   {/each}
                 </select>
@@ -538,14 +550,14 @@
         <!-- Botones de Acción -->
         <div class="flex items-center justify-between space-x-4">
           <button
-            on:click={() => goto('/payments')}
+            onclick={handleGoBack}
             class="px-6 py-3 bg-slate-700/50 border border-slate-600/50 text-slate-300 rounded-lg hover:bg-slate-600/50 transition-colors"
           >
             Cancelar
           </button>
 
           <button
-            on:click={handleSubmit}
+            onclick={handleSubmit}
             disabled={isSubmitting}
             class="flex items-center space-x-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-600/50 text-white rounded-lg transition-colors"
           >

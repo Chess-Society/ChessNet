@@ -456,7 +456,7 @@
         <div class="space-y-8" in:fade>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {#each ['Fundamentos', 'Táctica', 'Finales'] as category}
-              {@const catSkills = report.skills_progress.filter(s => s.category === category)}
+              {@const catSkills = (report.skills_progress as any[]).filter(s => s.category === category)}
               {@const completed = catSkills.filter(s => s.status === 'completed').length}
               <div class="glass-panel p-8 flex items-center justify-between border-t-4 border-purple-500">
                  <div>

@@ -21,9 +21,12 @@ export interface Profile {
 // Category Types
 export interface Category {
   id: string;
+  user_id?: string;
   name: string;
   description?: string;
   color?: string;
+  active?: boolean;
+  order_index?: number;
   created_at: string;
 }
 
@@ -37,6 +40,7 @@ export interface College {
   phone?: string;
   email?: string;
   website?: string;
+  location?: string; // Compatibilidad para mapas/ubicación
   created_at: string;
   updated_at: string;
 }
@@ -52,7 +56,10 @@ export interface Class {
   schedule?: string;
   max_students?: number;
   active?: boolean;
+  price?: number;
   settings?: Record<string, any>;
+  centerId?: string; // Compatibilidad
+  studentIds?: string[]; // Compatibilidad para conteo
   created_at: string;
   updated_at: string;
 }
@@ -72,6 +79,10 @@ export interface Student {
   parent_phone?: string;
   avatar?: string;
   notes?: string;
+  rating?: number;
+  level?: string; // Compatibility alias
+  centerId?: string; // Compatibility alias for college_id
+  email?: string; // Compatibility alias for parent_email
   active?: boolean;
   settings?: Record<string, any>;
   created_at: string;
@@ -88,7 +99,15 @@ export interface Skill {
   icon?: string;
   resource_link?: string;
   level?: "beginner" | "intermediate" | "advanced";
+  category?: string;
+  difficulty?: number;
+  estimated_hours?: number;
+  prerequisites?: string[];
+  learning_objectives?: string[];
+  assessment_criteria?: string[];
+  resources?: string[];
   order_index?: number;
+  active?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -257,6 +276,8 @@ export interface Payment {
   invoice_number?: string;
   invoice_date?: string;
   notes?: string;
+  studentId?: string; // Compatibility alias
+  date?: string; // Compatibility alias for paid_date/due_date
   created_at: string;
   updated_at: string;
 }
@@ -323,11 +344,17 @@ export interface CreatePaymentData {
   school_id?: string;
   class_id?: string;
   amount: number;
+  currency?: string;
   concept: PaymentConcept;
   description?: string;
   period_start?: string;
   period_end?: string;
+  status?: PaymentStatus;
   due_date: string;
+  payment_method?: string;
+  payment_reference?: string;
+  invoice_number?: string;
+  invoice_date?: string;
   notes?: string;
 }
 
@@ -398,7 +425,7 @@ export interface StudentWithDetails extends Student {
   attendance_summary?: StudentAttendance;
 }
 
-export interface SkillWithDetails extends Skill {
+export interface SkillWithDetails extends Omit<Skill, 'category'> {
   category?: Category;
   classes_count?: number;
   students_mastered?: number;
@@ -518,6 +545,22 @@ export interface ChessExercise {
   updated_at?: string;
 }
 
+// Lead Types (CRM)
+export interface Lead {
+  id: string;
+  user_id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  school_id?: string;
+  class_id?: string;
+  status: 'new' | 'contacted' | 'interested' | 'converted' | 'lost';
+  source?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   data: T;
@@ -563,6 +606,13 @@ export interface CreateSkillForm {
   icon?: string;
   resource_link?: string;
   level?: "beginner" | "intermediate" | "advanced";
+  difficulty?: number;
+  estimated_hours?: number;
+  learning_objectives?: string[];
+  assessment_criteria?: string[];
+  resources?: string[];
+  order_index?: number;
+  active?: boolean;
 }
 
 export interface AttendanceForm {
@@ -593,13 +643,22 @@ export interface LocalTournament {
   name: string;
   format: "swiss" | "round_robin" | "knockout";
   time_control?: string; // e.g., "15+10"
+  location?: string;
   startAt?: string;
   endAt?: string;
+  prize_pool?: number;
+  prizePool?: number; // Alias para compatibilidad con código existente
+  max_players?: number;
   roundsPlanned?: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;
-  _ttl?: number; // Time to live in milliseconds
+  status: "draft" | "upcoming" | "in_progress" | "completed" | "cancelled";
+  currentRound: number;
+  start_date?: string; // Compatibilidad con vistas generales
+  description?: string; // Compatibilidad con vistas generales
+  _ttl?: number; 
+// Time to live in milliseconds
   _expiresAt?: string; // ISO date when expires
   _version?: number; // For future sync
 }
@@ -671,8 +730,11 @@ export interface CreateTournamentForm {
   format: "swiss" | "round_robin" | "knockout";
   college_id?: string;
   time_control?: string;
+  location?: string;
   startAt?: string;
   endAt?: string;
+  prize_pool?: number;
+  max_players?: number;
   roundsPlanned?: number;
   notes?: string;
   selected_students: string[]; // Student IDs to register

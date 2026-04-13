@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, toData, getUserPath } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -9,27 +9,17 @@ import {
   orderBy, 
   addDoc, 
   updateDoc, 
-  deleteDoc,
-  setDoc,
-  writeBatch,
-  type DocumentData
+  writeBatch
 } from "firebase/firestore";
 import type { ClassStudent, Student } from "$lib/types";
-
-// Helper to convert Firestore document to data with ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
 
 export const classStudentsApi = {
   // Get all students enrolled in a class
   async getClassStudents(classId: string): Promise<(ClassStudent & { student: Student })[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const q = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", user.uid),
+      collection(db, userPath, "class_students"),
       where("class_id", "==", classId),
       where("status", "==", "active"),
       orderBy("enrolled_at", "asc")
@@ -40,7 +30,7 @@ export const classStudentsApi = {
 
     for (const enrollment of enrollments) {
       if (enrollment.student_id) {
-        const studentDoc = await getDoc(doc(db, "students", enrollment.student_id));
+        const studentDoc = await getDoc(doc(db, userPath, "students", enrollment.student_id));
         if (studentDoc.exists()) {
           enrollment.student = toData<Student>(studentDoc);
         }
@@ -52,12 +42,10 @@ export const classStudentsApi = {
 
   // Get all classes where a student is enrolled
   async getStudentClasses(studentId: string): Promise<(ClassStudent & { class: any })[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const q = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", user.uid),
+      collection(db, userPath, "class_students"),
       where("student_id", "==", studentId),
       where("status", "==", "active"),
       orderBy("enrolled_at", "desc")
@@ -68,7 +56,7 @@ export const classStudentsApi = {
 
     for (const enrollment of enrollments) {
       if (enrollment.class_id) {
-        const classDoc = await getDoc(doc(db, "classes", enrollment.class_id));
+        const classDoc = await getDoc(doc(db, userPath, "classes", enrollment.class_id));
         if (classDoc.exists()) {
           enrollment.class = toData<any>(classDoc);
         }
@@ -80,13 +68,11 @@ export const classStudentsApi = {
 
   // Enroll a student in a class
   async enrollStudent(classId: string, studentId: string): Promise<ClassStudent> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     // Check if already enrolled
     const q = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", user.uid),
+      collection(db, userPath, "class_students"),
       where("class_id", "==", classId),
       where("student_id", "==", studentId)
     );
@@ -103,8 +89,7 @@ export const classStudentsApi = {
       }
     }
 
-    const docRef = await addDoc(collection(db, "class_students"), {
-      owner_id: user.uid,
+    const docRef = await addDoc(collection(db, userPath, "class_students"), {
       class_id: classId,
       student_id: studentId,
       status: "active",
@@ -117,17 +102,14 @@ export const classStudentsApi = {
 
   // Enroll multiple students in a class
   async enrollStudents(classId: string, studentIds: string[]): Promise<ClassStudent[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
+    const userPath = getUserPath();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
     const newRefs: any[] = [];
 
     for (const studentId of studentIds) {
-      const docRef = doc(collection(db, "class_students"));
+      const docRef = doc(collection(db, userPath, "class_students"));
       batch.set(docRef, {
-        owner_id: user.uid,
         class_id: classId,
         student_id: studentId,
         status: "active",
@@ -148,12 +130,10 @@ export const classStudentsApi = {
 
   // Remove a student from a class
   async unenrollStudent(classId: string, studentId: string): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const q = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", user.uid),
+      collection(db, userPath, "class_students"),
       where("class_id", "==", classId),
       where("student_id", "==", studentId)
     );
@@ -166,9 +146,6 @@ export const classStudentsApi = {
 
   // Remove multiple students from a class
   async unenrollStudents(classId: string, studentIds: string[]): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
     for (const studentId of studentIds) {
       await this.unenrollStudent(classId, studentId);
     }
@@ -179,10 +156,8 @@ export const classStudentsApi = {
     enrollmentId: string, 
     status: "active" | "inactive" | "suspended"
   ): Promise<ClassStudent> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
-    const docRef = doc(db, "class_students", enrollmentId);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "class_students", enrollmentId);
     await updateDoc(docRef, { status });
 
     const docSnap = await getDoc(docRef);
@@ -191,12 +166,10 @@ export const classStudentsApi = {
 
   // Get class occupancy
   async getClassOccupancy(classId: string): Promise<number> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const q = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", user.uid),
+      collection(db, userPath, "class_students"),
       where("class_id", "==", classId),
       where("status", "==", "active")
     );
@@ -207,12 +180,10 @@ export const classStudentsApi = {
 
   // Get all class occupancies for user
   async getAllClassOccupancies(): Promise<{ class_id: string; enrolled: number }[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const q = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", user.uid),
+      collection(db, userPath, "class_students"),
       where("status", "==", "active")
     );
     
@@ -229,21 +200,18 @@ export const classStudentsApi = {
 
   // Get students not enrolled in a specific class
   async getAvailableStudents(classId: string): Promise<Student[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     // Get all user's students
     const studentsQuery = query(
-      collection(db, "students"),
-      where("user_id", "==", user.uid)
+      collection(db, userPath, "students")
     );
     const studentsSnap = await getDocs(studentsQuery);
     const allStudents = studentsSnap.docs.map(doc => toData<Student>(doc));
 
     // Get enrolled student IDs
     const enrolledQuery = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", user.uid),
+      collection(db, userPath, "class_students"),
       where("class_id", "==", classId),
       where("status", "==", "active")
     );
@@ -262,12 +230,10 @@ export const classStudentsApi = {
 
   // Get enrollment history for a student
   async getStudentEnrollmentHistory(studentId: string): Promise<ClassStudent[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const q = query(
-      collection(db, "class_students"),
-      where("owner_id", "==", user.uid),
+      collection(db, userPath, "class_students"),
       where("student_id", "==", studentId),
       orderBy("enrolled_at", "desc")
     );
@@ -277,7 +243,7 @@ export const classStudentsApi = {
 
     for (const enrollment of enrollments) {
       if (enrollment.class_id) {
-        const classDoc = await getDoc(doc(db, "classes", enrollment.class_id));
+        const classDoc = await getDoc(doc(db, userPath, "classes", enrollment.class_id));
         if (classDoc.exists()) {
           enrollment.classes = toData<any>(classDoc);
         }

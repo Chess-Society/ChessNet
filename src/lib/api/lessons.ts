@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, toData, getUserPath } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -10,23 +10,17 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc,
-  setDoc,
   writeBatch,
-  limit,
-  type DocumentData
+  limit
 } from "firebase/firestore";
 import type { CurriculumUnit, Lesson } from "$lib/types";
-
-// Helper to convert Firestore document to data with ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
 
 export const lessonsApi = {
   // Get curriculum units by school
   async getCurriculumUnits(schoolId: string): Promise<CurriculumUnit[]> {
+    const userPath = getUserPath();
     const q = query(
-      collection(db, "curriculum_units"),
+      collection(db, userPath, "curriculum_units"),
       where("school_id", "==", schoolId),
       orderBy("order_index")
     );
@@ -37,7 +31,8 @@ export const lessonsApi = {
 
   // Get a specific curriculum unit
   async getCurriculumUnit(id: string): Promise<CurriculumUnit> {
-    const docSnap = await getDoc(doc(db, "curriculum_units", id));
+    const userPath = getUserPath();
+    const docSnap = await getDoc(doc(db, userPath, "curriculum_units", id));
     if (!docSnap.exists()) throw new Error("Curriculum unit not found");
     return toData<CurriculumUnit>(docSnap);
   },
@@ -50,9 +45,10 @@ export const lessonsApi = {
     level?: string,
     color?: string,
   ): Promise<CurriculumUnit> {
+    const userPath = getUserPath();
     // Get the next order index
     const q = query(
-      collection(db, "curriculum_units"),
+      collection(db, userPath, "curriculum_units"),
       where("school_id", "==", schoolId),
       orderBy("order_index", "desc"),
       limit(1)
@@ -71,7 +67,7 @@ export const lessonsApi = {
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "curriculum_units"), unitData);
+    const docRef = await addDoc(collection(db, userPath, "curriculum_units"), unitData);
     const docSnap = await getDoc(docRef);
     return toData<CurriculumUnit>(docSnap);
   },
@@ -81,7 +77,8 @@ export const lessonsApi = {
     id: string,
     updates: Partial<CurriculumUnit>,
   ): Promise<CurriculumUnit> {
-    const docRef = doc(db, "curriculum_units", id);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "curriculum_units", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -93,16 +90,18 @@ export const lessonsApi = {
 
   // Delete a curriculum unit
   async deleteCurriculumUnit(id: string): Promise<void> {
-    await deleteDoc(doc(db, "curriculum_units", id));
+    const userPath = getUserPath();
+    await deleteDoc(doc(db, userPath, "curriculum_units", id));
   },
 
   // Reorder curriculum units
   async reorderCurriculumUnits(
     units: { id: string; order_index: number }[],
   ): Promise<void> {
+    const userPath = getUserPath();
     const batch = writeBatch(db);
     units.forEach(unit => {
-      const docRef = doc(db, "curriculum_units", unit.id);
+      const docRef = doc(db, userPath, "curriculum_units", unit.id);
       batch.update(docRef, { order_index: unit.order_index });
     });
     await batch.commit();
@@ -110,8 +109,9 @@ export const lessonsApi = {
 
   // Get lessons by unit
   async getLessonsByUnit(unitId: string): Promise<Lesson[]> {
+    const userPath = getUserPath();
     const q = query(
-      collection(db, "lessons"),
+      collection(db, userPath, "lessons"),
       where("unit_id", "==", unitId),
       orderBy("order_index")
     );
@@ -122,7 +122,8 @@ export const lessonsApi = {
 
   // Get a specific lesson
   async getLesson(id: string): Promise<Lesson> {
-    const docSnap = await getDoc(doc(db, "lessons", id));
+    const userPath = getUserPath();
+    const docSnap = await getDoc(doc(db, userPath, "lessons", id));
     if (!docSnap.exists()) throw new Error("Lesson not found");
     return toData<Lesson>(docSnap);
   },
@@ -137,9 +138,10 @@ export const lessonsApi = {
     durationMinutes?: number,
     difficulty?: string,
   ): Promise<Lesson> {
+    const userPath = getUserPath();
     // Get the next order index
     const q = query(
-      collection(db, "lessons"),
+      collection(db, userPath, "lessons"),
       where("unit_id", "==", unitId),
       orderBy("order_index", "desc"),
       limit(1)
@@ -160,14 +162,15 @@ export const lessonsApi = {
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "lessons"), lessonData);
+    const docRef = await addDoc(collection(db, userPath, "lessons"), lessonData);
     const docSnap = await getDoc(docRef);
     return toData<Lesson>(docSnap);
   },
 
   // Update a lesson
   async updateLesson(id: string, updates: Partial<Lesson>): Promise<Lesson> {
-    const docRef = doc(db, "lessons", id);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "lessons", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -179,16 +182,18 @@ export const lessonsApi = {
 
   // Delete a lesson
   async deleteLesson(id: string): Promise<void> {
-    await deleteDoc(doc(db, "lessons", id));
+    const userPath = getUserPath();
+    await deleteDoc(doc(db, userPath, "lessons", id));
   },
 
   // Reorder lessons
   async reorderLessons(
     lessons: { id: string; order_index: number }[],
   ): Promise<void> {
+    const userPath = getUserPath();
     const batch = writeBatch(db);
     lessons.forEach(lesson => {
-      const docRef = doc(db, "lessons", lesson.id);
+      const docRef = doc(db, userPath, "lessons", lesson.id);
       batch.update(docRef, { order_index: lesson.order_index });
     });
     await batch.commit();
@@ -196,8 +201,9 @@ export const lessonsApi = {
 
   // Get lesson resources
   async getLessonResources(lessonId: string): Promise<any[]> {
+    const userPath = getUserPath();
     const q = query(
-      collection(db, "lesson_resources"),
+      collection(db, userPath, "lesson_resources"),
       where("lesson_id", "==", lessonId),
       orderBy("order_index")
     );
@@ -215,9 +221,10 @@ export const lessonsApi = {
     filePath?: string,
     content?: any,
   ): Promise<any> {
+    const userPath = getUserPath();
     // Get the next order index
     const q = query(
-      collection(db, "lesson_resources"),
+      collection(db, userPath, "lesson_resources"),
       where("lesson_id", "==", lessonId),
       orderBy("order_index", "desc"),
       limit(1)
@@ -236,14 +243,15 @@ export const lessonsApi = {
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "lesson_resources"), resourceData);
+    const docRef = await addDoc(collection(db, userPath, "lesson_resources"), resourceData);
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);
   },
 
   // Update lesson resource
   async updateLessonResource(id: string, updates: any): Promise<any> {
-    const docRef = doc(db, "lesson_resources", id);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "lesson_resources", id);
     await updateDoc(docRef, updates);
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);
@@ -251,6 +259,7 @@ export const lessonsApi = {
 
   // Delete lesson resource
   async deleteLessonResource(id: string): Promise<void> {
-    await deleteDoc(doc(db, "lesson_resources", id));
+    const userPath = getUserPath();
+    await deleteDoc(doc(db, userPath, "lesson_resources", id));
   },
 };

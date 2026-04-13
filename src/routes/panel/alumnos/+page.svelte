@@ -32,7 +32,7 @@
     });
   });
 
-  const getCenterName = (id: string) => {
+  const getCenterName = (id: string | undefined) => {
     return centers.find(c => c.id === id)?.name || 'Sin centro';
   };
 

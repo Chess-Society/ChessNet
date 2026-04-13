@@ -531,7 +531,7 @@ export const tournamentDB = {
       throw new Error('Torneo no encontrado');
     }
 
-    const nextRoundNumber = tournament.current_round + 1;
+    const nextRoundNumber = (tournament.current_round || 0) + 1;
     console.log(`🔄 Generating round ${nextRoundNumber} for tournament ${tournamentId}`);
     
     // Crear la nueva ronda en IndexedDB

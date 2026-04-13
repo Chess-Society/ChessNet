@@ -19,7 +19,7 @@
   let searchQuery = $state('');
 
   // Datos reactivos desde el store
-  let tournaments = $derived($appStore.tournaments || []);
+  let tournaments = $derived($appStore.localTournaments || []);
 
   const filteredTournaments = $derived(() => {
     return tournaments.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -28,14 +28,17 @@
   const deleteTournament = (id: string) => {
     const t = tournaments.find(item => item.id === id);
     if (confirm(`¿Eliminar el torneo ${t?.name}?`)) {
-      appStore.removeTournament(id);
+      appStore.removeLocalTournament(id);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'in_progress':
       case 'Ongoing': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'completed':
       case 'Completed': return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+      case 'upcoming':
       case 'Upcoming': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
       default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
     }
@@ -131,11 +134,11 @@
           <div class="space-y-3 mb-6 relative z-10">
              <div class="flex items-center gap-2 text-xs text-slate-400">
                 <Calendar class="w-3.5 h-3.5" />
-                {t.date ? new Date(t.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Fecha no definida'}
+                {t.startAt ? new Date(t.startAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Fecha no definida'}
              </div>
              <div class="flex items-center gap-2 text-xs text-slate-400">
                 <Users class="w-3.5 h-3.5" />
-                {t.participantsCount || 0} Participantes
+                {$appStore.localTournamentPlayers.filter(p => p.tournament_id === t.id).length} Participantes
              </div>
           </div>
 

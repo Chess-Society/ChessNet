@@ -25,7 +25,7 @@
     // Distribución por nivel
     const levels: Record<string, number> = {};
     students.forEach(s => {
-      const level = s.level || 'Sin nivel';
+      const level = s.grade || s.level || 'Sin nivel';
       levels[level] = (levels[level] || 0) + 1;
     });
 
@@ -36,7 +36,7 @@
   const studentsPerCenter = $derived(() => {
     return centers.map(c => ({
       name: c.name,
-      count: students.filter(s => s.centerId === c.id).length
+      count: students.filter(s => s.college_id === c.id || s.centerId === c.id).length
     })).sort((a,b) => b.count - a.count);
   });
 

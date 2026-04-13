@@ -7,13 +7,17 @@
     Award, CheckCircle, AlertTriangle, Settings, UserPlus, RefreshCw, Crown, Medal
   } from 'lucide-svelte';
   import { appStore } from '$lib/stores/appStore';
+  import { getLocalTournamentsApi } from '$lib/api/local-tournaments';
   import { fade, fly } from 'svelte/transition';
 
   const tournamentId = page.params.tournamentId;
   
   // Reactividad con appStore
-  let tournament = $derived($appStore.tournaments.find(t => t.id === tournamentId));
+  let tournament = $derived($appStore.localTournaments.find(t => t.id === tournamentId));
   let students = $derived($appStore.students || []);
+  let players = $derived($appStore.localTournamentPlayers.filter(p => p.tournament_id === tournamentId));
+  let pairings = $derived($appStore.localTournamentPairings.filter(p => p.tournament_id === tournamentId));
+  let rounds = $derived($appStore.localTournamentRounds.filter(r => r.tournament_id === tournamentId));
 
   let activeTab = $state('overview');
   let showRegModal = $state(false);
@@ -27,78 +31,48 @@
   };
 
   // Lógica de Registro
-  const handleRegister = () => {
-    if (!selectedStudentId || !tournament) return;
-    const student = students.find(s => s.id === selectedStudentId);
-    if (!student) return;
-
-    const updatedTournament = {
-      ...tournament,
-      players: [...(tournament.players || []), {
-        id: student.id,
-        name: student.name,
-        rating: student.rating || 1200,
-        points: 0,
-        confirmed: true
-      }]
-    };
-
-    appStore.updateTournament(updatedTournament);
-    showRegModal = false;
-    selectedStudentId = '';
+  const handleRegister = async () => {
+    if (!selectedStudentId || !tournament || !tournamentId) return;
+    
+    try {
+        const api = await getLocalTournamentsApi();
+        await api.addPlayer(tournamentId as string, selectedStudentId);
+        showRegModal = false;
+        selectedStudentId = '';
+    } catch (error) {
+        console.error("Error registering player:", error);
+        alert("Error al inscribir al jugador");
+    }
   };
 
   // Lógica de Inicio (Generar Ronda 1)
-  const handleStart = () => {
-      if (!tournament || (tournament.players?.length || 0) < 2) return;
+  const handleStart = async () => {
+      if (!tournament || players.length < 2 || !tournamentId) return;
       
-      const players = [...tournament.players].sort((a,b) => b.rating - a.rating);
-      const pairings = [];
-      
-      for(let i=0; i < players.length; i+=2) {
-          if (players[i+1]) {
-              pairings.push({
-                  id: crypto.randomUUID(),
-                  white: players[i].id,
-                  black: players[i+1].id,
-                  result: '*',
-                  board: (i/2) + 1
-              });
-          } else {
-              // Bye
-              pairings.push({
-                  id: crypto.randomUUID(),
-                  white: players[i].id,
-                  black: null,
-                  result: '1-0',
-                  board: (i/2) + 1,
-                  isBye: true
-              });
-          }
+      try {
+          const api = await getLocalTournamentsApi();
+          // Cambiar estado a en curso
+          await api.updateTournament(tournamentId as string, { status: 'in_progress', currentRound: 1 });
+          // Generar emparejamientos ronda 1
+          await api.generatePairings(tournamentId as string, 1);
+      } catch (error) {
+          console.error("Error starting tournament:", error);
+          alert("Error al iniciar el torneo");
       }
-
-      const updated = {
-          ...tournament,
-          status: 'in_progress',
-          currentRound: 1,
-          rounds: [{
-              number: 1,
-              pairings: pairings,
-              status: 'active'
-          }]
-      };
-
-      appStore.updateTournament(updated);
   };
 
-  const updateResult = (pairingId: string, result: string) => {
-      if (!tournament) return;
-      const rounds = [...tournament.rounds];
-      const currentRound = rounds[tournament.currentRound - 1];
-      const pairing = currentRound.pairings.find((p:any) => p.id === pairingId);
-      if (pairing) pairing.result = result;
+  const updateResult = async (pairingId: string, result: string) => {
+      if (!tournament || !tournamentId) return;
       
-      appStore.updateTournament({ ...tournament, rounds });
+      try {
+          const api = await getLocalTournamentsApi();
+          const p = pairings.find(pair => pair.id === pairingId);
+          if (p) {
+              await api.updateResult(tournamentId as string, p.round_no, p.board, result as any);
+          }
+      } catch (error) {
+          console.error("Error updating result:", error);
+      }
   };
 
 </script>
@@ -134,7 +108,7 @@
           {#if tournament.status === 'upcoming'}
             <button 
                 onclick={handleStart}
-                disabled={(tournament.players?.length || 0) < 2}
+                disabled={players.length < 2}
                 class="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20"
             >
                 <Play class="w-5 h-5" />
@@ -173,11 +147,11 @@
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
                         <div>
                             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Fecha de Inicio</p>
-                            <p class="text-sm text-white">{formatDate(tournament.startDate)}</p>
+                            <p class="text-sm text-white">{tournament.start_date || tournament.startAt || 'N/A'}</p>
                         </div>
                         <div>
                             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Control de Tiempo</p>
-                            <p class="text-sm text-white">{tournament.timeControl}</p>
+                            <p class="text-sm text-white">{tournament.time_control || 'Standard'}</p>
                         </div>
                         <div>
                             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Formato</p>
@@ -214,16 +188,16 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
-                                {#each tournament.players || [] as player}
+                                {#each players as player}
                                     <tr class="hover:bg-slate-800/50 transition-colors">
-                                        <td class="px-6 py-4 font-bold text-white">{player.name}</td>
-                                        <td class="px-6 py-4 text-slate-400">{player.rating}</td>
+                                        <td class="px-6 py-4 font-bold text-white">{player.student_name}</td>
+                                        <td class="px-6 py-4 text-slate-400">{player.rating || 1200}</td>
                                         <td class="px-6 py-4">
                                             <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase font-black">Confirmado</span>
                                         </td>
                                     </tr>
                                 {/each}
-                                {#if (tournament.players?.length || 0) === 0}
+                                {#if players.length === 0}
                                     <tr>
                                         <td colspan="3" class="px-6 py-12 text-center text-slate-500 italic text-sm">No hay jugadores registrados.</td>
                                     </tr>
@@ -236,37 +210,37 @@
 
             {#if activeTab === 'pairings'}
                 <div class="space-y-4">
-                    {#if !tournament.rounds || tournament.rounds.length === 0}
+                    {#if rounds.length === 0}
                         <div class="bg-slate-900/50 border-2 border-dashed border-slate-800 rounded-3xl py-20 text-center">
                             <Target class="w-12 h-12 text-slate-700 mx-auto mb-4" />
                             <p class="text-slate-500 font-bold">Inicia el torneo para generar los emparejamientos.</p>
                         </div>
                     {:else}
-                         {#each tournament.rounds as round}
-                            <div class="bg-[#1e293b] rounded-3xl border border-slate-800 overflow-hidden">
+                         {#each rounds.sort((a,b) => b.round_no - a.round_no) as round}
+                            <div class="bg-[#1e293b] rounded-3xl border border-slate-800 overflow-hidden mb-6">
                                 <div class="bg-slate-900/50 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-                                    <h3 class="text-white font-bold">Ronda {round.number}</h3>
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400">{round.status}</span>
+                                    <h3 class="text-white font-bold">Ronda {round.round_no}</h3>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Activa</span>
                                 </div>
                                 <div class="p-6 space-y-4">
-                                    {#each round.pairings as p}
+                                    {#each pairings.filter(p => p.round_no === round.round_no).sort((a,b) => a.board - b.board) as p}
                                         <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-800 group hover:border-slate-700 transition-all">
                                             <div class="flex-1 text-right pr-4 font-bold text-white">
-                                                {students.find(s => s.id === p.white)?.name || 'Unknown'}
+                                                {p.white_name}
                                             </div>
                                             <div class="px-4 py-2 bg-slate-800 rounded-xl text-xs font-black text-slate-500 flex items-center gap-3">
                                                  <button 
                                                     onclick={() => updateResult(p.id, '1-0')}
                                                     class="hover:text-amber-500 transition-colors {p.result === '1-0' ? 'text-amber-500' : ''}"
-                                                 >1</button>
+                                                 >{p.result === '1-0' ? '1' : (p.result === '1/2-1/2' ? '½' : (p.result === '0-1' ? '0' : 'White'))}</button>
                                                  <span class="text-slate-700">-</span>
                                                  <button 
                                                     onclick={() => updateResult(p.id, '0-1')}
                                                     class="hover:text-amber-500 transition-colors {p.result === '0-1' ? 'text-amber-500' : ''}"
-                                                 >1</button>
+                                                 >{p.result === '0-1' ? '1' : (p.result === '1/2-1/2' ? '½' : (p.result === '1-0' ? '0' : 'Black'))}</button>
                                             </div>
                                             <div class="flex-1 text-left pl-4 font-bold text-white">
-                                                {p.isBye ? 'BYE' : (students.find(s => s.id === p.black)?.name || 'Unknown')}
+                                                {p.bye ? 'BYE' : p.black_name}
                                             </div>
                                         </div>
                                     {/each}
@@ -295,16 +269,24 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
-                                {#each (tournament.players || []).sort((a,b) => b.points - a.points) as player, i}
+                                {#each players.map(p => {
+                                    const playerPairings = pairings.filter(pair => pair.white_student_id === p.student_id || pair.black_student_id === p.student_id);
+                                    let pts = 0;
+                                    playerPairings.forEach(pair => {
+                                        if (pair.white_student_id === p.student_id) pts += pair.points_white || 0;
+                                        else pts += pair.points_black || 0;
+                                    });
+                                    return { ...p, currentPoints: pts };
+                                }).sort((a,b) => b.currentPoints - a.currentPoints) as player, i}
                                     <tr class="hover:bg-slate-800/50 transition-colors">
                                         <td class="px-6 py-4 font-black text-slate-500">{i+1}</td>
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-2">
-                                                <span class="font-bold text-white">{player.name}</span>
+                                                <span class="font-bold text-white">{player.student_name}</span>
                                                 {#if i === 0}<Crown class="w-4 h-4 text-amber-500" />{/if}
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-center font-black text-amber-400">{player.points || 0}</td>
+                                        <td class="px-6 py-4 text-center font-black text-amber-400">{player.currentPoints}</td>
                                     </tr>
                                 {/each}
                             </tbody>
@@ -319,7 +301,7 @@
              <div class="bg-gradient-to-br from-amber-600/20 to-orange-600/10 p-6 rounded-3xl border border-amber-500/20">
                  <Medal class="w-8 h-8 text-amber-500 mb-4" />
                  <h4 class="text-white font-black text-lg mb-1">Premios y Trofeos</h4>
-                 <p class="text-sm text-slate-400 mb-4">Total en premios: <span class="text-white font-bold">{tournament.prizePool || 0} €</span></p>
+                 <p class="text-sm text-slate-400 mb-4">Total en premios: <span class="text-white font-bold">{tournament.prize_pool || 0} €</span></p>
                  <div class="space-y-2">
                      <div class="flex justify-between text-xs text-slate-300">
                          <span>1er Puesto</span>
@@ -356,13 +338,14 @@
 
           <div class="space-y-6 mb-8">
               <div class="space-y-2">
-                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Alumno</label>
+                  <label for="student-select" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Alumno</label>
                   <select 
+                    id="student-select"
                     bind:value={selectedStudentId}
                     class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none transition-all appearance-none"
                   >
                         <option value="">Seleccionar alumno...</option>
-                        {#each students.filter(s => !tournament.players?.some(p => p.id === s.id)) as student}
+                        {#each students.filter(s => !players.some(p => p.student_id === s.id)) as student}
                             <option value={student.id}>{student.name} ({student.rating || 1200} Elo)</option>
                         {/each}
                   </select>

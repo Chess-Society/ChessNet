@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, toData, getUserPath } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -9,18 +9,9 @@ import {
   orderBy, 
   addDoc, 
   updateDoc, 
-  deleteDoc,
-  setDoc,
-  writeBatch,
-  limit,
-  type DocumentData
+  deleteDoc
 } from "firebase/firestore";
 import type { ChessExercise } from "$lib/types";
-
-// Helper to convert Firestore document to data with ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
 
 export const exercisesApi = {
   // Get exercises by school
@@ -33,8 +24,9 @@ export const exercisesApi = {
       offset?: number;
     },
   ): Promise<ChessExercise[]> {
+    const userPath = getUserPath();
     let q = query(
-      collection(db, "chess_exercises"),
+      collection(db, userPath, "chess_exercises"),
       where("school_id", "==", schoolId),
       orderBy("created_at", "desc")
     );
@@ -63,7 +55,8 @@ export const exercisesApi = {
 
   // Get a specific exercise
   async getExercise(id: string): Promise<ChessExercise> {
-    const docSnap = await getDoc(doc(db, "chess_exercises", id));
+    const userPath = getUserPath();
+    const docSnap = await getDoc(doc(db, userPath, "chess_exercises", id));
     if (!docSnap.exists()) throw new Error("Exercise not found");
     return toData<ChessExercise>(docSnap);
   },
@@ -76,18 +69,16 @@ export const exercisesApi = {
       "id" | "school_id" | "created_at" | "updated_at"
     >,
   ): Promise<ChessExercise> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const exerciseData = {
       school_id: schoolId,
       ...exercise,
-      created_by: user.uid,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "chess_exercises"), exerciseData);
+    const docRef = await addDoc(collection(db, userPath, "chess_exercises"), exerciseData);
     const docSnap = await getDoc(docRef);
     return toData<ChessExercise>(docSnap);
   },
@@ -97,7 +88,8 @@ export const exercisesApi = {
     id: string,
     updates: Partial<ChessExercise>,
   ): Promise<ChessExercise> {
-    const docRef = doc(db, "chess_exercises", id);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "chess_exercises", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -109,7 +101,8 @@ export const exercisesApi = {
 
   // Delete an exercise
   async deleteExercise(id: string): Promise<void> {
-    await deleteDoc(doc(db, "chess_exercises", id));
+    const userPath = getUserPath();
+    await deleteDoc(doc(db, userPath, "chess_exercises", id));
   },
 
   // Record exercise attempt
@@ -121,18 +114,16 @@ export const exercisesApi = {
     timeSpentSeconds: number,
     hintsUsed: number = 0,
   ): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
-    await addDoc(collection(db, "exercise_attempts"), {
+    await addDoc(collection(db, userPath, "exercise_attempts"), {
       exercise_id: exerciseId,
       student_id: studentId,
       moves,
       is_correct: isCorrect,
       time_spent_seconds: timeSpentSeconds,
       hints_used: hintsUsed,
-      attempted_at: new Date().toISOString(),
-      owner_id: user.uid
+      attempted_at: new Date().toISOString()
     });
   },
 
@@ -141,11 +132,10 @@ export const exercisesApi = {
     studentId: string,
     exerciseId?: string,
   ): Promise<any[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     let q = query(
-      collection(db, "exercise_attempts"),
+      collection(db, userPath, "exercise_attempts"),
       where("student_id", "==", studentId),
       orderBy("attempted_at", "desc")
     );
@@ -160,7 +150,7 @@ export const exercisesApi = {
     // Manual join for exercise data
     for (const attempt of attempts) {
       if (attempt.exercise_id) {
-        const exerciseSnap = await getDoc(doc(db, "chess_exercises", attempt.exercise_id));
+        const exerciseSnap = await getDoc(doc(db, userPath, "chess_exercises", attempt.exercise_id));
         if (exerciseSnap.exists()) {
           attempt.chess_exercises = toData<ChessExercise>(exerciseSnap);
         }

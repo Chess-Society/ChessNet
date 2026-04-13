@@ -65,22 +65,20 @@
   let stats = $derived({
     totalStudents: $appStore.students.length,
     monthlyRevenue: $appStore.payments.filter(p => {
-      const date = new Date(p.date);
+      const dateStr = p.date || p.paid_date || p.due_date;
+      if (!dateStr) return false;
+      const date = new Date(dateStr);
       const now = new Date();
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
     }).reduce((acc, p) => acc + p.amount, 0),
     occupancyRate: (() => {
       if ($appStore.attendance.length === 0) return 0;
-      const rates = $appStore.attendance.map(a => {
-        const total = a.records.length;
-        const present = a.records.filter((r: any) => r.status === 'present').length;
-        return total > 0 ? (present / total) * 100 : 0;
-      });
-      return Math.round(rates.reduce((a, b) => a + b, 0) / rates.length);
+      const present = $appStore.attendance.filter(a => a.status === 'P').length;
+      return Math.round((present / $appStore.attendance.length) * 100);
     })()
   });
 
-  let nextTournament = $derived($appStore.tournaments.filter(t => t.status === 'Upcoming').sort((a,b) => a.date.localeCompare(b.date))[0]);
+  let nextTournament = $derived($appStore.tournaments.filter(t => t.status === 'upcoming').sort((a,b) => (a.start_date || '').localeCompare(b.start_date || ''))[0]);
 
   // Actividad reciente dinámica
   let recentActivity = $derived(() => {
@@ -92,18 +90,18 @@
         time: 'reciente', 
         icon: Users, 
         color: 'text-emerald-400',
-        timestamp: new Date(s.joinedAt || Date.now()).getTime()
+        timestamp: new Date(s.created_at || Date.now()).getTime()
       });
     });
 
     $appStore.payments.slice(-3).reverse().forEach(p => {
-      const student = $appStore.students.find(s => s.id === p.studentId);
+      const student = $appStore.students.find(s => s.id === p.studentId || s.id === p.student_id);
       activities.push({ 
         message: `Pago: ${p.amount}€ - ${student?.name || 'Desconocido'}`, 
         time: 'reciente', 
         icon: DollarSign, 
         color: 'text-teal-400',
-        timestamp: new Date(p.date).getTime()
+        timestamp: new Date(p.date || p.paid_date || p.due_date || Date.now()).getTime()
       });
     });
 
@@ -158,7 +156,9 @@
       const year = d.getFullYear();
       return $appStore.payments
         .filter(p => {
-          const pd = new Date(p.date);
+          const dateStr = p.date || p.paid_date || p.due_date;
+          if (!dateStr) return false;
+          const pd = new Date(dateStr);
           return pd.getMonth() === month && pd.getFullYear() === year;
         })
         .reduce((acc, p) => acc + p.amount, 0);
@@ -300,7 +300,7 @@
           {#if nextTournament}
             <div class="truncate">
                 <p class="text-lg font-bold text-white truncate">{nextTournament.name}</p>
-                <p class="text-xs text-orange-400 mt-1">En {Math.ceil((new Date(nextTournament.date).getTime() - Date.now()) / (1000*60*60*24))} días</p>
+                <p class="text-xs text-orange-400 mt-1">En {Math.ceil((new Date(nextTournament.start_date || '').getTime() - Date.now()) / (1000*60*60*24))} días</p>
             </div>
           {:else}
             <p class="text-lg font-bold text-slate-500">—</p>

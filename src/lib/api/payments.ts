@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, auth, toData, getUserPath } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -26,11 +26,6 @@ import type {
   PaymentMethod
 } from '$lib/types';
 
-// Helper to convert Firestore document to data with ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
-
 // Check if we are in development environment
 const isLocalDev = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -38,20 +33,13 @@ const isLocalDev = typeof window !== 'undefined' &&
 export const paymentsApi = {
   // Obtener todos los pagos con filtros
   async getPayments(filters?: PaymentFilters, userId?: string): Promise<PaymentWithDetails[]> {
-    const uid = userId || auth.currentUser?.uid;
-    if (!uid) throw new Error("User not authenticated");
+    const userPath = getUserPath(userId);
 
     try {
       let q = query(
-        collection(db, "payments"),
-        where("user_id", "==", uid),
+        collection(db, userPath, "payments"),
         orderBy("created_at", "desc")
       );
-
-      // Firestore has limitations on multiple 'where' with different fields 
-      // when combined with 'orderBy'. We might need composite indexes.
-      // For now, we'll apply some filtering in the query and the rest in memory 
-      // if it gets too complex for the initial migration.
 
       const querySnapshot = await getDocs(q);
       let payments = querySnapshot.docs.map(doc => toData<PaymentWithDetails>(doc));
@@ -75,15 +63,15 @@ export const paymentsApi = {
       // Manual join for details
       for (const payment of payments) {
         if (payment.student_id) {
-          const studentSnap = await getDoc(doc(db, "students", payment.student_id));
+          const studentSnap = await getDoc(doc(db, userPath, "students", payment.student_id));
           if (studentSnap.exists()) payment.student = toData<any>(studentSnap);
         }
         if (payment.school_id) {
-          const schoolSnap = await getDoc(doc(db, "colleges", payment.school_id));
+          const schoolSnap = await getDoc(doc(db, userPath, "colleges", payment.school_id));
           if (schoolSnap.exists()) payment.school = toData<any>(schoolSnap);
         }
         if (payment.class_id) {
-          const classSnap = await getDoc(doc(db, "classes", payment.class_id));
+          const classSnap = await getDoc(doc(db, userPath, "classes", payment.class_id));
           if (classSnap.exists()) payment.class = toData<any>(classSnap);
         }
       }
@@ -97,23 +85,24 @@ export const paymentsApi = {
 
   // Obtener un pago específico
   async getPayment(paymentId: string): Promise<PaymentWithDetails | null> {
+    const userPath = getUserPath();
     try {
-      const docSnap = await getDoc(doc(db, "payments", paymentId));
+      const docSnap = await getDoc(doc(db, userPath, "payments", paymentId));
       if (!docSnap.exists()) return null;
 
       const payment = toData<PaymentWithDetails>(docSnap);
 
       // Manual joins
       if (payment.student_id) {
-        const studentSnap = await getDoc(doc(db, "students", payment.student_id));
+        const studentSnap = await getDoc(doc(db, userPath, "students", payment.student_id));
         if (studentSnap.exists()) payment.student = toData<any>(studentSnap);
       }
       if (payment.school_id) {
-        const schoolSnap = await getDoc(doc(db, "colleges", payment.school_id));
+        const schoolSnap = await getDoc(doc(db, userPath, "colleges", payment.school_id));
         if (schoolSnap.exists()) payment.school = toData<any>(schoolSnap);
       }
       if (payment.class_id) {
-        const classSnap = await getDoc(doc(db, "classes", payment.class_id));
+        const classSnap = await getDoc(doc(db, userPath, "classes", payment.class_id));
         if (classSnap.exists()) payment.class = toData<any>(classSnap);
       }
 
@@ -126,20 +115,18 @@ export const paymentsApi = {
 
   // Crear un nuevo pago
   async createPayment(paymentData: CreatePaymentData): Promise<Payment> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     try {
       const data = {
         ...paymentData,
-        user_id: user.uid,
         currency: 'EUR',
         status: 'pending',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      const docRef = await addDoc(collection(db, "payments"), data);
+      const docRef = await addDoc(collection(db, userPath, "payments"), data);
       const docSnap = await getDoc(docRef);
       return toData<Payment>(docSnap);
     } catch (error) {
@@ -150,8 +137,9 @@ export const paymentsApi = {
 
   // Actualizar un pago
   async updatePayment(paymentId: string, updates: Partial<Payment>): Promise<Payment> {
+    const userPath = getUserPath();
     try {
-      const docRef = doc(db, "payments", paymentId);
+      const docRef = doc(db, userPath, "payments", paymentId);
       await updateDoc(docRef, {
         ...updates,
         updated_at: new Date().toISOString()
@@ -179,16 +167,14 @@ export const paymentsApi = {
 
   // Obtener estadísticas de pagos
   async getPaymentStats(userId?: string): Promise<PaymentStats> {
-    const uid = userId || auth.currentUser?.uid;
-    if (!uid) throw new Error("User not authenticated");
+    const userPath = getUserPath(userId);
 
     try {
       const now = new Date();
       const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       
       const q = query(
-        collection(db, "payments"),
-        where("user_id", "==", uid)
+        collection(db, userPath, "payments")
       );
       const snapshot = await getDocs(q);
       const allPayments = snapshot.docs.map(doc => doc.data() as Payment);
@@ -203,7 +189,7 @@ export const paymentsApi = {
 
       return {
         total_revenue_this_month: totalThisMonth,
-        total_revenue_last_month: 0, // Would need more complex query
+        total_revenue_last_month: 0, 
         revenue_growth_percentage: 0,
         pending_payments_count: pendingPay.length,
         overdue_payments_count: overduePay.length,
@@ -222,8 +208,9 @@ export const paymentsApi = {
   },
 
   async deletePayment(paymentId: string): Promise<void> {
+    const userPath = getUserPath();
     try {
-      await deleteDoc(doc(db, "payments", paymentId));
+      await deleteDoc(doc(db, userPath, "payments", paymentId));
     } catch (error) {
       console.error('Error in deletePayment:', error);
       throw error;

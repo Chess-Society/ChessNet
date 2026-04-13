@@ -1,42 +1,39 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { 
-    Target, 
-    ArrowLeft,
-    Save,
-    X
-  } from 'lucide-svelte';
   import { showToast, showError } from '$lib/utils/toast';
+  import { appStore } from '$lib/stores/appStore';
+  import { ArrowLeft, Target, X, Save } from 'lucide-svelte';
   import type { PageData } from './$types';
 
-  export const data: PageData = {} as PageData;
+  let { data } = $props<{ data: PageData }>();
 
-  let formData = {
+  let formData = $state({
     name: '',
     description: '',
     category_id: '',
+    difficulty: 1,
+    estimated_hours: 1,
+    learning_objectives: [''] as string[],
+    assessment_criteria: [''] as string[],
+    resources: [''] as string[],
     icon: '',
     resource_link: '',
-    level: 'beginner',
-    order_index: 0
-  };
+    order_index: 0,
+    active: true
+  });
 
-  let isSubmitting = false;
-  let errors: Record<string, string> = {};
+  let isSubmitting = $state(false);
+  let errors: Record<string, string> = $state({});
 
-  const categories = [
-    'Fundamentos',
-    'Táctica',
-    'Finales',
-    'Aperturas',
-    'Estrategia',
-    'Psicología'
-  ];
+  // Obtener categorías desde el store
+  const categories = $derived($appStore.categories || []);
 
-  const levels = [
-    { value: 'beginner', label: 'Principiante' },
-    { value: 'intermediate', label: 'Intermedio' },
-    { value: 'advanced', label: 'Avanzado' }
+  const difficultyLevels = [
+    { value: 1, label: 'Muy Fácil' },
+    { value: 2, label: 'Fácil' },
+    { value: 3, label: 'Intermedio' },
+    { value: 4, label: 'Difícil' },
+    { value: 5, label: 'Muy Difícil' }
   ];
 
   const handleGoBack = () => {
@@ -46,7 +43,9 @@
   const validateForm = () => {
     errors = {};
 
-    // Validación opcional de order_index si se proporciona
+    if (!formData.name.trim()) errors.name = 'El nombre es obligatorio';
+    if (!formData.category_id) errors.category_id = 'La categoría es obligatoria';
+
     if (formData.order_index && (formData.order_index < 0 || formData.order_index > 1000)) {
       errors.order_index = 'El índice de orden debe estar entre 0 y 1000';
     }
@@ -56,7 +55,7 @@
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      showError('Por favor, corrige los errores en el formulario');
+      showToast.error('Por favor, corrige los errores en el formulario');
       return;
     }
 
@@ -71,13 +70,12 @@
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: (formData.name?.trim() && formData.name.trim() !== '') ? formData.name.trim() : 'Habilidad sin nombre',
-          description: (formData.description?.trim() && formData.description.trim() !== '') ? formData.description.trim() : null,
-          category_id: (formData.category_id?.trim() && formData.category_id.trim() !== '') ? formData.category_id.trim() : null,
-          level: formData.level || 'beginner',
-          icon: (formData.icon?.trim() && formData.icon.trim() !== '') ? formData.icon.trim() : null,
-          resource_link: (formData.resource_link?.trim() && formData.resource_link.trim() !== '') ? formData.resource_link.trim() : null,
-          order_index: formData.order_index || 0
+          ...formData,
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          learning_objectives: formData.learning_objectives.filter(o => o.trim()),
+          assessment_criteria: formData.assessment_criteria.filter(c => c.trim()),
+          resources: formData.resources.filter(r => r.trim())
         }),
       });
 
@@ -87,11 +85,11 @@
         throw new Error(result.error || 'Error al crear la habilidad');
       }
       
-      showToast('Habilidad creada exitosamente');
-      goto('/skills');
+      showToast.success('Habilidad creada exitosamente');
+      goto('/panel/habilidades');
     } catch (error) {
       console.error('Error creating skill:', error);
-      showError('Error al crear la habilidad: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+      showError(error, 'Error al crear la habilidad');
     } finally {
       isSubmitting = false;
     }
@@ -108,7 +106,7 @@
   <title>Nueva Habilidad - ChessNet</title>
 </svelte:head>
 
-<svelte:window on:keydown={handleKeyDown} />
+<svelte:window onkeydown={handleKeyDown} />
 
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
   <!-- Header -->
@@ -116,7 +114,7 @@
     <div class="container mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
-          <button on:click={handleGoBack} class="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+          <button onclick={handleGoBack} class="p-2 hover:bg-slate-700 rounded-lg transition-colors text-white">
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div class="flex items-center space-x-3">
@@ -124,19 +122,19 @@
               <Target class="w-6 h-6 text-purple-500" />
             </div>
             <div>
-              <h1 class="text-2xl font-bold">Nueva Habilidad</h1>
+              <h1 class="text-2xl font-bold text-white">Nueva Habilidad</h1>
               <p class="text-sm text-slate-400">Crear una nueva skill o competencia</p>
             </div>
           </div>
         </div>
         
         <div class="flex items-center space-x-3">
-          <button on:click={handleGoBack} class="btn-secondary">
+          <button onclick={handleGoBack} class="btn-secondary">
             <X class="w-4 h-4 mr-2" />
             Cancelar
           </button>
           <button 
-            on:click={handleSubmit} 
+            onclick={handleSubmit} 
             disabled={isSubmitting}
             class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -155,7 +153,10 @@
 
   <main class="container mx-auto px-4 py-8 max-w-2xl">
     <div class="bg-slate-800 border border-slate-700 rounded-xl p-8">
-      <form on:submit|preventDefault={handleSubmit} class="space-y-6">
+      <form 
+        onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} 
+        class="space-y-6"
+      >
         <!-- Nombre -->
         <div>
           <label for="name" class="block text-sm font-medium text-slate-300 mb-2">
@@ -195,7 +196,7 @@
         <!-- Categoría -->
         <div>
           <label for="category_id" class="block text-sm font-medium text-slate-300 mb-2">
-            Categoría
+            Categoría *
           </label>
           <select
             id="category_id"
@@ -205,7 +206,7 @@
           >
             <option value="">Selecciona una categoría</option>
             {#each categories as category}
-              <option value={category}>{category}</option>
+              <option value={category.id}>{category.name}</option>
             {/each}
           </select>
           {#if errors.category_id}
@@ -213,18 +214,18 @@
           {/if}
         </div>
 
-        <!-- Nivel -->
+        <!-- Dificultad -->
         <div>
-          <label for="level" class="block text-sm font-medium text-slate-300 mb-2">
-            Nivel
+          <label for="difficulty" class="block text-sm font-medium text-slate-300 mb-2">
+            Nivel de Dificultad
           </label>
           <select
-            id="level"
-            bind:value={formData.level}
+            id="difficulty"
+            bind:value={formData.difficulty}
             class="input w-full"
           >
-            {#each levels as level}
-              <option value={level.value}>{level.label}</option>
+            {#each difficultyLevels as level}
+              <option value={level.value}>{'⭐'.repeat(level.value)} {level.label}</option>
             {/each}
           </select>
         </div>

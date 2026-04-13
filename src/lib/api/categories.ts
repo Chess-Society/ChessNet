@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, toData, getUserPath } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -9,21 +9,16 @@ import {
   orderBy, 
   addDoc, 
   updateDoc, 
-  deleteDoc,
-  type DocumentData
+  deleteDoc
 } from "firebase/firestore";
 import type { Category } from "$lib/types";
-
-// Helper to convert Firestore document to data with ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
 
 export const categoriesApi = {
   // Get all categories
   async getCategories(): Promise<Category[]> {
+    const userPath = getUserPath();
     const q = query(
-      collection(db, "categories"),
+      collection(db, userPath, "categories"),
       orderBy("name", "asc")
     );
 
@@ -33,7 +28,8 @@ export const categoriesApi = {
 
   // Get a specific category
   async getCategory(id: string): Promise<Category> {
-    const docRef = doc(db, "categories", id);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "categories", id);
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
@@ -43,13 +39,14 @@ export const categoriesApi = {
     return toData<Category>(docSnap);
   },
 
-  // Create a new category (admin only - though we don't have roles check yet)
+  // Create a new category
   async createCategory(
     name: string,
     description?: string,
     color?: string
   ): Promise<Category> {
-    const docRef = await addDoc(collection(db, "categories"), {
+    const userPath = getUserPath();
+    const docRef = await addDoc(collection(db, userPath, "categories"), {
       name,
       description: description || "",
       color: color || '#3b82f6',
@@ -60,12 +57,13 @@ export const categoriesApi = {
     return toData<Category>(docSnap);
   },
 
-  // Update a category (admin only)
+  // Update a category
   async updateCategory(
     id: string, 
     updates: Partial<Pick<Category, 'name' | 'description' | 'color'>>
   ): Promise<Category> {
-    const docRef = doc(db, "categories", id);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "categories", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString()
@@ -75,20 +73,22 @@ export const categoriesApi = {
     return toData<Category>(docSnap);
   },
 
-  // Delete a category (admin only)
+  // Delete a category
   async deleteCategory(id: string): Promise<void> {
-    const docRef = doc(db, "categories", id);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "categories", id);
     await deleteDoc(docRef);
   },
 
   // Get categories with skill count
   async getCategoriesWithSkillCount(): Promise<(Category & { skills_count: number })[]> {
+    const userPath = getUserPath();
     const categories = await this.getCategories();
     const result = [];
 
     for (const category of categories) {
       const q = query(
-        collection(db, "skills"),
+        collection(db, userPath, "skills"),
         where("category_id", "==", category.id)
       );
       const snap = await getDocs(q);

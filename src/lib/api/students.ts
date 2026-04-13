@@ -21,6 +21,13 @@ const toData = <T>(doc: any): T => {
   return { id: doc.id, ...doc.data() } as T;
 };
 
+// Helper for user path
+const getUserPath = (userId?: string) => {
+  const uid = userId || auth.currentUser?.uid;
+  if (!uid) throw new Error("User not authenticated");
+  return `users/${uid}`;
+};
+
 export const studentsApi = {
   // Get all students for the current user
   async getMyStudents(userId?: string): Promise<Student[]> {
@@ -28,8 +35,7 @@ export const studentsApi = {
     if (!uid) throw new Error("User not authenticated");
 
     const q = query(
-      collection(db, "students"),
-      where("user_id", "==", uid),
+      collection(db, getUserPath(uid), "students"),
       orderBy("name", "asc")
     );
 
@@ -39,12 +45,8 @@ export const studentsApi = {
 
   // Get students by school
   async getStudentsBySchool(schoolId: string): Promise<Student[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
     const q = query(
-      collection(db, "students"),
-      where("user_id", "==", user.uid),
+      collection(db, getUserPath(), "students"),
       where("school_id", "==", schoolId),
       orderBy("name", "asc")
     );
@@ -55,13 +57,10 @@ export const studentsApi = {
 
   // Get a specific student
   async getStudent(id: string, userId?: string): Promise<Student> {
-    const uid = userId || auth.currentUser?.uid;
-    if (!uid) throw new Error("User not authenticated");
-
-    const docRef = doc(db, "students", id);
+    const docRef = doc(db, getUserPath(userId), "students", id);
     const docSnap = await getDoc(docRef);
 
-    if (!docSnap.exists() || docSnap.data()?.user_id !== uid) {
+    if (!docSnap.exists()) {
       throw new Error("Student not found or access denied");
     }
 
@@ -70,12 +69,9 @@ export const studentsApi = {
 
   // Create a new student
   async createStudent(studentData: CreateStudentForm): Promise<Student> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
-    const docRef = await addDoc(collection(db, "students"), {
+    const userPath = getUserPath();
+    const docRef = await addDoc(collection(db, userPath, "students"), {
       ...studentData,
-      user_id: user.uid,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -86,16 +82,8 @@ export const studentsApi = {
 
   // Update a student
   async updateStudent(id: string, updates: Partial<CreateStudentForm>): Promise<Student> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
-    const docRef = doc(db, "students", id);
-    const docSnap = await getDoc(docRef);
-
-    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
-      throw new Error("Student not found or access denied");
-    }
-
+    const docRef = doc(db, getUserPath(), "students", id);
+    
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -107,32 +95,20 @@ export const studentsApi = {
 
   // Delete a student
   async deleteStudent(id: string): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
-    const docRef = doc(db, "students", id);
-    const docSnap = await getDoc(docRef);
-
-    if (!docSnap.exists() || docSnap.data()?.user_id !== user.uid) {
-      throw new Error("Student not found or access denied");
-    }
-
+    const docRef = doc(db, getUserPath(), "students", id);
     await deleteDoc(docRef);
   },
 
   // Bulk create students
   async bulkCreateStudents(students: CreateStudentForm[]): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
+    const userPath = getUserPath();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
 
     students.forEach(student => {
-      const docRef = doc(collection(db, "students"));
+      const docRef = doc(collection(db, userPath, "students"));
       batch.set(docRef, {
         ...student,
-        user_id: user.uid,
         created_at: now,
         updated_at: now,
       });
@@ -145,19 +121,16 @@ export const studentsApi = {
 
   // Save attendance for multiple students
   async saveAttendance(classId: string, date: string, attendanceList: { student_id: string; status: string; notes?: string }[]): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
+    const userPath = getUserPath();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
 
     for (const item of attendanceList) {
       // Use composite ID for unique attendance record per student/class/date
       const attendanceId = `${item.student_id}_${classId}_${date}`;
-      const docRef = doc(db, "attendance", attendanceId);
+      const docRef = doc(db, userPath, "attendance", attendanceId);
       
       batch.set(docRef, {
-        user_id: user.uid,
         class_id: classId,
         student_id: item.student_id,
         date: date,
@@ -172,12 +145,8 @@ export const studentsApi = {
 
   // Get attendance records for a student
   async getStudentAttendance(studentId: string): Promise<Attendance[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
     const q = query(
-      collection(db, "attendance"),
-      where("user_id", "==", user.uid),
+      collection(db, getUserPath(), "attendance"),
       where("student_id", "==", studentId),
       orderBy("date", "desc")
     );
@@ -209,12 +178,9 @@ export const studentsApi = {
 
   // Get student skill levels
   async getStudentSkills(studentId: string): Promise<any[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
+    const userPath = getUserPath();
     const q = query(
-      collection(db, "student_skills"),
-      where("user_id", "==", user.uid),
+      collection(db, userPath, "student_skills"),
       where("student_id", "==", studentId)
     );
 
@@ -224,7 +190,9 @@ export const studentsApi = {
     // Fetch skill details
     for (const ss of studentSkills) {
       if (ss.skill_id) {
-        const skillDoc = await getDoc(doc(db, "skills", ss.skill_id));
+        // Here we assume skills are still in root or in userPath? 
+        // Based on the appStore refactor, skills were in userPath/skills
+        const skillDoc = await getDoc(doc(db, userPath, "skills", ss.skill_id));
         if (skillDoc.exists()) {
           ss.skills = toData<any>(skillDoc);
         }
@@ -242,14 +210,11 @@ export const studentsApi = {
     mastered: boolean,
     notes?: string
   ): Promise<any> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
+    const userPath = getUserPath();
     const skillProgressId = `${studentId}_${skillId}`;
-    const docRef = doc(db, "student_skills", skillProgressId);
+    const docRef = doc(db, userPath, "student_skills", skillProgressId);
     
     const docData = {
-      user_id: user.uid,
       student_id: studentId,
       skill_id: skillId,
       level,
@@ -266,9 +231,6 @@ export const studentsApi = {
 
   // Get students with attendance summary (Simplificado)
   async getStudentsWithAttendance(): Promise<any[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
-
     const students = await this.getMyStudents();
     
     // Inyectamos un resumen manual para cada estudiante
@@ -278,4 +240,4 @@ export const studentsApi = {
 
     return students;
   }
-};
+};

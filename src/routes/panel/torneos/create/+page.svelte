@@ -15,18 +15,22 @@
     description: ''
   });
 
-  const handleSubmit = (e: SubmitEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault();
+    
     const newTournament = {
-      ...tournament,
-      id: crypto.randomUUID(),
-      status: 'upcoming',
-      players: [],
-      rounds: [],
-      createdAt: new Date().toISOString()
+      name: tournament.name,
+      startAt: tournament.startDate,
+      time_control: tournament.timeControl,
+      location: tournament.location,
+      format: tournament.format,
+      max_players: tournament.maxPlayers,
+      prize_pool: tournament.prizePool,
+      description: tournament.description,
+      status: 'upcoming'
     };
 
-    appStore.addTournament(newTournament);
+    await appStore.addLocalTournament(newTournament);
     goto(`/panel/torneos`);
   };
 

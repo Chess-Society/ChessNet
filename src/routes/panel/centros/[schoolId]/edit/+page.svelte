@@ -11,7 +11,8 @@
     MapPin,
     Globe,
     Building,
-    Check
+    Check,
+    Edit
   } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';

@@ -28,8 +28,8 @@
 
   const filteredPayments = $derived(() => {
     return payments
-      .filter(p => getStudentName(p.studentId).toLowerCase().includes(searchQuery.toLowerCase()))
-      .sort((a,b) => b.date.localeCompare(a.date));
+      .filter(p => getStudentName(p.student_id || p.studentId || '').toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort((a,b) => (b.paid_date || b.date || '').localeCompare(a.paid_date || a.date || ''));
   });
 
   // Métricas financieras
@@ -40,7 +40,7 @@
     
     const monthlyTotal = payments
       .filter(p => {
-        const d = new Date(p.date);
+        const d = new Date(p.paid_date || p.date || '');
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
       .reduce((acc, p) => acc + p.amount, 0);
@@ -51,20 +51,20 @@
   // Para el modal de nuevo pago
   let showModal = $state(false);
   let newPayment = $state({
-    studentId: '',
+    student_id: '',
     amount: 0,
-    date: new Date().toISOString().split('T')[0],
-    concept: 'Cuota Mensual'
+    paid_date: new Date().toISOString().split('T')[0],
+    concept: 'monthly_fee' as any
   });
 
   const addPayment = () => {
-    if (!newPayment.studentId || newPayment.amount <= 0) return;
+    if (!newPayment.student_id || newPayment.amount <= 0) return;
     appStore.addPayment({
       ...newPayment,
       id: crypto.randomUUID()
     });
     showModal = false;
-    newPayment = { studentId: '', amount: 0, date: new Date().toISOString().split('T')[0], concept: 'Cuota Mensual' };
+    newPayment = { student_id: '', amount: 0, paid_date: new Date().toISOString().split('T')[0], concept: 'monthly_fee' as any };
   };
 
 </script>
@@ -154,16 +154,16 @@
                               <td class="px-6 py-4">
                                   <div class="flex items-center gap-3">
                                       <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-[10px] font-bold text-teal-500">
-                                          {getStudentName(p.studentId)[0]}
+                                          {getStudentName(p.student_id || p.studentId || '')[0]}
                                       </div>
-                                      <span class="text-sm font-bold text-white">{getStudentName(p.studentId)}</span>
+                                      <span class="text-sm font-bold text-white">{getStudentName(p.student_id || p.studentId || '')}</span>
                                   </div>
                               </td>
                               <td class="px-6 py-4">
-                                  <span class="text-xs text-slate-400">{p.concept}</span>
+                                  <span class="text-xs text-slate-400 capitalize">{p.concept.replace('_', ' ')}</span>
                               </td>
                               <td class="px-6 py-4">
-                                  <span class="text-xs text-slate-500">{new Date(p.date).toLocaleDateString('es-ES')}</span>
+                                  <span class="text-xs text-slate-500">{new Date(p.paid_date || p.date || '').toLocaleDateString('es-ES')}</span>
                               </td>
                               <td class="px-6 py-4 text-right">
                                   <span class="text-sm font-bold text-teal-400">{p.amount}€</span>
@@ -190,7 +190,7 @@
             <div class="p-8 space-y-6">
                 <div class="space-y-2">
                     <label for="student-select" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Alumno</label>
-                    <select id="student-select" bind:value={newPayment.studentId} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all">
+                    <select id="student-select" bind:value={newPayment.student_id} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all">
                         <option value="">Seleccionar alumno...</option>
                         {#each students as s}
                             <option value={s.id}>{s.name}</option>
@@ -205,7 +205,7 @@
                     </div>
                     <div class="space-y-2">
                         <label for="payment-date" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Fecha</label>
-                        <input id="payment-date" type="date" bind:value={newPayment.date} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all" />
+                        <input id="payment-date" type="date" bind:value={newPayment.paid_date} class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-teal-500 outline-none transition-all" />
                     </div>
                 </div>
 

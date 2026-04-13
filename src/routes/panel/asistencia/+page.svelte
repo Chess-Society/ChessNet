@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { 
     CheckCircle, 
@@ -32,43 +33,52 @@
 
   // Registro de asistencia actual (si existe en el store)
   let currentAttendance = $derived(() => {
-    return $appStore.attendance.find(a => a.classId === selectedClassId && a.date === selectedDate);
+    return $appStore.attendance.filter(a => a.class_id === selectedClassId && a.date === selectedDate);
   });
 
   // Estado local para la edición antes de sincronizar si es necesario, 
   // pero el store es reactivo, así que podemos modificarlo directamente.
   
-  const toggleStatus = (studentId: string) => {
+  const toggleStatus = async (studentId: string) => {
     if (!selectedClassId) return;
     
-    const records = currentAttendance()?.records || [];
-    const recordIdx = records.findIndex((r: any) => r.studentId === studentId);
+    const record = currentAttendance().find(r => r.student_id === studentId);
+    const newStatus = record?.status === 'P' ? 'A' : 'P';
     
-    let newRecords = [...records];
-    if (recordIdx === -1) {
-      newRecords.push({ studentId, status: 'present' });
-    } else {
-      const currentStatus = records[recordIdx].status;
-      newRecords[recordIdx].status = currentStatus === 'present' ? 'absent' : 'present';
-    }
-
-    appStore.updateAttendance(selectedClassId, selectedDate, newRecords);
+    await appStore.saveAttendance({
+      id: record?.id,
+      student_id: studentId,
+      class_id: selectedClassId,
+      date: selectedDate,
+      status: newStatus
+    });
   };
 
   const getStatus = (studentId: string) => {
-    const record = currentAttendance()?.records.find((r: any) => r.studentId === studentId);
-    return record ? record.status : 'unmarked';
+    const record = currentAttendance().find(r => r.student_id === studentId);
+    if (!record) return 'unmarked';
+    return record.status === 'P' ? 'present' : 'absent';
   };
 
-  const markAllPresent = () => {
+  const markAllPresent = async () => {
     if (!selectedClassId) return;
-    const newRecords = classStudents().map(s => ({ studentId: s.id, status: 'present' }));
-    appStore.updateAttendance(selectedClassId, selectedDate, newRecords);
+    for (const student of classStudents()) {
+      const record = currentAttendance().find(r => r.student_id === student.id);
+      if (record?.status !== 'P') {
+        await appStore.saveAttendance({
+          id: record?.id,
+          student_id: student.id,
+          class_id: selectedClassId,
+          date: selectedDate,
+          status: 'P'
+        });
+      }
+    }
   };
 
   const stats = $derived(() => {
-    const records = currentAttendance()?.records || [];
-    const present = records.filter((r: any) => r.status === 'present').length;
+    const records = currentAttendance();
+    const present = records.filter(r => r.status === 'P').length;
     const total = classStudents().length;
     return { present, total, percent: total > 0 ? Math.round((present / total) * 100) : 0 };
   });

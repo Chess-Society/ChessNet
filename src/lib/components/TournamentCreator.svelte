@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import { 
     X, 
     Trophy, 
@@ -17,13 +17,19 @@
   import type { 
     CreateTournamentForm, 
     Student, 
-    College 
+    College,
+    LocalTournament
   } from '$lib/types';
 
-  const dispatch = createEventDispatcher();
+  interface Props {
+    onCreated?: (tournament: LocalTournament) => void;
+    onClose?: () => void;
+  }
+
+  let { onCreated, onClose }: Props = $props();
 
   // Form data
-  let formData: CreateTournamentForm = {
+  let formData = $state<CreateTournamentForm>({
     name: '',
     format: 'swiss',
     college_id: '',
@@ -33,70 +39,22 @@
     roundsPlanned: undefined,
     notes: '',
     selected_students: []
-  };
+  });
 
   // UI state
-  let isOpen = false;
-  let isLoading = false;
-  let error = '';
-  let step = 1; // 1: Basic info, 2: Players selection, 3: Confirmation
+  let isOpen = $state(false);
+  let isLoading = $state(false);
+  let error = $state('');
+  let step = $state(1); // 1: Basic info, 2: Players selection, 3: Confirmation
 
   // Data
-  let students: Student[] = [];
-  let colleges: College[] = [];
-  let filteredStudents: Student[] = [];
-  let searchTerm = '';
+  let students = $state<Student[]>([]);
+  let colleges = $state<College[]>([]);
+  let searchTerm = $state('');
 
   // Form validation
-  $: isFormValid = formData.name.trim() && formData.selected_students.length >= 2;
-  $: calculatedRounds = calculateDefaultRounds(formData.selected_students.length, formData.format);
-
-  export function open() {
-    isOpen = true;
-    loadData();
-  }
-
-  export function close() {
-    isOpen = false;
-    resetForm();
-  }
-
-  function resetForm() {
-    formData = {
-      name: '',
-      format: 'swiss',
-      college_id: '',
-      time_control: '',
-      startAt: '',
-      endAt: '',
-      roundsPlanned: undefined,
-      notes: '',
-      selected_students: []
-    };
-    step = 1;
-    error = '';
-    searchTerm = '';
-  }
-
-  async function loadData() {
-    try {
-      isLoading = true;
-      const [studentsData, collegesData] = await Promise.all([
-        studentsApi.getMyStudents(),
-        collegesApi.getColleges()
-      ]);
-      
-      students = studentsData;
-      colleges = collegesData;
-      filteredStudents = students;
-    } catch (err) {
-      console.error('Error loading data:', err);
-      error = 'Error al cargar los datos';
-    } finally {
-      isLoading = false;
-    }
-  }
-
+  let isFormValid = $derived(!!formData.name.trim() && formData.selected_students.length >= 2);
+  
   function calculateDefaultRounds(playerCount: number, format: string): number {
     if (playerCount < 2) return 1;
     
@@ -112,15 +70,60 @@
     }
   }
 
-  function filterStudents() {
-    if (!searchTerm.trim()) {
-      filteredStudents = students;
-    } else {
-      filteredStudents = students.filter(student => 
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (student.first_name && student.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (student.last_name && student.last_name.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+  let calculatedRounds = $derived(calculateDefaultRounds(formData.selected_students.length, formData.format));
+  
+  let filteredStudents = $derived(
+    searchTerm.trim() 
+      ? students.filter(student => 
+          student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (student.first_name && student.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (student.last_name && student.last_name.toLowerCase().includes(searchTerm.toLowerCase()))
+        )
+      : students
+  );
+
+  export function open() {
+    isOpen = true;
+    loadData();
+  }
+
+  export function close() {
+    isOpen = false;
+    resetForm();
+    onClose?.();
+  }
+
+  function resetForm() {
+    formData.name = '';
+    formData.format = 'swiss';
+    formData.college_id = '';
+    formData.time_control = '';
+    formData.startAt = '';
+    formData.endAt = '';
+    formData.roundsPlanned = undefined;
+    formData.notes = '';
+    formData.selected_students = [];
+    
+    step = 1;
+    error = '';
+    searchTerm = '';
+  }
+
+  async function loadData() {
+    try {
+      isLoading = true;
+      const [studentsData, collegesData] = await Promise.all([
+        studentsApi.getMyStudents(),
+        collegesApi.getColleges()
+      ]);
+      
+      students = studentsData;
+      colleges = collegesData;
+    } catch (err) {
+      console.error('Error loading data:', err);
+      error = 'Error al cargar los datos';
+    } finally {
+      isLoading = false;
     }
   }
 
@@ -162,12 +165,12 @@
       error = '';
 
       const api = await getLocalTournamentsApi();
-      const tournament = await api.createTournament({
+      const tournamentResult = await api.createTournament({
         ...formData,
         roundsPlanned: formData.roundsPlanned || calculatedRounds
       });
 
-      dispatch('created', tournament);
+      onCreated?.(tournamentResult);
       close();
     } catch (err) {
       console.error('Error creating tournament:', err);
@@ -176,9 +179,6 @@
       isLoading = false;
     }
   }
-
-  // Reactive statements
-  $: filterStudents(searchTerm);
 
   onMount(() => {
     // Set default dates
@@ -207,7 +207,7 @@
             </p>
           </div>
         </div>
-        <button on:click={close} class="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+        <button onclick={close} class="p-2 hover:bg-slate-700 rounded-lg transition-colors">
           <X class="w-5 h-5 text-slate-400" />
         </button>
       </div>
@@ -218,11 +218,11 @@
           {#each [1, 2, 3] as stepNum}
             <div class="flex items-center">
               <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                {step >= stepNum ? 'bg-primary-500 text-white' : 'bg-slate-700 text-slate-400'}">
+                {step >= stepNum ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-400'}">
                 {stepNum}
               </div>
               {#if stepNum < 3}
-                <div class="w-16 h-0.5 mx-2 {step > stepNum ? 'bg-primary-500' : 'bg-slate-700'}"></div>
+                <div class="w-16 h-0.5 mx-2 {step > stepNum ? 'bg-orange-500' : 'bg-slate-700'}"></div>
               {/if}
             </div>
           {/each}
@@ -242,24 +242,25 @@
           <!-- Step 1: Basic Information -->
           <div class="space-y-6">
             <div>
-              <label class="block text-sm font-medium text-slate-300 mb-2">
+              <label for="tournament-name" class="block text-sm font-medium text-slate-300 mb-2">
                 Nombre del torneo *
               </label>
               <input
+                id="tournament-name"
                 type="text"
                 bind:value={formData.name}
                 placeholder="Ej: Torneo Escolar de Primavera"
-                class="input w-full"
+                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 required
               />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">
+                <label for="tournament-format" class="block text-sm font-medium text-slate-300 mb-2">
                   Formato
                 </label>
-                <select bind:value={formData.format} class="input w-full">
+                <select id="tournament-format" bind:value={formData.format} class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
                   <option value="swiss">Sistema Suizo</option>
                   <option value="round_robin">Round Robin</option>
                   <option value="knockout">Eliminación Directa</option>
@@ -267,10 +268,10 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">
+                <label for="tournament-college" class="block text-sm font-medium text-slate-300 mb-2">
                   Centro educativo
                 </label>
-                <select bind:value={formData.college_id} class="input w-full">
+                <select id="tournament-college" bind:value={formData.college_id} class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
                   <option value="">Sin centro específico</option>
                   {#each colleges as college}
                     <option value={college.id}>{college.name}</option>
@@ -281,49 +282,53 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">
+                <label for="tournament-time" class="block text-sm font-medium text-slate-300 mb-2">
                   Control de tiempo
                 </label>
                 <input
+                  id="tournament-time"
                   type="text"
                   bind:value={formData.time_control}
                   placeholder="Ej: 15+10"
-                  class="input w-full"
+                  class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">
+                <label for="tournament-start" class="block text-sm font-medium text-slate-300 mb-2">
                   Fecha de inicio
                 </label>
                 <input
+                  id="tournament-start"
                   type="datetime-local"
                   bind:value={formData.startAt}
-                  class="input w-full"
+                  class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">
+                <label for="tournament-end" class="block text-sm font-medium text-slate-300 mb-2">
                   Fecha de fin
                 </label>
                 <input
+                  id="tournament-end"
                   type="datetime-local"
                   bind:value={formData.endAt}
-                  class="input w-full"
+                  class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-300 mb-2">
+              <label for="tournament-notes" class="block text-sm font-medium text-slate-300 mb-2">
                 Notas
               </label>
               <textarea
+                id="tournament-notes"
                 bind:value={formData.notes}
                 placeholder="Información adicional sobre el torneo..."
                 rows="3"
-                class="input w-full"
+                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
               ></textarea>
             </div>
           </div>
@@ -351,17 +356,17 @@
                     type="text"
                     bind:value={searchTerm}
                     placeholder="Buscar estudiantes..."
-                    class="input flex-1"
+                    class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                   />
                   <button
-                    on:click={selectAllStudents}
-                    class="btn-secondary text-xs"
+                    onclick={selectAllStudents}
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs transition-colors"
                   >
                     Todos
                   </button>
                   <button
-                    on:click={deselectAllStudents}
-                    class="btn-ghost text-xs"
+                    onclick={deselectAllStudents}
+                    class="px-4 py-2 hover:bg-slate-700 text-slate-400 rounded-lg text-xs transition-colors"
                   >
                     Ninguno
                   </button>
@@ -373,8 +378,8 @@
                       <input
                         type="checkbox"
                         checked={formData.selected_students.includes(student.id)}
-                        on:change={() => toggleStudent(student.id)}
-                        class="mr-3 rounded"
+                        onchange={() => toggleStudent(student.id)}
+                        class="mr-3 rounded bg-slate-700 border-slate-600 text-orange-500 focus:ring-orange-500"
                       />
                       <div class="flex-1">
                         <div class="font-medium text-white">{student.name}</div>
@@ -455,30 +460,30 @@
       <div class="flex items-center justify-between p-6 border-t border-slate-700">
         <div class="flex items-center space-x-4">
           {#if step > 1}
-            <button on:click={prevStep} class="btn-ghost">
+            <button onclick={prevStep} class="px-6 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">
               Anterior
             </button>
           {/if}
         </div>
 
         <div class="flex items-center space-x-4">
-          <button on:click={close} class="btn-ghost">
+          <button onclick={close} class="px-6 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">
             Cancelar
           </button>
           
           {#if step < 3}
             <button 
-              on:click={nextStep}
-              disabled={step === 1 && !formData.name.trim() || step === 2 && formData.selected_students.length < 2}
-              class="btn-primary"
+              onclick={nextStep}
+              disabled={(step === 1 && !formData.name.trim()) || (step === 2 && formData.selected_students.length < 2)}
+              class="px-6 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors font-semibold"
             >
               Siguiente
             </button>
           {:else}
             <button 
-              on:click={createTournament}
+              onclick={createTournament}
               disabled={!isFormValid || isLoading}
-              class="btn-primary"
+              class="px-6 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors font-semibold flex items-center"
             >
               {#if isLoading}
                 <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>

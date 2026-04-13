@@ -21,11 +21,11 @@
   let classes = $derived($appStore.classes || []);
   let centers = $derived($appStore.centers || []);
 
-  const filteredClasses = $derived(() => {
-    return classes.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  });
+  const filteredClasses = $derived(
+    classes.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
-  const getCenterName = (id: string) => {
+  const getCenterName = (id: string | undefined) => {
     return centers.find(c => c.id === id)?.name || 'Sin centro';
   };
 
@@ -75,7 +75,7 @@
     />
   </div>
 
-  {#if filteredClasses().length === 0}
+  {#if filteredClasses.length === 0}
     <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
       <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
         <GraduationCap class="w-10 h-10" />
@@ -87,7 +87,7 @@
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each filteredClasses() as cls, i}
+      {#each filteredClasses as cls, i}
         <div 
           class="bg-[#1e293b]/60 border border-slate-800 rounded-3xl p-6 hover:border-purple-500/30 transition-all group relative overflow-hidden"
           in:fly={{ y: 20, delay: i * 50 }}

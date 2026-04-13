@@ -47,7 +47,7 @@
       id: 'tournament_master',
       title: 'Organizador Jefe',
       desc: 'Organiza y completa 3 torneos.',
-      condition: tournaments.filter(t => t.status === 'Completed').length >= 3,
+      condition: tournaments.filter(t => t.status === 'completed').length >= 3,
       icon: Trophy,
       color: 'text-orange-400'
     },

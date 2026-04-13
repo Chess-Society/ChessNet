@@ -1,3 +1,11 @@
+import { db, auth, toData, getUserPath } from "$lib/firebase";
+import { 
+  doc, 
+  getDoc, 
+  setDoc,
+  updateDoc,
+  serverTimestamp 
+} from "firebase/firestore";
 import type { 
   SubscriptionPlan, 
   UserSubscription, 
@@ -6,28 +14,28 @@ import type {
 } from '$lib/types';
 
 // =====================
-// MOCK DATA PARA DESARROLLO LOCAL
+// CONFIGURACIÓN DE PLANES
 // =====================
 
-const mockPlans: SubscriptionPlan[] = [
+const PLANS: SubscriptionPlan[] = [
   {
     id: 'plan-free',
     name: 'free',
-    display_name: 'Profesor Individual',
-    description: 'Perfecto para empezar con ChessNet',
+    display_name: 'Ajedrecista',
+    description: 'Perfecto para empezar o gestionar una pequeña escuela local.',
     price_annual: 0,
     currency: 'EUR',
-    max_students: 15,
-    max_classes: 3,
+    max_students: 12,
+    max_classes: 2,
     max_colleges: 1,
-    max_tournaments: 2,
-    max_storage_mb: 100,
-    max_custom_skills: 5,
+    max_tournaments: 0,
+    max_storage_mb: 50,
+    max_custom_skills: 0,
     features: [
-      'Skills básicos incluidos',
-      'Asistencia básica',
-      'Informes simples',
-      'Soporte por email'
+      '1 Centro / Colegio',
+      '2 Clases simultáneas',
+      'Hasta 12 Alumnos totales',
+      'Pase de lista y Asistencia'
     ],
     is_active: true,
     sort_order: 1,
@@ -35,76 +43,47 @@ const mockPlans: SubscriptionPlan[] = [
     updated_at: new Date().toISOString()
   },
   {
-    id: 'plan-professional',
-    name: 'professional',
-    display_name: 'Profesor Multi-Centro',
-    description: 'Para profesores que enseñan en varios centros',
-    price_annual: 39,
+    id: 'plan-premium',
+    name: 'premium',
+    display_name: 'Maestro Premium',
+    description: 'Todas las herramientas sin límites para un control profesional total.',
+    price_annual: 12,
     currency: 'EUR',
-    max_students: 80,
-    max_classes: 12,
-    max_colleges: 3,
-    max_tournaments: 10,
-    max_storage_mb: 1000,
-    max_custom_skills: 50,
+    max_students: -1,
+    max_classes: -1,
+    max_colleges: -1,
+    max_tournaments: -1,
+    max_storage_mb: 2000,
+    max_custom_skills: -1,
     features: [
-      'Todo del plan gratuito',
-      'Informes detallados',
-      'Sistema de pagos completo',
-      'Torneos avanzados',
-      'Exportar datos',
-      'Soporte prioritario'
+      'Centros y Clases Ilimitados',
+      'Alumnos Ilimitados',
+      'Gestión de Torneos (Emparejamientos)',
+      'Informes PDF y Diplomas',
+      'Exportación de datos (Excel/PDF)'
     ],
     is_active: true,
     sort_order: 2,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
-  },
-  {
-    id: 'plan-academy',
-    name: 'academy',
-    display_name: 'Academia de Ajedrez',
-    description: 'Para academias y organizaciones grandes',
-    price_annual: 99,
-    currency: 'EUR',
-    max_students: 200,
-    max_classes: 30,
-    max_colleges: 10,
-    max_tournaments: -1, // ilimitado
-    max_storage_mb: 5000,
-    max_custom_skills: -1, // ilimitado
-    features: [
-      'Todo del plan profesional',
-      'Gestión multi-sede',
-      'Dashboard de administrador',
-      'Integraciones avanzadas',
-      'Branding personalizado',
-      'Soporte telefónico',
-      'Análisis avanzados'
-    ],
-    is_active: true,
-    sort_order: 3,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
   }
 ];
 
-const mockUserLimits: UserPlanLimits = {
+const DEFAULT_LIMITS: UserPlanLimits = {
   plan_name: 'free',
-  display_name: 'Profesor Individual',
+  display_name: 'Ajedrecista',
   status: 'active',
-  expires_at: undefined,
-  max_students: 15,
-  max_classes: 3,
+  max_students: 12,
+  max_classes: 2,
   max_colleges: 1,
-  max_tournaments: 2,
-  max_storage_mb: 100,
-  max_custom_skills: 5,
+  max_tournaments: 0,
+  max_storage_mb: 50,
+  max_custom_skills: 0,
   features: [
-    'Skills básicos incluidos',
-    'Asistencia básica',
-    'Informes simples',
-    'Soporte por email'
+    '1 Centro / Colegio',
+    '2 Clases simultáneas',
+    'Hasta 12 Alumnos totales',
+    'Pase de lista y Asistencia'
   ]
 };
 
@@ -116,107 +95,48 @@ const mockUserLimits: UserPlanLimits = {
  * Obtiene todos los planes de suscripción disponibles
  */
 export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
-  try {
-    // Definimos los planes basados en el diseño de ChessNet
-    return [
-      {
-        id: 'plan-free',
-        name: 'free',
-        display_name: 'Ajedrecista',
-        description: 'Perfecto para empezar o gestionar una pequeña escuela local.',
-        price_annual: 0,
-        currency: 'EUR',
-        max_students: 12,
-        max_classes: 2,
-        max_colleges: 1,
-        max_tournaments: 0,
-        max_storage_mb: 50,
-        max_custom_skills: 0,
-        features: [
-          '1 Centro / Colegio',
-          '2 Clases simultáneas',
-          'Hasta 12 Alumnos totales',
-          'Pase de lista y Asistencia'
-        ],
-        is_active: true,
-        sort_order: 1,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 'plan-premium',
-        name: 'premium',
-        display_name: 'Maestro Premium',
-        description: 'Todas las herramientas sin límites para un control profesional total.',
-        price_annual: 12, // 1€/mes * 12
-        currency: 'EUR',
-        max_students: -1,
-        max_classes: -1,
-        max_colleges: -1,
-        max_tournaments: -1,
-        max_storage_mb: 2000,
-        max_custom_skills: -1,
-        features: [
-          'Centros y Clases Ilimitados',
-          'Alumnos Ilimitados',
-          'Gestión de Torneos (Emparejamientos)',
-          'Informes PDF y Diplomas',
-          'Exportación de datos (Excel/PDF)'
-        ],
-        is_active: true,
-        sort_order: 2,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
-  } catch (error) {
-    console.error('❌ Error fetching subscription plans:', error);
-    return mockPlans;
-  }
+  return PLANS;
 };
 
 /**
- * Obtiene el plan actual del usuario y sus límites
+ * Obtiene el plan actual del usuario y sus límites desde Firestore
  */
-export const getUserCurrentPlan = async (): Promise<UserPlanLimits> => {
+export const getUserCurrentPlan = async (userId?: string): Promise<UserPlanLimits> => {
+  const userPath = getUserPath(userId);
+  if (!userPath) return DEFAULT_LIMITS;
+
   try {
-    // En desarrollo local, usar datos mock
-    if (typeof window !== 'undefined' && 
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-      console.log('🔧 DEV MODE: Usando límites mock');
-      return mockUserLimits;
+    const docRef = doc(db, userPath, "settings", "subscription");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const plan = PLANS.find(p => p.name === data.plan_name) || PLANS[0];
+      
+      return {
+        ...DEFAULT_LIMITS,
+        ...data,
+        display_name: plan.display_name,
+        features: plan.features
+      } as UserPlanLimits;
     }
 
-    // En producción, hacer fetch a Supabase
-    const response = await fetch('/api/subscriptions/current', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.user_plan || mockUserLimits;
+    return DEFAULT_LIMITS;
   } catch (error) {
-    console.error('❌ Error fetching user current plan:', error);
-    // Fallback a plan gratuito
-    return mockUserLimits;
+    console.error('❌ Error fetching user subscription from Firestore:', error);
+    return DEFAULT_LIMITS;
   }
 };
 
 /**
  * Verifica si el usuario puede realizar una acción según su plan
+ * Actualmente configurado para permitir todo (Acceso Completo) según requerimiento de UX
  */
 export const checkUserLimit = async (
-  limitType: 'students' | 'classes' | 'colleges' | 'tournaments' | 'storage_mb' | 'custom_skills',
+  limitType: string,
   currentCount: number = 0
 ): Promise<boolean> => {
-  // 🚀 ACCESO COMPLETO: Todos los usuarios tienen acceso ilimitado
-  console.log(`✅ ACCESO COMPLETO: Permitido ${limitType} (${currentCount} actuales)`);
+  // Actualmente permitimos todo para facilitar el onboarding
   return true;
 };
 
@@ -225,23 +145,21 @@ export const checkUserLimit = async (
  */
 export const getUpgradeData = async (): Promise<SubscriptionUpgradeData> => {
   try {
-    // Obtener planes y límites en paralelo
     const [plans, userLimits] = await Promise.all([
       getSubscriptionPlans(),
       getUserCurrentPlan()
     ]);
 
-    // Encontrar el plan actual
     const currentPlan = plans.find(plan => plan.name === userLimits.plan_name) || plans[0];
 
-    // Mock de estadísticas de uso (en producción vendría de la API)
+    // Estas estadísticas se calcularían consultando las colecciones anidadas correspondientes
     const usageStats = {
-      students_count: 8,
-      classes_count: 2,
-      colleges_count: 1,
-      tournaments_count: 1,
-      storage_used_mb: 25,
-      custom_skills_count: 3
+      students_count: 0,
+      classes_count: 0,
+      colleges_count: 0,
+      tournaments_count: 0,
+      storage_used_mb: 0,
+      custom_skills_count: 0
     };
 
     return {
@@ -252,12 +170,10 @@ export const getUpgradeData = async (): Promise<SubscriptionUpgradeData> => {
     };
   } catch (error) {
     console.error('❌ Error fetching upgrade data:', error);
-    
-    // Fallback con datos mock
     return {
-      current_plan: mockPlans[0],
-      available_plans: mockPlans,
-      user_limits: mockUserLimits,
+      current_plan: PLANS[0],
+      available_plans: PLANS,
+      user_limits: DEFAULT_LIMITS,
       usage_stats: {
         students_count: 0,
         classes_count: 0,
@@ -275,33 +191,28 @@ export const getUpgradeData = async (): Promise<SubscriptionUpgradeData> => {
  */
 export const initiateUpgrade = async (planName: string, uid?: string, email?: string): Promise<{ success: boolean; payment_url?: string; error?: string }> => {
   try {
-    console.log(`🚀 Iniciando upgrade a plan: ${planName}`);
-
     const response = await fetch('/api/stripe/checkout', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         plan_name: planName === 'premium' ? 'Maestro Premium' : planName,
-        price_id: 'price_1T6H9xRBnPDD6EfR0BmyYKYf',
-        uid: uid,
-        user_email: email
+        price_id: 'price_1T6H9xRBnPDD6EfR0BmyYKYf', // Este ID debería venir de configuración/env
+        uid: uid || auth.currentUser?.uid,
+        user_email: email || auth.currentUser?.email
       })
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+      throw new Error(errorData.error || `Error ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error: any) {
-    console.error('❌ Error initiating upgrade:', error);
+    console.error('❌ Error initiating Stripe upgrade:', error);
     return {
       success: false,
-      error: error.message || 'Error al iniciar el proceso de upgrade. Por favor, intenta nuevamente.'
+      error: error.message || 'Error al iniciar el pago.'
     };
   }
 };

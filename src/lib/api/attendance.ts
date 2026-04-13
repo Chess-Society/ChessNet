@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, auth, toData, getUserPath } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -7,29 +7,20 @@ import {
   query, 
   where, 
   orderBy, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc,
   setDoc,
-  writeBatch,
-  type DocumentData
+  deleteDoc,
+  writeBatch
 } from "firebase/firestore";
 import type { 
   Attendance, 
   AttendanceWithDetails, 
   AttendanceStatus, 
-  ClassAttendance,
   AttendanceRecord,
   StudentAttendanceStats,
   ClassAttendanceStats,
   AttendanceFilters,
   AttendanceCalendarEvent
 } from '$lib/types';
-
-// Helper to convert Firestore document to data with ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
 
 export const attendanceApi = {
   // =====================
@@ -40,12 +31,10 @@ export const attendanceApi = {
    * Get attendance records with optional filters
    */
   async get(filters: AttendanceFilters = {}) {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
+    const userPath = getUserPath();
 
     let q = query(
-      collection(db, 'attendance'),
-      where('user_id', '==', user.uid),
+      collection(db, userPath, 'attendance'),
       orderBy('date', 'desc')
     );
 
@@ -71,13 +60,13 @@ export const attendanceApi = {
     // Fetch details (Manual Join)
     for (const record of records) {
       if (record.student_id) {
-        const studentDoc = await getDoc(doc(db, "students", record.student_id));
+        const studentDoc = await getDoc(doc(db, userPath, "students", record.student_id));
         if (studentDoc.exists()) {
           record.student = { id: studentDoc.id, name: studentDoc.data().name, email: studentDoc.data().email };
         }
       }
       if (record.class_id) {
-        const classDoc = await getDoc(doc(db, "classes", record.class_id));
+        const classDoc = await getDoc(doc(db, userPath, "classes", record.class_id));
         if (classDoc.exists()) {
           record.class = { id: classDoc.id, name: classDoc.data().name, schedule: classDoc.data().schedule };
         }
@@ -91,12 +80,10 @@ export const attendanceApi = {
    * Get attendance for a specific class and date
    */
   async getByClassAndDate(classId: string, date: string) {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
+    const userPath = getUserPath();
 
     const q = query(
-      collection(db, 'attendance'),
-      where('user_id', '==', user.uid),
+      collection(db, userPath, 'attendance'),
       where('class_id', '==', classId),
       where('date', '==', date)
     );
@@ -107,7 +94,7 @@ export const attendanceApi = {
     // Fetch student details
     for (const record of records) {
       if (record.student_id) {
-        const studentDoc = await getDoc(doc(db, "students", record.student_id));
+        const studentDoc = await getDoc(doc(db, userPath, "students", record.student_id));
         if (studentDoc.exists()) {
           record.student = { id: studentDoc.id, name: studentDoc.data().name, email: studentDoc.data().email };
         }
@@ -127,14 +114,11 @@ export const attendanceApi = {
     status: AttendanceStatus, 
     notes?: string
   ) {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
-
+    const userPath = getUserPath();
     const attendanceId = `${studentId}_${classId}_${date}`;
-    const docRef = doc(db, "attendance", attendanceId);
+    const docRef = doc(db, userPath, "attendance", attendanceId);
     
     const attendanceData = {
-      user_id: user.uid,
       student_id: studentId,
       class_id: classId,
       date,
@@ -153,19 +137,16 @@ export const attendanceApi = {
    * Mark attendance for multiple students (bulk operation)
    */
   async markBulkAttendance(records: AttendanceRecord[], classId: string, date: string) {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
-
+    const userPath = getUserPath();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
     const result: string[] = [];
 
     for (const record of records) {
       const attendanceId = `${record.student_id}_${classId}_${date}`;
-      const docRef = doc(db, "attendance", attendanceId);
+      const docRef = doc(db, userPath, "attendance", attendanceId);
       
       const data = {
-        user_id: user.uid,
         student_id: record.student_id,
         class_id: classId,
         date,
@@ -180,10 +161,10 @@ export const attendanceApi = {
 
     await batch.commit();
 
-    // Fetching created records (Optional, based on original return type)
+    // Fetching created records
     const updatedRecords: Attendance[] = [];
     for (const id of result) {
-      const snap = await getDoc(doc(db, "attendance", id));
+      const snap = await getDoc(doc(db, userPath, "attendance", id));
       if (snap.exists()) {
         updatedRecords.push(toData<Attendance>(snap));
       }
@@ -196,7 +177,7 @@ export const attendanceApi = {
    * Delete attendance record
    */
   async delete(id: string) {
-    const docRef = doc(db, "attendance", id);
+    const docRef = doc(db, getUserPath(), "attendance", id);
     await deleteDoc(docRef);
   },
 
@@ -208,12 +189,10 @@ export const attendanceApi = {
    * Get attendance statistics for a student
    */
   async getStudentStats(studentId: string, classId?: string, dateFrom?: string, dateTo?: string): Promise<StudentAttendanceStats> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
+    const userPath = getUserPath();
 
     let q = query(
-      collection(db, 'attendance'),
-      where('user_id', '==', user.uid),
+      collection(db, userPath, 'attendance'),
       where('student_id', '==', studentId)
     );
 
@@ -244,7 +223,7 @@ export const attendanceApi = {
     }
 
     // Fetch student name
-    const studentDoc = await getDoc(doc(db, "students", studentId));
+    const studentDoc = await getDoc(doc(db, userPath, "students", studentId));
     const studentName = studentDoc.exists() ? studentDoc.data().name : 'Unknown Student';
 
     const presentCount = data.filter(r => r.status === 'P').length;
@@ -276,18 +255,16 @@ export const attendanceApi = {
    * Get attendance statistics for a class
    */
   async getClassStats(classId: string, dateFrom?: string, dateTo?: string): Promise<ClassAttendanceStats> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
+    const userPath = getUserPath();
 
     // Get class info
-    const classDoc = await getDoc(doc(db, "classes", classId));
+    const classDoc = await getDoc(doc(db, userPath, "classes", classId));
     if (!classDoc.exists()) throw new Error("Class not found");
     const classData = classDoc.data();
 
     // Get all attendance records for the class
     let q = query(
-      collection(db, 'attendance'),
-      where('user_id', '==', user.uid),
+      collection(db, userPath, 'attendance'),
       where('class_id', '==', classId)
     );
 
@@ -328,7 +305,7 @@ export const attendanceApi = {
 
     for (const [studentId, studentRecords] of Object.entries(studentGroups)) {
       const records = studentRecords as any[];
-      const studentDoc = await getDoc(doc(db, "students", studentId));
+      const studentDoc = await getDoc(doc(db, userPath, "students", studentId));
       const studentName = studentDoc.exists() ? studentDoc.data().name : 'Unknown Student';
 
       const presentCount = records.filter(r => r.status === 'P').length;
@@ -409,13 +386,11 @@ export const attendanceApi = {
    * Get attendance overview for a specific date range
    */
   async getCalendarEvents(dateFrom: string, dateTo: string): Promise<AttendanceCalendarEvent[]> {
-    const user = auth.currentUser;
-    if (!user) throw new Error('User not authenticated');
+    const userPath = getUserPath();
 
     // Get all classes for user
     const classesQuery = query(
-      collection(db, 'classes'),
-      where('user_id', '==', user.uid),
+      collection(db, userPath, 'classes'),
       where('active', '==', true)
     );
     const classesSnap = await getDocs(classesQuery);
@@ -427,8 +402,7 @@ export const attendanceApi = {
 
     // Get attendance data for the date range
     const attendanceQuery = query(
-      collection(db, 'attendance'),
-      where('user_id', '==', user.uid)
+      collection(db, userPath, 'attendance')
     );
     const attendanceSnap = await getDocs(attendanceQuery);
     let attendance = attendanceSnap.docs.map(doc => doc.data());
@@ -460,7 +434,6 @@ export const attendanceApi = {
         const key = `${classItem.id}-${dateStr}`;
         const attendanceData = attendanceMap[key];
 
-        // Only add if attendance was taken or it's a scheduled class (Simplification: adding all for simplicity)
         if (attendanceData) {
           events.push({
             date: dateStr,

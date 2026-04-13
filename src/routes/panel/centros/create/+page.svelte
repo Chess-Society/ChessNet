@@ -4,7 +4,7 @@
   import { showError, showToast } from '$lib/utils/toast';
   import { ArrowLeft, School, MapPin, Globe, Sparkles, X, Check } from 'lucide-svelte';
   import type { PageData } from './$types';
-  import { fade, fly } from 'svelte/transition';
+  import { fade, fly, scale } from 'svelte/transition';
 
   let { data } = $props<{ data: PageData }>();
 

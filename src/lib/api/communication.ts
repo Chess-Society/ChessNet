@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, toData, getUserPath } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -9,18 +9,9 @@ import {
   orderBy, 
   addDoc, 
   updateDoc, 
-  deleteDoc,
-  setDoc,
-  writeBatch,
-  limit,
-  type DocumentData
+  deleteDoc
 } from "firebase/firestore";
-import type { Announcement, Student } from "$lib/types";
-
-// Helper to convert Firestore document to data with ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
+import type { Announcement } from "$lib/types";
 
 export const communicationApi = {
   // Get announcements by school
@@ -33,8 +24,9 @@ export const communicationApi = {
       offset?: number;
     },
   ): Promise<Announcement[]> {
+    const userPath = getUserPath();
     let q = query(
-      collection(db, "announcements"),
+      collection(db, userPath, "announcements"),
       where("school_id", "==", schoolId),
       orderBy("created_at", "desc")
     );
@@ -64,7 +56,8 @@ export const communicationApi = {
 
   // Get a specific announcement
   async getAnnouncement(id: string): Promise<Announcement> {
-    const docSnap = await getDoc(doc(db, "announcements", id));
+    const userPath = getUserPath();
+    const docSnap = await getDoc(doc(db, userPath, "announcements", id));
     if (!docSnap.exists()) throw new Error("Announcement not found");
     return toData<Announcement>(docSnap);
   },
@@ -81,8 +74,7 @@ export const communicationApi = {
     isPublished: boolean = false,
     expiresAt?: string,
   ): Promise<Announcement> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const announcementData = {
       school_id: schoolId,
@@ -95,12 +87,11 @@ export const communicationApi = {
       is_published: isPublished,
       published_at: isPublished ? new Date().toISOString() : null,
       expires_at: expiresAt || null,
-      created_by: user.uid,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "announcements"), announcementData);
+    const docRef = await addDoc(collection(db, userPath, "announcements"), announcementData);
     const docSnap = await getDoc(docRef);
     return toData<Announcement>(docSnap);
   },
@@ -110,7 +101,8 @@ export const communicationApi = {
     id: string,
     updates: Partial<Announcement>,
   ): Promise<Announcement> {
-    const docRef = doc(db, "announcements", id);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "announcements", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -122,7 +114,8 @@ export const communicationApi = {
 
   // Delete an announcement
   async deleteAnnouncement(id: string): Promise<void> {
-    await deleteDoc(doc(db, "announcements", id));
+    const userPath = getUserPath();
+    await deleteDoc(doc(db, userPath, "announcements", id));
   },
 
   // Publish an announcement
@@ -153,27 +146,26 @@ export const communicationApi = {
       | "achievement"
       | "general" = "general",
   ): Promise<any> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not authenticated");
+    const userPath = getUserPath();
 
     const messageData = {
       student_id: studentId,
       title,
       content,
       type,
-      sent_by: user.uid,
       is_read: false,
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "parent_messages"), messageData);
+    const docRef = await addDoc(collection(db, userPath, "parent_messages"), messageData);
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);
   },
 
   // Mark message as read
   async markMessageAsRead(messageId: string): Promise<any> {
-    const docRef = doc(db, "parent_messages", messageId);
+    const userPath = getUserPath();
+    const docRef = doc(db, userPath, "parent_messages", messageId);
     await updateDoc(docRef, { is_read: true });
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);

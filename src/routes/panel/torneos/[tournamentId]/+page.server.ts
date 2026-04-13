@@ -49,7 +49,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       id: `round-${r}`,
       tournament_id: tournamentId,
       round_number: r,
-      status: r < (tournament.current_round || 0) ? 'completed' : (r === tournament.current_round ? 'in_progress' : 'not_started'),
+      status: r < (tournament.current_round || 0) ? 'completed' : (r === (tournament.current_round || 0) ? 'in_progress' : 'not_started'),
       start_time: null,
       end_time: null
     }));

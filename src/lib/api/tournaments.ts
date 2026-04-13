@@ -1,4 +1,4 @@
-import { db, auth } from "$lib/firebase";
+import { db, auth, toData, getUserPath } from "$lib/firebase";
 import { 
   collection, 
   doc, 
@@ -20,20 +20,11 @@ import type {
   Student
 } from "$lib/types";
 
-// Helper para convertir documentos de Firestore a objetos con ID
-const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
-};
-
 export const tournamentsApi = {
   // Get all tournaments for the current user (or specified user)
   async getMyTournaments(userId?: string): Promise<Tournament[]> {
-    const uid = userId || auth.currentUser?.uid;
-    if (!uid) throw new Error("User not authenticated");
-
     const q = query(
-      collection(db, "tournaments"),
-      where("user_id", "==", uid),
+      collection(db, getUserPath(userId), "tournaments"),
       orderBy("created_at", "desc")
     );
     const querySnapshot = await getDocs(q);
@@ -43,7 +34,7 @@ export const tournamentsApi = {
   // Get tournaments by school
   async getTournamentsBySchool(schoolId: string): Promise<Tournament[]> {
     const q = query(
-      collection(db, "tournaments"),
+      collection(db, getUserPath(), "tournaments"),
       where("school_id", "==", schoolId),
       orderBy("created_at", "desc")
     );
@@ -53,7 +44,7 @@ export const tournamentsApi = {
 
   // Get a specific tournament
   async getTournament(id: string): Promise<Tournament> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, getUserPath(), "tournaments", id);
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) throw new Error("Tournament not found");
     return toData<Tournament>(docSnap);
@@ -71,12 +62,10 @@ export const tournamentsApi = {
     timeControl?: string,
     userId?: string
   ): Promise<Tournament> {
-    const uid = userId || auth.currentUser?.uid;
-    if (!uid) throw new Error("User not authenticated");
+    const userPath = getUserPath(userId);
     
     const docData = {
       school_id: schoolId,
-      user_id: uid, // Use user_id as in other collections
       name,
       description: description || "",
       type,
@@ -84,12 +73,12 @@ export const tournamentsApi = {
       end_date: endDate || null,
       max_participants: maxParticipants || null,
       time_control: timeControl || "",
-      created_by: uid,
+      created_by: auth.currentUser?.uid,
       status: "planned",
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "tournaments"), docData);
+    const docRef = await addDoc(collection(db, userPath, "tournaments"), docData);
     const docSnap = await getDoc(docRef);
     return toData<Tournament>(docSnap);
   },
@@ -99,7 +88,7 @@ export const tournamentsApi = {
     id: string,
     updates: Partial<Tournament>,
   ): Promise<Tournament> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, getUserPath(), "tournaments", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString()
@@ -110,13 +99,13 @@ export const tournamentsApi = {
 
   // Delete a tournament
   async deleteTournament(id: string): Promise<void> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, getUserPath(), "tournaments", id);
     await deleteDoc(docRef);
   },
 
   // Start a tournament
   async startTournament(id: string): Promise<void> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, getUserPath(), "tournaments", id);
     await updateDoc(docRef, {
       status: "active",
       start_date: new Date().toISOString().split("T")[0],
@@ -125,7 +114,7 @@ export const tournamentsApi = {
 
   // Complete a tournament
   async completeTournament(id: string): Promise<void> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, getUserPath(), "tournaments", id);
     await updateDoc(docRef, {
       status: "completed",
       end_date: new Date().toISOString().split("T")[0],
@@ -136,8 +125,9 @@ export const tournamentsApi = {
   async getTournamentParticipants(
     tournamentId: string,
   ): Promise<TournamentParticipant[]> {
+    const userPath = getUserPath();
     const q = query(
-      collection(db, "tournament_participants"),
+      collection(db, userPath, "tournament_participants"),
       where("tournament_id", "==", tournamentId),
       orderBy("score", "desc")
     );
@@ -145,11 +135,9 @@ export const tournamentsApi = {
     const participants = querySnapshot.docs.map(doc => toData<TournamentParticipant>(doc));
     
     // FETCH STUDENTS (Equivalent to join)
-    // Para simplificar, obtenemos los datos de cada estudiante
-    // En una app real, esto podría optimizarse con un query 'in'
     for (const p of participants) {
       if (p.student_id) {
-        const studentDoc = await getDoc(doc(db, "students", p.student_id));
+        const studentDoc = await getDoc(doc(db, userPath, "students", p.student_id));
         if (studentDoc.exists()) {
           p.students = toData<Student>(studentDoc);
         }
@@ -165,6 +153,7 @@ export const tournamentsApi = {
     studentId: string,
     rating?: number,
   ): Promise<TournamentParticipant> {
+    const userPath = getUserPath();
     const docData = {
       tournament_id: tournamentId,
       student_id: studentId,
@@ -174,14 +163,15 @@ export const tournamentsApi = {
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "tournament_participants"), docData);
+    const docRef = await addDoc(collection(db, userPath, "tournament_participants"), docData);
     const docSnap = await getDoc(docRef);
     return toData<TournamentParticipant>(docSnap);
   },
 
   // Remove participant from tournament
   async removeParticipant(participantId: string): Promise<void> {
-    await deleteDoc(doc(db, "tournament_participants", participantId));
+    const docRef = doc(db, getUserPath(), "tournament_participants", participantId);
+    await deleteDoc(docRef);
   },
 
   // Update participant score
@@ -190,7 +180,7 @@ export const tournamentsApi = {
     score: number,
     tiebreakScore?: number,
   ): Promise<TournamentParticipant> {
-    const docRef = doc(db, "tournament_participants", participantId);
+    const docRef = doc(db, getUserPath(), "tournament_participants", participantId);
     await updateDoc(docRef, {
       score,
       tiebreak_score: tiebreakScore || 0,
@@ -204,8 +194,9 @@ export const tournamentsApi = {
     tournamentId: string,
     round?: number,
   ): Promise<TournamentMatch[]> {
+    const userPath = getUserPath();
     let q = query(
-      collection(db, "tournament_matches"),
+      collection(db, userPath, "tournament_matches"),
       where("tournament_id", "==", tournamentId)
     );
 
@@ -213,12 +204,9 @@ export const tournamentsApi = {
       q = query(q, where("round", "==", round));
     }
 
-    // Nota: Firestore requiere índices compuestos para múltiples filtros + orderBy
-    // Para evitar errores inmediatos, si hay round, ordenamos en memoria o aceptamos el requerimiento de índice
     const querySnapshot = await getDocs(q);
     let matches = querySnapshot.docs.map(doc => toData<TournamentMatch>(doc));
     
-    // Sort manually to avoid needing complex indexes during initial migration
     matches.sort((a, b) => {
       if (a.round !== b.round) return a.round - b.round;
       return (a.board_number || 0) - (b.board_number || 0);
@@ -227,11 +215,11 @@ export const tournamentsApi = {
     // Populate players (joins)
     for (const m of matches) {
       if (m.player1_id) {
-        const p1Doc = await getDoc(doc(db, "students", m.player1_id));
+        const p1Doc = await getDoc(doc(db, userPath, "students", m.player1_id));
         if (p1Doc.exists()) m.player1 = toData<Student>(p1Doc);
       }
       if (m.player2_id) {
-        const p2Doc = await getDoc(doc(db, "students", m.player2_id));
+        const p2Doc = await getDoc(doc(db, userPath, "students", m.player2_id));
         if (p2Doc.exists()) m.player2 = toData<Student>(p2Doc);
       }
     }
@@ -244,6 +232,7 @@ export const tournamentsApi = {
     tournamentId: string,
     matches: Omit<TournamentMatch, "id" | "tournament_id" | "created_at">[],
   ): Promise<TournamentMatch[]> {
+    const userPath = getUserPath();
     const createdMatches: TournamentMatch[] = [];
     
     for (const match of matches) {
@@ -252,7 +241,7 @@ export const tournamentsApi = {
         tournament_id: tournamentId,
         created_at: new Date().toISOString()
       };
-      const docRef = await addDoc(collection(db, "tournament_matches"), docData);
+      const docRef = await addDoc(collection(db, userPath, "tournament_matches"), docData);
       const docSnap = await getDoc(docRef);
       createdMatches.push(toData<TournamentMatch>(docSnap));
     }
@@ -267,7 +256,7 @@ export const tournamentsApi = {
     moves?: string[],
     gameDurationSeconds?: number,
   ): Promise<TournamentMatch> {
-    const docRef = doc(db, "tournament_matches", matchId);
+    const docRef = doc(db, getUserPath(), "tournament_matches", matchId);
     await updateDoc(docRef, {
       result,
       moves: moves || [],

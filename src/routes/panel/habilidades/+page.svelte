@@ -20,9 +20,9 @@
   // Datos reactivos desde el store
   let skills = $derived($appStore.skills || []);
 
-  const filteredSkills = $derived(() => {
-    return skills.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  });
+  const filteredSkills = $derived(
+    skills.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const deleteSkill = (id: string) => {
     const skill = skills.find(s => s.id === id);
@@ -70,7 +70,7 @@
     />
   </div>
 
-  {#if filteredSkills().length === 0}
+  {#if filteredSkills.length === 0}
     <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
       <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
         <Target class="w-10 h-10" />
@@ -82,7 +82,7 @@
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each filteredSkills() as skill, i}
+      {#each filteredSkills as skill, i}
         <div 
           class="bg-[#1e293b]/60 border border-slate-800 rounded-3xl p-6 hover:border-yellow-500/30 transition-all group relative overflow-hidden"
           in:fly={{ y: 20, delay: i * 50 }}
@@ -117,7 +117,7 @@
           <div class="space-y-3 mb-6 relative z-10">
              <div class="flex items-center gap-2 text-xs text-slate-400">
                 <Layers class="w-3.5 h-3.5" />
-                Nivel: {skill.level || 'Básico'}
+                Dificultad: {'⭐'.repeat(skill.difficulty || 1)}
              </div>
              {#if skill.description}
                <p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
