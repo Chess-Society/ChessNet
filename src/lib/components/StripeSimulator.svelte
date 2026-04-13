@@ -90,6 +90,7 @@
                         <label class="flex items-center justify-between cursor-pointer group">
                             <span class="text-sm text-slate-300 group-hover:text-white transition-colors">Variables de entorno (Netlify)</span>
                             <button 
+                                aria-label="Toggle Env Vars"
                                 onclick={() => hasEnvVars = !hasEnvVars}
                                 class="w-10 h-5 rounded-full transition-colors relative {hasEnvVars ? 'bg-emerald-500' : 'bg-slate-700'}"
                             >
@@ -100,6 +101,7 @@
                         <label class="flex items-center justify-between cursor-pointer group">
                             <span class="text-sm text-slate-300 group-hover:text-white transition-colors">Importación adminDb correcta</span>
                             <button 
+                                aria-label="Toggle Admin DB Status"
                                 onclick={() => hasCorrectImport = !hasCorrectImport}
                                 class="w-10 h-5 rounded-full transition-colors relative {hasCorrectImport ? 'bg-emerald-500' : 'bg-slate-700'}"
                             >
@@ -110,6 +112,7 @@
                         <label class="flex items-center justify-between cursor-pointer group">
                             <span class="text-sm text-slate-300 group-hover:text-white transition-colors">UID enviado (checkout)</span>
                             <button 
+                                aria-label="Toggle User ID Status"
                                 onclick={() => hasUserId = !hasUserId}
                                 class="w-10 h-5 rounded-full transition-colors relative {hasUserId ? 'bg-emerald-500' : 'bg-slate-700'}"
                             >

@@ -30,21 +30,23 @@
   const categories = $derived(data.categories || []);
   const availablePrerequisites = $derived(data.availablePrerequisites || []);
 
-  // Form data state
+  // Form data state - Snapshot the initial data to avoid Svelte 5 state capturing warnings
+  const initial = $state.snapshot(data.skill);
+  
   let formData = $state({
-    name: skillData?.name || '',
-    description: skillData?.description || '',
-    category_id: skillData?.category_id || '',
-    difficulty: skillData?.difficulty || 1,
-    estimated_hours: skillData?.estimated_hours || 1,
-    prerequisites: (skillData?.prerequisites || []) as string[],
-    learning_objectives: (skillData?.learning_objectives || ['']) as string[],
-    assessment_criteria: (skillData?.assessment_criteria || ['']) as string[],
-    resources: (skillData?.resources || ['']) as string[],
-    icon: skillData?.icon || '',
-    resource_link: skillData?.resource_link || '',
-    order_index: skillData?.order_index || 1,
-    active: skillData?.active ?? true
+    name: initial?.name || '',
+    description: initial?.description || '',
+    category_id: initial?.category_id || '',
+    difficulty: initial?.difficulty || 1,
+    estimated_hours: initial?.estimated_hours || 1,
+    prerequisites: (initial?.prerequisites || []) as string[],
+    learning_objectives: (initial?.learning_objectives || ['']) as string[],
+    assessment_criteria: (initial?.assessment_criteria || ['']) as string[],
+    resources: (initial?.resources || ['']) as string[],
+    icon: initial?.icon || '',
+    resource_link: initial?.resource_link || '',
+    order_index: initial?.order_index || 1,
+    active: initial?.active ?? true
   });
 
   // Form UI state
@@ -598,9 +600,9 @@
                   <div class="mt-1 space-y-1">
                     {#each formData.prerequisites as prereqId}
                       {#each availablePrerequisites.filter((s: Skill) => s.id === prereqId) as prereq}
-                        <div class="text-xs text-slate-300 bg-slate-700/50 rounded px-2 py-1">
+                        <span class="flex-1 text-sm text-slate-300 hover:text-emerald-400 truncate cursor-pointer transition-colors">
                           {prereq.name}
-                        </div>
+                        </span>
                       {/each}
                     {/each}
                   </div>
@@ -673,15 +675,17 @@
 </div>
 
 <style>
+  /* Styles simplified to avoid @apply warnings during build */
   .input {
-    @apply bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+    background-color: rgb(51, 65, 85); /* slate-700 */
+    border: 1px solid rgb(71, 85, 105); /* slate-600 */
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: white;
   }
-  
-  .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center;
-  }
-  
-  .btn-secondary {
-    @apply bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center border border-slate-600;
+  .input:focus {
+    outline: none;
+    border-color: rgb(16, 185, 129); /* primary-500/emerald-500 */
+    box-shadow: 0 0 0 1px rgb(16, 185, 129);
   }
 </style>

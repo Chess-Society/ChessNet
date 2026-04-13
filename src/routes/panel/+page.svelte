@@ -221,10 +221,13 @@
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
       {#each displayedActions() as action, i}
         <div 
+          role="button"
+          tabindex="0"
           draggable={editMode}
           ondragstart={(e) => handleDragStart(e, action.id)}
           ondragover={(e) => handleDragOver(e, action.id)}
           ondragend={handleDragEnd}
+          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') !editMode && goto(action.link) }}
           class="relative transition-all duration-200 {draggedId === action.id ? 'scale-105 z-10 opacity-50' : ''}"
         >
           <button 
@@ -454,7 +457,9 @@
                                 style="height: {height}%">
                                <div class="absolute bottom-0 left-0 right-0 bg-blue-500/40" style="height: 40%"></div>
                            </div>
-                           <span class="text-[10px] text-slate-600 mt-2">{chartData.labels[i]}</span>
+                           <span class="flex-1 text-sm text-slate-300 hover:text-emerald-400 truncate cursor-pointer transition-colors">
+                             {chartData.labels[i]}
+                           </span>
                        </div>
                     {/each}
                 </div>

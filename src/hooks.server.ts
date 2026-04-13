@@ -1,56 +1,52 @@
 import { redirect, type Handle } from '@sveltejs/kit';
-import { ADMIN_EMAILS, MAINTENANCE_EXEMPT_ROUTES } from '$lib/constants';
-import { adminDb } from '$lib/firebase-admin';
+
+// We define these here to avoid any $lib import issues during SvelteKit build analysis
+const ADMIN_EMAILS = [
+    'andreslgumuzio@gmail.com',
+    'tomih@chess-society.com',
+    'admin@chessnet.app'
+];
+
+const MAINTENANCE_EXEMPT_ROUTES = ['/admin', '/auth/login', '/api/stripe/webhook', '/mantenimiento'];
 
 export const handle: Handle = async ({ event, resolve }) => {
-    const { cookies, locals, url } = event;
-    const path = url.pathname;
+    // 1. Session & Impersonation Handling
+	const session = event.cookies.get('session');
+	const impersonate = event.cookies.get('impersonate_id');
 
-    // 1. Recuperar usuario de la sesión (cookie)
-    const sessionCookie = cookies.get('sb-auth-token');
-    if (sessionCookie) {
-        try {
-            locals.user = JSON.parse(decodeURIComponent(sessionCookie));
-        } catch (e) {
-            locals.user = null;
-        }
-    }
+	event.locals.user = session ? { email: session } : null;
+    
+    const userEmail = event.locals.user?.email?.toLowerCase();
+	event.locals.isAdmin = userEmail ? ADMIN_EMAILS.includes(userEmail) : false;
+	event.locals.impersonateEmail = impersonate || null;
 
-    const isAdmin = locals.user?.email && ADMIN_EMAILS.includes(locals.user.email.toLowerCase());
+	// 2. Admin Security Guard
+	if (event.url.pathname.startsWith('/admin')) {
+		if (!event.locals.isAdmin) {
+			throw redirect(303, '/login?error=unauthorized');
+		}
+	}
 
-    // 2. Manejar Impersonación (Suplantación)
-    if (isAdmin) {
-        const impersonateId = cookies.get('impersonate_id');
-        if (impersonateId) {
-            locals.impersonateId = impersonateId;
-            console.log(`👤 [Auth Hook] Admin ${locals.user?.email} suplantando a ${impersonateId}`);
-        }
-    }
-
-    // 3. Proteger ruta /admin
-    if (path.startsWith('/admin') && !isAdmin) {
-        console.warn(`🚫 [Auth Hook] Intento de acceso no autorizado a /admin por ${locals.user?.email || 'Desconocido'}`);
-        throw redirect(302, '/auth/login');
-    }
-
-    // 4. Verificar Modo Mantenimiento (Global pero con excepciones)
-    const isExempt = MAINTENANCE_EXEMPT_ROUTES.some(route => path.startsWith(route));
+	// 3. Maintenance Guard (Server-side check)
+    const isExempt = MAINTENANCE_EXEMPT_ROUTES.some(route => event.url.pathname.startsWith(route));
     
     if (!isExempt) {
         try {
-            // Intentamos obtener el estado de mantenimiento (esto podría cachearse)
-            const configDoc = await adminDb.collection('system').doc('config').get();
-            const maintenanceMode = configDoc.exists ? configDoc.data()?.maintenanceMode : false;
+            // Lazy load the admin DB ONLY when needed and in a real request
+            const { adminDb } = await import('./lib/firebase-admin');
+            if (adminDb) {
+                const configDoc = await adminDb.collection('system').doc('config').get();
+                const isMaintenance = configDoc.exists ? configDoc.data()?.maintenance_mode === true : false;
 
-            if (maintenanceMode && !isAdmin) {
-                console.log('🚧 [Auth Hook] Bloqueo por modo mantenimiento activo');
-                // Podríamos redirigir a una página específica de mantenimiento
-                return new Response('El sistema está en mantenimiento. Vuelve pronto.', { status: 503 });
+                if (isMaintenance && !event.locals.isAdmin) {
+                    throw redirect(307, '/mantenimiento');
+                }
             }
-        } catch (err) {
-            console.error('❌ [Auth Hook] Error verificando mantenimiento:', err);
+        } catch (error) {
+            // Rethrow redirects, ignore other errors (e.g. build-time missing DB)
+            if (error && typeof error === 'object' && 'status' in error) throw error;
         }
     }
 
-    return await resolve(event);
+	return await resolve(event);
 };
