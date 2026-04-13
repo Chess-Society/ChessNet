@@ -50,10 +50,25 @@ export const adminApi = {
   },
 
   /**
-   * Obtiene la lista de usuarios (profesores) con métricas básicas.
+   * Obtiene la lista de usuarios (profesores) con soporte para búsqueda.
    */
-  async getUsersList(limitCount = 100) {
-    const q = query(collection(db, "users"), orderBy("createdAt", "desc"), limit(limitCount));
+  async getUsersList(limitCount = 100, emailSearch = "") {
+    let q;
+    const usersRef = collection(db, "users");
+
+    if (emailSearch) {
+      // Búsqueda simple por prefijo (Firestore limitation: exact match or range)
+      // Nota: Para búsquedas más potentes se usaría Algolia/ElasticSearch
+      q = query(
+        usersRef, 
+        where("email", ">=", emailSearch),
+        where("email", "<=", emailSearch + "\uf8ff"),
+        limit(limitCount)
+      );
+    } else {
+      q = query(usersRef, orderBy("createdAt", "desc"), limit(limitCount));
+    }
+
     const querySnapshot = await getDocs(q);
     
     return querySnapshot.docs.map(doc => ({

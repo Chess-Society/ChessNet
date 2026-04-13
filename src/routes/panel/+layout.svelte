@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { LogOut, Settings, Home, Key, ChevronRight } from 'lucide-svelte';
+  import { LogOut, Settings, Home, Key, ChevronRight, AlertTriangle } from 'lucide-svelte';
   import { fade } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
   import { appStore } from '$lib/stores/appStore';
@@ -21,6 +21,17 @@
   let email = $derived($authUser?.email || '');
   
   let currentRoute = $derived($page.url.pathname);
+
+  // Impersonation state
+  let isImpersonating = $state(false);
+  onMount(() => {
+    isImpersonating = document.cookie.includes('impersonate_id=');
+  });
+
+  function stopImpersonating() {
+    document.cookie = 'impersonate_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    window.location.href = '/admin';
+  }
 
   // Breadcrumbs dinámicos idénticos a gh-pages
   let breadcrumbName = $derived.by(() => {
@@ -70,9 +81,18 @@
 </script>
 
 <div class="min-h-screen bg-[#0f172a] text-slate-200 font-sans selection:bg-emerald-500/30">
-  <header class="fixed inset-x-0 top-0 z-50 transition-all duration-300 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800">
-    <!-- El header se mantiene igual -->
-    <div class="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between gap-4">
+  {#if isImpersonating}
+    <div class="fixed top-0 inset-x-0 h-10 bg-red-600 z-[60] flex items-center justify-center gap-3 px-4 shadow-lg">
+      <AlertTriangle class="w-4 h-4 text-white" />
+      <span class="text-xs font-bold text-white uppercase tracking-wider">Modo Impersonación Activo</span>
+      <button onclick={stopImpersonating} class="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-colors">
+        Volver a Admin
+      </button>
+    </div>
+  {/if}
+
+  <header class="fixed top-0 right-0 left-0 bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/5 z-50 transition-all {isImpersonating ? 'mt-10' : ''}">
+    <div class="max-w-7xl mx-auto px-4 h-[72px] flex items-center justify-between gap-4">
       <div class="flex items-center gap-6 min-w-0">
         
         <button onclick={handleGoHome} class="flex items-center gap-2 cursor-pointer focus:outline-none group" type="button">

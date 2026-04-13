@@ -33,6 +33,8 @@
   let announcements = $state<any[]>([]);
   let systemLogs = $state<any[]>([]);
   let maintenanceMode = $state(false);
+  let userSearchTerm = $state('');
+
 
   let isLoading = $state(true);
   let isAuthorized = $derived(data.isAdmin || false);
@@ -93,6 +95,9 @@
   });
 
   $effect(() => {
+    if (activeTab === 'users') {
+      adminApi.getUsersList(100, userSearchTerm).then(data => users = data);
+    }
     if (activeTab === 'announcements') {
       adminApi.getGlobalAnnouncements().then(data => announcements = data);
     }
@@ -385,6 +390,20 @@
       {:else if activeTab === 'users'}
         <!-- Users CRM View -->
         <div class="space-y-6" in:fade>
+            <!-- Search Bar -->
+            <div class="flex items-center gap-4 bg-[#1e293b]/60 backdrop-blur-xl p-3 rounded-2xl border border-white/5 mb-6 shadow-xl">
+                <Search class="w-5 h-5 text-slate-500 ml-3" />
+                <input 
+                    bind:value={userSearchTerm}
+                    type="text" 
+                    placeholder="Buscar profesor por email..." 
+                    class="bg-transparent border-none focus:ring-0 text-sm text-white w-full py-1.5 placeholder:text-slate-600 font-bold"
+                />
+                {#if userSearchTerm}
+                    <button onclick={() => userSearchTerm = ''} class="text-[10px] uppercase font-black text-slate-500 hover:text-white px-3 transition-colors">Limpiar</button>
+                {/if}
+            </div>
+
             <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -518,12 +537,14 @@
                                 {#each systemLogs as log}
                                     <tr class="hover:bg-white/[0.02] transition-colors">
                                         <td class="p-5">
-                                            <p class="text-xs font-bold text-slate-300">{log.action}</p>
-                                            <p class="text-[10px] text-slate-500">{log.details}</p>
+                                            <p class="text-xs font-bold text-slate-300 capitalize">{log.type?.replace(/_/g, ' ') || log.action || 'Evento'}</p>
+                                            <p class="text-[10px] text-slate-500 truncate max-w-xs">{typeof log.details === 'object' ? JSON.stringify(log.details) : log.details}</p>
                                         </td>
-                                        <td class="p-5 text-[10px] font-mono text-slate-500">{log.timestamp}</td>
+                                        <td class="p-5 text-[10px] font-mono text-slate-500">{formatDate(log.timestamp)}</td>
                                         <td class="p-5">
-                                            <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded-lg uppercase tracking-tighter border border-emerald-500/20">Success</span>
+                                            <span class="px-2 py-0.5 {log.status === 'error' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'} text-[9px] font-bold rounded-lg uppercase tracking-tighter border">
+                                                {log.status || 'Success'}
+                                            </span>
                                         </td>
                                     </tr>
                                 {/each}

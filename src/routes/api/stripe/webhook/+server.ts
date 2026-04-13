@@ -1,74 +1,129 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { json } from '@sveltejs/kit';
 import Stripe from 'stripe';
-import { env } from '$env/dynamic/private';
-import { db } from '$lib/firebase';
-import { doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
+import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
+import { adminDb } from '$lib/firebase-admin'; 
 
-export const POST: RequestHandler = async ({ request }) => {
-  const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
-  const body = await request.text();
-  const sig = request.headers.get('stripe-signature');
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16' as any,
+});
 
-  if (!sig || !env.STRIPE_WEBHOOK_SECRET || env.STRIPE_WEBHOOK_SECRET === 'whsec_...') {
-    console.warn('⚠️ Webhook recibido sin secreto de firma configurado. Saltando verificación (solo para desarrollo inicial).');
-  }
-
-  let event;
-
-  try {
-    if (sig && env.STRIPE_WEBHOOK_SECRET && env.STRIPE_WEBHOOK_SECRET !== 'whsec_...') {
-      event = stripe.webhooks.constructEvent(body, sig, env.STRIPE_WEBHOOK_SECRET);
-    } else {
-      event = JSON.parse(body);
+/**
+ * Registra un log en la base de datos para auditoría
+ */
+async function logSystemEvent(data: { type: string, userId?: string, status: 'success' | 'error', details: any }) {
+    try {
+        await adminDb.collection('system_logs').add({
+            ...data,
+            category: 'payments',
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        console.error('❌ Falló el guardado del log:', err);
     }
-  } catch (err: any) {
-    console.error(`❌ Error de firma de Webhook: ${err.message}`);
-    return json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
-  }
+}
 
-  // Manejar el evento
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object as Stripe.Checkout.Session;
-      const uid = session.client_reference_id;
-      
-      if (uid) {
-        console.log(`✅ Pago completado para el usuario: ${uid}`);
-        
-        try {
-          const userRef = doc(db, 'users', uid);
-          const settingsRef = doc(db, 'users', uid, 'config', 'settings');
-          
-          // Actualizar el plan del usuario
-          // Usamos una estructura estándar para ChessNet
-          await setDoc(settingsRef, {
-            subscription: {
-              plan: 'premium',
-              status: 'active',
-              stripe_customer_id: session.customer,
-              stripe_subscription_id: session.subscription,
-              updated_at: new Date().toISOString()
+export const POST = async ({ request }) => {
+    const body = await request.text();
+    const signature = request.headers.get('stripe-signature');
+
+    if (!signature) {
+        return json({ error: 'Falta la firma de Stripe' }, { status: 400 });
+    }
+
+    let event: Stripe.Event;
+
+    try {
+        event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
+    } catch (err: any) {
+        console.error('⚠️ Error verificando webhook:', err.message);
+        return json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+    }
+
+    console.log(`🔌 Recibido evento Stripe: ${event.type}`);
+
+    try {
+        switch (event.type) {
+            case 'checkout.session.completed': {
+                const session = event.data.object as Stripe.Checkout.Session;
+                const userId = session.client_reference_id; 
+                
+                if (userId) {
+                    await adminDb.collection('users').doc(userId).update({
+                        'settings.plan': 'premium',
+                        'settings.stripe_customer_id': session.customer,
+                        'settings.status': 'active',
+                        updatedAt: new Date().toISOString()
+                    });
+
+                    await logSystemEvent({
+                        type: 'pago_completado',
+                        userId,
+                        status: 'success',
+                        details: { sessionId: session.id, customer: session.customer }
+                    });
+
+                    console.log(`✅ Usuario ${userId} actualizado a Premium`);
+                }
+                break;
             }
-          }, { merge: true });
 
-          console.log(`🚀 Plan actualizado en Firestore para: ${uid}`);
-        } catch (dbError) {
-          console.error('❌ Error actualizando Firestore:', dbError);
+            case 'customer.subscription.deleted': {
+                const subscription = event.data.object as Stripe.Subscription;
+                const customerId = subscription.customer as string;
+
+                const snapshot = await adminDb.collection('users').where('settings.stripe_customer_id', '==', customerId).get();
+
+                if (!snapshot.empty) {
+                    const userDoc = snapshot.docs[0];
+                    await userDoc.ref.update({
+                        'settings.plan': 'free',
+                        'settings.status': 'canceled',
+                        updatedAt: new Date().toISOString()
+                    });
+
+                    await logSystemEvent({
+                        type: 'suscripcion_cancelada',
+                        userId: userDoc.id,
+                        status: 'success',
+                        details: { subscriptionId: subscription.id, customer: customerId }
+                    });
+
+                    console.log(`❌ Suscripción cancelada para el usuario ${userDoc.id}`);
+                }
+                break;
+            }
+
+            case 'invoice.payment_failed': {
+                const invoice = event.data.object as Stripe.Invoice;
+                const customerId = invoice.customer as string;
+                
+                const snapshot = await adminDb.collection('users').where('settings.stripe_customer_id', '==', customerId).get();
+                if (!snapshot.empty) {
+                    await logSystemEvent({
+                        type: 'pago_fallido',
+                        userId: snapshot.docs[0].id,
+                        status: 'error',
+                        details: { invoiceId: invoice.id, amount: invoice.amount_due }
+                    });
+                }
+                break;
+            }
+
+            default:
+                console.log(`Evento no manejado: ${event.type}`);
         }
-      }
-      break;
 
-    case 'customer.subscription.deleted':
-      const subscription = event.data.object as Stripe.Subscription;
-      const customerId = subscription.customer as string;
-      // TODO: Buscar el usuario por stripe_customer_id y degradar su plan
-      console.log(`ℹ️ Suscripción cancelada para el cliente: ${customerId}`);
-      break;
+        return json({ received: true });
 
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
+    } catch (error: any) {
+        console.error('❌ Error en el procesamiento del webhook:', error);
+        
+        await logSystemEvent({
+            type: 'webhook_error',
+            status: 'error',
+            details: { message: error.message, eventType: event.type }
+        });
 
-  return json({ received: true });
+        return json({ error: 'Error interno del servidor' }, { status: 500 });
+    }
 };
