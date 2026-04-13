@@ -1,7 +1,22 @@
 import { auth, db } from "$lib/firebase";
 import { query, collection, where } from "firebase/firestore";
+import { ADMIN_EMAILS } from "$lib/constants";
 
-export const getOwnerId = () => auth.currentUser?.uid || null;
+export const getOwnerId = () => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) return null;
+
+  // Si es Admin, revisamos si está suplantando a alguien
+  if (ADMIN_EMAILS.includes(currentUser.email || '')) {
+    const impersonatedId = typeof document !== 'undefined' 
+        ? document.cookie.split('; ').find(row => row.startsWith('impersonate_id='))?.split('=')[1]
+        : null;
+    
+    if (impersonatedId) return impersonatedId;
+  }
+
+  return currentUser.uid;
+};
 
 export const getOwnedQuery = (collectionName: string) => {
   const uid = getOwnerId();

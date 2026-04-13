@@ -1,7 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-
-const ADMIN_EMAILS = ["andreslgumuzio@gmail.com", "andrelgumuzio@gmail.com"];
+import { ADMIN_EMAILS } from '$lib/constants';
 
 export const load: PageServerLoad = async ({ locals }) => {
     // Si no hay usuario logueado, a login

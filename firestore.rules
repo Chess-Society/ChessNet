@@ -3,9 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isAuthenticated() { return request.auth != null; }
     function isSuperAdmin() { 
-      return isAuthenticated() && 
-        (request.auth.token.email in ["andreslgumuzio@gmail.com", "andrelgumuzio@gmail.com"] ||
-         request.auth.uid == "MsxmTi3rl6O47Pjz17IQViy0DZt1");
+      return isAuthenticated() && request.auth.token.email == "andreslgumuzio@gmail.com";
     }
     function isOwner(docData) { return docData.owner_id == request.auth.uid; }
     

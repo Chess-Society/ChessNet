@@ -2,30 +2,37 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { db, auth } from '$lib/firebase';
-  import { collection, query, onSnapshot, orderBy, limit, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
-  import { onAuthStateChanged } from 'firebase/auth';
+  import { collection, query, onSnapshot, orderBy, limit, doc, updateDoc, setDoc, getDoc, addDoc } from 'firebase/firestore';
   import { user as authUser, loading as authLoading } from '$lib/stores/auth';
   import { fade, slide, scale } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
-  import { Settings, UserCheck, Clock, ShieldCheck, Mail, LogOut, ChevronRight, Edit3, Trophy } from 'lucide-svelte';
+  import { 
+    Settings, UserCheck, Clock, ShieldCheck, Mail, LogOut, 
+    ChevronRight, Edit3, Trophy, BarChart3, Users, Bell, 
+    Shield, Target, Zap, Activity, Filter, Search, MoreHorizontal
+  } from 'lucide-svelte';
+  import { adminApi } from '$lib/api/admin';
+  import { ADMIN_EMAILS } from '$lib/constants';
 
-  let { data } = $props();
+  let { data }: { data: any } = $props();
   
-  const ADMIN_EMAILS = ['andreslgumuzio@gmail.com', 'andrelgumuzio@gmail.com'];
+  // Estado de Navegación
+  let activeTab = $state<'dashboard' | 'users' | 'announcements' | 'system'>('dashboard');
 
+  // Estado de Datos
   let users = $state<any[]>([]);
-  let stats = $derived({
-    total: users.length,
-    premium: users.filter(u => u.settings?.plan === 'premium' || u.config?.settings?.subscription?.plan === 'premium').length,
-    free: users.filter(u => u.settings?.plan !== 'premium' && u.config?.settings?.subscription?.plan !== 'premium').length,
-    recent: users.filter(u => {
-        const date = u.createdAt ? new Date(u.createdAt) : new Date();
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - date.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays <= 7;
-    }).length
-  });
+  let globalStats = $state<{
+    totalUsers: number,
+    totalStudents: number,
+    totalSchools: number,
+    totalClasses: number,
+    premiumUsers: number,
+    recentUsers: number
+  }>({ totalUsers: 0, totalStudents: 0, totalSchools: 0, totalClasses: 0, premiumUsers: 0, recentUsers: 0 });
+
+  let announcements = $state<any[]>([]);
+  let systemLogs = $state<any[]>([]);
+  let maintenanceMode = $state(false);
 
   let isLoading = $state(true);
   let isAuthorized = $derived(data.isAdmin || false);
@@ -36,46 +43,123 @@
   let showEditModal = $state(false);
   let isSaving = $state(false);
 
-  onMount(() => {
+  // Anuncios
+  let announcementForm = $state({
+    title: '',
+    content: '',
+    type: 'general' as any,
+    priority: 'normal' as any
+  });
+
+  onMount(async () => {
     if (isAuthorized) {
-      const unsubscribe = startMonitoring();
-      return () => unsubscribe && typeof unsubscribe === 'function' && unsubscribe();
+      isLoading = true;
+      try {
+        const stats = await adminApi.getGlobalStats();
+        globalStats = stats;
+        
+        const config = await adminApi.getMaintenanceStatus();
+        maintenanceMode = config.maintenanceMode;
+
+        startMonitoring();
+      } catch (err: any) {
+        error = err.message;
+      } finally {
+        isLoading = false;
+      }
+    }
+  });
+
+  $effect(() => {
+    if (activeTab === 'announcements') {
+      adminApi.getGlobalAnnouncements().then(data => announcements = data);
+    }
+    if (activeTab === 'system') {
+      adminApi.getSystemLogs().then(data => systemLogs = data);
     }
   });
 
   function startMonitoring() {
-    isLoading = true;
     try {
-      // Monitoreamos la colección de usuarios
       const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(100));
-      
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const usersList: any[] = [];
         snapshot.forEach((doc) => {
           usersList.push({ id: doc.id, ...doc.data() });
         });
         users = usersList;
-        isLoading = false;
       }, (err) => {
         console.error('❌ Error de Firestore:', err);
-        error = 'Error de permisos en Firestore. Asegúrate de haber desplegado las nuevas reglas.';
-        isLoading = false;
+        error = 'Error de permisos en Firestore.';
       });
-
       return unsubscribe;
     } catch (err: any) {
         error = err.message;
-        isLoading = false;
     }
   }
 
+  // Lógica de Suplantación (Impersonate)
+  function handleImpersonate(userId: string) {
+    if (!confirm('¿Entrar en modo suplantación para este usuario? Podrás ver su panel como si fueras él.')) return;
+    document.cookie = `impersonate_id=${userId}; path=/; max-age=3600`;
+    goto('/panel');
+  }
+
+  function handleStopImpersonation() {
+    document.cookie = 'impersonate_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    location.reload();
+  }
+
+  async function handleSendAnnouncement() {
+    if (!announcementForm.title || !announcementForm.content) return;
+    isSaving = true;
+    try {
+      await addDoc(collection(db, 'announcements'), {
+        ...announcementForm,
+        is_global: true,
+        is_published: true,
+        created_at: new Date().toISOString(),
+        published_at: new Date().toISOString(),
+        owner_id: $authUser?.uid // El admin es el dueño del anuncio
+      });
+      announcements = await adminApi.getGlobalAnnouncements();
+      alert('Anuncio enviado correctamente');
+      announcementForm = { title: '', content: '', type: 'general', priority: 'normal' };
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    } finally {
+       isSaving = false;
+    }
+  }
+
+  async function handleDeleteAnnouncement(id: string) {
+    if (!confirm('¿Eliminar este anuncio?')) return;
+    try {
+      await adminApi.deleteAnnouncement(id);
+      announcements = announcements.filter(a => a.id !== id);
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  }
+
+  async function handleToggleMaintenance() {
+    const next = !maintenanceMode;
+    if (next && !confirm('¿Activar modo mantenimiento? Se bloqueará el acceso a todos los usuarios.')) return;
+    try {
+      await adminApi.toggleMaintenanceMode(next);
+      maintenanceMode = next;
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  }
+
+  // Gestión de Planes Premium
   async function handleGrantPremium(userId: string, days: number) {
     isSaving = true;
     try {
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + days);
         
-        // Actualizamos tanto en el doc de usuario como en su configuración de app
         const userDocRef = doc(db, 'users', userId);
         const appDataRef = doc(db, 'users', userId, 'appData', 'v1');
 
@@ -87,27 +171,24 @@
 
         await updateDoc(userDocRef, updatePayload);
         
-        // También actualizamos el config dentro de appData para que el frontend lo vea
         const snap = await getDoc(appDataRef);
         if (snap.exists()) {
-            const currentData = snap.data();
             await updateDoc(appDataRef, {
                 'settings.plan': 'premium',
                 'settings.planExpiresAt': expirationDate.toISOString()
             });
         }
-
-        console.log(`✅ Plan Premium concedido por ${days} días`);
         showEditModal = false;
+        alert('Plan concedido con éxito');
     } catch (err: any) {
-        alert('Error al conceder plan: ' + err.message);
+        alert('Error: ' + err.message);
     } finally {
         isSaving = false;
     }
   }
 
   async function handleRevokePremium(userId: string) {
-    if (!confirm('¿Estás seguro de revocar el plan Premium?')) return;
+    if (!confirm('¿Revocar suscripción premium?')) return;
     isSaving = true;
     try {
         const userDocRef = doc(db, 'users', userId);
@@ -118,12 +199,15 @@
             'settings.planExpiresAt': null
         });
 
-        await updateDoc(appDataRef, {
-            'settings.plan': 'free',
-            'settings.planExpiresAt': null
-        });
-
+        const snap = await getDoc(appDataRef);
+        if (snap.exists()) {
+            await updateDoc(appDataRef, {
+                'settings.plan': 'free',
+                'settings.planExpiresAt': null
+            });
+        }
         showEditModal = false;
+        alert('Plan revocado');
     } catch (err: any) {
         alert('Error: ' + err.message);
     } finally {
@@ -136,296 +220,326 @@
     showEditModal = true;
   }
 
+  // Helpers existentes corregidos
   function formatDate(dateStr: any) {
     if (!dateStr) return 'N/A';
-    return new Date(dateStr).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
+    try {
+      return new Date(dateStr).toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch { return 'N/A'; }
   }
 
   function getPlanStatus(user: any) {
-    const plan = user.settings?.plan || user.config?.settings?.subscription?.plan || 'free';
-    const expiresAt = user.settings?.planExpiresAt;
-    
-    if (plan === 'premium') {
-        if (expiresAt && new Date(expiresAt) < new Date()) return 'expired';
-        return 'premium';
-    }
-    return 'free';
+    return user?.settings?.plan || user?.config?.settings?.subscription?.plan || 'free';
   }
 </script>
 
 <svelte:head>
-  <title>Admin HQ - ChessNet</title>
+  <title>ChessNet | Centro de Mando Admin</title>
 </svelte:head>
 
-<div class="min-h-screen bg-[#0f172a] text-white font-sans p-4 md:p-8 selection:bg-emerald-500/30">
+<div class="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-emerald-500/30">
   
   <!-- Background Elements -->
   <div class="fixed inset-0 z-0 opacity-20 pointer-events-none">
     <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
   </div>
-  <div class="fixed top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[128px] pointer-events-none"></div>
+  <div class="fixed top-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[128px] pointer-events-none"></div>
 
-  {#if $authLoading}
-    <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4 relative z-10" in:fade>
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-      <p class="text-slate-400 font-medium tracking-wide font-display uppercase text-xs">Verificando Credenciales...</p>
+  {#if $authLoading || isLoading}
+    <div class="flex flex-col items-center justify-center min-h-screen gap-6 relative z-10" in:fade>
+      <Logo size="w-16 h-16" iconSize="w-8 h-8" />
+      <div class="flex flex-col items-center gap-2">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+        <p class="text-slate-400 font-medium tracking-widest uppercase text-xs">Sincronizando Sistema...</p>
+      </div>
     </div>
   {:else if !isAuthorized}
-    <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4 relative z-10" in:fade>
-      <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
-        <ShieldCheck class="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h2 class="text-xl font-bold text-white">Acceso Denegado</h2>
-        <p class="text-slate-400 text-sm mt-2">No tienes permisos para acceder a esta sección.</p>
-        <button onclick={() => goto('/panel')} class="mt-6 px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-xl transition-all">
-          Volver al Panel
+    <div class="flex flex-col items-center justify-center min-h-screen gap-4 relative z-10" in:fade>
+      <div class="p-8 bg-[#1e293b]/80 backdrop-blur-2xl border border-red-500/20 rounded-3xl text-center shadow-2xl max-w-md">
+        <div class="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShieldCheck class="w-10 h-10 text-red-500" />
+        </div>
+        <h2 class="text-2xl font-black text-white mb-2 font-display">ACCESO DENEGADO</h2>
+        <p class="text-slate-400 text-sm leading-relaxed mb-8">Esta área está reservada para el control central de la plataforma.</p>
+        <button onclick={() => goto('/panel')} class="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all shadow-xl hover:scale-[1.02] active:scale-95">
+          Volver al Panel Seguro
         </button>
       </div>
     </div>
   {:else}
-    <div class="max-w-7xl mx-auto space-y-8 relative z-10" in:fade>
+    <div class="max-w-[1600px] mx-auto p-4 md:p-8 space-y-10 relative z-10" in:fade>
       
-      <!-- Top Bar -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div class="flex items-center gap-5">
-          <div class="relative group">
-            <div class="absolute -inset-2 bg-emerald-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div class="relative p-3.5 bg-[#1e293b]/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-xl">
-              <Logo size="w-10 h-10" iconSize="w-6 h-6" />
-            </div>
+      <!-- Top Navigation & Profile -->
+      <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-[2.5rem] shadow-2xl">
+        <div class="flex items-center gap-6">
+          <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-lg ring-4 ring-emerald-500/5">
+            <Logo size="w-10 h-10" iconSize="w-6 h-6" />
           </div>
           <div>
-            <h1 class="text-3xl font-extrabold tracking-tight text-white mb-1">Centro de Mando</h1>
-            <div class="flex items-center gap-2 text-slate-400 text-xs font-medium uppercase tracking-widest">
-                <ShieldCheck class="w-3.5 h-3.5 text-emerald-500" />
-                Acceso Super-Admin
-                <span class="mx-2 text-slate-700">|</span>
-                <span class="text-emerald-500/80">Sincronización Activa</span>
+            <h1 class="text-3xl font-black tracking-tight text-white mb-1 font-display uppercase italic">COMMAND CENTER</h1>
+            <div class="flex items-center gap-3">
+                <span class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                    <Activity class="w-3 h-3" /> System Live
+                </span>
+                <span class="text-slate-500 text-xs font-medium uppercase tracking-widest hidden md:inline">Root Level Auth</span>
             </div>
           </div>
         </div>
-        
-        <div class="flex items-center gap-3">
-          <div class="px-4 py-2 rounded-xl bg-slate-900/50 border border-slate-700/50 flex items-center gap-3 shadow-inner">
-            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span class="text-[10px] font-bold text-slate-300 tracking-tighter uppercase tabular-nums">Real-time Node</span>
-          </div>
-          <button 
-            onclick={() => window.location.reload()}
-            class="p-2.5 bg-[#1e293b] hover:bg-slate-800 border border-slate-700 rounded-xl transition-all text-slate-400 hover:text-white shadow-lg"
-          >
-            <Settings class="w-5 h-5" />
-          </button>
-        </div>
-      </div>
 
-      {#if error}
-        <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3" in:slide>
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          {error}
+        <nav class="flex flex-wrap items-center gap-2 bg-black/20 p-1.5 rounded-2xl border border-white/5">
+            {#each ['dashboard', 'users', 'announcements', 'system'] as tab}
+                <button 
+                    onclick={() => activeTab = tab as any}
+                    class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 {activeTab === tab ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}"
+                >
+                    {tab}
+                </button>
+            {/each}
+        </nav>
+      </header>
+
+      {#if activeTab === 'dashboard'}
+        <!-- Dashboard View -->
+        <div class="space-y-10" in:fade>
+            <!-- KPI Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-emerald-500/20 transition-all shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                        <Users class="w-40 h-40" />
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="p-3 bg-emerald-500/10 rounded-2xl">
+                            <Users class="w-6 h-6 text-emerald-500" />
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Total Profesores</p>
+                    <h3 class="text-5xl font-black text-white tabular-nums tracking-tighter">{globalStats.totalUsers}</h3>
+                </div>
+
+                <div class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-blue-500/20 transition-all shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                        <Target class="w-40 h-40" />
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="p-3 bg-blue-500/10 rounded-2xl">
+                            <Target class="w-6 h-6 text-blue-500" />
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Maestros Premium</p>
+                    <h3 class="text-5xl font-black text-white tabular-nums tracking-tighter">{globalStats.premiumUsers}</h3>
+                </div>
+
+                <div class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-purple-500/20 transition-all shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                        <Logo size="w-40 h-40" />
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="p-3 bg-purple-500/10 rounded-2xl">
+                            <Zap class="w-6 h-6 text-purple-500" />
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Registros (7d)</p>
+                    <h3 class="text-5xl font-black text-white tabular-nums tracking-tighter">{globalStats.recentUsers}</h3>
+                </div>
+
+                <div class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-amber-500/20 transition-all shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                        <Trophy class="w-40 h-40" />
+                    </div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="p-3 bg-amber-500/10 rounded-2xl">
+                            <Shield class="w-6 h-6 text-amber-500" />
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Tasa Conversión</p>
+                    <h3 class="text-5xl font-black text-white tabular-nums tracking-tighter">{globalStats.totalUsers > 0 ? ((globalStats.premiumUsers / globalStats.totalUsers) * 100).toFixed(1) : 0}%</h3>
+                </div>
+            </div>
+        </div>
+      {:else if activeTab === 'users'}
+        <!-- Users CRM View -->
+        <div class="space-y-6" in:fade>
+            <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-black/20 border-b border-white/5">
+                                <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Profesor / Email</th>
+                                <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Plan</th>
+                                <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Registro</th>
+                                <th class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            {#each users as user}
+                                <tr class="hover:bg-white/[0.02] transition-colors group">
+                                    <td class="p-6">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl flex items-center justify-center font-bold text-slate-300">
+                                                {user.email?.[0].toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-sm tracking-tight">{user.email}</p>
+                                                <p class="text-[9px] text-slate-500 font-mono tracking-tighter uppercase">{user.id}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="p-6">
+                                        <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest {getPlanStatus(user) === 'premium' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-slate-500/10 text-slate-500 border border-white/10'}">
+                                            {getPlanStatus(user)}
+                                        </span>
+                                    </td>
+                                    <td class="p-6 text-xs text-slate-400 font-medium">{formatDate(user.createdAt)}</td>
+                                    <td class="p-6 text-right">
+                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                onclick={() => handleImpersonate(user.id)}
+                                                class="p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 rounded-xl transition-all"
+                                            >
+                                                <LogOut class="w-4 h-4 rotate-180" />
+                                            </button>
+                                            <button 
+                                                onclick={() => openEditModal(user)}
+                                                class="p-2.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20 rounded-xl transition-all"
+                                            >
+                                                <Edit3 class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+      {:else if activeTab === 'announcements'}
+        <!-- Announcements View -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8" in:fade>
+            <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl">
+                <h3 class="text-xl font-bold font-display uppercase italic tracking-wider mb-8">Lanzar Notificación Global</h3>
+                <div class="space-y-6">
+                    <input bind:value={announcementForm.title} type="text" placeholder="Título" class="w-full px-6 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm focus:outline-none focus:border-emerald-500 transition-all" />
+                    <textarea bind:value={announcementForm.content} rows="4" placeholder="Contenido..." class="w-full px-6 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm focus:outline-none focus:border-emerald-500 transition-all resize-none"></textarea>
+                    <button onclick={handleSendAnnouncement} disabled={isSaving} class="w-full py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-emerald-500/20 disabled:opacity-50">
+                        {isSaving ? 'Enviando...' : 'Lanzar Anuncio'}
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                <h3 class="text-xl font-bold font-display uppercase italic tracking-wider mb-8">Anuncios Activos</h3>
+                <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    {#each announcements as a}
+                        <div class="p-5 bg-white/5 border border-white/10 rounded-2xl group transition-all hover:bg-white/[0.08]" in:slide>
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="space-y-1">
+                                    <h4 class="font-bold text-sm">{a.title}</h4>
+                                    <p class="text-xs text-slate-400 line-clamp-2">{a.content}</p>
+                                    <p class="text-[9px] text-slate-500 uppercase tracking-tighter">{formatDate(a.created_at)}</p>
+                                </div>
+                                <button onclick={() => handleDeleteAnnouncement(a.id)} class="p-2 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                                    <LogOut class="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    {/each}
+                    {#if announcements.length === 0}
+                        <p class="text-center text-slate-500 py-10 text-sm italic">No hay anuncios globales activos.</p>
+                    {/if}
+                </div>
+            </div>
+        </div>
+      {:else if activeTab === 'system'}
+        <!-- System Controls View -->
+        <div class="space-y-10" in:fade>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Maintenance Control -->
+                <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6">
+                    <div class="flex items-center gap-4 mb-2">
+                        <div class="p-3 bg-red-500/10 rounded-2xl">
+                            <Shield class="w-6 h-6 text-red-500" />
+                        </div>
+                        <h3 class="text-lg font-bold uppercase tracking-wider">Seguridad Global</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-xs text-slate-400 leading-relaxed">Activar el modo mantenimiento bloqueará el acceso a todos los usuarios no administrativos de forma instantánea.</p>
+                        <button 
+                            onclick={handleToggleMaintenance}
+                            class="w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all {maintenanceMode ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-white/5 text-red-400 border border-red-500/20 hover:bg-red-500/10'}"
+                        >
+                            {maintenanceMode ? 'Desactivar Bloqueo' : 'Activar Mantenimiento'}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Summary Sidebar -->
+                <div class="lg:col-span-2 bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col">
+                    <div class="p-8 border-b border-white/5 flex items-center justify-between">
+                        <h3 class="text-lg font-bold uppercase tracking-wider">Monitor de Actividad</h3>
+                        <span class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-500/20">Últimos Eventos</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-black/10 border-b border-white/5">
+                                    <th class="p-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Evento</th>
+                                    <th class="p-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Timestamp</th>
+                                    <th class="p-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                {#each systemLogs as log}
+                                    <tr class="hover:bg-white/[0.02] transition-colors">
+                                        <td class="p-5">
+                                            <p class="text-xs font-bold text-slate-300">{log.action}</p>
+                                            <p class="text-[10px] text-slate-500">{log.details}</p>
+                                        </td>
+                                        <td class="p-5 text-[10px] font-mono text-slate-500">{log.timestamp}</td>
+                                        <td class="p-5">
+                                            <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded-lg uppercase tracking-tighter border border-emerald-500/20">Success</span>
+                                        </td>
+                                    </tr>
+                                {/each}
+                                {#if systemLogs.length === 0}
+                                    <tr>
+                                        <td colspan="3" class="p-10 text-center text-slate-500 text-xs italic">No hay logs recientes en el sistema.</td>
+                                    </tr>
+                                {/if}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
       {/if}
 
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-3xl group relative overflow-hidden transition-all hover:border-emerald-500/20 shadow-2xl">
-          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Mail class="w-12 h-12" />
-          </div>
-          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-3">Total Profesores</p>
-          <h3 class="text-4xl font-extrabold text-white tabular-nums tracking-tighter group-hover:text-emerald-400 transition-colors">
-            {stats.total}
-          </h3>
-        </div>
-
-        <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-3xl group relative overflow-hidden transition-all hover:border-purple-500/20 shadow-2xl">
-          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Trophy class="w-12 h-12" />
-          </div>
-          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-3">Maestros Premium</p>
-          <div class="flex items-baseline gap-3">
-              <h3 class="text-4xl font-extrabold text-purple-400 tabular-nums tracking-tighter">
-                {stats.premium}
-              </h3>
-              <span class="text-xs font-bold text-slate-600">
-                {stats.total > 0 ? ((stats.premium / stats.total) * 100).toFixed(0) : 0}%
-              </span>
-          </div>
-        </div>
-
-        <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-3xl group relative overflow-hidden transition-all hover:border-blue-500/20 shadow-2xl">
-          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <UserCheck class="w-12 h-12" />
-          </div>
-          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-3">Registros (7d)</p>
-          <h3 class="text-4xl font-extrabold text-blue-400 tabular-nums tracking-tighter">
-            {stats.recent}
-          </h3>
-        </div>
-
-        <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-3xl group relative overflow-hidden transition-all hover:border-slate-500/20 shadow-2xl">
-          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Clock class="w-12 h-12" />
-          </div>
-          <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-3">Tasa Conversión</p>
-          <h3 class="text-4xl font-extrabold text-slate-300 tabular-nums tracking-tighter">
-            {stats.total > 0 ? ((stats.premium / stats.total) * 100).toFixed(1) : 0}%
-          </h3>
-        </div>
-      </div>
-
-      <!-- Main Content Area -->
-      <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden">
-        <div class="p-8 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5">
-            <div>
-                <h3 class="text-xl font-bold flex items-center gap-3">
-                    Directorio de Profesores
-                </h3>
-                <p class="text-slate-500 text-xs mt-1">Gestión avanzada de permisos y planes</p>
-            </div>
-            <div class="relative w-full sm:w-64">
-                <input 
-                    type="text" 
-                    placeholder="Buscar por email..." 
-                    class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500/30 outline-none transition-all"
-                />
-            </div>
-        </div>
-        
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="text-slate-500 text-[10px] uppercase font-black tracking-[0.2em] bg-white/5">
-                <th class="px-8 py-5">Nombre / Email</th>
-                <th class="px-8 py-5">Estado Plan</th>
-                <th class="px-8 py-5">Registro</th>
-                <th class="px-8 py-5 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-              {#if isLoading}
-                <tr><td colspan="4" class="px-8 py-20 text-center text-slate-600 italic">Analizando base de datos...</td></tr>
-              {:else if users.length === 0}
-                <tr><td colspan="4" class="px-8 py-20 text-center text-slate-600 italic">No se han encontrado registros</td></tr>
-              {:else}
-                {#each users as user (user.id)}
-                  {@const status = getPlanStatus(user)}
-                  <tr class="hover:bg-white/5 transition-all group" in:fade={{duration: 200}}>
-                    <td class="px-8 py-5">
-                      <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center font-bold text-slate-300 shadow-lg border border-white/5 group-hover:scale-110 transition-transform">
-                            {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <div class="font-bold text-white group-hover:text-emerald-400 transition-colors">{user.displayName || 'Maestro Anónimo'}</div>
-                            <div class="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">{user.id}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-8 py-5">
-                        <div class="flex items-center gap-3">
-                            {#if status === 'premium'}
-                                <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-black px-2.5 py-1 rounded-lg border border-emerald-500/30">PREMIUM</span>
-                                <span class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Hasta {formatDate(user.settings?.planExpiresAt)}</span>
-                            {:else if status === 'expired'}
-                                <span class="bg-amber-500/10 text-amber-500 text-[10px] font-black px-2.5 py-1 rounded-lg border border-amber-500/30 text-decoration-line-through">EXPIRED</span>
-                            {:else}
-                                <span class="bg-slate-800/50 text-slate-600 text-[10px] font-black px-2.5 py-1 rounded-lg border border-slate-700/50">AJEDRECISTA</span>
-                            {/if}
-                        </div>
-                    </td>
-                    <td class="px-8 py-5">
-                      <div class="text-xs text-slate-400 font-medium">{formatDate(user.createdAt)}</div>
-                      <div class="text-slate-600 text-[10px] lowercase max-w-[150px] truncate">{user.email}</div>
-                    </td>
-                    <td class="px-8 py-5 text-right">
-                        <button 
-                            onclick={() => openEditModal(user)}
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg hover:shadow-emerald-600/20 active:scale-95"
-                        >
-                            Gestionar
-                        </button>
-                    </td>
-                  </tr>
-                {/each}
-              {/if}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
-  {/if}
 
-  <!-- Modals -->
-  {#if showEditModal && selectedUser}
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0f172a]/80 backdrop-blur-sm" transition:fade>
-        <div class="bg-[#1e293b] w-full max-w-lg rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden" in:scale={{start: 0.95}}>
-            <div class="p-8 border-b border-white/5 bg-white/5 flex items-center justify-between">
-                <div>
-                    <h3 class="text-xl font-bold tracking-tight">Gestionar Profesor</h3>
-                    <p class="text-slate-400 text-xs mt-1">{selectedUser.email}</p>
+    <!-- Modal de Edición -->
+    {#if showEditModal && selectedUser}
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" transition:fade>
+            <div class="bg-[#1e293b] w-full max-w-lg rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden" transition:scale>
+                <div class="p-8 border-b border-white/5 flex items-center justify-between bg-emerald-500/5">
+                    <h3 class="text-xl font-black font-display uppercase italic tracking-wider">Gestión de Perfil</h3>
+                    <button onclick={() => showEditModal = false} class="p-2 hover:bg-white/5 rounded-xl transition-all"><LogOut class="w-5 h-5 rotate-180" /></button>
                 </div>
-                <button onclick={() => showEditModal = false} class="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-white transition-colors">
-                    <LogOut class="w-5 h-5 rotate-180" />
-                </button>
-            </div>
-
-            <div class="p-8 space-y-8">
-                <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Conceder Periodo Premium</p>
+                <div class="p-8 space-y-8">
                     <div class="grid grid-cols-2 gap-3">
-                        <button 
-                            onclick={() => handleGrantPremium(selectedUser.id, 3)}
-                            disabled={isSaving}
-                            class="px-4 py-3 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 border border-slate-700 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
-                        >
-                            3 Días (Trial)
-                        </button>
-                        <button 
-                            onclick={() => handleGrantPremium(selectedUser.id, 7)}
-                            disabled={isSaving}
-                            class="px-4 py-3 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 border border-slate-700 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
-                        >
-                            7 Días (Cortesía)
-                        </button>
-                        <button 
-                            onclick={() => handleGrantPremium(selectedUser.id, 15)}
-                            disabled={isSaving}
-                            class="px-4 py-3 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 border border-slate-700 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
-                        >
-                            15 Días (Extend.)
-                        </button>
-                        <button 
-                            onclick={() => handleGrantPremium(selectedUser.id, 30)}
-                            disabled={isSaving}
-                            class="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/50 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
-                        >
-                            30 Días (Mes)
-                        </button>
+                        <button onclick={() => handleGrantPremium(selectedUser.id, 7)} disabled={isSaving} class="px-4 py-4 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 border border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">7 Días</button>
+                        <button onclick={() => handleGrantPremium(selectedUser.id, 30)} disabled={isSaving} class="px-4 py-4 bg-emerald-500 text-black border border-emerald-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">30 Días</button>
                     </div>
+                    {#if getPlanStatus(selectedUser) === 'premium'}
+                        <button onclick={() => handleRevokePremium(selectedUser.id)} disabled={isSaving} class="w-full py-4 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Revocar Premium</button>
+                    {/if}
                 </div>
-
-                {#if getPlanStatus(selectedUser) === 'premium'}
-                    <div class="pt-6 border-t border-white/5">
-                        <button 
-                            onclick={() => handleRevokePremium(selectedUser.id)}
-                            disabled={isSaving}
-                            class="w-full px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-2xl text-sm font-bold transition-all disabled:opacity-50"
-                        >
-                            Revocar Plan Premium
-                        </button>
-                    </div>
-                {/if}
-            </div>
-
-            <div class="p-6 bg-slate-900/50 text-center">
-                <p class="text-[9px] text-slate-600 uppercase font-black">ChessNet Admin Engine v1.0 • Acceso Super-Admin</p>
             </div>
         </div>
-    </div>
+    {/if}
   {/if}
 
 </div>
@@ -441,16 +555,11 @@
     font-family: 'Outfit', sans-serif;
   }
 
-  h1, h3 {
+  h1, h3, h4 {
     font-family: 'Outfit', sans-serif;
   }
 
   .tabular-nums {
     font-variant-numeric: tabular-nums;
-  }
-
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
   }
 </style>
