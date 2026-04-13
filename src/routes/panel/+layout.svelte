@@ -10,7 +10,7 @@
 
   import { user as authUser, loading as authLoading } from '$lib/stores/auth';
   
-  let { children } = $props();
+  let { data, children } = $props();
 
   let isLoggingOut = $state(false);
 
@@ -23,10 +23,7 @@
   let currentRoute = $derived($page.url.pathname);
 
   // Impersonation state
-  let isImpersonating = $state(false);
-  onMount(() => {
-    isImpersonating = document.cookie.includes('impersonate_id=');
-  });
+  let isImpersonating = $derived(!!data.impersonateEmail);
 
   function stopImpersonating() {
     document.cookie = 'impersonate_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
@@ -155,7 +152,7 @@
               <a href="/panel/configuracion" class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                 <Settings class="w-4 h-4" /> Configuración
               </a>
-              {#if email?.toLowerCase() === 'andreslgumuzio@gmail.com'}
+              {#if data.isAdmin}
                 <a href="/admin" class="flex items-center gap-3 px-4 py-2.5 text-sm font-black text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 rounded-xl transition-all">
                   <Key class="w-4 h-4" /> Panel Administrativo
                 </a>
