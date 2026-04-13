@@ -5,6 +5,7 @@ declare global {
     // interface Error {}
     interface Locals {
       user: any | null;
+      impersonateId?: string | null;
     }
     // interface PageData {}
     // interface PageState {}

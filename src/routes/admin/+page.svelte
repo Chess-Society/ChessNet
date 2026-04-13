@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { goto } from "$app/navigation";
   import { db, auth } from "$lib/firebase";
   import {
@@ -76,10 +76,10 @@
   let error = $state("");
 
   // Reactividad refinada
-  let isSuperAdmin = $derived(
-    $authUser?.email?.toLowerCase() === "andreslgumuzio@gmail.com",
+  let isAuthorized = $derived(
+    data?.isAdmin || 
+    ($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()))
   );
-  let isAuthorized = $derived(data?.isAdmin || isSuperAdmin);
 
   // Modales y Edición
   let selectedUser = $state<any>(null);
@@ -94,6 +94,8 @@
     priority: "normal" as any,
   });
 
+  let unsubscribeUsers: (() => void) | null = null;
+
   onMount(async () => {
     console.log("🚀 [Admin] page.svelte mounted. Data:", data);
     console.log("👤 [Admin] authUser:", $authUser?.email);
@@ -106,7 +108,7 @@
       return;
     }
 
-    // Safety timeout: 10s (más generoso)
+    // Safety timeout: 10s
     const timeout = setTimeout(() => {
       if (isLoading) {
         console.warn("⚠️ [Admin] Loading timeout hit (10s).");
@@ -129,7 +131,8 @@
         maintenanceMode = config.maintenanceMode;
 
         console.log("📡 [Admin] Starting monitoring...");
-        startMonitoring();
+        const unsub = startMonitoring();
+        if (unsub) unsubscribeUsers = unsub;
       } catch (err: any) {
         console.error("❌ [Admin] Error loading initial data:", err);
         error = err.message || "Error desconocido al cargar datos.";
@@ -144,6 +147,13 @@
       );
       clearTimeout(timeout);
       isLoading = false;
+    }
+  });
+
+  onDestroy(() => {
+    if (unsubscribeUsers) {
+      console.log("📴 [Admin] Cleaning up listeners...");
+      unsubscribeUsers();
     }
   });
 
