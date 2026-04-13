@@ -30,8 +30,10 @@
   const categories = $derived(data.categories || []);
   const availablePrerequisites = $derived(data.availablePrerequisites || []);
 
-  // Form data state - Snapshot the initial data for the form
-  const initial = $state.snapshot(data).skill;
+  import { untrack } from 'svelte';
+  
+  // Form data state - Snapshot the initial data for the form without tracking 'data'
+  const initial = untrack(() => $state.snapshot(data.skill));
   
   let formData = $state({
     name: initial?.name || '',
