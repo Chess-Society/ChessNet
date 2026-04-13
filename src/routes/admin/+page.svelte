@@ -39,9 +39,11 @@
 
 
   let isLoading = $state(true);
-  let isSuperAdmin = $derived($authUser?.email?.toLowerCase() === "andreslgumuzio@gmail.com");
-  let isAuthorized = $derived(data.isAdmin || isSuperAdmin);
   let error = $state('');
+  
+  // Reactividad refinada
+  let isSuperAdmin = $derived($authUser?.email?.toLowerCase() === "andreslgumuzio@gmail.com");
+  let isAuthorized = $derived(data?.isAdmin || isSuperAdmin);
 
   // Modales y Edición
   let selectedUser = $state<any>(null);
@@ -57,16 +59,26 @@
   });
 
   onMount(async () => {
-    console.log('🚀 [Admin] onMount - isAuthorized:', isAuthorized);
+    console.log('🚀 [Admin] page.svelte mounted. Data:', data);
+    console.log('👤 [Admin] authUser:', $authUser?.email);
+    console.log('🛡️ [Admin] isAuthorized:', isAuthorized);
     
-    // Safety timeout: 5s
+    // Si ya sabemos que no está autorizado y el auth no está cargando, paramos aquí
+    if (!$authLoading && !isAuthorized) {
+        console.warn('🚫 [Admin] Unauthorized immediately on mount');
+        isLoading = false;
+        return;
+    }
+
+    // Safety timeout: 10s (más generoso)
     const timeout = setTimeout(() => {
       if (isLoading) {
-        console.warn('⚠️ [Admin] Loading timeout hit. Forcing UI display.');
+        console.warn('⚠️ [Admin] Loading timeout hit (10s).');
         isLoading = false;
-        error = 'La carga de datos está tardando demasiado. Verifique su conexión y permisos.';
+        if (!isAuthorized) error = 'No tiene permisos para acceder o la sesión ha expirado.';
       }
-    }, 5000);
+    }, 10000);
+
 
     if (isAuthorized) {
       isLoading = true;

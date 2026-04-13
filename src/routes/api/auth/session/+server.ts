@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
-    secure: true,
+    secure: import.meta.env.PROD,
     maxAge: 60 * 60 * 24 * 7 // 1 week
   });
 
