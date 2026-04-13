@@ -9,7 +9,10 @@ export const load: PageServerLoad = async ({ locals }) => {
     }
 
     // Si hay usuario, pero no es el admin, al panel normal
-    if (!ADMIN_EMAILS.includes(locals.user.email)) {
+    const userEmail = locals.user.email?.toLowerCase();
+    const isAuthorized = ADMIN_EMAILS.some(e => e.toLowerCase() === userEmail);
+
+    if (!isAuthorized) {
         throw redirect(303, '/panel');
     }
 

@@ -33,7 +33,7 @@
     });
   }
 
-  const isAdmin = $derived($user?.email && ADMIN_EMAILS.includes($user.email));
+  const isAdmin = $derived($user?.email && ADMIN_EMAILS.map(e => e.toLowerCase()).includes($user.email.toLowerCase()));
 
   // Centralized Navigation Guard (Runes)
   $effect(() => {

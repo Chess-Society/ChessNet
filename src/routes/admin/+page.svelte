@@ -52,21 +52,43 @@
   });
 
   onMount(async () => {
+    console.log('🚀 [Admin] onMount - isAuthorized:', isAuthorized);
+    
+    // Safety timeout: 5s
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('⚠️ [Admin] Loading timeout hit. Forcing UI display.');
+        isLoading = false;
+        error = 'La carga de datos está tardando demasiado. Verifique su conexión y permisos.';
+      }
+    }, 5000);
+
     if (isAuthorized) {
       isLoading = true;
       try {
+        console.log('📊 [Admin] Fetching stats...');
         const stats = await adminApi.getGlobalStats();
+        console.log('✅ [Admin] Stats received:', stats);
         globalStats = stats;
         
+        console.log('🔧 [Admin] Fetching maintenance status...');
         const config = await adminApi.getMaintenanceStatus();
         maintenanceMode = config.maintenanceMode;
 
+        console.log('📡 [Admin] Starting monitoring...');
         startMonitoring();
       } catch (err: any) {
-        error = err.message;
+        console.error('❌ [Admin] Error loading initial data:', err);
+        error = err.message || 'Error desconocido al cargar datos.';
       } finally {
+        console.log('🏁 [Admin] Loading finished.');
+        clearTimeout(timeout);
         isLoading = false;
       }
+    } else {
+      console.warn('🚫 [Admin] Not authorized according to isAuthorized property.');
+      clearTimeout(timeout);
+      isLoading = false;
     }
   });
 
