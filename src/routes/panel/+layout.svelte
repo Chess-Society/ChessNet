@@ -64,13 +64,8 @@
   // Desactivamos SSR para el panel para evitar problemas de hidratación con Firebase
   export const ssr = false;
 
-  // Redirección si no hay usuario después de cargar
-  $effect(() => {
-    if (!$authLoading && !$authUser) {
-      console.log('🚶 No hay usuario detectado, redirigiendo a login...');
-      goto('/login');
-    }
-  });
+  // Nota: La redirección ahora se gestiona centralizadamente en el layout raíz (+layout.svelte)
+  // para evitar bucles de redirección infinitos en producción.
 
 </script>
 

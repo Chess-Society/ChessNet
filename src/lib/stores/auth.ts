@@ -14,8 +14,14 @@ export const initAuth = () => {
   let resolved = false;
 
   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-    console.log("🔄 Auth state changed:", firebaseUser ? firebaseUser.email : 'none');
+    console.log("🔄 Auth state changed (onAuthStateChanged):", firebaseUser ? firebaseUser.email : 'none');
     user.set(firebaseUser);
+    loading.set(false);
+    authInitialized.set(true);
+    resolved = true;
+    console.log("✅ Auth store synchronized.");
+  }, (error) => {
+    console.error("❌ Auth state error:", error);
     loading.set(false);
     authInitialized.set(true);
     resolved = true;
@@ -27,6 +33,7 @@ export const initAuth = () => {
       console.warn('⚠️ Auth timeout. Forcing state.');
       loading.set(false);
       authInitialized.set(true);
+      resolved = true;
     }
   }, 8000);
 

@@ -17,14 +17,20 @@
     return unsubscribe;
   });
 
-  // Redirección inteligente: Si está logueado y en la landing/login, llevar al panel
+  // Centralized Navigation Guard (Runes)
   $effect(() => {
-    if ($authInitialized && $user) {
-      const path = $page.url.pathname;
-      if (path === '/' || path === '/login') {
-        console.log('🚀 User logged in, redirecting from', path, 'to /panel');
-        goto('/panel');
-      }
+    if (!$authInitialized) return;
+
+    const path = $page.url.pathname;
+    const isProtected = path.startsWith('/panel') || path.startsWith('/admin');
+    const isPublicOnly = path === '/' || path === '/login';
+
+    if ($user && isPublicOnly) {
+      console.log('🛡️ Guard: Authenticated user on public page, redirecting to /panel');
+      goto('/panel');
+    } else if (!$user && isProtected) {
+      console.log('🛡️ Guard: Unauthenticated user on protected page, redirecting to /login');
+      goto('/login');
     }
   });
 </script>
