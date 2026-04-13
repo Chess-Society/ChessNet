@@ -17,5 +17,7 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 
   return {
     user: locals.user || null,
+    isAdmin: locals.isAdmin || false,
+    impersonateEmail: locals.impersonateEmail || null
   };
 };

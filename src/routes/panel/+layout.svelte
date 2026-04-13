@@ -9,8 +9,9 @@
   import { onMount } from 'svelte';
 
   import { user as authUser, loading as authLoading } from '$lib/stores/auth';
+  import type { LayoutData } from './$types';
   
-  let { data, children } = $props();
+  let { data, children } = $props<{ data: LayoutData, children: any }>();
 
   let isLoggingOut = $state(false);
 
