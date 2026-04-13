@@ -1,11 +1,25 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { adminDb } from '$lib/firebase-admin';
+import { ADMIN_EMAILS } from '$lib/constants';
 
-export const load: LayoutServerLoad = async ({ locals }) => {
-    // Move Maintenance Guard from hooks to here.
-    // This avoids circular dependencies and build blockers in hooks.server.ts
-    if (!locals.isAdmin) {
+export const load: LayoutServerLoad = async ({ cookies }) => {
+    const session = cookies.get('sb-auth-token');
+    const impersonateEmail = cookies.get('impersonate_email') || null;
+    let user = null;
+
+    if (session) {
+        try {
+            user = JSON.parse(decodeURIComponent(session));
+        } catch (e) {
+            user = null;
+        }
+    }
+
+    const isAdmin = !!(user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()));
+
+    // Maintenance Guard
+    if (!isAdmin) {
         try {
             if (adminDb) {
                 const configDoc = await adminDb.collection('system').doc('config').get();
@@ -16,15 +30,14 @@ export const load: LayoutServerLoad = async ({ locals }) => {
                 }
             }
         } catch (error) {
-            // Rethrow redirects, ignore other errors (like missing DB in local dev)
             if (error && typeof error === 'object' && 'status' in error) throw error;
             console.error('Error checking maintenance mode in layout:', error);
         }
     }
 
     return {
-        user: locals.user,
-        isAdmin: locals.isAdmin,
-        impersonateEmail: locals.impersonateEmail
+        user,
+        isAdmin,
+        impersonateEmail
     };
 };

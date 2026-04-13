@@ -1,23 +1,26 @@
 import type { LayoutServerLoad } from "./$types";
+import { ADMIN_EMAILS } from "$lib/constants";
 
-export const load: LayoutServerLoad = async ({ locals, cookies }) => {
-  // Manejar sesión manualmente si hooks.server.ts no está disponible
-  if (!locals.user) {
-    const session = cookies.get('sb-auth-token');
-    if (session) {
-      try {
-        locals.user = JSON.parse(decodeURIComponent(session));
-      } catch (e) {
-        locals.user = null;
-      }
+export const load: LayoutServerLoad = async ({ cookies }) => {
+  const session = cookies.get('sb-auth-token');
+  const impersonateEmail = cookies.get('impersonate_email') || null;
+  let user = null;
+
+  if (session) {
+    try {
+      user = JSON.parse(decodeURIComponent(session));
+    } catch (e) {
+      user = null;
     }
   }
 
-  console.log('🌍 Global Layout - User:', locals.user?.email || 'none');
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
+
+  console.log('🌍 Global Layout - User:', user?.email || 'none', 'Admin:', isAdmin);
 
   return {
-    user: locals.user || null,
-    isAdmin: locals.isAdmin || false,
-    impersonateEmail: locals.impersonateEmail || null
+    user,
+    isAdmin: !!isAdmin,
+    impersonateEmail
   };
 };
