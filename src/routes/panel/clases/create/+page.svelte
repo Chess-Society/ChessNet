@@ -210,7 +210,6 @@
      <div class="space-y-6">
        <div class="glass-panel p-8 space-y-4">
          <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-           <if class="w-4 h-4 text-primary-400" />
            <Info class="w-4 h-4 text-primary-400" />
            Recomendaciones
          </h3>

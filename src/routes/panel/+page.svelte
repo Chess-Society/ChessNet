@@ -22,7 +22,8 @@
     TrendingDown,
     Award,
     Plus,
-    Clock
+    Clock,
+    Zap
   } from 'lucide-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { toast } from '$lib/stores/toast'; // Asumiendo que existe o lo crearemos
@@ -79,6 +80,12 @@
   });
 
   let nextTournament = $derived($appStore.tournaments.filter(t => t.status === 'upcoming').sort((a,b) => (a.start_date || '').localeCompare(b.start_date || ''))[0]);
+
+  // Onboarding flags
+  const hasSchools = $derived($appStore.schools.length > 0);
+  const hasClasses = $derived($appStore.classes.length > 0);
+  const hasStudents = $derived($appStore.students.length > 0);
+  const isFullyBoarded = $derived(hasSchools && hasClasses && hasStudents);
 
   // Actividad reciente dinámica
   let recentActivity = $derived(() => {
@@ -257,11 +264,6 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
     <div class="lg:col-span-2 space-y-8">
       
-      <!-- ONBOARDING CHECKLIST -->
-      {@const hasSchools = $appStore.schools.length > 0}
-      {@const hasClasses = $appStore.classes.length > 0}
-      {@const hasStudents = $appStore.students.length > 0}
-      {@const isFullyBoarded = hasSchools && hasClasses && hasStudents}
 
       {#if !isFullyBoarded}
         <div class="bg-[#1e293b] border-2 border-indigo-500/30 rounded-3xl p-8 relative overflow-hidden group mb-8" in:fly={{y: 20}}>

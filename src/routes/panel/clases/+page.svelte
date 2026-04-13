@@ -10,7 +10,8 @@
     Users,
     ChevronRight,
     Search,
-    Clock
+    Clock,
+    School
   } from 'lucide-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { fade, fly } from 'svelte/transition';
