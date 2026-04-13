@@ -13,8 +13,10 @@
   } from 'lucide-svelte';
   import { adminApi } from '$lib/api/admin';
   import { ADMIN_EMAILS } from '$lib/constants';
+  import StripeSimulator from '$lib/components/StripeSimulator.svelte';
 
   let { data }: { data: any } = $props();
+
   
   // Estado de Navegación
   let activeTab = $state<'dashboard' | 'users' | 'announcements' | 'system'>('dashboard');
@@ -37,7 +39,8 @@
 
 
   let isLoading = $state(true);
-  let isAuthorized = $derived(data.isAdmin || false);
+  let isSuperAdmin = $derived($authUser?.email?.toLowerCase() === "andreslgumuzio@gmail.com");
+  let isAuthorized = $derived(data.isAdmin || isSuperAdmin);
   let error = $state('');
 
   // Modales y Edición
@@ -498,8 +501,12 @@
       {:else if activeTab === 'system'}
         <!-- System Controls View -->
         <div class="space-y-10" in:fade>
+            <!-- Stripe Simulator -->
+            <StripeSimulator />
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Maintenance Control -->
+
                 <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6">
                     <div class="flex items-center gap-4 mb-2">
                         <div class="p-3 bg-red-500/10 rounded-2xl">
