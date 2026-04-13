@@ -9,6 +9,8 @@
   import Logo from '$lib/components/Logo.svelte';
   import { Settings, UserCheck, Clock, ShieldCheck, Mail, LogOut, ChevronRight, Edit3, Trophy } from 'lucide-svelte';
 
+  let { data } = $props();
+  
   const ADMIN_EMAILS = ['andreslgumuzio@gmail.com', 'andrelgumuzio@gmail.com'];
 
   let users = $state<any[]>([]);
@@ -26,7 +28,7 @@
   });
 
   let isLoading = $state(true);
-  let isAuthorized = $state(false);
+  let isAuthorized = $derived(data.isAdmin || false);
   let error = $state('');
 
   // Modales y Edición
@@ -34,21 +36,10 @@
   let showEditModal = $state(false);
   let isSaving = $state(false);
 
-  $effect(() => {
-    if (!$authLoading) {
-      if (!$authUser) {
-        goto('/login');
-        return;
-      }
-
-      if (!ADMIN_EMAILS.includes($authUser.email || '')) {
-        isAuthorized = false;
-        isLoading = false;
-        return;
-      }
-
-      isAuthorized = true;
-      startMonitoring();
+  onMount(() => {
+    if (isAuthorized) {
+      const unsubscribe = startMonitoring();
+      return () => unsubscribe && typeof unsubscribe === 'function' && unsubscribe();
     }
   });
 

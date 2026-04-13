@@ -2,14 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAuthenticated() { return request.auth != null; }
+    function isSuperAdmin() { 
+      return isAuthenticated() && 
+        (request.auth.token.email in ["andreslgumuzio@gmail.com", "andrelgumuzio@gmail.com"] ||
+         request.auth.uid == "MsxmTi3rl6O47Pjz17IQViy0DZt1");
+    }
     function isOwner(docData) { return docData.owner_id == request.auth.uid; }
     
+    // El perfil del usuario es privado por defecto
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
     }
     
+    // Regla maestra para colecciones de datos (alumnos, centros, etc.)
     match /{collection}/{docId} {
-      allow read, create, update, delete: if isAuthenticated() && (isOwner(resource.data) || isOwner(request.resource.data));
+      // Permitimos lectura y escritura si es el Super Admin o el dueño del dato
+      allow read, create, update, delete: if isSuperAdmin() || (isAuthenticated() && (isOwner(resource.data) || isOwner(request.resource.data)));
     }
   }
 }
