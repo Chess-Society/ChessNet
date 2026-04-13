@@ -5,6 +5,8 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 import { browser } from "$app/environment";
 import { env } from "$env/dynamic/public";
 
+console.log('🔥 [Firebase] Module loading...');
+
 const firebaseConfig = {
   apiKey: env.PUBLIC_FIREBASE_API_KEY || "AIzaSyAVfcGFylUSYSkwEH0dTrCySqu-SwAhHm4",
   authDomain: env.PUBLIC_FIREBASE_AUTH_DOMAIN || "chessnet-2505.firebaseapp.com",
@@ -15,11 +17,19 @@ const firebaseConfig = {
   measurementId: env.PUBLIC_FIREBASE_MEASUREMENT_ID || "G-37RZFE1WJQ"
 };
 
-// Initialize Firebase
+if (browser) {
+  console.log('🔥 [Firebase] Initializing for browser with project:', firebaseConfig.projectId);
+  if (!env.PUBLIC_FIREBASE_API_KEY) {
+    console.warn('⚠️ [Firebase] PUBLIC_FIREBASE_API_KEY is missing, using hardcoded fallback');
+  }
+}
 
+// Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+console.log('🔥 [Firebase] Auth & Firestore initialized');
 
 
 let analytics = null;

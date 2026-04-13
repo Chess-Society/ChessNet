@@ -8,14 +8,17 @@
   import { initAuth, loading, user, authInitialized } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
+  import { browser } from '$app/environment';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
   let { children } = $props();
 
-  onMount(() => {
-    const unsubscribe = initAuth();
-    return unsubscribe;
-  });
+  console.log('🚀 [Layout] Script block execution start', { browser });
+
+  if (browser) {
+    console.log('🏁 [Layout] Immediate browser initialization...');
+    initAuth();
+  }
 
   // Centralized Navigation Guard (Runes)
   $effect(() => {
