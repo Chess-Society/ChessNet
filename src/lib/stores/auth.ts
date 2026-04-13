@@ -9,28 +9,30 @@ export const authInitialized = writable<boolean>(false);
 
 // Inicializar auth state con tiempo muerto de seguridad (8s)
 export const initAuth = () => {
-  console.log('🔄 Initializing Firebase auth...');
+  console.log('🔄 [Auth] Initializing Firebase auth...');
   
   let resolved = false;
 
   const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-    console.log("🔄 Auth state changed (onAuthStateChanged):", firebaseUser ? firebaseUser.email : 'none');
+    console.log("🔄 [Auth] State changed:", firebaseUser ? firebaseUser.email : 'No user');
+    
     user.set(firebaseUser);
     loading.set(false);
     authInitialized.set(true);
     resolved = true;
-    console.log("✅ Auth store synchronized.");
+    
+    console.log("✅ [Auth] Store synchronized.");
   }, (error) => {
-    console.error("❌ Auth state error:", error);
+    console.error("❌ [Auth] Error detected:", error);
     loading.set(false);
     authInitialized.set(true);
     resolved = true;
   });
 
-  // Timeout de seguridad más corto (8s)
+  // Timeout de seguridad robusto
   setTimeout(() => {
     if (!resolved) {
-      console.warn('⚠️ Auth timeout. Forcing state.');
+      console.warn('⚠️ [Auth] Initialization timeout (8s). Forcing resolution.');
       loading.set(false);
       authInitialized.set(true);
       resolved = true;

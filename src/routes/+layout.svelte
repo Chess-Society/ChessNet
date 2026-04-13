@@ -19,6 +19,8 @@
 
   // Centralized Navigation Guard (Runes)
   $effect(() => {
+    console.log(`🛡️ [Guard] State - Initialized: ${$authInitialized}, Loading: ${$loading}, User: ${$user ? $user.email : 'None'}`);
+    
     if (!$authInitialized) return;
 
     const path = $page.url.pathname;
@@ -26,18 +28,18 @@
     const isPublicOnly = path === '/' || path === '/login';
 
     if ($user && isPublicOnly) {
-      console.log('🛡️ Guard: Authenticated user on public page, redirecting to /panel');
+      console.log('🛡️ [Guard] Authenticated user on public page -> /panel');
       goto('/panel');
     } else if (!$user && isProtected) {
-      console.log('🛡️ Guard: Unauthenticated user on protected page, redirecting to /login');
+      console.log('🛡️ [Guard] Unauthenticated user on protected page -> /login');
       goto('/login');
     }
   });
 </script>
 
-<main class="min-h-screen bg-slate-900 text-slate-100">
+<main class="min-h-screen bg-slate-900 text-slate-100 italic-text-none">
   {#if !$authInitialized || $loading}
-    <div class="fixed inset-0 flex items-center justify-center bg-slate-900 z-50">
+    <div class="fixed inset-0 flex items-center justify-center bg-slate-900 z-[100]">
       <div class="flex flex-col items-center gap-4">
         <LoadingSpinner size="w-12 h-12" color="text-emerald-500" />
         <p class="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] animate-pulse">Cargando ChessNet</p>

@@ -113,16 +113,23 @@ function createAppStore() {
       
       // 1. Cargar Settings (Documento único)
       const settingsRef = doc(db, userPath, 'appData', 'v1');
-      unsubscribes.push(onSnapshot(settingsRef, (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          update(s => ({ 
-            ...s, 
-            settings: { ...s.settings, ...data.settings },
-            dashboardLayout: data.dashboardLayout || []
-          }));
+      unsubscribes.push(onSnapshot(settingsRef, 
+        (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            console.log('📦 [AppStore] Settings loaded');
+            update(s => ({ 
+              ...s, 
+              settings: { ...s.settings, ...data.settings },
+              dashboardLayout: data.dashboardLayout || []
+            }));
+          }
+        },
+        (error) => {
+          console.error('❌ [AppStore] Error loading settings:', error);
+          // No bloqueamos la app, permitimos que continúe con los valores por defecto
         }
-      }));
+      ));
 
       // 2. Suscribirse a Colecciones (Sub-colecciones escalables)
       const collectionsMap = [
@@ -146,10 +153,15 @@ function createAppStore() {
 
       collectionsMap.forEach(({ key, path }) => {
         const collRef = collection(db, userPath, path);
-        unsubscribes.push(onSnapshot(collRef, (snap) => {
-          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          update(s => ({ ...s, [key]: docs }));
-        }));
+        unsubscribes.push(onSnapshot(collRef, 
+          (snap) => {
+            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            update(s => ({ ...s, [key]: docs }));
+          },
+          (error) => {
+            console.error(`❌ [AppStore] Error in collection ${path}:`, error);
+          }
+        ));
       });
 
       isLoaded = true;
