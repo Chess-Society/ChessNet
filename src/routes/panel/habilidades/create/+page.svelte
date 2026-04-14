@@ -2,8 +2,25 @@
   import { goto } from '$app/navigation';
   import { showToast, showError } from '$lib/utils/toast';
   import { appStore } from '$lib/stores/appStore';
-  import { ArrowLeft, Target, X, Save } from 'lucide-svelte';
+  import { 
+    ArrowLeft, 
+    Target, 
+    X, 
+    Check, 
+    Trash,
+    Plus,
+    Tag,
+    TrendUp,
+    Timer,
+    Note,
+    Link,
+    SortAscending,
+    Info,
+    FloppyDisk,
+    Books
+  } from 'phosphor-svelte';
   import type { PageData } from './$types';
+  import { fade, fly } from 'svelte/transition';
 
   let { data } = $props<{ data: PageData }>();
 
@@ -53,6 +70,14 @@
     return Object.keys(errors).length === 0;
   };
 
+  const addItem = (key: 'learning_objectives' | 'assessment_criteria' | 'resources') => {
+    formData[key] = [...formData[key], ''];
+  };
+
+  const removeItem = (key: 'learning_objectives' | 'assessment_criteria' | 'resources', index: number) => {
+    formData[key] = formData[key].filter((_, i) => i !== index);
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       showToast.error('Por favor, corrige los errores en el formulario');
@@ -61,8 +86,6 @@
 
     try {
       isSubmitting = true;
-
-      console.log('🎯 Creating skill:', formData);
       
       const response = await fetch('/api/skills', {
         method: 'POST',
@@ -108,216 +131,348 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-  <!-- Header -->
-  <header class="border-b border-slate-700 bg-slate-800/50 backdrop-blur">
-    <div class="container mx-auto px-4 py-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <button onclick={handleGoBack} class="p-2 hover:bg-slate-700 rounded-lg transition-colors text-white">
-            <ArrowLeft class="w-5 h-5" />
-          </button>
-          <div class="flex items-center space-x-3">
-            <div class="p-2 bg-purple-500/20 rounded-lg">
-              <Target class="w-6 h-6 text-purple-500" />
-            </div>
-            <div>
-              <h1 class="text-2xl font-bold text-white">Nueva Habilidad</h1>
-              <p class="text-sm text-slate-400">Crear una nueva skill o competencia</p>
-            </div>
-          </div>
+<div class="min-h-screen bg-zinc-950 pb-24" in:fade>
+  <!-- Navigation Header Space -->
+  <div class="max-w-[800px] mx-auto pt-8 px-4 pb-4">
+    <button 
+      onclick={handleGoBack}
+      class="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group text-sm font-medium"
+    >
+      <ArrowLeft weight="bold" class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+      Volver a temarios
+    </button>
+  </div>
+
+  <main class="max-w-[800px] mx-auto px-4">
+    <!-- Header Card -->
+    <div class="bg-zinc-900/50 border border-zinc-800 rounded-[24px] p-8 md:p-10 mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl shadow-black/50">
+      <div class="flex items-center gap-6">
+        <div class="w-16 h-16 bg-violet-500/10 border border-violet-500/20 rounded-[24px] flex items-center justify-center text-violet-500">
+          <Target weight="duotone" class="w-10 h-10" />
         </div>
-        
-        <div class="flex items-center space-x-3">
-          <button onclick={handleGoBack} class="btn-secondary">
-            <X class="w-4 h-4 mr-2" />
-            Cancelar
-          </button>
-          <button 
-            onclick={handleSubmit} 
-            disabled={isSubmitting}
-            class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {#if isSubmitting}
-              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Creando...
-            {:else}
-              <Save class="w-4 h-4 mr-2" />
-              Crear Habilidad
-            {/if}
-          </button>
+        <div>
+          <h1 class="text-3xl font-bold text-white tracking-tight">Nueva Habilidad</h1>
+          <p class="text-zinc-500 font-medium mt-1">Define una nueva competencia para el currículo.</p>
         </div>
       </div>
+      
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <button 
+          onclick={handleGoBack} 
+          class="flex-1 md:flex-none px-6 py-3 rounded-full bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all text-sm font-bold flex items-center justify-center gap-2"
+        >
+          <X weight="bold" class="w-4 h-4" />
+          Cancelar
+        </button>
+        <button 
+          onclick={handleSubmit} 
+          disabled={isSubmitting}
+          class="flex-1 md:flex-none px-8 py-3 rounded-full bg-violet-600 text-white hover:bg-violet-500 transition-all shadow-lg shadow-violet-600/20 text-sm font-bold flex items-center justify-center gap-2 group disabled:opacity-50"
+        >
+          {#if isSubmitting}
+            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            Guardando...
+          {:else}
+            <FloppyDisk weight="bold" class="w-4 h-4" />
+            Crear Habilidad
+          {/if}
+        </button>
+      </div>
     </div>
-  </header>
 
-  <main class="container mx-auto px-4 py-8 max-w-2xl">
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-8">
-      <form 
-        onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} 
-        class="space-y-6"
-      >
-        <!-- Nombre -->
-        <div>
-          <label for="name" class="block text-sm font-medium text-slate-300 mb-2">
-            Nombre de la habilidad
-          </label>
-          <input
-            id="name"
-            type="text"
-            bind:value={formData.name}
-            placeholder="Ej: Movimiento de peones, Táctica de clavada..."
-            class="input w-full"
-            class:border-red-500={errors.name}
-          />
-          {#if errors.name}
-            <p class="text-red-400 text-sm mt-1">{errors.name}</p>
-          {/if}
-        </div>
+    <!-- Main Form Grid -->
+    <div class="grid grid-cols-1 gap-8">
+      <!-- General Content -->
+      <div class="bg-zinc-900/50 border border-zinc-800 rounded-[24px] p-8 md:p-10 space-y-8 shadow-2xl shadow-black/50">
+        <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-8">
+          
+          <div class="grid grid-cols-1 gap-8">
+            <!-- Nombre -->
+            <div class="space-y-3">
+              <label for="name" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
+                <Note weight="duotone" class="w-4 h-4 text-violet-400" />
+                Nombre del tema
+              </label>
+              <div class="relative group">
+                <input
+                  id="name"
+                  type="text"
+                  bind:value={formData.name}
+                  placeholder="Ej: Movimiento de peones, Táctica de clavada..."
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-zinc-600 outline-none"
+                  class:border-red-500={errors.name}
+                />
+              </div>
+              {#if errors.name}
+                <p class="text-red-400 text-xs font-bold px-1 flex items-center gap-1.5">
+                  <Info weight="fill" class="w-3.5 h-3.5" />
+                  {errors.name}
+                </p>
+              {/if}
+            </div>
 
-        <!-- Descripción -->
-        <div>
-          <label for="description" class="block text-sm font-medium text-slate-300 mb-2">
-            Descripción
-          </label>
-          <textarea
-            id="description"
-            bind:value={formData.description}
-            placeholder="Describe qué aprenderá el estudiante con esta habilidad..."
-            rows="4"
-            class="input w-full resize-none"
-            class:border-red-500={errors.description}
-          ></textarea>
-          {#if errors.description}
-            <p class="text-red-400 text-sm mt-1">{errors.description}</p>
-          {/if}
-        </div>
+            <!-- Categoría y Dificultad -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="space-y-3">
+                <label for="category_id" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
+                  <Tag weight="duotone" class="w-4 h-4 text-violet-400" />
+                  Categoría
+                </label>
+                <select
+                  id="category_id"
+                  bind:value={formData.category_id}
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 transition-all outline-none appearance-none"
+                  class:border-red-500={errors.category_id}
+                >
+                  <option value="" disabled>Selecciona una categoría</option>
+                  {#each categories as category}
+                    <option value={category.id}>{category.name}</option>
+                  {/each}
+                </select>
+                {#if errors.category_id}
+                  <p class="text-red-400 text-xs font-bold px-1 flex items-center gap-1.5">
+                    <Info weight="fill" class="w-3.5 h-3.5" />
+                    {errors.category_id}
+                  </p>
+                {/if}
+              </div>
 
-        <!-- Categoría -->
-        <div>
-          <label for="category_id" class="block text-sm font-medium text-slate-300 mb-2">
-            Categoría *
-          </label>
-          <select
-            id="category_id"
-            bind:value={formData.category_id}
-            class="input w-full"
-            class:border-red-500={errors.category_id}
-          >
-            <option value="">Selecciona una categoría</option>
-            {#each categories as category}
-              <option value={category.id}>{category.name}</option>
-            {/each}
-          </select>
-          {#if errors.category_id}
-            <p class="text-red-400 text-sm mt-1">{errors.category_id}</p>
-          {/if}
-        </div>
+              <div class="space-y-3">
+                <label for="difficulty" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
+                  <TrendUp weight="duotone" class="w-4 h-4 text-violet-400" />
+                  Nivel de Dificultad
+                </label>
+                <select
+                  id="difficulty"
+                  bind:value={formData.difficulty}
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 transition-all outline-none appearance-none"
+                >
+                  {#each difficultyLevels as level}
+                    <option value={level.value}>{'⭐'.repeat(level.value)} {level.label}</option>
+                  {/each}
+                </select>
+              </div>
+            </div>
 
-        <!-- Dificultad -->
-        <div>
-          <label for="difficulty" class="block text-sm font-medium text-slate-300 mb-2">
-            Nivel de Dificultad
-          </label>
-          <select
-            id="difficulty"
-            bind:value={formData.difficulty}
-            class="input w-full"
-          >
-            {#each difficultyLevels as level}
-              <option value={level.value}>{'⭐'.repeat(level.value)} {level.label}</option>
-            {/each}
-          </select>
-        </div>
+            <!-- Descripción -->
+            <div class="space-y-3">
+              <label for="description" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
+                <Info weight="duotone" class="w-4 h-4 text-violet-400" />
+                Descripción Educativa
+              </label>
+              <textarea
+                id="description"
+                bind:value={formData.description}
+                placeholder="Explica detalladamente en qué consiste este tema..."
+                rows="4"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-[24px] px-6 py-5 text-white hover:border-zinc-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-zinc-600 outline-none resize-none"
+              ></textarea>
+            </div>
 
-        <!-- Icono -->
-        <div>
-          <label for="icon" class="block text-sm font-medium text-slate-300 mb-2">
-            Icono (opcional)
-          </label>
-          <input
-            id="icon"
-            type="text"
-            bind:value={formData.icon}
-            placeholder="Ej: ♟️, 🏰, ⚔️"
-            class="input w-full"
-          />
-        </div>
+            <!-- Listas Dinámicas (Objetivos, Criterios, Recursos) -->
+            <div class="space-y-8">
+              <!-- Objetivos -->
+              <div class="space-y-4">
+                <div class="flex items-center justify-between px-1">
+                  <label class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest">
+                    <Check weight="duotone" class="w-4 h-4 text-violet-400" />
+                    Objetivos de Aprendizaje
+                  </label>
+                  <button 
+                    type="button"
+                    onclick={() => addItem('learning_objectives')}
+                    class="p-1 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-tighter flex items-center gap-2"
+                  >
+                    <Plus weight="bold" class="w-3 h-3" />
+                    Añadir objetivo
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                  {#each formData.learning_objectives as objective, i}
+                    <div class="flex items-center gap-3 group">
+                      <input
+                        type="text"
+                        bind:value={formData.learning_objectives[i]}
+                        placeholder="Define un objetivo claro..."
+                        class="flex-1 bg-zinc-950 border border-zinc-800 rounded-[16px] px-6 py-3 text-white focus:border-violet-500 outline-none text-sm transition-all"
+                      />
+                      <button 
+                        type="button"
+                        onclick={() => removeItem('learning_objectives', i)}
+                        class="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+                      >
+                        <Trash weight="bold" class="w-4 h-4" />
+                      </button>
+                    </div>
+                  {/each}
+                </div>
+              </div>
 
-        <!-- Enlace de recurso -->
-        <div>
-          <label for="resource_link" class="block text-sm font-medium text-slate-300 mb-2">
-            Enlace de recurso (opcional)
-          </label>
-          <input
-            id="resource_link"
-            type="url"
-            bind:value={formData.resource_link}
-            placeholder="https://ejemplo.com/recurso"
-            class="input w-full"
-          />
-        </div>
+              <!-- Criterios -->
+              <div class="space-y-4">
+                <div class="flex items-center justify-between px-1">
+                  <label class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest">
+                    <Target weight="duotone" class="w-4 h-4 text-violet-400" />
+                    Criterios de Evaluación
+                  </label>
+                  <button 
+                    type="button"
+                    onclick={() => addItem('assessment_criteria')}
+                    class="p-1 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-tighter flex items-center gap-2"
+                  >
+                    <Plus weight="bold" class="w-3 h-3" />
+                    Añadir criterio
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                  {#each formData.assessment_criteria as criteria, i}
+                    <div class="flex items-center gap-3 group">
+                      <input
+                        type="text"
+                        bind:value={formData.assessment_criteria[i]}
+                        placeholder="¿Cómo evaluamos que se aprendió?"
+                        class="flex-1 bg-zinc-950 border border-zinc-800 rounded-[16px] px-6 py-3 text-white focus:border-violet-500 outline-none text-sm transition-all"
+                      />
+                      <button 
+                        type="button"
+                        onclick={() => removeItem('assessment_criteria', i)}
+                        class="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+                      >
+                        <Trash weight="bold" class="w-4 h-4" />
+                      </button>
+                    </div>
+                  {/each}
+                </div>
+              </div>
 
-        <!-- Orden -->
-        <div>
-          <label for="order_index" class="block text-sm font-medium text-slate-300 mb-2">
-            Orden de aparición
-          </label>
-          <input
-            id="order_index"
-            type="number"
-            min="0"
-            bind:value={formData.order_index}
-            class="input w-full"
-          />
-          <p class="text-xs text-slate-400 mt-1">
-            Número para ordenar las habilidades (0 = primero)
-          </p>
-        </div>
+              <!-- Recursos -->
+              <div class="space-y-4">
+                <div class="flex items-center justify-between px-1">
+                  <label class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest">
+                    <Books weight="duotone" class="w-4 h-4 text-violet-400" />
+                    Recursos Sugeridos
+                  </label>
+                  <button 
+                    type="button"
+                    onclick={() => addItem('resources')}
+                    class="p-1 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-tighter flex items-center gap-2"
+                  >
+                    <Plus weight="bold" class="w-3 h-3" />
+                    Añadir recurso
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                  {#each formData.resources as resource, i}
+                    <div class="flex items-center gap-3 group">
+                      <input
+                        type="text"
+                        bind:value={formData.resources[i]}
+                        placeholder="Libro, vídeo o enlace..."
+                        class="flex-1 bg-zinc-950 border border-zinc-800 rounded-[16px] px-6 py-3 text-white focus:border-violet-500 outline-none text-sm transition-all"
+                      />
+                      <button 
+                        type="button"
+                        onclick={() => removeItem('resources', i)}
+                        class="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+                      >
+                        <Trash weight="bold" class="w-4 h-4" />
+                      </button>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            </div>
 
-        <!-- Información adicional -->
-        <div class="bg-slate-700/50 rounded-lg p-4">
-          <h3 class="text-sm font-medium text-slate-300 mb-2">💡 Consejos para crear habilidades</h3>
-          <ul class="text-sm text-slate-400 space-y-1">
-            <li>• Sé específico en el nombre (ej: "Enroque corto" vs "Enroque")</li>
-            <li>• La descripción debe explicar qué aprenderá el estudiante</li>
-            <li>• Organiza por categorías para facilitar la búsqueda</li>
-            <li>• Ajusta la dificultad según el nivel requerido</li>
-          </ul>
-        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <!-- Icono -->
+              <div class="space-y-3">
+                <label for="icon" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
+                  <Plus weight="duotone" class="w-4 h-4 text-violet-400" />
+                  Emoji de Icono
+                </label>
+                <input
+                  id="icon"
+                  type="text"
+                  bind:value={formData.icon}
+                  placeholder="Ej: ♟️, 🏰, ⚔️"
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-zinc-600 outline-none uppercase text-center text-xl font-bold"
+                />
+              </div>
 
-        <!-- Atajo de teclado -->
-        <div class="text-xs text-slate-500 text-center">
-          Presiona <kbd class="px-2 py-1 bg-slate-700 rounded text-slate-300">Ctrl + Enter</kbd> para crear rápidamente
+               <!-- Orden -->
+              <div class="space-y-3">
+                <label for="order_index" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
+                  <SortAscending weight="duotone" class="w-4 h-4 text-violet-400" />
+                  Orden
+                </label>
+                <input
+                  id="order_index"
+                  type="number"
+                  min="0"
+                  bind:value={formData.order_index}
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-zinc-600 outline-none"
+                />
+              </div>
+            </div>
+
+            <!-- Enlace externo (Legacy support / Quick reference) -->
+            <div class="space-y-3">
+              <label for="resource_link" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
+                <Link weight="duotone" class="w-4 h-4 text-violet-400" />
+                Enlace principal de interés
+              </label>
+              <input
+                id="resource_link"
+                type="url"
+                bind:value={formData.resource_link}
+                placeholder="https://lichess.org/lesson/..."
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-zinc-600 outline-none"
+              />
+            </div>
+          </div>
+
+          <!-- Quick Actions Footer -->
+          <div class="pt-10 border-t border-zinc-800 flex flex-col items-center">
+            <p class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-4">Usa Ctrl + Enter para guardar rápidamente</p>
+            <button 
+              onclick={handleSubmit}
+              disabled={isSubmitting}
+              class="w-full py-5 rounded-[24px] bg-white text-zinc-950 hover:bg-zinc-200 transition-all font-black uppercase tracking-widest shadow-xl shadow-white/5 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+            >
+               {#if isSubmitting}
+                <div class="w-5 h-5 border-3 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin"></div>
+                Creando...
+              {:else}
+                <Check weight="bold" class="w-5 h-5" />
+                Finalizar creación
+              {/if}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tips Section -->
+      <div class="bg-violet-600/5 border border-violet-500/10 rounded-[24px] p-8 md:p-10 shadow-2xl shadow-black/50">
+        <h3 class="flex items-center gap-3 text-lg font-bold text-white mb-6">
+          <Info weight="duotone" class="w-6 h-6 text-violet-400" />
+          Pro-Tips para tus temarios
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="space-y-2">
+            <h4 class="text-sm font-black text-violet-400 uppercase tracking-widest">Especificidad</h4>
+            <p class="text-zinc-400 text-sm leading-relaxed">Nombra las habilidades de forma clara y única. "Enroque corto" es mejor que simplemente "Enroque".</p>
+          </div>
+          <div class="space-y-2">
+            <h4 class="text-sm font-black text-violet-400 uppercase tracking-widest">Evaluación</h4>
+            <p class="text-zinc-400 text-sm leading-relaxed">Usa la descripción para establecer qué esperamos de un alumno al dominar este tema.</p>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   </main>
 </div>
 
 <style>
-  .input {
-    background-color: #334155;
-    border: 1px solid #475569;
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    color: white;
-    transition: all 0.2s;
-  }
-  
-  .input::placeholder {
-    color: #94a3b8;
-  }
-  
-  .input:focus {
-    border-color: #8b5cf6;
-    outline: none;
-    box-shadow: 0 0 0 1px #8b5cf6;
-  }
-  
-  kbd {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    font-size: 0.75rem;
-    line-height: 1rem;
-  }
+  /* Custom layouts adjustments */
 </style>
+

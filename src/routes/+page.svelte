@@ -1,13 +1,16 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import {
-    CheckCircle,
+    CircleCheck,
     ArrowRight,
     BookOpen,
     Users,
     Trophy,
     ChevronRight,
     School,
+    Sparkles,
+    ShieldCheck,
+    Zap
   } from "lucide-svelte";
   import Logo from "$lib/components/Logo.svelte";
 
@@ -15,536 +18,293 @@
 
   let scrollY = $state(0);
 
-  function goToPanel() {
-    goto("/panel");
-  }
-
   function goToLogin() {
     goto("/login");
   }
 </script>
 
 <svelte:head>
-  <title>ChessNet - Gestión Profesional de Academias de Ajedrez</title>
+  <title>ChessNet - Gestión Premium de Academias de Ajedrez</title>
   <meta
     name="title"
-    content="ChessNet - Gestión Profesional de Academias de Ajedrez"
+    content="ChessNet - Gestión Premium de Academias de Ajedrez"
   />
   <meta
     name="description"
-    content="Plataforma completa para gestionar tu academia de ajedrez: alumnos, clases, torneos, pagos y más. Diseñada por y para profesores de ajedrez."
+    content="La plataforma definitiva para gestionar tu academia de ajedrez con un diseño bento moderno y herramientas profesionales."
   />
   <meta property="og:type" content="website" />
-  <meta
-    property="og:title"
-    content="ChessNet - Gestión Profesional de Academias de Ajedrez"
-  />
-  <meta
-    property="og:description"
-    content="Plataforma completa para gestionar tu academia de ajedrez: alumnos, clases, torneos, pagos y más."
-  />
   <meta property="og:site_name" content="ChessNet" />
   <meta name="robots" content="index, follow" />
 </svelte:head>
 
 <svelte:window bind:scrollY />
 
-<!-- Navbar -->
-<header
-  class={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrollY > 10 ? "bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800" : "bg-transparent"}`}
->
-  <nav
-    class="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto"
-    aria-label="Global"
-  >
-    <div class="flex lg:flex-1">
-      <a
-        href="/"
-        class="-m-1.5 p-1.5 text-2xl font-bold flex items-center gap-2 group"
-      >
-        <div class="relative">
-          <div
-            class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg blur opacity-40 group-hover:opacity-100 transition duration-200"
-          ></div>
-          <Logo size="w-10 h-10" iconSize="w-6 h-6" />
-        </div>
-        <span
-          class="bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 font-extrabold tracking-tight"
-          >ChessNet</span
-        >
-      </a>
-    </div>
-    <div class="hidden lg:flex lg:gap-x-12">
-      <a
-        href="#features"
-        class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all"
-        >Características</a
-      >
-      <a
-        href="/donar"
-        class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all"
-        >Donar</a
-      >
-      <a
-        href="/precios"
-        class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all flex items-center gap-1"
-      >
-        Precios
-        <span
-          class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30"
-          >BETA</span
-        >
-      </a>
-      <a
-        href="/hoja-de-ruta"
-        class="text-sm font-medium leading-6 text-slate-200 hover:text-white hover:scale-105 transition-all"
-        >Hoja de Ruta</a
-      >
-    </div>
-    <div class="flex lg:flex-1 lg:justify-end gap-2 sm:gap-4 items-center">
-      <a
-        href="/login"
-        class="text-xs sm:text-sm font-semibold leading-6 text-slate-200 hover:text-white px-2 sm:px-4 py-2 rounded-lg"
-        >Iniciar Sesión</a
-      >
-      <a
-        href="/login"
-        class="rounded-full bg-emerald-600 px-4 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white shadow-lg hover:bg-emerald-500 hover:scale-105 transition-all duration-300 whitespace-nowrap"
-        >Empezar Gratis</a
-      >
-    </div>
-  </nav>
-</header>
-
-<!-- Background -->
-<div
-  class="bg-[#0f172a] min-h-screen text-white selection:bg-emerald-500/30 font-sans overflow-x-hidden"
->
-  <div class="fixed inset-0 z-0 opacity-20 pointer-events-none">
-    <div
-      class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"
-    ></div>
-    <div
-      class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent"
-    ></div>
+<div class="relative min-h-screen bg-bento-bg text-surface-200 selection:bg-primary-500/30 font-sans overflow-x-hidden">
+  
+  <!-- Decorative Background Glows -->
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary-500/10 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px]"></div>
+    <div class="absolute bottom-[10%] left-[20%] w-[25%] h-[25%] bg-violet-500/5 rounded-full blur-[100px]"></div>
+    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
   </div>
-  <div
-    class="fixed top-20 right-20 w-96 h-96 bg-blue-500/20 rounded-full blur-[128px] pointer-events-none animate-pulse"
-  ></div>
-  <div
-    class="fixed bottom-20 left-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-[128px] pointer-events-none"
-  ></div>
 
-  <!-- Hero Section -->
-  <div class="relative isolate px-6 pt-14 lg:px-8">
-    <div
-      class="mx-auto max-w-4xl py-32 sm:py-48 lg:py-56 text-center z-10 relative"
-    >
-      <div class="hidden sm:mb-8 sm:flex sm:justify-center">
-        <div
-          class="relative rounded-full px-3 py-1 text-sm leading-6 text-slate-400 ring-1 ring-white/10 hover:ring-white/20 hover:bg-white/5 transition-all cursor-default"
-        >
-          Evoluciona tu enseñanza
-          <span class="font-semibold text-emerald-400">
-            <span class="absolute inset-0" aria-hidden="true"></span>
-            v1.0 BETA
-          </span>
-        </div>
-      </div>
-      <h1
-        class="text-5xl font-extrabold tracking-tight text-white sm:text-7xl mb-6 drop-shadow-2xl"
-      >
-        La plataforma definitiva para <br />
-        <span
-          class="bg-gradient-to-r from-blue-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent"
-          >Profesores de Ajedrez</span
-        >
-      </h1>
-      <p class="mt-6 text-lg leading-8 text-slate-200 max-w-2xl mx-auto">
-        Gestiona tus clases particulares, grupos escolares o tu propia academia
-        desde un solo lugar. Olvida el papel y profesionaliza tu pasión.
-      </p>
-      <div class="mt-10 flex items-center justify-center gap-x-6">
-        <button
-          onclick={goToLogin}
-          class="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-lg font-bold text-white shadow-lg hover:shadow-emerald-500/30 hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex items-center gap-2 group"
-        >
-          Empezar Gratis
-          <ArrowRight
-            class="w-5 h-5 group-hover:translate-x-1 transition-transform"
-          />
-        </button>
-        <a
-          href="#features"
-          class="text-sm font-semibold leading-6 text-white hover:text-emerald-400 transition-colors flex items-center gap-2"
-        >
-          Ver demo
-          <ChevronRight class="w-4 h-4" />
+  <!-- Navbar -->
+  <header
+    class={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrollY > 20 ? "bg-bento-bg/70 backdrop-blur-2xl border-b border-white/5 py-3" : "bg-transparent py-6"}`}
+  >
+    <nav class="flex items-center justify-between px-6 lg:px-12 max-w-7xl mx-auto" aria-label="Global">
+      <div class="flex lg:flex-1">
+        <a href="/" class="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95">
+          <div class="relative">
+            <div class="absolute -inset-2 bg-primary-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+            <Logo size="w-10 h-10" iconSize="w-6 h-6" />
+          </div>
+          <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
         </a>
       </div>
-    </div>
-
-    <!-- CTA Section Hero -->
-    <div class="mt-16 flex justify-center">
-      <div
-        class="h-1 w-24 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full opacity-50"
-      ></div>
-    </div>
-  </div>
-
-  <!-- Features Section -->
-  <div id="features" class="relative py-24 sm:py-32">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl lg:text-center mb-16">
-        <h2 class="text-base font-semibold leading-7 text-emerald-400">
-          Características Principales
-        </h2>
-        <p
-          class="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl"
-        >
-          Todo lo que necesita un club moderno
-        </p>
-        <p class="mt-6 text-lg leading-8 text-slate-400">
-          Desde pequeñas academias hasta grandes clubes, ChessNet escala
-          contigo.
-        </p>
+      
+      <div class="hidden lg:flex lg:gap-x-10">
+        {#each ['Características', 'Precios', 'Hoja de Ruta'] as link}
+          <a href="#{link.toLowerCase().replace(/ /g, '-')}" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">
+            {link}
+          </a>
+        {/each}
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Diario de Clase -->
-        <div
-          class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
-        >
-          <div
-            class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
-          >
-            <BookOpen class="w-24 h-24 text-emerald-500" />
-          </div>
-          <div
-            class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-6 text-emerald-400 group-hover:text-emerald-300 group-hover:scale-110 transition-all"
-          >
-            <BookOpen class="w-6 h-6" />
-          </div>
-          <h3 class="text-xl font-bold text-white mb-3">Diario de Clase</h3>
-          <p class="text-slate-400 leading-relaxed">
-            Pasa lista en segundos, registra los temas impartidos y evalúa el
-            progreso de cada sesión al instante.
-          </p>
-        </div>
-
-        <!-- Material Didáctico -->
-        <div
-          class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-pink-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
-        >
-          <div
-            class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
-          >
-            <BookOpen class="w-24 h-24 text-pink-500" />
-          </div>
-          <div
-            class="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center mb-6 text-pink-400 group-hover:text-pink-300 group-hover:scale-110 transition-all"
-          >
-            <BookOpen class="w-6 h-6" />
-          </div>
-          <h3 class="text-xl font-bold text-white mb-3">Material Didáctico</h3>
-          <p class="text-slate-400 leading-relaxed">
-            Organiza tu temario. Define habilidades (Celada, Apertura...) y
-            asígnalas a tus alumnos cuando las dominen.
-          </p>
-        </div>
-
-        <!-- Ficha de Alumno -->
-        <div
-          class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
-        >
-          <div
-            class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
-          >
-            <Users class="w-24 h-24 text-blue-500" />
-          </div>
-          <div
-            class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-6 text-blue-400 group-hover:text-blue-300 group-hover:scale-110 transition-all"
-          >
-            <Users class="w-6 h-6" />
-          </div>
-          <h3 class="text-xl font-bold text-white mb-3">Ficha de Alumno</h3>
-          <p class="text-slate-400 leading-relaxed">
-            Ten a mano niveles, contacto, notas privadas y estadísticas de
-            asistencia de cada estudiante.
-          </p>
-        </div>
-
-        <!-- Torneos Internos -->
-        <div
-          class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-orange-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
-        >
-          <div
-            class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
-          >
-            <Trophy class="w-24 h-24 text-orange-500" />
-          </div>
-          <div
-            class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-6 text-orange-400 group-hover:text-orange-300 group-hover:scale-110 transition-all"
-          >
-            <Trophy class="w-6 h-6" />
-          </div>
-          <h3 class="text-xl font-bold text-white mb-3">Torneos Internos</h3>
-          <p class="text-slate-400 leading-relaxed">
-            Crea competiciones para tus alumnos, genera emparejamientos y
-            fomenta la práctica competitiva.
-          </p>
-        </div>
-
-        <!-- Clubes y Academias -->
-        <div
-          class="relative group bg-slate-900/50 p-8 rounded-3xl border border-slate-800 hover:border-purple-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:-translate-y-2"
-        >
-          <div
-            class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity"
-          >
-            <School class="w-24 h-24 text-purple-500" />
-          </div>
-          <div
-            class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-6 text-purple-400 group-hover:text-purple-300 group-hover:scale-110 transition-all"
-          >
-            <School class="w-6 h-6" />
-          </div>
-          <h3 class="text-xl font-bold text-white mb-3">Clubes y Academias</h3>
-          <p class="text-slate-400 leading-relaxed">
-            ¿Creces? ChessNet escala contigo. Gestiona múltiples ubicaciones,
-            profesores y cientos de alumnos.
-          </p>
-        </div>
-
-        <!-- Próximamente -->
-        <div
-          class="relative group bg-slate-800/30 p-8 rounded-3xl border border-slate-800 border-dashed flex flex-col items-center justify-center text-center"
-        >
-          <h3 class="text-xl font-bold text-white mb-2">Próximamente</h3>
-          <p class="text-slate-500 text-sm">
-            Pagos online integrados, app para padres y herramientas de
-            marketing.
-          </p>
-        </div>
+      <div class="flex lg:flex-1 lg:justify-end gap-4 items-center">
+        <button onclick={goToLogin} class="hidden sm:block text-sm font-bold text-surface-400 hover:text-white transition-colors px-4">
+          Entrar
+        </button>
+        <button onclick={goToLogin} class="btn-primary py-2.5 text-sm">
+          Empezar Ahora
+        </button>
       </div>
-    </div>
-  </div>
+    </nav>
+  </header>
 
-  <!-- Pricing Section -->
-  <div id="pricing" class="py-24 sm:py-32 bg-slate-900/30">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl sm:text-center">
-        <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          Un plan para cada nivel
-        </h2>
-        <p class="mt-6 text-lg leading-8 text-slate-400">
-          Lleva tu escuela al siguiente nivel con ChessNet. Sin permanencia,
-          cancela cuando quieras.
+  <main class="relative z-10">
+    <!-- Hero Section -->
+    <section class="relative pt-44 pb-32 px-6 overflow-hidden">
+      <div class="max-w-5xl mx-auto text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-bold uppercase tracking-widest mb-8 animate-fade-in">
+          <Sparkles class="w-3.5 h-3.5" />
+          <span>Nueva Era de Gestión Deportiva</span>
+        </div>
+        
+        <h1 class="text-6xl md:text-8xl font-display font-black tracking-tight text-white mb-8 leading-[0.9] animate-slide-up">
+          El Rey de las <br />
+          <span class="bg-gradient-to-r from-primary-400 via-violet-400 to-blue-400 bg-clip-text text-transparent italic">Academias</span>
+        </h1>
+        
+        <p class="max-w-2xl mx-auto text-lg md:text-xl text-surface-400 leading-relaxed mb-12 animate-slide-up" style="animation-delay: 100ms">
+          Gestiona alumnos, clases y torneos con una interfaz quirúrgica diseñada para la excelencia. ChessNet es la herramienta que tu pasión merece.
         </p>
-      </div>
 
-      <div
-        class="mx-auto mt-16 grid max-w-lg grid-cols-1 gap-y-6 lg:mx-0 lg:max-w-none lg:grid-cols-2 gap-x-8"
-      >
-        <!-- Free Plan -->
-        <div
-          class="flex flex-col justify-between rounded-3xl bg-slate-900/50 p-8 ring-1 ring-slate-800 xl:p-10 hover:border-slate-700 transition-all border border-transparent"
-        >
-          <div>
-            <div class="flex items-center justify-between gap-x-4">
-              <h3
-                id="tier-free"
-                class="text-lg font-semibold leading-8 text-white"
-              >
-                Ajedrecista
-              </h3>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-6 animate-slide-up" style="animation-delay: 200ms">
+          <button onclick={goToLogin} class="btn-primary px-10 py-5 text-lg group">
+            Comenzar Gratis
+            <ArrowRight class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </button>
+          <a href="#features" class="btn-secondary px-10 py-5 text-lg">
+            Ver Funciones
+          </a>
+        </div>
+
+        <!-- Hero Graphic -->
+        <div class="mt-24 relative max-w-6xl mx-auto animate-slide-up" style="animation-delay: 300ms">
+          <div class="absolute -inset-1 bg-gradient-to-b from-primary-500/20 to-transparent rounded-[32px] blur-2xl"></div>
+          <div class="relative bg-[#0A0A0B] border border-white/5 rounded-[32px] aspect-[16/9] shadow-2xl overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-blue-500/5"></div>
+            <!-- Mockup Interface Elements -->
+            <div class="absolute top-8 left-8 right-8 bottom-0 bg-[#121214] rounded-t-2xl border-t border-x border-white/5 p-6">
+              <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-xl bg-primary-500/20 animate-pulse"></div>
+                <div class="space-y-2">
+                  <div class="w-32 h-4 bg-white/10 rounded-full"></div>
+                  <div class="w-20 h-2 bg-white/5 rounded-full"></div>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-6">
+                <div class="h-32 rounded-2xl bg-white/5 border border-white/5"></div>
+                <div class="h-32 rounded-2xl bg-white/5 border border-white/5"></div>
+                <div class="h-32 rounded-2xl bg-white/5 border border-white/5"></div>
+              </div>
             </div>
-            <p class="mt-4 text-sm leading-6 text-slate-400">
-              Perfecto para empezar o gestionar una pequeña escuela local.
-            </p>
-            <p class="mt-6 flex items-baseline gap-x-1">
-              <span class="text-4xl font-bold tracking-tight text-white"
-                >0€</span
-              >
-              <span class="text-sm font-semibold leading-6 text-slate-400"
-                >/mes</span
-              >
-            </p>
-            <ul
-              role="list"
-              class="mt-8 space-y-3 text-sm leading-6 text-slate-300"
-            >
-              <li class="flex gap-x-3">
-                <CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> 1 Centro
-                / Colegio
-              </li>
-              <li class="flex gap-x-3">
-                <CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> 2 Clases
-                simultáneas
-              </li>
-              <li class="flex gap-x-3">
-                <CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Hasta 12
-                Alumnos totales
-              </li>
-              <li class="flex gap-x-3">
-                <CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Pase de
-                lista y Asistencia
-              </li>
-            </ul>
+            <!-- Glass Overlay on Hover -->
+            <div class="absolute inset-0 bg-primary-500/0 group-hover:bg-primary-500/5 transition-colors duration-700 pointer-events-none"></div>
           </div>
-          <button
-            onclick={goToLogin}
-            aria-describedby="tier-free"
-            class="mt-8 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 focus-visible:outline-2 focus-visible:outline-offset-2 bg-slate-800 text-white hover:bg-slate-700 transition-all shadow-lg w-full"
-            >Empezar Gratis</button
-          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Features -->
+    <section id="características" class="py-32 px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="mb-20">
+          <h2 class="text-4xl md:text-5xl font-display font-black text-white mb-6">Potencia Maestra</h2>
+          <p class="text-lg text-surface-400 max-w-xl">Todo lo que necesitas para escalar tu academia de 10 a 1,000 alumnos sin perder el control.</p>
         </div>
 
-        <!-- Premium Plan -->
-        <div
-          class="flex flex-col justify-between rounded-3xl bg-gradient-to-b from-indigo-900/40 to-slate-900/50 p-8 ring-2 ring-indigo-500 xl:p-10 relative overflow-hidden shadow-2xl"
-        >
-          <div
-            class="absolute top-0 right-0 p-4 bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-xl shadow-lg"
-          >
-            Recomendado (Beta)
-          </div>
-          <div>
-            <div class="flex items-center justify-between gap-x-4">
-              <h3
-                id="tier-premium"
-                class="text-lg font-extrabold leading-8 text-indigo-400 flex items-center gap-2"
-              >
-                Maestro Premium
-              </h3>
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+          <!-- Main Task Card -->
+          <div class="md:col-span-3 bento-card">
+            <div class="bento-card-inner">
+              <div class="mb-auto">
+                <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400 mb-6">
+                  <BookOpen class="w-6 h-6" />
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">Diario de Clase Inteligente</h3>
+                <p class="text-surface-400 leading-relaxed">Pasa lista en un tap, registra temarios y evalúa el progreso técnico con métricas visuales en tiempo real.</p>
+              </div>
+              <div class="mt-8 pt-6 border-t border-white/5 flex gap-4">
+                <div class="px-3 py-1 rounded-full bg-primary-500/10 text-primary-400 text-[10px] font-bold uppercase tracking-widest">Realtíme</div>
+                <div class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest">Automation</div>
+              </div>
             </div>
-            <p class="mt-4 text-sm leading-6 text-slate-300">
-              Todas las herramientas sin límites para un control profesional
-              total.
-            </p>
-            <p class="mt-6 flex items-baseline gap-x-1">
-              <span class="text-4xl font-extrabold tracking-tight text-white"
-                >1€</span
-              >
-              <span class="text-sm font-semibold leading-6 text-indigo-300"
-                >/mes</span
-              >
-            </p>
-            <ul
-              role="list"
-              class="mt-8 space-y-3 text-sm leading-6 text-slate-200"
-            >
-              <li class="flex gap-x-3 font-bold text-white">
-                <CheckCircle class="h-6 w-5 flex-none text-indigo-400" /> Centros
-                y Clases Ilimitados
-              </li>
-              <li class="flex gap-x-3 font-bold text-white">
-                <CheckCircle class="h-6 w-5 flex-none text-indigo-400" /> Alumnos
-                Ilimitados
-              </li>
-              <li class="flex gap-x-3">
-                <CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Gestión
-                de Torneos (Emparejamientos)
-              </li>
-              <li class="flex gap-x-3">
-                <CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Informes
-                PDF y Diplomas
-              </li>
-              <li class="flex gap-x-3">
-                <CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Exportación
-                de datos (Excel/PDF)
-              </li>
-            </ul>
           </div>
-          <a
-            href="https://buy.stripe.com/test_5kAcN87vU8Xv06s8w8?client_reference_id=beta_user"
-            target="_blank"
-            aria-describedby="tier-premium"
-            class="mt-8 block rounded-md px-3 py-3 text-center text-sm font-bold leading-6 focus-visible:outline-2 focus-visible:outline-offset-2 bg-indigo-600 text-white shadow-xl hover:bg-indigo-500 transition-all transform hover:-translate-y-1"
-            >Suscribirse Ahora</a
-          >
+
+          <!-- Small Card -->
+          <div class="md:col-span-3 bento-card border-primary-500/20 bg-primary-500/[0.02]">
+            <div class="bento-card-inner">
+              <div class="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 mb-6">
+                <Trophy class="w-6 h-6" />
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">Torneos y Pareos</h3>
+              <p class="text-surface-400 leading-relaxed">Generación automática de rondas y tablas de posiciones. Haz que tus alumnos se sientan en un Grand Master event.</p>
+            </div>
+          </div>
+
+          <!-- Long Card -->
+          <div class="md:col-span-4 bento-card">
+             <div class="bento-card-inner md:flex-row gap-10 items-center">
+                <div class="flex-1">
+                  <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6">
+                    <Users class="w-6 h-6" />
+                  </div>
+                  <h3 class="text-2xl font-bold text-white mb-3">CRM de Alumnos</h3>
+                  <p class="text-surface-400 leading-relaxed">Fichas técnicas completas, historial de pagos, niveles ELO internos y contacto directo con padres.</p>
+                </div>
+                <div class="w-full md:w-48 aspect-square rounded-2xl bg-white/5 border border-white/5 animate-pulse"></div>
+             </div>
+          </div>
+
+          <!-- Another Card -->
+          <div class="md:col-span-2 bento-card overflow-hidden">
+            <div class="bento-card-inner">
+               <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6">
+                <Zap class="w-6 h-6" />
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">Multi-Centro</h3>
+              <p class="text-surface-400">Escala de uno a infinitos colegios con un solo panel centralizado.</p>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="mt-12 text-center">
-        <p class="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
-          * El plan Premium está en fase Beta. El precio de 1€/mes es
-          promocional para los primeros usuarios. Al suscribirte aceptas los
-          términos de servicio de ChessNet.
-        </p>
-      </div>
-    </div>
-  </div>
+    <!-- Pricing -->
+    <section id="precios" class="py-32 px-6 relative">
+      <div class="max-w-5xl mx-auto text-center">
+        <h2 class="text-4xl md:text-5xl font-display font-black text-white mb-6">Inversión para el Éxito</h2>
+        <p class="text-lg text-surface-400 mb-16 max-w-xl mx-auto">Comienza hoy sin compromiso. Elige el plan que mejor se adapte a tu crecimiento.</p>
 
-  <!-- CTA Section -->
-  <div class="relative isolate py-16 sm:py-24">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8">
-      <div
-        class="relative overflow-hidden bg-slate-900 px-6 py-24 shadow-2xl rounded-3xl sm:px-24 xl:py-32 border border-slate-800"
-      >
-        <div
-          class="absolute inset-0 bg-gradient-to-br from-emerald-900/40 to-slate-900 -z-10"
-        ></div>
-        <h2
-          class="mx-auto max-w-2xl text-center text-3xl font-bold tracking-tight text-white sm:text-4xl"
-        >
-          Tu enseñanza merece herramientas profesionales.
-        </h2>
-        <p
-          class="mx-auto mt-2 max-w-xl text-center text-lg leading-8 text-slate-200"
-        >
-          Únete a los profesores que ya han dejado atrás el caos de notas y
-          hojas de cálculo.
-        </p>
-        <div class="mt-10 flex justify-center gap-x-6">
-          <button
-            onclick={goToLogin}
-            class="rounded-xl bg-white px-8 py-3.5 text-sm font-bold text-slate-900 shadow-sm hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-all hover:scale-105"
-            >Crear Cuenta Gratis</button
-          >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+          <!-- Free -->
+          <div class="bento-card !rounded-[32px]">
+            <div class="p-10">
+              <h3 class="text-xl font-bold text-white mb-2">Ajedrecista</h3>
+              <div class="flex items-baseline gap-1 mb-8">
+                <span class="text-5xl font-black text-white italic">0€</span>
+                <span class="text-surface-500 font-bold uppercase tracking-widest text-xs">/ Siempre</span>
+              </div>
+              <ul class="space-y-4 mb-10 text-surface-400 font-medium">
+                {#each ['1 Colegio / Centro', '2 Clases simultáneas', '12 Alumnos totales', 'Pase de lista básico'] as feature}
+                  <li class="flex items-center gap-3">
+                    <CircleCheck class="w-5 h-5 text-surface-600" />
+                    <span>{feature}</span>
+                  </li>
+                {/each}
+              </ul>
+              <button onclick={goToLogin} class="btn-secondary w-full py-4 font-bold">Empezar Gratis</button>
+            </div>
+          </div>
+
+          <!-- Premium -->
+          <div class="bento-card !rounded-[32px] border-primary-500/50 bg-primary-500/[0.03] relative overflow-hidden">
+            <div class="absolute top-0 right-0 px-6 py-2 bg-primary-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-2xl">BETA PROMO</div>
+            <div class="p-10">
+              <h3 class="text-xl font-bold text-primary-400 mb-2">Maestro Premium</h3>
+              <div class="flex items-baseline gap-1 mb-8">
+                <span class="text-5xl font-black text-white italic">1€</span>
+                <span class="text-primary-500/60 font-bold uppercase tracking-widest text-xs">/ Mes</span>
+              </div>
+              <ul class="space-y-4 mb-10 text-surface-200 font-medium">
+                {#each ['Centros e Alumnos Ilimitados', 'Sistema de Torneos Pro', 'Diplomas y PDFs', 'Gestión de Pagos Online'] as feature}
+                  <li class="flex items-center gap-3">
+                    <ShieldCheck class="w-5 h-5 text-primary-400" />
+                    <span>{feature}</span>
+                  </li>
+                {/each}
+              </ul>
+              <button onclick={goToLogin} class="btn-primary w-full py-4 font-bold">Suscribirse Ahora</button>
+            </div>
+          </div>
         </div>
-        <svg
-          viewBox="0 0 1024 1024"
-          class="absolute left-1/2 top-1/2 -z-10 h-[64rem] w-[64rem] -translate-x-1/2 [mask-image:radial-gradient(closest-side,white,transparent)]"
-          aria-hidden="true"
-        >
-          <circle
-            cx="512"
-            cy="512"
-            r="512"
-            fill="url(#gradient-cta)"
-            fill-opacity="0.2"
-          ></circle>
-          <defs>
-            <radialGradient id="gradient-cta">
-              <stop stop-color="#10b981"></stop>
-              <stop offset="1" stop-color="#0f172a"></stop>
-            </radialGradient>
-          </defs>
-        </svg>
+        
+        <p class="mt-12 text-[10px] text-surface-600 uppercase tracking-widest font-bold">* Precio promocional para early adopters. Sin permanencia.</p>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- Footer -->
-  <footer class="bg-[#0b1120] border-t border-slate-800">
-    <div
-      class="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8"
-    >
-      <div class="flex justify-center space-x-6 md:order-2">
-        <a
-          href="https://discord.gg/G7SrFtJHnr"
-          target="_blank"
-          rel="noreferrer"
-          class="text-slate-400 hover:text-emerald-400">Discord</a
-        >
+    <!-- Final CTA -->
+    <section class="py-32 px-6">
+      <div class="max-w-7xl mx-auto bento-card bg-gradient-to-br from-primary-600/20 to-bento-card border-primary-500/20 p-12 md:p-24 text-center">
+        <h2 class="text-4xl md:text-7xl font-display font-black text-white mb-8 leading-tight">¿Listo para Dominar el Tablero?</h2>
+        <p class="text-xl text-surface-300 max-w-2xl mx-auto mb-12 italic">Únete a cientos de profesores que ya han profesionalizado su escuela con ChessNet.</p>
+        <button onclick={goToLogin} class="btn-primary px-12 py-6 text-xl shadow-2xl shadow-primary-500/40">
+          Crear Cuenta Gratuita
+        </button>
       </div>
-      <div class="mt-8 md:order-1 md:mt-0">
-        <p class="text-center text-xs leading-5 text-slate-500">
-          © {new Date().getFullYear()} ChessNet. Hecho con
-          <span class="text-red-500">❤</span> para el ajedrez.
-        </p>
+    </section>
+  </main>
+
+  <footer class="py-12 px-6 border-t border-white/5 relative z-10">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+      <div class="flex items-center gap-3">
+        <Logo size="w-8 h-8" iconSize="w-5 h-5" />
+        <span class="text-xl font-display font-black tracking-tighter text-white">ChessNet</span>
+      </div>
+      <p class="text-surface-500 text-sm font-medium">© {new Date().getFullYear()} ChessNet. Crafted with <span class="text-primary-500">violet passion</span> for chess.</p>
+      <div class="flex gap-6">
+        <a href="https://discord.gg/G7SrFtJHnr" target="_blank" class="text-surface-500 hover:text-white transition-colors">Discord</a>
+        <a href="/legal" class="text-surface-500 hover:text-white transition-colors">Legal</a>
       </div>
     </div>
   </footer>
 </div>
+
+<style lang="postcss">
+  :global(html) {
+    scroll-behavior: smooth;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+</style>

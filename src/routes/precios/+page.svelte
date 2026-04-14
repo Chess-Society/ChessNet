@@ -1,22 +1,31 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { CheckCircle, X, School, Scale } from 'lucide-svelte';
+  import { CheckCircle2, XCircle, School, Scale, LayoutDashboard, Sparkles, ShieldCheck } from 'lucide-svelte';
   import { initiateUpgrade } from '$lib/api/subscriptions';
   import { auth } from '$lib/firebase';
+  import { onAuthStateChanged, type User } from 'firebase/auth';
+  import Logo from '$lib/components/Logo.svelte';
 
-  function goToLogin() {
-    goto('/login');
-  }
+  let currentUser = $state<User | null>(null);
+  let isAuthLoading = $state(true);
+
+  onMount(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      isAuthLoading = false;
+    });
+    return unsubscribe;
+  });
 
   async function handleSubscribe() {
-    const user = auth.currentUser;
-    if (!user) {
+    if (!currentUser) {
       goto('/login?redirect=/precios');
       return;
     }
 
     try {
-      const result = await initiateUpgrade('premium', user.uid, user.email || undefined);
+      const result = await initiateUpgrade('premium', currentUser.uid, currentUser.email || undefined);
       if (result.success && result.payment_url) {
         window.location.href = result.payment_url;
       } else {
@@ -29,192 +38,209 @@
 </script>
 
 <svelte:head>
-  <title>Precios | ChessNet</title>
-  <meta name="description" content="Planes transparentes para profesores de ajedrez. Desde gratis hasta Premium por solo 1€/mes." />
+  <title>Precios | ChessNet Premium</title>
+  <meta name="description" content="Planes de suscripción para profesionales del ajedrez. Desde gratis hasta Premium ilimitado." />
 </svelte:head>
 
-<!-- Navbar -->
-<header class="fixed inset-x-0 top-0 z-50 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800">
-  <nav class="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto" aria-label="Global">
-    <div class="flex lg:flex-1">
-      <a href="/" class="-m-1.5 p-1.5 text-2xl font-bold flex items-center gap-2 group">
-        <div class="relative">
-          <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg blur opacity-40 group-hover:opacity-100 transition duration-200"></div>
-          <div class="relative bg-slate-900 rounded-lg p-1">
-            <School class="w-8 h-8 text-emerald-500" />
-          </div>
-        </div>
-        <span class="bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 font-extrabold tracking-tight">ChessNet</span>
-      </a>
-    </div>
-    <div class="hidden lg:flex lg:gap-x-12">
-      <a href="/#features" class="text-sm font-medium leading-6 text-slate-200 hover:text-white transition-all">Características</a>
-      <a href="/donar" class="text-sm font-medium leading-6 text-slate-200 hover:text-white transition-all">Donar</a>
-      <a href="/precios" class="text-sm font-medium leading-6 text-emerald-400 transition-all">Precios</a>
-      <a href="/hoja-de-ruta" class="text-sm font-medium leading-6 text-slate-200 hover:text-white transition-all">Hoja de Ruta</a>
-    </div>
-    <div class="hidden lg:flex lg:flex-1 lg:justify-end gap-4">
-      <a href="/login" class="text-sm font-semibold leading-6 text-slate-200 hover:text-white px-4 py-2 rounded-lg">Iniciar Sesión</a>
-      <a href="/login" class="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:bg-emerald-500 hover:scale-105 transition-all duration-300">Empezar Gratis</a>
-    </div>
-  </nav>
-</header>
-
-<main class="pt-20 bg-[#0f172a] min-h-screen text-white">
-  <!-- Hero -->
-  <div class="py-16 sm:py-24 relative overflow-hidden">
-    <div class="absolute inset-0 z-0 opacity-10">
-      <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-    </div>
-    <div class="mx-auto max-w-7xl px-6 lg:px-8 relative z-10 text-center">
-      <h1 class="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-blue-500">Planes Transparentes</h1>
-      <p class="max-w-2xl mx-auto text-lg text-slate-400">Olvida las cuotas abusivas. En ChessNet creemos en democratizar la tecnología para los profesores de ajedrez.</p>
-    </div>
+<div class="min-h-screen bg-bento-bg text-surface-200 font-sans selection:bg-primary-500/30 overflow-x-hidden">
+  
+  <!-- Decorative Background Glows -->
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary-500/10 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute bottom-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px]"></div>
+    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 contrast-150"></div>
   </div>
 
-  <!-- Pricing Cards -->
-  <div id="pricing" class="py-24 sm:py-32 bg-slate-900/30">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8">
-      <div class="mx-auto mt-16 grid max-w-lg grid-cols-1 gap-y-6 lg:mx-0 lg:max-w-none lg:grid-cols-2 gap-x-8">
-        <!-- Free Plan -->
-        <div class="flex flex-col justify-between rounded-3xl bg-slate-900/50 p-8 ring-1 ring-slate-800 xl:p-10 hover:border-slate-700 transition-all border border-transparent">
-          <div>
-            <h3 class="text-lg font-semibold leading-8 text-white">Ajedrecista</h3>
-            <p class="mt-4 text-sm leading-6 text-slate-400">Perfecto para empezar o gestionar una pequeña escuela local.</p>
-            <p class="mt-6 flex items-baseline gap-x-1">
-              <span class="text-4xl font-bold tracking-tight text-white">0€</span>
-              <span class="text-sm font-semibold leading-6 text-slate-400">/mes</span>
-            </p>
-            <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-slate-300">
-              <li class="flex gap-x-3"><CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> 1 Centro / Colegio</li>
-              <li class="flex gap-x-3"><CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> 2 Clases simultáneas</li>
-              <li class="flex gap-x-3"><CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Hasta 12 Alumnos totales</li>
-              <li class="flex gap-x-3"><CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Pase de lista y Asistencia</li>
-            </ul>
+  <!-- Navbar -->
+  <header class="fixed inset-x-0 top-0 z-50 bg-bento-bg/70 backdrop-blur-2xl border-b border-white/5 transition-all py-4">
+    <nav class="flex items-center justify-between px-6 lg:px-12 max-w-7xl mx-auto" aria-label="Global">
+      <div class="flex lg:flex-1">
+        <a href="/" class="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95">
+          <div class="relative">
+            <div class="absolute -inset-2 bg-primary-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+            <Logo size="w-10 h-10" iconSize="w-6 h-6" />
           </div>
-          <button onclick={goToLogin} class="mt-8 block rounded-md px-3 py-2 text-center text-sm font-semibold leading-6 bg-slate-800 text-white hover:bg-slate-700 transition-all shadow-lg w-full">Empezar Gratis</button>
-        </div>
+          <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
+        </a>
+      </div>
+      
+      <div class="flex lg:flex-1 lg:justify-end gap-6 items-center">
+        {#if isAuthLoading}
+          <div class="w-32 h-10 bg-white/5 animate-pulse rounded-full"></div>
+        {:else if currentUser}
+          <a href="/panel" class="btn-primary py-2 px-6 text-sm">
+            Ir al Panel
+          </a>
+        {:else}
+          <a href="/login" class="text-sm font-bold text-surface-400 hover:text-white transition-colors">Entrar</a>
+          <a href="/login" class="btn-primary py-2 px-6 text-sm">Empezar Gratis</a>
+        {/if}
+      </div>
+    </nav>
+  </header>
 
-        <!-- Premium Plan -->
-        <div class="flex flex-col justify-between rounded-3xl bg-gradient-to-b from-indigo-900/40 to-slate-900/50 p-8 ring-2 ring-indigo-500 xl:p-10 relative overflow-hidden shadow-2xl">
-          <div class="absolute top-0 right-0 p-4 bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-xl shadow-lg">Recomendado (Beta)</div>
-          <div>
-            <h3 class="text-lg font-extrabold leading-8 text-indigo-400 flex items-center gap-2">Maestro Premium</h3>
-            <p class="mt-4 text-sm leading-6 text-slate-300">Todas las herramientas sin límites para un control profesional total.</p>
-            <p class="mt-6 flex items-baseline gap-x-1">
-              <span class="text-4xl font-extrabold tracking-tight text-white">1€</span>
-              <span class="text-sm font-semibold leading-6 text-indigo-300">/mes</span>
-            </p>
-            <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-slate-200">
-              <li class="flex gap-x-3 font-bold text-white"><CheckCircle class="h-6 w-5 flex-none text-indigo-400" /> Centros y Clases Ilimitados</li>
-              <li class="flex gap-x-3 font-bold text-white"><CheckCircle class="h-6 w-5 flex-none text-indigo-400" /> Alumnos Ilimitados</li>
-              <li class="flex gap-x-3"><CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Gestión de Torneos (Emparejamientos)</li>
-              <li class="flex gap-x-3"><CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Informes PDF y Diplomas</li>
-              <li class="flex gap-x-3"><CheckCircle class="h-6 w-5 flex-none text-emerald-500" /> Exportación de datos (Excel/PDF)</li>
+  <main class="relative z-10 pt-32 pb-24">
+    <!-- Hero -->
+    <div class="max-w-5xl mx-auto px-6 text-center mb-20 animate-fade-in">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-8">
+        <Sparkles class="w-3.5 h-3.5" />
+        <span>Precios Transparentes</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-display font-black text-white mb-8 tracking-tight">Olvida las cuotas <br /> <span class="text-primary-400 italic">Abusivas</span></h1>
+      <p class="max-w-2xl mx-auto text-lg md:text-xl text-surface-400">Democratizando la tecnología para profesores de ajedrez. Sin permanencias, sin letra pequeña.</p>
+    </div>
+
+    <!-- Pricing Cards -->
+    <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 mb-32">
+       <!-- Free Plan -->
+       <div class="bento-card !rounded-[40px] flex flex-col group hover:border-surface-700 transition-all duration-500">
+         <div class="p-12 flex-1">
+            <h3 class="text-2xl font-bold text-white mb-2">Ajedrecista</h3>
+            <p class="text-surface-500 text-sm mb-8">Ideal para clases particulares o grupos reducidos.</p>
+            <div class="flex items-baseline gap-1 mb-10">
+              <span class="text-6xl font-black text-white italic">0€</span>
+              <span class="text-surface-600 font-bold uppercase tracking-widest text-[10px]">/ Siempre</span>
+            </div>
+            <ul class="space-y-5 text-surface-400 font-medium text-sm">
+               <li class="flex items-center gap-3">
+                 <CheckCircle2 class="w-5 h-5 text-surface-700" />
+                 <span>1 Colegio / Centro educativo</span>
+               </li>
+               <li class="flex items-center gap-3">
+                 <CheckCircle2 class="w-5 h-5 text-surface-700" />
+                 <span>2 Clases o Grupos simultáneos</span>
+               </li>
+               <li class="flex items-center gap-3">
+                 <CheckCircle2 class="w-5 h-5 text-surface-700" />
+                 <span>Hasta 12 Alumnos totales</span>
+               </li>
+               <li class="flex items-center gap-3">
+                 <CheckCircle2 class="w-5 h-5 text-surface-700" />
+                 <span>Pase de lista y Asistencia</span>
+               </li>
+            </ul>
+         </div>
+         <div class="p-12 pt-0">
+            <button onclick={() => goto('/login')} class="btn-secondary w-full py-5 text-lg font-bold">Empezar Gratis</button>
+         </div>
+       </div>
+
+       <!-- Premium Plan -->
+       <div class="bento-card !rounded-[40px] border-primary-500/40 bg-primary-500/[0.02] flex flex-col shadow-2xl shadow-primary-500/10 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 px-8 py-3 bg-primary-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-3xl">RECOMENDADO</div>
+          <div class="p-12 flex-1">
+            <h3 class="text-2xl font-bold text-primary-400 mb-2">Maestro Premium</h3>
+            <p class="text-surface-400/80 text-sm mb-8">El control total sin límites para tu academia.</p>
+            <div class="flex items-baseline gap-1 mb-10">
+              <span class="text-6xl font-black text-white italic">1€</span>
+              <span class="text-primary-500/60 font-bold uppercase tracking-widest text-[10px]">/ Mes (Beta)</span>
+            </div>
+            <ul class="space-y-5 text-surface-200 font-semibold text-sm">
+               <li class="flex items-center gap-3">
+                 <ShieldCheck class="w-5 h-5 text-primary-400" />
+                 <span>Centros y Clases Ilimitados</span>
+               </li>
+               <li class="flex items-center gap-3">
+                 <ShieldCheck class="w-5 h-5 text-primary-400" />
+                 <span>Alumnos Ilimitados</span>
+               </li>
+               <li class="flex items-center gap-3">
+                 <ShieldCheck class="w-5 h-5 text-primary-400" />
+                 <span>Gestión de Torneos (Pareos Pro)</span>
+               </li>
+               <li class="flex items-center gap-3">
+                 <ShieldCheck class="w-5 h-5 text-primary-400" />
+                 <span>Diplomas, Informes PDF y Excel</span>
+               </li>
             </ul>
           </div>
-          <button 
-            onclick={handleSubscribe} 
-            class="mt-8 block rounded-md px-3 py-3 text-center text-sm font-bold leading-6 bg-indigo-600 text-white shadow-xl hover:bg-indigo-500 transition-all transform hover:-translate-y-1 w-full"
-          >
-            Suscribirse Ahora
-          </button>
+          <div class="p-12 pt-0">
+             <button onclick={handleSubscribe} class="btn-primary w-full py-5 text-lg font-extrabold shadow-xl shadow-primary-500/20">Suscribirse Ahora</button>
+          </div>
+       </div>
+    </div>
+
+    <!-- Comparison -->
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="bento-card !p-0 border-white/5 overflow-hidden">
+        <div class="p-8 border-b border-white/5 bg-white/[0.01]">
+          <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+             <Scale class="w-6 h-6 text-primary-400" />
+             Tabla Comparativa
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-white/[0.02]">
+                <th class="py-6 px-10 text-[10px] font-black uppercase tracking-widest text-surface-600">Módulo</th>
+                <th class="py-6 px-10 text-center text-xs font-bold uppercase text-surface-400 tracking-tighter">Ajedrecista</th>
+                <th class="py-6 px-10 text-center text-xs font-black uppercase text-primary-400 tracking-tighter bg-primary-500/[0.03]">Premium</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+              {#each [
+                ['Gestión de Alumnos', 'Hasta 12', 'Ilimitados'],
+                ['Centros y Grupos', 'Limitado', 'Ilimitados'],
+                ['Pase de Lista', 'Sí', 'Sí'],
+                ['Torneos e Pareos', 'No', 'Sí'],
+                ['Exportar Datos', 'No', 'Sí'],
+                ['Diplomas Automáticos', 'No', 'Sí'],
+                ['Soporte 24/7', 'Básico', 'Prioritario']
+              ] as [title, free, premium]}
+                <tr class="hover:bg-white/[0.01] transition-colors">
+                  <td class="py-5 px-10 text-sm font-medium text-surface-300">{title}</td>
+                  <td class="py-5 px-10 text-center text-sm font-bold text-surface-500">{free}</td>
+                  <td class="py-5 px-10 text-center text-sm font-black text-white bg-primary-500/[0.03]">{premium}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Comparison Table -->
-  <div class="py-24 max-w-7xl mx-auto px-6 lg:px-8">
-    <h3 class="text-2xl font-bold mb-12 text-center flex items-center justify-center gap-3">
-      <Scale class="w-8 h-8 text-emerald-500" />
-      Comparativa Detallada
-    </h3>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="border-b border-slate-700">
-            <th class="py-6 px-4 text-slate-500 font-medium font-sans uppercase tracking-widest text-xs">Característica</th>
-            <th class="py-6 px-4 text-center font-bold text-white uppercase tracking-widest text-sm">Ajedrecista (Gratis)</th>
-            <th class="py-6 px-4 text-center font-black text-indigo-400 uppercase tracking-widest text-sm bg-indigo-500/5">Maestro Premium</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-800">
-          <tr>
-            <td class="py-6 px-4 text-slate-300">Colegios / Centros</td>
-            <td class="py-6 px-4 text-center text-slate-400 font-medium">1</td>
-            <td class="py-6 px-4 text-center text-white font-bold bg-indigo-500/5">Ilimitado</td>
-          </tr>
-          <tr>
-            <td class="py-6 px-4 text-slate-300">Clases / Grupos</td>
-            <td class="py-6 px-4 text-center text-slate-400 font-medium">2</td>
-            <td class="py-6 px-4 text-center text-white font-bold bg-indigo-500/5">Ilimitado</td>
-          </tr>
-          <tr>
-            <td class="py-6 px-4 text-slate-300">Alumnos Totales</td>
-            <td class="py-6 px-4 text-center text-slate-400 font-medium">12</td>
-            <td class="py-6 px-4 text-center text-white font-bold bg-indigo-500/5">Ilimitado</td>
-          </tr>
-          <tr>
-            <td class="py-6 px-4 text-slate-300">Asistencia y Diario</td>
-            <td class="py-6 px-4 text-center text-emerald-400"><CheckCircle class="mx-auto w-5 h-5" /></td>
-            <td class="py-6 px-4 text-center text-emerald-400 bg-indigo-500/5"><CheckCircle class="mx-auto w-5 h-5" /></td>
-          </tr>
-          <tr>
-            <td class="py-6 px-4 text-slate-300">Torneos Internos</td>
-            <td class="py-6 px-4 text-center text-red-500/50"><X class="mx-auto w-5 h-5" /></td>
-            <td class="py-6 px-4 text-center text-emerald-400 bg-indigo-500/5"><CheckCircle class="mx-auto w-5 h-5" /></td>
-          </tr>
-          <tr>
-            <td class="py-6 px-4 text-slate-300">Generación de Diplomas</td>
-            <td class="py-6 px-4 text-center text-red-500/50"><X class="mx-auto w-5 h-5" /></td>
-            <td class="py-6 px-4 text-center text-emerald-400 bg-indigo-500/5"><CheckCircle class="mx-auto w-5 h-5" /></td>
-          </tr>
-          <tr>
-            <td class="py-6 px-4 text-slate-300">Exportar a Excel/PDF</td>
-            <td class="py-6 px-4 text-center text-red-500/50"><X class="mx-auto w-5 h-5" /></td>
-            <td class="py-6 px-4 text-center text-emerald-400 bg-indigo-500/5"><CheckCircle class="mx-auto w-5 h-5" /></td>
-          </tr>
-          <tr>
-            <td class="py-6 px-4 text-slate-300">Soporte Prioritario</td>
-            <td class="py-6 px-4 text-center text-red-500/50"><X class="mx-auto w-5 h-5" /></td>
-            <td class="py-6 px-4 text-center text-emerald-400 bg-indigo-500/5"><CheckCircle class="mx-auto w-5 h-5" /></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- FAQ -->
-  <div class="py-24 bg-slate-900/50">
-    <div class="max-w-3xl mx-auto px-6">
-      <h3 class="text-3xl font-bold mb-12 text-center">Preguntas Frecuentes</h3>
-      <div class="space-y-8">
-        <div>
-          <h4 class="text-lg font-bold text-white mb-2">¿Puedo cancelar en cualquier momento?</h4>
-          <p class="text-slate-400">Sí, no hay permanencia. Si cancelas, seguirás teniendo acceso premium hasta que acabe tu mes en curso.</p>
+    <!-- FAQ -->
+    <div class="max-w-3xl mx-auto px-6 mt-32">
+      <h3 class="text-3xl font-display font-black text-white text-center mb-16 italic">Preguntas de Maestros</h3>
+      <div class="space-y-12">
+        <div class="group">
+          <h4 class="text-lg font-bold text-white mb-3 group-hover:text-primary-400 transition-colors">¿Puedo cancelar en cualquier momento?</h4>
+          <p class="text-surface-500 leading-relaxed">Sin duda. No hay permanencia ni procesos complicados. Un clic en tu perfil y estarás libre de cargos para el siguiente mes.</p>
         </div>
-        <div>
-          <h4 class="text-lg font-bold text-white mb-2">¿Qué pasa si supero los 12 alumnos en el plan gratis?</h4>
-          <p class="text-slate-400">El sistema te pedirá que actualices al plan Maestro Premium para poder añadir más estudiantes. No bloquearemos los que ya tengas.</p>
+        <div class="group">
+          <h4 class="text-lg font-bold text-white mb-3 group-hover:text-primary-400 transition-colors">¿Qué pasa si mis datos crecen?</h4>
+          <p class="text-surface-500 leading-relaxed">ChessNet está construido sobre infraestructura Google Cloud para escalar. Tus datos estarán seguros y accesibles ya tengas 10 o 10.000 alumnos.</p>
         </div>
-        <div>
-          <h4 class="text-lg font-bold text-white mb-2">¿Cómo funciona la suscripción (Beta)?</h4>
-          <p class="text-slate-400">Estamos en fase Beta. Al suscribirte por 1€/mes, nos ayudas a financiar los servidores y a crear nuevas funciones. El precio se mantendrá para los "early adopters".</p>
+        <div class="group">
+          <h4 class="text-lg font-bold text-white mb-3 group-hover:text-primary-400 transition-colors">¿Por qué solo 1€?</h4>
+          <p class="text-surface-500 leading-relaxed">Estamos en fase de lanzamiento. Queremos que la barrera de entrada sea inexistente para que los profesores nos ayuden a pulir la herramienta ideal.</p>
         </div>
       </div>
     </div>
-  </div>
-</main>
+  </main>
 
-<!-- Footer -->
-<footer class="bg-[#0b1120] border-t border-slate-800">
-  <div class="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-    <div class="flex justify-center space-x-6 md:order-2">
-      <a href="https://discord.gg/G7SrFtJHnr" target="_blank" rel="noreferrer" class="text-slate-400 hover:text-emerald-400">Discord</a>
+  <footer class="py-12 px-6 border-t border-white/5 relative z-10">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+      <div class="flex items-center gap-3">
+        <Logo size="w-8 h-8" iconSize="w-5 h-5" />
+        <span class="text-xl font-display font-black tracking-tighter text-white">ChessNet</span>
+      </div>
+      <p class="text-surface-500 text-sm font-medium">© {new Date().getFullYear()} ChessNet. Crafted with <span class="text-primary-500">violet passion</span> for chess.</p>
+      <div class="flex gap-6">
+        <a href="https://discord.gg/G7SrFtJHnr" target="_blank" class="text-surface-500 hover:text-white transition-colors">Discord</a>
+        <a href="/legal" class="text-surface-500 hover:text-white transition-colors">Legal</a>
+      </div>
     </div>
-    <div class="mt-8 md:order-1 md:mt-0">
-      <p class="text-center text-xs leading-5 text-slate-500">© {new Date().getFullYear()} ChessNet. Hecho con <span class="text-red-500">?</span> para el ajedrez.</p>
-    </div>
-  </div>
-</footer>
+  </footer>
+</div>
+
+<style lang="postcss">
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

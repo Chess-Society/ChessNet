@@ -55,12 +55,15 @@
   });
 </script>
 
-<main class="min-h-screen bg-slate-900 text-slate-100 italic-text-none">
+<main class="min-h-screen bg-bento-bg text-surface-200">
   {#if !$authInitialized || $loading}
-    <div class="fixed inset-0 flex items-center justify-center bg-slate-900 z-[100]">
-      <div class="flex flex-col items-center gap-4">
-        <LoadingSpinner size="w-12 h-12" color="text-emerald-500" />
-        <p class="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] animate-pulse">Cargando ChessNet</p>
+    <div class="fixed inset-0 flex items-center justify-center bg-bento-bg z-[100]">
+      <div class="flex flex-col items-center gap-6">
+        <div class="relative">
+          <div class="absolute -inset-4 bg-primary-500/20 rounded-full blur-xl animate-pulse"></div>
+          <LoadingSpinner size="w-16 h-16" color="text-primary-500" />
+        </div>
+        <p class="text-surface-400 text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">Iniciando ChessNet</p>
       </div>
     </div>
   {:else if maintenanceMode && !isAdmin}

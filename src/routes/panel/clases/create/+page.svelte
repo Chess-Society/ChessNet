@@ -2,16 +2,17 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { 
-    GraduationCap, 
-    ArrowLeft,
-    Save,
+    ChalkboardTeacher,
+    CaretLeft,
+    FloppyDisk,
     X,
-    School,
-    Sparkles,
-    Check,
+    Buildings,
+    Sparkle,
+    CheckCircle,
     Info,
-    Plus
-  } from 'lucide-svelte';
+    PlusCircle,
+    ArrowRight
+  } from 'phosphor-svelte';
   import { showToast, showError } from '$lib/utils/toast';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
@@ -77,164 +78,226 @@
   <title>Nueva Clase - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto space-y-10 animate-fade-in pb-20" in:fade>
+<div class="max-w-5xl mx-auto space-y-8 animate-fade-in pb-20" in:fade>
   {#if schools.length === 0}
-    <div class="max-w-4xl mx-auto py-20 text-center space-y-8" in:fade>
-      <div class="w-32 h-32 bg-orange-500/10 rounded-[3rem] flex items-center justify-center mx-auto border border-orange-500/20 text-orange-400 animate-bounce-subtle">
-        <School class="w-16 h-16" />
+    <div class="max-w-2xl mx-auto py-24 text-center space-y-8 bento-card rounded-24 p-12" in:fade>
+      <div class="w-32 h-32 bg-violet-600/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-violet-600/20 text-violet-400">
+        <Buildings weight="duotone" size={64} />
       </div>
       <div class="space-y-4">
-        <h2 class="text-3xl font-black text-white uppercase tracking-tighter">Falta un Paso Previo</h2>
-        <p class="text-surface-500 text-lg max-w-md mx-auto">No puedes crear clases sin un centro escolar asignado. Registra primero el colegio o club.</p>
+        <h2 class="text-3xl font-black text-white tracking-tighter font-outfit uppercase">Centro Requerido</h2>
+        <p class="text-zinc-400 text-lg max-w-md mx-auto font-jakarta">Para crear una clase, primero debes registrar una institución o centro escolar.</p>
       </div>
       <button 
         onclick={() => goto('/panel/centros/create')}
-        class="bg-orange-600 hover:bg-orange-500 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-orange-900/40 flex items-center gap-3 mx-auto"
+        class="btn-pill bg-violet-600 hover:bg-violet-500 text-white px-10 py-4 font-bold transition-all flex items-center gap-3 mx-auto shadow-flare shadow-violet-600/20"
       >
-        <Plus class="w-5 h-5" />
-        CREAR MI PRIMER CENTRO
+        <PlusCircle weight="duotone" size={20} />
+        REGISTRAR PRIMER CENTRO
       </button>
     </div>
   {:else}
-    <!-- Content logic -->
+    <!-- Content Header -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-      <div class="space-y-4">
+      <div class="space-y-4 text-center md:text-left">
         <button 
           onclick={() => goto('/panel/clases')}
-          class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
+          class="flex items-center gap-2 text-zinc-500 hover:text-violet-400 transition-colors group text-[10px] font-black uppercase tracking-[0.2em] font-outfit"
         >
-          <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          Volver a Clases
+          <CaretLeft weight="bold" class="transition-transform group-hover:-translate-x-1" />
+          VOLVER AL LISTADO
         </button>
 
-        <div class="flex items-center gap-6">
-          <div class="w-16 h-16 bg-primary-500/10 border border-primary-500/20 rounded-3xl flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/10">
-            <GraduationCap class="w-8 h-8" />
+        <div class="flex flex-col md:flex-row items-center gap-6">
+          <div class="w-16 h-16 bg-violet-600/10 border border-violet-600/20 rounded-2xl flex items-center justify-center text-violet-400 shadow-xl shadow-violet-600/5">
+            <ChalkboardTeacher weight="duotone" size={32} />
           </div>
           <div>
-            <h1 class="text-3xl font-black text-white tracking-tighter uppercase">Crear Nueva Clase</h1>
-            <p class="text-surface-500 text-sm font-medium">Define un nuevo grupo de entrenamiento.</p>
+            <h1 class="text-4xl font-black text-white tracking-tighter font-outfit uppercase">Nueva Clase</h1>
+            <p class="text-zinc-500 text-sm font-medium font-jakarta">Define un nuevo grupo de entrenamiento para tus alumnos.</p>
           </div>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center justify-center gap-4 bg-zinc-900/50 p-2 rounded-full border border-zinc-800">
         <button 
           onclick={() => goto('/panel/clases')}
-          class="btn-ghost flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+          class="px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors font-outfit"
           disabled={isSubmitting}
         >
-         <X class="w-4 h-4" />
-         Cancelar
-       </button>
-       <button 
-         onclick={handleSubmit}
-         disabled={isSubmitting}
-         class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/20 flex items-center gap-3"
-       >
-         {#if isSubmitting}
-           <div class="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
-           <span>Creando...</span>
-         {:else}
-           <Save class="w-4 h-4" />
-           <span>Registrar Clase</span>
-         {/if}
-       </button>
-     </div>
-   </div>
+          DESCARTAR
+        </button>
+        <button 
+          onclick={handleSubmit}
+          disabled={isSubmitting}
+          class="btn-pill bg-white text-black px-8 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-violet-600 hover:text-white transition-all shadow-xl flex items-center gap-3 font-outfit"
+        >
+          {#if isSubmitting}
+            <div class="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent"></div>
+            <span>GUARDANDO...</span>
+          {:else}
+            <FloppyDisk weight="duotone" size={18} />
+            <span>CREAR CLASE</span>
+          {/if}
+        </button>
+      </div>
+    </div>
 
-   <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-     <div class="lg:col-span-2 space-y-8">
-       <section class="glass-panel p-8 space-y-8 border-t-4 border-primary-500">
-         <div class="space-y-6">
-           <div class="space-y-2">
-             <label for="name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Nombre de la Clase</label>
-             <input
-               id="name"
-               type="text"
-               bind:value={formData.name}
-               placeholder="Ej: Avanzados Lunes 17:00"
-               class={`w-full bg-surface-950 border rounded-xl px-5 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all ${errors.name ? 'border-red-500' : 'border-surface-800'}`}
-             />
-           </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Main Form -->
+      <div class="lg:col-span-8 space-y-8">
+        <div class="bento-card rounded-24 p-8 space-y-8">
+          <div class="flex items-center gap-4 border-b border-zinc-800 pb-6">
+            <div class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-400 border border-zinc-800">
+              <Sparkle weight="duotone" size={20} />
+            </div>
+            <h3 class="text-lg font-bold text-white font-outfit">Información Básica</h3>
+          </div>
 
-           <div class="space-y-2">
-             <label for="school" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Centro Asignado</label>
-             {#if isPreSelectedSchool}
-               <div class="w-full bg-surface-900 border border-primary-500/30 rounded-xl px-5 py-4 flex items-center justify-between">
-                 <div class="flex items-center gap-3">
-                   <School class="w-5 h-5 text-primary-400" />
-                   <span class="text-white font-bold uppercase text-xs">{getSchoolName(formData.school_id)}</span>
-                 </div>
-                 <span class="text-[8px] font-black text-primary-500 uppercase tracking-widest bg-primary-500/10 px-2 py-1 rounded">Pre-seleccionado</span>
-               </div>
-             {:else}
-               <div class="relative group">
-                 <School class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-700 pointer-events-none transition-colors group-focus-within:text-primary-400" />
-                 <select 
-                   id="school"
-                   bind:value={formData.school_id}
-                   class={`w-full bg-surface-950 border rounded-xl pl-12 pr-5 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all cursor-pointer appearance-none ${errors.school_id ? 'border-red-500' : 'border-surface-800'}`}
-                 >
-                   <option value="">SELECCIONA UN CENTRO</option>
-                   {#each (schools as any[]) as s}
-                     <option value={s.id}>{s.name.toUpperCase()}</option>
-                   {/each}
-                 </select>
-               </div>
-             {/if}
-           </div>
-         </div>
-       </section>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-2">
+              <label for="name" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 font-outfit">Nombre de la Clase</label>
+              <div class="relative group">
+                <input
+                  id="name"
+                  type="text"
+                  bind:value={formData.name}
+                  placeholder="Ej: Avanzados Lunes 17:00"
+                  class={`w-full bg-zinc-900/50 border rounded-2xl px-5 py-4 text-white font-bold font-jakarta focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600/50 outline-none transition-all placeholder:text-zinc-700 ${errors.name ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
+                />
+                {#if errors.name}
+                  <p class="text-[10px] text-red-400 font-bold mt-2 ml-1">{errors.name}</p>
+                {/if}
+              </div>
+            </div>
 
-       {#if formData.name && formData.school_id}
-         <div class="glass-panel p-6 bg-primary-500/5 border-dashed relative overflow-hidden group" transition:fly={{ y: 20 }}>
-           <div class="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity">
-             <GraduationCap class="w-40 h-40" />
-           </div>
-           <h3 class="text-[10px] font-black text-primary-400 uppercase tracking-[0.2em] mb-4">Vista Previa de Ficha</h3>
-           <div class="flex items-center gap-4">
-             <div class="w-12 h-12 rounded-2xl bg-surface-950 border border-surface-800 flex items-center justify-center text-primary-400">
-                <Check class="w-6 h-6" />
-             </div>
-             <div>
-               <p class="text-white font-black uppercase tracking-tight text-lg">{formData.name}</p>
-               <p class="text-surface-500 text-[10px] font-bold uppercase tracking-widest">{getSchoolName(formData.school_id)}</p>
-             </div>
-           </div>
-         </div>
-       {/if}
-     </div>
+            <div class="space-y-2">
+              <label for="school" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 font-outfit">Centro Asignado</label>
+              {#if isPreSelectedSchool}
+                <div class="w-full bg-zinc-900/80 border border-violet-600/30 rounded-2xl px-5 py-4 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <Buildings weight="duotone" size={20} class="text-violet-400" />
+                    <span class="text-white font-bold uppercase text-xs font-jakarta">{getSchoolName(formData.school_id)}</span>
+                  </div>
+                  <span class="text-[8px] font-black text-violet-400 uppercase tracking-widest bg-violet-600/10 px-2 py-1 rounded-md">VINCULADO</span>
+                </div>
+              {:else}
+                <div class="relative group">
+                  <Buildings weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700 pointer-events-none transition-colors group-focus-within:text-violet-400" size={20} />
+                  <select 
+                    id="school"
+                    bind:value={formData.school_id}
+                    class={`w-full bg-zinc-900/50 border rounded-2xl pl-12 pr-10 py-4 text-white font-bold font-jakarta focus:ring-2 focus:ring-violet-600/20 focus:border-violet-600/50 outline-none transition-all cursor-pointer appearance-none ${errors.school_id ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
+                  >
+                    <option value="" disabled selected>SELECCIONA UN CENTRO</option>
+                    {#each (schools as any[]) as s}
+                      <option value={s.id}>{s.name.toUpperCase()}</option>
+                    {/each}
+                  </select>
+                  <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">
+                    <PlusCircle weight="bold" size={16} />
+                  </div>
+                </div>
+                {#if errors.school_id}
+                  <p class="text-[10px] text-red-400 font-bold mt-2 ml-1">{errors.school_id}</p>
+                {/if}
+              {/if}
+            </div>
+          </div>
+        </div>
 
-     <!-- Info column -->
-     <div class="space-y-6">
-       <div class="glass-panel p-8 space-y-4">
-         <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-           <Info class="w-4 h-4 text-primary-400" />
-           Recomendaciones
-         </h3>
-         <ul class="space-y-4">
-           <li class="flex gap-3">
-              <div class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-1.5 flex-shrink-0"></div>
-              <p class="text-xs text-surface-400 leading-relaxed font-medium">Usa nombres que incluyan nivel o horario para mayor claridad.</p>
-           </li>
-           <li class="flex gap-3">
-              <div class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-1.5 flex-shrink-0"></div>
-              <p class="text-xs text-surface-400 leading-relaxed font-medium">Cada clase hereda las habilidades configuradas para el centro.</p>
-           </li>
-         </ul>
-       </div>
+        <!-- Preview Card -->
+        {#if formData.name}
+          <div class="bento-card rounded-24 p-8 overflow-hidden relative group border-2 border-dashed border-zinc-800/50 hover:border-violet-600/30 transition-all" transition:fly={{ y: 20 }}>
+            <div class="absolute -right-12 -bottom-12 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+              <ChalkboardTeacher weight="duotone" size={240} />
+            </div>
+            
+            <div class="space-y-6">
+              <div class="flex items-center justify-between">
+                 <h3 class="text-[10px] font-black text-violet-400 uppercase tracking-[0.2em] font-outfit">Vista Previa</h3>
+                 <div class="px-3 py-1 bg-zinc-900 rounded-full border border-zinc-800 text-[8px] font-black text-zinc-500 tracking-widest uppercase">Borrador</div>
+              </div>
 
-       <div class="p-8 border-2 border-primary-500/20 rounded-3xl bg-primary-500/5">
-         <p class="text-[10px] font-black text-surface-500 uppercase text-center tracking-widest">
-           Presiona <kbd class="bg-surface-900 px-2 py-1 rounded text-primary-400 border border-surface-800 shadow-sm">CTRL+ENTER</kbd> para guardar
-         </p>
-       </div>
-     </div>
-   </div>
+              <div class="flex items-center gap-6">
+                <div class="w-20 h-20 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform duration-500">
+                   <CheckCircle weight="duotone" size={40} />
+                </div>
+                <div class="space-y-1">
+                  <p class="text-white font-black uppercase tracking-tighter text-3xl font-outfit">{formData.name}</p>
+                  <div class="flex items-center gap-2">
+                    <Buildings weight="duotone" size={14} class="text-zinc-500" />
+                    <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest font-jakarta">
+                      {formData.school_id ? getSchoolName(formData.school_id) : 'CENTRO NO ASIGNADO'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <!-- Right Column: Tips & Info -->
+      <div class="lg:col-span-4 space-y-6">
+        <div class="bento-card rounded-24 p-8 space-y-6">
+          <div class="flex items-center gap-3">
+            <Info weight="duotone" size={24} class="text-violet-400" />
+            <h3 class="text-[10px] font-black text-white uppercase tracking-[0.2em] font-outfit">Guía Rápida</h3>
+          </div>
+          
+          <div class="space-y-6">
+            <div class="space-y-2 group">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-violet-500 transition-all group-hover:scale-150"></div>
+                <p class="text-[11px] font-black text-zinc-300 uppercase tracking-wider font-outfit">Claridad</p>
+              </div>
+              <p class="text-xs text-zinc-500 leading-relaxed font-jakarta pl-3.5">
+                Usa nombres descriptivos como <span class="text-zinc-300">"Iniciación A - Miércoles"</span> para facilitar el filtrado posterior.
+              </p>
+            </div>
+
+            <div class="space-y-2 group">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-violet-500 transition-all group-hover:scale-150"></div>
+                <p class="text-[11px] font-black text-zinc-300 uppercase tracking-wider font-outfit">Sincronización</p>
+              </div>
+              <p class="text-xs text-zinc-500 leading-relaxed font-jakarta pl-3.5">
+                Al asignar un centro, la clase heredará automáticamente el sistema de evaluación y habilidades de dicho centro.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bento-card rounded-24 p-6 bg-violet-600/5 border-violet-600/10 text-center">
+          <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest font-outfit">
+            ¿Dudas técnicas?
+          </p>
+          <button class="mt-4 text-violet-400 text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors flex items-center gap-2 mx-auto group">
+            Consultar ayuda
+            <ArrowRight weight="bold" class="group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </div>
+    </div>
   {/if}
 </div>
 
 <style lang="postcss">
-  /* Class create styles */
+  :global(.animate-fade-in) {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn-pill {
+    @apply rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .shadow-flare {
+    box-shadow: 0 0 20px -5px currentColor;
+  }
 </style>

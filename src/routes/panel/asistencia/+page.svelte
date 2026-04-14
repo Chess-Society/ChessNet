@@ -5,15 +5,16 @@
   import { 
     CheckCircle, 
     XCircle, 
-    Calendar, 
+    CalendarBlank, 
     Users, 
-    ChevronLeft, 
-    ChevronRight,
-    Search,
+    CaretLeft, 
+    CaretRight,
+    MagnifyingGlass,
     Clock,
     UserCheck,
-    Save
-  } from 'lucide-svelte';
+    CloudCheck,
+    ListChecks
+  } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { fade, fly } from 'svelte/transition';
 
@@ -36,9 +37,6 @@
     return $appStore.attendance.filter(a => a.class_id === selectedClassId && a.date === selectedDate);
   });
 
-  // Estado local para la edición antes de sincronizar si es necesario, 
-  // pero el store es reactivo, así que podemos modificarlo directamente.
-  
   const toggleStatus = async (studentId: string) => {
     if (!selectedClassId) return;
     
@@ -89,139 +87,163 @@
   <title>Control de Asistencia - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
+<div class="max-w-7xl mx-auto px-6 py-8" transition:fade>
   
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10 pt-6">
-    <div class="space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-pink-500/10 border border-pink-500/20 rounded-2xl flex items-center justify-center text-pink-500">
-          <CheckCircle class="w-6 h-6" />
-        </div>
-        <div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">Control de Asistencia</h1>
-          <p class="text-slate-400 text-sm">Registra la asistencia diaria de tus grupos y mantén el control.</p>
-        </div>
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-500 shadow-lg shadow-violet-500/5">
+        <ListChecks weight="duotone" class="w-8 h-8" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">Control de Asistencia</h1>
+        <p class="text-slate-400 font-plus-jakarta text-sm">Gestiona la presencia diaria de tus alumnos con un toque profesional.</p>
       </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-    <div class="lg:col-span-1 space-y-4">
-        <label class="block">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Seleccionar Clase</span>
-            <select 
-              bind:value={selectedClassId}
-              class="w-full mt-1.5 bg-[#1e293b]/50 border border-slate-800 rounded-2xl px-4 py-4 text-sm text-white focus:border-pink-500/50 outline-none transition-all appearance-none cursor-pointer backdrop-blur-xl"
-            >
-              <option value="">Selecciona una clase...</option>
-              {#each classes as cls}
-                <option value={cls.id}>{cls.name}</option>
-              {/each}
-            </select>
-        </label>
+  <!-- Selection Tools Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
+    <!-- Class Selector -->
+    <div class="lg:col-span-4 bento-card p-6">
+      <label class="block">
+        <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mb-3 block">Seleccionar Clase</span>
+        <div class="relative">
+          <Users weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+          <select 
+            bind:value={selectedClassId}
+            class="w-full bg-zinc-900/50 border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-sm text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 outline-none transition-all appearance-none cursor-pointer"
+          >
+            <option value="">Selecciona una clase...</option>
+            {#each classes as cls}
+              <option value={cls.id}>{cls.name}</option>
+            {/each}
+          </select>
+        </div>
+      </label>
     </div>
 
-    <div class="lg:col-span-1 space-y-4">
-        <label class="block">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Fecha de Sesión</span>
-            <div class="relative">
-                <Calendar class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input 
-                  type="date"
-                  bind:value={selectedDate}
-                  class="w-full mt-1.5 bg-[#1e293b]/50 border border-slate-800 rounded-2xl pl-12 pr-6 py-4 text-sm text-white focus:border-pink-500/50 outline-none transition-all backdrop-blur-xl"
-                />
-            </div>
-        </label>
+    <!-- Date Picker -->
+    <div class="lg:col-span-4 bento-card p-6">
+      <label class="block">
+        <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mb-3 block">Fecha de Sesión</span>
+        <div class="relative">
+          <CalendarBlank weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+          <input 
+            type="date"
+            bind:value={selectedDate}
+            class="w-full bg-zinc-900/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 text-sm text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 outline-none transition-all cursor-pointer"
+          />
+        </div>
+      </label>
     </div>
 
+    <!-- Actions / Stats -->
     {#if selectedClassId}
-    <div class="lg:col-span-2 flex items-end gap-3">
-        <div class="flex-grow bg-[#1e293b]/30 border border-slate-800 rounded-2xl px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="text-center">
-                    <p class="text-[9px] font-bold text-slate-500 uppercase">Presentes</p>
-                    <p class="text-lg font-bold text-emerald-500">{stats().present}</p>
-                </div>
-                <div class="w-px h-8 bg-slate-800"></div>
-                <div class="text-center">
-                    <p class="text-[9px] font-bold text-slate-500 uppercase">Ausentes</p>
-                    <p class="text-lg font-bold text-red-500">{stats().total - stats().present}</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="text-right">
-                    <p class="text-[9px] font-bold text-slate-500 uppercase">Asistencia</p>
-                    <p class="text-xl font-bold text-white">{stats().percent}%</p>
-                </div>
-                <div class="w-10 h-10 rounded-full border-2 border-slate-800 flex items-center justify-center relative">
-                    <div class="absolute inset-0 rounded-full border-2 border-pink-500 border-t-transparent" style="transform: rotate({stats().percent * 3.6}deg)"></div>
-                    <UserCheck class="w-4 h-4 text-pink-500" />
-                </div>
+    <div class="lg:col-span-4 bento-card p-6 bg-gradient-to-br from-violet-600/5 to-transparent flex flex-col justify-between">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">Resumen de Hoy</p>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-3xl font-outfit font-bold text-white">{stats().present}</span>
+            <span class="text-slate-500 font-outfit leading-none">/ {stats().total} alumnos</span>
+          </div>
+        </div>
+        <div class="relative h-12 w-12">
+            <svg class="h-12 w-12 transform -rotate-90">
+                <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="4" fill="transparent" class="text-white/5"/>
+                <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="4" fill="transparent" class="text-violet-500" 
+                    stroke-dasharray="{20 * 2 * Math.PI}" 
+                    stroke-dashoffset="{20 * 2 * Math.PI * (1 - stats().percent / 100)}" />
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
+                {stats().percent}%
             </div>
         </div>
-        <button 
-            onclick={markAllPresent}
-            class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-4 rounded-2xl text-xs font-bold transition-all border border-slate-700 whitespace-nowrap"
-        >
-            Todos Presentes
-        </button>
+      </div>
+      <button 
+        onclick={markAllPresent}
+        class="w-full btn-pill bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center gap-2 py-3 text-xs font-bold transition-all shadow-violet-500/10 shadow-lg"
+      >
+        <CheckCircle weight="duotone" class="w-5 h-5" />
+        Marcar Todos Presentes
+      </button>
     </div>
     {/if}
   </div>
 
+  <!-- Empty State / List -->
   {#if !selectedClassId}
-    <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
-      <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
-        <Clock class="w-10 h-10" />
+    <div class="bento-card bg-zinc-900/40 border-dashed p-24 text-center flex flex-col items-center gap-6" transition:fly={{ y: 20 }}>
+      <div class="w-24 h-24 bg-zinc-800/50 rounded-[32px] flex items-center justify-center text-slate-600 shadow-inner">
+        <Clock weight="duotone" class="w-12 h-12" />
       </div>
       <div class="space-y-2">
-        <h2 class="text-xl font-bold text-white">Selecciona una clase</h2>
-        <p class="text-slate-500 text-sm">Elige el grupo del que quieres registrar la asistencia hoy.</p>
+        <h2 class="text-2xl font-outfit font-bold text-white">Selecciona una clase</h2>
+        <p class="text-slate-500 font-plus-jakarta max-w-xs mx-auto">Elige el grupo del que quieres registrar la asistencia hoy para ver el listado de alumnos.</p>
       </div>
     </div>
   {:else if classStudents().length === 0}
-    <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
-      <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
-        <Users class="w-10 h-10" />
+    <div class="bento-card bg-zinc-900/40 border-dashed p-24 text-center flex flex-col items-center gap-6" transition:fly={{ y: 20 }}>
+      <div class="w-24 h-24 bg-zinc-800/50 rounded-[32px] flex items-center justify-center text-slate-600 shadow-inner">
+        <Users weight="duotone" class="w-12 h-12" />
       </div>
       <div class="space-y-2">
-        <h2 class="text-xl font-bold text-white">No hay alumnos en esta clase</h2>
-        <p class="text-slate-500 text-sm">Añade alumnos a la clase "{selectedClass?.name}" para empezar el registro.</p>
-        <button onclick={() => goto(`/panel/clases/${selectedClassId}`)} class="text-pink-500 font-bold text-xs mt-4">Configurar Clase →</button>
+        <h2 class="text-2xl font-outfit font-bold text-white">No hay alumnos en esta clase</h2>
+        <p class="text-slate-500 font-plus-jakarta max-w-xs mx-auto">Esta clase parece estar vacía. Añade algunos alumnos para comenzar el registro.</p>
+        <button 
+          onclick={() => goto(`/panel/clases/${selectedClassId}`)} 
+          class="btn-pill px-8 py-3 bg-white/5 hover:bg-white/10 text-white font-outfit font-bold text-xs mt-6 border border-white/5 transition-all"
+        >
+          Configurar Clase →
+        </button>
       </div>
     </div>
   {:else}
-    <div class="bg-[#1e293b]/60 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-        <div class="grid grid-cols-1 divide-y divide-slate-800">
-            {#each classStudents() as student}
+    <div class="bento-card overflow-hidden" transition:fly={{ y: 20 }}>
+        <div class="px-8 py-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+            <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">Listado de Alumnos</span>
+            <div class="flex items-center gap-2 text-[10px] font-outfit font-medium text-slate-500">
+                <CloudCheck weight="duotone" class="w-4 h-4 text-emerald-500" />
+                Sincronizado en tiempo real
+            </div>
+        </div>
+        <div class="grid grid-cols-1 divide-y divide-white/5">
+            {#each classStudents() as student (student.id)}
                 {@const status = getStatus(student.id)}
-                <div class="flex items-center justify-between p-6 hover:bg-slate-800/30 transition-all group">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400">
-                            {student.name.split(' ').map((n: string) => n[0]).join('')}
+                <div class="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-all group">
+                    <div class="flex items-center gap-5">
+                        <div class="w-12 h-12 bg-zinc-800 border border-white/5 rounded-2xl flex items-center justify-center text-xs font-outfit font-extrabold text-violet-400 group-hover:scale-105 transition-transform">
+                            {student.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                         </div>
                         <div>
-                            <p class="text-white font-bold">{student.name}</p>
-                            <p class="text-[10px] text-slate-500 uppercase tracking-widest">{student.level || 'Sin nivel'}</p>
+                            <p class="text-white font-outfit font-bold group-hover:text-violet-400 transition-colors uppercase tracking-tight">{student.name}</p>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="px-2 py-0.5 bg-violet-600/10 text-violet-400 text-[10px] font-bold rounded-md uppercase tracking-wider">{student.level || 'Sin nivel'}</span>
+                                <span class="text-[10px] text-slate-500 font-medium">ID: {student.id.slice(0, 8)}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-3">
                         <button 
                             onclick={() => toggleStatus(student.id)}
-                            class="flex items-center gap-2 px-6 py-2.5 rounded-xl border transition-all font-bold text-xs
-                            {status === 'present' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:border-emerald-500/30'}"
+                            class="flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all font-outfit font-bold text-xs
+                            {status === 'present' 
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-lg shadow-emerald-500/5' 
+                                : 'bg-zinc-900/50 border-white/5 text-slate-500 hover:border-emerald-500/50 hover:text-emerald-400 hover:bg-emerald-500/5'}"
                         >
-                            <CheckCircle class="w-4 h-4" />
+                            <CheckCircle weight={status === 'present' ? 'duotone' : 'regular'} class="w-5 h-5" />
                             Presente
                         </button>
                         <button 
                             onclick={() => toggleStatus(student.id)}
-                            class="flex items-center gap-2 px-6 py-2.5 rounded-xl border transition-all font-bold text-xs
-                            {status === 'absent' ? 'bg-red-500/10 border-red-500/30 text-red-500' : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:border-red-500/30'}"
+                            class="flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all font-outfit font-bold text-xs
+                            {status === 'absent' 
+                                ? 'bg-red-500/10 border-red-500/20 text-red-500 shadow-lg shadow-red-500/5' 
+                                : 'bg-zinc-900/50 border-white/5 text-slate-500 hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/5'}"
                         >
-                            <XCircle class="w-4 h-4" />
+                            <XCircle weight={status === 'absent' ? 'duotone' : 'regular'} class="w-5 h-5" />
                             Ausente
                         </button>
                     </div>
@@ -231,9 +253,9 @@
     </div>
 
     <div class="mt-8 flex justify-end">
-        <div class="flex items-center gap-4 text-slate-500 text-xs italic">
-            <Save class="w-4 h-4" />
-            Los cambios se guardan automáticamente en la nube.
+        <div class="flex items-center gap-3 text-slate-500 text-xs font-plus-jakarta italic bg-white/[0.02] px-4 py-2 rounded-full border border-white/5 border-dashed">
+            <CloudCheck weight="duotone" class="w-5 h-5 text-violet-400" />
+            Los cambios se guardan automáticamente en tu espacio de trabajo.
         </div>
     </div>
   {/if}

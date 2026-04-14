@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   // If user is already authenticated, redirect to dashboard
   if (locals.user) {
     console.log('✅ User already authenticated, redirecting to dashboard');
-    throw redirect(302, '/dashboard');
+    throw redirect(302, '/panel');
   }
   
   console.log('❌ User not authenticated, showing login page');

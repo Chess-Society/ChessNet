@@ -4,26 +4,28 @@
   import { 
     Trophy, 
     Plus, 
-    Edit, 
-    Trash2,
-    Calendar,
+    PencilSimple, 
+    Trash,
+    CalendarBlank,
     Users,
-    ChevronRight,
-    Search,
+    CaretRight,
+    MagnifyingGlass,
     Medal,
-    Trophy as TrophyIcon
-  } from 'lucide-svelte';
+    ArrowsOutCardinal,
+    Clock,
+    MapPin,
+    DotsThreeVertical
+  } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
-  import { fade, fly } from 'svelte/transition';
+  import { fade, fly, scale } from 'svelte/transition';
 
   let searchQuery = $state('');
 
-  // Datos reactivos desde el store
+  // Svelte 5 Runes for reactive state
   let tournaments = $derived($appStore.localTournaments || []);
-
-  const filteredTournaments = $derived(() => {
-    return tournaments.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  });
+  let filteredTournaments = $derived(
+    tournaments.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const deleteTournament = (id: string) => {
     const t = tournaments.find(item => item.id === id);
@@ -32,123 +34,190 @@
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'in_progress':
-      case 'Ongoing': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'Ongoing': 
+        return { 
+          label: 'En Curso', 
+          color: 'text-primary-400', 
+          bg: 'bg-primary-500/10', 
+          border: 'border-primary-500/20' 
+        };
       case 'completed':
-      case 'Completed': return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+      case 'Completed': 
+        return { 
+          label: 'Finalizado', 
+          color: 'text-slate-400', 
+          bg: 'bg-slate-500/10', 
+          border: 'border-slate-500/20' 
+        };
       case 'upcoming':
-      case 'Upcoming': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-      default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+      case 'Upcoming': 
+        return { 
+          label: 'Próximo', 
+          color: 'text-violet-400', 
+          bg: 'bg-violet-500/10', 
+          border: 'border-violet-500/20' 
+        };
+      default: 
+        return { 
+          label: status, 
+          color: 'text-slate-400', 
+          bg: 'bg-slate-500/10', 
+          border: 'border-slate-500/20' 
+        };
     }
   };
 </script>
 
 <svelte:head>
-  <title>Gestión de Torneos - ChessNet</title>
+  <title>Torneos - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
+<div class="max-w-7xl mx-auto px-6 py-8" in:fade={{ duration: 300 }}>
   
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10 pt-6">
-    <div class="space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-center justify-center text-orange-500">
-          <TrophyIcon class="w-6 h-6" />
+  <!-- Premium Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+    <div class="flex items-center gap-5">
+      <div class="relative group">
+        <div class="absolute -inset-1 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+        <div class="relative w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-violet-500 shadow-2xl">
+          <Trophy weight="duotone" class="w-9 h-9" />
         </div>
-        <div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">Gestión de Torneos</h1>
-          <p class="text-slate-400 text-sm">Organiza competiciones, controla los emparejamientos y registra resultados.</p>
-        </div>
+      </div>
+      <div>
+        <h1 class="text-4xl font-outfit font-black text-white tracking-tight">Torneos</h1>
+        <p class="text-zinc-500 font-plus-jakarta text-base mt-1">Gestión integral de competiciones y rankings.</p>
       </div>
     </div>
 
     <button 
       onclick={() => goto('/panel/torneos/create')}
-      class="bg-orange-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-orange-500 transition-all shadow-lg shadow-orange-900/20 flex items-center gap-2"
+      class="group relative inline-flex items-center justify-center px-8 py-4 font-outfit font-bold text-white transition-all duration-200 bg-violet-600 rounded-2xl hover:bg-violet-500 shadow-lg shadow-violet-500/20 active:scale-95"
     >
-      <Plus class="w-4 h-4" />
-      Crear Torneo
+      <Plus weight="bold" class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+      Organizar Torneo
     </button>
   </div>
 
-  <div class="relative group mb-8">
-    <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-orange-500 transition-colors" />
-    <input
-      type="text"
-      placeholder="Buscar torneo..."
-      bind:value={searchQuery}
-      class="w-full bg-[#1e293b]/50 border border-slate-800 rounded-2xl pl-12 pr-6 py-4 text-sm text-white focus:border-orange-500/50 outline-none transition-all backdrop-blur-xl"
-    />
+  <!-- Advanced Search & Filter Bar -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+    <div class="md:col-span-3 relative group">
+      <MagnifyingGlass weight="bold" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-violet-500 transition-colors" />
+      <input
+        type="text"
+        placeholder="Buscar por nombre de torneo..."
+        bind:value={searchQuery}
+        class="w-full bg-zinc-900 border border-zinc-800 rounded-2xl pl-14 pr-6 py-4 text-white placeholder-zinc-600 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 outline-none transition-all shadow-xl"
+      />
+    </div>
+    <div class="relative">
+      <select class="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-4 text-zinc-400 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 outline-none transition-all appearance-none cursor-pointer shadow-xl">
+        <option value="all">Todos los estados</option>
+        <option value="upcoming">Próximos</option>
+        <option value="in_progress">En curso</option>
+        <option value="completed">Finalizados</option>
+      </select>
+      <CaretRight weight="bold" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 rotate-90 pointer-events-none" />
+    </div>
   </div>
 
-  {#if filteredTournaments().length === 0}
-    <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
-      <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
-        <TrophyIcon class="w-10 h-10" />
+  {#if filteredTournaments.length === 0}
+    <div class="bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-[32px] p-24 text-center flex flex-col items-center gap-6" in:fly={{ y: 20 }}>
+      <div class="w-24 h-24 bg-zinc-900 rounded-[32px] flex items-center justify-center text-zinc-700 shadow-inner border border-zinc-800">
+        <Trophy weight="duotone" class="w-12 h-12" />
       </div>
       <div class="space-y-2">
-        <h2 class="text-xl font-bold text-white">No hay torneos activos</h2>
-        <p class="text-slate-500 text-sm">Organiza tu primer torneo para motivar a tus alumnos.</p>
+        <h2 class="text-2xl font-outfit font-bold text-white">No se han encontrado torneos</h2>
+        <p class="text-zinc-500 font-plus-jakarta max-w-xs mx-auto text-base">Comienza a organizar tu comunidad creando tu primer torneo oficial hoy mismo.</p>
       </div>
+      <button 
+        onclick={() => goto('/panel/torneos/create')}
+        class="mt-4 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold transition-all border border-zinc-700"
+      >
+        Crear primer torneo
+      </button>
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each filteredTournaments() as t, i}
+      {#each filteredTournaments as t, i (t.id)}
+        {@const status = getStatusConfig(t.status)}
         <div 
-          class="bg-[#1e293b]/60 border border-slate-800 rounded-3xl p-6 hover:border-orange-500/30 transition-all group relative overflow-hidden"
-          in:fly={{ y: 20, delay: i * 50 }}
+          class="group relative bg-zinc-900 border border-zinc-800 rounded-[24px] p-6 flex flex-col justify-between hover:border-violet-500/30 transition-all duration-300 shadow-xl overflow-hidden"
+          in:fly={{ y: 30, delay: i * 50, duration: 500 }}
         >
-          <div class="flex items-center justify-between mb-6 relative z-10">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-orange-500 font-bold text-lg group-hover:scale-110 transition-all">
-                {t.name[0].toUpperCase()}
-              </div>
-              <div>
-                <h3 class="text-white font-bold leading-tight group-hover:text-orange-400 transition-colors">{t.name}</h3>
-                <div class="flex items-center gap-2 mt-1">
-                   <div class="px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest {getStatusColor(t.status)}">
-                      {t.status}
-                   </div>
+          <!-- Animated Highlight Overlay -->
+          <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+          
+          <div>
+            <!-- Card Header -->
+            <div class="flex items-start justify-between mb-6 relative z-10">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-black text-xl group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white transition-all duration-500 shadow-lg">
+                  {t.name[0].toUpperCase()}
+                </div>
+                <div class="flex flex-col">
+                  <h3 class="text-white font-outfit font-bold text-lg leading-tight group-hover:text-violet-400 transition-colors uppercase tracking-tight">{t.name}</h3>
+                  <div class="mt-2 flex">
+                    <span class="px-2.5 py-1 rounded-lg border text-[10px] font-outfit font-black uppercase tracking-widest {status.bg} {status.color} {status.border}">
+                       {status.label}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
                   onclick={() => goto(`/panel/torneos/${t.id}/edit`)}
-                  class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 hover:text-orange-400 hover:border-orange-500/30 transition-all"
+                  class="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+                  aria-label="Editar"
                 >
-                  <Edit class="w-4 h-4" />
+                  <PencilSimple weight="bold" class="w-5 h-5" />
                 </button>
                 <button 
                   onclick={() => deleteTournament(t.id)}
-                  class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 hover:text-red-400 hover:border-red-500/30 transition-all"
+                  class="p-2 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition-all"
+                  aria-label="Eliminar"
                 >
-                  <Trash2 class="w-4 h-4" />
+                  <Trash weight="bold" class="w-5 h-5" />
                 </button>
+              </div>
+            </div>
+
+            <!-- Card Stats -->
+            <div class="space-y-3 mb-8 relative z-10">
+               <div class="flex items-center gap-3 text-zinc-400 group-hover:text-zinc-300 transition-colors font-plus-jakarta font-medium text-sm">
+                  <div class="w-9 h-9 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-500 transition-colors">
+                      <CalendarBlank weight="duotone" class="w-5 h-5" />
+                  </div>
+                  <span>{t.startAt ? new Date(t.startAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : 'Fecha sin definir'}</span>
+               </div>
+               <div class="flex items-center gap-3 text-zinc-400 group-hover:text-zinc-300 transition-colors font-plus-jakarta font-medium text-sm">
+                  <div class="w-9 h-9 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-500 transition-colors">
+                      <Users weight="duotone" class="w-5 h-5" />
+                  </div>
+                  <span>{$appStore.localTournamentPlayers.filter(p => p.tournament_id === t.id).length} Participantes</span>
+               </div>
+               {#if t.location}
+               <div class="flex items-center gap-3 text-zinc-400 group-hover:text-zinc-300 transition-colors font-plus-jakarta font-medium text-sm">
+                  <div class="w-9 h-9 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-500 transition-colors">
+                      <MapPin weight="duotone" class="w-5 h-5" />
+                  </div>
+                  <span class="truncate">{t.location}</span>
+               </div>
+               {/if}
             </div>
           </div>
 
-          <div class="space-y-3 mb-6 relative z-10">
-             <div class="flex items-center gap-2 text-xs text-slate-400">
-                <Calendar class="w-3.5 h-3.5" />
-                {t.startAt ? new Date(t.startAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Fecha no definida'}
-             </div>
-             <div class="flex items-center gap-2 text-xs text-slate-400">
-                <Users class="w-3.5 h-3.5" />
-                {$appStore.localTournamentPlayers.filter(p => p.tournament_id === t.id).length} Participantes
-             </div>
-          </div>
-
-          <div class="flex items-center justify-between pt-4 border-t border-slate-800/50 relative z-10">
+          <!-- Action Button -->
+          <div class="pt-6 border-t border-zinc-800/50 relative z-10">
             <button 
               onclick={() => goto(`/panel/torneos/${t.id}`)}
-              class="flex items-center gap-1 text-[10px] font-bold text-orange-500 uppercase tracking-wider hover:text-white transition-all group/btn"
+              class="w-full h-12 bg-zinc-950 hover:bg-violet-600 text-zinc-300 hover:text-white flex items-center justify-center gap-2 rounded-xl text-xs font-outfit font-black transition-all duration-300 border border-zinc-800 hover:border-violet-500 group/btn shadow-lg"
             >
-              GESTIONAR TORNEO
-              <ChevronRight class="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />
+              GESTIONAR COMPETICIÓN
+              <CaretRight weight="bold" class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>
         </div>
@@ -156,3 +225,7 @@
     </div>
   {/if}
 </div>
+
+<style>
+  /* Optional: Add custom animations or specific Bento patterns if needed */
+</style>

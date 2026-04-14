@@ -3,16 +3,16 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { 
-    ArrowLeft,
-    Save,
+    CaretLeft,
+    FloppyDisk,
     User,
-    RotateCcw,
-    ChevronRight,
-    School,
-    FileText,
-    Activity,
-    UserCircle
-  } from 'lucide-svelte';
+    ArrowCounterClockwise,
+    Buildings,
+    Note,
+    UserCircle,
+    CheckCircle,
+    CaretDown
+  } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
 
@@ -97,155 +97,176 @@
   <title>Editar Alumno - {studentData?.name} - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto space-y-10 animate-fade-in pb-20" in:fade>
+<div class="max-w-5xl mx-auto px-6 pb-20" transition:fade>
   <!-- Header -->
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 pt-8">
     <div class="space-y-4">
       <button 
         onclick={() => goto('/panel/alumnos')}
-        class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
+        class="flex items-center gap-2 text-slate-500 hover:text-violet-400 transition-colors group text-[10px] font-outfit font-black uppercase tracking-widest"
       >
-        <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+        <CaretLeft weight="bold" class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
         Regresar a Lista
       </button>
 
       <div class="flex items-center gap-6">
-        <div class="w-16 h-16 bg-primary-500/10 border border-primary-500/20 rounded-3xl flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/10">
-          <UserCircle class="w-8 h-8" />
+        <div class="w-16 h-16 bg-violet-600/10 border border-violet-500/20 rounded-24 flex items-center justify-center text-violet-400 shadow-violet-flare/10 shadow-xl">
+          <UserCircle size={32} weight="duotone" />
         </div>
         <div>
-          <h1 class="text-3xl font-black text-white tracking-tighter uppercase leading-none">Editar Alumno</h1>
-          <p class="text-surface-500 text-sm font-medium uppercase tracking-widest mt-1">Configuración del Perfil</p>
+          <h1 class="text-4xl md:text-5xl font-outfit font-extrabold text-white tracking-tighter">Editar Alumno</h1>
+          <p class="text-slate-400 font-jakarta text-lg font-medium tracking-tight">Perfecciona el perfil de tu estudiante.</p>
         </div>
       </div>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-4">
       {#if hasChanges}
         <button 
           onclick={resetToOriginal}
-          class="bg-surface-950 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-surface-800 hover:border-surface-700 transition-all flex items-center gap-2"
+          class="bg-white/5 text-white px-8 py-4 rounded-full text-[10px] font-outfit font-black uppercase tracking-widest border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2"
         >
-          <RotateCcw class="w-4 h-4" />
+          <ArrowCounterClockwise size={18} weight="bold" />
           Descartar
         </button>
       {/if}
       <button 
         onclick={handleSubmit}
         disabled={isSubmitting || !hasChanges}
-        class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/10 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="btn-pill bg-violet-600 text-white px-10 py-4 font-bold hover:bg-violet-500 transition-all shadow-violet-flare flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group text-sm"
       >
         {#if isSubmitting}
-          <div class="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
+          <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+          GUARDANDO...
         {:else}
-          <Save class="w-4 h-4" />
+          <FloppyDisk size={20} weight="duotone" />
+          GUARDAR CAMBIOS
         {/if}
-        Guardar Cambios
       </button>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <!-- Left Column: Primary Information -->
-    <div class="lg:col-span-2 space-y-8">
-      <section class="glass-panel p-10 space-y-10">
-        <div class="flex items-center gap-3 border-b border-surface-900 pb-6">
-           <User class="w-5 h-5 text-primary-400" />
-           <h2 class="text-lg font-black text-white uppercase tracking-tight">Información Personal</h2>
+    <div class="lg:col-span-8 space-y-8">
+      <section class="bento-card p-10 space-y-10 relative overflow-hidden group">
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-violet-600/5 blur-3xl rounded-full"></div>
+        
+        <div class="flex items-center gap-4 border-b border-white/5 pb-8 relative z-10">
+           <div class="p-3 bg-violet-600/10 rounded-2xl text-violet-400">
+              <User size={24} weight="duotone" />
+           </div>
+           <h2 class="text-2xl font-outfit font-bold text-white tracking-tight">Información Personal</h2>
         </div>
 
-        <div class="grid grid-cols-1 gap-8">
-           <div class="space-y-3">
-              <label for="name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Nombre Completo (Obligatorio)</label>
-              <input
-                id="name"
-                type="text"
-                bind:value={formData.name}
-                placeholder="EJ: JUAN PÉREZ GARCÍA"
-                class={`w-full bg-surface-950 border rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white outline-none transition-all placeholder:text-surface-800 ${errors.name ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-surface-900 focus:border-primary-500/50'}`}
-              />
+        <div class="grid grid-cols-1 gap-10 relative z-10">
+           <div class="space-y-4">
+              <label for="name" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1">Nombre Completo para Listados</label>
+              <div class="relative">
+                <input
+                  id="name"
+                  type="text"
+                  bind:value={formData.name}
+                  placeholder="EJ: JUAN PÉREZ GARCÍA"
+                  class={`w-full bg-zinc-950 border rounded-24 px-8 py-5 text-base font-jakarta text-white outline-none transition-all placeholder:text-slate-700 ${errors.name ? 'border-red-500 shadow-lg shadow-red-500/10' : 'border-white/5 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/5'}`}
+                />
+              </div>
               {#if errors.name}
-                <p class="text-red-400 text-[10px] font-bold uppercase tracking-tight ml-4">{errors.name}</p>
+                <p class="text-red-400 text-[10px] font-bold uppercase tracking-widest ml-4">{errors.name}</p>
               {/if}
            </div>
 
-           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-3">
-                 <label for="first_name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Nombre(s)</label>
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="space-y-4">
+                 <label for="first_name" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1">Nombre(s)</label>
                  <input
                    id="first_name"
                    type="text"
                    bind:value={formData.first_name}
-                   class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all"
+                   class="w-full bg-zinc-950 border border-white/5 rounded-24 px-8 py-5 text-base font-jakarta text-white focus:border-violet-500/50 outline-none transition-all focus:ring-4 focus:ring-violet-500/5"
                  />
               </div>
-              <div class="space-y-3">
-                 <label for="last_name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Apellidos</label>
+              <div class="space-y-4">
+                 <label for="last_name" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1">Apellidos</label>
                  <input
                    id="last_name"
                    type="text"
                    bind:value={formData.last_name}
-                   class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white focus:border-primary-500/50 outline-none transition-all"
+                   class="w-full bg-zinc-950 border border-white/5 rounded-24 px-8 py-5 text-base font-jakarta text-white focus:border-violet-500/50 outline-none transition-all focus:ring-4 focus:ring-violet-500/5"
                  />
               </div>
            </div>
         </div>
       </section>
 
-      <section class="glass-panel p-10 space-y-10">
-         <div class="flex items-center gap-3 border-b border-surface-900 pb-6">
-            <FileText class="w-5 h-5 text-primary-400" />
-            <h2 class="text-lg font-black text-white uppercase tracking-tight">Observaciones Académicas</h2>
+      <section class="bento-card p-10 space-y-10">
+         <div class="flex items-center gap-4 border-b border-white/5 pb-8">
+            <div class="p-3 bg-violet-600/10 rounded-2xl text-violet-400">
+               <Note size={24} weight="duotone" />
+            </div>
+            <h2 class="text-2xl font-outfit font-bold text-white tracking-tight">Observaciones Académicas</h2>
          </div>
 
-         <div class="space-y-3">
-            <label for="notes" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Notas del Instructor</label>
+         <div class="space-y-4">
+            <label for="notes" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1 text-right block">Notas Privadas del Instructor</label>
             <textarea
               id="notes"
               bind:value={formData.notes}
-              placeholder="Añade comentarios sobre su estilo de juego, aperturas favoritas o áreas de mejora..."
-              class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-6 py-4 text-xs font-bold uppercase tracking-widest text-white h-48 resize-none focus:border-primary-500/50 outline-none transition-all placeholder:text-surface-800"
+              placeholder="Registra su estilo de juego, aperturas favoritas o evolución estratégica..."
+              class="w-full bg-zinc-950 border border-white/5 rounded-[32px] px-8 py-6 text-base font-jakarta text-white h-56 resize-none focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 focus:ring-4 focus:ring-violet-500/5"
             ></textarea>
          </div>
       </section>
     </div>
 
-    <!-- Right Column: Context/Preview -->
-    <div class="space-y-8">
-       <section class="glass-panel p-8 space-y-8 border-t-4 border-blue-500">
-          <div class="flex items-center gap-3">
-             <School class="w-5 h-5 text-blue-400" />
-             <h3 class="text-sm font-black text-white uppercase tracking-tighter">Centro Asociado</h3>
+    <!-- Right Column: Institutional & Context -->
+    <div class="lg:col-span-4 space-y-8">
+       <section class="bento-card p-8 space-y-8 border-t-2 border-violet-500 bg-gradient-to-b from-violet-600/5 to-transparent">
+          <div class="flex items-center gap-4">
+             <div class="w-12 h-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-violet-400 border border-white/5">
+                <Buildings size={24} weight="duotone" />
+             </div>
+             <h3 class="text-lg font-outfit font-bold text-white tracking-tight">Centro Educativo</h3>
           </div>
 
-          <div class="space-y-4">
-             <select
-               bind:value={formData.school_id}
-               class="w-full bg-surface-950 border border-surface-900 rounded-2xl px-5 py-4 text-[10px] font-black uppercase tracking-widest text-white focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer"
-             >
-               <option value="">SIN ASIGNAR</option>
-               {#each schools as school}
-                 <option value={school.id}>{school.name.toUpperCase()}</option>
-               {/each}
-             </select>
+          <div class="space-y-6">
+             <div class="relative group">
+                <select
+                  bind:value={formData.school_id}
+                  class="w-full bg-zinc-950 border border-white/5 rounded-24 px-6 py-5 text-sm font-outfit font-bold uppercase tracking-widest text-white focus:border-violet-500/50 outline-none transition-all appearance-none cursor-pointer group-hover:bg-zinc-900 focus:ring-4 focus:ring-violet-500/5"
+                >
+                  <option value="">SIN CENTRO ASIGNADO</option>
+                  {#each schools as school}
+                    <option value={school.id}>{school.name.toUpperCase()}</option>
+                  {/each}
+                </select>
+                <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 group-hover:text-violet-400 transition-colors">
+                   <CaretDown weight="bold" size={16} />
+                </div>
+             </div>
              
-             <p class="text-[9px] font-black text-surface-600 uppercase tracking-[0.2em] leading-relaxed italic">
-                La asociación a un centro educativo permite incluir al alumno en las clases correspondientes y generar informes institucionales.
-             </p>
+             <div class="p-5 bg-white/5 rounded-24 border border-white/5 border-dashed">
+                <p class="text-[11px] font-jakarta font-medium text-slate-500 leading-relaxed italic text-center">
+                   Vincular a un centro permite organizar al alumno por niveles específicos y generar informes institucionales automáticos.
+                </p>
+             </div>
           </div>
        </section>
 
-       <!-- Quick Preview -->
-       <section class="glass-panel p-8 space-y-6">
-          <h3 class="text-xs font-black text-surface-500 uppercase tracking-widest border-b border-surface-900 pb-4 italic">Vista Previa del Perfil</h3>
+       <!-- Context View -->
+       <section class="bento-card p-8 space-y-6">
+          <h3 class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest border-b border-white/5 pb-4">Vista en Tiempo Real</h3>
           
-          <div class="flex items-center gap-4">
-             <div class="w-12 h-12 bg-surface-950 border border-surface-900 rounded-xl flex items-center justify-center text-primary-400 font-black">
+          <div class="flex items-center gap-5 bg-zinc-950/50 p-6 rounded-24 border border-white/5">
+             <div class="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-black text-xl shadow-inner">
                 {formData.name ? formData.name.charAt(0).toUpperCase() : '?'}
              </div>
-             <div>
-                <p class="text-[10px] font-black text-white uppercase tracking-tight truncate max-w-[150px]">{formData.name || 'SIN NOMBRE'}</p>
-                <p class="text-[8px] font-black text-primary-400 uppercase tracking-widest">ALUMNO ACTIVO</p>
+             <div class="min-w-0">
+                <p class="text-base font-outfit font-bold text-white uppercase tracking-tight truncate">{formData.name || 'Alumno sin nombre'}</p>
+                <div class="flex items-center gap-2 mt-1">
+                   <CheckCircle size={14} weight="fill" class="text-emerald-500" />
+                   <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">Sincronizado</p>
+                </div>
              </div>
           </div>
        </section>

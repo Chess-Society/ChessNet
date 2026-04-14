@@ -1,6 +1,6 @@
 <script lang="ts">
   export let size: string = "w-6 h-6";
-  export let color: string = "text-blue-500";
+  export let color: string = "text-primary-500";
   export let className: string = "";
 </script>
 

@@ -3,44 +3,46 @@
   import { fade, fly } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { 
-    School, 
-    Users, 
+    HouseLine, 
+    UsersFour, 
     GraduationCap, 
     Target, 
     Trophy,
     CheckCircle,
-    BarChart3,
-    DollarSign,
-    CalendarDays,
-    BookHeart,
+    ChartBar,
+    CurrencyEur,
+    CalendarBlank,
+    Books,
     Medal,
-    GripVertical,
-    Settings2,
-    Calendar,
-    Activity,
-    TrendingUp,
-    TrendingDown,
-    Award,
+    DotsSixVertical,
+    GearSix,
+    Pulse,
+    TrendUp,
+    TrendDown,
     Plus,
     Clock,
-    Zap
-  } from 'lucide-svelte';
+    Lightning,
+    Buildings,
+    Student,
+    CreditCard,
+    ChatCircleDots
+  } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
-  import { toast } from '$lib/stores/toast'; // Asumiendo que existe o lo crearemos
+  import { toast } from '$lib/stores/toast';
 
-  // Definición de acciones disponibles (Misma que gh-pages)
+  // Definición de acciones disponibles
   const allActions = [
-    { id: 'centers', title: 'Centros Educativos', desc: 'Gestionar centros y ubicaciones', icon: School, color: 'text-blue-500', link: '/panel/centros' },
-    { id: 'classes', title: 'Clases', desc: 'Organizar grupos y horarios', icon: GraduationCap, color: 'text-purple-500', link: '/panel/clases' },
-    { id: 'students', title: 'Estudiantes', desc: 'Gestionar alumnado e inscripciones', icon: Users, color: 'text-emerald-500', link: '/panel/alumnos' },
-    { id: 'skills', title: 'Habilidades', desc: 'Definir temarios y competencias', icon: Target, color: 'text-yellow-500', link: '/panel/habilidades' },
-    { id: 'tournaments', title: 'Gestionar Torneos', desc: 'Organizar competiciones locales', icon: Trophy, color: 'text-orange-500', link: '/panel/torneos', premium: true },
-    { id: 'attendance', title: 'Control de Asistencia', desc: 'Pasar lista y estadísticas', icon: CheckCircle, color: 'text-pink-500', link: '/panel/asistencia' },
-    { id: 'reports', title: 'Informes', desc: 'Reportes y análisis avanzados', icon: BarChart3, color: 'text-cyan-500', link: '/panel/informes', premium: true },
-    { id: 'payments', title: 'Sistema de Pagos', desc: 'Gestionar cobros y facturación', icon: DollarSign, color: 'text-teal-500', link: '/panel/pagos', badge: 'BETA', premium: true },
-    { id: 'planner', title: 'Planificador', desc: 'Diseñar sesiones y contenido', icon: CalendarDays, color: 'text-indigo-500', link: '/panel/agenda', badge: 'NEW', premium: true },
-    { id: 'leads', title: 'CRM / Interesados', desc: 'Gestionar posibles alumnos', icon: BookHeart, color: 'text-pink-500', link: '/panel/contactos', badge: 'NEW', premium: true },
-    { id: 'achievements', title: 'Logros', desc: 'Ver progreso y medallas', icon: Trophy, color: 'text-amber-500', link: '/panel/logros' }
+    { id: 'centers', title: 'Centros', desc: 'Gestionar sedes', icon: Buildings, color: 'text-blue-400', link: '/panel/centros' },
+    { id: 'classes', title: 'Clases', desc: 'Grupos y horarios', icon: GraduationCap, color: 'text-primary-400', link: '/panel/clases' },
+    { id: 'students', title: 'Alumnos', desc: 'Listado y fichas', icon: UsersFour, color: 'text-violet-400', link: '/panel/alumnos' },
+    { id: 'skills', title: 'Habilidades', desc: 'Temarios y progreso', icon: Target, color: 'text-yellow-400', link: '/panel/habilidades' },
+    { id: 'tournaments', title: 'Torneos', desc: 'Organizar eventos', icon: Trophy, color: 'text-orange-400', link: '/panel/torneos', premium: true },
+    { id: 'attendance', title: 'Asistencia', desc: 'Control de falta', icon: CheckCircle, color: 'text-pink-400', link: '/panel/asistencia' },
+    { id: 'reports', title: 'Informes', desc: 'Análisis de datos', icon: ChartBar, color: 'text-cyan-400', link: '/panel/informes', premium: true },
+    { id: 'payments', title: 'Cobros', desc: 'Facturación y pagos', icon: CreditCard, color: 'text-teal-400', link: '/panel/pagos', badge: 'BETA', premium: true },
+    { id: 'planner', title: 'Planificador', desc: 'Agenda de sesiones', icon: CalendarBlank, color: 'text-indigo-400', link: '/panel/agenda', badge: 'NEW', premium: true },
+    { id: 'leads', title: 'Mensajes', desc: 'Comunicación', icon: ChatCircleDots, color: 'text-pink-400', link: '/panel/comunicacion', badge: 'NEW', premium: true },
+    { id: 'achievements', title: 'Premios', desc: 'Medallas y logros', icon: Medal, color: 'text-amber-400', link: '/panel/logros' }
   ];
 
   let editMode = $state(false);
@@ -95,8 +97,8 @@
       activities.push({ 
         message: `Nuevo estudiante: ${s.name}`, 
         time: 'reciente', 
-        icon: Users, 
-        color: 'text-emerald-400',
+        icon: UsersFour, 
+        color: 'text-violet-400',
         timestamp: new Date(s.created_at || Date.now()).getTime()
       });
     });
@@ -106,7 +108,7 @@
       activities.push({ 
         message: `Pago: ${p.amount}€ - ${student?.name || 'Desconocido'}`, 
         time: 'reciente', 
-        icon: DollarSign, 
+        icon: CurrencyEur, 
         color: 'text-teal-400',
         timestamp: new Date((p as any).date || p.paid_date || p.due_date || Date.now()).getTime()
       });
@@ -186,35 +188,37 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
   
   <!-- Hero Section -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 pt-6">
-    <div>
-      <h1 class="text-3xl font-bold text-white flex items-center gap-2">
-        Hola, Profe <span class="animate-pulse">👋</span>
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 pt-8 gap-6">
+    <div class="space-y-1">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tighter font-display">
+        Hola, Profe <span class="text-primary-400">👋</span>
       </h1>
-      <p class="text-slate-400 mt-1 text-lg">Aquí tienes el resumen de tu academia hoy.</p>
+      <p class="text-surface-400 text-lg font-medium">Resumen general de tu academia.</p>
     </div>
     
-    <div class="mt-4 md:mt-0 text-left md:text-right bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50">
-      <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Hoy es</p>
-      <p class="text-xl font-bold text-white capitalize flex items-center gap-2">
-        <Clock class="w-5 h-5 text-indigo-400" />
-        {todayFormat}
-      </p>
+    <div class="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5">
+      <div class="w-12 h-12 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-400">
+        <Clock weight="duotone" size={24} />
+      </div>
+      <div class="pr-6">
+        <p class="text-[10px] text-surface-500 uppercase font-black tracking-widest leading-none mb-1">Hoy es</p>
+        <p class="text-lg font-bold text-white capitalize">{todayFormat}</p>
+      </div>
     </div>
   </div>
 
   <!-- Quick Actions Grid -->
-  <div class="mb-10">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-bold text-white flex items-center gap-2">
-        <GripVertical class="w-5 h-5 text-indigo-500" /> Accesos Directos
+  <div class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-extrabold text-white tracking-tight flex items-center gap-3 font-display">
+        <DotsSixVertical weight="duotone" class="text-primary-500" /> Accesos Directos
       </h2>
       <button 
         onclick={toggleEditMode}
-        class="text-xs flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors {editMode ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400' : 'text-slate-400'}"
+        class="text-xs font-bold uppercase tracking-widest flex items-center gap-2 px-4 py-2 rounded-full border border-white/5 hover:bg-white/5 transition-all {editMode ? 'bg-primary-500 text-white border-primary-500 shadow-violet-flare' : 'text-surface-400'}"
       >
-        <Settings2 class="w-3.5 h-3.5" /> 
-        {editMode ? 'Guardar Orden' : 'Personalizar'}
+        <GearSix weight="duotone" size={16} /> 
+        {editMode ? 'Guardar' : 'Personalizar'}
       </button>
     </div>
     
@@ -228,7 +232,7 @@
           ondragover={(e) => handleDragOver(e, action.id)}
           ondragend={handleDragEnd}
           onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') !editMode && goto(action.link) }}
-          class="relative transition-all duration-200 {draggedId === action.id ? 'scale-105 z-10 opacity-50' : ''}"
+          class="relative transition-all duration-300 {draggedId === action.id ? 'scale-105 z-10 opacity-50' : ''}"
         >
           <button 
             onclick={() => {
@@ -239,32 +243,36 @@
                 goto(action.link);
               }
             }}
-            class="group flex flex-col items-center justify-center p-4 bg-[#1e293b] hover:bg-slate-800 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300 w-full aspect-square md:aspect-auto md:h-32 shadow-lg hover:shadow-xl hover:-translate-y-1 relative {editMode ? 'cursor-move border-dashed border-slate-500' : 'cursor-pointer'} {action.premium && $appStore.settings.plan === 'free' ? 'border-slate-800' : ''}"
+            class="bento-card group w-full flex flex-col items-start p-5 h-40 text-left {editMode ? 'cursor-move border-dashed border-white/20' : ''} {action.premium && $appStore.settings.plan === 'free' ? 'opacity-80' : ''}"
           >
              {#if action.premium && $appStore.settings.plan === 'free'}
-                <div class="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] rounded-2xl z-10 flex items-center justify-center">
-                   <div class="bg-slate-900/90 border border-slate-700 p-2 rounded-xl shadow-2xl scale-90 group-hover:scale-100 transition-transform">
-                     <Zap class="w-4 h-4 text-indigo-400 fill-indigo-400/20" />
-                   </div>
+                <div class="absolute top-4 right-4 text-primary-400">
+                   <Lightning weight="duotone" size={18} />
                 </div>
              {/if}
             
             {#if action.badge}
-              <span class="absolute top-2 left-2 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">
+              <span class="absolute top-4 right-4 bg-primary-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg z-10 uppercase tracking-widest">
                 {action.badge}
               </span>
             {/if}
 
-            <div class="p-3 bg-slate-900/50 rounded-xl mb-3 group-hover:scale-110 transition-transform duration-300">
-               <action.icon class="w-6 h-6 {action.color}" />
+            <div class="p-3 bg-white/5 rounded-2xl mb-auto group-hover:scale-110 transition-transform duration-500 group-hover:bg-primary-500/10 group-hover:text-primary-400 {action.color}">
+               <action.icon weight="duotone" size={28} />
             </div>
-            <span class="text-sm font-semibold text-slate-300 group-hover:text-white text-center leading-tight">
-              {action.title}
-            </span>
+            
+            <div class="mt-2">
+              <span class="text-sm font-bold text-white block">
+                {action.title}
+              </span>
+              <span class="text-[10px] text-surface-500 font-medium group-hover:text-surface-400 transition-colors">
+                {action.desc}
+              </span>
+            </div>
 
             {#if editMode}
-               <div class="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center">
-                 <GripVertical class="w-6 h-6 text-white/80" />
+               <div class="absolute inset-0 bg-primary-500/10 rounded-24 flex items-center justify-center">
+                 <DotsSixVertical weight="bold" size={24} class="text-white/40" />
                </div>
             {/if}
           </button>
@@ -278,36 +286,36 @@
       
 
       {#if !isFullyBoarded}
-        <div class="bg-[#1e293b] border-2 border-indigo-500/30 rounded-3xl p-8 relative overflow-hidden group mb-8" in:fly={{y: 20}}>
+        <div class="bento-card border-primary-500/20 mb-8 overflow-hidden group" in:fly={{y: 20}}>
             <!-- Background Glow -->
-            <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-600/10 blur-[100px] rounded-full group-hover:bg-indigo-600/20 transition-all duration-700"></div>
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-500/10 blur-[100px] rounded-full group-hover:bg-primary-500/20 transition-all duration-700"></div>
             
-            <div class="relative z-10 flex flex-col md:flex-row gap-8 items-center">
+            <div class="bento-card-inner relative z-10 !p-10 flex flex-col md:flex-row gap-10 items-center">
                 <div class="flex-1 space-y-4">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
-                            <Zap class="w-5 h-5 fill-indigo-400" />
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400">
+                            <Lightning weight="duotone" size={24} />
                         </div>
-                        <h3 class="text-xl font-bold text-white tracking-tight">Checklist de Inicio Rápido</h3>
+                        <h3 class="text-2xl font-extrabold text-white tracking-tight font-display">Inicio Rápido</h3>
                     </div>
-                    <p class="text-slate-400 text-sm max-w-md">Completa estos pasos para tener tu academia de ajedrez totalmente operativa y lista para tus alumnos.</p>
+                    <p class="text-surface-400 text-base font-medium max-w-sm">Completa estos pasos para tener tu academia lista.</p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto">
                     <!-- Step 1: Centers -->
                     <button 
                       onclick={() => goto('/panel/centros')}
-                      class="flex items-center gap-3 p-4 rounded-2xl border transition-all {hasSchools ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 hover:border-indigo-500/50 text-slate-400'}"
+                      class="flex flex-col items-start gap-4 p-5 rounded-24 border transition-all duration-300 {hasSchools ? 'bg-violet-500/5 border-violet-500/20 text-violet-400' : 'bg-white/5 border-white/5 hover:border-primary-500/50 text-surface-400'}"
                     >
-                        <div class="p-2 rounded-lg {hasSchools ? 'bg-emerald-500/20' : 'bg-slate-800'}">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center {hasSchools ? 'bg-violet-500/20' : 'bg-white/5'}">
                             {#if hasSchools}
-                                <CheckCircle class="w-4 h-4" />
+                                <CheckCircle weight="duotone" size={20} />
                             {:else}
-                                <School class="w-4 h-4" />
+                                <HouseLine weight="duotone" size={20} />
                             {/if}
                         </div>
-                        <div class="text-left">
-                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">Paso 1</p>
+                        <div>
+                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Paso 1</p>
                             <p class="text-xs font-bold whitespace-nowrap">Crear Centro</p>
                         </div>
                     </button>
@@ -316,17 +324,17 @@
                     <button 
                       onclick={() => goto('/panel/clases')}
                       disabled={!hasSchools}
-                      class="flex items-center gap-3 p-4 rounded-2xl border transition-all {!hasSchools ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800' : hasClasses ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 hover:border-indigo-500/50 text-slate-400'}"
+                      class="flex flex-col items-start gap-4 p-5 rounded-24 border transition-all duration-300 {!hasSchools ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5' : hasClasses ? 'bg-violet-500/5 border-violet-500/20 text-violet-400' : 'bg-white/5 border-white/5 hover:border-primary-500/50 text-surface-400'}"
                     >
-                        <div class="p-2 rounded-lg {hasClasses ? 'bg-emerald-500/20' : 'bg-slate-800'}">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center {hasClasses ? 'bg-violet-500/20' : 'bg-white/5'}">
                             {#if hasClasses}
-                                <CheckCircle class="w-4 h-4" />
+                                <CheckCircle weight="duotone" size={20} />
                             {:else}
-                                <GraduationCap class="w-4 h-4" />
+                                <GraduationCap weight="duotone" size={20} />
                             {/if}
                         </div>
-                        <div class="text-left">
-                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">Paso 2</p>
+                        <div>
+                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Paso 2</p>
                             <p class="text-xs font-bold whitespace-nowrap">Crear Clase</p>
                         </div>
                     </button>
@@ -335,17 +343,17 @@
                     <button 
                       onclick={() => goto('/panel/alumnos')}
                       disabled={!hasClasses}
-                      class="flex items-center gap-3 p-4 rounded-2xl border transition-all {!hasClasses ? 'opacity-40 cursor-not-allowed bg-slate-900 border-slate-800' : hasStudents ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-slate-900 border-slate-800 hover:border-indigo-500/50 text-slate-400'}"
+                      class="flex flex-col items-start gap-4 p-5 rounded-24 border transition-all duration-300 {!hasClasses ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5' : hasStudents ? 'bg-violet-500/5 border-violet-500/20 text-violet-400' : 'bg-white/5 border-white/5 hover:border-primary-500/50 text-surface-400'}"
                     >
-                        <div class="p-2 rounded-lg {hasStudents ? 'bg-emerald-500/20' : 'bg-slate-800'}">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center {hasStudents ? 'bg-violet-500/20' : 'bg-white/5'}">
                             {#if hasStudents}
-                                <CheckCircle class="w-4 h-4" />
+                                <CheckCircle weight="duotone" size={20} />
                             {:else}
-                                <Users class="w-4 h-4" />
+                                <UsersFour weight="duotone" size={20} />
                             {/if}
                         </div>
-                        <div class="text-left">
-                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">Paso 3</p>
+                        <div>
+                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Paso 3</p>
                             <p class="text-xs font-bold whitespace-nowrap">Añadir Alumno</p>
                         </div>
                     </button>
@@ -355,149 +363,177 @@
       {/if}
 
       <!-- Stats Cards Row -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
-          <p class="text-slate-500 text-xs font-bold uppercase mb-1">Alumnos</p>
-          <p class="text-2xl font-bold text-white">{stats.totalStudents}</p>
-          <p class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-            <TrendingUp class="w-3 h-3" /> Activos
-          </p>
-        </div>
-        
-        <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
-          <p class="text-slate-500 text-xs font-bold uppercase mb-1">Ingresos (Mes)</p>
-          <p class="text-2xl font-bold text-white">{stats.monthlyRevenue}€</p>
-          <p class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-            <TrendingUp class="w-3 h-3" /> +15.0%
-          </p>
-        </div>
-        
-        <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50">
-          <p class="text-slate-500 text-xs font-bold uppercase mb-1">Asistencia</p>
-          <p class="text-2xl font-bold text-white">{stats.occupancyRate}%</p>
-          <p class="text-xs text-blue-400 mt-1">Promedio global</p>
-        </div>
-        
-        <div class="bg-[#1e293b] p-4 rounded-2xl border border-slate-700/50 flex flex-col justify-center">
-          <p class="text-slate-500 text-xs font-bold uppercase mb-1">Próx. Torneo</p>
-          {#if nextTournament}
-            <div class="truncate">
-                <p class="text-lg font-bold text-white truncate">{nextTournament.name}</p>
-                <p class="text-xs text-orange-400 mt-1">En {Math.ceil((new Date(nextTournament.start_date || '').getTime() - Date.now()) / (1000*60*60*24))} días</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+        <div class="bento-card group">
+          <div class="p-6">
+            <p class="text-surface-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+              <UsersFour weight="duotone" size={14} class="text-violet-400" /> Estudiantes
+            </p>
+            <div class="flex items-baseline gap-2">
+              <p class="text-5xl font-extrabold text-white tracking-tighter font-display">{stats.totalStudents}</p>
             </div>
-          {:else}
-            <p class="text-lg font-bold text-slate-500">—</p>
-          {/if}
+            <p class="text-[10px] font-bold text-violet-400 mt-4 flex items-center gap-1.5 uppercase tracking-wider">
+              <TrendUp weight="bold" size={12} /> Activos
+            </p>
+          </div>
+        </div>
+        
+        <div class="bento-card group">
+          <div class="p-6">
+            <p class="text-surface-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+              <CurrencyEur weight="duotone" size={14} class="text-primary-400" /> Ingresos
+            </p>
+            <div class="flex items-baseline gap-1">
+              <p class="text-5xl font-extrabold text-white tracking-tighter font-display">{stats.monthlyRevenue}</p>
+              <span class="text-2xl font-bold text-surface-600 tracking-tighter font-display">€</span>
+            </div>
+            <p class="text-[10px] font-bold text-primary-400 mt-4 flex items-center gap-1.5 uppercase tracking-wider">
+              <TrendUp weight="bold" size={12} /> En curso
+            </p>
+          </div>
+        </div>
+        
+        <div class="bento-card group">
+          <div class="p-6">
+            <p class="text-surface-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+              <Pulse weight="duotone" size={14} class="text-blue-400" /> Asistencia
+            </p>
+            <div class="flex items-baseline gap-1">
+              <p class="text-5xl font-extrabold text-white tracking-tighter font-display">{stats.occupancyRate}</p>
+              <span class="text-2xl font-bold text-surface-600 tracking-tighter font-display">%</span>
+            </div>
+            <p class="text-[10px] font-bold text-surface-500 mt-4 uppercase tracking-wider">Promedio Mes</p>
+          </div>
+        </div>
+        
+        <div class="bento-card group overflow-hidden">
+          <div class="p-6">
+            <p class="text-surface-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+              <Trophy weight="duotone" size={14} class="text-orange-400" /> Próximo
+            </p>
+            {#if nextTournament}
+              <div class="h-10 mt-2">
+                  <p class="text-xl font-bold text-white truncate font-display">{nextTournament.name}</p>
+                  <p class="text-[10px] font-bold text-orange-400 uppercase tracking-widest mt-1">En {Math.ceil((new Date(nextTournament.start_date || '').getTime() - Date.now()) / (1000*60*60*24))} días</p>
+              </div>
+            {:else}
+              <p class="text-5xl font-extrabold text-surface-700 tracking-tighter font-display">—</p>
+              <p class="text-[10px] font-bold text-surface-600 uppercase tracking-widest mt-4">Sin torneos</p>
+            {/if}
+          </div>
         </div>
       </div>
 
       <!-- Real SVG Charts implemented like original -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Chart 1: Ingresos -->
-        <div class="bg-[#1e293b] border border-slate-800 rounded-xl p-6 hover:border-emerald-500/30 transition-all duration-300 group">
-          <div class="flex justify-between items-start mb-6">
-            <div>
-              <h3 class="text-slate-400 text-sm font-medium">Historial de Ingresos</h3>
-              <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl font-bold text-white">{stats.monthlyRevenue}€</span>
-              </div>
-            </div>
-            <div class="p-2 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
-              <DollarSign class="w-5 h-5 text-emerald-500" />
-            </div>
-          </div>
-          
-          <div class="relative h-[150px] w-full mt-4">
-              <svg class="w-full h-full" viewBox="0 0 300 150">
-                  <defs>
-                      <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="#10b981" stop-opacity="0.2" />
-                          <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
-                      </linearGradient>
-                  </defs>
-                  
-                  <!-- Grid -->
-                  {#each [0, 1, 2, 3] as i}
-                    <line x1="20" y1={130 - i * 35} x2="280" y2={130 - i * 35} 
-                          class="stroke-slate-700/30" stroke-dasharray="4 4" />
-                  {/each}
-                  
-                  {#if chartData.revenue.some(v => v > 0)}
-                     <!-- Path Logic -->
-                     {@const max = Math.max(...chartData.revenue, 100) * 1.2}
-                     {@const points = chartData.revenue.map((v, i) => `${20 + i * 52},${130 - (v / max) * 110}`).join(' ')}
-                     
-                     <path d="M 20,130 {points} 280,130" fill="url(#revGrad)" />
-                     <path d="M 20,130 {points}" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" />
-                     
-                     {#each chartData.revenue as v, i}
-                       <circle cx={20 + i * 52} cy={130 - (v / max) * 110} r="3" class="fill-slate-900 stroke-emerald-500 stroke-2" />
-                     {/each}
-                  {/if}
-              </svg>
-              <div class="flex justify-between px-2 mt-2 text-[10px] text-slate-500 font-medium">
-                  {#each chartData.labels as label}
-                    <span>{label}</span>
-                  {/each}
-              </div>
-          </div>
-        </div>
-
-        <!-- Chart 2: Estudiantes (Simplificado) -->
-        <div class="bg-[#1e293b] border border-slate-800 rounded-xl p-6 hover:border-blue-500/30 transition-all duration-300 group">
+        <div class="bento-card group">
+          <div class="p-6">
             <div class="flex justify-between items-start mb-6">
               <div>
-                <h3 class="text-slate-400 text-sm font-medium">Fidelización Alumnos</h3>
-                <div class="flex items-baseline gap-2 mt-1">
-                  <span class="text-2xl font-bold text-white">{stats.totalStudents}</span>
-                  <span class="text-blue-400 text-xs font-medium">total acumulado</span>
+                <h3 class="text-surface-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Evolución de Ingresos</h3>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span class="text-3xl font-extrabold text-white tracking-tighter font-display">{stats.monthlyRevenue}€</span>
+                  <span class="text-[10px] font-bold text-violet-400 uppercase tracking-widest">+12% este mes</span>
                 </div>
               </div>
-              <div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                <Users class="w-5 h-5 text-blue-500" />
+              <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 group-hover:bg-violet-500/20 transition-colors">
+                <CurrencyEur weight="duotone" size={20} />
               </div>
             </div>
             
-            <div class="relative h-[150px] w-full mt-4">
-                <div class="flex items-end justify-between h-[120px] px-2 gap-4">
+            <div class="relative h-[160px] w-full mt-4">
+                <svg class="w-full h-full" viewBox="0 0 300 150" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.3" />
+                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0" />
+                        </linearGradient>
+                    </defs>
+                    
+                    {#if chartData.revenue.some(v => v > 0)}
+                       {@const max = Math.max(...chartData.revenue, 100) * 1.2}
+                       {@const points = chartData.revenue.map((v, i) => `${20 + i * 52},${130 - (v / max) * 110}`).join(' ')}
+                       
+                       <path d="M 20,130 {points} 280,130" fill="url(#revGrad)" />
+                       <path d="M 20,130 {points}" fill="none" stroke="#8B5CF6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                       
+                       {#each chartData.revenue as v, i}
+                         <circle cx={20 + i * 52} cy={130 - (v / max) * 110} r="4" class="fill-bento-card stroke-primary-400 stroke-2" />
+                       {/each}
+                    {/if}
+                </svg>
+                <div class="flex justify-between px-2 mt-4 text-[9px] text-surface-500 font-black uppercase tracking-widest">
+                    {#each chartData.labels as label}
+                      <span>{label}</span>
+                    {/each}
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart 2: Estudiantes -->
+        <div class="bento-card group">
+          <div class="p-6">
+            <div class="flex justify-between items-start mb-6">
+              <div>
+                <h3 class="text-surface-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Fidelización Alumnos</h3>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span class="text-3xl font-extrabold text-white tracking-tighter font-display">{stats.totalStudents}</span>
+                  <span class="text-[10px] font-bold text-primary-400 uppercase tracking-widest">Alumnos totales</span>
+                </div>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-400 group-hover:bg-primary-500/20 transition-colors">
+                <UsersFour weight="duotone" size={20} />
+              </div>
+            </div>
+            
+            <div class="relative h-[160px] w-full mt-4">
+                <div class="flex items-end justify-between h-[120px] px-2 gap-3">
                     {#each [40, 60, 50, 80, 70, 95] as height, i}
-                       <div class="flex-1 flex flex-col items-center">
-                           <div class="w-full bg-blue-500/10 group-hover:bg-blue-500/20 rounded-t-lg transition-all relative overflow-hidden" 
+                       <div class="flex-1 flex flex-col items-center group/bar">
+                           <div class="w-full bg-white/5 group-hover/bar:bg-primary-500/20 rounded-t-xl transition-all relative overflow-hidden" 
                                 style="height: {height}%">
-                               <div class="absolute bottom-0 left-0 right-0 bg-blue-500/40" style="height: 40%"></div>
+                               <div class="absolute bottom-0 left-0 right-0 bg-primary-500/40 group-hover/bar:bg-primary-500/60 transition-colors" style="height: 30%"></div>
                            </div>
-                           <span class="flex-1 text-sm text-slate-300 hover:text-emerald-400 truncate cursor-pointer transition-colors">
+                           <span class="text-[9px] text-surface-600 font-bold uppercase tracking-tighter mt-3 group-hover/bar:text-surface-400 transition-colors">
                              {chartData.labels[i]}
                            </span>
                        </div>
                     {/each}
                 </div>
             </div>
+          </div>
         </div>
       </div>
     </div>
     
     <!-- Sidebar -->
     <div class="space-y-6">
-      <h3 class="text-lg font-bold text-white flex items-center gap-2">
-        <Activity class="w-5 h-5 text-blue-500" /> Actividad Reciente
+      <h3 class="text-lg font-extrabold text-white flex items-center gap-3 font-display">
+        <Pulse weight="duotone" class="text-primary-500" /> Actividad
       </h3>
       
-      <div class="bg-[#1e293b] border border-slate-700 rounded-2xl p-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+      <div class="bento-card max-h-[500px] overflow-y-auto custom-scrollbar p-2">
         {#if recentActivity().length === 0}
-          <div class="p-8 text-center text-slate-500 text-sm">No hay actividad reciente.</div>
+          <div class="p-12 text-center">
+            <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 text-surface-600">
+               <Pulse weight="duotone" size={24} />
+            </div>
+            <p class="text-surface-500 text-sm font-medium">Sin actividad reciente.</p>
+          </div>
         {:else}
-          <div class="divide-y divide-slate-800">
+          <div class="space-y-1">
             {#each recentActivity() as activity}
-              <div class="p-4 flex gap-4 hover:bg-slate-800/30 transition-colors rounded-xl">
-                 <div class="mt-1">
-                   <div class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 border-slate-700">
-                     <activity.icon class="w-4 h-4 {activity.color}" />
+              <div class="p-4 flex gap-4 hover:bg-white/5 transition-all duration-300 rounded-2xl group/act">
+                 <div class="mt-0.5">
+                   <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 border border-white/5 group-hover/act:bg-primary-500/10 group-hover/act:text-primary-400 transition-colors">
+                     <activity.icon weight="duotone" size={18} class={activity.color} />
                    </div>
                  </div>
-                 <div>
-                   <p class="text-sm text-slate-300 font-medium leading-snug">{activity.message}</p>
-                   <p class="text-xs text-slate-500 mt-1">{activity.time}</p>
+                 <div class="flex-1 min-w-0">
+                   <p class="text-sm text-white font-bold leading-snug truncate">{activity.message}</p>
+                   <p class="text-[10px] text-surface-500 font-bold uppercase tracking-widest mt-1 opacity-60">{activity.time}</p>
                  </div>
               </div>
             {/each}
@@ -506,22 +542,32 @@
       </div>
       
       <!-- Achievement Card -->
-      <div class="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-2xl p-6 border border-indigo-500/30 text-center relative overflow-hidden group">
-        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Award class="w-24 h-24 text-white" />
+      <div class="bento-card !bg-primary-500/10 border-primary-500/20 p-8 text-center relative overflow-hidden group">
+        <div class="absolute -top-12 -right-12 p-4 opacity-5 group-hover:opacity-10 transition-all duration-700 scale-150 rotate-12">
+            <Medal weight="duotone" size={120} class="text-primary-400" />
         </div>
-        <Award class="w-10 h-10 text-yellow-400 mx-auto mb-3 relative z-10" />
-        <h4 class="text-white font-bold mb-1 relative z-10">¿Nuevo Logro?</h4>
-        <p class="text-sm text-indigo-200 mb-4 relative z-10">Revisa si has subido de nivel como entrenador.</p>
-        <button onclick={() => goto('/panel/logros')} class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all w-full relative z-10">
+        
+        <div class="w-16 h-16 rounded-2xl bg-primary-500/20 flex items-center justify-center text-primary-400 mx-auto mb-6 relative z-10 shadow-violet-flare">
+           <Medal weight="duotone" size={32} />
+        </div>
+        
+        <h4 class="text-xl font-extrabold text-white mb-2 relative z-10 font-display">¡Sigue creciendo!</h4>
+        <p class="text-sm text-surface-400 mb-8 relative z-10 font-medium">Desbloquea nuevas insignias gestionando tu academia.</p>
+        
+        <button onclick={() => goto('/panel/logros')} class="btn-pill bg-white text-black w-full relative z-10 font-bold text-sm tracking-tight active:scale-95 transition-transform py-4">
             Ver Mis Logros
         </button>
       </div>
 
       <!-- Support Card -->
-      <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
-          <p class="text-xs text-slate-400 mb-2">¿Necesitas ayuda con ChessNet?</p>
-          <a href="mailto:soporte@chessnet.app" class="text-indigo-400 text-sm font-bold hover:text-indigo-300">Contactar Soporte →</a>
+      <div class="bento-card !p-6 flex items-center justify-between group">
+          <div>
+            <p class="text-[10px] text-surface-500 font-black uppercase tracking-widest leading-none mb-1">¿Necesitas ayuda?</p>
+            <p class="text-sm font-bold text-white">Centro de Soporte</p>
+          </div>
+          <a href="mailto:soporte@chessnet.app" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-400 hover:bg-primary-500 hover:text-white transition-all shadow-soft">
+            <Plus weight="bold" size={16} />
+          </a>
       </div>
     </div>
   </div>

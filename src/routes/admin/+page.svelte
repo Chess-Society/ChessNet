@@ -364,7 +364,7 @@
 </svelte:head>
 
 <div
-  class="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-emerald-500/30"
+  class="min-h-screen bg-bento-bg text-white font-sans selection:bg-primary-500/30"
 >
   <!-- Background Elements -->
   <div class="fixed inset-0 z-0 opacity-20 pointer-events-none">
@@ -384,7 +384,7 @@
       <Logo size="w-16 h-16" iconSize="w-8 h-8" />
       <div class="flex flex-col items-center gap-2">
         <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"
         ></div>
         <p class="text-slate-400 font-medium tracking-widest uppercase text-xs">
           Sincronizando Sistema...
@@ -429,7 +429,7 @@
       >
         <div class="flex items-center gap-6">
           <div
-            class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-lg ring-4 ring-emerald-500/5"
+            class="p-4 bg-primary-500/10 border border-primary-500/20 rounded-2xl shadow-lg ring-4 ring-primary-500/5"
           >
             <Logo size="w-10 h-10" iconSize="w-6 h-6" />
           </div>
@@ -441,7 +441,7 @@
             </h1>
             <div class="flex items-center gap-3">
               <span
-                class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-bold text-emerald-400 uppercase tracking-wider"
+                class="flex items-center gap-1.5 px-2.5 py-1 bg-primary-500/10 border border-primary-500/20 rounded-full text-[10px] font-bold text-primary-400 uppercase tracking-wider"
               >
                 <Activity class="w-3 h-3" /> System Live
               </span>
@@ -461,7 +461,7 @@
               onclick={() => (activeTab = tab as any)}
               class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 {activeTab ===
               tab
-                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
+                ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'}"
             >
               {tab}
@@ -476,7 +476,7 @@
           <!-- KPI Grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div
-              class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-emerald-500/20 transition-all shadow-2xl relative overflow-hidden"
+              class="bento-card p-8 group hover:border-primary-500/20 transition-all shadow-2xl relative overflow-hidden"
             >
               <div
                 class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
@@ -484,8 +484,8 @@
                 <Users class="w-40 h-40" />
               </div>
               <div class="flex items-center justify-between mb-6">
-                <div class="p-3 bg-emerald-500/10 rounded-2xl">
-                  <Users class="w-6 h-6 text-emerald-500" />
+                <div class="p-3 bg-primary-500/10 rounded-2xl">
+                  <Users class="w-6 h-6 text-primary-500" />
                 </div>
               </div>
               <p
@@ -677,7 +677,7 @@
                           </button>
                           <button
                             onclick={() => openEditModal(user)}
-                            class="p-2.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20 rounded-xl transition-all"
+                            class="p-2.5 bg-primary-500/10 hover:bg-primary-500 text-primary-400 hover:text-white border border-primary-500/20 rounded-xl transition-all"
                           >
                             <Edit3 class="w-4 h-4" />
                           </button>
@@ -706,18 +706,18 @@
                 bind:value={announcementForm.title}
                 type="text"
                 placeholder="Título"
-                class="w-full px-6 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm focus:outline-none focus:border-emerald-500 transition-all"
+                class="w-full px-6 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm focus:outline-none focus:border-primary-500 transition-all"
               />
               <textarea
                 bind:value={announcementForm.content}
                 rows="4"
                 placeholder="Contenido..."
-                class="w-full px-6 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm focus:outline-none focus:border-emerald-500 transition-all resize-none"
+                class="w-full px-6 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm focus:outline-none focus:border-primary-500 transition-all resize-none"
               ></textarea>
               <button
                 onclick={handleSendAnnouncement}
                 disabled={isSaving}
-                class="w-full py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-emerald-500/20 disabled:opacity-50"
+                class="w-full py-4 bg-primary-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary-500/20 disabled:opacity-50"
               >
                 {isSaving ? "Enviando..." : "Lanzar Anuncio"}
               </button>

@@ -2,23 +2,25 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { 
-    ArrowLeft,
-    Save,
+    CaretLeft,
+    FloppyDisk,
     X,
-    AlertTriangle,
+    Warning,
     CheckCircle,
-    School,
+    Buildings,
     Clock,
     Users,
-    DollarSign,
-    Calendar,
+    CurrencyDollar,
+    CalendarBlank,
     MapPin,
     BookOpen,
     Target,
     Eye,
-    RotateCcw,
-    Edit3
-  } from 'lucide-svelte';
+    ArrowCounterClockwise,
+    PencilSimple,
+    CaretDown,
+    GraduationCap
+  } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
 
@@ -93,48 +95,50 @@
   <title>Editar {classData?.name} - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-5xl mx-auto space-y-10 animate-fade-in pb-20" in:fade>
+<div class="max-w-6xl mx-auto space-y-10 animate-fade-in pb-20" in:fade>
   <!-- Header -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-    <div class="space-y-4">
+    <div class="space-y-6">
       <button 
         onclick={() => goto(`/panel/clases/${classData.id}`)}
-        class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
+        class="flex items-center gap-2 text-zinc-500 hover:text-white transition-all group text-[10px] font-black uppercase tracking-[0.2em]"
       >
-        <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-        Regresar a Clase
+        <CaretLeft weight="bold" class="w-3 h-3 transition-transform group-hover:-translate-x-1" />
+        Volver a Clase
       </button>
 
       <div class="flex items-center gap-6">
         <div class="w-16 h-16 bg-primary-500/10 border border-primary-500/20 rounded-3xl flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/10">
-          <Edit3 class="w-8 h-8" />
+          <PencilSimple weight="duotone" class="w-8 h-8" />
         </div>
         <div>
-          <h1 class="text-3xl font-black text-white tracking-tighter uppercase">Editar Grupo</h1>
-          <p class="text-surface-500 text-sm font-medium uppercase tracking-widest">Ajustando detalles de {classData?.name}</p>
+          <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-none">Ajustes</h1>
+          <p class="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
+            Configuración de <span class="text-white">{classData?.name}</span>
+          </p>
         </div>
       </div>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-4">
       <button 
         onclick={() => goto(`/panel/clases/${classData.id}`)}
-        class="btn-ghost flex items-center gap-2 text-[10px] font-black uppercase tracking-widest"
+        class="px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all flex items-center gap-2"
         disabled={isSubmitting}
       >
-        <X class="w-4 h-4" />
-        Descartar
+        <X weight="bold" class="w-4 h-4" />
+        Cancelar
       </button>
       <button 
         onclick={handleSubmit}
         disabled={isSubmitting}
-        class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/20 flex items-center gap-3"
+        class="bg-primary-500 text-black px-10 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-[0_10px_40px_-10px_rgba(139,92,246,0.3)] flex items-center gap-3 disabled:opacity-50"
       >
         {#if isSubmitting}
           <div class="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
           <span>Guardando...</span>
         {:else}
-          <Save class="w-4 h-4" />
+          <FloppyDisk weight="bold" class="w-4 h-4" />
           <span>Guardar Cambios</span>
         {/if}
       </button>
@@ -143,96 +147,120 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
     <div class="lg:col-span-2 space-y-8">
-      <!-- Main Settings -->
-      <section class="glass-panel p-8 space-y-8 border-t-4 border-primary-500">
-        <h2 class="text-white font-black uppercase tracking-tight flex items-center gap-3">
-          <BookOpen class="w-5 h-5 text-primary-400" />
-          Información Curricular
-        </h2>
+      <!-- Main Settings Card -->
+      <section class="bg-zinc-900/50 border border-zinc-800 rounded-[32px] p-8 lg:p-10 space-y-10 shadow-xl relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 blur-[100px] -mr-32 -mt-32"></div>
+        
+        <div class="flex items-center gap-4 relative z-10 border-b border-zinc-800 pb-6">
+          <div class="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
+            <BookOpen weight="duotone" class="w-6 h-6 text-primary-400" />
+          </div>
+          <h2 class="text-xl font-black text-white uppercase tracking-tight">Información General</h2>
+        </div>
 
-        <div class="space-y-6">
-          <div class="space-y-2">
-            <label for="name" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Nombre del Grupo</label>
+        <div class="space-y-8 relative z-10">
+          <div class="space-y-3">
+            <label for="name" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+              Nombre del Grupo
+              {#if errors.name}<span class="text-red-500">— {errors.name}</span>{/if}
+            </label>
             <input
               id="name"
               type="text"
               bind:value={formData.name}
-              class={`w-full bg-surface-950 border rounded-xl px-5 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all ${errors.name ? 'border-red-500' : 'border-surface-800'}`}
+              placeholder="Ej: Avanzados A"
+              class={`w-full bg-zinc-950 border rounded-2xl px-6 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all placeholder:text-zinc-800 ${errors.name ? 'border-red-500/50 bg-red-500/5' : 'border-zinc-800'}`}
             />
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-2">
-              <label for="school" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Centro Educativo</label>
-              <select 
-                id="school"
-                bind:value={formData.school_id}
-                class="w-full bg-surface-950 border border-surface-800 rounded-xl px-5 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all cursor-pointer"
-              >
-                {#each schools as s}
-                  <option value={s.id}>{s.name.toUpperCase()}</option>
-                {/each}
-              </select>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-3">
+              <label for="school" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                <Buildings weight="duotone" class="w-3 h-3" />
+                Centro Educativo
+              </label>
+              <div class="relative group/select">
+                <select 
+                  id="school"
+                  bind:value={formData.school_id}
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all cursor-pointer appearance-none"
+                >
+                  {#each schools as s}
+                    <option value={s.id}>{s.name.toUpperCase()}</option>
+                  {/each}
+                </select>
+                <CaretDown weight="bold" class="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 pointer-events-none group-focus-within/select:text-primary-500 transition-colors" />
+              </div>
             </div>
 
-            <div class="space-y-2">
-              <label for="level" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Nivel Recomendado</label>
-              <select 
-                id="level"
-                bind:value={formData.level}
-                class="w-full bg-surface-950 border border-surface-800 rounded-xl px-5 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all cursor-pointer"
-              >
-                {#each levelOptions as opt}
-                  <option value={opt.value}>{opt.label}</option>
-                {/each}
-              </select>
+            <div class="space-y-3">
+              <label for="level" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                <GraduationCap weight="duotone" class="w-3 h-3" />
+                Nivel Recomendado
+              </label>
+              <div class="relative group/select">
+                <select 
+                  id="level"
+                  bind:value={formData.level}
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all cursor-pointer appearance-none"
+                >
+                  {#each levelOptions as opt}
+                    <option value={opt.value}>{opt.label}</option>
+                  {/each}
+                </select>
+                <CaretDown weight="bold" class="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 pointer-events-none group-focus-within/select:text-primary-500 transition-colors" />
+              </div>
             </div>
           </div>
 
-          <div class="space-y-2">
-            <label for="desc" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Descripción del Enfoque</label>
+          <div class="space-y-3">
+            <label for="desc" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Descripción y Objetivos</label>
             <textarea
               id="desc"
               bind:value={formData.description}
-              rows="3"
-              class="w-full bg-surface-950 border border-surface-800 rounded-xl px-5 py-4 text-white font-medium focus:border-primary-500/50 outline-none transition-all resize-none"
-              placeholder="Ej: Orientado a la táctica básica y finales elementales..."
+              rows="4"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-white font-medium focus:border-primary-500/50 outline-none transition-all resize-none placeholder:text-zinc-800"
+              placeholder="Detalla el enfoque pedagógico de este grupo..."
             ></textarea>
           </div>
         </div>
       </section>
 
-      <!-- Logistics -->
-      <section class="glass-panel p-8 space-y-8 border-t-4 border-blue-500">
-        <h2 class="text-white font-black uppercase tracking-tight flex items-center gap-3">
-          <Clock class="w-5 h-5 text-blue-400" />
-          Logística y Horarios
-        </h2>
+      <!-- Logistics Card -->
+      <section class="bg-zinc-900/50 border border-zinc-800 rounded-[32px] p-8 lg:p-10 space-y-10 shadow-xl relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] -mr-32 -mt-32"></div>
+        
+        <div class="flex items-center gap-4 relative z-10 border-b border-zinc-800 pb-6">
+          <div class="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
+            <Clock weight="duotone" class="w-6 h-6 text-blue-400" />
+          </div>
+          <h2 class="text-xl font-black text-white uppercase tracking-tight">Calendario y Logística</h2>
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-           <div class="space-y-2">
-              <label for="schedule" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Horario de Sesiones</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
+           <div class="space-y-3">
+              <label for="schedule" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Horario de Sesiones</label>
               <div class="relative group">
-                 <Clock class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-700" />
+                 <Clock weight="duotone" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-700 group-focus-within:text-blue-400 transition-colors" />
                  <input
                   id="schedule"
                   type="text"
                   bind:value={formData.schedule}
-                  class="w-full bg-surface-950 border border-surface-800 rounded-xl pl-12 pr-5 py-4 text-white focus:border-primary-500/50 outline-none transition-all"
-                  placeholder="Ej: Martes 17:00 - 18:30"
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl pl-16 pr-6 py-4 text-white font-bold focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-800"
+                  placeholder="Ej: Lunes y Miércoles 18:00"
                 />
               </div>
            </div>
 
-           <div class="space-y-2">
-              <label for="max" class="text-[10px] font-black text-surface-500 uppercase tracking-widest ml-1">Capacidad Máxima (Alumnos)</label>
+           <div class="space-y-3">
+              <label for="max" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Aforo Máximo</label>
               <div class="relative group">
-                 <Users class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-700" />
+                 <Users weight="duotone" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-700 group-focus-within:text-blue-400 transition-colors" />
                  <input
                   id="max"
                   type="number"
                   bind:value={formData.max_students}
-                  class="w-full bg-surface-950 border border-surface-800 rounded-xl pl-12 pr-5 py-4 text-white focus:border-primary-500/50 outline-none transition-all"
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl pl-16 pr-6 py-4 text-white font-bold focus:border-blue-500/50 outline-none transition-all"
                 />
               </div>
            </div>
@@ -240,38 +268,53 @@
       </section>
     </div>
 
-    <!-- Sidebar Tips -->
+    <!-- Sidebar Info -->
     <div class="space-y-8">
-       <div class="glass-panel p-8 space-y-6">
-          <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-            <AlertTriangle class="w-4 h-4 text-primary-400" />
-            Consideraciones
+       <div class="bg-zinc-900/50 border border-zinc-800 p-8 rounded-[32px] space-y-8 shadow-xl">
+          <h3 class="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
+            <Warning weight="duotone" class="w-5 h-5 text-primary-500" />
+            Importante
           </h3>
-          <ul class="space-y-4">
-             <li class="flex gap-3">
-                <div class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-1.5 flex-shrink-0"></div>
-                <p class="text-[10px] text-surface-400 font-bold uppercase tracking-wider leading-relaxed">Cambiar el nivel actualizará los objetivos sugeridos para el grupo.</p>
+          <ul class="space-y-6">
+             <li class="flex gap-4">
+                <div class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 flex-shrink-0"></div>
+                <p class="text-[11px] text-zinc-400 font-bold uppercase tracking-wider leading-relaxed">
+                  Los cambios de nivel afectarán a las sugerencias del <span class="text-white">temario inteligente</span>.
+                </p>
              </li>
-             <li class="flex gap-3">
-                <div class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-1.5 flex-shrink-0"></div>
-                <p class="text-[10px] text-surface-400 font-bold uppercase tracking-wider leading-relaxed">La capacidad afecta al cálculo de ingresos estimados del centro.</p>
+             <li class="flex gap-4">
+                <div class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 flex-shrink-0"></div>
+                <p class="text-[11px] text-zinc-400 font-bold uppercase tracking-wider leading-relaxed">
+                  Asegúrate de que el horario no genere <span class="text-white">conflictos</span> con otros grupos del mismo centro.
+                </p>
              </li>
           </ul>
        </div>
 
-       <div class="p-8 border-2 border-primary-500/20 rounded-3xl bg-primary-500/5 space-y-4">
-          <div class="flex items-center gap-4 text-primary-400 mb-2">
-             <RotateCcw class="w-6 h-6" />
-             <h3 class="text-xs font-black uppercase tracking-widest">Historial</h3>
+       <div class="p-10 border border-zinc-800 rounded-[32px] bg-zinc-900/20 backdrop-blur-sm space-y-4">
+          <div class="flex items-center gap-4 text-zinc-600 mb-2">
+             <ArrowCounterClockwise weight="bold" class="w-6 h-6" />
+             <h3 class="text-[10px] font-black uppercase tracking-[0.2em]">Historial</h3>
           </div>
-          <p class="text-[10px] text-surface-500 font-bold uppercase leading-relaxed">
-            Puedes revertir cambios si no has guardado todavía. Una vez guardados, los reportes se generarán con la nueva información.
+          <p class="text-[10px] text-zinc-500 font-bold uppercase leading-relaxed tracking-widest">
+            Al guardar, todos los informes y calendarios se actualizarán instantáneamente.
           </p>
+          <div class="pt-4">
+            <div class="w-full h-px bg-zinc-800"></div>
+            <p class="text-[9px] text-zinc-800 font-black uppercase mt-4 text-center tracking-[0.3em]">ChessNet System v2</p>
+          </div>
        </div>
     </div>
   </div>
 </div>
 
 <style lang="postcss">
-  /* Class edit styles */
+  :global(.animate-fade-in) {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>

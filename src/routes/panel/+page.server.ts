@@ -1,3 +1,4 @@
+import type { PageServerLoad } from './$types';
 import { authenticate } from '$lib/server/auth';
 import { adminDb } from '$lib/firebase-admin';
 
@@ -59,7 +60,7 @@ export const load: PageServerLoad = async (event) => {
   } catch (err: any) {
     console.error('❌ Error in dashboard load:', err);
     return {
-      user: locals.user,
+      user,
       dashboardStats: {
         totalCenters: 0,
         totalStudents: 0,

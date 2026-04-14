@@ -1,15 +1,18 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { 
-    Settings, 
+    Gear, 
     User, 
     Bell, 
-    Shield, 
+    ShieldCheck, 
     CreditCard, 
-    Save, 
+    At,
     Camera,
-    Check
-  } from 'lucide-svelte';
+    Check,
+    FloppyDisk,
+    Sparkle,
+    Lock
+  } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { auth } from '$lib/firebase';
   import { fade, fly } from 'svelte/transition';
@@ -38,116 +41,129 @@
   <title>Configuración - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
+<div class="max-w-4xl mx-auto px-6 py-8" transition:fade>
   
-  <div class="flex items-center gap-3 mb-10 pt-6">
-    <div class="w-12 h-12 bg-slate-800 border border-slate-700 rounded-2xl flex items-center justify-center text-slate-400">
-      <Settings class="w-6 h-6" />
+  <div class="flex items-center gap-4 mb-12">
+    <div class="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-500 shadow-xl shadow-violet-500/5">
+      <Gear weight="duotone" class="w-8 h-8" />
     </div>
     <div>
-      <h1 class="text-3xl font-bold text-white tracking-tight">Configuración</h1>
-      <p class="text-slate-400 text-sm">Personaliza tu perfil de profesor y ajusta tus preferencias.</p>
+      <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">Configuración</h1>
+      <p class="text-slate-400 font-plus-jakarta text-sm">Personaliza tu experiencia y gestiona tu perfil docente.</p>
     </div>
   </div>
 
-  <div class="space-y-6">
+  <div class="space-y-8">
       <!-- Profile Section -->
-      <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-8 shadow-xl">
-          <h2 class="text-lg font-bold text-white mb-8 flex items-center gap-2">
-              <User class="w-5 h-5 text-indigo-500" />
+      <div class="bento-card p-10">
+          <h2 class="text-xl font-outfit font-bold text-white mb-10 flex items-center gap-3">
+              <User weight="duotone" class="w-6 h-6 text-violet-500" />
               Perfil del Profesor
           </h2>
 
-          <div class="flex flex-col md:flex-row gap-10 items-start">
+          <div class="flex flex-col md:flex-row gap-12 items-start">
               <div class="relative group">
-                  <div class="w-24 h-24 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-500 overflow-hidden relative">
+                  <div class="w-28 h-28 rounded-full bg-zinc-950 border-2 border-white/5 flex items-center justify-center text-slate-700 overflow-hidden relative shadow-2xl transition-transform duration-500 group-hover:scale-105">
                       {#if config.teacherAvatar}
                           <img src={config.teacherAvatar} alt="Avatar" class="w-full h-full object-cover" />
                       {:else}
-                          <User class="w-10 h-10" />
+                          <User weight="duotone" class="w-12 h-12" />
                       {/if}
-                      <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                          <Camera class="w-6 h-6 text-white" />
+                      <div class="absolute inset-0 bg-violet-600/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                          <Camera weight="bold" class="w-8 h-8 text-white" />
                       </div>
                   </div>
               </div>
 
-              <div class="flex-grow space-y-6 w-full">
-                  <div class="space-y-2">
-                      <label for="public-name" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nombre Público</label>
+              <div class="flex-grow space-y-8 w-full">
+                  <div class="space-y-3">
+                      <label for="public-name" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Nombre Público</label>
                       <input 
                         id="public-name"
                         type="text" 
                         bind:value={$appStore.settings.teacherName}
                         placeholder="Ej. Academia GM"
-                        class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-primary-500 outline-none transition-all placeholder:text-slate-600"
+                        class="w-full bg-zinc-950/50 border border-white/5 rounded-2xl px-5 py-4 text-sm text-white focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 shadow-inner"
                       />
                   </div>
 
-                  <div class="space-y-2">
-                      <label for="public-email" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Correo Electrónico</label>
-                      <input 
-                        id="public-email"
-                        type="email" 
-                        bind:value={$appStore.settings.teacherEmail}
-                        placeholder="contacto@academia.com"
-                        class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-primary-500 outline-none transition-all placeholder:text-slate-600"
-                      />
-                      <p class="text-[10px] text-slate-600 mt-1 italic">El correo no puede ser modificado por seguridad.</p>
+                  <div class="space-y-3">
+                      <label for="public-email" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Correo de Contacto</label>
+                      <div class="relative">
+                        <At weight="bold" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                        <input 
+                          id="public-email"
+                          type="email" 
+                          bind:value={$appStore.settings.teacherEmail}
+                          placeholder="contacto@academia.com"
+                          class="w-full bg-zinc-950/30 border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-sm text-slate-400 cursor-not-allowed outline-none transition-all placeholder:text-slate-700"
+                          disabled
+                        />
+                      </div>
+                      <p class="text-[10px] text-slate-500 mt-2 flex items-center gap-1.5 ml-1 pt-1">
+                        <Lock weight="bold" class="w-3 h-3" />
+                        El correo no de acceso no puede ser modificado por seguridad.
+                      </p>
                   </div>
               </div>
           </div>
       </div>
 
       <!-- Subscription Section -->
-      <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-8 shadow-xl">
-          <h2 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <CreditCard class="w-5 h-5 text-emerald-500" />
+      <div class="bento-card p-10">
+          <h2 class="text-xl font-outfit font-bold text-white mb-8 flex items-center gap-3">
+              <CreditCard weight="duotone" class="w-6 h-6 text-violet-500" />
               Suscripción y Plan
           </h2>
 
-          <div class="flex items-center justify-between p-6 bg-slate-900/50 border border-slate-800 rounded-2xl">
-              <div>
-                  <p class="text-white font-bold">Plan Actual: <span class="text-indigo-400 capitalize">{$appStore.settings.plan || 'Gratis'}</span></p>
-                  <p class="text-xs text-slate-500 mt-1">Siguiente fecha de cobro: 01 de Mayo, 2026</p>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-8 bg-zinc-950/50 border border-white/5 rounded-3xl shadow-inner group">
+              <div class="flex items-center gap-5">
+                <div class="w-12 h-12 bg-violet-600/10 rounded-2xl flex items-center justify-center text-violet-500">
+                  <Sparkle weight="duotone" class="w-6 h-6" />
+                </div>
+                <div>
+                    <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-1">Tu nivel actual</p>
+                    <p class="text-white font-outfit font-black text-xl uppercase tracking-tight">Plan {$appStore.settings.plan || 'Gratis'}</p>
+                </div>
               </div>
-              <a href="/precios" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-indigo-500/20">
-                  Gestionar Plan
+              <a href="/panel/upgrade" class="btn-pill bg-white text-black py-3 px-8 text-xs font-outfit font-black uppercase tracking-widest shadow-xl hover:bg-zinc-200 inline-flex items-center gap-2 group">
+                  Gestionar
+                  <Gear weight="bold" class="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
               </a>
           </div>
       </div>
 
       <!-- Security Section -->
-      <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-8 shadow-xl">
-          <h2 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <Shield class="w-5 h-5 text-red-500" />
+      <div class="bento-card p-10">
+          <h2 class="text-xl font-outfit font-bold text-white mb-8 flex items-center gap-3">
+              <ShieldCheck weight="duotone" class="w-6 h-6 text-violet-500" />
               Privacidad y Seguridad
           </h2>
           
           <div class="space-y-4">
-              <div class="flex items-center justify-between p-4 bg-slate-900/30 rounded-xl">
-                  <div>
-                      <p class="text-sm font-bold text-white">Sincronización en la Nube</p>
-                      <p class="text-[11px] text-slate-500">Tus datos se guardan automáticamente en Firebase cada 2 segundos tras cambios.</p>
+              <div class="flex items-center justify-between p-6 bg-zinc-950/30 rounded-2xl border border-white/5">
+                  <div class="max-w-md">
+                      <p class="text-sm font-outfit font-bold text-white mb-1">Sincronización Inteligente</p>
+                      <p class="text-[11px] text-slate-500 font-plus-jakarta leading-relaxed">Tus datos se respaldan automáticamente en la nube de alta disponibilidad de Google Cloud tras cada interacción.</p>
                   </div>
-                  <div class="w-10 h-6 bg-emerald-500 rounded-full relative">
-                      <div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+                  <div class="w-12 h-7 bg-violet-600 rounded-full relative shadow-[0_0_15px_rgba(139,92,246,0.25)] border border-violet-400/20">
+                      <div class="absolute right-1 top-1 w-5 h-5 bg-white rounded-full shadow-lg"></div>
                   </div>
               </div>
           </div>
       </div>
 
       <!-- Floating Save Bar -->
-      <div class="sticky bottom-6 flex justify-center z-50">
+      <div class="sticky bottom-8 flex justify-center z-50 pt-10 pointer-events-none">
           <button 
             onclick={handleSave}
-            class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+            class="btn-pill bg-violet-600 hover:bg-violet-500 text-white font-outfit font-black px-10 py-5 shadow-violet-flare flex items-center gap-3 transition-all hover:scale-105 active:scale-95 pointer-events-auto"
           >
             {#if saved}
-              <Check class="w-5 h-5" />
-              ¡Guardado Correctamente!
+              <Check weight="bold" class="w-5 h-5" />
+              ¡Sincronizado!
             {:else}
-              <Save class="w-5 h-5" />
+              <FloppyDisk weight="duotone" class="w-5 h-5" />
               Guardar Cambios
             {/if}
           </button>

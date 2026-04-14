@@ -817,6 +817,7 @@ export interface SubscriptionPlan {
   name: string;
   display_name: string;
   description?: string;
+  price_monthly?: number;
   price_annual: number;
   currency: string;
   max_students: number; // -1 = unlimited

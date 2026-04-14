@@ -2,15 +2,15 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { 
-    School, 
+    Buildings, 
     Plus, 
-    Edit, 
-    Trash2,
+    PencilSimple, 
+    Trash,
     MapPin,
     Users,
-    ChevronRight,
-    Search
-  } from 'lucide-svelte';
+    CaretRight,
+    MagnifyingGlass
+  } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { fade, fly } from 'svelte/transition';
 
@@ -37,118 +37,121 @@
 </script>
 
 <svelte:head>
-  <title>Centros Educativos - ChessNet</title>
+  <title>Centros - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
+<div class="max-w-7xl mx-auto px-6 pb-12" transition:fade>
   
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10 pt-6">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 pt-8">
     <div class="space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-500">
-          <School class="w-6 h-6" />
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 bg-violet-500/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.1)]">
+          <Buildings size={32} weight="duotone" />
         </div>
         <div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">Centros Educativos</h1>
-          <p class="text-slate-400 text-sm">Organiza las instituciones donde impartes tus lecciones.</p>
+          <h1 class="text-4xl font-outfit font-bold text-white tracking-tight">Centros Educativos</h1>
+          <p class="text-slate-400 font-jakarta text-sm">Gestiona los colegios y clubes donde impartes clases.</p>
         </div>
       </div>
     </div>
 
     <button 
       onclick={() => goto('/panel/centros/create')}
-      class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2"
+      class="btn-pill bg-violet-600 text-white px-8 py-3.5 font-bold hover:bg-violet-500 transition-all shadow-violet-flare flex items-center gap-2 group"
     >
-      <Plus class="w-4 h-4" />
+      <Plus size={20} weight="bold" class="transition-transform group-hover:rotate-90" />
       Añadir Centro
     </button>
   </div>
 
-  <div class="relative group mb-8">
-    <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+  <div class="relative group mb-10">
+    <MagnifyingGlass size={20} class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-violet-400 transition-colors" />
     <input
       type="text"
       placeholder="Buscar centro por nombre..."
       bind:value={searchQuery}
-      class="w-full bg-[#1e293b]/50 border border-slate-800 rounded-2xl pl-12 pr-6 py-4 text-sm text-white focus:border-blue-500/50 outline-none transition-all backdrop-blur-xl"
+      class="w-full bg-bento-card border border-white/5 rounded-2xl pl-14 pr-6 py-4 text-sm text-white focus:border-violet-500/50 outline-none transition-all backdrop-blur-xl font-jakarta"
     />
   </div>
 
   {#if filteredSchools().length === 0}
-    <div class="bg-[#1e293b]/40 border-2 border-slate-800 border-dashed rounded-[3rem] p-16 md:p-32 text-center space-y-8" in:fade>
+    <div class="bento-card border-dashed border-white/10 p-16 md:p-32 text-center space-y-8" in:fade>
       <div class="relative inline-block">
-        <div class="w-32 h-32 bg-indigo-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-indigo-500/20 text-indigo-400 animate-bounce-subtle">
-          <School class="w-16 h-16" />
+        <div class="w-32 h-32 bg-violet-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-violet-500/20 text-violet-400 animate-bounce-subtle shadow-violet-flare">
+          <Buildings size={64} weight="duotone" />
         </div>
-        <div class="absolute -bottom-2 -right-2 bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-xl">
-           <Plus class="w-6 h-6 text-emerald-500" />
+        <div class="absolute -bottom-2 -right-2 bg-bento-bg border border-white/10 p-3 rounded-2xl shadow-xl">
+             <Plus size={24} weight="bold" class="text-violet-400" />
         </div>
       </div>
       
-      <div class="max-w-md mx-auto space-y-3">
-        <h2 class="text-2xl font-bold text-white tracking-tight">Todo gran maestro necesita un lugar donde enseñar</h2>
-        <p class="text-slate-500 text-lg leading-relaxed">Añade tu primer colegio o club para empezar a organizar tu imperio del ajedrez.</p>
+      <div class="max-w-md mx-auto space-y-4">
+        <h2 class="text-3xl font-outfit font-bold text-white tracking-tight">Tu red de centros</h2>
+        <p class="text-slate-500 font-jakarta text-lg leading-relaxed">Añade tu primer colegio o club para empezar a organizar tu academia.</p>
       </div>
 
       <button 
         onclick={() => goto('/panel/centros/create')}
-        class="bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-900/40 flex items-center gap-3 mx-auto group ring-4 ring-indigo-600/10"
+        class="btn-pill bg-violet-600 hover:bg-violet-500 text-white px-10 py-5 font-bold transition-all shadow-violet-flare flex items-center gap-3 mx-auto group ring-8 ring-violet-500/5 text-lg"
       >
-        <Plus class="w-5 h-5 transition-transform group-hover:rotate-90" />
-        CREAR MI PRIMER CENTRO
+        <Plus size={24} weight="bold" class="transition-transform group-hover:rotate-90" />
+        CREAR PRIMER CENTRO
       </button>
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each filteredSchools() as school, i}
         <div 
-          class="bg-[#1e293b]/60 border border-slate-800 rounded-3xl p-6 hover:border-blue-500/30 transition-all group relative overflow-hidden"
+          class="bento-card p-6 border border-white/5 hover:border-violet-500/30 transition-all group relative overflow-hidden"
           in:fly={{ y: 20, delay: i * 50 }}
         >
           <div class="flex items-center justify-between mb-6 relative z-10">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-blue-500 font-bold text-lg group-hover:scale-110 transition-all">
+              <div class="w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-bold text-xl group-hover:scale-105 transition-all shadow-inner">
                 {school.name[0].toUpperCase()}
               </div>
               <div>
-                <h3 class="text-white font-bold leading-tight group-hover:text-blue-400 transition-colors">{school.name}</h3>
-                <div class="flex items-center gap-1.5 text-slate-500 text-[11px] mt-0.5 uppercase tracking-wide">
-                    <MapPin class="w-3 h-3" />
+                <h3 class="text-white font-outfit font-bold text-lg leading-tight group-hover:text-violet-400 transition-colors">{school.name}</h3>
+                <div class="flex items-center gap-1.5 text-slate-500 font-jakarta text-[11px] mt-0.5 uppercase tracking-wide">
+                    <MapPin size={12} weight="fill" class="text-slate-600" />
                     {school.location || 'Ubicación no definida'}
                 </div>
               </div>
             </div>
 
-            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+            <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
                 <button 
                   onclick={() => goto(`/panel/centros/${school.id}/edit`)}
-                  class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 hover:text-blue-400 hover:border-blue-500/30 transition-all"
+                  class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-violet-600/20 hover:border-violet-500/30 transition-all"
+                  title="Editar"
                 >
-                  <Edit class="w-4 h-4" />
+                  <PencilSimple size={18} />
                 </button>
                 <button 
                   onclick={() => deleteSchool(school.id)}
-                  class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 hover:text-red-400 hover:border-red-500/30 transition-all"
+                  class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all"
+                  title="Eliminar"
                 >
-                  <Trash2 class="w-4 h-4" />
+                  <Trash size={18} />
                 </button>
             </div>
           </div>
 
-          <div class="flex items-center justify-between pt-4 border-t border-slate-800/50 relative z-10">
+          <div class="flex items-center justify-between pt-5 border-t border-white/5 relative z-10">
             <div class="flex items-center gap-4">
-               <div class="flex items-center gap-1.5">
-                  <Users class="w-4 h-4 text-slate-500" />
-                  <span class="text-xs font-bold text-white">{getStudentCount(school.id)} Alumnos</span>
+               <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                  <Users size={16} weight="duotone" class="text-violet-400" />
+                  <span class="text-xs font-outfit font-bold text-white">{getStudentCount(school.id)}</span>
+                  <span class="text-[10px] font-jakarta text-slate-500 uppercase tracking-widest">Alumnos</span>
                </div>
             </div>
 
             <button 
               onclick={() => goto(`/panel/centros/${school.id}`)}
-              class="flex items-center gap-1 text-[10px] font-bold text-blue-500 uppercase tracking-wider hover:text-white transition-all group/btn"
+              class="flex items-center gap-1.5 text-[11px] font-outfit font-bold text-violet-400 uppercase tracking-widest hover:text-white transition-all group/btn"
             >
               GESTIONAR
-              <ChevronRight class="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />
+              <CaretRight size={14} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>
         </div>

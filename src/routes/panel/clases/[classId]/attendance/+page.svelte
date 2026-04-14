@@ -2,23 +2,23 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { 
-    ArrowLeft,
-    Calendar,
+    CaretLeft,
+    CalendarBlank,
     Users,
     UserCheck,
     Clock,
-    AlertTriangle,
+    Warning,
     CheckCircle,
     XCircle,
     Plus,
-    Save,
-    BarChart3,
-    TrendingUp,
+    FloppyDisk,
+    ChartBar,
+    TrendUp,
     Target,
     Eye,
-    Zap,
-    History
-  } from 'lucide-svelte';
+    Lightning,
+    ClockCounterClockwise as History
+  } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import type { AttendanceStatus, AttendanceRecord } from '$lib/types';
   import { fade, fly, scale } from 'svelte/transition';
@@ -75,6 +75,7 @@
       });
 
       if (!response.ok) throw new Error('Error');
+      // Using a more modern notification would be better, but keeping alert for now as per original code unless I find a Toast component
       alert('✅ Asistencia guardada');
     } catch (error) {
       alert('❌ Error al guardar');
@@ -95,128 +96,132 @@
 </svelte:head>
 
 <div class="space-y-10 animate-fade-in pb-20" in:fade>
-  <!-- Header -->
+  <!-- Header & Navigation -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-    <div class="space-y-4">
+    <div class="space-y-6">
       <button 
         onclick={() => goto(`/panel/clases/${classData.id}`)}
-        class="flex items-center gap-2 text-surface-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
+        class="flex items-center gap-2 text-zinc-500 hover:text-white transition-all group text-[10px] font-black uppercase tracking-[0.2em]"
       >
-        <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-        Regresar a Clase
+        <CaretLeft weight="bold" class="w-3 h-3 transition-transform group-hover:-translate-x-1" />
+        Volver al Panel
       </button>
 
       <div class="flex items-center gap-6">
-        <div class="w-16 h-16 bg-primary-500/10 border border-primary-500/20 rounded-3xl flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/10">
-          <UserCheck class="w-8 h-8" />
+        <div class="w-16 h-16 bg-primary-500/10 border border-primary-500/20 rounded-3xl flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/20">
+          <UserCheck weight="duotone" class="w-8 h-8" />
         </div>
         <div>
-          <h1 class="text-3xl font-black text-white tracking-tighter uppercase">Asistencia</h1>
-          <p class="text-surface-500 text-sm font-medium uppercase tracking-widest">{classData?.name} • {classData?.schedule}</p>
+          <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-none">Asistencia</h1>
+          <p class="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
+            <span class="text-primary-500">●</span> {classData?.name} <span class="text-zinc-800">|</span> {classData?.schedule}
+          </p>
         </div>
       </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="flex items-center gap-1 bg-surface-950/50 p-1.5 rounded-2xl border border-surface-900 w-fit backdrop-blur-xl">
+    <!-- View Switcher -->
+    <div class="flex items-center gap-1 bg-zinc-900/50 p-1.5 rounded-2xl border border-zinc-800 backdrop-blur-xl">
       <button 
         onclick={() => currentView = 'take'}
-        class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'take' ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'text-surface-500 hover:text-white'}`}
+        class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'take' ? 'bg-white text-black shadow-xl shadow-white/5' : 'text-zinc-500 hover:text-white'}`}
       >
-        <Zap class="w-3.5 h-3.5" />
+        <Lightning weight="duotone" class="w-4 h-4" />
         Pasar Lista
       </button>
       <button 
         onclick={() => currentView = 'history'}
-        class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'history' ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'text-surface-500 hover:text-white'}`}
+        class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'history' ? 'bg-white text-black shadow-xl shadow-white/5' : 'text-zinc-500 hover:text-white'}`}
       >
-        <History class="w-3.5 h-3.5" />
+        <History weight="duotone" class="w-4 h-4" />
         Historial
       </button>
       <button 
         onclick={() => currentView = 'stats'}
-        class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'stats' ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'text-surface-500 hover:text-white'}`}
+        class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'stats' ? 'bg-white text-black shadow-xl shadow-white/5' : 'text-zinc-500 hover:text-white'}`}
       >
-        <BarChart3 class="w-3.5 h-3.5" />
-        Estadísticas
+        <ChartBar weight="duotone" class="w-4 h-4" />
+        Métricas
       </button>
     </div>
   </div>
 
   {#if currentView === 'take'}
     <div class="space-y-8" in:fly={{ y: 20 }}>
-      <!-- Activity Controls -->
-      <div class="glass-panel p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border-t-4 border-primary-500 shadow-2xl">
-         <div class="flex items-center gap-4">
-            <div class="p-3 bg-surface-950 rounded-2xl border border-surface-900">
-               <Calendar class="w-5 h-5 text-primary-400" />
-            </div>
-            <div>
-               <p class="text-[10px] font-black text-surface-500 uppercase tracking-widest mb-1">Fecha de Sesión</p>
-               <input 
-                 type="date" 
-                 bind:value={selectedDate}
-                 class="bg-transparent text-white font-black uppercase tracking-tighter outline-none cursor-pointer"
-               />
-            </div>
-         </div>
+      <!-- Control Bar Card -->
+      <div class="bg-zinc-900/50 border border-zinc-800 rounded-[24px] p-6 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 blur-[100px] -mr-32 -mt-32"></div>
+        
+        <div class="flex items-center gap-6 relative z-10">
+          <div class="p-4 bg-zinc-950 rounded-2xl border border-zinc-800 shadow-inner group-hover:border-primary-500/30 transition-colors">
+            <CalendarBlank weight="duotone" class="w-6 h-6 text-primary-400" />
+          </div>
+          <div>
+            <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">Fecha de la Sesión</p>
+            <input 
+              type="date" 
+              bind:value={selectedDate}
+              class="bg-transparent text-white font-black uppercase tracking-tighter text-xl outline-none cursor-pointer hover:text-primary-400 transition-colors"
+            />
+          </div>
+        </div>
 
-         <div class="flex items-center gap-3">
-            <button 
-              onclick={() => {
-                students.forEach(s => currentAttendance[s.id].status = 'P');
-              }}
-              class="bg-surface-950 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-surface-800 hover:border-emerald-500/50 transition-all flex items-center gap-2"
-            >
-              <CheckCircle class="w-4 h-4 text-emerald-400" />
-              Todo OK
-            </button>
-            <button 
-              onclick={handleSubmitAttendance}
-              disabled={isSubmitting}
-              class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg flex items-center gap-3"
-            >
-              {#if isSubmitting}
-                <div class="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
-              {:else}
-                <Save class="w-4 h-4" />
-              {/if}
-              Finalizar Registro
-            </button>
-         </div>
+        <div class="flex items-center gap-3 relative z-10">
+          <button 
+            onclick={() => {
+              students.forEach(s => currentAttendance[s.id].status = 'P');
+            }}
+            class="bg-zinc-950 text-white px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.1em] border border-zinc-800 hover:border-emerald-500/50 transition-all flex items-center gap-2 hover:shadow-[0_0_30px_-10px_rgba(16,185,129,0.2)]"
+          >
+            <CheckCircle weight="duotone" class="w-4 h-4 text-emerald-400" />
+            Marcar Todos Presentes
+          </button>
+          
+          <button 
+            onclick={handleSubmitAttendance}
+            disabled={isSubmitting}
+            class="bg-primary-500 text-black px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-[0_10px_40px_-10px_rgba(139,92,246,0.3)] flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {#if isSubmitting}
+              <div class="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
+              Guardando...
+            {:else}
+              <FloppyDisk weight="bold" class="w-4 h-4" />
+              Guardar Registro
+            {/if}
+          </button>
+        </div>
       </div>
 
-      <!-- Student Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Students Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {#each students as student}
-          <div class="glass-panel p-6 flex items-center justify-between group hover:border-surface-700 transition-all relative overflow-hidden">
-             <div class="flex items-center gap-5 relative z-10">
-                <div class="w-14 h-14 bg-surface-950 rounded-2xl border border-surface-800 flex items-center justify-center text-primary-400 font-black text-lg group-hover:border-primary-500/50 transition-colors">
-                   {student.name.charAt(0)}
+          <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[24px] flex items-center justify-between group hover:border-zinc-700 transition-all shadow-xl hover:shadow-2xl">
+            <div class="flex items-center gap-5">
+              <div class="w-16 h-16 bg-zinc-950 rounded-2xl border border-zinc-800 flex items-center justify-center text-primary-400 font-black text-2xl group-hover:border-primary-500/50 transition-colors shadow-inner">
+                {student.name.charAt(0)}
+              </div>
+              <div>
+                <h3 class="text-white font-black uppercase text-base leading-tight group-hover:text-primary-400 transition-colors tracking-tight">{student.name}</h3>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{student.age} años</span>
+                  <span class="w-1 h-1 rounded-full bg-zinc-800"></span>
+                  <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{student.level}</span>
                 </div>
-                <div>
-                  <h3 class="text-white font-black uppercase text-sm leading-tight group-hover:text-primary-400 transition-colors">{student.name}</h3>
-                  <div class="flex items-center gap-2 mt-1">
-                     <span class="text-[9px] font-black text-surface-600 uppercase tracking-widest">{student.age} años</span>
-                     <span class="w-1 h-1 rounded-full bg-surface-800"></span>
-                     <span class="text-[9px] font-black text-surface-600 uppercase tracking-widest">{student.level}</span>
-                  </div>
-                </div>
-             </div>
+              </div>
+            </div>
 
-             <div class="flex items-center gap-3 relative z-10">
-                <div class="flex bg-surface-950 p-1.5 rounded-2xl border border-surface-900 gap-1">
-                   {#each Object.entries(statusThemes) as [status, theme]}
-                      <button 
-                        onclick={() => currentAttendance[student.id].status = status as AttendanceStatus}
-                        class={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${currentAttendance[student.id]?.status === status ? `${theme.bg} ${theme.color} ${theme.border} shadow-lg scale-110` : 'text-surface-700 hover:text-surface-400'}`}
-                        title={theme.label}
-                      >
-                         <theme.icon class="w-5 h-5" />
-                      </button>
-                   {/each}
-                </div>
-             </div>
+            <div class="flex bg-zinc-950 p-2 rounded-[20px] border border-zinc-800 gap-1.5 shadow-inner">
+              {#each Object.entries(statusThemes) as [status, theme]}
+                <button 
+                  onclick={() => currentAttendance[student.id].status = status as AttendanceStatus}
+                  class={`w-12 h-12 rounded-[14px] flex items-center justify-center transition-all ${currentAttendance[student.id]?.status === status ? `${theme.bg} ${theme.color} ${theme.border} shadow-lg scale-105` : 'text-zinc-700 hover:text-zinc-400 hover:bg-zinc-900'}`}
+                  title={theme.label}
+                >
+                  <theme.icon weight="duotone" class="w-6 h-6" />
+                </button>
+              {/each}
+            </div>
           </div>
         {/each}
       </div>
@@ -225,44 +230,58 @@
   {:else if currentView === 'history'}
     <div class="space-y-6" in:fly={{ y: 20 }}>
       {#if recentAttendance.length === 0}
-        <div class="glass-panel p-20 text-center space-y-4">
-           <History class="w-16 h-16 text-surface-800 mx-auto" />
-           <p class="text-[10px] font-black text-surface-600 uppercase tracking-widest">No hay registros históricos</p>
+        <div class="bg-zinc-900/50 border border-zinc-800 rounded-[32px] p-24 text-center space-y-6">
+           <div class="w-24 h-24 bg-zinc-950 rounded-full border border-zinc-800 flex items-center justify-center mx-auto text-zinc-800">
+             <History weight="duotone" class="w-12 h-12" />
+           </div>
+           <div>
+             <h3 class="text-white font-black uppercase tracking-widest text-sm">Sin registros previos</h3>
+             <p class="text-zinc-500 text-[10px] font-medium uppercase mt-2 tracking-widest">Los registros que guardes aparecerán aquí</p>
+           </div>
         </div>
       {:else}
         <div class="grid grid-cols-1 gap-4">
           {#each recentAttendance as session}
-            <div class="glass-panel p-6 group hover:border-primary-500/30 transition-all">
+            <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[24px] group hover:border-primary-500/30 transition-all shadow-xl">
                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div class="flex items-center gap-6">
-                     <div class="w-12 h-12 bg-surface-950 border border-surface-800 rounded-2xl flex items-center justify-center text-primary-400">
-                        <Calendar class="w-6 h-6" />
+                     <div class="w-14 h-14 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-primary-400 shadow-inner group-hover:border-primary-500/30 transition-colors">
+                        <CalendarBlank weight="duotone" class="w-7 h-7" />
                      </div>
                      <div>
-                        <h4 class="text-white font-black uppercase tracking-tight text-lg leading-none">
+                        <h4 class="text-white font-black uppercase tracking-tighter text-xl leading-none">
                           {new Date(session.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </h4>
-                        <div class="flex gap-4 mt-2">
-                           <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">{session.records.filter((r: any) => r.status === 'P').length} OK</span>
-                           <span class="text-[9px] font-black text-yellow-400 uppercase tracking-widest">{session.records.filter((r: any) => r.status === 'T').length} TARDE</span>
-                           <span class="text-[9px] font-black text-red-400 uppercase tracking-widest">{session.records.filter((r: any) => r.status === 'A').length} FALTAS</span>
+                        <div class="flex gap-4 mt-3">
+                           <div class="flex items-center gap-1.5">
+                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                             <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">{session.records.filter((r: any) => r.status === 'P').length} Presentes</span>
+                           </div>
+                           <div class="flex items-center gap-1.5">
+                             <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                             <span class="text-[9px] font-black text-yellow-400 uppercase tracking-widest">{session.records.filter((r: any) => r.status === 'T').length} Tarde</span>
+                           </div>
+                           <div class="flex items-center gap-1.5">
+                             <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                             <span class="text-[9px] font-black text-red-400 uppercase tracking-widest">{session.records.filter((r: any) => r.status === 'A').length} Ausentes</span>
+                           </div>
                         </div>
                      </div>
                   </div>
                   <button 
                     onclick={() => showHistoryForDate(session.date)}
-                    class="bg-surface-950 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-surface-800 hover:border-primary-500/50 transition-all"
+                    class={`px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border transition-all ${showingDate === session.date ? 'bg-white text-black border-white shadow-xl shadow-white/5' : 'bg-zinc-950 text-white border-zinc-800 hover:border-primary-500'}`}
                   >
-                    Ver Informe
+                    {showingDate === session.date ? 'Ocultar Detalles' : 'Ver Informe'}
                   </button>
                </div>
 
                {#if showingDate === session.date}
-                 <div class="mt-8 pt-8 border-t border-surface-900 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" transition:fade>
+                 <div class="mt-8 pt-8 border-t border-zinc-800/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3" transition:fade>
                     {#each session.records as rec}
-                      <div class="flex items-center justify-between p-3 bg-surface-950 border border-surface-900 rounded-xl">
-                         <span class="text-[10px] font-black text-white uppercase truncate">{rec.student_name}</span>
-                         <span class={`text-[8px] font-black px-2 py-0.5 rounded uppercase ${statusThemes[rec.status as keyof typeof statusThemes].bg} ${statusThemes[rec.status as keyof typeof statusThemes].color}`}>
+                      <div class="flex flex-col p-4 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-inner group/item">
+                         <span class="text-[10px] font-black text-zinc-300 uppercase truncate mb-3 leading-none">{rec.student_name}</span>
+                         <span class={`w-fit text-[8px] font-black px-2.5 py-1 rounded-lg uppercase border ${statusThemes[rec.status as keyof typeof statusThemes].bg} ${statusThemes[rec.status as keyof typeof statusThemes].color} ${statusThemes[rec.status as keyof typeof statusThemes].border}`}>
                            {statusThemes[rec.status as keyof typeof statusThemes].label}
                          </span>
                       </div>
@@ -278,39 +297,44 @@
   {:else if currentView === 'stats'}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" in:fly={{ y: 20 }}>
       {#each attendanceStats as stats}
-        <div class="glass-panel p-8 space-y-8 relative overflow-hidden group">
-           <div class="flex items-center gap-4">
-              <div class="w-14 h-14 bg-surface-950 rounded-2xl border border-surface-800 flex items-center justify-center text-primary-400 font-black text-lg">
+        <div class="bg-zinc-900/50 border border-zinc-800 p-8 rounded-[32px] space-y-8 relative overflow-hidden group hover:border-zinc-700 transition-all shadow-xl">
+           <div class="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 blur-[50px] -mr-16 -mt-16"></div>
+           
+           <div class="flex items-center gap-4 relative z-10">
+              <div class="w-16 h-16 bg-zinc-950 rounded-2xl border border-zinc-800 flex items-center justify-center text-primary-400 font-black text-2xl shadow-inner">
                  {stats.student_name.charAt(0)}
               </div>
               <div>
-                 <h4 class="text-white font-black uppercase text-sm leading-tight truncate max-w-[120px]">{stats.student_name}</h4>
-                 <p class="text-[9px] font-black text-primary-400 uppercase tracking-[0.2em]">{stats.attendance_rate}% RENDIMIENTO</p>
+                 <h4 class="text-white font-black uppercase text-base leading-tight truncate max-w-[160px] tracking-tight">{stats.student_name}</h4>
+                 <div class="flex items-center gap-2 mt-1.5">
+                   <Lightning weight="fill" class="w-3 h-3 text-primary-500" />
+                   <p class="text-[9px] font-black text-primary-400 uppercase tracking-widest">{stats.attendance_rate}% RENDIMIENTO</p>
+                 </div>
               </div>
            </div>
 
-           <div class="grid grid-cols-3 gap-3">
-              <div class="text-center p-3 bg-surface-950 border border-surface-900 rounded-2xl">
-                 <p class="text-[8px] font-black text-emerald-400 uppercase mb-1">OK</p>
-                 <p class="text-lg font-black text-white">{stats.present_count}</p>
+           <div class="grid grid-cols-3 gap-2 relative z-10">
+              <div class="text-center p-4 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-inner group-hover:border-emerald-500/20 transition-colors">
+                 <p class="text-[8px] font-black text-emerald-400 uppercase mb-2">OK</p>
+                 <p class="text-2xl font-black text-white tracking-tighter">{stats.present_count}</p>
               </div>
-              <div class="text-center p-3 bg-surface-950 border border-surface-900 rounded-2xl">
-                 <p class="text-[8px] font-black text-yellow-400 uppercase mb-1">TARDE</p>
-                 <p class="text-lg font-black text-white">{stats.late_count}</p>
+              <div class="text-center p-4 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-inner group-hover:border-yellow-500/20 transition-colors">
+                 <p class="text-[8px] font-black text-yellow-400 uppercase mb-2">LATE</p>
+                 <p class="text-2xl font-black text-white tracking-tighter">{stats.late_count}</p>
               </div>
-              <div class="text-center p-3 bg-surface-950 border border-surface-900 rounded-2xl">
-                 <p class="text-[8px] font-black text-red-400 uppercase mb-1">FALTA</p>
-                 <p class="text-lg font-black text-white">{stats.absent_count}</p>
+              <div class="text-center p-4 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-inner group-hover:border-red-500/20 transition-colors">
+                 <p class="text-[8px] font-black text-red-500 uppercase mb-2">ABS</p>
+                 <p class="text-2xl font-black text-white tracking-tighter">{stats.absent_count}</p>
               </div>
            </div>
 
-           <div class="space-y-4">
+           <div class="space-y-4 relative z-10">
               <div class="flex items-baseline justify-between">
-                 <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">Puntualidad</span>
-                 <span class="text-xs font-black text-blue-400">{stats.punctuality_rate}%</span>
+                 <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none">Puntualidad Global</span>
+                 <span class="text-sm font-black text-white tracking-tighter">{stats.punctuality_rate}%</span>
               </div>
-              <div class="h-1.5 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
-                 <div class="h-full bg-blue-500" style="width: {stats.punctuality_rate}%"></div>
+              <div class="h-2 bg-zinc-950 rounded-full border border-zinc-800 overflow-hidden p-0.5">
+                 <div class="h-full bg-primary-500 rounded-full shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all duration-1000" style="width: {stats.punctuality_rate}%"></div>
               </div>
            </div>
         </div>
@@ -320,5 +344,12 @@
 </div>
 
 <style lang="postcss">
-  /* Attendance detail styles */
+  :global(.animate-fade-in) {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>

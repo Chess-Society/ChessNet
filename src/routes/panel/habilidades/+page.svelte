@@ -4,14 +4,16 @@
   import { 
     Target, 
     Plus, 
-    Edit, 
-    Trash2,
+    PencilSimple, 
+    Trash,
     BookOpen,
     Trophy,
-    ChevronRight,
-    Search,
-    Layers
-  } from 'lucide-svelte';
+    CaretRight,
+    MagnifyingGlass,
+    Stack,
+    Star,
+    Sparkle
+  } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { fade, fly } from 'svelte/transition';
 
@@ -36,107 +38,123 @@
   <title>Temarios y Habilidades - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
+<div class="max-w-[1400px] mx-auto p-4 md:p-8 space-y-8 pb-24" in:fade={{ duration: 300 }}>
   
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10 pt-6">
-    <div class="space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl flex items-center justify-center text-yellow-500">
-          <Target class="w-6 h-6" />
-        </div>
-        <div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">Temarios y Habilidades</h1>
-          <p class="text-slate-400 text-sm">Define las competencias y el progreso curricular de tus alumnos.</p>
-        </div>
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="flex items-center gap-5">
+      <div class="w-14 h-14 bg-violet-500/10 border border-violet-500/20 rounded-[22px] flex items-center justify-center text-violet-500 shadow-lg shadow-violet-500/5">
+        <Target weight="duotone" class="w-8 h-8" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-bold text-white tracking-tight">Temarios y Habilidades</h1>
+        <p class="text-zinc-500 text-sm font-medium">Define el currículo y las competencias clave de tus alumnos.</p>
       </div>
     </div>
 
     <button 
       onclick={() => goto('/panel/habilidades/create')}
-      class="bg-yellow-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-yellow-500 transition-all shadow-lg shadow-yellow-900/20 flex items-center gap-2"
+      class="px-6 py-3 rounded-full bg-violet-600 text-white hover:bg-violet-500 transition-all shadow-lg shadow-violet-600/20 flex items-center gap-2 text-sm font-bold group"
     >
-      <Plus class="w-4 h-4" />
+      <Plus weight="bold" class="w-5 h-5 group-hover:rotate-90 transition-transform" />
       Nueva Habilidad
     </button>
   </div>
 
-  <div class="relative group mb-8">
-    <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-yellow-500 transition-colors" />
+  <!-- Search and Filters Section -->
+  <div class="relative group">
+    <MagnifyingGlass weight="bold" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-violet-500 transition-colors" />
     <input
       type="text"
-      placeholder="Buscar tema o habilidad..."
+      placeholder="Buscar tema, apertura o táctica..."
       bind:value={searchQuery}
-      class="w-full bg-[#1e293b]/50 border border-slate-800 rounded-2xl pl-12 pr-6 py-4 text-sm text-white focus:border-yellow-500/50 outline-none transition-all backdrop-blur-xl"
+      class="w-full bg-zinc-900/50 border border-zinc-800 rounded-[20px] pl-14 pr-6 py-4 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all placeholder:text-zinc-600"
     />
   </div>
 
   {#if filteredSkills.length === 0}
-    <div class="bg-[#1e293b]/40 border border-slate-800 border-dashed rounded-3xl p-24 text-center space-y-6">
-      <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mx-auto border border-slate-800 text-slate-700">
-        <Target class="w-10 h-10" />
+    <div class="bg-zinc-900/30 border-2 border-dashed border-zinc-800 rounded-[32px] p-24 text-center flex flex-col items-center gap-6" in:fade>
+      <div class="w-20 h-20 bg-zinc-800/50 rounded-[28px] flex items-center justify-center text-zinc-600">
+        <Sparkle weight="duotone" class="w-10 h-10" />
       </div>
       <div class="space-y-2">
         <h2 class="text-xl font-bold text-white">No hay habilidades configuradas</h2>
-        <p class="text-slate-500 text-sm">Define los temas (aperturas, finales, táctica) para llevar el control de tus clases.</p>
+        <p class="text-zinc-500 text-sm max-w-xs mx-auto">Crea temas específicos como aperturas, táctica o finales para evaluar el progreso real de tus alumnos.</p>
       </div>
     </div>
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each filteredSkills as skill, i}
+      {#each filteredSkills as skill, i (skill.id)}
         <div 
-          class="bg-[#1e293b]/60 border border-slate-800 rounded-3xl p-6 hover:border-yellow-500/30 transition-all group relative overflow-hidden"
+          class="bg-zinc-900/50 border border-zinc-800 rounded-[24px] p-6 flex flex-col justify-between group relative overflow-hidden transition-all hover:border-zinc-700 hover:shadow-2xl hover:shadow-black/50"
           in:fly={{ y: 20, delay: i * 50 }}
         >
-          <div class="flex items-center justify-between mb-6 relative z-10">
+          <!-- Card Header -->
+          <div class="flex items-start justify-between mb-6">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-yellow-500 font-bold text-lg group-hover:scale-110 transition-all">
+              <div class="w-14 h-14 bg-zinc-800 border border-zinc-700/50 rounded-2xl flex items-center justify-center text-violet-400 font-bold text-xl group-hover:scale-105 group-hover:text-white group-hover:bg-zinc-700 transition-all duration-300">
                 {skill.name[0].toUpperCase()}
               </div>
-              <div>
-                <h3 class="text-white font-bold leading-tight group-hover:text-yellow-400 transition-colors">{skill.name}</h3>
-                <p class="text-[11px] text-slate-500 uppercase tracking-widest mt-0.5">{skill.category || 'General'}</p>
+              <div class="flex flex-col">
+                <h3 class="text-white font-bold leading-tight group-hover:text-violet-400 transition-colors uppercase tracking-tight line-clamp-1">{skill.name}</h3>
+                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
+                  {skill.category || 'Competencia General'}
+                </span>
               </div>
             </div>
 
-            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                <button 
-                  onclick={() => goto(`/panel/habilidades/${skill.id}/edit`)}
-                  class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 hover:text-yellow-400 hover:border-yellow-500/30 transition-all"
-                >
-                  <Edit class="w-4 h-4" />
-                </button>
-                <button 
-                  onclick={() => deleteSkill(skill.id)}
-                  class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 hover:text-red-400 hover:border-red-500/30 transition-all"
-                >
-                  <Trash2 class="w-4 h-4" />
-                </button>
+            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+              <button 
+                onclick={() => goto(`/panel/habilidades/${skill.id}/edit`)}
+                class="p-2 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-400 hover:text-white hover:bg-violet-600 transition-all"
+                title="Editar tema"
+              >
+                <PencilSimple weight="bold" class="w-4 h-4" />
+              </button>
+              <button 
+                onclick={() => deleteSkill(skill.id)}
+                class="p-2 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-400 hover:text-white hover:bg-red-600 transition-all"
+                title="Eliminar tema"
+              >
+                <Trash weight="bold" class="w-4 h-4" />
+              </button>
             </div>
           </div>
 
-          <div class="space-y-3 mb-6 relative z-10">
-             <div class="flex items-center gap-2 text-xs text-slate-400">
-                <Layers class="w-3.5 h-3.5" />
-                Dificultad: {'⭐'.repeat(skill.difficulty || 1)}
+          <!-- Card Content -->
+          <div class="space-y-4 mb-8">
+             <div class="flex items-center gap-1.5">
+                {#each Array(5) as _, starIndex}
+                    <Star 
+                        weight={starIndex < (skill.difficulty || 1) ? 'fill' : 'regular'} 
+                        class="w-3.5 h-3.5 {starIndex < (skill.difficulty || 1) ? 'text-violet-400' : 'text-zinc-800'}" 
+                    />
+                {/each}
+                <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Nivel {skill.difficulty || 1}</span>
              </div>
              {#if skill.description}
-               <p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                  {skill.description}
+               <p class="text-sm text-zinc-400 leading-relaxed line-clamp-2 italic">
+                  "{skill.description}"
                </p>
              {/if}
           </div>
 
-          <div class="flex items-center justify-between pt-4 border-t border-slate-800/50 relative z-10">
+          <!-- Card Footer -->
+          <div class="pt-6 border-t border-zinc-800">
             <button 
               onclick={() => goto(`/panel/habilidades/${skill.id}`)}
-              class="flex items-center gap-1 text-[10px] font-bold text-yellow-500 uppercase tracking-wider hover:text-white transition-all group/btn"
+              class="w-full bg-zinc-800/50 hover:bg-violet-600 text-zinc-300 hover:text-white flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 group/btn"
             >
-              DETALLES DEL TEMA
-              <ChevronRight class="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />
+              Explorar contenido
+              <CaretRight weight="bold" class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>
+
+          <!-- Subtle Glow effect -->
+          <div class="absolute -bottom-16 -right-16 w-32 h-32 bg-violet-600/5 blur-[80px] rounded-full group-hover:bg-violet-600/20 transition-all duration-500"></div>
         </div>
       {/each}
     </div>
   {/if}
 </div>
+

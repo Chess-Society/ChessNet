@@ -1,15 +1,18 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { 
-    BarChart3, 
-    TrendingUp, 
+    ChartBar, 
+    TrendUp, 
     Users, 
-    Calendar,
+    CalendarBlank,
     Target,
-    PieChart,
+    ChartPieSlice,
+    ChartLine,
     ArrowUpRight,
-    Search
-  } from 'lucide-svelte';
+    MagnifyingGlass,
+    Star,
+    Quotes
+  } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { fade, fly } from 'svelte/transition';
 
@@ -46,89 +49,96 @@
   <title>Informes y Estadísticas - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
+<div class="max-w-7xl mx-auto px-6 py-8" transition:fade>
   
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10 pt-6">
-    <div class="space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-500">
-          <BarChart3 class="w-6 h-6" />
-        </div>
-        <div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">Informes Avanzados</h1>
-          <p class="text-slate-400 text-sm">Analiza el crecimiento y el rendimiento métrico de tu comunidad.</p>
-        </div>
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-500 shadow-lg shadow-violet-500/5">
+        <ChartBar weight="duotone" class="w-8 h-8" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">Informes Avanzados</h1>
+        <p class="text-slate-400 font-plus-jakarta text-sm">Visualiza el pulso de tu academia con métricas en tiempo real.</p>
       </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-      <!-- Resumen General -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+      <!-- Sidebar Column -->
       <div class="lg:col-span-1 space-y-6">
-          <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800">
-              <h3 class="text-white font-bold mb-6 flex items-center gap-2">
-                  <PieChart class="w-5 h-5 text-cyan-500" />
-                  Distribución por Nivel
+          <!-- Level Distribution -->
+          <div class="bento-card p-8">
+              <h3 class="text-white font-outfit font-bold mb-8 flex items-center gap-3">
+                  <ChartPieSlice weight="duotone" class="w-6 h-6 text-violet-400" />
+                  Niveles
               </h3>
-              <div class="space-y-4">
+              <div class="space-y-6">
                   {#each Object.entries(stats().levels) as [level, count]}
-                      <div class="space-y-1.5">
-                          <div class="flex justify-between text-xs font-bold uppercase tracking-widest">
-                              <span class="text-slate-400">{level}</span>
-                              <span class="text-white">{count} ({Math.round((count / stats().totalStudents) * 100)}%)</span>
+                      <div class="space-y-2">
+                          <div class="flex justify-between items-end">
+                              <span class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{level}</span>
+                              <span class="text-sm font-outfit font-bold text-white">{count} <span class="text-slate-500 font-medium ml-1">({Math.round((count / stats().totalStudents) * 100)}%)</span></span>
                           </div>
-                          <div class="h-2 bg-slate-900 rounded-full overflow-hidden">
+                          <div class="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
                               <div 
-                                class="h-full bg-cyan-500 transition-all duration-1000" 
+                                class="h-full bg-violet-500 rounded-full transition-all duration-1000" 
                                 style="width: {(count / stats().totalStudents) * 100}%"
                               ></div>
                           </div>
                       </div>
                   {/each}
                   {#if Object.keys(stats().levels).length === 0}
-                      <p class="text-center text-slate-500 text-sm py-4">Sin datos de niveles.</p>
+                      <p class="text-center text-slate-500 font-plus-jakarta text-sm py-4">Sin datos de niveles disponibles.</p>
                   {/if}
               </div>
           </div>
 
-          <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-8 rounded-3xl border border-cyan-500/20 text-center">
-              <TrendingUp class="w-12 h-12 text-cyan-400 mx-auto mb-4" />
-              <h4 class="text-white font-black text-xl mb-1">Crecimiento Mensual</h4>
-              <p class="text-cyan-200 text-sm mb-6">Tu academia ha crecido un 8% respecto al trimestre anterior.</p>
-              <div class="flex items-center justify-center gap-2 text-2xl font-black text-white">
-                  <ArrowUpRight class="w-6 h-6 text-emerald-500" />
-                  +{Math.round(stats().totalStudents * 0.08)} Alumnos
+          <!-- Growth Highlight -->
+          <div class="bento-card bg-gradient-to-br from-violet-600/10 to-transparent p-8 text-center relative overflow-hidden group">
+              <div class="absolute -top-6 -right-6 w-24 h-24 bg-violet-500/10 blur-2xl rounded-full"></div>
+              <TrendUp weight="duotone" class="w-14 h-14 text-violet-400 mx-auto mb-6 group-hover:scale-110 transition-transform" />
+              <h4 class="text-white font-outfit font-black text-2xl mb-2 tracking-tight">Crecimiento</h4>
+              <p class="text-violet-200/60 font-plus-jakarta text-sm mb-8">Tendencia positiva del 8% este trimestre.</p>
+              <div class="flex items-center justify-center gap-2 text-4xl font-outfit font-black text-white">
+                  <ArrowUpRight weight="bold" class="w-8 h-8 text-violet-400" />
+                  +{Math.round(stats().totalStudents * 0.08)}
               </div>
+              <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mt-2">Nuevos Alumnos</p>
           </div>
       </div>
 
-      <!-- Gráfico Principal -->
-      <div class="lg:col-span-2 bg-[#1e293b] p-8 rounded-3xl border border-slate-800">
-          <div class="flex justify-between items-center mb-8">
-              <h3 class="text-white font-bold flex items-center gap-2 text-lg">
-                  <Users class="w-6 h-6 text-indigo-500" />
+      <!-- Main Statistics Content -->
+      <div class="lg:col-span-2 bento-card p-10 flex flex-col">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+              <h3 class="text-white font-outfit font-bold flex items-center gap-3 text-xl tracking-tight">
+                  <Users weight="duotone" class="w-8 h-8 text-violet-500" />
                   Alumnos por Centro
               </h3>
+              <div class="px-4 py-2 bg-white/5 border border-white/5 rounded-full text-[10px] font-outfit font-bold text-slate-400 uppercase tracking-widest">
+                  Actualizado hoy
+              </div>
           </div>
 
-          <div class="space-y-8">
+          <div class="space-y-10 flex-grow">
               {#if studentsPerCenter().length === 0}
-                  <div class="h-64 flex items-center justify-center border-2 border-dashed border-slate-800 rounded-2xl text-slate-500 italic">
-                      No hay datos suficientes para generar el desglose.
+                  <div class="h-64 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[32px] text-slate-500 font-plus-jakarta gap-4">
+                      <ChartLine weight="duotone" class="w-12 h-12 text-slate-700" />
+                      <p class="italic">No hay datos suficientes para generar el desglose por centro.</p>
                   </div>
               {:else}
                   {#each studentsPerCenter() as center}
                       <div class="group">
-                          <div class="flex justify-between items-end mb-2">
-                              <div>
-                                  <p class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{center.name}</p>
-                                  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{center.count} Alumnos activos</p>
+                          <div class="flex justify-between items-end mb-3">
+                              <div class="flex flex-col gap-1">
+                                  <p class="text-sm font-outfit font-black text-white group-hover:text-violet-400 transition-colors uppercase tracking-tight">{center.name}</p>
+                                  <p class="text-[10px] text-slate-500 font-outfit font-bold uppercase tracking-widest">{center.count} Alumnos inscritos</p>
                               </div>
-                              <span class="text-xl font-black text-slate-800 group-hover:text-indigo-900/40 transition-colors">{Math.round((center.count / stats().totalStudents) * 100)}%</span>
+                              <span class="text-3xl font-outfit font-black text-zinc-900 group-hover:text-violet-900/20 transition-colors">{Math.round((center.count / stats().totalStudents) * 100)}%</span>
                           </div>
-                          <div class="h-4 bg-slate-900 rounded-xl overflow-hidden p-1">
+                          <div class="h-4 bg-zinc-900 rounded-2xl overflow-hidden p-1.5 shadow-inner">
                               <div 
-                                class="h-full bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-lg transition-all duration-1000 shadow-lg shadow-indigo-500/20" 
+                                class="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(139,92,246,0.3)]" 
                                 style="width: {(center.count / stats().totalStudents) * 100}%"
                               ></div>
                           </div>
@@ -137,14 +147,37 @@
               {/if}
           </div>
 
-          <div class="mt-12 pt-8 border-t border-slate-800 grid grid-cols-2 gap-8">
+          <!-- Bottom Grid KPI -->
+          <div class="mt-16 pt-10 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-10">
               <div>
-                  <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Promedio Asistencia</p>
-                  <p class="text-3xl font-black text-white">92%</p>
+                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">Asistencia</p>
+                  <p class="text-4xl font-outfit font-black text-white">92%</p>
+                  <div class="flex items-center gap-1 mt-1 text-violet-400">
+                      <ArrowUpRight weight="bold" class="w-3 h-3" />
+                      <span class="text-[10px] font-bold">+2.4%</span>
+                  </div>
               </div>
               <div>
-                  <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Satisfacción (NPS)</p>
-                  <p class="text-3xl font-black text-emerald-400">4.9/5</p>
+                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">Retención</p>
+                  <p class="text-4xl font-outfit font-black text-white">98%</p>
+                  <div class="flex items-center gap-1 mt-1 text-violet-400">
+                      <ArrowUpRight weight="bold" class="w-3 h-3" />
+                      <span class="text-[10px] font-bold">Top Tier</span>
+                  </div>
+              </div>
+              <div>
+                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">Satisfacción</p>
+                  <p class="text-4xl font-outfit font-black text-violet-500 flex items-baseline">4.9<span class="text-lg text-slate-700 ml-1">/5</span></p>
+                  <div class="flex gap-0.5 mt-1">
+                      {#each Array(5) as _}
+                          <Star weight="fill" class="w-2.5 h-2.5 text-violet-500" />
+                      {/each}
+                  </div>
+              </div>
+              <div>
+                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">Suscripciones</p>
+                  <p class="text-4xl font-outfit font-black text-white">{stats().totalStudents}</p>
+                  <p class="text-[10px] font-medium text-slate-600 mt-1 italic">Vigentes ahora</p>
               </div>
           </div>
       </div>

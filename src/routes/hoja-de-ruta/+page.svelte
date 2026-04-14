@@ -1,171 +1,190 @@
 <script lang="ts">
-  import { Map, Lock, Cloud, Cog, Smartphone, Zap, School } from 'lucide-svelte';
+  import { Map, Lock, Cloud, Cog, Smartphone, Zap, School, ArrowLeft, ArrowRight, Sparkles } from 'lucide-svelte';
   import { fade, fly } from 'svelte/transition';
+  import Logo from '$lib/components/Logo.svelte';
 </script>
 
 <svelte:head>
-  <title>Hoja de Ruta 2026+ | ChessNet</title>
-  <meta name="description" content="Descubre las próximas funcionalidades de ChessNet: autenticación, análisis avanzados, automatización, app móvil y más. Roadmap actualizado para profesores de ajedrez." />
+  <title>Hoja de Ruta 2026+ | ChessNet Vision</title>
+  <meta name="description" content="Explora el futuro de ChessNet. Nuestra visión estratégica para transformar la enseñanza del ajedrez digital." />
 </svelte:head>
 
-<div class="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-emerald-500/30 overflow-x-hidden">
-  <div class="fixed inset-0 z-0 opacity-20 pointer-events-none">
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent"></div>
+<div class="min-h-screen bg-bento-bg text-surface-200 font-sans selection:bg-primary-500/30 overflow-x-hidden">
+  
+  <!-- Premium Background Effects -->
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary-500/10 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute bottom-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px]"></div>
+    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 contrast-150"></div>
   </div>
-  <div class="fixed top-20 right-20 w-96 h-96 bg-blue-500/20 rounded-full blur-[128px] pointer-events-none animate-pulse"></div>
-  <div class="fixed bottom-20 left-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-[128px] pointer-events-none"></div>
 
   <!-- Nav -->
-  <nav class="relative z-10 p-6 flex justify-between items-center max-w-7xl mx-auto">
-    <a href="/" class="flex items-center gap-2 font-bold text-xl tracking-tight group">
+  <nav class="relative z-10 p-8 flex justify-between items-center max-w-7xl mx-auto">
+    <a href="/" class="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group">
       <div class="relative">
-        <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg blur opacity-40 group-hover:opacity-100 transition duration-200"></div>
-        <div class="relative bg-slate-900 rounded-lg p-1">
-          <School class="w-8 h-8 text-emerald-500" />
-        </div>
+        <div class="absolute -inset-2 bg-primary-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+        <Logo size="w-10 h-10" iconSize="w-6 h-6" />
       </div>
-      <span class="bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">ChessNet</span>
+      <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
     </a>
-    <a href="/" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Volver al Inicio</a>
+    <a href="/" class="flex items-center gap-2 text-surface-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
+      <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+      Volver
+    </a>
   </nav>
 
   <!-- Content -->
-  <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-    <div class="text-center mb-16" in:fade={{ duration: 800 }}>
-      <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-blue-500/10 text-blue-500 mb-6 border border-blue-500/20 shadow-lg shadow-blue-500/10">
-        <Map class="w-8 h-8" />
+  <main class="relative z-10 max-w-5xl mx-auto px-6 py-20">
+    <div class="text-center mb-24" in:fade={{ duration: 1000 }}>
+      <div class="inline-flex items-center justify-center p-4 rounded-[24px] bg-primary-500/10 text-primary-500 mb-8 border border-primary-500/20 shadow-xl shadow-primary-500/10">
+        <Map class="w-10 h-10" />
       </div>
-      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">Hoja de Ruta</h1>
-      <p class="text-lg text-slate-400 leading-relaxed mb-4 max-w-2xl mx-auto">El futuro de la gestión de academias de ajedrez</p>
-      <div class="inline-flex items-center gap-2 bg-yellow-500/10 text-yellow-400 px-4 py-2 rounded-full border border-yellow-500/20 text-sm font-medium">
+      
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-surface-400 text-[10px] font-black uppercase tracking-widest mb-6">
+        <Sparkles class="w-3.5 h-3.5 text-primary-400" />
+        <span>Evolución Constante</span>
+      </div>
+
+      <h1 class="text-4xl md:text-6xl font-display font-black tracking-tight text-white mb-6">Nuestra <span class="text-primary-400 italic">Visión</span></h1>
+      <p class="text-lg md:text-xl text-surface-400 leading-relaxed max-w-2xl mx-auto font-medium mb-10">
+        Construyendo el ecosistema definitivo para el crecimiento de academias y clubes de ajedrez.
+      </p>
+      
+      <div class="inline-flex items-center gap-2 bg-yellow-500/10 text-yellow-400 px-5 py-2.5 rounded-2xl border border-yellow-500/20 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
         <Zap class="w-4 h-4" />
-        Sujeto a cambios según feedback de la comunidad
+        Sujeto a feedback de la comunidad
       </div>
     </div>
 
-    <div class="space-y-8">
-      <!-- Q1 2026 -->
-      <div class="relative" in:fly={{ y: 50, duration: 800, delay: 200 }}>
-        <div class="flex items-start gap-6">
-          <div class="flex-shrink-0 w-24 text-right">
-            <span class="text-sm font-bold text-emerald-400">Q1 2026</span>
+    <div class="relative">
+      <!-- Vertical Timeline Line -->
+      <div class="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-primary-500/50 via-white/10 to-transparent"></div>
+
+      <div class="space-y-24 relative">
+        <!-- Q1 2026 -->
+        <div class="flex flex-col md:flex-row gap-8 items-start relative" in:fly={{ y: 50, duration: 800, delay: 200 }}>
+          <div class="hidden md:flex flex-1 justify-end pt-2 pr-12 text-right">
+            <span class="text-sm font-black text-primary-400 uppercase tracking-widest bg-primary-500/10 px-3 py-1 rounded-lg">Q1 2026</span>
           </div>
-          <div class="flex-1 bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-all">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 rounded-lg bg-emerald-500/10">
-                <Lock class="w-6 h-6 text-emerald-400" />
-              </div>
-              <h3 class="text-xl font-bold text-white">Autenticación y Seguridad</h3>
+          <div class="absolute left-[-4px] md:left-1/2 md:ml-[-5px] top-4 w-2.5 h-2.5 rounded-full bg-primary-500 shadow-[0_0_15px_rgba(168,85,247,0.5)] z-20"></div>
+          <div class="flex-1 pl-8 md:pl-12">
+            <div class="md:hidden mb-4">
+              <span class="text-xs font-black text-primary-400 uppercase tracking-widest bg-primary-500/10 px-3 py-1 rounded-lg">Q1 2026</span>
             </div>
-            <ul class="space-y-2 text-slate-200">
-              <li class="flex items-start gap-2"><span class="text-emerald-400 mt-1">•</span> <span>Sistema de registro con email</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-400 mt-1">•</span> <span>Autenticación segura (login/logout)</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-400 mt-1">•</span> <span>Recuperación de contraseña</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-400 mt-1">•</span> <span>Gestión de perfil de profesor</span></li>
-            </ul>
+            <div class="bento-card border-white/5 bg-white/[0.02] p-8 hover:border-primary-500/40 transition-all group">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="p-3 rounded-2xl bg-primary-500/10 text-primary-400 group-hover:scale-110 transition-transform">
+                  <Lock class="w-6 h-6" />
+                </div>
+                <h3 class="text-2xl font-bold text-white tracking-tight">Seguridad Avanzada</h3>
+              </div>
+              <ul class="space-y-3">
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary-500/50"></div>
+                  <span class="font-medium">MFA y Seguridad Biométrica</span>
+                </li>
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary-500/50"></div>
+                  <span class="font-medium">Gestión de Sesiones Activas</span>
+                </li>
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary-500/50"></div>
+                  <span class="font-medium">Auditoría de Acceso en Tiempo Real</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Q2 2026 -->
-      <div class="relative" in:fly={{ y: 50, duration: 800, delay: 300 }}>
-        <div class="flex items-start gap-6">
-          <div class="flex-shrink-0 w-24 text-right">
-            <span class="text-sm font-bold text-blue-400">Q2 2026</span>
+        <!-- Q2 2026 -->
+        <div class="flex flex-col md:flex-row-reverse gap-8 items-start relative" in:fly={{ y: 50, duration: 800, delay: 300 }}>
+          <div class="hidden md:flex flex-1 justify-start pt-2 pl-12">
+            <span class="text-sm font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-lg">Q2 2026</span>
           </div>
-          <div class="flex-1 bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 hover:border-blue-500/30 transition-all">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 rounded-lg bg-blue-500/10">
-                <Cloud class="w-6 h-6 text-blue-400" />
-              </div>
-              <h3 class="text-xl font-bold text-white">Mejoras de Gestión</h3>
+          <div class="absolute left-[-4px] md:left-1/2 md:ml-[-5px] top-4 w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] z-20"></div>
+          <div class="flex-1 pr-0 md:pr-12 pl-8 md:pl-0">
+             <div class="md:hidden mb-4">
+              <span class="text-xs font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-lg">Q2 2026</span>
             </div>
-            <ul class="space-y-2 text-slate-200">
-              <li class="flex items-start gap-2"><span class="text-blue-400 mt-1">•</span> <span>Importación masiva de datos (CSV/Excel)</span></li>
-              <li class="flex items-start gap-2"><span class="text-blue-400 mt-1">•</span> <span>Plantillas de clases y horarios</span></li>
-              <li class="flex items-start gap-2"><span class="text-blue-400 mt-1">•</span> <span>Sistema de copias de seguridad automáticas</span></li>
-              <li class="flex items-start gap-2"><span class="text-blue-400 mt-1">•</span> <span>Historial de cambios y auditoría</span></li>
-            </ul>
+            <div class="bento-card border-white/5 bg-white/[0.02] p-8 hover:border-blue-500/40 transition-all group">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform">
+                  <Cloud class="w-6 h-6" />
+                </div>
+                <h3 class="text-2xl font-bold text-white tracking-tight">Eco-Sincronización</h3>
+              </div>
+              <ul class="space-y-3">
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
+                  <span class="font-medium">Migración Masiva inteligente</span>
+                </li>
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
+                  <span class="font-medium">Integración con Drive y Dropbox</span>
+                </li>
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
+                  <span class="font-medium">Modo Offline 2.0</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Q3 2026 -->
-      <div class="relative" in:fly={{ y: 50, duration: 800, delay: 400 }}>
-        <div class="flex items-start gap-6">
-          <div class="flex-shrink-0 w-24 text-right">
-            <span class="text-sm font-bold text-purple-400">Q3 2026</span>
+        <!-- Q3 2026 -->
+        <div class="flex flex-col md:flex-row gap-8 items-start relative" in:fly={{ y: 50, duration: 800, delay: 400 }}>
+          <div class="hidden md:flex flex-1 justify-end pt-2 pr-12 text-right">
+            <span class="text-sm font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-lg">Q3 2026</span>
           </div>
-          <div class="flex-1 bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 hover:border-purple-500/30 transition-all">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 rounded-lg bg-purple-500/10">
-                <Cog class="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 class="text-xl font-bold text-white">Análisis y Reportes</h3>
+          <div class="absolute left-[-4px] md:left-1/2 md:ml-[-5px] top-4 w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] z-20"></div>
+          <div class="flex-1 pl-8 md:pl-12">
+            <div class="md:hidden mb-4">
+              <span class="text-xs font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-lg">Q3 2026</span>
             </div>
-            <ul class="space-y-2 text-slate-200">
-              <li class="flex items-start gap-2"><span class="text-purple-400 mt-1">•</span> <span>Dashboards personalizables</span></li>
-              <li class="flex items-start gap-2"><span class="text-purple-400 mt-1">•</span> <span>Exportación avanzada (PDF, Excel)</span></li>
-              <li class="flex items-start gap-2"><span class="text-purple-400 mt-1">•</span> <span>Gráficos de progreso por alumno</span></li>
-              <li class="flex items-start gap-2"><span class="text-purple-400 mt-1">•</span> <span>Estadísticas comparativas entre centros</span></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- Q4 2026 -->
-      <div class="relative" in:fly={{ y: 50, duration: 800, delay: 500 }}>
-        <div class="flex items-start gap-6">
-          <div class="flex-shrink-0 w-24 text-right">
-            <span class="text-sm font-bold text-orange-400">Q4 2026</span>
-          </div>
-          <div class="flex-1 bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 hover:border-orange-500/30 transition-all">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 rounded-lg bg-orange-500/10">
-                <Cog class="w-6 h-6 text-orange-400" />
+            <div class="bento-card border-white/5 bg-white/[0.02] p-8 hover:border-emerald-500/40 transition-all group">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
+                  <Zap class="w-6 h-6" />
+                </div>
+                <h3 class="text-2xl font-bold text-white tracking-tight">IA Predictiva</h3>
               </div>
-              <h3 class="text-xl font-bold text-white">Automatización</h3>
+              <ul class="space-y-3">
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></div>
+                  <span class="font-medium">Detección Automática de Talento</span>
+                </li>
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></div>
+                  <span class="font-medium">Generación de Reportes Automática</span>
+                </li>
+                <li class="flex items-center gap-3 text-surface-400">
+                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></div>
+                  <span class="font-medium">Análisis de Partidas Asistido</span>
+                </li>
+              </ul>
             </div>
-            <ul class="space-y-2 text-slate-200">
-              <li class="flex items-start gap-2"><span class="text-orange-400 mt-1">•</span> <span>Recordatorios automáticos de pagos</span></li>
-              <li class="flex items-start gap-2"><span class="text-orange-400 mt-1">•</span> <span>Generación automática de recibos</span></li>
-              <li class="flex items-start gap-2"><span class="text-orange-400 mt-1">•</span> <span>Integración con herramientas de contabilidad</span></li>
-              <li class="flex items-start gap-2"><span class="text-orange-400 mt-1">•</span> <span>API para integraciones externas</span></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2027+ -->
-      <div class="relative" in:fly={{ y: 50, duration: 800, delay: 600 }}>
-        <div class="flex items-start gap-6">
-          <div class="flex-shrink-0 w-24 text-right">
-            <span class="text-sm font-bold text-cyan-400">2027+</span>
-          </div>
-          <div class="flex-1 bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 hover:border-cyan-500/30 transition-all">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 rounded-lg bg-cyan-500/10">
-                <Smartphone class="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 class="text-xl font-bold text-white">Expansión Profesional</h3>
-            </div>
-            <ul class="space-y-2 text-slate-200">
-              <li class="flex items-start gap-2"><span class="text-cyan-400 mt-1">•</span> <span>App móvil para gestión sobre la marcha</span></li>
-              <li class="flex items-start gap-2"><span class="text-cyan-400 mt-1">•</span> <span>Modo offline con sincronización</span></li>
-              <li class="flex items-start gap-2"><span class="text-cyan-400 mt-1">•</span> <span>Colaboración multi-profesor (mismo centro)</span></li>
-              <li class="flex items-start gap-2"><span class="text-cyan-400 mt-1">•</span> <span>Personalización avanzada (marca blanca para clubes)</span></li>
-            </ul>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Disclaimer -->
-    <div class="mt-16 text-center">
-      <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 max-w-3xl mx-auto">
-        <p class="text-slate-400 mb-4">Esta hoja de ruta es orientativa y puede cambiar según las necesidades de los profesores y recursos disponibles.</p>
-        <p class="text-slate-200">¿Tienes sugerencias? <a href="https://discord.gg/G7SrFtJHnr" class="text-emerald-400 hover:text-emerald-300 font-medium">Únete a nuestra comunidad en Discord</a>.</p>
+    <!-- Final CTA -->
+    <div class="mt-32 text-center" in:fade={{ delay: 600 }}>
+      <div class="bento-card border-primary-500/20 bg-primary-500/5 p-12 max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4 opacity-10">
+          <Sparkles class="w-24 h-24 text-primary-500" />
+        </div>
+        <h2 class="text-3xl font-display font-black text-white mb-6 italic">¿Tienes una idea?</h2>
+        <p class="text-surface-400 mb-10 font-medium">Nuestra hoja de ruta es un organismo vivo que crece con tus sugerencias y necesidades.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="https://discord.gg/G7SrFtJHnr" target="_blank" class="px-8 py-4 rounded-2xl bg-primary-500 text-white font-bold hover:bg-primary-600 transition-all shadow-xl shadow-primary-500/25 flex items-center justify-center gap-3 group">
+            Sugerir en Discord
+            <ArrowRight class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </a>
+          <a href="/login" class="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+            Comenzar Ahora
+          </a>
+        </div>
       </div>
     </div>
   </main>

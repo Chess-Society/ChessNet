@@ -47,7 +47,7 @@ const PLANS: SubscriptionPlan[] = [
     display_name: 'Maestro Premium',
     description: 'Todas las herramientas sin límites para un control profesional total.',
     price_monthly: 1,
-    price_annual: 12,
+    price_annual: 1,
     currency: 'EUR',
     max_students: -1,
     max_classes: -1,
@@ -206,7 +206,7 @@ export const initiateUpgrade = async (planName: string, uid?: string, email?: st
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         plan_name: planName === 'premium' ? 'Maestro Premium' : planName,
-        price_id: 'price_1T6H9xRBnPDD6EfR0BmyYKYf',
+        price_id: 'price_1T6H9xRBnPDD6EfR0BmyYKYf', // ID para 1€/mes (Maestro Premium)
         uid: uid || auth.currentUser?.uid,
         user_email: email || auth.currentUser?.email
       })
