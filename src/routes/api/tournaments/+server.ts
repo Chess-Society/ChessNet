@@ -3,6 +3,7 @@ import { adminDb } from '$lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import type { RequestHandler } from './$types';
 import { authenticate } from '$lib/server/auth';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const POST: RequestHandler = async (event) => {
   const { user } = await authenticate(event);
@@ -36,15 +37,15 @@ export const POST: RequestHandler = async (event) => {
       organizer: body.organizer || null,
       notes: body.notes || null,
       rules: body.rules || null,
-      created_at: FieldValue.serverTimestamp(),
-      updated_at: FieldValue.serverTimestamp()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     const docRef = await adminDb.collection("tournaments").add(tournamentData);
 
     return json({ 
       success: true, 
-      data: { id: docRef.id, ...tournamentData } 
+      data: serializeRecord({ id: docRef.id, ...tournamentData })
     });
   } catch (error: any) {
     console.error('❌ Error in POST /api/tournaments:', error);

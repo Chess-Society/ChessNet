@@ -10,9 +10,11 @@
     School,
     Sparkles,
     ShieldCheck,
-    Zap
+    Zap,
+    Languages
   } from "lucide-svelte";
   import Logo from "$lib/components/Logo.svelte";
+  import { t, locale, toggleLocale } from "$lib/i18n/translations";
 
   let { data } = $props();
 
@@ -24,14 +26,14 @@
 </script>
 
 <svelte:head>
-  <title>ChessNet - Gestión Premium de Academias de Ajedrez</title>
+  <title>ChessNet - {$t('landing.hero.tag')}</title>
   <meta
     name="title"
-    content="ChessNet - Gestión Premium de Academias de Ajedrez"
+    content="ChessNet - {$t('landing.hero.tag')}"
   />
   <meta
     name="description"
-    content="La plataforma definitiva para gestionar tu academia de ajedrez con un diseño bento moderno y herramientas profesionales."
+    content="{$t('landing.hero.desc')}"
   />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="ChessNet" />
@@ -44,10 +46,9 @@
   
   <!-- Decorative Background Glows -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary-500/10 rounded-full blur-[120px] animate-pulse"></div>
-    <div class="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px]"></div>
-    <div class="absolute bottom-[10%] left-[20%] w-[25%] h-[25%] bg-violet-500/5 rounded-full blur-[100px]"></div>
-    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
+    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/15 rounded-full blur-[140px] animate-pulse"></div>
+    <div class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-[10%] left-[20%] w-[35%] h-[35%] bg-violet-500/8 rounded-full blur-[110px]"></div>
   </div>
 
   <!-- Navbar -->
@@ -66,19 +67,24 @@
       </div>
       
       <div class="hidden lg:flex lg:gap-x-10">
-        {#each ['Características', 'Precios', 'Hoja de Ruta'] as link}
-          <a href="#{link.toLowerCase().replace(/ /g, '-')}" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">
-            {link}
-          </a>
-        {/each}
+        <a href="#features" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">{$locale === 'es' ? 'Funciones' : 'Features'}</a>
+        <a href="/pricing" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">{$t('nav.pricing')}</a>
+        <a href="/roadmap" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">Roadmap</a>
       </div>
 
       <div class="flex lg:flex-1 lg:justify-end gap-4 items-center">
+        <button 
+          onclick={toggleLocale}
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-xs font-bold text-surface-300"
+        >
+          <Languages class="w-3.5 h-3.5" />
+          { $locale === 'en' ? 'EN' : 'ES' }
+        </button>
         <button onclick={goToLogin} class="hidden sm:block text-sm font-bold text-surface-400 hover:text-white transition-colors px-4">
-          Entrar
+          {$t('nav.login')}
         </button>
         <button onclick={goToLogin} class="btn-primary py-2.5 text-sm">
-          Empezar Ahora
+          {$t('nav.startFree')}
         </button>
       </div>
     </nav>
@@ -90,25 +96,25 @@
       <div class="max-w-5xl mx-auto text-center">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-bold uppercase tracking-widest mb-8 animate-fade-in">
           <Sparkles class="w-3.5 h-3.5" />
-          <span>Nueva Era de Gestión Deportiva</span>
+          <span>{$t('landing.hero.tag')}</span>
         </div>
         
         <h1 class="text-6xl md:text-8xl font-display font-black tracking-tight text-white mb-8 leading-[0.9] animate-slide-up">
-          El Rey de las <br />
-          <span class="bg-gradient-to-r from-primary-400 via-violet-400 to-blue-400 bg-clip-text text-transparent italic">Academias</span>
+          {$t('landing.hero.title1')} <br />
+          <span class="bg-gradient-to-r from-primary-400 via-violet-400 to-blue-400 bg-clip-text text-transparent italic">{$t('landing.hero.title2')}</span>
         </h1>
         
         <p class="max-w-2xl mx-auto text-lg md:text-xl text-surface-400 leading-relaxed mb-12 animate-slide-up" style="animation-delay: 100ms">
-          Gestiona alumnos, clases y torneos con una interfaz quirúrgica diseñada para la excelencia. ChessNet es la herramienta que tu pasión merece.
+          {$t('landing.hero.desc')}
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-6 animate-slide-up" style="animation-delay: 200ms">
           <button onclick={goToLogin} class="btn-primary px-10 py-5 text-lg group">
-            Comenzar Gratis
+            {$t('landing.hero.cta.free')}
             <ArrowRight class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
           <a href="#features" class="btn-secondary px-10 py-5 text-lg">
-            Ver Funciones
+            {$t('landing.hero.cta.features')}
           </a>
         </div>
 
@@ -140,11 +146,11 @@
     </section>
 
     <!-- Bento Features -->
-    <section id="características" class="py-32 px-6">
+    <section id="features" class="py-32 px-6">
       <div class="max-w-7xl mx-auto">
         <div class="mb-20">
-          <h2 class="text-4xl md:text-5xl font-display font-black text-white mb-6">Potencia Maestra</h2>
-          <p class="text-lg text-surface-400 max-w-xl">Todo lo que necesitas para escalar tu academia de 10 a 1,000 alumnos sin perder el control.</p>
+          <h2 class="text-4xl md:text-5xl font-display font-black text-white mb-6">{$t('landing.features.title')}</h2>
+          <p class="text-lg text-surface-400 max-w-xl">{$t('landing.features.desc')}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
@@ -155,11 +161,11 @@
                 <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400 mb-6">
                   <BookOpen class="w-6 h-6" />
                 </div>
-                <h3 class="text-2xl font-bold text-white mb-3">Diario de Clase Inteligente</h3>
-                <p class="text-surface-400 leading-relaxed">Pasa lista en un tap, registra temarios y evalúa el progreso técnico con métricas visuales en tiempo real.</p>
+                <h3 class="text-2xl font-bold text-white mb-3">{$t('landing.features.journal.title')}</h3>
+                <p class="text-surface-400 leading-relaxed">{$t('landing.features.journal.desc')}</p>
               </div>
               <div class="mt-8 pt-6 border-t border-white/5 flex gap-4">
-                <div class="px-3 py-1 rounded-full bg-primary-500/10 text-primary-400 text-[10px] font-bold uppercase tracking-widest">Realtíme</div>
+                <div class="px-3 py-1 rounded-full bg-primary-500/10 text-primary-400 text-[10px] font-bold uppercase tracking-widest">Real-time</div>
                 <div class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest">Automation</div>
               </div>
             </div>
@@ -171,8 +177,8 @@
               <div class="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 mb-6">
                 <Trophy class="w-6 h-6" />
               </div>
-              <h3 class="text-2xl font-bold text-white mb-3">Torneos y Pareos</h3>
-              <p class="text-surface-400 leading-relaxed">Generación automática de rondas y tablas de posiciones. Haz que tus alumnos se sientan en un Grand Master event.</p>
+              <h3 class="text-2xl font-bold text-white mb-3">{$t('landing.features.tournaments.title')}</h3>
+              <p class="text-surface-400 leading-relaxed">{$t('landing.features.tournaments.desc')}</p>
             </div>
           </div>
 
@@ -183,8 +189,8 @@
                   <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6">
                     <Users class="w-6 h-6" />
                   </div>
-                  <h3 class="text-2xl font-bold text-white mb-3">CRM de Alumnos</h3>
-                  <p class="text-surface-400 leading-relaxed">Fichas técnicas completas, historial de pagos, niveles ELO internos y contacto directo con padres.</p>
+                  <h3 class="text-2xl font-bold text-white mb-3">{$t('landing.features.crm.title')}</h3>
+                  <p class="text-surface-400 leading-relaxed">{$t('landing.features.crm.desc')}</p>
                 </div>
                 <div class="w-full md:w-48 aspect-square rounded-2xl bg-white/5 border border-white/5 animate-pulse"></div>
              </div>
@@ -196,8 +202,8 @@
                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6">
                 <Zap class="w-6 h-6" />
               </div>
-              <h3 class="text-2xl font-bold text-white mb-3">Multi-Centro</h3>
-              <p class="text-surface-400">Escala de uno a infinitos colegios con un solo panel centralizado.</p>
+              <h3 class="text-2xl font-bold text-white mb-3">{$t('landing.features.multischool.title')}</h3>
+              <p class="text-surface-400">{$t('landing.features.multischool.desc')}</p>
             </div>
           </div>
         </div>
@@ -205,29 +211,29 @@
     </section>
 
     <!-- Pricing -->
-    <section id="precios" class="py-32 px-6 relative">
+    <section id="pricing" class="py-32 px-6 relative">
       <div class="max-w-5xl mx-auto text-center">
-        <h2 class="text-4xl md:text-5xl font-display font-black text-white mb-6">Inversión para el Éxito</h2>
-        <p class="text-lg text-surface-400 mb-16 max-w-xl mx-auto">Comienza hoy sin compromiso. Elige el plan que mejor se adapte a tu crecimiento.</p>
+        <h2 class="text-4xl md:text-5xl font-display font-black text-white mb-6">{$t('landing.pricing.title')}</h2>
+        <p class="text-lg text-surface-400 mb-16 max-w-xl mx-auto">{$t('landing.pricing.desc')}</p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
           <!-- Free -->
           <div class="bento-card !rounded-[32px]">
             <div class="p-10">
-              <h3 class="text-xl font-bold text-white mb-2">Ajedrecista</h3>
+              <h3 class="text-xl font-bold text-white mb-2">{$t('pricing.free.title')}</h3>
               <div class="flex items-baseline gap-1 mb-8">
-                <span class="text-5xl font-black text-white italic">0€</span>
-                <span class="text-surface-500 font-bold uppercase tracking-widest text-xs">/ Siempre</span>
+                <span class="text-5xl font-black text-white italic">{$t('pricing.free.price')}</span>
+                <span class="text-surface-500 font-bold uppercase tracking-widest text-xs">{$t('pricing.free.period')}</span>
               </div>
               <ul class="space-y-4 mb-10 text-surface-400 font-medium">
-                {#each ['1 Colegio / Centro', '2 Clases simultáneas', '12 Alumnos totales', 'Pase de lista básico'] as feature}
+                {#each [1, 2, 3, 4] as i}
                   <li class="flex items-center gap-3">
                     <CircleCheck class="w-5 h-5 text-surface-600" />
-                    <span>{feature}</span>
+                    <span>{$t(`pricing.free.feat${i}`)}</span>
                   </li>
                 {/each}
               </ul>
-              <button onclick={goToLogin} class="btn-secondary w-full py-4 font-bold">Empezar Gratis</button>
+              <button onclick={goToLogin} class="btn-secondary w-full py-4 font-bold">{$t('landing.hero.cta.free')}</button>
             </div>
           </div>
 
@@ -235,35 +241,37 @@
           <div class="bento-card !rounded-[32px] border-primary-500/50 bg-primary-500/[0.03] relative overflow-hidden">
             <div class="absolute top-0 right-0 px-6 py-2 bg-primary-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-2xl">BETA PROMO</div>
             <div class="p-10">
-              <h3 class="text-xl font-bold text-primary-400 mb-2">Maestro Premium</h3>
+              <h3 class="text-xl font-bold text-primary-400 mb-2">{$t('pricing.premium.title')}</h3>
               <div class="flex items-baseline gap-1 mb-8">
-                <span class="text-5xl font-black text-white italic">1€</span>
-                <span class="text-primary-500/60 font-bold uppercase tracking-widest text-xs">/ Mes</span>
+                <span class="text-5xl font-black text-white italic">{$t('pricing.premium.price')}</span>
+                <span class="text-primary-500/60 font-bold uppercase tracking-widest text-xs">{$t('pricing.premium.period')}</span>
               </div>
               <ul class="space-y-4 mb-10 text-surface-200 font-medium">
-                {#each ['Centros e Alumnos Ilimitados', 'Sistema de Torneos Pro', 'Diplomas y PDFs', 'Gestión de Pagos Online'] as feature}
+                {#each [1, 2, 3, 4] as i}
                   <li class="flex items-center gap-3">
                     <ShieldCheck class="w-5 h-5 text-primary-400" />
-                    <span>{feature}</span>
+                    <span>{$t(`pricing.premium.feat${i}`)}</span>
                   </li>
                 {/each}
               </ul>
-              <button onclick={goToLogin} class="btn-primary w-full py-4 font-bold">Suscribirse Ahora</button>
+              <button onclick={goToLogin} class="btn-primary w-full py-4 font-bold">{$t('pricing.premium.cta')}</button>
             </div>
           </div>
         </div>
         
-        <p class="mt-12 text-[10px] text-surface-600 uppercase tracking-widest font-bold">* Precio promocional para early adopters. Sin permanencia.</p>
+        <p class="mt-12 text-[10px] text-surface-600 uppercase tracking-widest font-bold">
+          { $locale === 'es' ? '* Precio promocional para primeros usuarios. Sin compromiso.' : '* Promotional price for early adopters. No commitment.' }
+        </p>
       </div>
     </section>
 
     <!-- Final CTA -->
     <section class="py-32 px-6">
       <div class="max-w-7xl mx-auto bento-card bg-gradient-to-br from-primary-600/20 to-bento-card border-primary-500/20 p-12 md:p-24 text-center">
-        <h2 class="text-4xl md:text-7xl font-display font-black text-white mb-8 leading-tight">¿Listo para Dominar el Tablero?</h2>
-        <p class="text-xl text-surface-300 max-w-2xl mx-auto mb-12 italic">Únete a cientos de profesores que ya han profesionalizado su escuela con ChessNet.</p>
+        <h2 class="text-4xl md:text-7xl font-display font-black text-white mb-8 leading-tight">{$t('landing.cta.title')}</h2>
+        <p class="text-xl text-surface-300 max-w-2xl mx-auto mb-12 italic">{$t('landing.cta.desc')}</p>
         <button onclick={goToLogin} class="btn-primary px-12 py-6 text-xl shadow-2xl shadow-primary-500/40">
-          Crear Cuenta Gratuita
+          {$t('landing.cta.button')}
         </button>
       </div>
     </section>
@@ -275,10 +283,13 @@
         <Logo size="w-8 h-8" iconSize="w-5 h-5" />
         <span class="text-xl font-display font-black tracking-tighter text-white">ChessNet</span>
       </div>
-      <p class="text-surface-500 text-sm font-medium">© {new Date().getFullYear()} ChessNet. Crafted with <span class="text-primary-500">violet passion</span> for chess.</p>
-      <div class="flex gap-6">
-        <a href="https://discord.gg/G7SrFtJHnr" target="_blank" class="text-surface-500 hover:text-white transition-colors">Discord</a>
-        <a href="/legal" class="text-surface-500 hover:text-white transition-colors">Legal</a>
+      <p class="text-surface-500 text-sm font-medium">© {new Date().getFullYear()} ChessNet. {$t('landing.footer.crafted')}</p>
+      <div class="flex flex-wrap justify-center gap-6">
+        <a href="/pricing" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('nav.pricing')}</a>
+        <a href="/roadmap" class="text-surface-500 hover:text-white transition-colors text-sm">Roadmap</a>
+        <a href="/donate" class="text-surface-500 hover:text-white transition-colors text-sm">Donate</a>
+        <a href="/legal/terms" class="text-surface-500 hover:text-white transition-colors text-sm">Terms</a>
+        <a href="/legal/privacy" class="text-surface-500 hover:text-white transition-colors text-sm">Privacy</a>
       </div>
     </div>
   </footer>

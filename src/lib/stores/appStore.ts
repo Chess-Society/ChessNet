@@ -1,4 +1,5 @@
-import { writable, get } from 'svelte/store';
+import { writable, get, derived } from 'svelte/store';
+import { t } from '$lib/i18n';
 import { db, auth } from '$lib/firebase';
 import { 
   doc, 
@@ -28,6 +29,16 @@ import type {
   StudentBadge,
   Attendance
 } from '$lib/types';
+import { 
+  user as authStoreUser, 
+  authInitialized as authStoreInit 
+} from './auth';
+
+const ADMIN_EMAILS: string[] = [
+  'admin@chessnet.app',
+  'tomas@chessnet.app'
+];
+
 
 // Interfaces para el estado global
 export interface AppSettings {
@@ -97,71 +108,94 @@ function createAppStore() {
 
 
 
-  // Cargar datos al iniciar sesión
-  onAuthStateChanged(auth, async (user) => {
+  // Suscribirse al store de autenticación (en lugar de onAuthStateChanged de Firebase)
+  // Esto permite que el Mock Login también dispare la carga de datos
+  authStoreUser.subscribe(async (user) => {
     // Limpiar suscripciones previas
     unsubscribes.forEach(unsub => unsub());
     unsubscribes = [];
 
     if (user) {
-      console.log('👤 Usuario detectado (AppStore):', user.email);
-      // 1. Cargar Settings (Documento único en colección raíz)
-      const settingsRef = doc(db, 'app_settings', user.uid);
-      unsubscribes.push(onSnapshot(settingsRef, 
-        (snap) => {
-          if (snap.exists()) {
-            const data = snap.data();
-            console.log('📦 [AppStore] Settings loaded from app_settings');
-            update(s => ({ 
-              ...s, 
-              settings: { ...s.settings, ...data.settings },
-              dashboardLayout: data.dashboardLayout || []
-            }));
-          }
-        },
-        (error) => {
-          console.error('❌ [AppStore] Error loading settings:', error);
-        }
-      ));
+      console.log('👤 [AppStore] Usuario activo:', user.email);
+      const isMock = user.uid === 'chessnet-dev-uid';
 
-      // 2. Suscribirse a Colecciones (Colecciones raíz con filtro owner_id)
+      // 1. Cargar Settings
+      if (!isMock) {
+        // Modo Real: Suscripción Firestore Client
+        const userRef = doc(db, 'users', user.uid);
+        unsubscribes.push(onSnapshot(userRef, 
+          (snap) => {
+            if (snap.exists()) {
+              const data = snap.data();
+              update(currentState => {
+                const settings = { ...currentState.settings, ...(data.settings || {}) };
+                const userEmail = (user.email || '').toLowerCase();
+                if (ADMIN_EMAILS.includes(userEmail)) settings.plan = 'premium';
+                return { ...currentState, settings, dashboardLayout: data.dashboardLayout || [] };
+              });
+            }
+          },
+          (error) => console.error('❌ [AppStore] Settings error:', error)
+        ));
+      } else {
+        // Modo Mock: Carga manual (o settings por defecto)
+        console.log('🧪 [AppStore] Caracterizando usuario de desarrollo...');
+        update(currentState => ({
+          ...currentState,
+          settings: { ...currentState.settings, plan: 'premium', teacherName: 'ChessNet Admin' }
+        }));
+      }
+
+      // 2. Suscribirse/Cargar Colecciones
       const collectionsMap = [
-        { key: 'schools', path: 'schools' },
-        { key: 'students', path: 'students' },
-        { key: 'classes', path: 'classes' },
-        { key: 'tournaments', path: 'tournaments' },
-        { key: 'localTournaments', path: 'local_tournaments' },
-        { key: 'localTournamentPlayers', path: 'local_tournament_players' },
-        { key: 'localTournamentRounds', path: 'local_tournament_rounds' },
-        { key: 'localTournamentPairings', path: 'local_tournament_pairings' },
-        { key: 'payments', path: 'payments' },
-        { key: 'attendance', path: 'attendance' },
-        { key: 'skills', path: 'skills' },
-        { key: 'categories', path: 'categories' },
-        { key: 'badges', path: 'badges' },
-        { key: 'studentBadges', path: 'student_badges' },
-        { key: 'studentStats', path: 'student_stats' },
-        { key: 'leads', path: 'leads' }
+        { key: 'schools', path: 'schools', api: '/api/schools' },
+        { key: 'students', path: 'students', api: '/api/students' },
+        { key: 'classes', path: 'classes', api: '/api/classes' },
+        { key: 'skills', path: 'skills', api: '/api/skills' }
+        // ... añadir más si es necesario
       ];
 
-      collectionsMap.forEach(({ key, path }) => {
-        const collRef = collection(db, path);
-        const q = query(collRef, where("owner_id", "==", user.uid));
-        
-        unsubscribes.push(onSnapshot(q, 
-          (snap) => {
-            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            update(s => ({ ...s, [key]: docs }));
-          },
-          (error) => {
-            console.error(`❌ [AppStore] Error en colección raíz ${path}:`, error);
+      collectionsMap.forEach(({ key, path, api }) => {
+        if (!isMock) {
+          // Suscripción Real-Time (solo si hay login real de Firebase para evitar Permission Denied)
+          const collRef = collection(db, path);
+          const q = query(collRef, where("owner_id", "==", user.uid));
+          
+          unsubscribes.push(onSnapshot(q, 
+            (snap) => {
+              const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+              update(currentState => ({ ...currentState, [key]: docs }));
+            },
+            (error) => console.error(`❌ [AppStore] Error en ${path}:`, error)
+          ));
+        } else {
+          // Modo Mock: Carga vía localStorage (offline persistence)
+          console.log(`📡 [AppStore] Mock Loading from local storage for ${key}...`);
+          const saved = localStorage.getItem(`chessnet_mock_${key}`);
+          if (saved) {
+            try {
+              const items = JSON.parse(saved);
+              update(currentState => ({ ...currentState, [key]: items }));
+            } catch (e) {
+              console.error(`❌ [AppStore] Error parsing mock data for ${key}:`, e);
+            }
+          } else {
+            // Intentar fetch por si hay algo en DB, pero no fallar si falla
+            fetch(api)
+              .then(res => res.json())
+              .then(data => {
+                const items = data[key] || data.items || [];
+                update(currentState => ({ ...currentState, [key]: items }));
+                localStorage.setItem(`chessnet_mock_${key}`, JSON.stringify(items));
+              })
+              .catch(() => {});
           }
-        ));
+        }
       });
 
       isLoaded = true;
     } else {
-      console.log('🚪 Sesión cerrada, limpiando store');
+      console.log('🚪 [AppStore] Limpiando store (Sesión cerrada)');
       set(initialState);
       isLoaded = false;
     }
@@ -173,56 +207,121 @@ function createAppStore() {
     
     // Escuelas / Centros
     addSchool: async (school: any) => {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user");
-      const collRef = collection(db, 'schools');
-      await addDoc(collRef, { 
-        ...school, 
-        owner_id: user.uid, 
-        createdAt: new Date().toISOString() 
-      });
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        const newSchool = { id: 'mock-school-' + Date.now(), ...school, owner_id: user.uid };
+        update(s => ({ ...s, schools: [...s.schools, newSchool] }));
+        localStorage.setItem('chessnet_mock_schools', JSON.stringify(get(appStore).schools));
+        return newSchool;
+      }
+      try {
+        const response = await fetch('/api/schools', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(school)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error adding school');
+        return result.school;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error adding school:', error);
+        throw error;
+      }
     },
     removeSchool: async (id: string) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, schools: s.schools.filter(school => school.id !== id) }));
+        localStorage.setItem('chessnet_mock_schools', JSON.stringify(get(appStore).schools));
+        return;
+      }
       await deleteDoc(doc(db, 'schools', id));
     },
     
     // Alumnos
     addStudent: async (student: any) => {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user");
-      const collRef = collection(db, 'students');
-      await addDoc(collRef, { 
-        ...student, 
-        owner_id: user.uid,
-        joinedAt: student.joinedAt || new Date().toISOString(),
-        createdAt: new Date().toISOString()
-      });
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        const newStudent = { id: 'mock-student-' + Date.now(), ...student, owner_id: user.uid };
+        update(s => ({ ...s, students: [...s.students, newStudent] }));
+        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(appStore).students));
+        return newStudent;
+      }
+      try {
+        const response = await fetch('/api/students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(student)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error adding student');
+        return result.student;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error adding student:', error);
+        throw error;
+      }
     },
     updateStudent: async (student: any) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, students: s.students.map(std => std.id === student.id ? { ...std, ...student } : std) }));
+        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(appStore).students));
+        return;
+      }
       const { id, ...data } = student;
       const docRef = doc(db, 'students', id);
       await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removeStudent: async (id: string) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, students: s.students.filter(std => std.id !== id) }));
+        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(appStore).students));
+        return;
+      }
       await deleteDoc(doc(db, 'students', id));
     },
     
     // Clases
     addClass: async (cls: any) => {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user");
-      const collRef = collection(db, 'classes');
-      await addDoc(collRef, { 
-        ...cls, 
-        owner_id: user.uid,
-        createdAt: new Date().toISOString() 
-      });
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        const newClass = { id: 'mock-class-' + Date.now(), ...cls, owner_id: user.uid };
+        update(s => ({ ...s, classes: [...s.classes, newClass] }));
+        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(appStore).classes));
+        return newClass;
+      }
+      try {
+        const response = await fetch('/api/classes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cls)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error adding class');
+        return result.class;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error adding class:', error);
+        throw error;
+      }
     },
     updateClass: async (cls: any) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, classes: s.classes.map(c => c.id === cls.id ? { ...c, ...cls } : c) }));
+        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(appStore).classes));
+        return;
+      }
       const { id, ...data } = cls;
       await setDoc(doc(db, 'classes', id), { ...data, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removeClass: async (id: string) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, classes: s.classes.filter(c => c.id !== id) }));
+        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(appStore).classes));
+        return;
+      }
       await deleteDoc(doc(db, 'classes', id));
     },
     
@@ -349,20 +448,44 @@ function createAppStore() {
 
     // Habilidades (temario)
     addSkill: async (skill: any) => {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user");
-      const collRef = collection(db, 'skills');
-      await addDoc(collRef, { 
-        ...skill, 
-        owner_id: user.uid,
-        createdAt: new Date().toISOString() 
-      });
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        const newSkill = { id: 'mock-skill-' + Date.now(), ...skill, owner_id: user.uid };
+        update(s => ({ ...s, skills: [...s.skills, newSkill] }));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(appStore).skills));
+        return newSkill;
+      }
+      try {
+        const response = await fetch('/api/skills', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(skill)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error adding skill');
+        return result.skill;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error adding skill:', error);
+        throw error;
+      }
     },
     updateSkill: async (skill: any) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, skills: s.skills.map(sk => sk.id === skill.id ? { ...sk, ...skill } : sk) }));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(appStore).skills));
+        return;
+      }
       const { id, ...data } = skill;
       await setDoc(doc(db, 'skills', id), { ...data, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removeSkill: async (id: string) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, skills: s.skills.filter(sk => sk.id !== id) }));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(appStore).skills));
+        return;
+      }
       await deleteDoc(doc(db, 'skills', id));
     },
 
@@ -370,7 +493,7 @@ function createAppStore() {
     updateSettings: async (settings: any) => {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
-      const docRef = doc(db, 'app_settings', user.uid); // Cambiado a app_settings/{uid}
+      const docRef = doc(db, 'users', user.uid);
       const current = get(appStore);
       await setDoc(docRef, { 
         settings: { ...current.settings, ...settings },
@@ -381,7 +504,7 @@ function createAppStore() {
     updateDashboardLayout: async (layout: string[]) => {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
-      const docRef = doc(db, 'app_settings', user.uid);
+      const docRef = doc(db, 'users', user.uid);
       await setDoc(docRef, { dashboardLayout: layout }, { merge: true });
     },
 

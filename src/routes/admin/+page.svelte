@@ -37,6 +37,8 @@
     Filter,
     Search,
     MoreHorizontal,
+    ArrowLeft,
+    X
   } from "lucide-svelte";
   import { adminApi } from "$lib/api/admin";
   import { ADMIN_EMAILS } from "$lib/constants";
@@ -351,11 +353,11 @@
   }
 
   function getPlanStatus(user: any) {
-    return (
-      user?.settings?.plan ||
+    if (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) return "pro";
+    const plan = user?.settings?.plan ||
       user?.config?.settings?.subscription?.plan ||
-      "free"
-    );
+      "free";
+    return plan === 'premium' ? 'pro' : plan;
   }
 </script>
 
@@ -435,39 +437,54 @@
           </div>
           <div>
             <h1
-              class="text-3xl font-black tracking-tight text-white mb-1 font-display uppercase italic"
+              class="text-3xl font-black tracking-tight text-white mb-1 font-display uppercase italic text-shadow-glow"
             >
-              COMMAND CENTER
+              ADMINISTRACIÓN
             </h1>
             <div class="flex items-center gap-3">
               <span
-                class="flex items-center gap-1.5 px-2.5 py-1 bg-primary-500/10 border border-primary-500/20 rounded-full text-[10px] font-bold text-primary-400 uppercase tracking-wider"
+                class="flex items-center gap-1.5 px-2.5 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-[10px] font-bold text-violet-400 uppercase tracking-wider"
               >
-                <Activity class="w-3 h-3" /> System Live
+                <Activity class="w-3 h-3" /> Sistema Activo
               </span>
               <span
                 class="text-slate-500 text-xs font-medium uppercase tracking-widest hidden md:inline"
-                >Root Level Auth</span
+                >Nivel de Acceso: Root</span
               >
             </div>
           </div>
         </div>
 
-        <nav
-          class="flex flex-wrap items-center gap-2 bg-black/20 p-1.5 rounded-2xl border border-white/5"
-        >
-          {#each ["dashboard", "users", "announcements", "system"] as tab}
-            <button
-              onclick={() => (activeTab = tab as any)}
-              class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 {activeTab ===
-              tab
-                ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'}"
-            >
-              {tab}
-            </button>
-          {/each}
-        </nav>
+        <div class="flex flex-col md:flex-row items-center gap-6">
+          <button
+            onclick={() => goto("/panel")}
+            class="flex items-center gap-3 px-8 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-violet-600/20 group active:scale-95"
+          >
+            <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            VOLVER AL PANEL
+          </button>
+
+          <nav
+            class="flex items-center gap-1 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner"
+          >
+            {#each [
+              { id: "dashboard", label: "Principal" },
+              { id: "users", label: "Usuarios" },
+              { id: "announcements", label: "Anuncios" },
+              { id: "system", label: "Sistema" }
+            ] as tab}
+              <button
+                onclick={() => (activeTab = tab.id as any)}
+                class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 {activeTab ===
+                tab.id
+                  ? 'bg-white text-black shadow-xl'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'}"
+              >
+                {tab.label}
+              </button>
+            {/each}
+          </nav>
+        </div>
       </header>
 
       {#if activeTab === "dashboard"}
@@ -491,7 +508,7 @@
               <p
                 class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2"
               >
-                Total Profesores
+                Profesores Totales
               </p>
               <h3
                 class="text-5xl font-black text-white tabular-nums tracking-tighter"
@@ -499,7 +516,7 @@
                 {globalStats.totalUsers}
               </h3>
             </div>
-
+ 
             <div
               class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-blue-500/20 transition-all shadow-2xl relative overflow-hidden"
             >
@@ -516,7 +533,7 @@
               <p
                 class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2"
               >
-                Maestros Premium
+                Usuarios Premium
               </p>
               <h3
                 class="text-5xl font-black text-white tabular-nums tracking-tighter"
@@ -524,7 +541,7 @@
                 {globalStats.premiumUsers}
               </h3>
             </div>
-
+ 
             <div
               class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-purple-500/20 transition-all shadow-2xl relative overflow-hidden"
             >
@@ -541,7 +558,7 @@
               <p
                 class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2"
               >
-                Registros (7d)
+                Nuevos (7d)
               </p>
               <h3
                 class="text-5xl font-black text-white tabular-nums tracking-tighter"
@@ -549,7 +566,7 @@
                 {globalStats.recentUsers}
               </h3>
             </div>
-
+ 
             <div
               class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-amber-500/20 transition-all shadow-2xl relative overflow-hidden"
             >
@@ -566,7 +583,7 @@
               <p
                 class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2"
               >
-                Tasa Conversión
+                Conversión
               </p>
               <h3
                 class="text-5xl font-black text-white tabular-nums tracking-tighter"
@@ -655,11 +672,11 @@
                         <span
                           class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest {getPlanStatus(
                             user,
-                          ) === 'premium'
-                            ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                          ) === 'pro'
+                            ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
                             : 'bg-slate-500/10 text-slate-500 border border-white/10'}"
                         >
-                          {getPlanStatus(user)}
+                          {getPlanStatus(user) === 'pro' ? 'PRO' : 'GRATUITO'}
                         </span>
                       </td>
                       <td class="p-6 text-xs text-slate-400 font-medium"
@@ -795,11 +812,11 @@
                 <button
                   onclick={handleToggleMaintenance}
                   class="w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all {maintenanceMode
-                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
-                    : 'bg-white/5 text-red-400 border border-red-500/20 hover:bg-red-500/10'}"
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20 animate-pulse'
+                    : 'bg-white/5 text-red-500 border border-red-500/20 hover:bg-red-500/10'}"
                 >
                   {maintenanceMode
-                    ? "Desactivar Bloqueo"
+                    ? "Desactivar Mantenimiento"
                     : "Activar Mantenimiento"}
                 </button>
               </div>
@@ -864,9 +881,9 @@
                           <span
                             class="px-2 py-0.5 {log.status === 'error'
                               ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'} text-[9px] font-bold rounded-lg uppercase tracking-tighter border"
+                              : 'bg-violet-500/10 text-violet-400 border-violet-500/20'} text-[9px] font-bold rounded-lg uppercase tracking-tighter border"
                           >
-                            {log.status || "Success"}
+                            {log.status === 'success' ? 'Éxito' : (log.status || "Éxito")}
                           </span>
                         </td>
                       </tr>
@@ -900,7 +917,7 @@
           transition:scale
         >
           <div
-            class="p-8 border-b border-white/5 flex items-center justify-between bg-emerald-500/5"
+            class="p-8 border-b border-white/5 flex items-center justify-between bg-violet-500/5"
           >
             <h3
               class="text-xl font-black font-display uppercase italic tracking-wider"
@@ -910,7 +927,7 @@
             <button
               onclick={() => (showEditModal = false)}
               class="p-2 hover:bg-white/5 rounded-xl transition-all"
-              ><LogOut class="w-5 h-5 rotate-180" /></button
+              ><X class="w-5 h-5" /></button
             >
           </div>
           <div class="p-8 space-y-8">
@@ -918,13 +935,13 @@
               <button
                 onclick={() => handleGrantPremium(selectedUser.id, 7)}
                 disabled={isSaving}
-                class="px-4 py-4 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 border border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                class="px-4 py-4 bg-slate-800 hover:bg-violet-600/20 hover:text-violet-400 border border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
                 >7 Días</button
               >
               <button
                 onclick={() => handleGrantPremium(selectedUser.id, 30)}
                 disabled={isSaving}
-                class="px-4 py-4 bg-emerald-500 text-black border border-emerald-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                class="px-4 py-4 bg-violet-500 text-black border border-violet-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
                 >30 Días</button
               >
             </div>

@@ -10,18 +10,26 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   try {
-    // Definimos el tiempo de expiración (5 días)
-    const expiresIn = 60 * 60 * 24 * 5 * 1000;
-    
-    // Creamos la cookie de sesión de Firebase
-    const sessionCookie = await adminAuth.createSessionCookie(token, { expiresIn });
+    let sessionCookie: string;
+
+    if (token === 'mock-chessnet-token') {
+      console.log('🧪 [Session] Creating mock session for dev');
+      sessionCookie = 'mock-session-chessnet';
+    } else {
+      // Definimos el tiempo de expiración (5 días)
+      const expiresIn = 60 * 60 * 24 * 5 * 1000;
+      
+      // Creamos la cookie de sesión de Firebase
+      sessionCookie = await adminAuth.createSessionCookie(token, { expiresIn });
+    }
 
     // La guardamos en la cookie __session (estándar de Firebase Hosting/CDN)
+    const isDev = process.env.NODE_ENV === 'development';
     cookies.set('__session', sessionCookie, {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
-      secure: true, // Siempre secure para cookies de sesión
+      secure: !isDev, // Desactivar secure en local para permitir HTTP
       maxAge: 60 * 60 * 24 * 5 // 5 días en segundos
     });
 

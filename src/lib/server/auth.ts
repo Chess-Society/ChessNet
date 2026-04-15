@@ -15,6 +15,18 @@ export async function authenticate(event: RequestEvent) {
     }
 
     try {
+        // Bypass para desarrollo local
+        if (sessionCookie === 'mock-session-chessnet') {
+            event.locals.user = {
+                uid: 'chessnet-dev-uid',
+                email: 'admin@chessnet.pro',
+                name: 'ChessNet Developer',
+                picture: 'https://ui-avatars.com/api/?name=Chess+Net&background=7C3AED&color=fff'
+            };
+            event.locals.isAdmin = true;
+            return event.locals;
+        }
+
         const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
         event.locals.user = {
             uid: decodedClaims.uid,

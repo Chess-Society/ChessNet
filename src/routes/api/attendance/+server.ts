@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { authenticate } from '$lib/server/auth';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const GET: RequestHandler = async (event) => {
   const { user } = await authenticate(event);
@@ -42,7 +43,7 @@ export const GET: RequestHandler = async (event) => {
     }
 
     const snapshot = await query.orderBy("date", "desc").get();
-    const attendance = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const attendance = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
 
     return json({ 
       success: true, 
@@ -88,7 +89,7 @@ export const POST: RequestHandler = async (event) => {
       status,
       notes: notes || null,
       owner_id: uid,
-      updated_at: FieldValue.serverTimestamp()
+      updated_at: new Date().toISOString()
     };
 
     if (!existingSnapshot.empty) {
@@ -104,7 +105,7 @@ export const POST: RequestHandler = async (event) => {
       // Crear nuevo
       const dataWithCreated = {
         ...attendanceData,
-        created_at: FieldValue.serverTimestamp()
+        created_at: new Date().toISOString()
       };
       const docRef = await adminDb.collection("attendance").add(dataWithCreated);
       return json({ 
@@ -159,7 +160,7 @@ export const PUT: RequestHandler = async (event) => {
         status,
         notes: notes || null,
         owner_id: uid,
-        updated_at: FieldValue.serverTimestamp()
+        updated_at: new Date().toISOString()
       };
 
       if (!existingSnap.empty) {
@@ -168,7 +169,7 @@ export const PUT: RequestHandler = async (event) => {
         const newDocRef = adminDb.collection("attendance").doc();
         batch.set(newDocRef, {
           ...data,
-          created_at: FieldValue.serverTimestamp()
+          created_at: new Date().toISOString()
         });
       }
       results.push(data);

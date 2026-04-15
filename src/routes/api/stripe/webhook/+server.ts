@@ -48,12 +48,23 @@ export const POST = async ({ request }) => {
                 const userId = session.client_reference_id; 
                 
                 if (userId) {
-                    await adminDb.collection('users').doc(userId).update({
-                        'settings.plan': 'premium',
-                        'settings.stripe_customer_id': session.customer,
-                        'settings.status': 'active',
-                        updatedAt: new Date().toISOString()
-                    });
+                    try {
+                        await adminDb.collection('users').doc(userId).update({
+                            'settings.plan': 'premium',
+                            'settings.stripe_customer_id': session.customer,
+                            'settings.status': 'active',
+                            'updatedAt': new Date().toISOString()
+                        });
+                    } catch (err) {
+                        await adminDb.collection('users').doc(userId).set({
+                            settings: {
+                                plan: 'premium',
+                                stripe_customer_id: session.customer,
+                                status: 'active'
+                            },
+                            updatedAt: new Date().toISOString()
+                        });
+                    }
 
                     await logSystemEvent({
                         type: 'pago_completado',

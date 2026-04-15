@@ -11,8 +11,16 @@ service cloud.firestore {
     
     function isOwner(docData) { return docData.owner_id == request.auth.uid; }
     
-    // Perfiles de usuario
+    // Perfiles y Configuración de usuario (Identificados por UID)
     match /users/{userId} {
+      allow read, write: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+    }
+    
+    match /app_settings/{userId} {
+      allow read, write: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+    }
+
+    match /user_subscriptions/{userId} {
       allow read, write: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
     }
     

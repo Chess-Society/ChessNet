@@ -2,6 +2,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
 import { authenticate } from '$lib/server/auth';
+import { checkClassLimit } from '$lib/server/plans';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const GET: RequestHandler = async (event) => {
   const { user } = await authenticate(event);
@@ -10,13 +12,22 @@ export const GET: RequestHandler = async (event) => {
   }
 
   try {
-    const snapshot = await adminDb.collection("classes")
-      .where("owner_id", "==", user.uid)
-      .orderBy("created_at", "desc")
-      .get();
-      
-    const classes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return json({ classes });
+    const isMock = user.uid === 'chessnet-dev-uid';
+    try {
+      const snapshot = await adminDb.collection("classes")
+        .where("owner_id", "==", user.uid)
+        .orderBy("created_at", "desc")
+        .get();
+        
+      const classes = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+      return json({ classes });
+    } catch (dbError) {
+      if (isMock) {
+        console.warn('⚠️ [Classes API GET] Firestore failed for mock user, returning empty list');
+        return json({ classes: [] });
+      }
+      throw dbError;
+    }
   } catch (error: any) {
     console.error('❌ Error in GET classes API:', error.message);
     return json({ error: 'Error al obtener las clases' }, { status: 500 });
@@ -30,6 +41,18 @@ export const POST: RequestHandler = async (event) => {
   }
 
   try {
+    const isMock = user.uid === 'chessnet-dev-uid';
+    if (!isMock) {
+      const canAddClass = await checkClassLimit(user.uid);
+      if (!canAddClass) {
+        return json({ 
+          error: 'Límite alcanzado', 
+          message: 'Has alcanzado el límite de 2 clases del plan gratuito. ¡Pásate a Premium para gestionar clases ilimitadas!',
+          code: 'LIMIT_REACHED'
+        }, { status: 403 });
+      }
+    }
+
     const { request } = event;
     const body = await request.json();
     const classData = {
@@ -39,8 +62,16 @@ export const POST: RequestHandler = async (event) => {
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await adminDb.collection("classes").add(classData);
-    return json({ class: { id: docRef.id, ...classData } });
+    try {
+      const docRef = await adminDb.collection("classes").add(classData);
+      return json({ class: { id: docRef.id, ...classData } });
+    } catch (dbError) {
+      if (isMock) {
+        console.warn('⚠️ [Classes API POST] Firestore failed for mock user, returning mock success');
+        return json({ class: { id: 'mock-class-' + Date.now(), ...classData } });
+      }
+      throw dbError;
+    }
   } catch (error: any) {
     console.error('❌ Error in POST classes API:', error.message);
     return json({ error: 'Error al crear la clase' }, { status: 500 });

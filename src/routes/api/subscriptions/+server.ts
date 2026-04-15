@@ -15,13 +15,14 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         .where("is_active", "==", true)
         .orderBy("sort_order")
         .get();
-      const plans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const plans = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
       return json({ success: true, plans });
     }
     
     if (endpoint === 'current') {
-      const settingsDoc = await adminDb.collection("app_settings").doc(locals.user.uid).get();
-      const plan = settingsDoc.exists ? (settingsDoc.data()?.settings?.plan || 'free') : 'free';
+      const userDoc = await adminDb.collection("users").doc(locals.user.uid).get();
+      const userData = userDoc.exists ? userDoc.data() : null;
+      const plan = userData?.settings?.plan || 'free';
       
       // Enriquecer con límites teóricos (esto debería venir de DB, pero por ahora Hardcodeamos los del landing)
       const planLimits = plan === 'premium' ? {

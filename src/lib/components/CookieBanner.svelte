@@ -77,12 +77,12 @@
       <div class="flex items-center justify-between p-4 border-b border-slate-600">
         <div class="flex items-center space-x-2">
           <Cookie class="w-5 h-5 text-blue-400" />
-          <h3 class="text-lg font-semibold text-white">Configuración de Privacidad</h3>
+          <h3 class="text-lg font-semibold text-white">Privacy Configuration</h3>
         </div>
         <button
           on:click={hideBanner}
           class="text-slate-400 hover:text-white transition-colors"
-          aria-label="Cerrar"
+          aria-label="Close"
         >
           <X class="w-5 h-5" />
         </button>
@@ -92,12 +92,12 @@
       <div class="p-4">
         <div class="mb-4">
           <p class="text-slate-300 text-sm mb-3">
-            🚧 <strong class="text-yellow-400">VERSIÓN BETA:</strong> ChessNet está en desarrollo. 
-            Los datos pueden ser eliminados cuando lancemos la versión final con sistema de pagos.
+            🚧 <strong class="text-yellow-400">BETA VERSION:</strong> ChessNet is currently in development. 
+            Data may be reset when we launch the final version with the payment system.
           </p>
           <p class="text-slate-300 text-sm">
-            Utilizamos cookies esenciales para el funcionamiento de la plataforma y Google Analytics 
-            para mejorar tu experiencia. Al continuar, aceptas nuestros términos y políticas.
+            We use essential cookies for the operation of the platform and Google Analytics 
+            to improve your experience. By continuing, you accept our terms and policies.
           </p>
         </div>
 
@@ -108,21 +108,21 @@
             class="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <FileText class="w-3 h-3" />
-            <span>Términos de Servicio</span>
+            <span>Terms of Service</span>
           </button>
           <button
             on:click={openPrivacy}
             class="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <Shield class="w-3 h-3" />
-            <span>Política de Privacidad</span>
+            <span>Privacy Policy</span>
           </button>
           <button
             on:click={openCookies}
             class="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <Cookie class="w-3 h-3" />
-            <span>Política de Cookies</span>
+            <span>Cookie Policy</span>
           </button>
         </div>
 
@@ -132,13 +132,13 @@
             on:click={acceptAll}
             class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
-            Aceptar Todo
+            Accept All
           </button>
           <button
             on:click={acceptNecessary}
             class="flex-1 bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
-            Solo Esenciales
+            Only Essential
           </button>
         </div>
       </div>

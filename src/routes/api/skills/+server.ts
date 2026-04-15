@@ -1,32 +1,45 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const GET: RequestHandler = async ({ locals }) => {
   if (!locals.user) {
-    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+    return json({ error: 'User not authenticated' }, { status: 401 });
   }
 
   try {
-    const snapshot = await adminDb.collection("skills")
-      .where("owner_id", "==", locals.user.uid)
-      .orderBy("created_at", "desc")
-      .get();
-      
-    const skills = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return json({ skills });
+    const isMock = locals.user.uid === 'chessnet-dev-uid';
+    
+    // Si es mock, intentamos llamar a firestore pero si falla devolvemos lista vacía en lugar de 500
+    try {
+      const snapshot = await adminDb.collection("skills")
+        .where("owner_id", "==", locals.user.uid)
+        .orderBy("created_at", "desc")
+        .get();
+        
+      const skills = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+      return json({ skills });
+    } catch (dbError: any) {
+      if (isMock) {
+        console.warn('⚠️ [Skills API] Firestore failed for mock user, returning empty list:', dbError.message);
+        return json({ skills: [] });
+      }
+      throw dbError;
+    }
   } catch (error: any) {
     console.error('❌ Error in GET skills API:', error.message);
-    return json({ error: 'Error al obtener las habilidades' }, { status: 500 });
+    return json({ error: 'Error al obtener las habilidades', details: error.message }, { status: 500 });
   }
 };
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) {
-    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+    return json({ error: 'User not authenticated' }, { status: 401 });
   }
 
   try {
+    const isMock = locals.user.uid === 'chessnet-dev-uid';
     const body = await request.json();
     const skillData = {
       ...body,
@@ -35,8 +48,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await adminDb.collection("skills").add(skillData);
-    return json({ success: true, id: docRef.id });
+    try {
+      const docRef = await adminDb.collection("skills").add(skillData);
+      return json({ success: true, id: docRef.id });
+    } catch (dbError) {
+      if (isMock) {
+        console.warn('⚠️ [Skills API POST] Firestore failed for mock user, returning mock success');
+        return json({ success: true, id: 'mock-skill-' + Date.now() });
+      }
+      throw dbError;
+    }
   } catch (error: any) {
     console.error('❌ Error in POST skills API:', error.message);
     return json({ error: 'Error al crear la habilidad' }, { status: 500 });
@@ -45,24 +66,34 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 export const DELETE: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) {
-    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+    return json({ error: 'User not authenticated' }, { status: 401 });
   }
 
   try {
+    const isMock = locals.user.uid === 'chessnet-dev-uid';
     const { id } = await request.json();
-    if (!id) return json({ error: 'ID requerido' }, { status: 400 });
+    if (!id) return json({ error: 'ID required' }, { status: 400 });
 
-    const docRef = adminDb.collection("skills").doc(id);
-    const docSnap = await docRef.get();
+    try {
+      const docRef = adminDb.collection("skills").doc(id);
+      const docSnap = await docRef.get();
 
-    if (!docSnap.exists || docSnap.data()?.owner_id !== locals.user.uid) {
-      return json({ error: 'No autorizado' }, { status: 403 });
+      if (!docSnap.exists || docSnap.data()?.owner_id !== locals.user.uid) {
+        if (isMock) return json({ success: true });
+        return json({ error: 'Unauthorized' }, { status: 403 });
+      }
+
+      await docRef.delete();
+      return json({ success: true });
+    } catch (dbError) {
+      if (isMock) {
+        console.warn('⚠️ [Skills API DELETE] Firestore failed for mock user, returning mock success');
+        return json({ success: true });
+      }
+      throw dbError;
     }
-
-    await docRef.delete();
-    return json({ success: true });
   } catch (error: any) {
     console.error('❌ Error in DELETE skills API:', error.message);
-    return json({ error: 'Error al eliminar la habilidad' }, { status: 500 });
+    return json({ error: 'Error deleting skill' }, { status: 500 });
   }
 };

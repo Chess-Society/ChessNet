@@ -1,13 +1,33 @@
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb, adminAuth } from '$lib/firebase-admin';
 import { error, redirect } from '@sveltejs/kit';
+import { ADMIN_EMAILS } from '$lib/constants';
 
 export async function getUserPlan(uid: string) {
     try {
-        const doc = await adminDb.collection('user_subscriptions').doc(uid).get();
+        // First check if the user is in the admin list by fetching their auth record
+        // This is a bit expensive but ensures consistency for admins
+        // Wrap in a sub-try/catch to avoid crashing the whole function if auth lookup fails
+        // Bypass para desarrollo local
+        if (uid === 'chessnet-dev-uid') return 'premium';
+
+        try {
+            const userRecord = await adminAuth.getUser(uid);
+            if (userRecord.email && ADMIN_EMAILS.includes(userRecord.email.toLowerCase())) {
+                return 'premium';
+            }
+        } catch (authErr) {
+            console.warn('⚠️ [Plans] Could not verify admin status via adminAuth:', authErr);
+            // Continue to check database plan
+        }
+
+        // The webhook updates the 'users' collection, settings.plan field
+        const doc = await adminDb.collection('users').doc(uid).get();
         if (!doc.exists) return 'free';
-        return doc.data()?.plan_name || 'free';
+        
+        const userData = doc.data();
+        return userData?.settings?.plan || 'free';
     } catch (err) {
-        console.error('Error fetching user plan:', err);
+        console.error('❌ [Plans] Fatal error fetching user plan:', err);
         return 'free';
     }
 }
@@ -24,7 +44,7 @@ export async function checkPlanGating(event: any, requiredPlan: 'free' | 'premiu
     if (isAdmin) return;
     
     if (requiredPlan === 'premium' && plan !== 'premium') {
-        throw redirect(303, '/precios?reason=premium_required');
+        throw redirect(303, '/pricing?reason=premium_required');
     }
 }
 
@@ -40,4 +60,32 @@ export async function checkStudentLimit(uid: string) {
         
     const count = snapshot.data().count;
     return count < 12;
+}
+
+export async function checkSchoolLimit(uid: string) {
+    const plan = await getUserPlan(uid);
+    if (plan === 'premium') return true;
+
+    // Plan free: limit 1 school
+    const snapshot = await adminDb.collection("schools")
+        .where("owner_id", "==", uid)
+        .count()
+        .get();
+        
+    const count = snapshot.data().count;
+    return count < 1;
+}
+
+export async function checkClassLimit(uid: string) {
+    const plan = await getUserPlan(uid);
+    if (plan === 'premium') return true;
+
+    // Plan free: limit 2 classes
+    const snapshot = await adminDb.collection("classes")
+        .where("owner_id", "==", uid)
+        .count()
+        .get();
+        
+    const count = snapshot.data().count;
+    return count < 2;
 }

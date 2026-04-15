@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     }
 
     const snapshot = await query.get();
-    const classStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const classStudents = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
 
     return json({ class_students: classStudents });
 
@@ -97,7 +97,7 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
     }
 
     const batch = adminDb.batch();
-    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+    snapshot.docs.forEach((doc: any) => batch.delete(doc.ref));
     await batch.commit();
 
     return json({ success: true, message: 'Estudiante desinscrito correctamente' });

@@ -40,7 +40,7 @@
     
     const user = auth.currentUser;
     if (!user) {
-      alert('Debes iniciar sesión para realizar el upgrade');
+      alert('You must be logged in to upgrade');
       isUpgrading = false;
       return;
     }
@@ -50,10 +50,10 @@
       if (result.success && result.payment_url) {
         window.location.href = result.payment_url;
       } else {
-        alert(result.error || 'Error al iniciar el proceso de upgrade');
+        alert(result.error || 'Error starting the upgrade process');
       }
     } catch (error) {
-      alert('Error inesperado. Por favor, intenta nuevamente.');
+      alert('Unexpected error. Please try again.');
     } finally {
       isUpgrading = false;
       selectedPlan = '';
@@ -87,13 +87,13 @@
     
     <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-full text-violet-400 text-[10px] font-outfit font-black uppercase tracking-[0.2em] mb-4">
       <Sparkle weight="fill" class="w-3.5 h-3.5" />
-      Potencia tu academia
+      Power up your academy
     </div>
     <h1 class="text-5xl font-outfit font-extrabold text-white tracking-tighter sm:text-7xl leading-tight">
-      Lleva el ajedrez al <br /> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-600">Siguiente Nivel</span>
+      Take your chess to the <br /> <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-600">Next Level</span>
     </h1>
     <p class="text-slate-400 font-plus-jakarta text-lg max-w-2xl mx-auto leading-relaxed">
-      Desbloquea herramientas avanzadas, límites extendidos e informes detallados para gestionar tu academia de forma profesional.
+      Unlock advanced tools, extended limits, and detailed reports to manage your academy professionally.
     </p>
   </div>
 
@@ -110,21 +110,21 @@
             <HardDrive weight="duotone" class="w-8 h-8" />
           </div>
           <div>
-            <h2 class="text-2xl font-outfit font-black text-white tracking-tight uppercase">Uso de Recursos</h2>
+            <h2 class="text-2xl font-outfit font-black text-white tracking-tight uppercase">Resource Usage</h2>
             <p class="text-slate-500 font-plus-jakarta text-xs font-bold uppercase tracking-widest mt-1">
-              Estado actual del plan: <span class="text-violet-500">{upgradeData.current_plan.display_name}</span>
+              Current plan status: <span class="text-violet-500">{upgradeData.current_plan.display_name}</span>
             </p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-10">
           {#each [
-            { label: 'Estudiantes', icon: Users, current: upgradeData.usage_stats.students_count, max: upgradeData.user_limits.max_students },
-            { label: 'Clases', icon: Buildings, current: upgradeData.usage_stats.classes_count, max: upgradeData.user_limits.max_classes },
-            { label: 'Centros', icon: Buildings, current: upgradeData.usage_stats.schools_count, max: upgradeData.user_limits.max_schools },
-            { label: 'Torneos', icon: Trophy, current: upgradeData.usage_stats.tournaments_count, max: upgradeData.user_limits.max_tournaments },
+            { label: 'Students', icon: Users, current: upgradeData.usage_stats.students_count, max: upgradeData.user_limits.max_students },
+            { label: 'Classes', icon: Buildings, current: upgradeData.usage_stats.classes_count, max: upgradeData.user_limits.max_classes },
+            { label: 'Schools', icon: Buildings, current: upgradeData.usage_stats.schools_count, max: upgradeData.user_limits.max_schools },
+            { label: 'Tournaments', icon: Trophy, current: upgradeData.usage_stats.tournaments_count, max: upgradeData.user_limits.max_tournaments },
             { label: 'Storage', icon: HardDrive, current: upgradeData.usage_stats.storage_used_mb, max: upgradeData.user_limits.max_storage_mb },
-            { label: 'Habilidades', icon: Target, current: upgradeData.usage_stats.custom_skills_count, max: upgradeData.user_limits.max_custom_skills }
+            { label: 'Skills', icon: Target, current: upgradeData.usage_stats.custom_skills_count, max: upgradeData.user_limits.max_custom_skills }
           ] as stat}
             <div class="space-y-3">
               <div class="flex items-center justify-between text-[10px] font-outfit font-black uppercase tracking-widest text-slate-500">
@@ -139,7 +139,7 @@
               </div>
               <div class="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
                 <div 
-                  class="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.2)]" 
+                  class="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.25)]" 
                   style={`width: ${stat.max === -1 ? 100 : getUsagePercentage(stat.current, stat.max)}%`}
                 ></div>
               </div>
@@ -162,7 +162,7 @@
           <div class="bg-zinc-900/40 rounded-[28px] p-10 flex flex-col h-full">
             {#if isPopular}
               <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[10px] font-outfit font-black px-6 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg shadow-violet-600/30">
-                Recomendado
+                Recommended
               </div>
             {/if}
 
@@ -173,7 +173,7 @@
               <h3 class="text-2xl font-outfit font-black text-white tracking-tight mb-2">{plan.display_name}</h3>
               <div class="flex items-baseline justify-center gap-1.5 mb-6">
                 <span class="text-5xl font-outfit font-black text-white">€{plan.name === 'premium' ? '1' : plan.price_annual}</span>
-                <span class="text-slate-600 font-outfit font-bold text-sm tracking-widest uppercase">/Mes</span>
+                <span class="text-slate-600 font-outfit font-bold text-sm tracking-widest uppercase">/Month</span>
               </div>
               <p class="text-slate-500 font-plus-jakarta text-sm leading-relaxed px-4">{plan.description}</p>
             </div>
@@ -202,16 +202,16 @@
             >
               {#if isUpgrading && selectedPlan === plan.name}
                 <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
-                <span>Procesando</span>
+                <span>Processing</span>
               {:else if isCurrent}
                 <Check weight="bold" class="w-4 h-4" />
-                Plan Actual
+                Current Plan
               {:else if plan.name === 'free'}
                 <X weight="bold" class="w-4 h-4" />
-                No Disponible
+                Not Available
               {:else}
                 <Lightning weight="fill" class="w-4 h-4" />
-                Obtener {plan.display_name}
+                Get {plan.display_name}
               {/if}
             </button>
           </div>
@@ -226,8 +226,8 @@
           <Sparkle weight="duotone" class="w-6 h-6 text-violet-400" />
         </div>
         <div class="space-y-2">
-          <h4 class="text-white font-outfit font-black uppercase tracking-tight text-lg">Flexibilidad Total</h4>
-          <p class="text-slate-500 font-plus-jakarta text-sm leading-relaxed">Puedes mejorar tu plan en cualquier momento. La diferencia se prorrateará automáticamente en tu factura sin cargos sorpresa.</p>
+          <h4 class="text-white font-outfit font-black uppercase tracking-tight text-lg">Total Flexibility</h4>
+          <p class="text-slate-500 font-plus-jakarta text-sm leading-relaxed">You can upgrade your plan at any time. The difference will be automatically prorated on your invoice with no surprise charges.</p>
         </div>
       </div>
       <div class="flex gap-6">
@@ -235,8 +235,8 @@
           <Shield weight="duotone" class="w-6 h-6 text-violet-400" />
         </div>
         <div class="space-y-2">
-          <h4 class="text-white font-outfit font-black uppercase tracking-tight text-lg">Seguridad Bancaria</h4>
-          <p class="text-slate-500 font-plus-jakarta text-sm leading-relaxed">Utilizamos pasarelas de pago cifradas con Stripe. ChessNet nunca almacena tus datos sensibles de pago.</p>
+          <h4 class="text-white font-outfit font-black uppercase tracking-tight text-lg">Banking Security</h4>
+          <p class="text-slate-500 font-plus-jakarta text-sm leading-relaxed">We use encrypted payment gateways with Stripe. ChessNet never stores your sensitive payment details.</p>
         </div>
       </div>
     </div>

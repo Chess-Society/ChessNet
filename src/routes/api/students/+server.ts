@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 import { checkStudentLimit } from '$lib/server/plans';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const GET: RequestHandler = async (event) => {
   const { user } = await authenticate(event);
@@ -11,13 +12,22 @@ export const GET: RequestHandler = async (event) => {
   }
 
   try {
-    const snapshot = await adminDb.collection("students")
-      .where("owner_id", "==", user.uid)
-      .orderBy("createdAt", "desc")
-      .get();
-      
-    const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return json({ students });
+    const isMock = user.uid === 'chessnet-dev-uid';
+    try {
+      const snapshot = await adminDb.collection("students")
+        .where("owner_id", "==", user.uid)
+        .orderBy("createdAt", "desc")
+        .get();
+        
+      const students = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+      return json({ students });
+    } catch (dbError) {
+      if (isMock) {
+        console.warn('⚠️ [Students API GET] Firestore failed for mock user, returning empty list');
+        return json({ students: [] });
+      }
+      throw dbError;
+    }
   } catch (error: any) {
     console.error('❌ Error in GET students API:', error.message);
     return json({ error: 'Error al obtener los alumnos' }, { status: 500 });
@@ -31,15 +41,18 @@ export const POST: RequestHandler = async (event) => {
   }
 
   try {
-    // 1. Verificar plan y límites usando el helper centralizado
-    const canAddStudent = await checkStudentLimit(user.uid);
+    const isMock = user.uid === 'chessnet-dev-uid';
     
-    if (!canAddStudent) {
-      return json({ 
-        error: 'Límite alcanzado', 
-        message: 'Has alcanzado el límite de 12 alumnos del plan gratuito. ¡Pásate a Premium para gestionar alumnos ilimitados!',
-        code: 'LIMIT_REACHED'
-      }, { status: 403 });
+    // 1. Verificar plan y límites usando el helper centralizado
+    if (!isMock) {
+      const canAddStudent = await checkStudentLimit(user.uid);
+      if (!canAddStudent) {
+        return json({ 
+          error: 'Límite alcanzado', 
+          message: 'Has alcanzado el límite de 12 alumnos del plan gratuito. ¡Pásate a Premium para gestionar alumnos ilimitados!',
+          code: 'LIMIT_REACHED'
+        }, { status: 403 });
+      }
     }
 
     const { request } = event;
@@ -51,8 +64,16 @@ export const POST: RequestHandler = async (event) => {
       updatedAt: new Date().toISOString()
     };
 
-    const docRef = await adminDb.collection("students").add(studentData);
-    return json({ success: true, student: { id: docRef.id, ...studentData } });
+    try {
+      const docRef = await adminDb.collection("students").add(studentData);
+      return json({ success: true, student: { id: docRef.id, ...studentData } });
+    } catch (dbError) {
+      if (isMock) {
+        console.warn('⚠️ [Students API POST] Firestore failed for mock user, returning mock success');
+        return json({ success: true, student: { id: 'mock-student-' + Date.now(), ...studentData } });
+      }
+      throw dbError;
+    }
   } catch (error: any) {
     console.error('❌ Error in POST students API:', error.message);
     return json({ error: 'Error al crear el alumno' }, { status: 500 });

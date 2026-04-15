@@ -1,0 +1,72 @@
+import type { PageServerLoad } from './$types';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
+import { checkPlanGating } from '$lib/server/plans';
+
+export const load: PageServerLoad = async (event) => {
+  const { locals } = event;
+  
+  await checkPlanGating(event, 'premium');
+
+  if (!locals.user) {
+    return {
+      user: null,
+      tournaments: [],
+      tournamentStats: {},
+      availableStudents: []
+    };
+  }
+
+  try {
+    const uid = locals.user.uid;
+    
+    // Obtener torneos y estudiantes del usuario usando Admin SDK
+    const [tournamentsSnap, studentsSnap] = await Promise.all([
+      adminDb.collection("tournaments").where("owner_id", "==", uid).get(),
+      adminDb.collection("students").where("owner_id", "==", uid).get()
+    ]);
+
+    const tournaments = tournamentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+    const students = studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+
+    // Filtrar estudiantes activos y mapearlos al formato que espera la UI
+    const availableStudents = students
+      .filter((s: any) => s.active !== false)
+      .map((s: any) => ({
+        id: s.id,
+        first_name: s.first_name || '',
+        last_name: s.last_name || '',
+        chess_level: s.chess_level || 'beginner',
+        school_id: s.school_id || ''
+      }));
+
+    // Calcular estadísticas
+    const tournamentStats = {
+      total_tournaments: tournaments.length,
+      upcoming_tournaments: tournaments.filter((t: any) => t.status === 'upcoming' || t.status === 'planned').length,
+      in_progress_tournaments: tournaments.filter((t: any) => t.status === 'in_progress' || t.status === 'active').length,
+      completed_tournaments: tournaments.filter((t: any) => t.status === 'completed').length,
+      total_players_registered: tournaments.reduce((sum: number, t: any) => sum + (t.players_registered || 0), 0),
+      total_prize_pool: tournaments.reduce((sum: number, t: any) => sum + (t.prize_pool || 0), 0),
+      average_players_per_tournament: tournaments.length > 0
+        ? tournaments.reduce((sum: number, t: any) => sum + (t.players_registered || 0), 0) / tournaments.length
+        : 0
+    };
+
+    return {
+      user: locals.user,
+      tournaments: serializeRecord(tournaments),
+      tournamentStats: serializeRecord(tournamentStats),
+      availableStudents: serializeRecord(availableStudents)
+    };
+
+  } catch (err: any) {
+    console.error('❌ Error in tournaments page server load:', err);
+    return {
+      user: locals.user,
+      tournaments: [],
+      tournamentStats: {},
+      availableStudents: []
+    };
+  }
+};

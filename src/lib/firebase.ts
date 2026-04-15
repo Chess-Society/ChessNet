@@ -8,19 +8,20 @@ import { env } from "$env/dynamic/public";
 console.log('🔥 [Firebase] Module loading...');
 
 const firebaseConfig = {
-  apiKey: env.PUBLIC_FIREBASE_API_KEY || "AIzaSyAVfcGFylUSYSkwEH0dTrCySqu-SwAhHm4",
-  authDomain: env.PUBLIC_FIREBASE_AUTH_DOMAIN || "chessnet-2505.firebaseapp.com",
-  projectId: env.PUBLIC_FIREBASE_PROJECT_ID || "chessnet-2505",
-  storageBucket: env.PUBLIC_FIREBASE_STORAGE_BUCKET || "chessnet-2505.firebasestorage.app",
-  messagingSenderId: env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "668650751820",
-  appId: env.PUBLIC_FIREBASE_APP_ID || "1:668650751820:web:94d658408221c4c11af1e9",
-  measurementId: env.PUBLIC_FIREBASE_MEASUREMENT_ID || "G-37RZFE1WJQ"
+  apiKey: env.PUBLIC_FIREBASE_API_KEY,
+  authDomain: env.PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: env.PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: env.PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.PUBLIC_FIREBASE_APP_ID,
+  measurementId: env.PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 if (browser) {
-  console.log('🔥 [Firebase] Initializing for browser with project:', firebaseConfig.projectId);
-  if (!env.PUBLIC_FIREBASE_API_KEY) {
-    console.warn('⚠️ [Firebase] PUBLIC_FIREBASE_API_KEY is missing, using hardcoded fallback');
+  if (!env.PUBLIC_FIREBASE_API_KEY || !env.PUBLIC_FIREBASE_PROJECT_ID) {
+    console.error('❌ [Firebase] CRITICAL: Environment variables (PUBLIC_FIREBASE_*) are missing!');
+  } else {
+    console.log('🏁 [Firebase] Initializing for project:', firebaseConfig.projectId);
   }
 }
 

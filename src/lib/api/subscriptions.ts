@@ -106,17 +106,20 @@ export const getUserCurrentPlan = async (userId?: string): Promise<UserPlanLimit
   if (!uid) return DEFAULT_LIMITS;
 
   try {
-    // Usamos una colección raíz 'user_subscriptions' donde el ID del documento es el UID
-    const docRef = doc(db, "user_subscriptions", uid);
+    // Unified: Read from 'users' collection as per webhook logic
+    const docRef = doc(db, "users", uid);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      const data = docSnap.data();
-      const plan = PLANS.find(p => p.name === data.plan_name) || PLANS[0];
+      const userData = docSnap.data();
+      const settings = userData.settings || {};
+      const planName = settings.plan || 'free';
+      const plan = PLANS.find(p => p.name === planName) || PLANS[0];
       
       return {
         ...DEFAULT_LIMITS,
-        ...data,
+        ...settings,
+        plan_name: planName,
         display_name: plan.display_name,
         features: plan.features
       } as UserPlanLimits;

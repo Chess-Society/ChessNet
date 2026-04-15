@@ -92,7 +92,7 @@
                             <button 
                                 aria-label="Toggle Env Vars"
                                 onclick={() => hasEnvVars = !hasEnvVars}
-                                class="w-10 h-5 rounded-full transition-colors relative {hasEnvVars ? 'bg-emerald-500' : 'bg-slate-700'}"
+                                class="w-10 h-5 rounded-full transition-colors relative {hasEnvVars ? 'bg-indigo-500' : 'bg-slate-700'}"
                             >
                                 <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform {hasEnvVars ? 'translate-x-5' : ''}"></div>
                             </button>
@@ -103,7 +103,7 @@
                             <button 
                                 aria-label="Toggle Admin DB Status"
                                 onclick={() => hasCorrectImport = !hasCorrectImport}
-                                class="w-10 h-5 rounded-full transition-colors relative {hasCorrectImport ? 'bg-emerald-500' : 'bg-slate-700'}"
+                                class="w-10 h-5 rounded-full transition-colors relative {hasCorrectImport ? 'bg-indigo-500' : 'bg-slate-700'}"
                             >
                                 <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform {hasCorrectImport ? 'translate-x-5' : ''}"></div>
                             </button>
@@ -114,7 +114,7 @@
                             <button 
                                 aria-label="Toggle User ID Status"
                                 onclick={() => hasUserId = !hasUserId}
-                                class="w-10 h-5 rounded-full transition-colors relative {hasUserId ? 'bg-emerald-500' : 'bg-slate-700'}"
+                                class="w-10 h-5 rounded-full transition-colors relative {hasUserId ? 'bg-indigo-500' : 'bg-slate-700'}"
                             >
                                 <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform {hasUserId ? 'translate-x-5' : ''}"></div>
                             </button>
@@ -140,11 +140,11 @@
             <!-- Visualización -->
             <div class="bg-black/40 rounded-3xl border border-slate-800 p-6 font-mono text-[11px] h-[300px] flex flex-col">
                 <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
-                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Event Console / Log</span>
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Consola de Eventos / Registro</span>
                     <div class="flex gap-1">
                         <div class="w-2 h-2 rounded-full bg-red-500/50"></div>
                         <div class="w-2 h-2 rounded-full bg-yellow-500/50"></div>
-                        <div class="w-2 h-2 rounded-full bg-emerald-500/50"></div>
+                        <div class="w-2 h-2 rounded-full bg-indigo-500/50"></div>
                     </div>
                 </div>
 
@@ -157,7 +157,7 @@
                             {#if step.type === 'info'}
                                 <span class="text-blue-400">[INFO]</span>
                             {:else if step.type === 'success'}
-                                <span class="text-emerald-400">[OK]</span>
+                                <span class="text-indigo-400">[OK]</span>
                             {:else}
                                 <span class="text-red-400">[ERR]</span>
                             {/if}
@@ -165,7 +165,7 @@
                         </div>
                     {/each}
                     {#if isSimulating}
-                        <div class="inline-block w-2 h-4 bg-emerald-500 animate-pulse"></div>
+                        <div class="inline-block w-2 h-4 bg-indigo-500 animate-pulse"></div>
                     {/if}
                 </div>
 
@@ -192,8 +192,8 @@
                     </div>
 
                     {#if !isSimulating && simulationSteps.length > 0}
-                        <div class="text-xs font-bold {simulationSteps[simulationSteps.length-1].type === 'error' ? 'text-red-500' : 'text-emerald-500'}">
-                            {simulationSteps[simulationSteps.length-1].type === 'error' ? 'SIMULACIÓN FALLIDA' : 'EXITO'}
+                        <div class="text-xs font-bold {simulationSteps[simulationSteps.length-1].type === 'error' ? 'text-red-500' : 'text-indigo-500'}">
+                            {simulationSteps[simulationSteps.length-1].type === 'error' ? 'SIMULACIÓN FALLIDA' : 'ÉXITO'}
                         </div>
                     {/if}
                 </div>

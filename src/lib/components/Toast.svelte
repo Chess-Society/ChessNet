@@ -35,7 +35,7 @@
       <button
         on:click={() => removeToast(toast.id)}
         class="flex-shrink-0 p-1 rounded-full hover:bg-black/20 transition-colors"
-        aria-label="Cerrar notificación"
+        aria-label="Close notification"
       >
         <X class="w-4 h-4" />
       </button>

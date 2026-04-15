@@ -2,39 +2,7 @@
 <html lang="es" class="h-full">
   <head>
     <meta charset="utf-8" />
-    <script>
-      // 🏁 LEGACY CLEANUP: Previene que versiones antiguas (ChillChess) se sirvan desde caché
-      (function() {
-        const isLegacyCleanupDone = sessionStorage.getItem('chessnet_cleanup_v1');
-        
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            if (registrations.length > 0) {
-              registrations.forEach(r => r.unregister());
-              if ('caches' in window) {
-                caches.keys().then(names => names.forEach(n => caches.delete(n)));
-              }
-              // Solo recargamos si no lo hemos hecho ya en esta sesión para evitar bucles
-              if (!isLegacyCleanupDone) {
-                sessionStorage.setItem('chessnet_cleanup_v1', 'true');
-                console.log('🏁 Cleared legacy service workers and caches. Refreshing...');
-                window.location.reload();
-              }
-            }
-          });
-        }
-        
-        // Limpiamos localStorage de posibles entradas conflictivas de ChillChess
-        // solo si detectamos que no estamos logueados (para seguridad)
-        const hasLegacyData = localStorage.getItem('user_role') || localStorage.getItem('theme');
-        if (hasLegacyData && !isLegacyCleanupDone) {
-           console.log('🧹 Cleaning legacy localStorage...');
-           // No borramos todo el localStorage por si hay datos de ChessNet,
-           // pero forzamos el flag de limpieza.
-           sessionStorage.setItem('chessnet_cleanup_v1', 'true');
-        }
-      })();
-    </script>
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="mask-icon" href="/favicon.svg" color="#10b981" />
     <link rel="apple-touch-icon" href="/favicon.svg" />

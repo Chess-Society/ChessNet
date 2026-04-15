@@ -1,85 +1,91 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { Home, RefreshCw, AlertTriangle, Sparkles } from 'lucide-svelte';
-  import Logo from '$lib/components/Logo.svelte';
+  import { CaretLeft, ArrowsCounterClockwise, Warning, ShieldSlash } from 'phosphor-svelte';
+  import { fade, fly, scale } from 'svelte/transition';
+  import { goto } from '$app/navigation';
+
+  const status = $derived($page.status);
+  const message = $derived($page.error?.message || 'Ha ocurrido un error inesperado');
   
-  $: status = $page.status;
-  $: message = $page.error?.message || 'Ha ocurrido un error inesperado';
-  $: isConfigError = message.includes('Missing Supabase environment variables');
+  const is500 = $derived(status === 500);
+  const is404 = $derived(status === 404);
 </script>
 
 <svelte:head>
   <title>Error {status} - ChessNet</title>
 </svelte:head>
 
-<div class="min-h-screen bg-bento-bg flex items-center justify-center p-6 font-sans selection:bg-primary-500/30 overflow-hidden">
-  
-  <!-- Background Effects -->
-  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute top-[20%] left-[20%] w-[40%] h-[40%] bg-red-500/10 rounded-full blur-[100px] animate-pulse"></div>
-    <div class="absolute bottom-[20%] right-[20%] w-[30%] h-[30%] bg-primary-500/5 rounded-full blur-[120px]"></div>
-    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 contrast-150"></div>
+<div class="min-h-screen bg-[#09090b] text-white flex items-center justify-center p-6 font-jakarta relative overflow-hidden">
+  <!-- Background Decorations -->
+  <div class="absolute inset-0 z-0">
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-[128px]"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-600/5 rounded-full blur-[128px]"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
   </div>
 
-  <div class="relative z-10 max-w-lg w-full text-center">
-    <div class="mb-12 flex justify-center">
-      <a href="/" class="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group">
-        <div class="relative">
-          <div class="absolute -inset-2 bg-primary-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
-          <Logo size="w-12 h-12" iconSize="w-7 h-7" />
-        </div>
-        <span class="text-3xl font-display font-black tracking-tighter text-white">ChessNet</span>
-      </a>
+  <div class="max-w-xl w-full text-center space-y-12 relative z-10" in:fade>
+    <!-- Icon -->
+    <div class="relative inline-block" in:scale={{ duration: 600, delay: 200 }}>
+      <div class="w-32 h-32 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex items-center justify-center shadow-2xl relative z-10">
+        {#if is404}
+          <ShieldSlash weight="duotone" size={64} class="text-zinc-500" />
+        {:else if is500}
+          <Warning weight="duotone" size={64} class="text-red-400" />
+        {:else}
+          <div class="text-4xl font-black text-violet-400 font-outfit">{status}</div>
+        {/if}
+      </div>
+      <div class="absolute -inset-4 bg-violet-600/20 blur-2xl rounded-full -z-10 animate-pulse"></div>
     </div>
 
-    <div class="bento-card border-white/10 bg-white/[0.02] p-10 md:p-14 shadow-2xl relative overflow-hidden">
-      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-30"></div>
-      
-      <div class="relative">
-        <div class="text-[120px] md:text-[160px] font-display font-black leading-none text-white/5 absolute -top-10 left-1/2 -translate-x-1/2 select-none">
-          {status}
-        </div>
-        
-        <div class="relative z-10">
-          <div class="flex justify-center mb-6">
-            <div class="p-4 rounded-3xl bg-red-500/10 text-red-500 border border-red-500/20">
-              <AlertTriangle class="w-10 h-10" />
-            </div>
-          </div>
-          
-          <h1 class="text-3xl font-display font-black text-white mb-4 tracking-tight">
-            {status === 404 ? 'Jaque Mate Inesperado' : 'Error en el Tablero'}
-          </h1>
-          
-          <p class="text-surface-400 font-medium leading-relaxed mb-10">
-            {status === 404 
-              ? 'La página que buscas ha sido capturada o nunca existió en este tablero.' 
-              : message}
-          </p>
+    <!-- Text -->
+    <div class="space-y-4">
+      <h1 class="text-6xl font-black tracking-tighter font-outfit uppercase italic" in:fly={{ y: 20, delay: 300 }}>
+        Error {status}
+      </h1>
+      <p class="text-zinc-400 text-lg font-medium leading-relaxed max-w-md mx-auto" in:fly={{ y: 20, delay: 400 }}>
+        {#if is404}
+          La página que buscas ha sido movida o no existe en nuestra base de datos actual.
+        {:else if is500}
+          Nuestro sistema ha encontrado un obstáculo crítico. Estamos trabajando para estabilizar la conexión.
+        {:else}
+          {message}
+        {/if}
+      </p>
+    </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              on:click={() => window.location.reload()}
-              class="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all group"
-            >
-              <RefreshCw class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-              Reintentar
-            </button>
-            
-            <a
-              href="/"
-              class="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-primary-500 text-white font-bold hover:bg-primary-600 transition-all shadow-xl shadow-primary-500/20 group"
-            >
-              <Home class="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
-              Volver al Inicio
-            </a>
-          </div>
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4" in:fly={{ y: 20, delay: 500 }}>
+      <button 
+        onclick={() => history.back()}
+        class="flex items-center gap-3 px-8 py-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl text-xs font-black uppercase tracking-widest border border-zinc-800 transition-all group"
+      >
+        <CaretLeft weight="bold" class="transition-transform group-hover:-translate-x-1" />
+        VOLVER ATRÁS
+      </button>
+      
+      <button 
+        onclick={() => location.reload()}
+        class="flex items-center gap-3 px-8 py-4 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-violet-600/20 transition-all active:scale-95 group"
+      >
+        <ArrowsCounterClockwise weight="bold" class="group-hover:rotate-180 transition-transform duration-500" />
+        REINTENTAR
+      </button>
+    </div>
+
+    {#if is500}
+      <div class="pt-12 text-zinc-600 space-y-2" in:fade={{ delay: 800 }}>
+        <p class="text-[10px] font-black uppercase tracking-[0.2em]">Detalles Técnicos</p>
+        <div class="p-4 bg-zinc-950/50 rounded-xl border border-zinc-900/50 font-mono text-[10px] text-zinc-500 break-all select-all">
+          {message}
         </div>
       </div>
-    </div>
-
-    <p class="mt-12 text-surface-500 text-xs font-bold uppercase tracking-[0.2em]">
-      Código de Error: {status} • ChessNet Cloud
-    </p>
+    {/if}
   </div>
 </div>
+
+<style>
+  :global(body) {
+    background-color: #09090b;
+  }
+</style>
