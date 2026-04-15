@@ -25,7 +25,7 @@
     Plus,
     MinusCircle
   } from 'phosphor-svelte';
-  import { showToast, showError } from '$lib/utils/toast';
+  import { showToast, showError } from '$lib/stores/toast';
   import type { PageData } from './$types';
   import { fade, fly } from 'svelte/transition';
 
@@ -67,7 +67,6 @@
   };
 
   onMount(() => {
-    console.log('✅ Class students page: Class:', classData?.name);
   });
 
   const handleGoBack = () => {

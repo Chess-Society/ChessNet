@@ -27,7 +27,6 @@ export const GET: RequestHandler = async (event) => {
       return json({ schools });
     } catch (dbError: any) {
       if (isMock) {
-        console.warn('⚠️ [Schools API] Firestore failed for mock user, returning empty list:', dbError.message);
         return json({ schools: [] });
       }
       throw dbError;
@@ -87,7 +86,6 @@ export const POST: RequestHandler = async (event) => {
       }, { status: 201 });
     } catch (dbError: any) {
       if (isMock) {
-        console.warn('⚠️ [Schools API POST] Firestore failed for mock user, returning mock success');
         return json({ 
           success: true,
           school: { id: 'mock-school-' + Date.now(), ...schoolData },
@@ -145,7 +143,6 @@ export const PUT: RequestHandler = async (event) => {
       });
     } catch (dbError: any) {
       if (isMock) {
-        console.warn('⚠️ [Schools API PUT] Firestore failed for mock user, returning mock success');
         return json({ 
           success: true,
           school: { id: schoolId, ...body, updated_at: new Date().toISOString() }
@@ -192,7 +189,6 @@ export const DELETE: RequestHandler = async (event) => {
       return json({ success: true, message: 'Centro eliminado correctamente' });
     } catch (dbError: any) {
       if (isMock) {
-        console.warn('⚠️ [Schools API DELETE] Firestore failed for mock user, returning mock success');
         return json({ success: true, message: 'Centro eliminado correctamente (MOCK)' });
       }
       throw dbError;

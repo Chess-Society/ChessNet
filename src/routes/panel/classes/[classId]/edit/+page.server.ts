@@ -4,8 +4,6 @@ import { schoolsApi } from '$lib/api/schools';
 import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  console.log('✏️ Edit class page server load - User:', locals.user?.email || 'none');
-  console.log('✏️ Class ID:', params.classId);
   
   if (!locals.user) {
     throw error(401, 'User not authenticated');

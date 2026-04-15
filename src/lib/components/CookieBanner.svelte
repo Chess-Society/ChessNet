@@ -7,29 +7,23 @@
   let isVisible = false;
 
   onMount(() => {
-    console.log('🍪 CookieBanner component mounted');
     
     // Verificar si ya se aceptaron las cookies
     const cookiesAccepted = localStorage.getItem('chessnet-cookies-accepted');
     const termsAccepted = localStorage.getItem('chessnet-terms-accepted');
     
-    console.log('🍪 Cookie status:', { cookiesAccepted, termsAccepted });
     
     if (!cookiesAccepted || !termsAccepted) {
-      console.log('🍪 Showing cookie banner');
       showBanner = true;
       // Pequeño delay para la animación
       setTimeout(() => {
         isVisible = true;
-        console.log('🍪 Cookie banner is now visible');
       }, 100);
     } else {
-      console.log('🍪 Cookies already accepted, hiding banner');
     }
   });
 
   const acceptAll = () => {
-    console.log('🍪 Accepting all cookies');
     localStorage.setItem('chessnet-cookies-accepted', 'true');
     localStorage.setItem('chessnet-terms-accepted', 'true');
     localStorage.setItem('chessnet-privacy-accepted', 'true');
@@ -39,7 +33,6 @@
   };
 
   const acceptNecessary = () => {
-    console.log('🍪 Accepting only necessary cookies');
     localStorage.setItem('chessnet-cookies-accepted', 'necessary-only');
     localStorage.setItem('chessnet-terms-accepted', 'true');
     localStorage.setItem('chessnet-privacy-accepted', 'true');

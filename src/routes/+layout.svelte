@@ -1,7 +1,6 @@
 <script lang="ts">
   import Toast from '$lib/components/Toast.svelte';
   import CookieBanner from '$lib/components/CookieBanner.svelte';
-  import KofiWidget from '$lib/components/KofiWidget.svelte';
   import '../app.css';
 
   import { onMount } from 'svelte';
@@ -19,10 +18,8 @@
   let { children } = $props();
   let maintenanceMode = $state(false);
 
-  console.log('🚀 [Layout] Script block execution start', { browser });
 
   if (browser) {
-    console.log('🏁 [Layout] Immediate browser initialization...');
     initAuth();
 
     // Monitorizar Modo Mantenimiento
@@ -50,16 +47,13 @@
     // Si hay usuario pero la cookie no está sincronizada, esperamos (mostrando el spinner)
     // EXCEPTO si estamos en una ruta pública, donde podemos dejar que cargue
     if ($user && !$cookieSynced && isProtected) {
-      console.log('⏳ [Guard] Sincronizando sesión...');
       return;
     }
 
     // Lógica de Redirección
     if ($user && isPublicOnly) {
-      console.log('🚀 [Guard] Usuario detector -> Redirigiendo a zona segura');
       goto('/panel', { replaceState: true });
     } else if (!$user && isProtected) {
-      console.log('🔒 [Guard] Acceso protegido sin sesión -> /login');
       if (path !== '/login') {
         const redirectParam = path !== '/panel' ? `?redirect=${encodeURIComponent(path)}` : '';
         goto(`/login${redirectParam}`, { replaceState: true });
@@ -104,5 +98,4 @@
   {/if}
   <Toast />
   <CookieBanner />
-  <KofiWidget />
 </main>

@@ -34,7 +34,6 @@ export const classesApi = {
           const school = await schoolsApi.getSchool(cls.school_id);
           cls.school_name = school.name;
         } catch (e) {
-          console.warn(`No se pudo obtener el nombre del centro para la clase ${cls.id}`);
         }
       }
     }

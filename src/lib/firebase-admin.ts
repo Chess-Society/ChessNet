@@ -27,13 +27,11 @@ if (!admin.apps.length) {
                     privateKey,
                 }),
             });
-            console.log('✅ [FirebaseAdmin] SDK inicializado con Service Account');
         } else {
             // Intentar inicialización por defecto (útil en local con ADC o en entornos con permisos de IAM heredados)
             admin.initializeApp({
                 projectId
             });
-            console.log('✅ [FirebaseAdmin] SDK inicializado con credenciales por defecto');
         }
         initialized = true;
     } catch (error) {

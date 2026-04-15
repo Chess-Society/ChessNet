@@ -22,7 +22,6 @@ export const GET: RequestHandler = async ({ locals }) => {
       return json({ skills });
     } catch (dbError: any) {
       if (isMock) {
-        console.warn('⚠️ [Skills API] Firestore failed for mock user, returning empty list:', dbError.message);
         return json({ skills: [] });
       }
       throw dbError;
@@ -53,7 +52,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       return json({ success: true, id: docRef.id });
     } catch (dbError) {
       if (isMock) {
-        console.warn('⚠️ [Skills API POST] Firestore failed for mock user, returning mock success');
         return json({ success: true, id: 'mock-skill-' + Date.now() });
       }
       throw dbError;
@@ -87,7 +85,6 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
       return json({ success: true });
     } catch (dbError) {
       if (isMock) {
-        console.warn('⚠️ [Skills API DELETE] Firestore failed for mock user, returning mock success');
         return json({ success: true });
       }
       throw dbError;

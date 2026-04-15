@@ -3,7 +3,6 @@ import { studentsApi } from '$lib/api/students';
 import { schoolsApi } from '$lib/api/schools';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  console.log('🏆 Create tournament page server load - User:', locals.user?.email || 'none');
   
   if (!locals.user) {
     return {

@@ -5,7 +5,6 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 import { browser } from "$app/environment";
 import { env } from "$env/dynamic/public";
 
-console.log('🔥 [Firebase] Module loading...');
 
 const firebaseConfig = {
   apiKey: env.PUBLIC_FIREBASE_API_KEY,
@@ -21,7 +20,6 @@ if (browser) {
   if (!env.PUBLIC_FIREBASE_API_KEY || !env.PUBLIC_FIREBASE_PROJECT_ID) {
     console.error('❌ [Firebase] CRITICAL: Environment variables (PUBLIC_FIREBASE_*) are missing!');
   } else {
-    console.log('🏁 [Firebase] Initializing for project:', firebaseConfig.projectId);
   }
 }
 
@@ -30,7 +28,6 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-console.log('🔥 [Firebase] Auth & Firestore initialized');
 
 
 let analytics = null;

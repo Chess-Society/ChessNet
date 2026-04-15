@@ -13,7 +13,6 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     let sessionCookie: string;
 
     if (token === 'mock-chessnet-token') {
-      console.log('🧪 [Session] Creating mock session for dev');
       sessionCookie = 'mock-session-chessnet';
     } else {
       // Definimos el tiempo de expiración (5 días)
@@ -42,7 +41,5 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 export const DELETE: RequestHandler = async ({ cookies }) => {
   cookies.delete('__session', { path: '/' });
-  // Por si acaso borramos la antigua también
-  cookies.delete('sb-auth-token', { path: '/' });
   return json({ success: true });
 };

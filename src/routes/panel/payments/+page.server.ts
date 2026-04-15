@@ -9,13 +9,11 @@ import { checkPlanGating } from '$lib/server/plans';
 export const load: PageServerLoad = async (event) => {
   const { locals, url } = event;
   await checkPlanGating(event, 'premium');
-  console.log('💰 Payments page server load - User:', locals.user?.email || 'none');
 
   // ===== BYPASS PARA DESARROLLO LOCAL =====
   const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 
   if (isLocalDev) {
-    console.log('🔧 DEV MODE: Payments page - Providing centralized mock data');
     const { mockPayments, mockStudents, mockSchools } = await import('$lib/utils/mockData');
 
     // Enriquecer pagos con datos de estudiantes y escuelas

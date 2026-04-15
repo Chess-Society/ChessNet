@@ -5,7 +5,6 @@ import { classesApi } from '$lib/api/classes';
 import { studentsApi } from '$lib/api/students';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  console.log('🏫 School detail page server load - User:', locals.user?.email || 'none');
   const schoolId = params.schoolId;
 
   if (!locals.user) {

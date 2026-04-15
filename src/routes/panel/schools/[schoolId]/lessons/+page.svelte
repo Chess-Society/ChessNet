@@ -14,7 +14,6 @@
   let isLoading = false; // Simplificado - no hay carga de datos
 
   onMount(() => {
-    console.log('✅ Lessons page: User authenticated via server:', data.user?.email, 'SchoolId:', data.schoolId);
   });
 
   function goBack() {

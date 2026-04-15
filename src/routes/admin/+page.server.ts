@@ -9,7 +9,6 @@ export const load: PageServerLoad = async (event) => {
         throw error(403, 'Acceso denegado: Se requieren permisos de administrador');
     }
 
-    console.log(`🛡️ [Admin Load] User: ${user.email}, Authorized: true`);
 
     return {
         user,

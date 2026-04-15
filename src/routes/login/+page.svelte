@@ -21,7 +21,6 @@
     errorMessage = '';
     
     try {
-      console.log('🔄 Signing in with Google...');
       const { user, error } = await signInWithGoogle();
       
       if (error) {
@@ -32,7 +31,6 @@
       
       if (user) {
         successMessage = true;
-        console.log('✅ Google Login Successful:', user.email);
         
         try {
           const idToken = await user.getIdToken();
@@ -42,7 +40,6 @@
             body: JSON.stringify({ token: idToken })
           });
         } catch (e) {
-          console.warn('⚠️ Could not create session on server');
         }
 
         setTimeout(() => {

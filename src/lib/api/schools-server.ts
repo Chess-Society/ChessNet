@@ -30,7 +30,6 @@ export const schoolsServerApi = {
     // In a real Firebase setup, userId would be retrieved from a session cookie verified in hooks.server.ts
     // For now, we'll try to use the userId if provided, or expect it to be handled by the caller.
     if (!userId) {
-      console.warn("⚠️ getMySchools called without userId on server");
       return [];
     }
 
@@ -69,7 +68,6 @@ export const schoolsServerApi = {
   ): Promise<School> {
     if (!userId) throw new Error("User ID required for school creation on server");
 
-    console.log('🏫 Creating school for user:', userId);
 
     const schoolData = {
       name,
@@ -80,7 +78,6 @@ export const schoolsServerApi = {
     };
 
     const docRef = await addDoc(collection(db, "schools"), schoolData);
-    console.log('✅ School created successfully:', docRef.id);
 
     // Create membership for the owner
     await this.addMember(docRef.id, userId, "owner", cookies);

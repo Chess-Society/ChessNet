@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { showToast, showError } from '$lib/utils/toast';
+  import { showToast, showError } from '$lib/stores/toast';
   import { appStore } from '$lib/stores/appStore';
   import { 
     ArrowLeft, 

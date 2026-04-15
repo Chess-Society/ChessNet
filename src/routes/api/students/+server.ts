@@ -23,7 +23,6 @@ export const GET: RequestHandler = async (event) => {
       return json({ students });
     } catch (dbError) {
       if (isMock) {
-        console.warn('⚠️ [Students API GET] Firestore failed for mock user, returning empty list');
         return json({ students: [] });
       }
       throw dbError;
@@ -69,7 +68,6 @@ export const POST: RequestHandler = async (event) => {
       return json({ success: true, student: { id: docRef.id, ...studentData } });
     } catch (dbError) {
       if (isMock) {
-        console.warn('⚠️ [Students API POST] Firestore failed for mock user, returning mock success');
         return json({ success: true, student: { id: 'mock-student-' + Date.now(), ...studentData } });
       }
       throw dbError;

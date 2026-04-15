@@ -2,7 +2,7 @@
   import { onMount, createEventDispatcher } from 'svelte';
   import { Chess } from 'chess.js';
   import ChessBoard from './ChessBoard.svelte';
-  import { showToast } from '$lib/utils/toast';
+  import { showToast } from '$lib/stores/toast';
   import { Lightbulb, RotateCcw, CheckCircle, XCircle, Target } from 'lucide-svelte';
   import type { ChessExercise } from '$lib/types';
 

@@ -4,13 +4,11 @@ import { checkPlanGating } from '$lib/server/plans';
 export const load: PageServerLoad = async (event) => {
   const { locals, url } = event;
   await checkPlanGating(event, 'premium');
-  console.log('📊 Reports page server load - User:', locals.user?.email || 'none');
 
   // ===== BYPASS PARA DESARROLLO LOCAL =====
   const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 
   if (isLocalDev) {
-    console.log('🔧 DEV MODE: Reports page - Providing centralized mock data');
     const { mockStudents, mockSchools, mockClasses, mockPayments } = await import('$lib/utils/mockData');
 
     // Generar reportes basados en los datos centralizados

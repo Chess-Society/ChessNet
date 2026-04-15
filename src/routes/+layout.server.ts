@@ -1,26 +1,11 @@
-import type { LayoutServerLoad } from "./$types";
-import { ADMIN_EMAILS } from "$lib/constants";
+import { authenticate } from '$lib/server/auth';
+import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ cookies }) => {
-  const session = cookies.get('sb-auth-token');
-  const impersonateEmail = cookies.get('impersonate_email') || null;
-  let user = null;
-
-  if (session) {
-    try {
-      user = JSON.parse(decodeURIComponent(session));
-    } catch (e) {
-      user = null;
-    }
-  }
-
-  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
-
-  console.log('🌍 Global Layout - User:', user?.email || 'none', 'Admin:', isAdmin);
-
+export const load: LayoutServerLoad = async (event) => {
+  await authenticate(event);
   return {
-    user,
-    isAdmin: !!isAdmin,
-    impersonateEmail
+    user: event.locals.user,
+    isAdmin: event.locals.isAdmin,
+    impersonateEmail: event.cookies.get('impersonate_email') || null
   };
 };

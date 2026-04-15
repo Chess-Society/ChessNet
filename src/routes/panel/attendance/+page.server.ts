@@ -6,7 +6,6 @@ import { attendanceApi } from '$lib/api/attendance';
 import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  console.log('📊 Attendance Dashboard - User:', locals.user?.email || 'none');
 
   if (!locals.user) {
     return {

@@ -15,13 +15,11 @@ let isDevSessionActive = false;
 export const initAuth = () => {
     if (!browser) return;
 
-    console.log('🔄 [Auth] Initializing Firebase auth...');
     
     let resolved = false;
 
     // Recuperar flag de sesión mock de sessionStorage
     if (sessionStorage.getItem('chessnet_mock_session') === 'true') {
-        console.log('🧪 [Auth] Restoring mock session from storage');
         isDevSessionActive = true;
         const mockUser = {
             uid: 'chessnet-dev-uid',
@@ -41,11 +39,9 @@ export const initAuth = () => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
         // Bloqueo: Si una sesión dev está activa y no hay un nuevo usuario real, ignoramos onAuthStateChanged
         if (isDevSessionActive && !firebaseUser) {
-            console.log("🛡️ [Auth] Ignoring Firebase null state because Dev Session is active.");
             return;
         }
 
-        console.log("🔄 [Auth] State changed:", firebaseUser ? firebaseUser.email : 'No user');
         
         if (firebaseUser) {
             isDevSessionActive = false; // El usuario real gana
@@ -59,10 +55,8 @@ export const initAuth = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token: idToken })
                 });
-                console.log("📡 [Auth] Session cookie synchronized.");
                 cookieSynced.set(true);
             } catch (err) {
-                console.warn("⚠️ [Auth] Could not sync session cookie:", err);
             }
         } else {
             user.set(null);
@@ -77,7 +71,6 @@ export const initAuth = () => {
         authInitialized.set(true);
         resolved = true;
         
-        console.log("✅ [Auth] Store synchronized.");
     }, (error) => {
         console.error("❌ [Auth] Error detected:", error);
         loading.set(false);
@@ -88,7 +81,6 @@ export const initAuth = () => {
     // Timeout de seguridad robusto
     setTimeout(() => {
         if (!resolved) {
-            console.warn('⚠️ [Auth] Initialization timeout (8s). Forcing resolution.');
             loading.set(false);
             authInitialized.set(true);
             resolved = true;
@@ -102,7 +94,6 @@ export const initAuth = () => {
 export const devLogin = async () => {
     if (!browser) return;
     
-    console.log('🧪 [Auth] Activating Dev Login...');
     loading.set(true);
     isDevSessionActive = true;
     sessionStorage.setItem('chessnet_mock_session', 'true');
@@ -130,7 +121,6 @@ export const devLogin = async () => {
         authInitialized.set(true);
         loading.set(false);
         
-        console.log('✅ [Auth] Dev Session established.');
     } catch (err) {
         console.error('❌ [Auth] Dev Login failed:', err);
         isDevSessionActive = false;

@@ -143,7 +143,6 @@ export const tournamentDB = {
       const request = store.add(newTournament);
       
       request.onsuccess = () => {
-        console.log('✅ Tournament created:', newTournament.id);
         this.loadTournaments(); // Refresh store
         resolve(newTournament);
       };
@@ -184,7 +183,6 @@ export const tournamentDB = {
       const request = store.put(updated);
       
       request.onsuccess = () => {
-        console.log('✅ Tournament updated:', id);
         this.loadTournaments(); // Refresh store
         resolve(updated);
       };
@@ -232,7 +230,6 @@ export const tournamentDB = {
       };
       
       transaction.oncomplete = () => {
-        console.log('✅ Tournament deleted:', id);
         this.loadTournaments(); // Refresh store
         resolve();
       };
@@ -251,7 +248,6 @@ export const tournamentDB = {
       request.onsuccess = () => {
         const result = request.result || [];
         tournaments.set(result);
-        console.log(`📊 Loaded ${result.length} tournaments from IndexedDB`);
         resolve(result);
       };
       request.onerror = () => reject(request.error);
@@ -274,7 +270,6 @@ export const tournamentDB = {
       const request = store.add(newPlayer);
       
       request.onsuccess = () => {
-        console.log('✅ Player registered:', newPlayer.student_name);
         resolve(newPlayer);
       };
       request.onerror = () => reject(request.error);
@@ -369,7 +364,6 @@ export const tournamentDB = {
         request.onsuccess = () => {
           completed++;
           if (completed === total) {
-            console.log(`✅ Generated ${total} pairings for round ${roundNumber}`);
             resolve(pairings);
           }
         };
@@ -396,7 +390,6 @@ export const tournamentDB = {
       const request = store.add(newRound);
       
       request.onsuccess = () => {
-        console.log(`✅ Round ${roundNumber} created for tournament ${tournamentId}`);
         resolve(newRound);
       };
       request.onerror = () => reject(request.error);
@@ -468,7 +461,6 @@ export const tournamentDB = {
 
         const updateRequest = store.put(updatedPairing);
         updateRequest.onsuccess = () => {
-          console.log('✅ Pairing result updated:', pairingId, result);
           resolve();
         };
         updateRequest.onerror = () => reject(updateRequest.error);
@@ -495,7 +487,6 @@ export const tournamentDB = {
           return;
         }
 
-        console.log(`🔄 Finishing round ${roundNumber} for tournament ${tournamentId}`);
 
         // Actualizar el estado de la ronda
         const updatedRound = {
@@ -506,7 +497,6 @@ export const tournamentDB = {
 
         const updateRequest = store.put(updatedRound);
         updateRequest.onsuccess = () => {
-          console.log(`✅ Round ${roundNumber} finished successfully`);
           resolve();
         };
         updateRequest.onerror = () => {
@@ -532,7 +522,6 @@ export const tournamentDB = {
     }
 
     const nextRoundNumber = (tournament.current_round || 0) + 1;
-    console.log(`🔄 Generating round ${nextRoundNumber} for tournament ${tournamentId}`);
     
     // Crear la nueva ronda en IndexedDB
     await this.createRound(tournamentId, nextRoundNumber);
@@ -615,20 +604,16 @@ export const tournamentDB = {
       const total = pairings.length;
       
       if (total === 0) {
-        console.log(`⚠️ No pairings to generate for round ${nextRoundNumber}`);
         resolve(pairings);
         return;
       }
       
-      console.log(`💾 Saving ${total} pairings to IndexedDB for round ${nextRoundNumber}`);
       
       pairings.forEach((pairing, index) => {
         const request = store.add(pairing);
         request.onsuccess = () => {
           completed++;
-          console.log(`✅ Saved pairing ${index + 1}/${total} for round ${nextRoundNumber}`);
           if (completed === total) {
-            console.log(`🎉 All ${total} pairings saved for round ${nextRoundNumber}`);
             resolve(pairings);
           }
         };
@@ -682,7 +667,6 @@ export const tournamentDB = {
 
         const updateRequest = store.put(updatedTournament);
         updateRequest.onsuccess = () => {
-          console.log('✅ Tournament finished:', tournamentId);
           resolve();
         };
         updateRequest.onerror = () => reject(updateRequest.error);
@@ -704,7 +688,6 @@ export const tournamentDB = {
     const database = await this.init();
     
     try {
-      console.log(`🔄 Updating ratings after round ${roundNumber} for tournament ${tournamentId}`);
       
       // Obtener emparejamientos de la ronda
       const roundPairings = await this.getRoundPairings(tournamentId, roundNumber);
@@ -753,8 +736,6 @@ export const tournamentDB = {
           currentRatings.set(whitePlayerId, newWhiteRating);
           currentRatings.set(blackPlayerId, newBlackRating);
           
-          console.log(`📊 Rating update: ${whitePlayerId} ${whiteRating} → ${newWhiteRating} (${whiteResult === 1 ? 'W' : whiteResult === 0.5 ? 'D' : 'L'})`);
-          console.log(`📊 Rating update: ${blackPlayerId} ${blackRating} → ${newBlackRating} (${blackResult === 1 ? 'W' : blackResult === 0.5 ? 'D' : 'L'})`);
         }
       }
       
@@ -778,7 +759,6 @@ export const tournamentDB = {
         }
       }
       
-      console.log(`✅ Ratings updated for round ${roundNumber}`);
       
     } catch (error) {
       console.error('❌ Error updating ratings:', error);

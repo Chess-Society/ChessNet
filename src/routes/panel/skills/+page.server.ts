@@ -6,7 +6,6 @@ import { checkPlanGating } from '$lib/server/plans';
 
 export const load: PageServerLoad = async (event) => {
   const { locals } = event;
-  console.log('🎯 Skills page server load - User:', locals.user?.uid);
   
   await checkPlanGating(event, 'premium');
 
@@ -25,7 +24,6 @@ export const load: PageServerLoad = async (event) => {
         .get();
     } catch (dbErr) {
       if (isMock) {
-        console.warn('⚠️ [Skills Load] Firestore failed for mock user, returning initial state');
         return {
           user: locals.user,
           skills: [],

@@ -15,7 +15,6 @@ import {
  * y los copia a la colección raíz 'schools', inyectando el owner_id.
  */
 export async function migrateAllToRoot() {
-  console.log("🚀 Iniciando migración masiva a la raíz...");
   
   const targetCollections = [
     { target: "schools", source: "colleges" },
@@ -37,12 +36,10 @@ export async function migrateAllToRoot() {
   ];
 
   for (const { target, source } of targetCollections) {
-    console.log(`Migrando subcolección '${source}' hacia la raíz '${target}'...`);
     const q = query(collectionGroup(db, source));
     const snapshot = await getDocs(q);
     
     if (snapshot.empty) {
-      console.log(`✅ No se encontraron documentos para '${source}'.`);
       continue;
     }
 
@@ -74,11 +71,8 @@ export async function migrateAllToRoot() {
 
     if (count > 0) {
       await batch.commit();
-      console.log(`✅ Migrados ${count} documentos de '${source}' a '${target}'.`);
     } else {
-      console.log(`✅ Todos los documentos de '${source}' ya estaban en la raíz.`);
     }
   }
   
-  console.log("🚀 Migración masiva completada.");
 }

@@ -39,7 +39,6 @@ export const POST = async ({ request }) => {
         return json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
     }
 
-    console.log(`🔌 Recibido evento Stripe: ${event.type}`);
 
     try {
         switch (event.type) {
@@ -73,7 +72,6 @@ export const POST = async ({ request }) => {
                         details: { sessionId: session.id, customer: session.customer }
                     });
 
-                    console.log(`✅ Usuario ${userId} actualizado a Premium`);
                 }
                 break;
             }
@@ -99,7 +97,6 @@ export const POST = async ({ request }) => {
                         details: { subscriptionId: subscription.id, customer: customerId }
                     });
 
-                    console.log(`❌ Suscripción cancelada para el usuario ${userDoc.id}`);
                 }
                 break;
             }
@@ -121,7 +118,6 @@ export const POST = async ({ request }) => {
             }
 
             default:
-                console.log(`Evento no manejado: ${event.type}`);
         }
 
         return json({ received: true });

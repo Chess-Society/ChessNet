@@ -36,3 +36,15 @@ function createToastStore() {
 }
 
 export const toast = createToastStore();
+
+// Compatibility layer for legacy utils/toast.ts imports
+export const toasts = toast;
+export const showToast = toast;
+export const removeToast = toast.remove;
+export const showError = (
+  error: any,
+  defaultMessage: string = "Ha ocurrido un error",
+) => {
+  const message = error?.message || error?.error_description || defaultMessage;
+  toast.error(typeof error === 'string' ? error : message);
+};

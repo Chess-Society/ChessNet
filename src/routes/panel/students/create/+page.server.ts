@@ -3,7 +3,6 @@ import { schoolsApi } from '$lib/api/schools';
 import { classesApi } from '$lib/api/classes';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  console.log('👥 Students create page server load - User:', locals.user?.email || 'none');
   
   if (!locals.user) {
     return { 

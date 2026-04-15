@@ -98,14 +98,14 @@
       });
 
       if (response.ok) {
-        const { showToast } = await import('$lib/utils/toast');
+        const { showToast } = await import('$lib/stores/toast');
         showToast.success('Skill updated successfully');
         goto('/panel/skills');
       } else {
         throw new Error('Update failed');
       }
     } catch (error) {
-      const { showError } = await import('$lib/utils/toast');
+      const { showError } = await import('$lib/stores/toast');
       showError(error, 'Error updating the skill');
     } finally {
       isSubmitting = false;

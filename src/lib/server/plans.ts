@@ -16,7 +16,6 @@ export async function getUserPlan(uid: string) {
                 return 'premium';
             }
         } catch (authErr) {
-            console.warn('⚠️ [Plans] Could not verify admin status via adminAuth:', authErr);
             // Continue to check database plan
         }
 

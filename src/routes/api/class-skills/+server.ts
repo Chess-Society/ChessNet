@@ -31,7 +31,6 @@ export const GET: RequestHandler = async ({ url }) => {
   const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
   
   if (isLocalDev) {
-    console.log('🔧 DEV MODE: API /api/class-skills GET - Returning mock data');
     
     const classId = url.searchParams.get('class_id');
     const skillId = url.searchParams.get('skill_id');
@@ -62,7 +61,6 @@ export const POST: RequestHandler = async ({ request, url }) => {
   const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
   
   if (isLocalDev) {
-    console.log('🔧 DEV MODE: API /api/class-skills POST - Creating mock skill assignment');
     
     try {
       const body = await request.json();
@@ -98,7 +96,6 @@ export const POST: RequestHandler = async ({ request, url }) => {
       
       mockClassSkills.push(newAssignment);
       
-      console.log('✅ DEV MODE: Skill assigned successfully:', newAssignment);
       return json({ class_skill: newAssignment });
       
     } catch (error) {
@@ -115,7 +112,6 @@ export const DELETE: RequestHandler = async ({ url }) => {
   const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
   
   if (isLocalDev) {
-    console.log('🔧 DEV MODE: API /api/class-skills DELETE - Removing mock skill assignment');
     
     const classId = url.searchParams.get('class_id');
     const skillId = url.searchParams.get('skill_id');
@@ -136,7 +132,6 @@ export const DELETE: RequestHandler = async ({ url }) => {
     // Marcar como inactiva en lugar de eliminar
     mockClassSkills[assignmentIndex].active = false;
     
-    console.log('✅ DEV MODE: Skill unassigned successfully');
     return json({ message: 'Skill unassigned successfully' });
   }
   
@@ -148,7 +143,6 @@ export const PUT: RequestHandler = async ({ request, url }) => {
   const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
   
   if (isLocalDev) {
-    console.log('🔧 DEV MODE: API /api/class-skills PUT - Updating skill order');
     
     try {
       const body = await request.json();
@@ -169,7 +163,6 @@ export const PUT: RequestHandler = async ({ request, url }) => {
         }
       });
       
-      console.log('✅ DEV MODE: Skills order updated successfully');
       return json({ message: 'Skills order updated successfully' });
       
     } catch (error) {

@@ -21,3 +21,6 @@ check_output.txt
 check_results_v4_utf8.txt
 # Backups
 LEGACY_RESOURCES_BACKUP/
+chessnet-modern/
+scratch/
+*.zip

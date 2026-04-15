@@ -353,7 +353,6 @@ export const localTournamentsApi = {
   },
 
   async cleanOrphanedData(): Promise<void> {
-    console.log("🧹 Limpiando datos huérfanos de torneos...");
     const ownerId = await getOwnerId();
     const batch = writeBatch(db);
     let deletedCount = 0;
@@ -382,9 +381,7 @@ export const localTournamentsApi = {
     // 3. Ejecutar borrado si hay huérfanos
     if (deletedCount > 0) {
       await batch.commit();
-      console.log(`✅ Se eliminaron ${deletedCount} registros huérfanos.`);
     } else {
-      console.log("✅ No se encontraron registros huérfanos.");
     }
   }
 };

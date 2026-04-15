@@ -34,10 +34,7 @@ import {
   authInitialized as authStoreInit 
 } from './auth';
 
-const ADMIN_EMAILS: string[] = [
-  'admin@chessnet.app',
-  'tomas@chessnet.app'
-];
+import { ADMIN_EMAILS } from '$lib/constants';
 
 
 // Interfaces para el estado global
@@ -116,7 +113,6 @@ function createAppStore() {
     unsubscribes = [];
 
     if (user) {
-      console.log('👤 [AppStore] Usuario activo:', user.email);
       const isMock = user.uid === 'chessnet-dev-uid';
 
       // 1. Cargar Settings
@@ -139,7 +135,6 @@ function createAppStore() {
         ));
       } else {
         // Modo Mock: Carga manual (o settings por defecto)
-        console.log('🧪 [AppStore] Caracterizando usuario de desarrollo...');
         update(currentState => ({
           ...currentState,
           settings: { ...currentState.settings, plan: 'premium', teacherName: 'ChessNet Admin' }
@@ -170,7 +165,6 @@ function createAppStore() {
           ));
         } else {
           // Modo Mock: Carga vía localStorage (offline persistence)
-          console.log(`📡 [AppStore] Mock Loading from local storage for ${key}...`);
           const saved = localStorage.getItem(`chessnet_mock_${key}`);
           if (saved) {
             try {
@@ -195,7 +189,6 @@ function createAppStore() {
 
       isLoaded = true;
     } else {
-      console.log('🚪 [AppStore] Limpiando store (Sesión cerrada)');
       set(initialState);
       isLoaded = false;
     }
@@ -205,7 +198,9 @@ function createAppStore() {
     subscribe,
     // Métodos CRUD que escriben directamente en las sub-colecciones
     
-    // Escuelas / Centros
+    // ==========================================
+    // REGION: ESCUELAS / CENTROS
+    // ==========================================
     addSchool: async (school: any) => {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
@@ -238,7 +233,10 @@ function createAppStore() {
       await deleteDoc(doc(db, 'schools', id));
     },
     
-    // Alumnos
+    
+    // ==========================================
+    // REGION: ALUMNOS
+    // ==========================================
     addStudent: async (student: any) => {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
@@ -282,7 +280,10 @@ function createAppStore() {
       await deleteDoc(doc(db, 'students', id));
     },
     
-    // Clases
+    
+    // ==========================================
+    // REGION: CLASES
+    // ==========================================
     addClass: async (cls: any) => {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
@@ -325,7 +326,10 @@ function createAppStore() {
       await deleteDoc(doc(db, 'classes', id));
     },
     
-    // Torneos
+    
+    // ==========================================
+    // REGION: TORNEOS GLOBALES
+    // ==========================================
     addTournament: async (tournament: any) => {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
@@ -344,7 +348,10 @@ function createAppStore() {
       await deleteDoc(doc(db, 'tournaments', id));
     },
 
-    // Torneos Locales
+    
+    // ==========================================
+    // REGION: TORNEOS GLOBALES
+    // ========================================== Locales
     addLocalTournament: async (tournament: any) => {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
@@ -431,7 +438,10 @@ function createAppStore() {
       }
     },
     
-    // Pagos
+    
+    // ==========================================
+    // REGION: PAGOS
+    // ==========================================
     addPayment: async (payment: any) => {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
@@ -489,7 +499,10 @@ function createAppStore() {
       await deleteDoc(doc(db, 'skills', id));
     },
 
-    // Settings
+    
+    // ==========================================
+    // REGION: SETTINGS
+    // ==========================================
     updateSettings: async (settings: any) => {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");

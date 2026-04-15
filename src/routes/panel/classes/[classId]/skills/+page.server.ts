@@ -4,8 +4,6 @@ import { skillsApi } from '$lib/api/skills';
 import { classSkillsApi } from '$lib/api/class-skills';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  console.log('🎯 Class skills page server load - User:', locals.user?.email || 'none');
-  console.log('🎯 Class ID:', params.classId);
   
   if (!locals.user) {
     return {
@@ -67,7 +65,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       categories_count: Object.keys(availableSkillsByCategory).length
     };
     
-    console.log('✅ Class skills data loaded successfully');
     return {
       user: locals.user,
       class: classData,

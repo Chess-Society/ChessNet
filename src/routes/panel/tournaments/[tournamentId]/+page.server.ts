@@ -5,7 +5,6 @@ import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const { tournamentId } = params;
-  console.log('🏆 Tournament detail page server load - Tournament:', tournamentId, 'User:', locals.user?.email || 'none');
   
   if (!locals.user) {
     throw error(401, 'User not authenticated');

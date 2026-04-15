@@ -2,13 +2,11 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
   const { studentId } = params;
-  console.log('📊 Student report page server load - Student:', studentId, 'User:', locals.user?.email || 'none');
 
   // ===== BYPASS PARA DESARROLLO LOCAL =====
   const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 
   if (isLocalDev) {
-    console.log('🔧 DEV MODE: Student report page - Providing mock data');
 
     // Importar datos centralizados
     const { mockStudents, mockSchools, mockClasses, mockPayments } = await import('$lib/utils/mockData');

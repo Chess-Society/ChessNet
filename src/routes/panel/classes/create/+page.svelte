@@ -13,7 +13,7 @@
     PlusCircle,
     ArrowRight
   } from 'phosphor-svelte';
-  import { showToast, showError } from '$lib/utils/toast';
+  import { showToast, showError } from '$lib/stores/toast';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
 

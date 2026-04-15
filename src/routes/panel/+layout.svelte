@@ -69,7 +69,7 @@
     isLoggingOut = true;
     try {
       await signOut();
-      await fetch('/logout', { method: 'POST' });
+      await fetch('/api/auth/session', { method: 'DELETE' });
       goto('/login');
     } catch (error) {
       console.error('Logout error:', error);

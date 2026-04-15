@@ -100,13 +100,9 @@
   let unsubscribeUsers: (() => void) | null = null;
 
   onMount(async () => {
-    console.log("🚀 [Admin] page.svelte mounted. Data:", data);
-    console.log("👤 [Admin] authUser:", $authUser?.email);
-    console.log("🛡️ [Admin] isAuthorized:", isAuthorized);
 
     // Si ya sabemos que no está autorizado y el auth no está cargando, paramos aquí
     if (!$authLoading && !isAuthorized) {
-      console.warn("🚫 [Admin] Unauthorized immediately on mount");
       isLoading = false;
       return;
     }
@@ -114,7 +110,6 @@
     // Safety timeout: 10s
     const timeout = setTimeout(() => {
       if (isLoading) {
-        console.warn("⚠️ [Admin] Loading timeout hit (10s).");
         isLoading = false;
         if (!isAuthorized)
           error = "No tiene permisos para acceder o la sesión ha expirado.";
@@ -124,30 +119,23 @@
     if (isAuthorized) {
       isLoading = true;
       try {
-        console.log("📊 [Admin] Fetching stats...");
         const stats = await adminApi.getGlobalStats();
-        console.log("✅ [Admin] Stats received:", stats);
         globalStats = stats;
 
-        console.log("🔧 [Admin] Fetching maintenance status...");
         const config = await adminApi.getMaintenanceStatus();
         maintenanceMode = config.maintenanceMode;
 
-        console.log("📡 [Admin] Starting monitoring...");
         const unsub = startMonitoring();
         if (unsub) unsubscribeUsers = unsub;
       } catch (err: any) {
         console.error("❌ [Admin] Error loading initial data:", err);
         error = err.message || "Error desconocido al cargar datos.";
       } finally {
-        console.log("🏁 [Admin] Loading finished.");
         clearTimeout(timeout);
         isLoading = false;
       }
     } else {
-      console.warn(
-        "🚫 [Admin] Not authorized according to isAuthorized property.",
-      );
+
       clearTimeout(timeout);
       isLoading = false;
     }
@@ -155,7 +143,6 @@
 
   onDestroy(() => {
     if (unsubscribeUsers) {
-      console.log("📴 [Admin] Cleaning up listeners...");
       unsubscribeUsers();
     }
   });

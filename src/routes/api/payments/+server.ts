@@ -5,14 +5,11 @@ import type { PaymentFilters, CreatePaymentData } from '$lib/types';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
   try {
-    console.log('💰 API: GET /api/payments');
-    console.log('User:', locals.user?.email || 'none');
 
     // ===== BYPASS PARA DESARROLLO LOCAL =====
     const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
     
     if (isLocalDev) {
-      console.log('🔧 DEV MODE: Payments API - Returning mock data');
     }
 
     // Parsear filtros de la query string
@@ -82,19 +79,15 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   try {
-    console.log('💰 API: POST /api/payments');
-    console.log('User:', locals.user?.email || 'none');
 
     // ===== BYPASS PARA DESARROLLO LOCAL =====
     const isLocalDev = request.headers.get('host')?.includes('localhost') || 
                        request.headers.get('host')?.includes('127.0.0.1');
     
     if (isLocalDev) {
-      console.log('🔧 DEV MODE: Payments API - Creating mock payment');
     }
 
     const paymentData: CreatePaymentData = await request.json();
-    console.log('Payment data received:', paymentData);
 
     // Validaciones opcionales - solo validar formato si se proporciona
     if (paymentData.amount && paymentData.amount <= 0) {
@@ -136,14 +129,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 export const PUT: RequestHandler = async ({ request, url, locals }) => {
   try {
-    console.log('💰 API: PUT /api/payments');
-    console.log('User:', locals.user?.email || 'none');
 
     // ===== BYPASS PARA DESARROLLO LOCAL =====
     const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
     
     if (isLocalDev) {
-      console.log('🔧 DEV MODE: Payments API - Updating mock payment');
     }
 
     const paymentId = url.searchParams.get('id');
@@ -155,7 +145,6 @@ export const PUT: RequestHandler = async ({ request, url, locals }) => {
     }
 
     const updates = await request.json();
-    console.log('Payment updates received:', updates);
 
     // Actualizar el pago
     const updatedPayment = await paymentsApi.updatePayment(paymentId, updates);
@@ -179,14 +168,11 @@ export const PUT: RequestHandler = async ({ request, url, locals }) => {
 
 export const DELETE: RequestHandler = async ({ url, locals }) => {
   try {
-    console.log('💰 API: DELETE /api/payments');
-    console.log('User:', locals.user?.email || 'none');
 
     // ===== BYPASS PARA DESARROLLO LOCAL =====
     const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
     
     if (isLocalDev) {
-      console.log('🔧 DEV MODE: Payments API - Deleting mock payment');
     }
 
     const paymentId = url.searchParams.get('id');

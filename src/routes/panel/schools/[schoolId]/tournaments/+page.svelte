@@ -14,7 +14,6 @@
   let isLoading = false; // Simplificado - no hay carga de datos
 
   onMount(() => {
-    console.log('✅ Tournaments page: User authenticated via server:', data.user?.email, 'SchoolId:', data.schoolId);
   });
 
   function goBack() {

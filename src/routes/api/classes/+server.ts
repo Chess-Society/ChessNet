@@ -23,7 +23,6 @@ export const GET: RequestHandler = async (event) => {
       return json({ classes });
     } catch (dbError) {
       if (isMock) {
-        console.warn('⚠️ [Classes API GET] Firestore failed for mock user, returning empty list');
         return json({ classes: [] });
       }
       throw dbError;
@@ -67,7 +66,6 @@ export const POST: RequestHandler = async (event) => {
       return json({ class: { id: docRef.id, ...classData } });
     } catch (dbError) {
       if (isMock) {
-        console.warn('⚠️ [Classes API POST] Firestore failed for mock user, returning mock success');
         return json({ class: { id: 'mock-class-' + Date.now(), ...classData } });
       }
       throw dbError;

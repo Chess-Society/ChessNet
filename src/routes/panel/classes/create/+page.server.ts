@@ -2,7 +2,6 @@ import type { PageServerLoad } from './$types';
 import { schoolsApi } from '$lib/api/schools';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  console.log('🎓 Classes create page server load - User:', locals.user?.email || 'none');
   
   if (!locals.user) {
     return {
@@ -14,7 +13,6 @@ export const load: PageServerLoad = async ({ locals }) => {
   try {
     const schools = await schoolsApi.getMySchools();
     
-    console.log('✅ Schools loaded successfully:', schools?.length || 0);
     return {
       user: locals.user,
       schools: schools || []

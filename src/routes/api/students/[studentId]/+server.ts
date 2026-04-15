@@ -2,7 +2,6 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
-  console.log('✏️ API Students - Updating student with ID:', params.studentId);
   
   try {
     const studentId = params.studentId;
@@ -17,7 +16,6 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
     }
 
     const body = await request.json();
-    console.log('📝 Mock update with data:', body);
 
     // Mock successful update
     return json({ 
@@ -33,7 +31,6 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 };
 
 export const DELETE: RequestHandler = async ({ params, locals }) => {
-  console.log('🗑️ API Students - Deleting student with ID:', params.studentId);
   
   try {
     const studentId = params.studentId;
@@ -47,7 +44,6 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
       return json({ error: 'Usuario no autenticado' }, { status: 401 });
     }
 
-    console.log('🗑️ Mock deleting student:', studentId);
 
     return json({ success: true, message: 'Estudiante eliminado correctamente (MOCK)' });
 
