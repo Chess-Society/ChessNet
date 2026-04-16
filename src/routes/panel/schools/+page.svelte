@@ -13,6 +13,11 @@
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { fade, fly } from 'svelte/transition';
+  import { t } from '$lib/i18n';
+  import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
+
+  let showDeleteModal = $state(false);
+  let schoolToDelete = $state<{id: string, name: string} | null>(null);
 
   let searchQuery = $state('');
 
@@ -30,14 +35,36 @@
 
   const deleteSchool = (id: string) => {
     const school = schools.find(s => s.id === id);
-    if (confirm(`¿Eliminar el centro ${school?.name}? Esto no eliminará a los alumnos, pero se quedarán sin centro asignado.`)) {
-      appStore.removeSchool(id);
+    if (school) {
+        schoolToDelete = { id, name: school.name };
+        showDeleteModal = true;
     }
   };
+
+  const confirmDelete = async () => {
+    if (schoolToDelete) {
+      try {
+        const response = await fetch('/api/schools', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: schoolToDelete.id })
+        });
+        if (!response.ok) {
+          const data = await response.json();
+          console.error('Error deleting school:', data.error);
+        }
+      } catch (e) {
+        console.error('Delete school request failed:', e);
+      }
+      showDeleteModal = false;
+      schoolToDelete = null;
+    }
+  };
+
 </script>
 
 <svelte:head>
-  <title>Centros y Clubes - ChessNet</title>
+  <title>{$t('schools.title')} - ChessNet</title>
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-6 pb-12" transition:fade>
@@ -49,8 +76,8 @@
           <Buildings size={32} weight="duotone" />
         </div>
         <div>
-          <h1 class="text-4xl font-outfit font-bold text-white tracking-tight">Centros y Clubes</h1>
-          <p class="text-slate-400 font-jakarta text-sm">Gestiona los centros académicos donde impartes clase.</p>
+          <h1 class="text-4xl font-outfit font-bold text-white tracking-tight">{$t('schools.title')}</h1>
+          <p class="text-slate-400 font-jakarta text-sm">{$t('schools.subtitle')}</p>
         </div>
       </div>
     </div>
@@ -60,7 +87,7 @@
       class="btn-pill bg-violet-600 text-white px-8 py-3.5 font-bold hover:bg-violet-500 transition-all shadow-violet-flare flex items-center gap-2 group"
     >
       <Plus size={20} weight="bold" class="transition-transform group-hover:rotate-90" />
-      Añadir Centro
+      {$t('schools.add_btn')}
     </button>
   </div>
 
@@ -68,7 +95,7 @@
     <MagnifyingGlass size={20} class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-violet-400 transition-colors" />
     <input
       type="text"
-      placeholder="Buscar centros por nombre..."
+      placeholder={$t('schools.search_placeholder')}
       bind:value={searchQuery}
       class="w-full bg-bento-card border border-white/5 rounded-2xl pl-14 pr-6 py-4 text-sm text-white focus:border-violet-500/50 outline-none transition-all backdrop-blur-xl font-jakarta"
     />
@@ -86,8 +113,8 @@
       </div>
       
       <div class="max-w-md mx-auto space-y-4">
-        <h2 class="text-3xl font-outfit font-bold text-white tracking-tight">Tu red de centros</h2>
-        <p class="text-slate-500 font-jakarta text-lg leading-relaxed">Añade tu primer centro o club para empezar a organizar tus clases.</p>
+        <h2 class="text-3xl font-outfit font-bold text-white tracking-tight">{$t('schools.empty_title')}</h2>
+        <p class="text-slate-500 font-jakarta text-lg leading-relaxed">{$t('schools.empty_subtitle')}</p>
       </div>
 
       <button 
@@ -95,7 +122,7 @@
         class="btn-pill bg-violet-600 hover:bg-violet-500 text-white px-10 py-5 font-bold transition-all shadow-violet-flare flex items-center gap-3 mx-auto group ring-8 ring-violet-500/5 text-lg"
       >
         <Plus size={24} weight="bold" class="transition-transform group-hover:rotate-90" />
-        CREAR PRIMER CENTRO
+        {$t('schools.empty_btn')}
       </button>
     </div>
   {:else}
@@ -114,7 +141,8 @@
                 <h3 class="text-white font-outfit font-bold text-lg leading-tight group-hover:text-violet-400 transition-colors">{school.name}</h3>
                 <div class="flex items-center gap-1.5 text-slate-500 font-jakarta text-[11px] mt-0.5 uppercase tracking-wide">
                     <MapPin size={12} weight="fill" class="text-slate-600" />
-                    {school.location || 'Ubicación no definida'}
+                    {school.city || $t('schools.location_not_defined')}
+
                 </div>
               </div>
             </div>
@@ -123,14 +151,14 @@
                 <button 
                   onclick={() => goto(`/panel/schools/${school.id}/edit`)}
                   class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-violet-600/20 hover:border-violet-500/30 transition-all"
-                  title="Edit"
+                  title={$t('common.edit')}
                 >
                   <PencilSimple size={18} />
                 </button>
                 <button 
                   onclick={() => deleteSchool(school.id)}
                   class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all"
-                  title="Delete"
+                  title={$t('common.delete')}
                 >
                   <Trash size={18} />
                 </button>
@@ -142,7 +170,7 @@
                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
                   <Users size={16} weight="duotone" class="text-violet-400" />
                   <span class="text-xs font-outfit font-bold text-white">{getStudentCount(school.id)}</span>
-                  <span class="text-[10px] font-jakarta text-slate-500 uppercase tracking-widest">Alumnos</span>
+                  <span class="text-[10px] font-jakarta text-slate-500 uppercase tracking-widest">{$t('nav.students')}</span>
                </div>
             </div>
 
@@ -150,7 +178,7 @@
               onclick={() => goto(`/panel/schools/${school.id}`)}
               class="flex items-center gap-1.5 text-[11px] font-outfit font-bold text-violet-400 uppercase tracking-widest hover:text-white transition-all group/btn"
             >
-              GESTIONAR
+              {$t('schools.manage_btn')}
               <CaretRight size={14} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>
@@ -159,3 +187,13 @@
     </div>
   {/if}
 </div>
+
+<ConfirmModal
+  bind:show={showDeleteModal}
+  title={$t('schools.delete_btn')}
+  message={$t('schools.delete_confirm').replace('{name}', schoolToDelete?.name || '')}
+  confirmText={$t('common.delete')}
+  cancelText={$t('common.cancel')}
+  onConfirm={confirmDelete}
+  type="danger"
+/>

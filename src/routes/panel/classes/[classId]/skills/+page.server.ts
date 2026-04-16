@@ -1,7 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { classesApi } from '$lib/api/classes';
-import { skillsApi } from '$lib/api/skills';
-import { classSkillsApi } from '$lib/api/class-skills';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   
@@ -14,18 +13,28 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       stats: { total_assigned: 0, total_available: 0, categories_count: 0 }
     };
   }
-  
+
+  const uid = locals.user.uid;
+  const classId = params.classId;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  if (isMock) {
+    return {
+      user: locals.user,
+      class: { id: classId, name: 'Clase Mock', level: 'beginner', owner_id: uid },
+      assignedSkills: [],
+      availableSkillsByCategory: {},
+      stats: { total_assigned: 0, total_available: 0, categories_count: 0 }
+    };
+  }
+
   try {
-    const classId = params.classId;
-    
-    // Obtener la clase, skills asignadas y todas las skills del usuario en paralelo
-    const [classData, assignedClassSkills, allSkills] = await Promise.all([
-      classesApi.getClass(classId),
-      classSkillsApi.getClassSkills(classId),
-      skillsApi.getMySkills()
+    const [classSnap, skillsSnap] = await Promise.all([
+      adminDb.collection('classes').doc(classId).get(),
+      adminDb.collection('skills').where('owner_id', '==', uid).get()
     ]);
-    
-    if (!classData) {
+
+    if (!classSnap.exists) {
       return {
         user: locals.user,
         class: null,
@@ -34,44 +43,32 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         stats: { total_assigned: 0, total_available: 0, categories_count: 0 }
       };
     }
-    
-    // Preparar las skills asignadas con formato compatible con la UI
-    const assignedSkills = assignedClassSkills.map(cs => ({
-      ...cs.skill,
-      assigned_at: cs.created_at,
-      order: cs.order_index,
-      assignment_id: cs.id
-    }));
-    
-    // Filtrar skills no asignadas
-    const assignedSkillIds = assignedSkills.map(s => s.id);
-    const availableSkills = allSkills.filter(s => !assignedSkillIds.includes(s.id));
-    
+
+    const classData = serializeRecord({ id: classSnap.id, ...classSnap.data() });
+    const allSkills = skillsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+
     // Agrupar skills disponibles por categoría
-    // Nota: El script original de Supabase buscaba el nombre en 'categories.name'
-    // En las skills de Firebase, ya adjuntamos 'categories' en getMySkills
-    const availableSkillsByCategory = availableSkills.reduce((acc, skill: any) => {
-      const categoryName = skill.categories?.name || 'Uncategorized';
-      if (!acc[categoryName]) {
-        acc[categoryName] = [];
-      }
+    const availableSkillsByCategory = allSkills.reduce((acc: any, skill: any) => {
+      const categoryName = skill.category || skill.categories?.name || 'Sin categoría';
+      if (!acc[categoryName]) acc[categoryName] = [];
       acc[categoryName].push(skill);
       return acc;
     }, {} as Record<string, any[]>);
-    
+
     const stats = {
-      total_assigned: assignedSkills.length,
-      total_available: availableSkills.length,
+      total_assigned: 0,
+      total_available: allSkills.length,
       categories_count: Object.keys(availableSkillsByCategory).length
     };
-    
+
     return {
       user: locals.user,
       class: classData,
-      assignedSkills,
-      availableSkillsByCategory,
+      assignedSkills: [],
+      availableSkillsByCategory: serializeRecord(availableSkillsByCategory),
       stats
     };
+
   } catch (err: any) {
     console.error('❌ Error in class skills page load:', err);
     return {

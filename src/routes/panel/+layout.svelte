@@ -10,14 +10,25 @@
     Warning,
     Crown,
     UserCircle,
-    CaretDown
+    CaretDown,
+    Buildings,
+    Chalkboard,
+    Users,
+    ListChecks,
+    Wallet,
+    Trophy,
+    ChatCircleDots,
+    Lock
   } from 'phosphor-svelte';
+
   import { fade } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
   import { appStore } from '$lib/stores/appStore';
   import { t, locale } from '$lib/i18n';
   import { auth, signOut } from '$lib/firebase';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+  import { db } from '$lib/firebase';
 
   import { user as authUser, loading as authLoading } from '$lib/stores/auth';
   import type { LayoutData } from './$types';
@@ -37,29 +48,89 @@
   // Impersonation state
   let isImpersonating = $derived(!!data.impersonateEmail);
 
+  // Lobby Notifications state
+  let lobbyPulse = $state(false);
+  let unsubLobby: (() => void) | null = null;
+
+  onMount(() => {
+    if (!$authUser) return;
+
+    // Monitor for new activity in lobby
+    const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
+    const q = query(collection(db, colName), orderBy('createdAt', 'desc'), limit(1));
+    
+    unsubLobby = onSnapshot(q, (snap) => {
+      if (!snap.empty) {
+        const lastActivity = (snap.docs[0].data() as any).createdAt;
+        const lastViewed = localStorage.getItem(`last_viewed_${colName}`);
+        
+        if (lastActivity && (!lastViewed || new Date(lastActivity.toDate()).getTime() > parseInt(lastViewed))) {
+          lobbyPulse = true;
+        }
+      }
+    });
+  });
+
+  onDestroy(() => {
+    if (unsubLobby) unsubLobby();
+  });
+
   function stopImpersonating() {
     document.cookie = 'impersonate_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     window.location.href = '/admin';
   }
 
-  // Breadcrumbs dinámicos simplificados
+  // Breadcrumbs dinámicos localizados con resolución de nombres
   let breadcrumbName = $derived.by(() => {
-    let parts = currentRoute.replace('/panel', '').split('/').filter(e => e);
-    if (parts.length === 0) return 'Overview';
+    const parts = currentRoute.replace('/panel', '').split('/').filter(e => e);
+    if (parts.length === 0) return $t('nav.dashboard');
     
-    const mappings: Record<string, string> = {
-      'students': 'Community',
-      'tournaments': 'Competition',
-      'payments': 'Payments',
-      'classes': 'Classes',
-      'schools': 'Centers',
-      'skills': 'Skills',
-      'reports': 'Reports',
-      'settings': 'Settings',
-      'achievements': 'Achievements'
+    // Mapeo de rutas raíz a claves de traducción
+    const rootMappings: Record<string, string> = {
+      'students': 'nav.students',
+      'tournaments': 'nav.tournaments',
+      'payments': 'nav.payments',
+      'classes': 'nav.classes',
+      'schools': 'nav.schools',
+      'skills': 'nav.skills',
+      'reports': 'nav.reports',
+      'settings': 'nav.settings',
+      'achievements': 'nav.achievements',
+      'attendance': 'nav.attendance',
+      'leads': 'nav.leads'
     };
     
-    return mappings[parts[0]] || parts[0];
+    const base = parts[0];
+    const baseName = rootMappings[base] ? $t(rootMappings[base]) : base;
+    
+    // Si no hay subpartes, devolvemos el base
+    if (parts.length === 1) return baseName;
+
+    // Si hay una segunda parte (ID), intentamos buscar el nombre real en el store
+    const id = parts[1];
+    let entityName = '';
+
+    if (base === 'schools') {
+      entityName = $appStore.schools.find(s => s.id === id)?.name || '';
+    } else if (base === 'classes') {
+      entityName = $appStore.classes.find(c => c.id === id)?.name || '';
+    } else if (base === 'students') {
+      entityName = $appStore.students.find(s => s.id === id)?.name || '';
+    } else if (base === 'tournaments') {
+      entityName = $appStore.localTournaments.find(t => t.id === id)?.name || '';
+    }
+
+    // Si encontramos el nombre, lo usamos. Si no, usamos "Detalles" o la acción (create/edit)
+    if (entityName) {
+      if (parts[2] === 'edit') return `${baseName} / ${entityName} / ${$t('classes.edit_title') || 'Editar'}`;
+      if (parts[2] === 'attendance') return `${baseName} / ${entityName} / ${$t('nav.attendance') || 'Asistencia'}`;
+      return `${baseName} / ${entityName}`;
+    }
+
+    // Manejo de acciones especiales
+    if (id === 'create' || id === 'new') return `${baseName} / ${$t('common.create') || 'Nuevo'}`;
+    
+    return `${baseName} / ${$t('common.details') || 'Detalles'}`;
   });
 
   let initials = $derived(teacherName.substring(0,2).toUpperCase());
@@ -115,6 +186,42 @@
             <CaretRight weight="bold" size={14} class="text-white/10" />
             <span class="text-xs font-outfit font-bold text-white uppercase tracking-widest">{breadcrumbName}</span>
           {/if}
+
+          <!-- Quick Module Switcher (Teachers only) -->
+          <div class="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/5 ml-4">
+            <a href="/panel/schools" 
+               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+               title={$t('nav.schools')}>
+              <Buildings size={20} weight={currentRoute.includes('/schools') ? 'fill' : 'duotone'} />
+            </a>
+            <a href="/panel/classes" 
+               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+               title={$t('nav.classes')}>
+              <Chalkboard size={20} weight={currentRoute.includes('/classes') ? 'fill' : 'duotone'} />
+            </a>
+            <a href="/panel/students" 
+               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+               title={$t('nav.students')}>
+              <Users size={20} weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} />
+            </a>
+            <div class="w-px h-6 bg-white/5 mx-1"></div>
+            <a href="/panel/attendance" 
+               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+               title={$t('nav.attendance')}>
+              <ListChecks size={20} weight={currentRoute.includes('/attendance') ? 'fill' : 'duotone'} />
+            </a>
+            <a href="/panel/payments" 
+               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+               title={$t('nav.payments')}>
+              <Wallet size={20} weight={currentRoute.includes('/payments') ? 'fill' : 'duotone'} />
+            </a>
+            <a href="/panel/tournaments" 
+               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+               title={$t('nav.tournaments')}>
+              <Trophy size={20} weight={currentRoute.includes('/tournaments') ? 'fill' : 'duotone'} />
+            </a>
+          </div>
+
         </nav>
       </div>
 
@@ -174,6 +281,29 @@
                   ADMINISTRATION
                 </a>
               {/if}
+
+              <!-- Lobby / Feedback (Premium feature) -->
+              <a href="/panel/lobby" 
+                onclick={() => {
+                  lobbyPulse = false;
+                  const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
+                  localStorage.setItem(`last_viewed_${colName}`, Date.now().toString());
+                }}
+                class="relative flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold rounded-xl transition-all group/item {plan === 'premium' ? 'text-slate-400 hover:bg-violet-600/10 hover:text-violet-400' : 'text-slate-600 hover:bg-white/5 cursor-pointer'}">
+                <ChatCircleDots weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" />
+                <span class="flex-1">{$t('nav.lobby') || 'COMMUNITY LOBBY'}</span>
+                
+                {#if lobbyPulse && plan === 'premium'}
+                  <div class="absolute right-12 top-1/2 -translate-y-1/2 w-2 h-2 bg-violet-500 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.5)] animate-pulse"></div>
+                {/if}
+
+                {#if plan !== 'premium' && !data.isAdmin}
+                  <div class="flex items-center gap-1.5 px-2 py-1 bg-violet-500/10 rounded-lg border border-violet-500/20">
+                    <Lock weight="fill" size={10} class="text-violet-400" />
+                    <span class="text-[8px] text-violet-400 font-black">PRO</span>
+                  </div>
+                {/if}
+              </a>
             </div>
             
             <div class="mx-2 mt-1 border-t border-white/5 pt-1">
@@ -235,4 +365,3 @@
     box-shadow: 0 0 30px -5px rgba(139, 92, 246, 0.25);
   }
 </style>
-

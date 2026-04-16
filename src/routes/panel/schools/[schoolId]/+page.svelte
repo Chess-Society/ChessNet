@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { t } from '$lib/i18n';
   import { 
     Buildings, 
     CaretLeft,
@@ -28,6 +29,11 @@
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
+  import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
+
+  let showDeleteModal = $state(false);
+  let classToDeleteId = $state('');
+  let classToDeleteName = $state('');
 
   let { data } = $props<{ data: PageData }>();
 
@@ -51,24 +57,24 @@
     })
   );
 
-  const levelLabels: any = {
-    beginner: 'Beginner',
-    intermediate: 'Intermediate',
-    advanced: 'Advanced',
-    mixed: 'Mixed'
+  const deleteClass = (classId: string) => {
+    const cls = classes.find(c => c.id === classId);
+    if (cls) {
+      classToDeleteId = classId;
+      classToDeleteName = cls.name;
+      showDeleteModal = true;
+    }
   };
 
-  const deleteClass = async (classId: string) => {
-    if (!confirm('Are you sure you want to delete this class?')) return;
+  const confirmDelete = async () => {
     try {
-      const response = await fetch(`/api/classes/${classId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/classes/${classToDeleteId}`, { method: 'DELETE' });
       if (response.ok) {
+        showDeleteModal = false;
         window.location.reload();
-      } else {
-        alert('Error deleting class');
       }
     } catch (error) {
-      alert('Error deleting class');
+      console.error('Error deleting class:', error);
     }
   };
 
@@ -86,7 +92,7 @@
 </script>
 
 <svelte:head>
-  <title>{school?.name || 'School'} - ChessNet</title>
+  <title>{school?.name || $t('schools.new')} - ChessNet</title>
 </svelte:head>
 
 <div class="space-y-12 pb-20 px-6 max-w-7xl mx-auto" in:fade>
@@ -98,11 +104,11 @@
         class="flex items-center gap-2 text-zinc-500 hover:text-violet-400 transition-all group text-[10px] font-black uppercase tracking-[0.2em]"
       >
         <CaretLeft size={16} weight="bold" class="transition-transform group-hover:-translate-x-1" />
-        Back to Schools
+        {$t('schools.back')}
       </button>
 
       <div class="flex items-center gap-8">
-        <div class="w-24 h-24 bg-violet-500/10 border border-violet-500/20 rounded-[2.5rem] flex items-center justify-center text-violet-400 shadow-[0_0_50px_rgba(139,92,246,0.1)] transform -rotate-3 hover:rotate-0 transition-all duration-500 group">
+        <div class="w-24 h-24 bg-violet-600/10 border border-violet-500/20 rounded-[2.5rem] flex items-center justify-center text-violet-400 shadow-[0_0_50px_rgba(139,92,246,0.1)] transform -rotate-3 hover:rotate-0 transition-all duration-500 group">
           <Buildings size={48} weight="duotone" class="group-hover:scale-110 transition-transform" />
         </div>
         <div>
@@ -114,9 +120,9 @@
                 {school.city}
               </span>
             {/if}
-            <span class="flex items-center gap-2 text-[10px] font-black text-primary-400 uppercase tracking-widest bg-primary-500/10 px-4 py-1.5 rounded-full border border-primary-500/20">
+            <span class="flex items-center gap-2 text-[10px] font-black text-violet-400 uppercase tracking-widest bg-violet-500/10 px-4 py-1.5 rounded-full border border-violet-500/20">
               <Pulse size={14} weight="bold" />
-              Active Site
+              {$t('schools.active')}
             </span>
           </div>
         </div>
@@ -129,14 +135,14 @@
         class="flex items-center gap-2 px-6 py-3 text-[10px] font-black uppercase tracking-widest bg-zinc-950/50 hover:bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 rounded-xl transition-all"
       >
         <PencilSimple size={16} weight="duotone" />
-        Configure Site
+        {$t('schools.edit')}
       </button>
       <button 
         onclick={() => school?.id && goto(`/panel/classes/create?schoolId=${school.id}`)}
         class="bg-violet-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 transition-all shadow-[0_10px_30px_-10px_rgba(139,92,246,0.4)] flex items-center gap-2 group"
       >
         <Plus size={16} weight="bold" class="group-hover:rotate-90 transition-transform" />
-        New Class
+        {$t('dashboard.step2')}
       </button>
     </div>
   </div>
@@ -145,53 +151,53 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
     <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2rem] border-b-4 border-b-violet-500 shadow-xl group hover:-translate-y-1 transition-all duration-300">
       <div class="flex items-start justify-between mb-4">
-        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Active Classes</p>
+        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('schools.stats.classes')}</p>
         <div class="p-2 bg-violet-500/10 rounded-xl text-violet-400">
           <GraduationCap size={20} weight="duotone" />
         </div>
       </div>
       <div class="flex items-baseline gap-2">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{stats.totalClasses}</h3>
-        <span class="text-[10px] font-bold text-zinc-600 uppercase">Classes</span>
+        <span class="text-[10px] font-bold text-zinc-600 uppercase">{$t('nav.classes')}</span>
       </div>
     </div>
     
     <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2rem] border-b-4 border-b-blue-500 shadow-xl group hover:-translate-y-1 transition-all duration-300">
       <div class="flex items-start justify-between mb-4">
-        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Est. Capacity</p>
+        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('schools.stats.capacity')}</p>
         <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400">
           <Users size={20} weight="duotone" />
         </div>
       </div>
       <div class="flex items-baseline gap-2">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{stats.totalCapacity || 0}</h3>
-        <span class="text-[10px] font-bold text-zinc-600 uppercase">Slots</span>
+        <span class="text-[10px] font-bold text-zinc-600 uppercase">{$t('schools.stats.slots')}</span>
       </div>
     </div>
 
     <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2rem] border-b-4 border-b-purple-500 shadow-xl group hover:-translate-y-1 transition-all duration-300">
       <div class="flex items-start justify-between mb-4">
-        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Diversity</p>
+        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('schools.stats.diversity')}</p>
         <div class="p-2 bg-purple-500/10 rounded-xl text-purple-400">
           <Target size={20} weight="duotone" />
         </div>
       </div>
       <div class="flex items-baseline gap-2">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{Object.values(stats.levels || {}).filter((v: any) => v > 0).length}</h3>
-        <span class="text-[10px] font-bold text-zinc-600 uppercase">Levels</span>
+        <span class="text-[10px] font-bold text-zinc-600 uppercase">{$t('schools.stats.levels')}</span>
       </div>
     </div>
 
     <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2rem] border-b-4 border-b-amber-500 shadow-xl group hover:-translate-y-1 transition-all duration-300">
       <div class="flex items-start justify-between mb-4">
-        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Avg Performance</p>
+        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('schools.stats.avg_perf')}</p>
         <div class="p-2 bg-amber-500/10 rounded-xl text-amber-400">
           <ChartLineUp size={20} weight="duotone" />
         </div>
       </div>
       <div class="flex items-baseline gap-2">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">88%</h3>
-        <span class="text-[10px] font-bold text-zinc-600 uppercase">Target</span>
+        <span class="text-[10px] font-bold text-zinc-600 uppercase">{$t('common.target')}</span>
       </div>
     </div>
   </div>
@@ -203,7 +209,7 @@
         <div class="p-2 bg-zinc-900 rounded-xl border border-zinc-800">
           <BookOpen size={24} weight="duotone" class="text-violet-400" />
         </div>
-        Training Classes
+        {$t('schools.training_classes')}
       </h2>
       
       <div class="flex items-center gap-4">
@@ -213,17 +219,17 @@
               onclick={() => selectedStatus = status}
               class={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStatus === status ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
-              {status === 'active' ? 'Active' : 'History'}
+              {status === 'active' ? $t('dashboard.stats.active') : $t('schools.history')}
             </button>
           {/each}
         </div>
         
         <div class="relative">
           <select bind:value={selectedLevel} class="appearance-none bg-zinc-950 border border-zinc-800 rounded-2xl pl-6 pr-12 py-3.5 text-[10px] font-black text-white uppercase tracking-widest outline-none cursor-pointer hover:border-zinc-700 transition-all shadow-inner">
-            <option value="">ALL LEVELS</option>
-            <option value="beginner">BEGINNER</option>
-            <option value="intermediate">INTERMEDIATE</option>
-            <option value="advanced">ADVANCED</option>
+            <option value="">{$t('schools.all_levels')}</option>
+            <option value="beginner">{$t('common.levels.beginner').toUpperCase()}</option>
+            <option value="intermediate">{$t('common.levels.intermediate').toUpperCase()}</option>
+            <option value="advanced">{$t('common.levels.advanced').toUpperCase()}</option>
           </select>
           <CaretRight size={14} weight="bold" class="absolute right-5 top-1/2 -translate-y-1/2 rotate-90 text-zinc-500 pointer-events-none" />
         </div>
@@ -236,14 +242,14 @@
           <Star size={48} weight="duotone" class="opacity-30" />
         </div>
         <div class="max-w-xs mx-auto space-y-4">
-          <h3 class="text-lg font-outfit font-black text-white uppercase tracking-widest">No classes configured</h3>
-          <p class="text-sm font-jakarta text-zinc-500 leading-relaxed">Start organizing training classes in this school now.</p>
+          <h3 class="text-lg font-outfit font-black text-white uppercase tracking-widest">{$t('schools.no_classes')}</h3>
+          <p class="text-sm font-jakarta text-zinc-500 leading-relaxed">{$t('schools.no_classes_desc')}</p>
         </div>
         <button 
           onclick={handleCreateClass}
           class="bg-violet-600 text-white px-10 py-5 rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-violet-500 transition-all shadow-[0_20px_40px_-10px_rgba(139,92,246,0.3)] ring-8 ring-violet-500/5"
         >
-          Create Class Now
+          {$t('schools.create_class')}
         </button>
       </div>
     {:else}
@@ -262,20 +268,20 @@
               <div class="flex items-start justify-between mb-8 relative z-10">
                 <div class="space-y-3">
                   <span class={`text-[8px] font-black uppercase tracking-[0.3em] px-3 py-1 rounded-full border shadow-sm ${
-                    item.level === 'beginner' ? 'bg-primary-500/10 border-primary-500/20 text-primary-400' :
+                    item.level === 'beginner' ? 'bg-violet-500/10 border-violet-500/20 text-violet-400' :
                     item.level === 'intermediate' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
                     'bg-purple-500/10 border-purple-500/20 text-purple-400'
                   }`}>
-                    {levelLabels[item.level] || item.level}
+                    {$t(`common.levels.${item.level}`)}
                   </span>
                   <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight group-hover:text-violet-400 transition-colors leading-tight">{item.name}</h3>
                 </div>
                 
                 <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                  <button onclick={() => handleEditClass(item.id)} class="p-3 bg-zinc-950/50 text-zinc-500 hover:text-white hover:bg-zinc-900 rounded-xl transition-all border border-zinc-800 shadow-xl">
+                  <button onclick={() => handleEditClass(item.id)} class="p-3 bg-zinc-950/50 text-zinc-500 hover:text-white hover:bg-zinc-900 rounded-xl transition-all border border-zinc-800 shadow-xl" title={$t('common.edit')}>
                     <PencilSimple size={18} weight="duotone" />
                   </button>
-                  <button onclick={() => deleteClass(item.id)} class="p-3 bg-zinc-950/50 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-zinc-800 shadow-xl">
+                  <button onclick={() => deleteClass(item.id)} class="p-3 bg-zinc-950/50 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-zinc-800 shadow-xl" title={$t('common.delete')}>
                     <Trash size={18} weight="duotone" />
                   </button>
                 </div>
@@ -283,7 +289,7 @@
 
               <div class="space-y-4 mb-10 relative z-10">
                 <div class="flex items-center justify-between text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
-                  <span class="flex items-center gap-2"><Users size={16} weight="duotone" class="text-violet-500" /> Students</span>
+                  <span class="flex items-center gap-2"><Users size={16} weight="duotone" class="text-violet-500" /> {$t('nav.students')}</span>
                   <span class="text-zinc-200">{(item.students_count || 0)} <span class="text-zinc-700 mx-1">/</span> {item.max_students || '∞'}</span>
                 </div>
                 <div class="h-2 bg-zinc-950 rounded-full overflow-hidden p-0.5 border border-zinc-800 shadow-inner">
@@ -296,7 +302,7 @@
               onclick={() => handleViewClass(item.id)}
               class="w-full py-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white hover:border-violet-500/50 hover:bg-zinc-900 transition-all flex items-center justify-center gap-3 group/btn relative z-10 shadow-lg"
             >
-              View Class Panel
+              {$t('classes.view_panel')}
               <CaretRight size={16} weight="bold" class="group-hover/btn:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -306,6 +312,12 @@
   </div>
 </div>
 
-<style lang="postcss">
-  /* School detail refined with Bento Dark aesthetics */
-</style>
+<ConfirmModal
+  bind:show={showDeleteModal}
+  title={$t('common.danger_zone')}
+  message={$t('classes.delete_confirm').replace('{name}', classToDeleteName)}
+  confirmText={$t('common.delete')}
+  cancelText={$t('common.cancel')}
+  onConfirm={confirmDelete}
+  type="danger"
+/>

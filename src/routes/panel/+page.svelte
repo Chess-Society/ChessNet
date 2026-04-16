@@ -46,7 +46,6 @@
     { id: 'reports', title: $t('actions.reports.title'), desc: $t('actions.reports.desc'), icon: ChartBar, color: 'text-cyan-400', link: '/panel/reports', premium: true },
     { id: 'payments', title: $t('actions.payments.title'), desc: $t('actions.payments.desc'), icon: CreditCard, color: 'text-teal-400', link: '/panel/payments', badge: 'BETA', premium: true },
     { id: 'planner', title: $t('actions.planner.title'), desc: $t('actions.planner.desc'), icon: CalendarBlank, color: 'text-indigo-400', link: '/panel/planner', badge: 'NEW', premium: true },
-    { id: 'leads', title: $t('actions.messages.title'), desc: $t('actions.messages.desc'), icon: ChatCircleDots, color: 'text-pink-400', link: '/panel/messages', badge: 'NEW', premium: true },
     { id: 'achievements', title: $t('actions.achievements.title'), desc: $t('actions.achievements.desc'), icon: Medal, color: 'text-amber-400', link: '/panel/achievements' }
   ];
 
@@ -92,7 +91,7 @@
   const hasSchools = $derived($appStore.schools.length > 0);
   const hasClasses = $derived($appStore.classes.length > 0);
   const hasStudents = $derived($appStore.students.length > 0);
-  const isFullyBoarded = $derived(hasSchools && hasClasses && hasStudents);
+  const isFullyBoarded = $derived(hasClasses && hasStudents);
 
   // Actividad reciente dinámica
   let recentActivity = $derived(() => {
@@ -111,7 +110,7 @@
     $appStore.payments.slice(-3).reverse().forEach(p => {
       const student = $appStore.students.find(s => s.id === (p as any).studentId || s.id === p.student_id);
       activities.push({ 
-        message: `${$t('dashboard.activity.payment')}: ${p.amount}€ - ${student?.name || $t('common.unknown')}`, 
+        message: `${$t('dashboard.activity.payment')}: ${p.amount}${$t('common.currency')} - ${student?.name || $t('common.unknown')}`, 
         time: $t('dashboard.activity.recent'), 
         icon: CurrencyEur, 
         color: 'text-teal-400',
@@ -323,7 +322,7 @@
                             {/if}
                         </div>
                         <div>
-                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">{$t('common.step')} 1</p>
+                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">{$t('nav.schools')} ({$t('common.optional')})</p>
                             <p class="text-xs font-bold whitespace-nowrap">{$t('dashboard.step1')}</p>
                         </div>
                     </button>
@@ -331,8 +330,7 @@
                     <!-- Step 2: Classes -->
                     <button 
                       onclick={() => goto('/panel/classes')}
-                      disabled={!hasSchools}
-                      class="flex flex-col items-start gap-4 p-5 rounded-24 border transition-all duration-300 {!hasSchools ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5' : hasClasses ? 'bg-violet-500/5 border-violet-500/20 text-violet-400' : 'bg-white/5 border-white/5 hover:border-primary-500/50 text-surface-400'}"
+                      class="flex flex-col items-start gap-4 p-5 rounded-24 border transition-all duration-300 {hasClasses ? 'bg-violet-500/5 border-violet-500/20 text-violet-400' : 'bg-white/5 border-white/5 hover:border-primary-500/50 text-surface-400'}"
                     >
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center {hasClasses ? 'bg-violet-500/20' : 'bg-white/5'}">
                             {#if hasClasses}
@@ -342,7 +340,7 @@
                             {/if}
                         </div>
                         <div>
-                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">{$t('common.step')} 2</p>
+                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">{$t('nav.classes')}</p>
                             <p class="text-xs font-bold whitespace-nowrap">{$t('dashboard.step2')}</p>
                         </div>
                     </button>
@@ -350,8 +348,7 @@
                     <!-- Step 3: Students -->
                     <button 
                       onclick={() => goto('/panel/students')}
-                      disabled={!hasClasses}
-                      class="flex flex-col items-start gap-4 p-5 rounded-24 border transition-all duration-300 {!hasClasses ? 'opacity-40 cursor-not-allowed bg-white/5 border-white/5' : hasStudents ? 'bg-violet-500/5 border-violet-500/20 text-violet-400' : 'bg-white/5 border-white/5 hover:border-primary-500/50 text-surface-400'}"
+                      class="flex flex-col items-start gap-4 p-5 rounded-24 border transition-all duration-300 {hasStudents ? 'bg-violet-500/5 border-violet-500/20 text-violet-400' : 'bg-white/5 border-white/5 hover:border-primary-500/50 text-surface-400'}"
                     >
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center {hasStudents ? 'bg-violet-500/20' : 'bg-white/5'}">
                             {#if hasStudents}
@@ -361,7 +358,7 @@
                             {/if}
                         </div>
                         <div>
-                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">{$t('common.step')} 3</p>
+                            <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">{$t('nav.students')}</p>
                             <p class="text-xs font-bold whitespace-nowrap">{$t('dashboard.step3')}</p>
                         </div>
                     </button>
@@ -393,7 +390,7 @@
             </p>
             <div class="flex items-baseline gap-1">
               <p class="text-5xl font-extrabold text-white tracking-tighter font-display">{stats.monthlyRevenue}</p>
-              <span class="text-2xl font-bold text-surface-600 tracking-tighter font-display">€</span>
+              <span class="text-2xl font-bold text-surface-600 tracking-tighter font-display">{$t('common.currency')}</span>
             </div>
             <p class="text-[10px] font-bold text-primary-400 mt-4 flex items-center gap-1.5 uppercase tracking-wider">
               <TrendUp weight="bold" size={12} /> {$t('dashboard.stats.this_month')}
@@ -441,7 +438,7 @@
               <div>
                 <h3 class="text-surface-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{$t('dashboard.revenue_trend')}</h3>
                 <div class="flex items-baseline gap-2 mt-2">
-                  <span class="text-3xl font-extrabold text-white tracking-tighter font-display">{stats.monthlyRevenue}€</span>
+                  <span class="text-3xl font-extrabold text-white tracking-tighter font-display">{stats.monthlyRevenue}{$t('common.currency')}</span>
                   <span class="text-[10px] font-bold text-violet-400 uppercase tracking-widest">{$t('dashboard.stats.revenue_increase')}</span>
                 </div>
               </div>

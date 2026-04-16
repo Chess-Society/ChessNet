@@ -2,11 +2,16 @@
   import { Map, Lock, Cloud, Cog, Smartphone, Zap, School, ArrowLeft, ArrowRight, Sparkles } from 'lucide-svelte';
   import { fade, fly } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
+  import { t, locale } from '$lib/i18n';
+
+  function toggleLocale() {
+    locale.update(l => l === 'en' ? 'es' : 'en');
+  }
 </script>
 
 <svelte:head>
-  <title>Roadmap 2026+ | ChessNet Vision</title>
-  <meta name="description" content="Explore the future of ChessNet. Our strategic vision to transform digital chess teaching." />
+  <title>{$t('nav.roadmap')} | ChessNet</title>
+  <meta name="description" content={$t('roadmap.subtitle')} />
 </svelte:head>
 
 <div class="min-h-screen bg-bento-bg text-surface-200 font-sans selection:bg-primary-500/30 overflow-x-hidden">
@@ -25,10 +30,20 @@
       </div>
       <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
     </a>
-    <a href="/" class="flex items-center gap-2 text-surface-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
-      <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-      Back
-    </a>
+    <div class="flex items-center gap-6 relative z-10">
+      <!-- Language Switcher -->
+      <button 
+        onclick={toggleLocale} 
+        class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-surface-400 hover:text-white hover:border-white/20 transition-all"
+      >
+        {$locale}
+      </button>
+
+      <a href="/" class="flex items-center gap-2 text-surface-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
+        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        {$t('roadmap.back')}
+      </a>
+    </div>
   </nav>
 
   <!-- Content -->
@@ -40,12 +55,12 @@
       
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-surface-400 text-[10px] font-black uppercase tracking-widest mb-6">
         <Sparkles class="w-3.5 h-3.5 text-primary-400" />
-        <span>Constant Evolution</span>
+        <span>{$t('roadmap.feedback')}</span>
       </div>
 
-      <h1 class="text-4xl md:text-6xl font-display font-black tracking-tight text-white mb-6">Our <span class="text-primary-400 italic">Vision</span></h1>
+      <h1 class="text-4xl md:text-6xl font-display font-black tracking-tight text-white mb-6">{$t('roadmap.title')}</h1>
       <p class="text-lg md:text-xl text-surface-400 leading-relaxed max-w-2xl mx-auto font-medium mb-10">
-        Building the ultimate ecosystem for the growth of chess academies and clubs.
+        {$t('roadmap.subtitle')}
       </p>
       
       <div class="inline-flex items-center gap-2 bg-yellow-500/10 text-yellow-400 px-5 py-2.5 rounded-2xl border border-yellow-500/20 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
@@ -74,20 +89,20 @@
                 <div class="p-3 rounded-2xl bg-primary-500/10 text-primary-400 group-hover:scale-110 transition-transform">
                   <Lock class="w-6 h-6" />
                 </div>
-                <h3 class="text-2xl font-bold text-white tracking-tight">Advanced Security</h3>
+                <h3 class="text-2xl font-bold text-white tracking-tight">{$t('roadmap.q1_title')}</h3>
               </div>
               <ul class="space-y-3">
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-primary-500/50"></div>
-                  <span class="font-medium">MFA and Biometric Support</span>
+                  <span class="font-medium">{$t('roadmap.q1_desc1')}</span>
                 </li>
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-primary-500/50"></div>
-                  <span class="font-medium">Active Session Management</span>
+                  <span class="font-medium">{$t('roadmap.q1_desc2')}</span>
                 </li>
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-primary-500/50"></div>
-                  <span class="font-medium">Real-time Access Auditing</span>
+                  <span class="font-medium">{$t('roadmap.q1_desc3')}</span>
                 </li>
               </ul>
             </div>
@@ -109,20 +124,20 @@
                 <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform">
                   <Cloud class="w-6 h-6" />
                 </div>
-                <h3 class="text-2xl font-bold text-white tracking-tight">Eco-Sync</h3>
+                <h3 class="text-2xl font-bold text-white tracking-tight">{$t('roadmap.q2_title')}</h3>
               </div>
               <ul class="space-y-3">
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
-                  <span class="font-medium">Intelligent Mass Migration</span>
+                  <span class="font-medium">{$t('roadmap.q2_desc1')}</span>
                 </li>
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
-                  <span class="font-medium">Drive and Dropbox Integration</span>
+                  <span class="font-medium">{$t('roadmap.q2_desc2')}</span>
                 </li>
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-blue-500/50"></div>
-                  <span class="font-medium">Offline Mode 2.0</span>
+                  <span class="font-medium">{$t('roadmap.q2_desc3')}</span>
                 </li>
               </ul>
             </div>
@@ -144,20 +159,20 @@
                 <div class="p-3 rounded-2xl bg-violet-500/10 text-violet-400 group-hover:scale-110 transition-transform">
                   <Zap class="w-6 h-6" />
                 </div>
-                <h3 class="text-2xl font-bold text-white tracking-tight">Predictive AI</h3>
+                <h3 class="text-2xl font-bold text-white tracking-tight">{$t('roadmap.q3_title')}</h3>
               </div>
               <ul class="space-y-3">
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-violet-500/50"></div>
-                  <span class="font-medium">Automatic Talent Detection</span>
+                  <span class="font-medium">{$t('roadmap.q3_desc1')}</span>
                 </li>
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-violet-500/50"></div>
-                  <span class="font-medium">Automated Report Generation</span>
+                  <span class="font-medium">{$t('roadmap.q3_desc2')}</span>
                 </li>
                 <li class="flex items-center gap-3 text-surface-400">
                   <div class="w-1.5 h-1.5 rounded-full bg-violet-500/50"></div>
-                  <span class="font-medium">Assisted Game Analysis</span>
+                  <span class="font-medium">{$t('roadmap.q3_desc3')}</span>
                 </li>
               </ul>
             </div>
@@ -172,15 +187,15 @@
         <div class="absolute top-0 right-0 p-4 opacity-10">
           <Sparkles class="w-24 h-24 text-primary-500" />
         </div>
-        <h2 class="text-3xl font-display font-black text-white mb-6 italic">Have an idea?</h2>
-        <p class="text-surface-400 mb-10 font-medium">Our roadmap is a living organism that grows with your suggestions and needs.</p>
+        <h2 class="text-3xl font-display font-black text-white mb-6 italic">{$t('roadmap.cta_title')}</h2>
+        <p class="text-surface-400 mb-10 font-medium">{$t('roadmap.cta_desc')}</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="https://discord.gg/G7SrFtJHnr" target="_blank" class="px-8 py-4 rounded-2xl bg-primary-500 text-white font-bold hover:bg-primary-600 transition-all shadow-xl shadow-primary-500/25 flex items-center justify-center gap-3 group">
-            Suggest on Discord
+            {$t('roadmap.discord')}
             <ArrowRight class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </a>
           <a href="/login" class="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-            Get Started
+            {$t('roadmap.start')}
           </a>
         </div>
       </div>

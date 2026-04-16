@@ -1,6 +1,5 @@
 import { json } from '@sveltejs/kit';
 import { adminDb } from '$lib/firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
 import type { RequestHandler } from './$types';
 import { authenticate } from '$lib/server/auth';
 import { serializeRecord } from '$lib/server/serialize';
@@ -19,6 +18,7 @@ export const POST: RequestHandler = async (event) => {
     
     const tournamentData = {
       owner_id: uid,
+      school_id: body.school_id || null,
       name: body.name || 'Torneo sin nombre',
       description: body.description || null,
       format: body.format || 'swiss',

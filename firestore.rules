@@ -14,6 +14,11 @@ service cloud.firestore {
     // Perfiles y Configuración de usuario (Identificados por UID)
     match /users/{userId} {
       allow read, write: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      
+      // Permitir acceso a subcolecciones de usuario (settings, appData, etc.)
+      match /{allSubcollections=**} {
+        allow read, write: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      }
     }
     
     match /app_settings/{userId} {
@@ -21,10 +26,17 @@ service cloud.firestore {
     }
 
     match /user_subscriptions/{userId} {
-      allow read, write: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow read: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow write: if isSuperAdmin();
     }
     
     // Configuración del sistema y Logs (Solo Admin)
+    // Configuración del sistema y Logs
+    match /system/config {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+    
     match /system/{docId} {
       allow read, write: if isSuperAdmin();
     }
@@ -37,13 +49,29 @@ service cloud.firestore {
       allow read, write: if isSuperAdmin();
     }
     
-    // Regla maestra para datos de negocio (centros, clases, alumnos)
+    // Lobby: Sugerencias de la comunidad
+    match /lobby_suggestions/{suggestionId} {
+      allow read: if isAuthenticated();
+      allow delete: if isSuperAdmin();
+      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes']))
+      );
+    }
+
+    // Lobby: Comunicados oficiales
+    match /lobby_announcements/{announcementId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // Regla maestra para datos de negocio (centros, clases, alumnos, etc)
     match /{collection}/{docId} {
-      allow read, create, update, delete: if isSuperAdmin() || 
-        (isAuthenticated() && (
-          (resource != null && isOwner(resource.data)) || 
-          (request.resource != null && isOwner(request.resource.data))
-        ));
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isSuperAdmin() || (isAuthenticated() && request.resource.data.owner_id == request.auth.uid);
+      allow update: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid && request.resource.data.owner_id == request.auth.uid);
+      allow delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
     }
   }
 }

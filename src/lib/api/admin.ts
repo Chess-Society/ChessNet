@@ -11,7 +11,6 @@ import {
   getDoc,
   updateDoc,
   setDoc,
-  Timestamp,
   deleteDoc
 } from "firebase/firestore";
 
@@ -113,6 +112,23 @@ export const adminApi = {
   },
 
   /**
+   * Obtiene detalles profundos de un usuario (conteos de entidades).
+   */
+  async getUserDetails(userId: string) {
+    const [schoolsSnap, classesSnap, studentsSnap] = await Promise.all([
+      getCountFromServer(query(collection(db, "schools"), where("teacherId", "==", userId))),
+      getCountFromServer(query(collection(db, "classes"), where("teacherId", "==", userId))),
+      getCountFromServer(query(collection(db, "students"), where("teacherId", "==", userId)))
+    ]);
+
+    return {
+      schools: schoolsSnap.data().count,
+      classes: classesSnap.data().count,
+      students: studentsSnap.data().count
+    };
+  },
+
+  /**
    * Logs del Sistema
    */
   async getSystemLogs(limitCount = 50) {
@@ -121,6 +137,26 @@ export const adminApi = {
       orderBy("timestamp", "desc"), 
       limit(limitCount)
     );
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  },
+
+  /**
+   * Lobby Moderation
+   */
+  async getLobbySuggestions() {
+    const q = query(collection(db, "lobby_suggestions"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  },
+
+  async updateSuggestionStatus(id: string, status: string) {
+    const docRef = doc(db, "lobby_suggestions", id);
+    await updateDoc(docRef, { status });
+  },
+
+  async getLobbyAnnouncements() {
+    const q = query(collection(db, "lobby_announcements"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }

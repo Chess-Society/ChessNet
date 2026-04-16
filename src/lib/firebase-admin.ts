@@ -41,15 +41,46 @@ if (!admin.apps.length) {
     initialized = true;
 }
 
+// Helper for development fallback
+const isDev = process.env.NODE_ENV === 'development';
+
 // Exportamos getters que lanzan un error claro si se usan sin estar inicializados
 export const adminDb = initialized ? getFirestore() : new Proxy({} as any, {
-    get() {
+    get(target, prop) {
+        if (isDev && (prop === 'collection' || prop === 'doc' || prop === 'batch')) {
+             if (prop === 'batch') return () => ({
+                 set: () => ({}),
+                 update: () => ({}),
+                 delete: () => ({}),
+                 commit: async () => ({})
+             });
+             return () => ({
+                 get: async () => ({ exists: false, data: () => ({}), docs: [] }),
+                 where: function() { return this; },
+                 orderBy: function() { return this; },
+                 limit: function() { return this; },
+                 add: async () => ({ id: 'mock-id' }),
+                 set: async () => ({}),
+                 update: async () => ({}),
+                 delete: async () => ({})
+             });
+        }
         throw new Error('❌ [FirebaseAdmin] adminDb utilizado pero el SDK no está inicializado. Verifica tus variables de entorno (FB_CLIENT_EMAIL, FB_PRIVATE_KEY).');
     }
 });
 
 export const adminAuth = initialized ? getAuth() : new Proxy({} as any, {
-    get() {
+    get(target, prop) {
+        if (isDev) {
+            if (prop === 'createSessionCookie') return async () => 'mock-session-chessnet';
+            if (prop === 'verifySessionCookie') return async () => ({
+                uid: 'chessnet-dev-uid',
+                email: 'admin@chessnet.pro',
+                name: 'ChessNet Developer',
+                picture: 'https://ui-avatars.com/api/?name=Chess+Net&background=7C3AED&color=fff',
+                admin: true
+            });
+        }
         throw new Error('❌ [FirebaseAdmin] adminAuth utilizado pero el SDK no está inicializado. Verifica tus variables de entorno (FB_CLIENT_EMAIL, FB_PRIVATE_KEY).');
     }
 });

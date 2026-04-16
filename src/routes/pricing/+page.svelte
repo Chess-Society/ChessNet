@@ -7,6 +7,7 @@
   import { onAuthStateChanged, type User } from 'firebase/auth';
   import Logo from '$lib/components/Logo.svelte';
 
+  import { toast, showError } from '$lib/stores/toast';
   import { t, locale } from '$lib/i18n';
 
   let currentUser = $state<User | null>(null);
@@ -31,10 +32,10 @@
       if (result.success && result.payment_url) {
         window.location.href = result.payment_url;
       } else {
-        alert(result.error || 'Error starting subscription');
+        toast.error(result.error || 'Error starting subscription');
       }
     } catch (e) {
-      alert('Connection error');
+      showError(e, 'Connection error');
     }
   }
 
@@ -100,9 +101,7 @@
         <span>{$t('pricing.recommended')}</span>
       </div>
       <h1 class="text-5xl md:text-7xl font-display font-black text-white mb-8 tracking-tight">
-        {$t('pricing.title').split('<br />')[0]} <br /> 
-        <span class="text-primary-400 italic">{$t('pricing.title').includes('abusivas') ? 'Abusivas' : 'Abusive'}</span> 
-        {$t('pricing.title').includes('abusivas') ? 'cuotas' : 'fees'}
+        {$t('pricing.title')}
       </h1>
       <p class="max-w-2xl mx-auto text-lg md:text-xl text-surface-400">{$t('pricing.subtitle')}</p>
     </div>
@@ -183,27 +182,27 @@
         <div class="p-8 border-b border-white/5 bg-white/[0.01]">
           <h3 class="text-2xl font-bold text-white flex items-center gap-3">
              <Scale class="w-6 h-6 text-primary-400" />
-             { $locale === 'es' ? 'Tabla Comparativa' : 'Comparison Table' }
+             {$t('pricing.comparison.title')}
           </h3>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-white/[0.02]">
-                <th class="py-6 px-10 text-[10px] font-black uppercase tracking-widest text-surface-600">Module</th>
+                <th class="py-6 px-10 text-[10px] font-black uppercase tracking-widest text-surface-600">{$t('pricing.comparison.module')}</th>
                 <th class="py-6 px-10 text-center text-xs font-bold uppercase text-surface-400 tracking-tighter">{$t('pricing.free.title')}</th>
-                <th class="py-6 px-10 text-center text-xs font-black uppercase text-primary-400 tracking-tighter bg-primary-500/[0.03]">Premium</th>
+                <th class="py-6 px-10 text-center text-xs font-black uppercase text-primary-400 tracking-tighter bg-primary-500/[0.03]">{$t('pricing.premium.title')}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-white/5">
               {#each [
-                ['Student Management', 'Up to 12', 'Unlimited'],
-                ['Centers and Groups', 'Limited', 'Unlimited'],
-                ['Attendance Tracking', 'Yes', 'Yes'],
-                ['Tournaments and Pairings', 'No', 'Yes'],
-                ['Export Data', 'No', 'Yes'],
-                ['Automatic Diplomas', 'No', 'Yes'],
-                ['24/7 Support', 'Basic', 'Priority']
+                [$t('pricing.table.feat1'), $t('pricing.free.feat3'), $t('pricing.table.unlimited')],
+                [$t('pricing.table.feat2'), $t('pricing.table.limited'), $t('pricing.table.unlimited')],
+                [$t('pricing.table.feat3'), $t('pricing.table.yes'), $t('pricing.table.yes')],
+                [$t('pricing.table.feat4'), $t('pricing.table.no'), $t('pricing.table.yes')],
+                [$t('pricing.table.feat5'), $t('pricing.table.no'), $t('pricing.table.yes')],
+                [$t('pricing.table.feat6'), $t('pricing.table.no'), $t('pricing.table.yes')],
+                [$t('pricing.table.feat7'), $t('pricing.table.basic'), $t('pricing.table.priority')]
               ] as [title, free, premium]}
                 <tr class="hover:bg-white/[0.01] transition-colors">
                   <td class="py-5 px-10 text-sm font-medium text-surface-300">{title}</td>
@@ -219,30 +218,30 @@
 
     <!-- FAQ -->
     <div class="max-w-3xl mx-auto px-6 mt-32">
-      <h3 class="text-3xl font-display font-black text-white text-center mb-16 italic">{ $locale === 'es' ? 'Preguntas Frecuentes' : 'Teacher FAQ' }</h3>
+      <h3 class="text-3xl font-display font-black text-white text-center mb-16 italic">{$t('pricing.faq.title')}</h3>
       <div class="space-y-12">
         <div class="group">
           <h4 class="text-lg font-bold text-white mb-3 group-hover:text-primary-400 transition-colors">
-            { $locale === 'es' ? '¿Puedo cancelar en cualquier momento?' : 'Can I cancel anytime?' }
+            {$t('pricing.faq.q1')}
           </h4>
           <p class="text-surface-500 leading-relaxed">
-            { $locale === 'es' ? 'Absolutamente. No hay permanencias ni procedimientos complicados. Un clic en tu perfil y estarás libre de cargos para el próximo mes.' : 'Absolutely. There are no lock-ins or complicated procedures. One click in your profile and you\'ll be free of charges for the next month.' }
+            {$t('pricing.faq.a1')}
           </p>
         </div>
         <div class="group">
           <h4 class="text-lg font-bold text-white mb-3 group-hover:text-primary-400 transition-colors">
-            { $locale === 'es' ? '¿Qué pasa si mis datos crecen?' : 'What happens if my data grows?' }
+            {$t('pricing.faq.q2')}
           </h4>
           <p class="text-surface-500 leading-relaxed">
-            { $locale === 'es' ? 'ChessNet está construido sobre la infraestructura de Google Cloud para escalar. Tus datos estarán seguros y accesibles ya sea que tengas 10 o 10.000 alumnos.' : 'ChessNet is built on Google Cloud infrastructure to scale. Your data will be secure and accessible whether you have 10 or 10,000 students.' }
+            {$t('pricing.faq.a2')}
           </p>
         </div>
         <div class="group">
           <h4 class="text-lg font-bold text-white mb-3 group-hover:text-primary-400 transition-colors">
-            { $locale === 'es' ? '¿Por qué sólo 1€?' : 'Why only 1€?' }
+            {$t('pricing.faq.q3').replace('{currency}', '1' + $t('common.currency'))}
           </h4>
           <p class="text-surface-500 leading-relaxed">
-            { $locale === 'es' ? 'Estamos en fase de lanzamiento. Queremos que la barrera de entrada sea inexistente para que los profesores nos ayuden a pulir la herramienta ideal.' : 'We are in the launch phase. We want the barrier to entry to be non-existent so that teachers can help us polish the ideal tool.' }
+            {$t('pricing.faq.a3')}
           </p>
         </div>
       </div>
@@ -257,11 +256,11 @@
       </div>
       <p class="text-surface-500 text-sm font-medium">© {new Date().getFullYear()} ChessNet. Crafted with <span class="text-primary-500">violet passion</span> for chess.</p>
       <div class="flex flex-wrap justify-center gap-6">
-        <a href="/pricing" class="text-surface-500 hover:text-white transition-colors text-sm">Pricing</a>
-        <a href="/roadmap" class="text-surface-500 hover:text-white transition-colors text-sm">Roadmap</a>
-        <a href="/donate" class="text-surface-500 hover:text-white transition-colors text-sm">Donate</a>
-        <a href="/legal/terms" class="text-surface-500 hover:text-white transition-colors text-sm">Terms</a>
-        <a href="/legal/privacy" class="text-surface-500 hover:text-white transition-colors text-sm">Privacy</a>
+        <a href="/pricing" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('nav.pricing')}</a>
+        <a href="/roadmap" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('nav.roadmap')}</a>
+        <a href="/donate" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('nav.donate')}</a>
+        <a href="/legal/terms" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('legal.terms')}</a>
+        <a href="/legal/privacy" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('legal.privacy')}</a>
       </div>
     </div>
   </footer>

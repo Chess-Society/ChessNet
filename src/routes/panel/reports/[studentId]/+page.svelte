@@ -31,10 +31,12 @@
     Search,
     Download,
     Share2,
-    Briefcase
+    Briefcase,
+    Layers
   } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
+  import { t } from '$lib/i18n';
 
   let { data } = $props<{ data: PageData }>();
 
@@ -106,7 +108,7 @@
 </script>
 
 <svelte:head>
-  <title>Record: {student?.name || 'Student'} - ChessNet</title>
+  <title>{$t('reports.title', { name: student?.name || 'Student' })} - ChessNet</title>
 </svelte:head>
 
 {#if !report}
@@ -116,15 +118,15 @@
         <AlertTriangle class="w-10 h-10" />
       </div>
       <div>
-        <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Record Not Found</h2>
-        <p class="text-[10px] font-black text-surface-500 uppercase tracking-widest mt-2">Could not locate the analytical information for this student.</p>
+        <h2 class="text-2xl font-black text-white uppercase tracking-tighter">{$t('reports.not_found')}</h2>
+        <p class="text-[10px] font-black text-surface-500 uppercase tracking-widest mt-2">{$t('reports.not_found_desc')}</p>
       </div>
       <button
         onclick={() => goto('/panel/reports')}
         class="w-full bg-surface-950 border border-surface-900 py-4 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest hover:border-primary-500/50 transition-all flex items-center justify-center gap-3"
       >
         <ArrowLeft class="w-4 h-4" />
-        BACK TO REPORTS
+        {$t('common.back')}
       </button>
     </div>
   </div>
@@ -146,8 +148,9 @@
         <div class="space-y-3">
           <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
             <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-none">{student.name}</h1>
-            <span class="bg-primary-500/10 border border-primary-500/20 text-primary-400 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
-              ID: {student.id.slice(0, 8)}
+            <span class="bg-primary-500/10 border border-primary-500/20 text-primary-400 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+              <CheckCircle class="w-3 h-3" />
+              {$t('reports.common.verified')}
             </span>
           </div>
           
@@ -159,12 +162,17 @@
             <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
             <div class="flex items-center gap-2">
               <Calendar class="w-3 h-3 text-primary-400" />
-              {calculateAge(student.date_of_birth)} YEARS
+              {calculateAge(student.date_of_birth)} {$t('reports.years')}
             </div>
             <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
             <div class="flex items-center gap-2">
               <Clock class="w-3 h-3 text-primary-400" />
-              ACTIVE SINCE {formatDate(progress.enrollment_date)}
+              {$t('reports.active_since')} {formatDate(progress.enrollment_date)}
+            </div>
+            <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
+            <div class="flex items-center gap-2">
+              <div class={`w-2 h-2 rounded-full ${student.status === 'active' ? 'bg-primary-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'bg-surface-700'}`}></div>
+              {student.status ? $t(`reports.status.${student.status.toLowerCase()}`) : '---'}
             </div>
           </div>
         </div>
@@ -179,7 +187,7 @@
         </button>
         <button class="flex-[3] md:flex-none bg-primary-500 text-black px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg flex items-center justify-center gap-3">
           <FileText class="w-4 h-4" />
-          GENERATE PDF REPORT
+          {$t('reports.generate_pdf')}
         </button>
       </div>
     </div>
@@ -188,8 +196,8 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="glass-panel p-6 border-l-4 border-primary-500 flex items-center justify-between group">
          <div>
-            <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Attendance Ratio</p>
-            <p class="text-3xl font-black text-white tracking-tighter">{progress.attendance_rate.toFixed(1)}%</p>
+            <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.attendance')}</span>
+            <p class="text-2xl font-black text-white mt-1 uppercase leading-none">{progress.attendance_rate.toFixed(1)}%</p>
          </div>
          <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400 group-hover:scale-110 transition-transform">
             <Activity class="w-6 h-6" />
@@ -198,9 +206,9 @@
       
       <div class="glass-panel p-6 border-l-4 border-blue-500 flex items-center justify-between group">
          <div>
-            <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Chess Rating (ELO)</p>
+            <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.rating')}</span>
             <div class="flex items-baseline gap-2">
-              <p class="text-3xl font-black text-white tracking-tighter">{progress.current_rating}</p>
+              <p class="text-2xl font-black text-white mt-1 uppercase leading-none">{progress.current_rating}</p>
               <span class={`text-[10px] font-black ${progress.rating_change >= 0 ? 'text-primary-400' : 'text-red-400'}`}>
                 {progress.rating_change >= 0 ? '▲' : '▼'} {Math.abs(progress.rating_change)}
               </span>
@@ -213,8 +221,8 @@
 
       <div class="glass-panel p-6 border-l-4 border-purple-500 flex items-center justify-between group">
          <div>
-            <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Skills Mastery</p>
-            <p class="text-3xl font-black text-white tracking-tighter">{progress.skill_completion_rate.toFixed(1)}%</p>
+            <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.skills')}</span>
+            <p class="text-2xl font-black text-white mt-1 uppercase leading-none">{progress.skill_completion_rate.toFixed(1)}%</p>
          </div>
          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
             <Zap class="w-6 h-6" />
@@ -223,8 +231,8 @@
 
       <div class="glass-panel p-6 border-l-4 border-orange-500 flex items-center justify-between group">
          <div>
-            <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest mb-1">Financial Balance</p>
-            <p class={`text-3xl font-black tracking-tighter ${progress.overdue_payments > 0 ? 'text-red-400' : 'text-primary-400'}`}>
+            <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.balance')}</span>
+            <p class={`text-2xl font-black mt-1 uppercase leading-none ${progress.overdue_payments > 0 ? 'text-red-400' : 'text-primary-400'}`}>
               {progress.overdue_payments > 0 ? `-${progress.overdue_payments}` : 'OK'}
             </p>
          </div>
@@ -246,7 +254,7 @@
           }`}
         >
           <tab.icon class="w-4 h-4" />
-          <span class="hidden sm:inline">{tab.label}</span>
+          <span class="hidden sm:inline">{$t(`reports.tabs.${tab.id}`)}</span>
         </button>
       {/each}
     </div>
@@ -262,20 +270,20 @@
                <div class="p-8 border-b border-surface-900 bg-surface-950/50">
                   <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
                     <User class="w-4 h-4 text-primary-400" />
-                    Contact Information
+                    {$t('reports.contact.title')}
                   </h3>
                </div>
                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div class="space-y-6">
                     <div class="group">
-                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">Email Address</p>
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">{$t('reports.contact.email')}</p>
                       <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
                         <Mail class="w-4 h-4 text-primary-400" />
                         {student.email}
                       </div>
                     </div>
                     <div class="group">
-                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">Mobile Phone</p>
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">{$t('reports.contact.phone')}</p>
                       <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
                         <Phone class="w-4 h-4 text-primary-400" />
                         {student.phone}
@@ -284,14 +292,14 @@
                   </div>
                   <div class="space-y-6">
                     <div class="group">
-                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">Date of Birth</p>
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">{$t('reports.contact.birth')}</p>
                       <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
                         <Calendar class="w-4 h-4 text-primary-400" />
                         {formatDate(student.date_of_birth)}
                       </div>
                     </div>
                     <div class="group">
-                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">Last Activity</p>
+                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">{$t('reports.contact.last_activity')}</p>
                       <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
                         <Activity class="w-4 h-4 text-primary-400" />
                         {formatDate(progress.last_activity_date)}
@@ -306,7 +314,7 @@
               <div class="glass-panel p-8 border-t-4 border-orange-500">
                 <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                   <FileText class="w-4 h-4 text-orange-400" />
-                  Technical Observations
+                  {$t('reports.observations.title')}
                 </h3>
                 <div class="p-6 bg-surface-950/80 border border-surface-900 rounded-2xl italic text-surface-300 text-sm leading-relaxed relative overflow-hidden">
                    <div class="absolute top-0 right-0 p-4 opacity-10">
@@ -320,15 +328,15 @@
             <!-- Enrolled Classes -->
             <div class="glass-panel p-8 border-t-4 border-blue-500">
                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                <Briefcase class="w-4 h-4 text-blue-400" />
-                Active Programs
+                <Layers class="w-4 h-4 text-blue-400" />
+                {$t('reports.programs.title')}
                </h3>
                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {#each report.classes as cls}
                     <div class="p-5 bg-surface-950/50 border border-surface-900 rounded-2xl group hover:border-blue-500/30 transition-all">
                        <div class="flex items-center justify-between mb-3">
                           <h4 class="text-sm font-black text-white uppercase tracking-tight">{cls.name}</h4>
-                          <span class="text-[10px] font-black text-primary-400">{formatCurrency(cls.price)}/MONTH</span>
+                          <span class="text-[10px] font-black text-primary-400">{formatCurrency(cls.price)}/{$t('reports.programs.per_month')}</span>
                        </div>
                        <div class="flex items-center gap-2 text-[10px] font-bold text-surface-500 uppercase">
                           <Clock class="w-3.5 h-3.5" />
@@ -344,7 +352,7 @@
           <div class="space-y-8">
              <!-- Rating Evolution -->
              <div class="glass-panel p-8 border-t-4 border-primary-500">
-                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">Rating History</h3>
+                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">{$t('reports.history.rating')}</h3>
                 <div class="space-y-4">
                    {#each report.rating_history as entry}
                      <div class="flex items-center justify-between p-4 bg-surface-950/50 border border-surface-900 rounded-2xl group hover:bg-surface-950 transition-colors">
@@ -365,12 +373,12 @@
 
              <!-- Skills Breakdown -->
              <div class="glass-panel p-8 border-t-4 border-purple-500">
-                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">Skills Status</h3>
+                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">{$t('reports.skills.status')}</h3>
                 <div class="space-y-5">
                    <div class="space-y-2">
                       <div class="flex justify-between text-[10px] font-black tracking-widest text-primary-400">
-                        <span>MASTERED</span>
-                        <span>{progress.skills_mastered} / {progress.total_skills_assigned}</span>
+                        <span>{$t('reports.skills.mastered')}</span>
+                        <span>{report.skills?.filter((s: any) => s.status === 'completed').length || 0} / {report.skills?.length || 0}</span>
                       </div>
                       <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
                         <div class="h-full bg-primary-500" style="width: {progress.total_skills_assigned > 0 ? (progress.skills_mastered/progress.total_skills_assigned)*100 : 0}%"></div>
@@ -379,7 +387,7 @@
 
                    <div class="space-y-2">
                       <div class="flex justify-between text-[10px] font-black tracking-widest text-blue-400">
-                        <span>IN PROGRESS</span>
+                        <span>{$t('reports.skills.in_progress')}</span>
                         <span>{progress.skills_in_progress}</span>
                       </div>
                       <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
@@ -389,7 +397,7 @@
 
                    <div class="space-y-2">
                       <div class="flex justify-between text-[10px] font-black tracking-widest text-surface-600">
-                        <span>PENDING</span>
+                        <span>{$t('reports.skills.pending')}</span>
                         <span>{progress.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress}</span>
                       </div>
                       <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
@@ -407,25 +415,25 @@
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="glass-panel p-8 text-center border-b-4 border-primary-500">
                <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.attended_sessions}</p>
-               <p class="text-[9px] font-black text-primary-400 uppercase tracking-[0.2em]">PRESENT SESSIONS</p>
+               <p class="text-[9px] font-black text-primary-400 uppercase tracking-[0.2em]">{$t('reports.attendance.present')}</p>
             </div>
             <div class="glass-panel p-8 text-center border-b-4 border-orange-500">
                <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.late_sessions}</p>
-               <p class="text-[9px] font-black text-orange-400 uppercase tracking-[0.2em]">LATE SESSIONS</p>
+               <p class="text-[9px] font-black text-orange-400 uppercase tracking-[0.2em]">{$t('reports.attendance.late')}</p>
             </div>
             <div class="glass-panel p-8 text-center border-b-4 border-red-500">
                <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.absent_sessions}</p>
-               <p class="text-[9px] font-black text-red-400 uppercase tracking-[0.2em]">TOTAL ABSENCES</p>
+               <p class="text-[9px] font-black text-red-400 uppercase tracking-[0.2em]">{$t('reports.attendance.absent')}</p>
             </div>
             <div class="glass-panel p-8 text-center border-b-4 border-blue-500">
                <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.punctuality_rate.toFixed(0)}%</p>
-               <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">PUNCTUALITY RATIO</p>
+               <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">{$t('reports.attendance.punctuality')}</p>
             </div>
           </div>
 
           <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
              <div class="p-8 border-b border-surface-900">
-                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em]">Attendance Record</h3>
+                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em]">{$t('reports.attendance.record')}</h3>
              </div>
              <div class="divide-y divide-surface-900/50">
                 {#each report.attendance_history as h}
@@ -437,7 +445,7 @@
                         </div>
                         <div>
                            <p class="text-xs font-black text-white uppercase tracking-tight">{formatDate(h.date)}</p>
-                           <p class="text-[10px] font-bold text-surface-600 uppercase tracking-widest mt-0.5">STATUS: {h.status === 'P' ? 'PRESENT' : h.status === 'T' ? 'LATE' : 'ABSENT'}</p>
+                           <p class="text-[10px] font-bold text-surface-600 uppercase tracking-widest mt-0.5">{$t('reports.attendance.status')}: {h.status === 'P' ? $t('reports.attendance.present') : h.status === 'T' ? $t('reports.attendance.late') : $t('reports.attendance.absent')}</p>
                         </div>
                      </div>
                      {#if h.notes}
@@ -455,12 +463,14 @@
       {#if selectedTab === 'skills'}
         <div class="space-y-8" in:fade>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {#each ['Fundamentals', 'Tactics', 'Endgames'] as category}
-              {@const catSkills = (report.skills_progress as any[]).filter(s => s.category === category)}
+            {#each ['fundamentals', 'tactics', 'endgames'] as category}
+              {@const catSkills = (report.skills_progress as any[]).filter(s => s.category.toLowerCase() === category.toLowerCase())}
               {@const completed = catSkills.filter(s => s.status === 'completed').length}
               <div class="glass-panel p-8 flex items-center justify-between border-t-4 border-purple-500">
-                 <div>
-                    <h4 class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">{category}</h4>
+                 <div class="flex flex-col">
+                    <h4 class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
+                       {$t(`reports.skills.categories.${category}`)}
+                    </h4>
                     <p class="text-3xl font-black text-white tracking-tighter">{completed} / {catSkills.length}</p>
                  </div>
                  <div class="w-16 h-16 rounded-full border-4 border-surface-900 flex items-center justify-center relative">
@@ -491,7 +501,7 @@
                       <div class="flex items-center gap-10">
                          <div class="text-center">
                             <p class="text-2xl font-black text-white">{skill.level} / {skill.max_level}</p>
-                            <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-1">CURRENT LEVEL</p>
+                            <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-1">{$t('reports.skills.level')}</p>
                          </div>
                          <div class="text-right">
                             <span class={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
@@ -499,10 +509,10 @@
                                skill.status === 'in_progress' ? 'text-blue-400 border-blue-500/20 bg-blue-500/10' : 
                                'text-surface-500 border-surface-800 bg-surface-950'
                             }`}>
-                               {skill.status === 'completed' ? 'COMPLETED' : skill.status === 'in_progress' ? 'IN PROGRESS' : 'NOT STARTED'}
+                               {skill.status === 'completed' ? $t('reports.skills.completed') : skill.status === 'in_progress' ? $t('reports.skills.in_progress') : $t('reports.skills.not_started')}
                             </span>
                             {#if skill.completion_date}
-                              <p class="text-[8px] font-black text-surface-600 uppercase mt-2 tracking-widest">COMPLETED: {formatDate(skill.completion_date)}</p>
+                              <p class="text-[8px] font-black text-surface-600 uppercase mt-2 tracking-widest">{$t('reports.skills.completed_on')}: {formatDate(skill.completion_date)}</p>
                             {/if}
                          </div>
                       </div>
@@ -518,19 +528,19 @@
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
               <div class="glass-panel p-8 text-center border-t-4 border-surface-900">
                  <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.total_payments}</p>
-                 <p class="text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">INVOICES ISSUED</p>
+                 <p class="text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">{$t('reports.payments.issued')}</p>
               </div>
               <div class="glass-panel p-8 text-center border-t-4 border-primary-500">
                  <p class="text-4xl font-black text-primary-400 tracking-tighter mb-2">{progress.paid_payments}</p>
-                 <p class="text-[10px] font-black text-primary-500/50 uppercase tracking-[0.2em]">PAYMENTS SETTLED</p>
+                 <p class="text-[10px] font-black text-primary-500/50 uppercase tracking-[0.2em]">{$t('reports.payments.settled')}</p>
               </div>
               <div class="glass-panel p-8 text-center border-t-4 border-red-500">
                  <p class="text-4xl font-black text-red-400 tracking-tighter mb-2">{progress.overdue_payments}</p>
-                 <p class="text-[9px] font-black text-red-500/50 uppercase tracking-[0.2em]">OVERDUE INVOICES</p>
+                 <p class="text-[9px] font-black text-red-500/50 uppercase tracking-[0.2em]">{$t('reports.payments.overdue')}</p>
               </div>
               <div class="glass-panel p-8 text-center border-t-4 border-blue-500">
                  <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.payment_compliance.toFixed(0)}%</p>
-                 <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">COMPLIANCE RATIO</p>
+                 <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">{$t('reports.payments.compliance')}</p>
               </div>
             </div>
 
@@ -539,10 +549,10 @@
                   <table class="w-full text-left">
                      <thead>
                         <tr class="bg-surface-950/80 border-b border-surface-900">
-                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500">Concept / Due Date</th>
-                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-right">Amount</th>
-                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">Status</th>
-                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-right">Reference</th>
+                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500">{$t('reports.payments.concept')}</th>
+                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-right">{$t('reports.payments.amount')}</th>
+                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">{$t('reports.payments.status')}</th>
+                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-right">{$t('reports.payments.reference')}</th>
                         </tr>
                      </thead>
                      <tbody class="divide-y divide-surface-900/50">
@@ -551,7 +561,7 @@
                              <td class="px-8 py-6">
                                 <div>
                                    <p class="text-xs font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors">{pay.description}</p>
-                                   <p class="text-[9px] font-black text-surface-600 uppercase mt-1 tracking-widest">DUE: {formatDate(pay.due_date)}</p>
+                                   <p class="text-[9px] font-black text-surface-600 uppercase mt-1 tracking-widest">{$t('reports.payments.due')}: {formatDate(pay.due_date)}</p>
                                 </div>
                              </td>
                              <td class="px-8 py-6 text-right font-black text-white text-sm">
@@ -563,13 +573,13 @@
                                    pay.status === 'overdue' ? 'text-red-400 border-red-500/20 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 
                                    'text-orange-400 border-orange-500/20 bg-orange-500/10'
                                 }`}>
-                                   {pay.status === 'paid' ? 'SETTLED' : pay.status === 'overdue' ? 'OVERDUE' : 'PENDING'}
+                                   {pay.status === 'paid' ? $t('reports.payments.settled') : pay.status === 'overdue' ? $t('reports.payments.overdue') : $t('reports.payments.pending')}
                                 </span>
                              </td>
                              <td class="px-8 py-6 text-right">
                                 <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{pay.payment_reference || 'N/A'}</p>
                                 {#if pay.paid_date}
-                                  <p class="text-[8px] font-bold text-primary-500/50 uppercase">PAID: {formatDate(pay.paid_date)}</p>
+                                  <p class="text-[8px] font-bold text-primary-500/50 uppercase">{$t('reports.payments.paid')}: {formatDate(pay.paid_date)}</p>
                                 {/if}
                              </td>
                           </tr>
@@ -587,51 +597,51 @@
                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
                   <div class="glass-panel p-8 text-center border-b-4 border-yellow-500">
                      <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.tournaments_participated}</p>
-                     <p class="text-[9px] font-black text-yellow-500/50 uppercase tracking-[0.2em]">TOURNAMENTS PLAYED</p>
+                     <p class="text-[9px] font-black text-yellow-500/50 uppercase tracking-[0.2em]">{$t('reports.tournaments.played')}</p>
                   </div>
                   <div class="glass-panel p-8 text-center border-b-4 border-primary-500">
                      <p class="text-4xl font-black text-primary-400 tracking-tighter mb-2">{progress.tournament_wins}</p>
-                     <p class="text-[10px] font-black text-primary-500/50 uppercase tracking-[0.2em]">TOTAL WINS</p>
+                     <p class="text-[10px] font-black text-primary-500/50 uppercase tracking-[0.2em]">{$t('reports.tournaments.wins')}</p>
                   </div>
                   <div class="glass-panel p-8 text-center border-b-4 border-surface-500">
                      <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.tournament_draws}</p>
-                     <p class="text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">DRAWS</p>
+                     <p class="text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">{$t('reports.tournaments.draws')}</p>
                   </div>
                   <div class="glass-panel p-8 text-center border-b-4 border-red-500">
                      <p class="text-4xl font-black text-red-400 tracking-tighter mb-2">{progress.tournament_losses}</p>
-                     <p class="text-[9px] font-black text-red-500/50 uppercase tracking-[0.2em]">LOSSES</p>
+                     <p class="text-[9px] font-black text-red-500/50 uppercase tracking-[0.2em]">{$t('reports.tournaments.losses')}</p>
                   </div>
                </div>
 
                <div class="grid grid-cols-1 gap-8">
-                  {#each report.tournament_history as t}
+                  {#each report.tournament_history as tmnt}
                      <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
                         <div class="p-8 border-b border-surface-900 bg-surface-950/50 flex flex-wrap items-center justify-between gap-6">
                            <div class="space-y-1">
-                              <h3 class="text-xl font-black text-white uppercase tracking-tighter">{t.name}</h3>
+                              <h3 class="text-xl font-black text-white uppercase tracking-tighter">{tmnt.name}</h3>
                               <div class="flex items-center gap-4 text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">
-                                 <span>{formatDate(t.date)}</span>
+                                 <span>{formatDate(tmnt.date)}</span>
                                  <span class="w-1.5 h-1.5 rounded-full bg-surface-800"></span>
-                                 <span>{t.format}</span>
+                                 <span>{tmnt.format}</span>
                                  <span class="w-1.5 h-1.5 rounded-full bg-surface-800"></span>
-                                 <span>{t.participants} PARTICIPANTS</span>
+                                 <span>{tmnt.participants} {$t('reports.tournaments.participants')}</span>
                               </div>
                            </div>
                            <div class="text-right">
-                              <p class="text-2xl font-black text-white tracking-tighter">POSITION: {t.final_position} <span class="text-primary-500">/ {t.participants}</span></p>
-                              <p class="text-[9px] font-black text-primary-400 uppercase tracking-widest mt-1">SCORE: {t.points} PTS</p>
+                              <p class="text-2xl font-black text-white tracking-tighter">{$t('reports.tournaments.position')}: {tmnt.final_position} <span class="text-primary-500">/ {tmnt.participants}</span></p>
+                              <p class="text-[9px] font-black text-primary-400 uppercase tracking-widest mt-1">{$t('reports.tournaments.score')}: {tmnt.points} PTS</p>
                            </div>
                         </div>
                         <div class="p-8">
-                           <h4 class="text-[9px] font-black text-surface-600 uppercase tracking-[0.2em] mb-4">GAME RECORD</h4>
+                           <h4 class="text-[9px] font-black text-surface-600 uppercase tracking-[0.2em] mb-4">{$t('reports.tournaments.games')}</h4>
                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                              {#each t.games as g}
+                              {#each tmnt.games as g}
                                  <div class="p-5 bg-surface-950/80 border border-surface-900 rounded-2xl flex items-center justify-between group hover:border-primary-500/30 transition-all">
                                     <div class="flex items-center gap-4">
                                        <div class="w-10 h-10 rounded-xl bg-surface-900 flex items-center justify-center text-[10px] font-black text-surface-400">R{g.round}</div>
                                        <div>
                                           <p class="text-[11px] font-black text-white uppercase tracking-tight">{g.opponent}</p>
-                                          <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-0.5">Rating: {g.opponent_rating}</p>
+                                          <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-0.5">{$t('reports.tournaments.rating')}: {g.opponent_rating}</p>
                                        </div>
                                     </div>
                                     <div class="text-right flex flex-col items-end gap-1.5">
@@ -640,9 +650,9 @@
                                           g.result === '0-1' ? 'text-red-400 border border-red-500/20 bg-red-500/10' :
                                           'text-orange-400 border border-orange-500/20 bg-orange-500/10'
                                        }`}>
-                                          {g.result === '1-0' ? 'WIN' : g.result === '0-1' ? 'LOSS' : 'DRAW'}
+                                          {g.result === '1-0' ? $t('reports.tournaments.wins') : g.result === '0-1' ? $t('reports.tournaments.losses') : $t('reports.tournaments.draws')}
                                        </span>
-                                       <span class="text-[10px]">{g.color === 'white' ? '⚪ WHITE' : '⚫ BLACK'}</span>
+                                       <span class="text-[10px]">{g.color === 'white' ? `⚪ ${$t('reports.tournaments.color_white')}` : `⚫ ${$t('reports.tournaments.color_black')}`}</span>
                                     </div>
                                  </div>
                               {/each}
@@ -657,8 +667,8 @@
                      <Trophy class="w-10 h-10" />
                   </div>
                   <div>
-                    <p class="text-[10px] font-black text-surface-500 uppercase tracking-[0.3em]">No Tournament History</p>
-                    <p class="text-[9px] font-bold text-surface-700 uppercase tracking-widest mt-2">The student has not recorded any official competitive activity yet.</p>
+                    <p class="text-[10px] font-black text-white uppercase tracking-[0.3em]">{$t('reports.no_history')}</p>
+                    <p class="text-[9px] font-bold text-surface-500 uppercase tracking-widest mt-2">{$t('reports.no_history_desc')}</p>
                   </div>
                </div>
             {/if}

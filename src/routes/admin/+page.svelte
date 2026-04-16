@@ -16,38 +16,48 @@
   } from "firebase/firestore";
   import { user as authUser, loading as authLoading } from "$lib/stores/auth";
   import { fade, slide, scale } from "svelte/transition";
-  import Logo from "$lib/components/Logo.svelte";
   import {
-    Settings,
+    Gear as Settings,
     UserCheck,
     Clock,
     ShieldCheck,
-    Mail,
-    LogOut,
-    ChevronRight,
-    Edit3,
+    EnvelopeSimple as Mail,
+    SignOut as LogOut,
+    CaretRight,
+    NotePencil as Edit3,
     Trophy,
-    BarChart3,
+    ChartLineUp as BarChart3,
     Users,
     Bell,
     Shield,
     Target,
-    Zap,
-    Activity,
-    Filter,
-    Search,
-    MoreHorizontal,
+    Lightning as Zap,
+    Pulse as Activity,
+    Funnel as Filter,
+    MagnifyingGlass as Search,
+    DotsThreeOutline as MoreHorizontal,
     ArrowLeft,
-    X
-  } from "lucide-svelte";
+    X,
+    IdentificationCard as UserIcon,
+    User,
+    Star,
+    CurrencyDollar,
+    Lightbulb,
+    ChatCircleDots
+  } from "phosphor-svelte";
   import { adminApi } from "$lib/api/admin";
   import { ADMIN_EMAILS } from "$lib/constants";
   import StripeSimulator from "$lib/components/StripeSimulator.svelte";
+  import { t } from "$lib/i18n";
+  import { uiStore } from "$lib/stores/uiStore";
+  import { toast, showError } from "$lib/stores/toast";
+  import { invalidateAll } from "$app/navigation";
+  import Logo from "$lib/components/Logo.svelte";
 
   let { data }: { data: any } = $props();
 
   // Estado de Navegación
-  let activeTab = $state<"dashboard" | "users" | "announcements" | "system">(
+  let activeTab = $state<"dashboard" | "users" | "announcements" | "lobby" | "system">(
     "dashboard",
   );
 
@@ -73,6 +83,7 @@
   let systemLogs = $state<any[]>([]);
   let maintenanceMode = $state(false);
   let userSearchTerm = $state("");
+  let lobbySuggestions = $state<any[]>([]);
 
   let isLoading = $state(true);
   let error = $state("");
@@ -86,6 +97,8 @@
 
   // Modales y Edición
   let selectedUser = $state<any>(null);
+  let userDetails = $state<any>(null);
+  let isLoadingDetails = $state(false);
   let showEditModal = $state(false);
   let isSaving = $state(false);
 
@@ -98,6 +111,17 @@
   });
 
   let unsubscribeUsers: (() => void) | null = null;
+
+  async function loadData() {
+    try {
+      const stats = await adminApi.getGlobalStats();
+      globalStats = stats;
+      const config = await adminApi.getMaintenanceStatus();
+      maintenanceMode = config.maintenanceMode;
+    } catch (err: any) {
+      showError(err);
+    }
+  }
 
   onMount(async () => {
 
@@ -119,12 +143,7 @@
     if (isAuthorized) {
       isLoading = true;
       try {
-        const stats = await adminApi.getGlobalStats();
-        globalStats = stats;
-
-        const config = await adminApi.getMaintenanceStatus();
-        maintenanceMode = config.maintenanceMode;
-
+        await loadData();
         const unsub = startMonitoring();
         if (unsub) unsubscribeUsers = unsub;
       } catch (err: any) {
@@ -157,6 +176,9 @@
     if (activeTab === "system") {
       adminApi.getSystemLogs().then((data) => (systemLogs = data));
     }
+    if (activeTab === "lobby") {
+      adminApi.getLobbySuggestions().then((data) => (lobbySuggestions = data));
+    }
   });
 
   function startMonitoring() {
@@ -187,14 +209,15 @@
   }
 
   // Lógica de Suplantación (Impersonate)
-  function handleImpersonate(userId: string) {
-    if (
-      !confirm(
-        "¿Entrar en modo suplantación para este usuario? Podrás ver su panel como si fueras él.",
-      )
-    )
-      return;
+  async function handleImpersonate(userId: string) {
+    const confirmed = await uiStore.confirm({
+      title: $t('admin.users.impersonate'),
+      message: $t('admin.confirm.impersonate'),
+      type: 'warning'
+    });
+    if (!confirmed) return;
     document.cookie = `impersonate_id=${userId}; path=/; max-age=3600`;
+    toast.success("Modo suplantación activado");
     goto("/panel");
   }
 
@@ -214,10 +237,10 @@
         is_published: true,
         created_at: new Date().toISOString(),
         published_at: new Date().toISOString(),
-        owner_id: $authUser?.uid, // El admin es el dueño del anuncio
+        owner_id: $authUser?.uid,
       });
       announcements = await adminApi.getGlobalAnnouncements();
-      alert("Anuncio enviado correctamente");
+      toast.success($t('admin.announcement_success'));
       announcementForm = {
         title: "",
         content: "",
@@ -225,40 +248,71 @@
         priority: "normal",
       };
     } catch (err: any) {
-      alert("Error: " + err.message);
+      showError(err);
     } finally {
       isSaving = false;
     }
   }
 
+  async function handleUpdateSuggestionStatus(id: string, status: string) {
+    try {
+      await adminApi.updateSuggestionStatus(id, status);
+      lobbySuggestions = lobbySuggestions.map(s => s.id === id ? { ...s, status } : s);
+      toast.success("Estado actualizado");
+    } catch (err: any) {
+      showError(err);
+    }
+  }
+
   async function handleDeleteAnnouncement(id: string) {
-    if (!confirm("¿Eliminar este anuncio?")) return;
+    const confirmed = await uiStore.confirm({
+      title: $t('common.delete'),
+      message: $t('admin.confirm.delete_announcement'),
+      type: 'danger'
+    });
+    if (!confirmed) return;
     try {
       await adminApi.deleteAnnouncement(id);
       announcements = announcements.filter((a) => a.id !== id);
+      toast.success($t('admin.announcement_success'));
     } catch (err: any) {
-      alert("Error: " + err.message);
+      showError(err);
     }
   }
 
   async function handleToggleMaintenance() {
     const next = !maintenanceMode;
-    if (
-      next &&
-      !confirm(
-        "¿Activar modo mantenimiento? Se bloqueará el acceso a todos los usuarios.",
-      )
-    )
-      return;
+    const confirmed = await uiStore.confirm({
+      title: $t('admin.system.security'),
+      message: $t('admin.confirm.toggle_maintenance'),
+      type: 'warning'
+    });
+    if (!confirmed) return;
     try {
       await adminApi.toggleMaintenanceMode(next);
       maintenanceMode = next;
+      toast.success($t('admin.maintenance_toggle_success'));
     } catch (err: any) {
-      alert("Error: " + err.message);
+      showError(err);
     }
   }
 
   // Gestión de Planes Premium
+  async function handleOpenManage(user: any) {
+    selectedUser = user;
+    showEditModal = true;
+    userDetails = null;
+    isLoadingDetails = true;
+    
+    try {
+      userDetails = await adminApi.getUserDetails(user.id);
+    } catch (e) {
+      console.error("Error fetching user details:", e);
+    } finally {
+      isLoadingDetails = false;
+    }
+  }
+
   async function handleGrantPremium(userId: string, days: number) {
     isSaving = true;
     try {
@@ -284,16 +338,24 @@
         });
       }
       showEditModal = false;
-      alert("Plan concedido con éxito");
+      await loadData();
+      toast.success($t('admin.users.grant_success'));
+      await invalidateAll();
+      await new Promise(r => setTimeout(r, 100));
     } catch (err: any) {
-      alert("Error: " + err.message);
+      showError(err);
     } finally {
       isSaving = false;
     }
   }
 
   async function handleRevokePremium(userId: string) {
-    if (!confirm("¿Revocar suscripción premium?")) return;
+    const confirmed = await uiStore.confirm({
+      title: $t('admin.users.revoke_premium'),
+      message: $t('admin.confirm.revoke_premium'),
+      type: 'danger'
+    });
+    if (!confirmed) return;
     isSaving = true;
     try {
       const userDocRef = doc(db, "users", userId);
@@ -312,9 +374,11 @@
         });
       }
       showEditModal = false;
-      alert("Plan revocado");
+      toast.success($t('admin.users.revoke_success'));
+      await invalidateAll();
+      await new Promise(r => setTimeout(r, 100));
     } catch (err: any) {
-      alert("Error: " + err.message);
+      toast.error(err.message);
     } finally {
       isSaving = false;
     }
@@ -349,7 +413,7 @@
 </script>
 
 <svelte:head>
-  <title>ChessNet | Centro de Mando Admin</title>
+  <title>ChessNet | {$t('admin.title')}</title>
 </svelte:head>
 
 <div
@@ -376,7 +440,7 @@
           class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"
         ></div>
         <p class="text-slate-400 font-medium tracking-widest uppercase text-xs">
-          Sincronizando Sistema...
+          {$t('common.loading')}
         </p>
       </div>
     </div>
@@ -393,17 +457,17 @@
         >
           <ShieldCheck class="w-10 h-10 text-red-500" />
         </div>
-        <h2 class="text-2xl font-black text-white mb-2 font-display">
-          ACCESO DENEGADO
+        <h2 class="text-2xl font-black text-white mb-2 font-display uppercase">
+          {$t('common.access_denied')}
         </h2>
         <p class="text-slate-400 text-sm leading-relaxed mb-8">
-          Esta área está reservada para el control central de la plataforma.
+          {$t('admin.subtitle')}
         </p>
         <button
           onclick={() => goto("/panel")}
           class="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all shadow-xl hover:scale-[1.02] active:scale-95"
         >
-          Volver al Panel Seguro
+          {$t('nav.goPanel')}
         </button>
       </div>
     </div>
@@ -412,65 +476,76 @@
       class="max-w-[1600px] mx-auto p-4 md:p-8 space-y-10 relative z-10"
       in:fade
     >
-      <!-- Top Navigation & Profile -->
       <header
-        class="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-6 rounded-[2.5rem] shadow-2xl"
+        class="sticky top-4 z-50 flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-[#16161e]/90 backdrop-blur-2xl border border-white/10 p-5 md:p-8 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] overflow-hidden"
       >
-        <div class="flex items-center gap-6">
+        <!-- Glossy effect -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+
+        <div class="flex items-center gap-6 relative">
           <div
-            class="p-4 bg-primary-500/10 border border-primary-500/20 rounded-2xl shadow-lg ring-4 ring-primary-500/5"
+            class="p-4 bg-violet-500/10 border border-violet-500/20 rounded-3xl shadow-xl shadow-violet-500/10 group-hover:scale-110 transition-transform duration-500"
           >
             <Logo size="w-10 h-10" iconSize="w-6 h-6" />
           </div>
           <div>
-            <h1
-              class="text-3xl font-black tracking-tight text-white mb-1 font-display uppercase italic text-shadow-glow"
-            >
-              ADMINISTRACIÓN
-            </h1>
-            <div class="flex items-center gap-3">
-              <span
-                class="flex items-center gap-1.5 px-2.5 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-[10px] font-bold text-violet-400 uppercase tracking-wider"
+            <div class="flex items-center gap-3 mb-1.5">
+              <h1
+                class="text-3xl font-outfit font-black tracking-tight text-white uppercase italic leading-none"
               >
-                <Activity class="w-3 h-3" /> Sistema Activo
+                Control <span class="text-violet-500">Center</span>
+              </h1>
+              <span class="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-zinc-800/80 backdrop-blur-md border border-white/5 rounded-full text-[8px] font-black text-slate-400 uppercase tracking-widest shadow-lg">
+                V2.5.0
+              </span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span
+                class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[9px] font-black text-emerald-400 uppercase tracking-widest"
+              >
+                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                {$t('common.system_online')}
               </span>
               <span
-                class="text-slate-500 text-xs font-medium uppercase tracking-widest hidden md:inline"
-                >Nivel de Acceso: Root</span
+                class="text-slate-500 text-[10px] font-outfit font-black uppercase tracking-[0.25em] hidden sm:inline opacity-60"
+                >{$t('common.access_level')}: ADMIN <span class="text-violet-500">ROOT</span></span
               >
             </div>
           </div>
         </div>
 
-        <div class="flex flex-col md:flex-row items-center gap-6">
-          <button
-            onclick={() => goto("/panel")}
-            class="flex items-center gap-3 px-8 py-3.5 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-violet-600/20 group active:scale-95"
-          >
-            <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            VOLVER AL PANEL
-          </button>
-
+        <div class="flex flex-col md:flex-row items-center gap-4 relative">
+          <!-- Navigation Tabs - Scrollable on mobile -->
           <nav
-            class="flex items-center gap-1 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner"
+            class="flex items-center gap-1 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner w-full md:w-auto overflow-x-auto no-scrollbar"
           >
             {#each [
-              { id: "dashboard", label: "Principal" },
-              { id: "users", label: "Usuarios" },
-              { id: "announcements", label: "Anuncios" },
-              { id: "system", label: "Sistema" }
+              { id: "dashboard", label: $t('admin.dashboard'), icon: Activity },
+              { id: "users", label: $t('admin.users'), icon: Users },
+              { id: "announcements", label: $t('admin.announcements'), icon: Bell },
+              { id: "lobby", label: "Lobby & Feedback", icon: Lightbulb },
+              { id: "system", label: $t('admin.system'), icon: Settings }
             ] as tab}
               <button
                 onclick={() => (activeTab = tab.id as any)}
-                class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 {activeTab ===
+                class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap {activeTab ===
                 tab.id
-                  ? 'bg-white text-black shadow-xl'
+                  ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'}"
               >
+                <tab.icon class="w-3.5 h-3.5" />
                 {tab.label}
               </button>
             {/each}
           </nav>
+
+          <button
+            onclick={() => goto("/panel")}
+            class="flex items-center gap-3 px-6 py-3.5 bg-white/[0.03] hover:bg-white/[0.08] text-white border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all group active:scale-95 w-full md:w-auto justify-center"
+          >
+            <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            PANEL
+          </button>
         </div>
       </header>
 
@@ -479,157 +554,84 @@
         <div class="space-y-10" in:fade>
           <!-- KPI Grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div
-              class="bento-card p-8 group hover:border-primary-500/20 transition-all shadow-2xl relative overflow-hidden"
-            >
+            {#each [
+              { label: $t('admin.stats.total_teachers'), value: globalStats.totalUsers, icon: Users, color: 'text-primary-500', bg: 'bg-primary-500/10', border: 'hover:border-primary-500/20' },
+              { label: $t('admin.stats.premium_users'), value: globalStats.premiumUsers, icon: Target, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'hover:border-blue-500/20' },
+              { label: $t('admin.stats.new_7d'), value: globalStats.recentUsers, icon: Zap, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'hover:border-purple-500/20' },
+              { label: 'Estimated MRR', value: '$' + ((globalStats.premiumUsers || 0) * 9.99).toFixed(2), icon: CurrencyDollar, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'hover:border-emerald-500/20' }
+            ] as kpi}
               <div
-                class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
+                class="bg-[#1a1a24]/60 backdrop-blur-3xl border border-white/5 p-8 rounded-[2.5rem] group {kpi.border} transition-all duration-500 shadow-2xl relative overflow-hidden"
               >
-                <Users class="w-40 h-40" />
-              </div>
-              <div class="flex items-center justify-between mb-6">
-                <div class="p-3 bg-primary-500/10 rounded-2xl">
-                  <Users class="w-6 h-6 text-primary-500" />
+                <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-all duration-700 group-hover:scale-110">
+                  <kpi.icon size={160} />
                 </div>
-              </div>
-              <p
-                class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2"
-              >
-                Profesores Totales
-              </p>
-              <h3
-                class="text-5xl font-black text-white tabular-nums tracking-tighter"
-              >
-                {globalStats.totalUsers}
-              </h3>
-            </div>
- 
-            <div
-              class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-blue-500/20 transition-all shadow-2xl relative overflow-hidden"
-            >
-              <div
-                class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
-              >
-                <Target class="w-40 h-40" />
-              </div>
-              <div class="flex items-center justify-between mb-6">
-                <div class="p-3 bg-blue-500/10 rounded-2xl">
-                  <Target class="w-6 h-6 text-blue-500" />
+                <div class="flex items-center justify-between mb-6 relative z-10">
+                  <div class="p-3 {kpi.bg} rounded-2xl shadow-inner">
+                    <kpi.icon class="w-6 h-6 {kpi.color}" />
+                  </div>
                 </div>
+                <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2 relative z-10">
+                  {kpi.label}
+                </p>
+                <h3 class="text-4xl md:text-5xl font-black text-white tabular-nums tracking-tighter relative z-10">
+                  {kpi.value}
+                </h3>
               </div>
-              <p
-                class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2"
-              >
-                Usuarios Premium
-              </p>
-              <h3
-                class="text-5xl font-black text-white tabular-nums tracking-tighter"
-              >
-                {globalStats.premiumUsers}
-              </h3>
-            </div>
- 
-            <div
-              class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-purple-500/20 transition-all shadow-2xl relative overflow-hidden"
-            >
-              <div
-                class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
-              >
-                <Logo size="w-40 h-40" />
-              </div>
-              <div class="flex items-center justify-between mb-6">
-                <div class="p-3 bg-purple-500/10 rounded-2xl">
-                  <Zap class="w-6 h-6 text-purple-500" />
-                </div>
-              </div>
-              <p
-                class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2"
-              >
-                Nuevos (7d)
-              </p>
-              <h3
-                class="text-5xl font-black text-white tabular-nums tracking-tighter"
-              >
-                {globalStats.recentUsers}
-              </h3>
-            </div>
- 
-            <div
-              class="bg-[#1e293b]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] group hover:border-amber-500/20 transition-all shadow-2xl relative overflow-hidden"
-            >
-              <div
-                class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
-              >
-                <Trophy class="w-40 h-40" />
-              </div>
-              <div class="flex items-center justify-between mb-6">
-                <div class="p-3 bg-amber-500/10 rounded-2xl">
-                  <Shield class="w-6 h-6 text-amber-500" />
-                </div>
-              </div>
-              <p
-                class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-2"
-              >
-                Conversión
-              </p>
-              <h3
-                class="text-5xl font-black text-white tabular-nums tracking-tighter"
-              >
-                {globalStats.totalUsers > 0
-                  ? (
-                      (globalStats.premiumUsers / globalStats.totalUsers) *
-                      100
-                    ).toFixed(1)
-                  : 0}%
-              </h3>
-            </div>
+            {/each}
           </div>
         </div>
       {:else if activeTab === "users"}
         <!-- Users CRM View -->
-        <div class="space-y-6" in:fade>
-          <!-- Search Bar -->
-          <div
-            class="flex items-center gap-4 bg-[#1e293b]/60 backdrop-blur-xl p-3 rounded-2xl border border-white/5 mb-6 shadow-xl"
-          >
-            <Search class="w-5 h-5 text-slate-500 ml-3" />
-            <input
-              bind:value={userSearchTerm}
-              type="text"
-              placeholder="Buscar profesor por email..."
-              class="bg-transparent border-none focus:ring-0 text-sm text-white w-full py-1.5 placeholder:text-slate-600 font-bold"
-            />
-            {#if userSearchTerm}
-              <button
-                onclick={() => (userSearchTerm = "")}
-                class="text-[10px] uppercase font-black text-slate-500 hover:text-white px-3 transition-colors"
-                >Limpiar</button
+        <div class="space-y-8" in:fade>
+          <!-- Search & Filters -->
+          <div class="flex flex-col md:flex-row gap-4">
+              <div
+                class="flex-1 flex items-center gap-4 bg-[#1a1a24]/60 backdrop-blur-3xl p-2 rounded-3xl border border-white/5 shadow-2xl"
               >
-            {/if}
+                <div class="w-12 h-12 bg-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center text-slate-500">
+                    <Search weight="duotone" class="w-5 h-5" />
+                </div>
+                <input
+                  bind:value={userSearchTerm}
+                  type="text"
+                  placeholder={$t('admin.users.search')}
+                  class="bg-transparent border-none focus:ring-0 text-sm text-white w-full py-1.5 placeholder:text-slate-600 font-bold"
+                />
+                {#if userSearchTerm}
+                  <button
+                    onclick={() => (userSearchTerm = "")}
+                    class="p-2 hover:bg-white/5 rounded-xl transition-all mr-2"
+                  >
+                    <X class="w-4 h-4 text-slate-500" />
+                  </button>
+                {/if}
+              </div>
           </div>
 
           <div
             class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl"
           >
-            <div class="overflow-x-auto">
+            <!-- Desktop View -->
+            <div class="hidden md:block overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-black/20 border-b border-white/5">
                     <th
                       class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest"
-                      >Profesor / Email</th
+                      >{$t('admin.users.table.teacher')}</th
                     >
                     <th
                       class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest"
-                      >Plan</th
+                      >{$t('admin.users.table.plan')}</th
                     >
                     <th
                       class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest"
-                      >Registro</th
+                      >{$t('admin.users.table.registered')}</th
                     >
                     <th
                       class="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right"
-                      >Acciones</th
+                      >{$t('admin.users.table.actions')}</th
                     >
                   </tr>
                 </thead>
@@ -639,12 +641,12 @@
                       <td class="p-6">
                         <div class="flex items-center gap-4">
                           <div
-                            class="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl flex items-center justify-center font-bold text-slate-300"
+                            class="w-10 h-10 bg-violet-600/10 border border-violet-500/20 rounded-xl flex items-center justify-center font-bold text-violet-400 shadow-lg"
                           >
                             {user.email?.[0].toUpperCase()}
                           </div>
                           <div>
-                            <p class="font-bold text-sm tracking-tight">
+                            <p class="font-bold text-sm tracking-tight text-white">
                               {user.email}
                             </p>
                             <p
@@ -660,10 +662,10 @@
                           class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest {getPlanStatus(
                             user,
                           ) === 'pro'
-                            ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                            ? 'bg-primary-500/10 text-primary-400 border border-primary-500/20'
                             : 'bg-slate-500/10 text-slate-500 border border-white/10'}"
                         >
-                          {getPlanStatus(user) === 'pro' ? 'PRO' : 'GRATUITO'}
+                          {getPlanStatus(user) === 'pro' ? 'PREMIUM' : 'FREE'}
                         </span>
                       </td>
                       <td class="p-6 text-xs text-slate-400 font-medium"
@@ -671,19 +673,20 @@
                       >
                       <td class="p-6 text-right">
                         <div
-                          class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          class="flex items-center justify-end gap-2"
                         >
                           <button
                             onclick={() => handleImpersonate(user.id)}
-                            class="p-2.5 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 rounded-xl transition-all"
+                            title="Suplantar"
+                            class="p-2.5 bg-blue-500/5 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/10 rounded-xl transition-all"
                           >
-                            <LogOut class="w-4 h-4 rotate-180" />
+                             <LogOut weight="bold" class="w-4 h-4 rotate-180" />
                           </button>
                           <button
-                            onclick={() => openEditModal(user)}
-                            class="p-2.5 bg-primary-500/10 hover:bg-primary-500 text-primary-400 hover:text-white border border-primary-500/20 rounded-xl transition-all"
+                            onclick={() => handleOpenManage(user)}
+                            class="p-2.5 bg-primary-500/5 hover:bg-primary-500 text-primary-400 hover:text-white border border-primary-500/10 rounded-xl transition-all"
                           >
-                            <Edit3 class="w-4 h-4" />
+                             <Edit3 weight="bold" class="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -691,6 +694,47 @@
                   {/each}
                 </tbody>
               </table>
+            </div>
+
+            <!-- Mobile View -->
+            <div class="md:hidden grid grid-cols-1 gap-4 p-4">
+              {#each users as user}
+                <div class="bg-[#1a1a24]/80 backdrop-blur-xl border border-white/5 p-6 rounded-[2.5rem] shadow-xl space-y-6 relative overflow-hidden group">
+                  <div class="absolute -right-4 -top-4 w-24 h-24 bg-violet-600/5 blur-2xl rounded-full"></div>
+                  
+                  <div class="flex items-start justify-between relative z-10">
+                    <div class="flex items-center gap-4">
+                      <div class="w-14 h-14 bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center font-outfit font-black text-violet-400 text-xl shadow-inner">
+                        {user.email?.[0].toUpperCase()}
+                      </div>
+                      <div class="space-y-1">
+                        <p class="font-outfit font-black text-sm text-white tracking-tight truncate max-w-[160px]">{user.email}</p>
+                        <div class="flex items-center gap-2">
+                           <span class="px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest {getPlanStatus(user) === 'pro' ? 'bg-violet-500 text-black shadow-lg shadow-violet-500/20' : 'bg-white/5 text-slate-500 border border-white/5'}">
+                            {getPlanStatus(user) === 'pro' ? 'PRO' : 'FREE'}
+                          </span>
+                          <span class="text-[9px] text-slate-600 font-bold uppercase tracking-tighter tabular-nums">{formatDate(user.createdAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3 relative z-10">
+                    <button
+                      onclick={() => handleImpersonate(user.id)}
+                      class="py-4 bg-zinc-900/50 border border-white/5 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-center gap-2 hover:bg-violet-500/5 hover:text-violet-400 transition-all active:scale-95"
+                    >
+                      <LogOut weight="bold" class="w-3.5 h-3.5 rotate-180" /> {$t('common.access_btn') || 'Access'}
+                    </button>
+                    <button
+                      onclick={() => openEditModal(user)}
+                      class="py-4 bg-violet-600 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-violet-600/10 hover:bg-violet-500 transition-all active:scale-95 border border-violet-400/20"
+                    >
+                      <Edit3 weight="bold" class="w-3.5 h-3.5" /> {$t('admin.users.manage_btn') || 'Gestionar'}
+                    </button>
+                  </div>
+                </div>
+              {/each}
             </div>
           </div>
         </div>
@@ -703,27 +747,27 @@
             <h3
               class="text-xl font-bold font-display uppercase italic tracking-wider mb-8"
             >
-              Lanzar Notificación Global
+              {$t('admin.announcements.new')}
             </h3>
             <div class="space-y-6">
               <input
                 bind:value={announcementForm.title}
                 type="text"
-                placeholder="Título"
+                placeholder={$t('admin.announcements.title')}
                 class="w-full px-6 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm focus:outline-none focus:border-primary-500 transition-all"
               />
               <textarea
                 bind:value={announcementForm.content}
                 rows="4"
-                placeholder="Contenido..."
+                placeholder={$t('admin.announcements.content')}
                 class="w-full px-6 py-4 bg-black/20 border border-white/10 rounded-2xl text-sm focus:outline-none focus:border-primary-500 transition-all resize-none"
               ></textarea>
               <button
                 onclick={handleSendAnnouncement}
                 disabled={isSaving}
-                class="w-full py-4 bg-primary-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary-500/20 disabled:opacity-50"
+                class="w-full py-4 bg-primary-500 text-black rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary-500/20 disabled:opacity-50"
               >
-                {isSaving ? "Enviando..." : "Lanzar Anuncio"}
+                {isSaving ? $t('admin.announcements.sending') : $t('admin.announcements.send')}
               </button>
             </div>
           </div>
@@ -734,7 +778,7 @@
             <h3
               class="text-xl font-bold font-display uppercase italic tracking-wider mb-8"
             >
-              Anuncios Activos
+              {$t('admin.announcements.active')}
             </h3>
             <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
               {#each announcements as a}
@@ -765,10 +809,79 @@
               {/each}
               {#if announcements.length === 0}
                 <p class="text-center text-slate-500 py-10 text-sm italic">
-                  No hay anuncios globales activos.
+                  {$t('admin.announcements.empty')}
                 </p>
               {/if}
             </div>
+          </div>
+        </div>
+      {:else if activeTab === "lobby"}
+        <!-- Lobby Moderation View -->
+        <div class="space-y-10" in:fade>
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-black font-display uppercase italic tracking-wider">Lobby Moderation</h2>
+              <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Sugerencias y Feedback de Profesores Premium</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-6">
+            {#each lobbySuggestions as s (s.id)}
+              <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative group overflow-hidden">
+                <div class="flex flex-col md:flex-row gap-8">
+                  <!-- Suggestion Info -->
+                  <div class="flex-1 space-y-4">
+                    <div class="flex items-center gap-4">
+                      <div class="w-12 h-12 bg-violet-500/10 rounded-2xl flex items-center justify-center text-violet-400 border border-violet-500/20 font-black">
+                        {#if s.authorAvatar}
+                          <img src={s.authorAvatar} alt="Avatar" class="w-full h-full object-cover rounded-2xl" />
+                        {:else}
+                          {s.authorName?.[0] || '?'}
+                        {/if}
+                      </div>
+                      <div>
+                        <p class="text-[10px] font-black text-violet-400 uppercase tracking-widest">{s.authorName || 'Anónimo'}</p>
+                        <p class="text-[9px] text-slate-500 font-bold">{formatDate(s.createdAt)}</p>
+                      </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-white uppercase italic tracking-tight">{s.title}</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed font-medium">{s.content}</p>
+                    
+                    <div class="flex items-center gap-4 pt-4">
+                       <div class="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-xl text-slate-400 border border-white/5">
+                         <Star weight="fill" class="w-4 h-4 text-yellow-500" />
+                         <span class="text-xs font-black">{s.votes?.length || 0} Votos</span>
+                       </div>
+                    </div>
+                  </div>
+
+                  <!-- Status Control -->
+                  <div class="md:w-64 space-y-4">
+                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Cambiar Estado</p>
+                    <div class="flex flex-col gap-2">
+                       {#each ['pending', 'planned', 'implemented'] as status}
+                         <button 
+                           onclick={() => handleUpdateSuggestionStatus(s.id, status)}
+                           class="w-full py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border {s.status === status ? 'bg-violet-500 text-white border-violet-400 shadow-lg shadow-violet-500/20' : 'bg-black/20 text-slate-500 border-white/5 hover:bg-white/5 hover:text-slate-300'}"
+                         >
+                           {status === 'pending' ? 'En Revisión' : status === 'planned' ? 'Planificado' : 'Completado'}
+                         </button>
+                       {/each}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {/each}
+
+            {#if lobbySuggestions.length === 0}
+               <div class="py-20 text-center bg-black/20 border border-dashed border-white/10 rounded-[2.5rem] space-y-4">
+                  <div class="p-4 bg-white/5 rounded-full w-16 h-16 flex items-center justify-center mx-auto text-slate-700">
+                    <Lightbulb class="w-8 h-8" />
+                  </div>
+                  <p class="text-slate-500 text-xs italic">No hay sugerencias en el lobby actualmente.</p>
+               </div>
+            {/if}
           </div>
         </div>
       {:else if activeTab === "system"}
@@ -784,17 +897,16 @@
               class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6"
             >
               <div class="flex items-center gap-4 mb-2">
-                <div class="p-3 bg-red-500/10 rounded-2xl">
-                  <Shield class="w-6 h-6 text-red-500" />
-                </div>
-                <h3 class="text-lg font-bold uppercase tracking-wider">
-                  Seguridad Global
-                </h3>
-              </div>
+                 <div class="p-3 bg-red-600/10 border border-red-500/20 rounded-2xl">
+                   <Shield weight="duotone" class="w-6 h-6 text-red-500" />
+                 </div>
+                 <h3 class="text-lg font-bold uppercase tracking-wider">
+                   {$t('admin.system.security')}
+                 </h3>
+               </div>
               <div class="space-y-4">
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  Activar el modo mantenimiento bloqueará el acceso a todos los
-                  usuarios no administrativos de forma instantánea.
+                  {$t('admin.system.maintenance_desc')}
                 </p>
                 <button
                   onclick={handleToggleMaintenance}
@@ -803,8 +915,8 @@
                     : 'bg-white/5 text-red-500 border border-red-500/20 hover:bg-red-500/10'}"
                 >
                   {maintenanceMode
-                    ? "Desactivar Mantenimiento"
-                    : "Activar Mantenimiento"}
+                    ? $t('admin.system.maintenance_on')
+                    : $t('admin.system.maintenance_off')}
                 </button>
               </div>
             </div>
@@ -817,11 +929,11 @@
                 class="p-8 border-b border-white/5 flex items-center justify-between"
               >
                 <h3 class="text-lg font-bold uppercase tracking-wider">
-                  Monitor de Actividad
+                  {$t('admin.system.monitor')}
                 </h3>
                 <span
                   class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-500/20"
-                  >Últimos Eventos</span
+                  >{$t('admin.system.events')}</span
                 >
               </div>
               <div class="overflow-x-auto">
@@ -890,61 +1002,100 @@
             </div>
           </div>
         </div>
-      {/if}
-    </div>
-
-    <!-- Modal de Edición -->
+      {/if}    <!-- Modal de Edición -->
     {#if showEditModal && selectedUser}
       <div
         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
         transition:fade
       >
         <div
-          class="bg-[#1e293b] w-full max-w-lg rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden"
+          class="bg-[#1e293b] w-full max-w-xl rounded-[2.5rem] border border-white/10 shadow-3xl overflow-hidden"
           transition:scale
         >
           <div
             class="p-8 border-b border-white/5 flex items-center justify-between bg-violet-500/5"
           >
-            <h3
-              class="text-xl font-black font-display uppercase italic tracking-wider"
-            >
-              Gestión de Perfil
-            </h3>
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-violet-500/20 rounded-2xl flex items-center justify-center text-violet-400 border border-violet-500/20">
+                <User weight="bold" class="w-6 h-6" />
+              </div>
+              <div>
+                <h3 class="text-xl font-black font-display uppercase italic tracking-wider">
+                  {$t('admin.users.manage')}
+                </h3>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedUser.email}</p>
+              </div>
+            </div>
             <button
               onclick={() => (showEditModal = false)}
               class="p-2 hover:bg-white/5 rounded-xl transition-all"
-              ><X class="w-5 h-5" /></button
+              ><X weight="bold" class="w-5 h-5" /></button
             >
           </div>
+          
           <div class="p-8 space-y-8">
-            <div class="grid grid-cols-2 gap-3">
-              <button
-                onclick={() => handleGrantPremium(selectedUser.id, 7)}
-                disabled={isSaving}
-                class="px-4 py-4 bg-slate-800 hover:bg-violet-600/20 hover:text-violet-400 border border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
-                >7 Días</button
-              >
-              <button
-                onclick={() => handleGrantPremium(selectedUser.id, 30)}
-                disabled={isSaving}
-                class="px-4 py-4 bg-violet-500 text-black border border-violet-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
-                >30 Días</button
-              >
+            <!-- Insights Section -->
+            <div class="grid grid-cols-3 gap-4">
+              <div class="bg-black/20 p-4 rounded-2xl border border-white/5 text-center">
+                <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Escuelas</p>
+                {#if isLoadingDetails}
+                  <div class="h-6 w-8 bg-white/5 animate-pulse mx-auto rounded"></div>
+                {:else}
+                  <span class="text-xl font-black font-display">{userDetails?.schools || 0}</span>
+                {/if}
+              </div>
+              <div class="bg-black/20 p-4 rounded-2xl border border-white/5 text-center">
+                <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Clases</p>
+                {#if isLoadingDetails}
+                  <div class="h-6 w-8 bg-white/5 animate-pulse mx-auto rounded"></div>
+                {:else}
+                  <span class="text-xl font-black font-display">{userDetails?.classes || 0}</span>
+                {/if}
+              </div>
+              <div class="bg-black/20 p-4 rounded-2xl border border-white/5 text-center">
+                <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Alumnos</p>
+                {#if isLoadingDetails}
+                  <div class="h-6 w-8 bg-white/5 animate-pulse mx-auto rounded"></div>
+                {:else}
+                  <span class="text-xl font-black font-display">{userDetails?.students || 0}</span>
+                {/if}
+              </div>
             </div>
-            {#if getPlanStatus(selectedUser) === "premium"}
-              <button
-                onclick={() => handleRevokePremium(selectedUser.id)}
-                disabled={isSaving}
-                class="w-full py-4 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
-                >Revocar Premium</button
-              >
+
+            <div class="space-y-4">
+              <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{$t('admin.users.grant_trial')}</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {#each [3, 7, 15, 28, 30, 365] as days}
+                  <button
+                    onclick={() => handleGrantPremium(selectedUser.id, days)}
+                    disabled={isSaving}
+                    class="px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {days === 30 ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'bg-zinc-900 text-slate-400 border border-white/5 hover:bg-primary-500/10 hover:text-primary-400'}"
+                  >
+                    {days === 365 ? '1 AÑO' : $t('admin.users.days').replace('{n}', days.toString())}
+                  </button>
+                {/each}
+              </div>
+            </div>
+
+            {#if getPlanStatus(selectedUser) === "pro"}
+              <div class="pt-4 border-t border-white/5 text-center">
+                <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-4 flex items-center justify-center gap-2">
+                  <Star weight="fill" /> Usuario Premium Activo
+                </p>
+                <button
+                  onclick={() => handleRevokePremium(selectedUser.id)}
+                  disabled={isSaving}
+                  class="w-full py-4 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                  >{$t('admin.users.revoke_premium')}</button
+                >
+              </div>
             {/if}
           </div>
         </div>
       </div>
     {/if}
-  {/if}
+  </div>
+{/if}
 </div>
 
 <style>

@@ -16,23 +16,19 @@ export const load: PageServerLoad = async (event) => {
   try {
     const isMock = locals.user.uid === 'chessnet-dev-uid';
     
-    let skillsSnap;
-    try {
-      skillsSnap = await adminDb.collection("skills")
-        .where("owner_id", "==", locals.user.uid)
-        .orderBy("created_at", "desc")
-        .get();
-    } catch (dbErr) {
-      if (isMock) {
+    if (isMock) {
         return {
           user: locals.user,
           skills: [],
           categories: [],
           stats: { total: 0, beginner: 0, intermediate: 0, advanced: 0 }
         };
-      }
-      throw dbErr;
     }
+
+    let skillsSnap = await adminDb.collection("skills")
+        .where("owner_id", "==", locals.user.uid)
+        .orderBy("created_at", "desc")
+        .get();
 
     const skills = skillsSnap.docs.map((doc: any) => {
       const data = doc.data();

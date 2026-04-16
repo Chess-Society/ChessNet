@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
 
 import { authenticate } from '$lib/server/auth';
 import { checkSchoolLimit } from '$lib/server/plans';

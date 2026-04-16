@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
+  import { goto, invalidateAll } from '$app/navigation';
   import { 
     CaretLeft,
     FloppyDisk,
@@ -23,7 +23,8 @@
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
-
+  import { t } from '$lib/i18n';
+  import { showToast, showError } from '$lib/stores/toast';
   let { data } = $props<{ data: PageData }>();
 
   let classData = $derived(data.class);
@@ -55,16 +56,16 @@
   let errors = $state<Record<string, string>>({});
 
   const levelOptions = [
-    { value: 'beginner', label: 'BEGINNER' },
-    { value: 'intermediate', label: 'INTERMEDIATE' },
-    { value: 'advanced', label: 'ADVANCED' },
-    { value: 'mixed', label: 'MIXED' }
+    { value: 'beginner', label: $t('classes.level_beginner') },
+    { value: 'intermediate', label: $t('classes.level_intermediate') },
+    { value: 'advanced', label: $t('classes.level_advanced') },
+    { value: 'mixed', label: $t('classes.level_mixed') }
   ];
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.school_id) newErrors.school_id = 'You must select a school';
+    if (!formData.name.trim()) newErrors.name = $t('classes.name_required');
+    // School is now optional for independent teachers
     if (formData.max_students < 1) newErrors.max_students = 'Minimum capacity is 1';
     errors = newErrors;
     return Object.keys(newErrors).length === 0;
@@ -81,10 +82,14 @@
         body: JSON.stringify(formData)
       });
 
-      if (!response.ok) throw new Error('Update error');
-      goto(`/panel/classes/${classData.id}`);
+      if (!response.ok) throw new Error($t('classes.update_error'));
+      showToast.success($t('classes.update_success') || 'Updated');
+      await invalidateAll();
+      setTimeout(() => {
+        goto(`/panel/classes/${classData.id}`);
+      }, 400);
     } catch (error) {
-      alert('Error saving changes');
+      showError(error);
     } finally {
       isSubmitting = false;
     }
@@ -92,7 +97,7 @@
 </script>
 
 <svelte:head>
-  <title>Edit {classData?.name} - ChessNet</title>
+  <title>{$t('common.edit')} {classData?.name} - ChessNet</title>
 </svelte:head>
 
 <div class="max-w-6xl mx-auto space-y-10 animate-fade-in pb-20" in:fade>
@@ -104,7 +109,7 @@
         class="flex items-center gap-2 text-zinc-500 hover:text-white transition-all group text-[10px] font-black uppercase tracking-[0.2em]"
       >
         <CaretLeft weight="bold" class="w-3 h-3 transition-transform group-hover:-translate-x-1" />
-        Back to Class
+        {$t('classes.back_to_class')}
       </button>
 
       <div class="flex items-center gap-6">
@@ -112,9 +117,9 @@
           <PencilSimple weight="duotone" class="w-8 h-8" />
         </div>
         <div>
-          <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-none">Settings</h1>
+          <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-none">{$t('classes.edit_title')}</h1>
           <p class="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
-            Configuration of <span class="text-white">{classData?.name}</span>
+            {$t('classes.edit_subtitle', { name: classData?.name })}
           </p>
         </div>
       </div>
@@ -127,7 +132,7 @@
         disabled={isSubmitting}
       >
         <X weight="bold" class="w-4 h-4" />
-        Cancel
+        {$t('classes.cancel')}
       </button>
       <button 
         onclick={handleSubmit}
@@ -136,10 +141,10 @@
       >
         {#if isSubmitting}
           <div class="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
-          <span>Saving...</span>
+          <span>{$t('classes.saving')}</span>
         {:else}
           <FloppyDisk weight="bold" class="w-4 h-4" />
-          <span>Save Changes</span>
+          <span>{$t('classes.save_changes')}</span>
         {/if}
       </button>
     </div>
@@ -155,20 +160,20 @@
           <div class="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
             <BookOpen weight="duotone" class="w-6 h-6 text-primary-400" />
           </div>
-          <h2 class="text-xl font-black text-white uppercase tracking-tight">General Information</h2>
+          <h2 class="text-xl font-black text-white uppercase tracking-tight">{$t('classes.general_info')}</h2>
         </div>
 
         <div class="space-y-8 relative z-10">
           <div class="space-y-3">
             <label for="name" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-              Group Name
+              {$t('classes.group_name')}
               {#if errors.name}<span class="text-red-500">— {errors.name}</span>{/if}
             </label>
             <input
               id="name"
               type="text"
               bind:value={formData.name}
-              placeholder="e.g., Advanced A"
+              placeholder={$t('classes.name_placeholder')}
               class={`w-full bg-zinc-950 border rounded-2xl px-6 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all placeholder:text-zinc-800 ${errors.name ? 'border-red-500/50 bg-red-500/5' : 'border-zinc-800'}`}
             />
           </div>
@@ -177,7 +182,7 @@
             <div class="space-y-3">
               <label for="school" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
                 <Buildings weight="duotone" class="w-3 h-3" />
-                School
+                {$t('classes.school')} ({$t('common.optional')})
               </label>
               <div class="relative group/select">
                 <select 
@@ -185,6 +190,7 @@
                   bind:value={formData.school_id}
                   class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-white font-bold focus:border-primary-500/50 outline-none transition-all cursor-pointer appearance-none"
                 >
+                  <option value="">{$t('classes.independent').toUpperCase()}</option>
                   {#each schools as s}
                     <option value={s.id}>{s.name.toUpperCase()}</option>
                   {/each}
@@ -196,7 +202,7 @@
             <div class="space-y-3">
               <label for="level" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
                 <GraduationCap weight="duotone" class="w-3 h-3" />
-                Recommended Level
+                {$t('classes.recommended_level')}
               </label>
               <div class="relative group/select">
                 <select 
@@ -214,13 +220,13 @@
           </div>
 
           <div class="space-y-3">
-            <label for="desc" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Description and Objectives</label>
+            <label for="desc" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">{$t('classes.desc_objectives')}</label>
             <textarea
               id="desc"
               bind:value={formData.description}
               rows="4"
               class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-5 text-white font-medium focus:border-primary-500/50 outline-none transition-all resize-none placeholder:text-zinc-800"
-              placeholder="Detail the pedagogical approach for this group..."
+              placeholder={$t('classes.desc_placeholder')}
             ></textarea>
           </div>
         </div>
@@ -234,12 +240,12 @@
           <div class="p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
             <Clock weight="duotone" class="w-6 h-6 text-blue-400" />
           </div>
-          <h2 class="text-xl font-black text-white uppercase tracking-tight">Calendar and Logistics</h2>
+          <h2 class="text-xl font-black text-white uppercase tracking-tight">{$t('classes.logistics')}</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
            <div class="space-y-3">
-              <label for="schedule" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Session Schedule</label>
+              <label for="schedule" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">{$t('classes.session_schedule')}</label>
               <div class="relative group">
                  <Clock weight="duotone" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-700 group-focus-within:text-blue-400 transition-colors" />
                  <input
@@ -247,13 +253,13 @@
                   type="text"
                   bind:value={formData.schedule}
                   class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl pl-16 pr-6 py-4 text-white font-bold focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-800"
-                  placeholder="e.g., Monday and Wednesday 18:00"
+                  placeholder={$t('classes.schedule_placeholder')}
                 />
               </div>
            </div>
 
            <div class="space-y-3">
-              <label for="max" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Max Capacity</label>
+              <label for="max" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">{$t('classes.max_capacity')}</label>
               <div class="relative group">
                  <Users weight="duotone" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-700 group-focus-within:text-blue-400 transition-colors" />
                  <input
@@ -273,19 +279,19 @@
        <div class="bg-zinc-900/50 border border-zinc-800 p-8 rounded-[32px] space-y-8 shadow-xl">
           <h3 class="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
             <Warning weight="duotone" class="w-5 h-5 text-primary-500" />
-            Important
+            {$t('classes.important')}
           </h3>
           <ul class="space-y-6">
              <li class="flex gap-4">
                 <div class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 flex-shrink-0"></div>
                 <p class="text-[11px] text-zinc-400 font-bold uppercase tracking-wider leading-relaxed">
-                  Level changes will affect suggestions from the <span class="text-white">smart curriculum</span>.
+                  {@html $t('classes.important_level_desc')}
                 </p>
              </li>
              <li class="flex gap-4">
                 <div class="w-1.5 h-1.5 rounded-full bg-primary-500 mt-2 flex-shrink-0"></div>
                 <p class="text-[11px] text-zinc-400 font-bold uppercase tracking-wider leading-relaxed">
-                  Make sure the schedule does not cause <span class="text-white">conflicts</span> with other groups in the same school.
+                  {@html $t('classes.important_conflict_desc')}
                 </p>
              </li>
           </ul>
@@ -294,14 +300,14 @@
         <div class="p-10 border border-zinc-800 rounded-[32px] bg-zinc-900/20 backdrop-blur-sm space-y-4">
           <div class="flex items-center gap-4 text-zinc-600 mb-2">
              <ArrowCounterClockwise weight="bold" class="w-6 h-6" />
-             <h3 class="text-[10px] font-black uppercase tracking-[0.2em]">History</h3>
+             <h3 class="text-[10px] font-black uppercase tracking-[0.2em]">{$t('classes.history')}</h3>
           </div>
           <p class="text-[10px] text-zinc-500 font-bold uppercase leading-relaxed tracking-widest">
-            Upon saving, all reports and calendars will be updated instantly.
+            {$t('classes.history_desc')}
           </p>
           <div class="pt-4">
             <div class="w-full h-px bg-zinc-800"></div>
-            <p class="text-[9px] text-zinc-800 font-black uppercase mt-4 text-center tracking-[0.3em]">ChessNet System v2</p>
+            <p class="text-[9px] text-zinc-800 font-black uppercase mt-4 text-center tracking-[0.3em]">{$t('classes.system_v2')}</p>
           </div>
        </div>
     </div>

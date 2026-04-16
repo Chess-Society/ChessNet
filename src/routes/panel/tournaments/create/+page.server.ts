@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { studentsApi } from '$lib/api/students';
-import { schoolsApi } from '$lib/api/schools';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals }) => {
   
@@ -8,36 +8,50 @@ export const load: PageServerLoad = async ({ locals }) => {
     return {
       user: null,
       availableStudents: [],
-      availableLocations: []
+      schools: []
+    };
+  }
+
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  if (isMock) {
+    return {
+      user: locals.user,
+      availableStudents: [{ id: 'mock-student-1', name: 'Alumno Mock', rating: 1200, school_name: 'Mock Academy', email: '' }],
+      schools: [{ id: 'mock-school-1', name: 'Mock Academy', city: 'Madrid' }]
     };
   }
 
   try {
-    // Fetch students and schools for the user from Firebase
-    const [students, schools] = await Promise.all([
-      studentsApi.getMyStudents(),
-      schoolsApi.getMySchools()
+    const [studentsSnap, schoolsSnap] = await Promise.all([
+      adminDb.collection('students').where('owner_id', '==', uid).get(),
+      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get()
     ]);
 
-    // Format students for the UI
-    const availableStudents = students.map(s => ({
-      id: s.id,
-      name: s.name,
-      rating: 1200, // Default base rating
-      school_name: (s as any).school_name || 'No school',
-      email: s.parent_email || ''
-    }));
+    const schools = schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+    const students = studentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
 
-    // Format available locations (school names)
+    const availableStudents = students.map((s: any) => {
+      const school = schools.find((sc: any) => sc.id === s.school_id);
+      return {
+        id: s.id,
+        name: `${s.first_name || ''} ${s.last_name || ''}`.trim() || s.name || 'Sin nombre',
+        rating: s.rating || 1200,
+        school_name: school?.name || 'Sin centro',
+        email: s.parent_email || s.email || ''
+      };
+    });
+
     const availableLocations = [
-      ...schools.map(s => s.name),
+      ...schools.map((s: any) => s.name),
       'Online - ChessNet Platform'
     ];
 
     return {
       user: locals.user,
-      availableStudents,
-      availableLocations
+      availableStudents: serializeRecord(availableStudents),
+      schools: serializeRecord(schools)
     };
 
   } catch (err: any) {
@@ -45,7 +59,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     return {
       user: locals.user,
       availableStudents: [],
-      availableLocations: []
+      schools: []
     };
   }
 };

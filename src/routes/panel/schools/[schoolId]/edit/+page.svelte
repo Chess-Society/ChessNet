@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
+  import { goto, invalidateAll } from '$app/navigation';
   import { 
     CaretLeft,
     FloppyDiskBack,
@@ -17,6 +17,8 @@
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly } from 'svelte/transition';
+  import { t } from '$lib/i18n';
+  import { showToast, showError } from '$lib/stores/toast';
 
   let { data } = $props<{ data: PageData }>();
 
@@ -51,10 +53,10 @@
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.city.trim()) newErrors.city = 'City is required';
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email';
-    if (formData.website && !/^https?:\/\/.+/.test(formData.website)) newErrors.website = 'Invalid URL';
+    if (!formData.name.trim()) newErrors.name = $t('schools.form.name_required');
+    if (!formData.city.trim()) newErrors.city = $t('schools.form.city_required');
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = $t('schools.form.invalid_email');
+    if (formData.website && !/^https?:\/\/.+/.test(formData.website)) newErrors.website = $t('schools.form.invalid_url');
     
     errors = newErrors;
     return Object.keys(newErrors).length === 0;
@@ -71,10 +73,14 @@
       });
 
       if (!response.ok) throw new Error('Update error');
-      goto(`/panel/schools/${schoolData.id}`);
+      showToast.success($t('schools.update_success'));
+      await invalidateAll();
+      setTimeout(() => {
+        goto(`/panel/schools/${schoolData.id}`);
+      }, 400);
     } catch (error) {
       console.error('Error:', error);
-      alert('Error updating the school');
+      showError(error as Error, $t('schools.update_error'));
     } finally {
       isSubmitting = false;
     }
@@ -82,7 +88,7 @@
 </script>
 
 <svelte:head>
-  <title>Edit {schoolData?.name || 'School'} - ChessNet</title>
+  <title>{$t('schools.edit_title')} - {schoolData?.name || 'School'}</title>
 </svelte:head>
 
 <div class="max-w-[1200px] mx-auto p-4 md:p-8 space-y-8 pb-24" in:fade={{ duration: 300 }}>
@@ -94,7 +100,7 @@
         class="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group text-sm font-medium"
       >
         <CaretLeft weight="bold" class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-        Back to school
+        {$t('schools.back')}
       </button>
 
       <div class="flex items-center gap-4">
@@ -102,8 +108,8 @@
           <PencilLine weight="duotone" class="w-6 h-6" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-white tracking-tight">School Settings</h1>
-          <p class="text-zinc-500 text-sm">Update institutional and contact details.</p>
+          <h1 class="text-2xl font-bold text-white tracking-tight">{$t('schools.edit_title')}</h1>
+          <p class="text-zinc-500 text-sm">{$t('schools.edit_subtitle')}</p>
         </div>
       </div>
     </div>
@@ -115,7 +121,7 @@
         disabled={isSubmitting}
       >
         <X weight="bold" class="w-4 h-4" />
-        Cancel
+        {$t('common.cancel')}
       </button>
       <button 
         onclick={handleSubmit}
@@ -124,10 +130,10 @@
       >
         {#if isSubmitting}
           <CircleNotch weight="bold" class="w-4 h-4 animate-spin" />
-          <span>Saving...</span>
+          <span>{$t('common.loading')}</span>
         {:else}
           <FloppyDiskBack weight="duotone" class="w-4 h-4 group-hover:scale-110 transition-transform" />
-          <span>Save changes</span>
+          <span>{$t('common.save')}</span>
         {/if}
       </button>
     </div>
@@ -142,19 +148,19 @@
           <div class="p-2 bg-zinc-800 rounded-xl text-zinc-400">
             <Buildings weight="duotone" class="w-5 h-5" />
           </div>
-          <h2 class="text-lg font-bold text-white tracking-tight">School Information</h2>
+          <h2 class="text-lg font-bold text-white tracking-tight">{$t('landing.features.multischool.title')}</h2>
         </div>
 
         <div class="grid grid-cols-1 gap-6">
           <div class="space-y-2">
-            <label for="name" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Official Name</label>
+            <label for="name" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.name_label')}</label>
             <div class="relative group">
               <input
                 id="name"
                 type="text"
                 bind:value={formData.name}
                 class={`w-full bg-zinc-950/50 border rounded-2xl px-5 py-3.5 text-white font-medium focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all placeholder:text-zinc-700 ${errors.name ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
-                placeholder="e.g. Saint Peter's Academy"
+                placeholder={$t('schools.form.name_placeholder')}
               />
               {#if errors.name}
                 <p class="text-red-500 text-[11px] font-medium mt-1 ml-1">{errors.name}</p>
@@ -164,25 +170,25 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label for="city" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">City</label>
+              <label for="city" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.city_label')}</label>
               <input
                 id="city"
                 type="text"
                 bind:value={formData.city}
                 class={`w-full bg-zinc-950/50 border rounded-2xl px-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all ${errors.city ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
-                placeholder="e.g. New York"
+                placeholder={$t('schools.form.city_placeholder')}
               />
             </div>
 
             <div class="space-y-2">
-              <label for="country" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Country</label>
+              <label for="country" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.country_label')}</label>
               <div class="relative">
                 <select 
                   bind:value={formData.country} 
                   class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl px-5 py-3.5 text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all cursor-pointer font-medium"
                 >
                   <option value="US">USA</option>
-                  <option value="ES">Spain</option>
+                  <option value="ES">{$t('pricing.faq.a3').includes('Ayuda') ? 'España' : 'Spain'}</option>
                   <option value="MX">Mexico</option>
                   <option value="AR">Argentina</option>
                   <option value="CO">Colombia</option>
@@ -193,7 +199,7 @@
           </div>
 
           <div class="space-y-2">
-            <label for="address" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Postal Address</label>
+            <label for="address" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.address_label')}</label>
             <div class="relative group">
               <MapPin weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-violet-500 transition-colors" />
               <input
@@ -201,7 +207,7 @@
                 type="text"
                 bind:value={formData.address}
                 class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-12 pr-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all placeholder:text-zinc-700 hover:border-zinc-700"
-                placeholder="Street, number, postal code..."
+                placeholder={$t('schools.form.address_placeholder')}
               />
             </div>
           </div>
@@ -214,12 +220,12 @@
           <div class="p-2 bg-zinc-800 rounded-xl text-zinc-400">
             <EnvelopeSimple weight="duotone" class="w-5 h-5" />
           </div>
-          <h2 class="text-lg font-bold text-white tracking-tight">Contact Channels</h2>
+          <h2 class="text-lg font-bold text-white tracking-tight">{$t('actions.messages.title')}</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2">
-            <label for="phone" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Phone</label>
+            <label for="phone" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.phone_label')}</label>
             <div class="relative group">
               <Phone weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600" />
               <input
@@ -227,13 +233,13 @@
                 type="tel"
                 bind:value={formData.phone}
                 class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-12 pr-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all hover:border-zinc-700"
-                placeholder="+1 000 000 000"
+                placeholder={$t('schools.form.phone_placeholder')}
               />
             </div>
           </div>
 
           <div class="space-y-2">
-            <label for="email" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Professional Email</label>
+            <label for="email" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.email_label')}</label>
             <div class="relative group">
               <EnvelopeSimple weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600" />
               <input
@@ -241,14 +247,14 @@
                 type="email"
                 bind:value={formData.email}
                 class={`w-full bg-zinc-950/50 border rounded-2xl pl-12 pr-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all ${errors.email ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
-                placeholder="admin@academy.com"
+                placeholder={$t('schools.form.email_placeholder')}
               />
             </div>
           </div>
         </div>
 
         <div class="space-y-2">
-          <label for="website" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Website</label>
+          <label for="website" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.website_label')}</label>
           <div class="relative group">
             <Globe weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600" />
             <input
@@ -256,7 +262,7 @@
               type="url"
               bind:value={formData.website}
               class={`w-full bg-zinc-950/50 border rounded-2xl pl-12 pr-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all ${errors.website ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
-              placeholder="https://www.your-academy.com"
+              placeholder={$t('schools.form.website_placeholder')}
             />
           </div>
         </div>
@@ -270,7 +276,7 @@
           <div class="p-2 bg-violet-500/10 rounded-xl text-violet-400">
             <CheckCircle weight="duotone" class="w-5 h-5" />
           </div>
-          <h3 class="text-sm font-bold text-white tracking-tight">Profile Status</h3>
+          <h3 class="text-sm font-bold text-white tracking-tight">{$t('schools.status.title')}</h3>
         </div>
         
         <div class="space-y-4">
@@ -281,12 +287,12 @@
             </span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-zinc-500">Last change</span>
-            <span class="text-xs font-bold text-white">Just a few moments ago</span>
+            <span class="text-xs font-medium text-zinc-500">{$t('schools.status.last_change')}</span>
+            <span class="text-xs font-bold text-white">{$t('schools.status.just_now')}</span>
           </div>
           <div class="pt-2 flex items-center gap-2">
             <div class="w-2 h-2 rounded-full bg-primary-500"></div>
-            <span class="text-xs font-bold text-primary-500 uppercase tracking-widest">Active</span>
+            <span class="text-xs font-bold text-primary-500 uppercase tracking-widest">{$t('schools.status.active')}</span>
           </div>
         </div>
       </div>
@@ -294,18 +300,18 @@
       <div class="p-6 border border-violet-500/20 rounded-[24px] bg-violet-500/5 space-y-4">
         <div class="flex items-center gap-3">
           <House weight="duotone" class="w-5 h-5 text-violet-400" />
-          <h3 class="text-sm font-bold text-violet-400">Letterhead Guide</h3>
+          <h3 class="text-sm font-bold text-violet-400">{$t('schools.letterhead.title')}</h3>
         </div>
         <p class="text-sm text-zinc-400 leading-relaxed">
-          Ensure the name and address are accurate. This information will automatically appear on **PDF Reports** and invoices generated for this school.
+          {$t('schools.letterhead.text')}
         </p>
       </div>
 
       <!-- Delete Action (Optional/Future) -->
       <div class="p-6 bg-red-500/5 border border-red-500/10 rounded-[24px] opacity-60">
-        <p class="text-[10px] font-black text-red-500/70 uppercase tracking-widest mb-1">Critical Zone</p>
+        <p class="text-[10px] font-black text-red-500/70 uppercase tracking-widest mb-1">{$t('schools.critical.title')}</p>
         <p class="text-xs text-zinc-500 font-medium italic">
-          To delete this school, contact technical support to ensure student records are not affected.
+          {$t('schools.critical.text')}
         </p>
       </div>
     </div>

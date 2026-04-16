@@ -3,7 +3,6 @@
   import { 
     ArrowLeft, 
     PencilSimple, 
-    UserCircle, 
     Buildings, 
     FileText, 
     Calendar,
@@ -15,12 +14,14 @@
     GraduationCap
   } from 'phosphor-svelte';
   import { fade, fly } from 'svelte/transition';
+  import { t } from '$lib/i18n';
   import type { PageData } from './$types';
 
   let { data } = $props<{ data: PageData }>();
   let student = $derived(data.student);
   let school = $derived(data.school);
-  let classes = $derived(data.classes || []);
+  let enrolledClasses = $derived(data.enrolledClasses || []);
+  let attendanceRate = $derived(data.attendanceRate);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -28,7 +29,7 @@
 </script>
 
 <svelte:head>
-  <title>{student?.name || 'Student'} - Profile - ChessNet</title>
+  <title>{student?.name || $t('common.unknown')} - {$t('students.records')} - ChessNet</title>
 </svelte:head>
 
 {#if student}
@@ -43,7 +44,7 @@
         <div class="p-2 bg-white/5 rounded-lg border border-white/10 group-hover:border-violet-500/30 transition-all">
           <ArrowLeft size={14} weight="bold" />
         </div>
-        Back to List
+        {$t('students.back_to_list')}
       </button>
 
       <div class="flex items-center gap-8">
@@ -56,11 +57,11 @@
           <div class="flex flex-wrap items-center gap-3">
             <span class="px-4 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-lg text-[10px] font-outfit font-black text-violet-400 uppercase tracking-widest flex items-center gap-2">
               <CheckCircle size={14} weight="bold" />
-              ACTIVE STUDENT
+              {student.active ? $t('students.status_active') : $t('students.status_inactive')}
             </span>
             {#if student.level}
               <span class="px-4 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-outfit font-black text-slate-400 uppercase tracking-widest">
-                LEVEL: {student.level}
+                {$t('students.level')}: {student.level}
               </span>
             {/if}
           </div>
@@ -73,7 +74,7 @@
       class="btn-pill bg-zinc-900 text-white px-10 py-4 font-bold border border-white/5 hover:bg-zinc-800 transition-all flex items-center gap-3 shadow-xl text-sm"
     >
       <PencilSimple size={20} weight="duotone" class="text-violet-400" />
-      Edit Student Record
+      {$t('students.edit_record')}
     </button>
   </div>
 
@@ -84,32 +85,32 @@
       <section class="bento-card !p-10 space-y-10">
         <div class="flex items-center gap-4 border-b border-white/5 pb-6">
           <GraduationCap size={24} weight="duotone" class="text-violet-400" />
-          <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">Academic Record</h2>
+          <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">{$t('students.academic_record')}</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="p-6 bg-zinc-950 border border-white/5 rounded-24 space-y-3 group hover:border-violet-500/30 transition-all">
             <div class="flex items-center gap-2">
                <Buildings size={16} weight="duotone" class="text-violet-500/60" />
-               <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">Educational School</p>
+               <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{$t('students.educational_school')}</p>
             </div>
-            <p class="text-white font-outfit font-bold text-lg">{school?.name || 'Unassigned'}</p>
+            <p class="text-white font-outfit font-bold text-lg">{school?.name || $t('classes.independent')}</p>
           </div>
           
           <div class="p-6 bg-zinc-950 border border-white/5 rounded-24 space-y-4 group hover:border-violet-500/30 transition-all">
             <div class="flex items-center gap-2">
                <IdentificationBadge size={16} weight="duotone" class="text-violet-500/60" />
-               <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">Active Classes</p>
+               <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{$t('students.active_classes')}</p>
             </div>
             <div class="flex flex-wrap gap-2">
-              {#if classes.length > 0}
-                {#each classes as cls}
+              {#if enrolledClasses.length > 0}
+                {#each enrolledClasses as cls}
                   <span class="px-3 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-lg text-[10px] font-outfit font-black text-violet-400 uppercase tracking-widest">
                     {cls.name}
                   </span>
                 {/each}
               {:else}
-                <p class="text-slate-600 font-jakarta text-xs font-bold uppercase italic mt-1">No enrollments</p>
+                <p class="text-slate-600 font-jakarta text-xs font-bold uppercase italic mt-1">{$t('students.no_records')}</p>
               {/if}
             </div>
           </div>
@@ -120,7 +121,7 @@
       <section class="bento-card !p-10 space-y-10">
         <div class="flex items-center gap-4 border-b border-white/5 pb-6">
           <FileText size={24} weight="duotone" class="text-violet-400" />
-          <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">Observations</h2>
+          <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">{$t('students.observations')}</h2>
         </div>
         
         <div class="bg-zinc-950 border border-white/5 rounded-24 p-8 min-h-[250px] relative overflow-hidden group">
@@ -133,7 +134,7 @@
                <div class="p-5 bg-white/5 rounded-2xl border border-white/10">
                   <FileText size={48} weight="duotone" class="opacity-30" />
                </div>
-               <p class="text-xs font-outfit font-black uppercase tracking-widest text-slate-600">No recorded notes</p>
+               <p class="text-xs font-outfit font-black uppercase tracking-widest text-slate-600">{$t('students.no_notes')}</p>
             </div>
           {/if}
         </div>
@@ -149,27 +150,27 @@
              <div class="p-2.5 bg-violet-600/10 rounded-xl border border-violet-500/20">
                 <TrendUp size={20} weight="duotone" class="text-violet-400" />
              </div>
-             <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">Performance</h3>
+             <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">{$t('students.performance')}</h3>
           </div>
           
           <div class="space-y-10 relative z-10 pt-2">
              <div class="space-y-4">
                 <div class="flex justify-between items-end">
-                   <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">Estimated Progress</p>
-                   <p class="text-3xl font-outfit font-extrabold text-white leading-none tracking-tighter">74%</p>
+                   <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{$t('students.estimated_progress')}</p>
+                   <p class="text-3xl font-outfit font-extrabold text-white leading-none tracking-tighter">{data.estimatedProgress}%</p>
                 </div>
                 <div class="w-full h-2.5 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
-                   <div class="h-full bg-gradient-to-r from-violet-600 to-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.5)] w-[74%] rounded-full transition-all duration-1000"></div>
+                   <div class="h-full bg-gradient-to-r from-violet-600 to-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.5)] rounded-full transition-all duration-1000" style="width: {data.estimatedProgress}%"></div>
                 </div>
              </div>
              
              <div class="space-y-4">
                 <div class="flex justify-between items-end">
-                   <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">Average Attendance</p>
-                   <p class="text-3xl font-outfit font-extrabold text-white leading-none tracking-tighter">92%</p>
+                   <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{$t('students.avg_attendance')}</p>
+                   <p class="text-3xl font-outfit font-extrabold text-white leading-none tracking-tighter">{attendanceRate}%</p>
                 </div>
                 <div class="w-full h-2.5 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
-                   <div class="h-full bg-gradient-to-r from-violet-500 to-indigo-400 shadow-[0_0_15px_rgba(139,92,246,0.5)] w-[92%] rounded-full transition-all duration-1000"></div>
+                   <div class="h-full bg-gradient-to-r from-violet-500 to-indigo-400 shadow-[0_0_15px_rgba(139,92,246,0.5)] rounded-full transition-all duration-1000" style="width: {attendanceRate}%"></div>
                 </div>
              </div>
           </div>
@@ -182,7 +183,7 @@
              <div class="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20">
                 <Medal size={20} weight="duotone" class="text-amber-400" />
              </div>
-             <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">Achievements</h3>
+             <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">{$t('students.achievements')}</h3>
           </div>
           
           <div class="space-y-4 relative z-10">
@@ -191,8 +192,8 @@
                    <Medal size={24} weight="duotone" />
                 </div>
                 <div>
-                   <p class="text-xs font-outfit font-black text-white uppercase tracking-tight">First Tournament</p>
-                   <p class="text-[10px] font-jakarta font-bold text-slate-500 uppercase tracking-widest mt-0.5">SPECIAL MENTION</p>
+                   <p class="text-xs font-outfit font-black text-white uppercase tracking-tight">{$t('students.first_tournament')}</p>
+                   <p class="text-[10px] font-jakarta font-bold text-slate-500 uppercase tracking-widest mt-0.5">{$t('students.special_mention')}</p>
                 </div>
              </div>
           </div>
@@ -205,10 +206,10 @@
    <div class="relative">
       <div class="w-24 h-24 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
       <div class="absolute inset-0 flex items-center justify-center text-violet-400">
-         <UserCircle size={48} weight="duotone" class="animate-pulse" />
+         <IdentificationBadge size={48} weight="duotone" class="animate-pulse" />
       </div>
    </div>
-   <p class="text-slate-500 font-outfit font-black text-xs uppercase tracking-[0.4em]">Synchronizing record...</p>
+   <p class="text-slate-500 font-outfit font-black text-xs uppercase tracking-[0.4em]">{$t('common.loading')}...</p>
 </div>
 {/if}
 

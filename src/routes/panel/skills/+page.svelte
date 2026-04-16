@@ -12,12 +12,18 @@
     MagnifyingGlass,
     Stack,
     Star,
-    Sparkle
+    Sparkle,
+    DownloadSimple,
+    Sword
   } from 'phosphor-svelte';
+  import { t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
+  import { uiStore } from '$lib/stores/uiStore';
+  import { CHESS_SYLLABUS_PRESETS } from '$lib/constants/chess-presets';
   import { fade, fly } from 'svelte/transition';
 
   let searchQuery = $state('');
+  let isImporting = $state(false);
 
   // Reactive data from the store
   let skills = $derived($appStore.skills || []);
@@ -26,10 +32,31 @@
     skills.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const deleteSkill = (id: string) => {
+  const deleteSkill = async (id: string) => {
     const skill = skills.find(s => s.id === id);
-    if (confirm(`Delete the skill/topic "${skill?.name}"?`)) {
+    const confirmed = await uiStore.confirm({
+      title: $t('skills.delete_title'),
+      message: $t('common.confirm_delete', { name: skill?.name }),
+      type: 'danger',
+      confirmText: $t('common.delete')
+    });
+    
+    if (confirmed) {
       appStore.removeSkill(id);
+    }
+  };
+
+  const handleImportSyllabus = async () => {
+    const confirmed = await uiStore.confirm({
+      title: $t('skills.import_title'),
+      message: $t('skills.import_confirm'),
+      confirmText: $t('common.confirm')
+    });
+
+    if (confirmed) {
+      isImporting = true;
+      await appStore.importCurriculum(CHESS_SYLLABUS_PRESETS);
+      isImporting = false;
     }
   };
 </script>
@@ -47,18 +74,30 @@
         <Target weight="duotone" class="w-8 h-8" />
       </div>
       <div>
-        <h1 class="text-3xl font-bold text-white tracking-tight">Curriculum & Skills</h1>
-        <p class="text-zinc-500 text-sm font-medium">Define the curriculum and key competencies for your students.</p>
+        <h1 class="text-3xl font-bold text-white tracking-tight">{$t('skills.title')}</h1>
+        <p class="text-zinc-500 text-sm font-medium">{$t('skills.subtitle')}</p>
       </div>
     </div>
 
-    <button 
-      onclick={() => goto('/panel/skills/create')}
-      class="px-6 py-3 rounded-full bg-violet-600 text-white hover:bg-violet-500 transition-all shadow-lg shadow-violet-600/20 flex items-center gap-2 text-sm font-bold group"
-    >
-      <Plus weight="bold" class="w-5 h-5 group-hover:rotate-90 transition-transform" />
-      New Skill
-    </button>
+    <div class="flex items-center gap-3">
+      <button 
+        onclick={handleImportSyllabus}
+        disabled={isImporting}
+        class="relative px-8 py-3.5 rounded-2xl bg-gradient-to-br from-indigo-600/90 to-violet-600/90 text-white border border-white/10 hover:from-indigo-600 hover:to-violet-600 transition-all flex items-center gap-3 text-xs font-black tracking-widest uppercase shadow-lg shadow-violet-500/20 active:scale-95 disabled:opacity-50 group overflow-hidden"
+      >
+        <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <DownloadSimple weight="bold" class="w-5 h-5 relative z-10 {isImporting ? 'animate-bounce' : ''}" />
+        <span class="relative z-10">{isImporting ? $t('common.loading') : $t('skills.import_btn')}</span>
+      </button>
+
+      <button 
+        onclick={() => goto('/panel/skills/create')}
+        class="px-8 py-3.5 rounded-2xl bg-zinc-900 text-white border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800 transition-all flex items-center gap-3 text-xs font-black tracking-widest uppercase shadow-xl group active:scale-95"
+      >
+        <Plus weight="bold" class="w-5 h-5 group-hover:rotate-90 transition-transform" />
+        {$t('skills.new_skill')}
+      </button>
+    </div>
   </div>
 
   <!-- Search and Filters Section -->
@@ -66,7 +105,7 @@
     <MagnifyingGlass weight="bold" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-violet-500 transition-colors" />
     <input
       type="text"
-      placeholder="Search topic, opening or tactic..."
+      placeholder={$t('skills.search_placeholder')}
       bind:value={searchQuery}
       class="w-full bg-zinc-900/50 border border-zinc-800 rounded-[20px] pl-14 pr-6 py-4 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all placeholder:text-zinc-600"
     />
@@ -78,8 +117,17 @@
         <Sparkle weight="duotone" class="w-10 h-10" />
       </div>
       <div class="space-y-2">
-        <h2 class="text-xl font-bold text-white">No skills configured</h2>
-        <p class="text-zinc-500 text-sm max-w-xs mx-auto">Create specific topics like openings, tactics or endgames to evaluate your students' real progress.</p>
+        <h2 class="text-xl font-bold text-white uppercase tracking-tight">{$t('skills.empty_title')}</h2>
+        <p class="text-zinc-500 text-sm max-w-xs mx-auto mb-4">{$t('skills.empty_desc')}</p>
+        
+        <button 
+          onclick={handleImportSyllabus}
+          disabled={isImporting}
+          class="px-8 py-4 rounded-full bg-violet-600/10 border border-violet-500/20 text-violet-400 hover:bg-violet-600 hover:text-white transition-all flex items-center gap-3 text-sm font-black uppercase tracking-widest"
+        >
+          <Sparkle weight="fill" class="w-5 h-5 {isImporting ? 'animate-spin' : ''}" />
+          {isImporting ? $t('common.loading') : $t('skills.import_btn')}
+        </button>
       </div>
     </div>
   {:else}
@@ -98,7 +146,7 @@
               <div class="flex flex-col">
                 <h3 class="text-white font-bold leading-tight group-hover:text-violet-400 transition-colors uppercase tracking-tight line-clamp-1">{skill.name}</h3>
                 <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
-                  {skill.category || 'General Competency'}
+                  {skill.category || $t('skills.general_competency')}
                 </span>
               </div>
             </div>
@@ -130,7 +178,7 @@
                         class="w-3.5 h-3.5 {starIndex < (skill.difficulty || 1) ? 'text-violet-400' : 'text-zinc-800'}" 
                     />
                 {/each}
-                <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Level {skill.difficulty || 1}</span>
+                <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">{$t('skills.level', { level: skill.difficulty || 1 })}</span>
              </div>
              {#if skill.description}
                <p class="text-sm text-zinc-400 leading-relaxed line-clamp-2 italic">
@@ -145,7 +193,7 @@
               onclick={() => goto(`/panel/skills/${skill.id}`)}
               class="w-full bg-zinc-800/50 hover:bg-violet-600 text-zinc-300 hover:text-white flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 group/btn"
             >
-              Explore content
+              {$t('skills.explore')}
               <CaretRight weight="bold" class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>

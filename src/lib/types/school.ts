@@ -45,6 +45,7 @@ export interface Student {
   id: string;
   owner_id: string;
   school_id: string;
+  class_id?: string;
   name: string;
   email?: string;
   first_name?: string;

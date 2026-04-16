@@ -1,25 +1,25 @@
 import type { PageServerLoad } from './$types';
-import { paymentsApi } from '$lib/api/payments';
-import { schoolsApi } from '$lib/api/schools';
-import { studentsApi } from '$lib/api/students';
-import { classesApi } from '$lib/api/classes';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 import { error } from '@sveltejs/kit';
-import { checkPlanGating } from '$lib/server/plans';
 
 export const load: PageServerLoad = async (event) => {
   const { locals, url } = event;
-  await checkPlanGating(event, 'premium');
+  
+  if (!locals.user) {
+    throw error(401, 'Unauthorized');
+  }
 
-  // ===== BYPASS PARA DESARROLLO LOCAL =====
-  const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
 
-  if (isLocalDev) {
+  // Modo desarrollo local o mock: devolver datos simulados
+  if (isMock || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
     const { mockPayments, mockStudents, mockSchools } = await import('$lib/utils/mockData');
 
-    // Enriquecer pagos con datos de estudiantes y escuelas
-    const enrichedPayments = mockPayments.map(p => {
-      const student = mockStudents.find(s => s.id === p.student_id);
-      const school = mockSchools.find(s => s.id === p.school_id);
+    const enrichedPayments = mockPayments.map((p: any) => {
+      const student = mockStudents.find((s: any) => s.id === p.student_id);
+      const school = mockSchools.find((s: any) => s.id === p.school_id);
       return {
         ...p,
         student: student ? { id: student.id, name: student.name, email: student.parent_email } : null,
@@ -27,105 +27,58 @@ export const load: PageServerLoad = async (event) => {
       };
     });
 
-    // Calcular estadísticas
     const paymentStats = {
       total_revenue_this_month: enrichedPayments
-        .filter(p => p.status === 'paid')
-        .reduce((sum, p) => sum + p.amount, 0),
-
-      total_revenue_last_month: 980.00, // Mock del mes pasado
-
-      pending_payments_count: enrichedPayments.filter(p => p.status === 'pending').length,
-
-      overdue_payments_count: enrichedPayments.filter(p => p.status === 'overdue').length,
-
+        .filter((p: any) => p.status === 'paid')
+        .reduce((sum: number, p: any) => sum + p.amount, 0),
+      total_revenue_last_month: 980.00,
+      pending_payments_count: enrichedPayments.filter((p: any) => p.status === 'pending').length,
+      overdue_payments_count: enrichedPayments.filter((p: any) => p.status === 'overdue').length,
       overdue_amount: enrichedPayments
-        .filter(p => p.status === 'overdue')
-        .reduce((sum, p) => sum + p.amount, 0),
-
+        .filter((p: any) => p.status === 'overdue')
+        .reduce((sum: number, p: any) => sum + p.amount, 0),
       average_payment_amount: enrichedPayments.length > 0
-        ? enrichedPayments.reduce((sum, p) => sum + p.amount, 0) / enrichedPayments.length
-        : 0
+        ? enrichedPayments.reduce((sum: number, p: any) => sum + p.amount, 0) / enrichedPayments.length
+        : 0,
+      revenue_growth_percentage: 15
     };
-
-    const revenue_growth_percentage = 15; // Mock
-
-    // Resumen por estudiantes
-    const studentSummaries = mockStudents.map(student => {
-      const studentPayments = enrichedPayments.filter(p => p.student_id === student.id);
-      return {
-        student_id: student.id,
-        student_name: student.name,
-        total_amount: studentPayments.reduce((sum, p) => sum + p.amount, 0),
-        paid_amount: studentPayments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0),
-        pending_amount: studentPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0),
-        overdue_amount: studentPayments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0),
-        total_payments: studentPayments.length,
-        paid_payments: studentPayments.filter(p => p.status === 'paid').length,
-        pending_payments: studentPayments.filter(p => p.status === 'pending').length,
-        overdue_payments: studentPayments.filter(p => p.status === 'overdue').length,
-        last_payment_date: new Date().toISOString(),
-        next_due_date: new Date().toISOString()
-      };
-    }).filter(s => s.total_payments > 0);
-
-    // Resumen por centros
-    const schoolSummaries = mockSchools.map(school => {
-      const schoolPayments = enrichedPayments.filter(p => p.school_id === school.id || (p.student && mockStudents.find(s => s.id === p.student_id)?.school_id === school.id));
-      return {
-        school_id: school.id,
-        school_name: school.name,
-        total_amount: schoolPayments.reduce((sum, p) => sum + p.amount, 0),
-        paid_amount: schoolPayments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0),
-        pending_amount: schoolPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0),
-        overdue_amount: schoolPayments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0),
-        total_payments: schoolPayments.length,
-        paid_payments: schoolPayments.filter(p => p.status === 'paid').length,
-        pending_payments: schoolPayments.filter(p => p.status === 'pending').length,
-        overdue_payments: schoolPayments.filter(p => p.status === 'overdue').length,
-        last_payment_date: new Date().toISOString(),
-        next_due_date: new Date().toISOString()
-      };
-    }).filter(s => s.total_payments > 0);
 
     return {
       user: locals.user,
       payments: enrichedPayments,
-      paymentStats: { ...paymentStats, revenue_growth_percentage },
-      studentSummaries,
-      schoolSummaries
+      paymentStats,
+      studentSummaries: [],
+      schoolSummaries: []
     };
   }
 
-  if (!locals.user) {
-    throw error(401, 'Unauthorized');
-  }
-
   try {
-    const userId = locals.user.id;
-    // Obtener centros y estudiantes del usuario desde Firebase API
-    const [schools, allStudents] = await Promise.all([
-      schoolsApi.getMySchools(),
-      studentsApi.getMyStudents()
+    const [studentsSnap, paymentsSnap, schoolsSnap] = await Promise.all([
+      adminDb.collection('students').where('owner_id', '==', uid).get(),
+      adminDb.collection('payments').where('owner_id', '==', uid).orderBy('created_at', 'desc').get(),
+      adminDb.collection('schools').where('owner_id', '==', uid).get()
     ]);
 
-    // Obtener todas las clases de todos los centros
-    const allSchoolsWithClasses = await Promise.all(schools.map(async (school) => {
-      const classes = await classesApi.getClassesBySchool(school.id);
-      return { ...school, classes };
-    }));
-
-    // Obtener pagos y estadísticas desde Firebase API
-    const [payments, stats] = await Promise.all([
-      paymentsApi.getPayments({}, userId),
-      paymentsApi.getPaymentStats(userId)
-    ]);
+    const payments = serializeRecord(paymentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })));
+    
+    const paidPayments = (payments as any[]).filter((p: any) => p.status === 'paid');
+    const paymentStats = {
+      total_revenue_this_month: paidPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0),
+      total_revenue_last_month: 0,
+      pending_payments_count: (payments as any[]).filter((p: any) => p.status === 'pending').length,
+      overdue_payments_count: (payments as any[]).filter((p: any) => p.status === 'overdue').length,
+      overdue_amount: (payments as any[]).filter((p: any) => p.status === 'overdue').reduce((sum: number, p: any) => sum + (p.amount || 0), 0),
+      average_payment_amount: (payments as any[]).length > 0
+        ? (payments as any[]).reduce((sum: number, p: any) => sum + (p.amount || 0), 0) / (payments as any[]).length
+        : 0,
+      revenue_growth_percentage: 0
+    };
 
     return {
       user: locals.user,
       payments,
-      paymentStats: stats,
-      studentSummaries: [], // Implementar si es necesario para la UI
+      paymentStats,
+      studentSummaries: [],
       schoolSummaries: []
     };
 

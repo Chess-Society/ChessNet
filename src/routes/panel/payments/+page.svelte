@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount } from 'svelte';
   import { 
     CurrencyEur, 
@@ -107,8 +108,8 @@
           <Wallet size={36} weight="duotone" class="group-hover:scale-110 transition-transform duration-500" />
         </div>
         <div>
-          <h1 class="text-4xl font-outfit font-black text-white tracking-tight uppercase leading-none">Finance Hub</h1>
-          <p class="text-slate-500 font-jakarta text-sm mt-2 tracking-wide font-medium">Total control of academy revenue and billing.</p>
+          <h1 class="text-4xl font-outfit font-black text-white tracking-tight uppercase leading-none">{$t('actions.payments.title')}</h1>
+          <p class="text-slate-500 font-jakarta text-sm mt-2 tracking-wide font-medium">{$t('actions.payments.desc')}</p>
         </div>
       </div>
     </div>
@@ -134,7 +135,7 @@
         <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4 font-jakarta relative z-10">Revenue this month</p>
         <div class="flex items-baseline gap-1 relative z-10">
           <span class="text-5xl font-outfit font-black text-white tracking-tighter">{metrics.monthlyTotal}</span>
-          <span class="text-2xl font-outfit font-bold text-violet-400">€</span>
+          <span class="text-2xl font-outfit font-bold text-violet-400">{$t('common.currency')}</span>
         </div>
         <div class="flex items-center gap-2 mt-6 relative z-10">
           <div class="flex items-center gap-1 bg-primary-500/10 text-primary-400 px-3 py-1 rounded-full text-[10px] font-black border border-primary-500/20">
@@ -152,7 +153,7 @@
         <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4 font-jakarta relative z-10">Average Ticket</p>
         <div class="flex items-baseline gap-1 relative z-10">
           <span class="text-5xl font-outfit font-black text-white tracking-tighter">{metrics.averageTicket}</span>
-          <span class="text-2xl font-outfit font-bold text-primary-400">€</span>
+          <span class="text-2xl font-outfit font-bold text-primary-400">{$t('common.currency')}</span>
         </div>
         <p class="text-[9px] text-slate-500 mt-6 font-bold uppercase tracking-widest relative z-10">Based on {metrics.totalCount} transactions</p>
      </div>
@@ -256,7 +257,7 @@
                               </td>
                               <td class="px-10 py-6 text-right">
                                   <div class="flex flex-col items-end">
-                                      <span class="text-lg font-outfit font-black text-violet-400 group-hover:text-violet-300 transition-colors tracking-tight">{p.amount}€</span>
+                                      <span class="text-lg font-outfit font-black text-violet-400 group-hover:text-violet-300 transition-colors tracking-tight">{p.amount}{$t('common.currency')}</span>
                                       <span class="text-[9px] font-black text-primary-500/60 uppercase tracking-widest">Completed</span>
                                   </div>
                               </td>
@@ -317,7 +318,7 @@
 
                 <div class="grid grid-cols-2 gap-8">
                     <div class="space-y-3">
-                        <label for="payment-amount" class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Net Amount (€)</label>
+                        <label for="payment-amount" class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">{$t('dashboard.stats.revenue')} ({$t('common.currency')})</label>
                         <div class="relative group">
                           <CurrencyEur size={22} class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary-500 transition-colors" />
                           <input 

@@ -22,6 +22,8 @@
     CheckCircle
   } from 'phosphor-svelte';
   import { showToast, showError } from '$lib/stores/toast';
+  import { uiStore } from '$lib/stores/uiStore';
+  import { t } from '$lib/i18n';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
 
@@ -196,9 +198,14 @@
 
   const handleUnassignSkill = async (skillId: string) => {
     const skill = assignedSkills.find(s => s.id === skillId);
-    if (!confirm(`Are you sure you want to remove "${skill?.name}" from the syllabus?`)) {
-      return;
-    }
+    const confirmed = await uiStore.confirm({
+      title: 'Remove Skill',
+      message: `Are you sure you want to remove "${skill?.name}" from the syllabus?`,
+      confirmText: 'Remove',
+      cancelText: 'Cancel'
+    });
+    
+    if (!confirmed) return;
 
     try {
       const response = await fetch(`/api/class-skills?class_id=${classData?.id}&skill_id=${skillId}`, {

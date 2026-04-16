@@ -186,5 +186,41 @@ export const skillsApi = {
     }
 
     return skills;
+  },
+
+  // Import predefined syllabus
+  async importPredefinedSyllabus(): Promise<void> {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No authenticated user");
+
+    // We import the constant dynamically to avoid circular dependencies if any
+    const { PREDEFINED_SYLLABUS } = await import("$lib/constants/predefined-content");
+    const { categoriesApi } = await import("./categories");
+
+    for (const group of PREDEFINED_SYLLABUS) {
+      // Create category if it doesn't exist (search by name)
+      const existingCats = await categoriesApi.getCategories();
+      let category = existingCats.find(c => c.name === group.category);
+      
+      if (!category) {
+        category = await categoriesApi.createCategory(group.category, `Contenido de ${group.category}`);
+      }
+
+      // Add skills
+      for (const item of group.items) {
+        // Check if skill already exists in this category
+        const existingSkills = await this.getSkillsByCategory(category.id);
+        if (!existingSkills.some(s => s.name === item.name)) {
+          await this.createSkill({
+            name: item.name,
+            description: item.description,
+            category_id: category.id,
+            level: item.level as any,
+            icon: "Book",
+            resource_link: ""
+          });
+        }
+      }
+    }
   }
 };

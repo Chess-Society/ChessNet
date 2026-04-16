@@ -19,6 +19,24 @@ export const load: PageServerLoad = async (event) => {
 
   try {
     const uid = locals.user.uid;
+    const isMock = uid === 'chessnet-dev-uid';
+
+    if (isMock) {
+        return {
+          user: locals.user,
+          tournaments: [],
+          tournamentStats: {
+            total_tournaments: 0,
+            upcoming_tournaments: 0,
+            in_progress_tournaments: 0,
+            completed_tournaments: 0,
+            total_players_registered: 0,
+            total_prize_pool: 0,
+            average_players_per_tournament: 0
+          },
+          availableStudents: []
+        };
+    }
     
     // Obtener torneos y estudiantes del usuario usando Admin SDK
     const [tournamentsSnap, studentsSnap] = await Promise.all([

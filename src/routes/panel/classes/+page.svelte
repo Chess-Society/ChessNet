@@ -13,10 +13,16 @@
     Clock,
     Buildings,
     DotsThreeVertical,
-    TrendUp
+    TrendUp,
+    BookOpen
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { fade, fly, scale } from 'svelte/transition';
+  import { t } from '$lib/i18n';
+  import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
+
+  let showDeleteModal = $state(false);
+  let classToDelete = $state<{id: string, name: string} | null>(null);
 
   let searchQuery = $state('');
 
@@ -29,19 +35,28 @@
   );
 
   const getSchoolName = (id: string | undefined) => {
-    return schools.find(s => s.id === id)?.name || 'Sin asignar';
+    return schools.find(s => s.id === id)?.name || $t('common.independent');
   };
 
   const deleteClass = (id: string) => {
     const cls = classes.find(c => c.id === id);
-    if (confirm(`¿Eliminar la clase ${cls?.name}?`)) {
-      appStore.removeClass(id);
+    if (cls) {
+        classToDelete = { id, name: cls.name };
+        showDeleteModal = true;
+    }
+  };
+
+  const confirmDelete = () => {
+    if (classToDelete) {
+      appStore.removeClass(classToDelete.id);
+      showDeleteModal = false;
+      classToDelete = null;
     }
   };
 </script>
 
 <svelte:head>
-  <title>Clases y Grupos - ChessNet</title>
+  <title>{$t('classes.title')} - ChessNet</title>
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-6 pb-20" transition:fade>
@@ -53,8 +68,8 @@
           <GraduationCap size={36} weight="duotone" />
         </div>
         <div>
-          <h1 class="text-4xl md:text-5xl font-outfit font-extrabold text-white tracking-tighter">Clases y Grupos</h1>
-          <p class="text-slate-400 font-jakarta text-lg font-medium tracking-tight mt-1">Organiza tu academia y gestiona los horarios de entrenamiento.</p>
+          <h1 class="text-4xl md:text-5xl font-outfit font-extrabold text-white tracking-tighter">{$t('classes.title')}</h1>
+          <p class="text-slate-400 font-jakarta text-lg font-medium tracking-tight mt-1">{$t('classes.subtitle')}</p>
         </div>
       </div>
     </div>
@@ -64,7 +79,7 @@
       class="btn-pill bg-violet-600 text-white px-10 py-4 font-bold hover:bg-violet-500 transition-all shadow-violet-flare flex items-center gap-3 group text-sm"
     >
       <Plus size={22} weight="bold" class="transition-transform group-hover:rotate-90" />
-      NUEVA CLASE
+      {$t('classes.add_btn')}
     </button>
   </div>
 
@@ -74,61 +89,32 @@
       <MagnifyingGlass size={22} class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-violet-400 transition-colors" />
       <input
         type="text"
-        placeholder="Buscar clase por nombre o nivel..."
+        placeholder={$t('classes.search_placeholder')}
         bind:value={searchQuery}
         class="w-full bg-zinc-900/50 border border-white/5 rounded-24 pl-16 pr-8 py-5 text-base text-white focus:border-violet-500/50 outline-none transition-all backdrop-blur-xl font-jakarta placeholder:text-slate-600"
       />
     </div>
     
     <div class="flex items-center gap-2 bg-zinc-900/50 p-1.5 rounded-full border border-white/5 backdrop-blur-md">
-       <div class="px-5 py-3 bg-violet-600 rounded-full text-[10px] font-outfit font-black text-white uppercase tracking-widest shadow-lg shadow-violet-600/20">Todas</div>
-       <div class="px-5 py-3 hover:bg-white/5 rounded-full text-[10px] font-outfit font-black text-slate-500 hover:text-white uppercase tracking-widest transition-all cursor-pointer">Activas</div>
-       <div class="px-5 py-3 hover:bg-white/5 rounded-full text-[10px] font-outfit font-black text-slate-500 hover:text-white uppercase tracking-widest transition-all cursor-pointer">Archivadas</div>
+       <div class="px-5 py-3 bg-violet-600 rounded-full text-[10px] font-outfit font-black text-white uppercase tracking-widest shadow-lg shadow-violet-600/20">{$t('classes.all')}</div>
+       <div class="px-5 py-3 hover:bg-white/5 rounded-full text-[10px] font-outfit font-black text-slate-500 hover:text-white uppercase tracking-widest transition-all cursor-pointer">{$t('classes.active')}</div>
+       <div class="px-5 py-3 hover:bg-white/5 rounded-full text-[10px] font-outfit font-black text-slate-500 hover:text-white uppercase tracking-widest transition-all cursor-pointer">{$t('classes.archived')}</div>
     </div>
   </div>
 
   {#if classes.length === 0}
-    {@const hasSchools = schools.length > 0}
-    <div class="bento-card border-dashed border-white/10 p-20 md:p-32 text-center space-y-10 relative overflow-hidden" in:fade>
-      <div class="absolute inset-0 bg-gradient-to-b from-violet-600/5 to-transparent"></div>
-      
-      <div class="relative inline-block z-10">
-        <div class="w-36 h-36 bg-violet-600/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-violet-500/20 text-violet-400 animate-pulse shadow-violet-flare/20 shadow-2xl">
-          <GraduationCap size={72} weight="duotone" />
+    <div class="flex flex-col items-center justify-center p-12 bg-white/5 border border-dashed border-white/10 rounded-3xl text-center">
+        <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-gray-400 mb-4">
+            <BookOpen size={32} />
         </div>
-        {#if !hasSchools}
-          <div class="absolute -bottom-2 -right-2 bg-zinc-950 border border-white/10 p-4 rounded-2xl shadow-2xl">
-             <Buildings size={28} weight="fill" class="text-amber-400" />
-          </div>
-        {:else}
-          <div class="absolute -bottom-2 -right-2 bg-zinc-950 border border-white/10 p-4 rounded-2xl shadow-2xl">
-             <Plus size={28} weight="bold" class="text-violet-400" />
-          </div>
-        {/if}
-      </div>
-      
-      <div class="max-w-lg mx-auto space-y-4 relative z-10">
-        {#if !hasSchools}
-          <h2 class="text-4xl font-outfit font-extrabold text-white tracking-tighter">Registra un Centro primero</h2>
-          <p class="text-slate-400 font-jakarta text-lg leading-relaxed font-medium">Para crear una clase, necesitas vincularla a un colegio, club o sede administrativa.</p>
-        {:else}
-          <h2 class="text-4xl font-outfit font-extrabold text-white tracking-tighter">Diseña tus Grupos de Éxito</h2>
-          <p class="text-slate-400 font-jakarta text-lg leading-relaxed font-medium">Crea tu primera clase para organizar alumnos, registrar asistencia y seguir su progreso técnico.</p>
-        {/if}
-      </div>
-
-      <button 
-        onclick={() => goto(!hasSchools ? '/panel/schools' : '/panel/classes/create')}
-        class="btn-pill bg-white text-zinc-950 px-12 py-5 font-black text-xs tracking-widest transition-all shadow-xl hover:scale-105 active:scale-95 flex items-center gap-4 mx-auto relative z-10 uppercase"
-      >
-        {#if !hasSchools}
-          <Buildings size={24} weight="duotone" />
-          Configurar Centros
-        {:else}
-          <Plus size={24} weight="bold" />
-          Crear mi primera clase
-        {/if}
-      </button>
+        <h3 class="text-xl font-bold text-white font-outfit mb-2">{$t('classes.empty_title')}</h3>
+        <p class="text-gray-400 max-w-sm mb-8 font-jakarta">{$t('classes.empty_subtitle')}</p>
+        <button 
+            onclick={() => goto('/panel/classes/create')}
+            class="px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-indigo-50 transition-all active:scale-95"
+        >
+            {$t('classes.empty_btn')}
+        </button>
     </div>
   {:else if filteredClasses.length === 0}
     <div class="bento-card border-dashed border-white/10 p-24 text-center space-y-8 relative overflow-hidden">
@@ -137,14 +123,14 @@
         <MagnifyingGlass size={48} weight="duotone" />
       </div>
       <div class="space-y-3 relative z-10">
-        <h2 class="text-2xl font-outfit font-bold text-white tracking-tight">Sin resultados</h2>
-        <p class="text-slate-500 font-jakarta text-base font-medium">No hemos encontrado clases que coincidan con "<span class="text-violet-400">{searchQuery}</span>".</p>
+        <h2 class="text-2xl font-outfit font-bold text-white tracking-tight">{$t('common.no_data')}</h2>
+        <p class="text-slate-500 font-jakarta text-base font-medium">{$t('classes.no_results').replace('{query}', searchQuery)}</p>
       </div>
       <button 
         onclick={() => searchQuery = ''}
         class="text-[10px] font-outfit font-black text-violet-400 uppercase tracking-widest hover:text-white transition-colors underline underline-offset-8"
       >
-        Limpiar búsqueda
+        {$t('classes.clear_search')}
       </button>
     </div>
   {:else}
@@ -196,13 +182,13 @@
                 <div class="p-2 bg-white/5 rounded-lg">
                   <Clock size={16} weight="duotone" class="text-violet-400" />
                 </div>
-                {cls.schedule || 'Horario flexible'}
+                {cls.schedule || $t('classes.flexible_schedule')}
              </div>
              <div class="flex items-center gap-3 text-sm font-jakarta text-slate-400 font-medium">
                 <div class="p-2 bg-white/5 rounded-lg">
                   <Users size={16} weight="duotone" class="text-violet-400" />
                 </div>
-                <span class="text-white font-bold">{cls.studentIds?.length || 0}</span> Alumnos activos
+                <span class="text-white font-bold">{cls.studentIds?.length || 0}</span> {$t('classes.active_students')}
              </div>
           </div>
 
@@ -211,7 +197,7 @@
               onclick={() => goto(`/panel/classes/${cls.id}`)}
               class="flex items-center gap-2 text-[11px] font-outfit font-black text-violet-400 hover:text-white uppercase tracking-widest transition-all group/btn"
             >
-               Detalles
+               {$t('classes.details_btn')}
               <CaretRight size={14} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />
             </button>
             
@@ -219,7 +205,7 @@
               onclick={() => goto(`/panel/attendance?classId=${cls.id}`)}
               class="px-5 py-2.5 bg-violet-600/10 hover:bg-violet-600 text-violet-400 hover:text-white border border-violet-500/20 hover:border-violet-400 rounded-full text-[10px] font-outfit font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-violet-600/20 active:scale-95"
             >
-              Pasar Lista
+              {$t('classes.take_attendance')}
             </button>
           </div>
         </div>
@@ -227,3 +213,13 @@
     </div>
   {/if}
 </div>
+
+<ConfirmModal
+  bind:show={showDeleteModal}
+  title={$t('classes.delete_btn')}
+  message={$t('classes.delete_confirm').replace('{name}', classToDelete?.name || '')}
+  confirmText={$t('common.delete')}
+  cancelText={$t('common.cancel')}
+  onConfirm={confirmDelete}
+  type="danger"
+/>

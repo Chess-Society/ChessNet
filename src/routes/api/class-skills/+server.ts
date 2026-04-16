@@ -1,175 +1,170 @@
-import { json } from '@sveltejs/kit';
+import { json, error as skError } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { adminDb } from '$lib/firebase-admin';
 
-// Mock data para desarrollo local - relación class_skills
+// Mock data as fallback for dev user
 let mockClassSkills = [
-  // Principiantes Mañana (mock-class-1) - Skills básicas
-  { id: 'csk-1', class_id: 'mock-class-1', skill_id: 'mock-skill-1', owner_id: 'dev-user-123', assigned_at: '2024-01-15T10:00:00Z', active: true, order: 1 }, // Movimiento de Peones
-  { id: 'csk-2', class_id: 'mock-class-1', skill_id: 'mock-skill-2', owner_id: 'dev-user-123', assigned_at: '2024-01-20T10:00:00Z', active: true, order: 2 }, // Enroque
-  
-  // Intermedios Tarde (mock-class-2) - Skills intermedias
-  { id: 'csk-3', class_id: 'mock-class-2', skill_id: 'mock-skill-2', owner_id: 'dev-user-123', assigned_at: '2024-01-10T17:00:00Z', active: true, order: 1 }, // Enroque
-  { id: 'csk-4', class_id: 'mock-class-2', skill_id: 'mock-skill-3', owner_id: 'dev-user-123', assigned_at: '2024-01-15T17:00:00Z', active: true, order: 2 }, // Táctica: Clavada
-  { id: 'csk-5', class_id: 'mock-class-2', skill_id: 'mock-skill-4', owner_id: 'dev-user-123', assigned_at: '2024-01-20T17:00:00Z', active: true, order: 3 }, // Táctica: Tenedor
-  
-  // Avanzados Fin de Semana (mock-class-3) - Skills avanzadas
-  { id: 'csk-6', class_id: 'mock-class-3', skill_id: 'mock-skill-4', owner_id: 'dev-user-123', assigned_at: '2024-01-05T09:00:00Z', active: true, order: 1 }, // Táctica: Tenedor
-  { id: 'csk-7', class_id: 'mock-class-3', skill_id: 'mock-skill-5', owner_id: 'dev-user-123', assigned_at: '2024-01-10T09:00:00Z', active: true, order: 2 }, // Final: Rey y Torre vs Rey
-  { id: 'csk-8', class_id: 'mock-class-3', skill_id: 'mock-skill-6', owner_id: 'dev-user-123', assigned_at: '2024-01-15T09:00:00Z', active: true, order: 3 }, // Apertura: Italiana
-  
-  // Pequeños Ajedrecistas (mock-class-4) - Skills básicas adaptadas
-  { id: 'csk-9', class_id: 'mock-class-4', skill_id: 'mock-skill-1', owner_id: 'dev-user-123', assigned_at: '2024-02-10T16:00:00Z', active: true, order: 1 }, // Movimiento de Peones
-  
-  // Jóvenes Talentos (mock-class-5) - Skills intermedias/avanzadas
-  { id: 'csk-10', class_id: 'mock-class-5', skill_id: 'mock-skill-3', owner_id: 'dev-user-123', assigned_at: '2024-02-05T18:00:00Z', active: true, order: 1 }, // Táctica: Clavada
-  { id: 'csk-11', class_id: 'mock-class-5', skill_id: 'mock-skill-4', owner_id: 'dev-user-123', assigned_at: '2024-02-08T18:00:00Z', active: true, order: 2 }, // Táctica: Tenedor
-  { id: 'csk-12', class_id: 'mock-class-5', skill_id: 'mock-skill-5', owner_id: 'dev-user-123', assigned_at: '2024-02-12T18:00:00Z', active: true, order: 3 }  // Final: Rey y Torre vs Rey
+  { id: 'csk-1', class_id: 'mock-class-1', skill_id: 'mock-skill-1', owner_id: 'chessnet-dev-uid', assigned_at: '2024-01-15T10:00:00Z', active: true, order: 1 },
+  { id: 'csk-2', class_id: 'mock-class-1', skill_id: 'mock-skill-2', owner_id: 'chessnet-dev-uid', assigned_at: '2024-01-20T10:00:00Z', active: true, order: 2 },
 ];
 
-export const GET: RequestHandler = async ({ url }) => {
-  // ===== BYPASS PARA DESARROLLO LOCAL =====
-  const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  
-  if (isLocalDev) {
-    
-    const classId = url.searchParams.get('class_id');
-    const skillId = url.searchParams.get('skill_id');
-    
-    let filteredData = mockClassSkills.filter(cs => cs.owner_id === 'dev-user-123');
-    
-    if (classId) {
-      filteredData = filteredData.filter(cs => cs.class_id === classId);
-    }
-    
-    if (skillId) {
-      filteredData = filteredData.filter(cs => cs.skill_id === skillId);
-    }
-    
-    // Ordenar por order si es para una clase específica
-    if (classId) {
-      filteredData.sort((a, b) => a.order - b.order);
-    }
-    
-    return json({ class_skills: filteredData });
+export const GET: RequestHandler = async ({ url, locals }) => {
+  if (!locals.user) return json({ error: 'Unauthorized' }, { status: 401 });
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  const classId = url.searchParams.get('class_id');
+  const skillId = url.searchParams.get('skill_id');
+
+  if (isMock) {
+    let filteredData = mockClassSkills.filter(cs => cs.owner_id === uid && cs.active);
+    if (classId) filteredData = filteredData.filter(cs => cs.class_id === classId);
+    if (skillId) filteredData = filteredData.filter(cs => cs.skill_id === skillId);
+    return json({ class_skills: filteredData.sort((a, b) => a.order - b.order) });
   }
-  
-  return json({ class_skills: [] });
+
+  try {
+    let query = adminDb.collection("class_skills").where("owner_id", "==", uid).where("active", "==", true);
+    
+    if (classId) query = query.where("class_id", "==", classId);
+    if (skillId) query = query.where("skill_id", "==", skillId);
+
+    const snap = await query.get();
+    const data = snap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+    
+    return json({ class_skills: data.sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) });
+  } catch (err) {
+    console.error('❌ Error fetching class skills:', err);
+    return json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 };
 
-export const POST: RequestHandler = async ({ request, url }) => {
-  // ===== BYPASS PARA DESARROLLO LOCAL =====
-  const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  
-  if (isLocalDev) {
-    
-    try {
-      const body = await request.json();
-      const { class_id, skill_id, order } = body;
-      
-      if (!class_id || !skill_id) {
-        return json({ error: 'class_id and skill_id are required' }, { status: 400 });
-      }
-      
-      // Verificar si ya existe la asignación
-      const existingAssignment = mockClassSkills.find(
-        cs => cs.class_id === class_id && cs.skill_id === skill_id && cs.active
-      );
-      
-      if (existingAssignment) {
-        return json({ error: 'Skill is already assigned to this class' }, { status: 409 });
-      }
-      
-      // Calcular orden automáticamente si no se proporciona
-      const classSkills = mockClassSkills.filter(cs => cs.class_id === class_id && cs.active);
-      const nextOrder = order || (Math.max(...classSkills.map(cs => cs.order), 0) + 1);
-      
-      // Crear nueva asignación
-      const newAssignment = {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  if (!locals.user) return json({ error: 'Unauthorized' }, { status: 401 });
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  try {
+    const body = await request.json();
+    const { class_id, skill_id, order_index } = body;
+
+    if (!class_id || !skill_id) {
+      return json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (isMock) {
+      const newSkill = {
         id: `csk-${Date.now()}`,
-        class_id,
-        skill_id,
-        owner_id: 'dev-user-123',
+        class_id, skill_id, owner_id: uid,
         assigned_at: new Date().toISOString(),
-        active: true,
-        order: nextOrder
+        active: true, order: order_index || 0
       };
-      
-      mockClassSkills.push(newAssignment);
-      
-      return json({ class_skill: newAssignment });
-      
-    } catch (error) {
-      console.error('❌ Error in class-skills POST:', error);
-      return json({ error: 'Invalid request body' }, { status: 400 });
+      mockClassSkills.push(newSkill);
+      return json({ class_skill: newSkill });
     }
+
+    // Verify ownership of the class
+    const classSnap = await adminDb.collection("classes").doc(class_id).get();
+    if (!classSnap.exists || classSnap.data()?.owner_id !== uid) {
+      return json({ error: 'Class not found or access denied' }, { status: 404 });
+    }
+
+    const newDoc = {
+      class_id,
+      skill_id,
+      owner_id: uid,
+      assigned_at: new Date().toISOString(),
+      active: true,
+      order_index: order_index || 0
+    };
+
+    const docRef = await adminDb.collection("class_skills").add(newDoc);
+    return json({ class_skill: { id: docRef.id, ...newDoc } });
+
+  } catch (err) {
+    console.error('❌ Error in class-skills POST:', err);
+    return json({ error: 'Internal Server Error' }, { status: 500 });
   }
-  
-  return json({ error: 'Not implemented for production' }, { status: 501 });
 };
 
-export const DELETE: RequestHandler = async ({ url }) => {
-  // ===== BYPASS PARA DESARROLLO LOCAL =====
-  const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  
-  if (isLocalDev) {
-    
-    const classId = url.searchParams.get('class_id');
-    const skillId = url.searchParams.get('skill_id');
-    
-    if (!classId || !skillId) {
-      return json({ error: 'class_id and skill_id are required' }, { status: 400 });
-    }
-    
-    // Encontrar y desactivar la asignación
-    const assignmentIndex = mockClassSkills.findIndex(
-      cs => cs.class_id === classId && cs.skill_id === skillId && cs.active
-    );
-    
-    if (assignmentIndex === -1) {
+export const DELETE: RequestHandler = async ({ url, locals }) => {
+  if (!locals.user) return json({ error: 'Unauthorized' }, { status: 401 });
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  const classId = url.searchParams.get('class_id');
+  const skillId = url.searchParams.get('skill_id');
+
+  if (!classId || !skillId) {
+    return json({ error: 'Missing class_id or skill_id' }, { status: 400 });
+  }
+
+  if (isMock) {
+    const idx = mockClassSkills.findIndex(cs => cs.class_id === classId && cs.skill_id === skillId && cs.active);
+    if (idx !== -1) mockClassSkills[idx].active = false;
+    return json({ success: true });
+  }
+
+  try {
+    const snap = await adminDb.collection("class_skills")
+      .where("owner_id", "==", uid)
+      .where("class_id", "==", classId)
+      .where("skill_id", "==", skillId)
+      .where("active", "==", true)
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
       return json({ error: 'Skill assignment not found' }, { status: 404 });
     }
-    
-    // Marcar como inactiva en lugar de eliminar
-    mockClassSkills[assignmentIndex].active = false;
-    
-    return json({ message: 'Skill unassigned successfully' });
+
+    await snap.docs[0].ref.update({ active: false, unassigned_at: new Date().toISOString() });
+    return json({ success: true });
+  } catch (err) {
+    console.error('❌ Error in class-skills DELETE:', err);
+    return json({ error: 'Internal Server Error' }, { status: 500 });
   }
-  
-  return json({ error: 'Not implemented for production' }, { status: 501 });
 };
 
-export const PUT: RequestHandler = async ({ request, url }) => {
-  // ===== BYPASS PARA DESARROLLO LOCAL =====
-  const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  
-  if (isLocalDev) {
-    
-    try {
-      const body = await request.json();
-      const { class_id, skills_order } = body; // skills_order: [{ skill_id, order }]
-      
-      if (!class_id || !skills_order || !Array.isArray(skills_order)) {
-        return json({ error: 'class_id and skills_order array are required' }, { status: 400 });
-      }
-      
-      // Actualizar el orden de las skills
-      skills_order.forEach(({ skill_id, order }) => {
-        const assignmentIndex = mockClassSkills.findIndex(
-          cs => cs.class_id === class_id && cs.skill_id === skill_id && cs.active
-        );
-        
-        if (assignmentIndex !== -1) {
-          mockClassSkills[assignmentIndex].order = order;
-        }
-      });
-      
-      return json({ message: 'Skills order updated successfully' });
-      
-    } catch (error) {
-      console.error('❌ Error in class-skills PUT:', error);
-      return json({ error: 'Invalid request body' }, { status: 400 });
+export const PUT: RequestHandler = async ({ request, locals }) => {
+  if (!locals.user) return json({ error: 'Unauthorized' }, { status: 401 });
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  try {
+    const { class_id, skills_order } = await request.json();
+
+    if (!class_id || !Array.isArray(skills_order)) {
+      return json({ error: 'Invalid request' }, { status: 400 });
     }
+
+    if (isMock) {
+      skills_order.forEach(({ skill_id, order }) => {
+        const idx = mockClassSkills.findIndex(cs => cs.class_id === class_id && cs.skill_id === skill_id && cs.active);
+        if (idx !== -1) mockClassSkills[idx].order = order;
+      });
+      return json({ success: true });
+    }
+
+    const batch = adminDb.batch();
+    const snap = await adminDb.collection("class_skills")
+      .where("owner_id", "==", uid)
+      .where("class_id", "==", class_id)
+      .where("active", "==", true)
+      .get();
+
+    snap.docs.forEach((doc: any) => {
+      const data = doc.data();
+      const orderItem = skills_order.find(o => o.skill_id === data.skill_id);
+      if (orderItem) {
+        batch.update(doc.ref, { order_index: orderItem.order });
+      }
+    });
+
+    await batch.commit();
+    return json({ success: true });
+  } catch (err) {
+    console.error('❌ Error in class-skills PUT:', err);
+    return json({ error: 'Internal Server Error' }, { status: 500 });
   }
-  
-  return json({ error: 'Not implemented for production' }, { status: 501 });
 };

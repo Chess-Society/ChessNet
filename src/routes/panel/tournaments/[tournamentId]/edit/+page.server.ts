@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { tournamentsApi } from '$lib/api/tournaments';
 import { error } from '@sveltejs/kit';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const { tournamentId } = params;
@@ -9,22 +10,38 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     throw error(401, 'Usuario no autenticado');
   }
 
-  try {
-    const tournament = await tournamentsApi.getTournament(tournamentId);
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
 
-    if (!tournament) {
+  if (isMock) {
+    return {
+      user: locals.user,
+      tournament: {
+        id: tournamentId,
+        name: 'Torneo Mock',
+        owner_id: uid,
+        status: 'draft',
+        location: 'Mock Academy'
+      }
+    };
+  }
+
+  try {
+    const tournamentSnap = await adminDb.collection('tournaments').doc(tournamentId).get();
+
+    if (!tournamentSnap.exists) {
       throw error(404, 'Torneo no encontrado');
     }
 
-    // Verificar propiedad
-    const ownerId = tournament.owner_id;
-    if (ownerId && ownerId !== locals.user.id) {
+    const tournament = { id: tournamentSnap.id, ...tournamentSnap.data() } as any;
+
+    if (tournament.owner_id && tournament.owner_id !== uid) {
       throw error(403, 'No tienes permiso para editar este torneo');
     }
 
     return {
       user: locals.user,
-      tournament
+      tournament: serializeRecord(tournament)
     };
 
   } catch (err: any) {

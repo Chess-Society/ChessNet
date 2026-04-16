@@ -14,7 +14,7 @@
     Languages
   } from "lucide-svelte";
   import Logo from "$lib/components/Logo.svelte";
-  import { t, locale, toggleLocale } from "$lib/i18n/translations";
+  import { t, locale, toggleLocale } from '$lib/i18n';
 
   let { data } = $props();
 
@@ -67,7 +67,7 @@
       </div>
       
       <div class="hidden lg:flex lg:gap-x-10">
-        <a href="#features" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">{$locale === 'es' ? 'Funciones' : 'Features'}</a>
+        <a href="#features" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">{$t('nav.features')}</a>
         <a href="/pricing" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">{$t('nav.pricing')}</a>
         <a href="/roadmap" class="text-sm font-semibold text-surface-400 hover:text-white transition-colors">Roadmap</a>
       </div>
@@ -260,7 +260,7 @@
         </div>
         
         <p class="mt-12 text-[10px] text-surface-600 uppercase tracking-widest font-bold">
-          { $locale === 'es' ? '* Precio promocional para primeros usuarios. Sin compromiso.' : '* Promotional price for early adopters. No commitment.' }
+          { $t('pricing.why_low_desc') }
         </p>
       </div>
     </section>
@@ -286,10 +286,10 @@
       <p class="text-surface-500 text-sm font-medium">© {new Date().getFullYear()} ChessNet. {$t('landing.footer.crafted')}</p>
       <div class="flex flex-wrap justify-center gap-6">
         <a href="/pricing" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('nav.pricing')}</a>
-        <a href="/roadmap" class="text-surface-500 hover:text-white transition-colors text-sm">Roadmap</a>
-        <a href="/donate" class="text-surface-500 hover:text-white transition-colors text-sm">Donate</a>
-        <a href="/legal/terms" class="text-surface-500 hover:text-white transition-colors text-sm">Terms</a>
-        <a href="/legal/privacy" class="text-surface-500 hover:text-white transition-colors text-sm">Privacy</a>
+        <a href="/roadmap" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('roadmap')}</a>
+        <a href="/donate" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('donate')}</a>
+        <a href="/legal/terms" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('terms')}</a>
+        <a href="/legal/privacy" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('privacy')}</a>
       </div>
     </div>
   </footer>

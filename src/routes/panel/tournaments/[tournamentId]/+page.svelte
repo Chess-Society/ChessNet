@@ -28,6 +28,8 @@
   import { appStore } from '$lib/stores/appStore';
   import { getLocalTournamentsApi } from '$lib/api/local-tournaments';
   import { fade, fly, scale } from 'svelte/transition';
+  import { t } from '$lib/i18n';
+  import { showToast, showError } from '$lib/stores/toast';
 
   const tournamentId = page.params.tournamentId;
   
@@ -46,11 +48,11 @@
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'in_progress':
-        return { label: 'In Progress', color: 'text-primary-400', bg: 'bg-primary-500/10', border: 'border-primary-500/20' };
+        return { label: $t('tournaments.status_in_progress'), color: 'text-primary-400', bg: 'bg-primary-500/10', border: 'border-primary-500/20' };
       case 'completed':
-        return { label: 'Completed', color: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/20' };
+        return { label: $t('tournaments.status_completed'), color: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/20' };
       case 'upcoming':
-        return { label: 'Upcoming', color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' };
+        return { label: $t('tournaments.status_upcoming'), color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' };
       default:
         return { label: status, color: 'text-zinc-400', bg: 'bg-zinc-800', border: 'border-zinc-700' };
     }
@@ -111,8 +113,8 @@
   <div class="h-screen flex items-center justify-center text-zinc-500 font-outfit" in:fade>
     <div class="text-center group">
         <Trophy weight="duotone" class="w-16 h-16 mx-auto mb-4 text-zinc-800 group-hover:text-violet-500 transition-colors duration-500" />
-        <p class="text-lg font-bold">Tournament not found...</p>
-        <button onclick={() => goto('/panel/tournaments')} class="mt-4 text-violet-500 hover:text-violet-400 font-bold transition-colors">Back to list</button>
+        <p class="text-lg font-bold">{$t('tournaments.not_found') || 'Tournament not found...'}</p>
+        <button onclick={() => goto('/panel/tournaments')} class="mt-4 text-violet-500 hover:text-violet-400 font-bold transition-colors">{$t('tournaments.back')}</button>
     </div>
   </div>
 {:else}
@@ -135,9 +137,9 @@
                   {status.label}
               </span>
             {/if}
-            <span class="text-zinc-600 text-[10px] font-black uppercase tracking-widest">ID: {tournamentId?.slice(-6) || '---'}</span>
+            <span class="text-zinc-600 text-[10px] font-black uppercase tracking-widest bg-zinc-950/30 px-3 py-1 rounded-lg border border-zinc-800">{$t('common.reference')}: {tournamentId?.slice(-6).toUpperCase() || '---'}</span>
           </div>
-          <h1 class="text-4xl font-outfit font-black text-white tracking-tight uppercase leading-none">{tournament?.name || 'Loading...'}</h1>
+          <h1 class="text-4xl font-outfit font-black text-white tracking-tight uppercase leading-none">{tournament?.name || $t('common.loading')}</h1>
         </div>
       </div>
 
@@ -153,7 +155,7 @@
                 {:else}
                     <Play weight="fill" class="w-4 h-4" />
                 {/if}
-                START COMPETITION
+                {$t('tournaments.start_competition')}
             </button>
           {/if}
           <button 
@@ -168,10 +170,10 @@
     <!-- Modern Tab Hub Navigation -->
     <div class="flex flex-wrap items-center gap-2 p-1.5 bg-zinc-900/50 border border-zinc-800 rounded-[24px] mb-10 w-fit backdrop-blur-md">
         {#each [
-            { id: 'overview', label: 'Overview', icon: Info },
-            { id: 'players', label: 'Players', icon: Users },
-            { id: 'pairings', label: 'Pairings', icon: Table },
-            { id: 'standings', label: 'Standings', icon: ChartBar }
+            { id: 'overview', label: $t('tournaments.tab_overview'), icon: Info },
+            { id: 'players', label: $t('tournaments.tab_players'), icon: Users },
+            { id: 'pairings', label: $t('tournaments.tab_pairings'), icon: Table },
+            { id: 'standings', label: $t('tournaments.tab_standings'), icon: ChartBar }
         ] as tab}
             <button 
                 onclick={() => activeTab = tab.id}
@@ -200,39 +202,39 @@
                             <div class="w-11 h-11 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400">
                                 <CalendarBlank weight="duotone" class="w-6 h-6" />
                             </div>
-                            Logistics
+                            {$t('tournaments.logistics')}
                         </h3>
                         <div class="space-y-6 relative z-10">
                             <div class="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
                                 <div class="flex items-center gap-4">
                                     <Clock weight="duotone" class="w-5 h-5 text-zinc-500" />
-                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">Start</span>
+                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">{$t('tournaments.start')}</span>
                                 </div>
-                                <span class="text-sm font-bold text-white">{tournament.startAt ? new Date(tournament.startAt).toLocaleDateString() : 'Pending'}</span>
+                                <span class="text-sm font-bold text-white">{tournament.startAt ? new Date(tournament.startAt).toLocaleDateString() : $t('tournaments.date_pending')}</span>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
                                 <div class="flex items-center gap-4">
                                     <Target weight="duotone" class="w-5 h-5 text-zinc-500" />
-                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">Control</span>
+                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">{$t('tournaments.time_control')}</span>
                                 </div>
                                 <span class="text-sm font-bold text-white">{tournament.time_control || '10+5'}</span>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
                                 <div class="flex items-center gap-4">
                                     <MapPin weight="duotone" class="w-5 h-5 text-zinc-500" />
-                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">Format</span>
+                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">{$t('tournaments.format')}</span>
                                 </div>
-                                <span class="text-sm font-bold text-white uppercase">{tournament.format === 'swiss' ? 'Swiss System' : tournament.format}</span>
+                                <span class="text-sm font-bold text-white uppercase">{tournament.format === 'swiss' ? $t('tournaments.format_swiss') : tournament.format}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Description Bento -->
                     <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden group md:col-span-1">
-                        <h3 class="text-xl font-outfit font-black text-white mb-6 uppercase tracking-tight">Description</h3>
+                        <h3 class="text-xl font-outfit font-black text-white mb-6 uppercase tracking-tight">{$t('tournaments.description')}</h3>
                         <div class="bg-zinc-950/50 p-6 rounded-2xl border border-zinc-800/50 min-h-[160px]">
                             <p class="text-zinc-400 font-plus-jakarta leading-relaxed text-sm">
-                                {tournament.description || 'No additional details have been provided for this tournament.'}
+                                {tournament.description || $t('tournaments.no_description')}
                             </p>
                         </div>
                     </div>
@@ -243,15 +245,15 @@
                 <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl" in:fly={{ y: 20 }}>
                     <div class="p-8 border-b border-zinc-800 flex justify-between items-center bg-gradient-to-r from-zinc-900 to-zinc-950">
                          <div>
-                             <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">Players</h3>
-                             <p class="text-zinc-500 text-xs font-medium uppercase tracking-widest mt-1">{players.length} Registered</p>
+                             <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.participants')}</h3>
+                             <p class="text-zinc-500 text-xs font-medium uppercase tracking-widest mt-1">{players.length} {$t('tournaments.registered_count')}</p>
                          </div>
                          {#if tournament.status === 'upcoming'}
                             <button 
                                 onclick={() => showRegModal = true}
                                 class="bg-violet-600 hover:bg-violet-500 text-white px-5 py-2.5 rounded-xl font-outfit font-black text-[10px] tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-violet-500/10 active:scale-95"
                             >
-                                <UserPlus weight="bold" class="w-4 h-4" /> REGISTER PLAYER
+                                <UserPlus weight="bold" class="w-4 h-4" /> {$t('tournaments.register_player')}
                             </button>
                          {/if}
                     </div>
@@ -259,10 +261,10 @@
                         <table class="w-full text-left">
                             <thead class="bg-zinc-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                                 <tr>
-                                    <th class="px-8 py-5">Player Name</th>
-                                    <th class="px-8 py-5">Elo / Rating</th>
-                                    <th class="px-8 py-5">Status</th>
-                                    <th class="px-8 py-5 text-right">Action</th>
+                                    <th class="px-8 py-5">{$t('tournaments.participants.name')}</th>
+                                    <th class="px-8 py-5">{$t('tournaments.participants.elo')}</th>
+                                    <th class="px-8 py-5">{$t('tournaments.participants.status')}</th>
+                                    <th class="px-8 py-5 text-right">{$t('tournaments.participants.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-zinc-800">
@@ -278,7 +280,7 @@
                                         </td>
                                         <td class="px-8 py-5 text-zinc-400 font-medium text-sm">{player.rating || 1200}</td>
                                         <td class="px-8 py-5">
-                                            <span class="px-2.5 py-1 rounded-lg bg-violet-500/5 text-violet-400 border border-violet-500/10 text-[10px] uppercase font-black tracking-widest">Confirmed</span>
+                                            <span class="px-2.5 py-1 rounded-lg bg-violet-500/5 text-violet-400 border border-violet-500/10 text-[10px] uppercase font-black tracking-widest">{$t('tournaments.status.confirmed')}</span>
                                         </td>
                                         <td class="px-8 py-5 text-right">
                                             <button class="p-2 text-zinc-600 hover:text-red-400 transition-colors">
@@ -292,7 +294,7 @@
                                         <td colspan="4" class="px-8 py-20 text-center">
                                             <div class="flex flex-col items-center gap-4">
                                                 <Users weight="duotone" class="w-12 h-12 text-zinc-800" />
-                                                <p class="text-zinc-600 font-plus-jakarta italic text-sm">Waiting for registrations for this event...</p>
+                                                <p class="text-zinc-600 font-plus-jakarta italic text-sm">{$t('tournaments.wait_registrations')}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -311,7 +313,7 @@
                                 <Target weight="duotone" class="w-10 h-10" />
                             </div>
                             <div class="space-y-2">
-                                <p class="text-zinc-500 font-plus-jakarta max-w-xs mx-auto text-base">Start the tournament to automatically generate the first round pairings.</p>
+                                <p class="text-zinc-500 font-plus-jakarta max-w-xs mx-auto text-base">{$t('tournaments.start_pairing_desc')}</p>
                             </div>
                             {#if tournament.status === 'upcoming'}
                                 <button 
@@ -319,7 +321,7 @@
                                     disabled={players.length < 2 || isProcessing}
                                     class="px-8 py-4 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl font-outfit font-black text-xs tracking-widest transition-all shadow-xl shadow-fuchsia-500/10 active:scale-95"
                                 >
-                                    GENERATE FIRST ROUND
+                                    {$t('tournaments.generate_first_round')}
                                 </button>
                             {/if}
                         </div>
@@ -331,9 +333,9 @@
                                         <div class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-violet-500/20">
                                             <ListNumbers weight="bold" class="w-6 h-6" />
                                         </div>
-                                        <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">Round {round.round_no}</h3>
+                                        <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.round')} {round.round_no}</h3>
                                     </div>
-                                    <span class="px-3 py-1 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">Status: Active</span>
+                                    <span class="px-3 py-1 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">{$t('tournaments.status_active')}</span>
                                 </div>
                                 <div class="p-8 space-y-4 bg-zinc-900">
                                     {#each pairings.filter(p => p.round_no === round.round_no).sort((a,b) => a.board - b.board) as p}
@@ -341,7 +343,7 @@
                                             <!-- Player White -->
                                             <div class="col-span-4 text-right pr-6">
                                                 <p class="font-outfit font-bold text-white text-base group-hover:text-violet-300 transition-colors">{p.white_name}</p>
-                                                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">White</p>
+                                                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">{$t('tournaments.white')}</p>
                                             </div>
 
                                             <!-- Score Box -->
@@ -366,9 +368,9 @@
                                             <!-- Player Black -->
                                             <div class="col-span-4 text-left pl-6">
                                                 <p class="font-outfit font-bold text-white text-base group-hover:text-violet-300 transition-colors">
-                                                    {p.bye ? 'BYE' : p.black_name}
+                                                    {p.bye ? $t('tournaments.bye') : p.black_name}
                                                 </p>
-                                                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">Black</p>
+                                                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">{$t('tournaments.black')}</p>
                                             </div>
                                         </div>
                                     {/each}
@@ -384,20 +386,20 @@
                     <div class="p-8 border-b border-zinc-800 bg-gradient-to-r from-zinc-900 to-zinc-950 flex justify-between items-center">
                          <h3 class="text-xl font-outfit font-black text-white flex items-center gap-3 uppercase tracking-tight">
                              <Crown weight="fill" class="w-7 h-7 text-amber-500 drop-shadow-lg" />
-                             Ranking Actual
+                             {$t('tournaments.tab_standings')}
                          </h3>
                          <div class="flex items-center gap-3">
-                             <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-950 px-3 py-1.5 rounded-full border border-zinc-800">Real-time Calculation</span>
+                             <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-950 px-3 py-1.5 rounded-full border border-zinc-800">{$t('tournaments.realtime_calc')}</span>
                          </div>
                     </div>
                     <div class="overflow-x-auto min-h-[400px]">
                         <table class="w-full text-left">
                             <thead class="bg-zinc-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                                 <tr>
-                                    <th class="px-8 py-5 w-24 text-center">Pos</th>
-                                    <th class="px-8 py-5">Competitor Name</th>
-                                    <th class="px-8 py-5 text-center">Points</th>
-                                    <th class="px-8 py-5 text-right w-40">Performance</th>
+                                    <th class="px-8 py-5 w-24 text-center">{$t('tournaments.pos')}</th>
+                                    <th class="px-8 py-5">{$t('tournaments.participants')}</th>
+                                    <th class="px-8 py-5 text-center">{$t('tournaments.points')}</th>
+                                    <th class="px-8 py-5 text-right w-40">{$t('tournaments.performance')}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-zinc-800">
@@ -429,7 +431,7 @@
                                             </div>
                                         </td>
                                         <td class="px-8 py-5 text-center">
-                                            <div class="text-xl font-black text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.1)]">{player.currentPoints}</div>
+                                            <div class="text-xl font-black text-amber-400 drop-shadow-[0_0_100px_rgba(251,191,36,0.1)]">{player.currentPoints}</div>
                                         </td>
                                         <td class="px-8 py-5 text-right">
                                             <div class="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-zinc-800">
@@ -440,7 +442,7 @@
                                 {/each}
                                 {#if players.length === 0}
                                     <tr>
-                                        <td colspan="4" class="px-8 py-20 text-center text-zinc-600 italic text-sm">No standings data available yet.</td>
+                                        <td colspan="4" class="px-8 py-20 text-center text-zinc-600 italic text-sm">{$t('tournaments.no_standings')}</td>
                                     </tr>
                                 {/if}
                             </tbody>
@@ -463,7 +465,7 @@
                     <Medal weight="duotone" class="w-8 h-8" />
                  </div>
                  
-                 <h4 class="text-xl font-outfit font-black text-white mb-2 uppercase tracking-tight relative z-10">Prize Pool</h4>
+                 <h4 class="text-xl font-outfit font-black text-white mb-2 uppercase tracking-tight relative z-10">{$t('tournaments.prize_pool')}</h4>
                  <div class="flex items-baseline gap-2 mb-8 relative z-10">
                     <span class="text-4xl font-black text-white">{tournament.prize_pool || 0}</span>
                     <span class="text-xl font-bold text-zinc-600">€ EUR</span>
@@ -491,15 +493,15 @@
              <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden">
                  <h4 class="text-lg font-outfit font-black text-white mb-6 flex items-center gap-3 uppercase tracking-tight">
                     <MapPin weight="duotone" class="w-6 h-6 text-violet-500" />
-                    Event Venue
+                    {$t('tournaments.venue')}
                  </h4>
                  <div class="p-6 bg-zinc-950 border border-zinc-800 rounded-2xl">
                      <p class="text-sm text-zinc-300 font-plus-jakarta leading-relaxed overflow-hidden">
-                        {tournament.location || 'Address not specified. Contact via Chat.'}
+                        {tournament.location || $t('tournaments.address_not_specified')}
                      </p>
                  </div>
                  <button class="w-full mt-6 py-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl font-outfit font-bold text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3">
-                    <MapPin weight="bold" class="w-4 h-4" /> VIEW ON MAP
+                    <MapPin weight="bold" class="w-4 h-4" /> {$t('tournaments.view_on_map')}
                  </button>
              </div>
         </div>
@@ -529,14 +531,14 @@
                 <UserPlus weight="duotone" class="w-8 h-8" />
             </div>
             <div>
-                <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight">Register Competitor</h3>
-                <p class="text-zinc-500 text-sm font-medium uppercase tracking-widest mt-1">Tournament: {tournament?.name}</p>
+                <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.register_player')}</h3>
+                <p class="text-zinc-500 text-sm font-medium uppercase tracking-widest mt-1">{$t('tournaments.name_label')}: {tournament?.name}</p>
             </div>
           </div>
 
           <div class="space-y-8 mb-10">
               <div class="space-y-3">
-                  <label for="student-select-premium" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Select Active Student</label>
+                  <label for="student-select-premium" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('tournaments.searching_students')}</label>
                   <div class="relative group">
                     <Users weight="bold" class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
                     <select 
@@ -544,7 +546,7 @@
                         bind:value={selectedStudentId}
                         class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] pl-16 pr-8 py-5 text-sm text-white font-bold focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all appearance-none cursor-pointer shadow-inner"
                     >
-                            <option value="">Search in database...</option>
+                            <option value="">{$t('tournaments.searching_students')}</option>
                             {#each students.filter(s => !players.some(p => p.student_id === s.id)) as student}
                                 <option value={student.id}>{student.name.toUpperCase()} (ELO {student.rating || 1200})</option>
                             {/each}
@@ -556,7 +558,7 @@
               <div class="bg-violet-600/5 border border-violet-500/20 rounded-2xl p-6 flex gap-4 items-start shadow-inner">
                   <Info weight="duotone" class="w-6 h-6 text-violet-400 shrink-0" />
                   <p class="text-[11px] text-violet-300 font-plus-jakarta leading-relaxed uppercase tracking-wider">
-                      By registering a player, they will be assigned an official spot in the tournament draw. Make sure the student has confirmed their attendance.
+                      {$t('tournaments.register_player_desc')}
                   </p>
               </div>
           </div>
@@ -566,7 +568,7 @@
                 onclick={() => showRegModal = false}
                 class="flex-1 bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 text-zinc-400 hover:text-white font-outfit font-bold py-5 rounded-[20px] transition-all active:scale-95 shadow-lg"
               >
-                DISCARD
+                {$t('tournaments.discard')}
               </button>
               <button 
                 onclick={handleRegister}
@@ -578,7 +580,7 @@
                 {:else}
                     <CheckCircle weight="fill" class="w-6 h-6 group-hover:scale-110 transition-transform" />
                 {/if}
-                CONFIRM REGISTRATION
+                {$t('tournaments.confirm_registration')}
               </button>
           </div>
       </div>

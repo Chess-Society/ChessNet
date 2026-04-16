@@ -1,6 +1,7 @@
 <script lang="ts">
     import { fade, fly } from 'svelte/transition';
     import { CreditCard, CheckCircle2, AlertCircle, ArrowRight, Server, Database, Globe } from 'lucide-svelte';
+    import { t } from '$lib/i18n';
 
     let hasEnvVars = $state(true);
     let hasCorrectImport = $state(true);
@@ -15,40 +16,40 @@
         simulationSteps = [];
         currentPhase = 'stripe';
         
-        addStep('Iniciando pago de 1€ en Stripe...', 'info');
+        addStep($t('simulator.steps.loading'), 'info');
         await wait(1000);
         
-        addStep('Stripe: Pago procesado correctamente ✅', 'success');
-        addStep('Stripe enviando webhook POST a /api/stripe/webhook...', 'info');
+        addStep($t('simulator.steps.stripe_ok'), 'success');
+        addStep($t('simulator.steps.stripe_webhook'), 'info');
         await wait(1000);
         
         currentPhase = 'server';
         if (!hasUserId) {
-            addStep('Error: client_reference_id no recibido. ¿Se envió el UID en el checkout?', 'error');
+            addStep($t('simulator.steps.error_no_uid'), 'error');
             fail(); return;
         }
 
-        addStep('Servidor: Validando firma del webhook...', 'info');
+        addStep($t('simulator.steps.validating_sig'), 'info');
         await wait(800);
 
         if (!hasEnvVars) {
-            addStep('Error 500: Firebase Admin no inicializado (Faltan FB_PRIVATE_KEY)', 'error');
+            addStep($t('simulator.steps.error_500'), 'error');
             fail(); return;
         }
         
-        addStep('Servidor: Admin SDK cargado correctamente.', 'success');
+        addStep($t('simulator.steps.admin_ok'), 'success');
         await wait(800);
 
         currentPhase = 'firestore';
         if (!hasCorrectImport) {
-            addStep('Error: ReferenceError: db is not defined. ¿Importaste adminDb?', 'error');
+            addStep($t('simulator.steps.error_db'), 'error');
             fail(); return;
         }
 
-        addStep('Firestore: Actualizando usuario a Premium...', 'info');
+        addStep($t('simulator.steps.updating_firestore'), 'info');
         await wait(1000);
         
-        addStep('¡Suscripción Activada Exitosamente! 🎉', 'success');
+        addStep($t('simulator.steps.success'), 'success');
         isSimulating = false;
         currentPhase = 'idle';
     }
@@ -75,8 +76,8 @@
                 <Globe class="w-6 h-6" />
             </div>
             <div>
-                <h2 class="text-xl font-bold text-white">Simulador de Webhook Stripe</h2>
-                <p class="text-slate-500 text-sm">Validación técnica del flujo de suscripción</p>
+                <h2 class="text-xl font-bold text-white">{$t('simulator.title')}</h2>
+                <p class="text-slate-500 text-sm">{$t('simulator.subtitle')}</p>
             </div>
         </div>
 
@@ -84,11 +85,11 @@
             <!-- Controles -->
             <div class="space-y-6">
                 <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
-                    <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Configuración del Entorno</h3>
+                    <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{$t('simulator.env_config')}</h3>
                     
                     <div class="space-y-4">
                         <label class="flex items-center justify-between cursor-pointer group">
-                            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">Variables de entorno (Netlify)</span>
+                            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">{$t('simulator.env_vars')}</span>
                             <button 
                                 aria-label="Toggle Env Vars"
                                 onclick={() => hasEnvVars = !hasEnvVars}
@@ -99,7 +100,7 @@
                         </label>
 
                         <label class="flex items-center justify-between cursor-pointer group">
-                            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">Importación adminDb correcta</span>
+                            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">{$t('simulator.admin_db')}</span>
                             <button 
                                 aria-label="Toggle Admin DB Status"
                                 onclick={() => hasCorrectImport = !hasCorrectImport}
@@ -110,7 +111,7 @@
                         </label>
 
                         <label class="flex items-center justify-between cursor-pointer group">
-                            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">UID enviado (checkout)</span>
+                            <span class="text-sm text-slate-300 group-hover:text-white transition-colors">{$t('simulator.uid_sent')}</span>
                             <button 
                                 aria-label="Toggle User ID Status"
                                 onclick={() => hasUserId = !hasUserId}
@@ -129,10 +130,10 @@
                 >
                     {#if isSimulating}
                         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Simulando...
+                        {$t('simulator.simulating')}
                     {:else}
                         <ArrowRight class="w-5 h-5" />
-                        Simular Evento de Pago
+                        {$t('simulator.simulate_btn')}
                     {/if}
                 </button>
             </div>
@@ -140,7 +141,7 @@
             <!-- Visualización -->
             <div class="bg-black/40 rounded-3xl border border-slate-800 p-6 font-mono text-[11px] h-[300px] flex flex-col">
                 <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
-                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Consola de Eventos / Registro</span>
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{$t('simulator.console')}</span>
                     <div class="flex gap-1">
                         <div class="w-2 h-2 rounded-full bg-red-500/50"></div>
                         <div class="w-2 h-2 rounded-full bg-yellow-500/50"></div>

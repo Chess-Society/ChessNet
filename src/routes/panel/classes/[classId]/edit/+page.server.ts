@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { classesApi } from '$lib/api/classes';
-import { schoolsApi } from '$lib/api/schools';
 import { error } from '@sveltejs/kit';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   
@@ -9,66 +9,87 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     throw error(401, 'User not authenticated');
   }
 
+  const uid = locals.user.uid;
+  const classId = params.classId;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  const suggestedSchedules = {
+    beginner: [
+      'Lunes y Miércoles 10:00-11:00',
+      'Martes y Jueves 16:00-17:00',
+      'Viernes 17:00-18:00',
+      'Sábados 10:00-11:30'
+    ],
+    intermediate: [
+      'Lunes y Miércoles 17:00-18:30',
+      'Martes y Jueves 17:00-18:30',
+      'Viernes 18:00-19:30',
+      'Sábados 11:30-13:00'
+    ],
+    advanced: [
+      'Lunes y Miércoles 18:30-20:00',
+      'Martes y Jueves 18:30-20:00',
+      'Viernes 19:30-21:00',
+      'Sábados 09:00-11:00'
+    ],
+    mixed: [
+      'Miércoles 20:00-21:30',
+      'Viernes 20:00-21:30',
+      'Sábados 16:00-17:30',
+      'Domingos 10:00-11:30'
+    ]
+  };
+
+  const suggestedCapacities = {
+    beginner: { min: 8, max: 15, recommended: 12 },
+    intermediate: { min: 6, max: 12, recommended: 10 },
+    advanced: { min: 4, max: 10, recommended: 8 },
+    mixed: { min: 8, max: 20, recommended: 15 }
+  };
+
+  if (isMock) {
+    return {
+      user: locals.user,
+      class: {
+        id: classId,
+        name: 'Clase de Ejemplo (MOCK)',
+        school_id: 'mock-school-1',
+        level: 'beginner',
+        max_students: 12,
+        owner_id: uid
+      },
+      schools: [{ id: 'mock-school-1', name: 'Mock Academy', city: 'Localhost' }],
+      suggestedSchedules,
+      suggestedCapacities
+    };
+  }
+
   try {
-    // Get class and available schools from Firebase
-    const [classData, schools] = await Promise.all([
-      classesApi.getClass(params.classId),
-      schoolsApi.getMySchools()
+    const [classSnap, schoolsSnap] = await Promise.all([
+      adminDb.collection('classes').doc(classId).get(),
+      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get()
     ]);
 
-    if (!classData) {
-      throw error(404, 'Class not found');
+    if (!classSnap.exists) {
+      throw error(404, 'Clase no encontrada');
     }
 
-    // Suggested schedules by level
-    const suggestedSchedules = {
-      beginner: [
-        'Monday and Wednesday 10:00-11:00',
-        'Tuesday and Thursday 16:00-17:00',
-        'Friday 17:00-18:00',
-        'Saturdays 10:00-11:30'
-      ],
-      intermediate: [
-        'Monday and Wednesday 17:00-18:30',
-        'Tuesday and Thursday 17:00-18:30',
-        'Friday 18:00-19:30',
-        'Saturdays 11:30-13:00'
-      ],
-      advanced: [
-        'Monday and Wednesday 18:30-20:00',
-        'Tuesday and Thursday 18:30-20:00',
-        'Friday 19:30-21:00',
-        'Saturdays 09:00-11:00'
-      ],
-      mixed: [
-        'Wednesday 20:00-21:30',
-        'Friday 20:00-21:30',
-        'Saturdays 16:00-17:30',
-        'Sundays 10:00-11:30'
-      ]
-    };
-
-    // Suggested capacities by level
-    const suggestedCapacities = {
-      beginner: { min: 8, max: 15, recommended: 12 },
-      intermediate: { min: 6, max: 12, recommended: 10 },
-      advanced: { min: 4, max: 10, recommended: 8 },
-      mixed: { min: 8, max: 20, recommended: 15 }
-    };
+    const classData = { id: classSnap.id, ...classSnap.data() } as any;
+    if (classData.owner_id !== uid) {
+      throw error(403, 'No tienes permiso para editar esta clase');
+    }
 
     return {
       user: locals.user,
-      class: classData,
-      schools: schools || [],
+      class: serializeRecord(classData),
+      schools: serializeRecord(schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }))),
       suggestedSchedules,
       suggestedCapacities
     };
 
   } catch (err: any) {
     console.error('❌ Error in edit class page load:', err);
-    if (err.status) {
-      throw err;
-    }
-    throw error(500, 'Internal server error');
+    if (err.status) throw err;
+    throw error(500, 'Error al cargar los datos de la clase');
   }
 };

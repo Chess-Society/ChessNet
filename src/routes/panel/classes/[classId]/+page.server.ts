@@ -9,6 +9,34 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     throw error(401, 'User not authenticated');
   }
 
+  const isMock = locals.user.uid === 'chessnet-dev-uid';
+
+  if (isMock) {
+    return {
+      user: locals.user,
+      classData: serializeRecord({
+        id: classId,
+        name: "Clase de Prueba (MOCK)",
+        level: "beginner",
+        schedule: "Lunes 17:00",
+        active: true,
+        max_students: 15,
+        studentCount: 2
+      }),
+      students: [],
+      stats: {
+        totalStudents: 2,
+        capacity: 15,
+        occupancyRate: 13,
+        attendanceAverage: 100,
+        skillProgress: 0,
+        activeStudents: 2
+      },
+      skills: [],
+      attendance: []
+    };
+  }
+
   try {
     const classSnap = await adminDb.collection("classes").doc(classId).get();
 
@@ -68,16 +96,61 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       };
     }).sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
 
-    // Attendance stats
+    // Fetch attendance records for stats
     const attendanceSnap = await adminDb.collection("attendance")
       .where("owner_id", "==", locals.user.uid)
       .where("class_id", "==", classId)
       .get();
-    const sessions = new Set(attendanceSnap.docs.map((doc: any) => doc.data().date)).size;
 
+    // Attendance stats calculation
+    const attendanceRecords = attendanceSnap.docs.map((doc: any) => doc.data());
+    const sessionsByDate = attendanceRecords.reduce((acc: any, record: any) => {
+      const date = record.date;
+      if (!acc[date]) acc[date] = { total: 0, present: 0, late: 0 };
+      acc[date].total++;
+      if (record.status === 'present' || record.status === 'late') acc[date].present++;
+      if (record.status === 'late') acc[date].late++;
+      return acc;
+    }, {});
+
+    const dates = Object.keys(sessionsByDate).sort();
+    const totalSessions = dates.length;
+    
+    let avgAttendance = 0;
+    let avgPunctuality = 0;
+    let mostAttended = '';
+    let leastAttended = '';
+    
+    if (totalSessions > 0) {
+      const rates = dates.map(d => (sessionsByDate[d].present / sessionsByDate[d].total) * 100);
+      avgAttendance = Math.round(rates.reduce((a, b) => a + b, 0) / totalSessions);
+      
+      const punctualityRates = dates.map(d => {
+        const attended = sessionsByDate[d].present;
+        if (attended === 0) return 100;
+        return ((attended - sessionsByDate[d].late) / attended) * 100;
+      });
+      avgPunctuality = Math.round(punctualityRates.reduce((a, b) => a + b, 0) / totalSessions);
+      
+      const maxRate = Math.max(...rates);
+      const minRate = Math.min(...rates);
+      mostAttended = dates[rates.indexOf(maxRate)] || '';
+      leastAttended = dates[rates.indexOf(minRate)] || '';
+    }
+
+    const lastSession = dates[dates.length - 1] || null;
+
+    let schoolData = null;
+    if (classData.school_id) {
+      const schoolSnap = await adminDb.collection("schools").doc(classData.school_id).get();
+      if (schoolSnap.exists) {
+        schoolData = { id: schoolSnap.id, ...schoolSnap.data() };
+      }
+    }
+    
     return {
       user: locals.user,
-      class: classData,
+      class: { ...classData, school: schoolData },
       students,
       classSkills,
       classStats: { 
@@ -93,13 +166,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         }, {}),
       },
       attendanceStats: { 
-        total_sessions: sessions, 
-        average_attendance_rate: 0, 
-        average_punctuality_rate: 0, 
-        most_attended_date: '', 
-        least_attended_date: '', 
-        last_session_date: new Date().toISOString(), 
-        next_session_date: new Date().toISOString() 
+        total_sessions: totalSessions, 
+        average_attendance_rate: avgAttendance, 
+        average_punctuality_rate: avgPunctuality, 
+        most_attended_date: mostAttended, 
+        least_attended_date: leastAttended, 
+        last_session_date: lastSession, 
+        next_session_date: null // This would require schedule logic
       }
     };
 

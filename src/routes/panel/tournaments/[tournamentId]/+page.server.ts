@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { tournamentsApi } from '$lib/api/tournaments';
-import { studentsApi } from '$lib/api/students';
 import { error } from '@sveltejs/kit';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const { tournamentId } = params;
@@ -10,67 +10,123 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     throw error(401, 'User not authenticated');
   }
 
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
   try {
-    // Fetch tournament data, participants, and pairings in parallel
-    const [tournament, participants, pairings, allStudents] = await Promise.all([
-      tournamentsApi.getTournament(tournamentId),
-      tournamentsApi.getTournamentParticipants(tournamentId),
-      tournamentsApi.getTournamentMatches(tournamentId),
-      studentsApi.getMyStudents()
-    ]);
-
-    if (!tournament) {
-      throw error(404, 'Tournament not found');
+    // 1. Obtener datos del torneo
+    let tournament: any = null;
+    if (isMock) {
+      tournament = {
+        id: tournamentId,
+        name: 'Torneo Escolar de Primavera',
+        description: 'Torneo anual para todos los niveles.',
+        format: 'swiss',
+        time_control: '10+5',
+        status: 'active',
+        current_round: 2,
+        owner_id: uid
+      };
+    } else {
+      const tourneySnap = await adminDb.collection("tournaments").doc(tournamentId).get();
+      if (!tourneySnap.exists) {
+        throw error(404, 'Tournament not found');
+      }
+      tournament = { id: tourneySnap.id, ...tourneySnap.data() };
+      
+      if (tournament.owner_id !== uid) {
+        throw error(403, 'No tienes permiso para ver este torneo');
+      }
     }
 
-    // Verify ownership (if model includes user_id or created_by)
-    // Note: We use created_by or user_id according to what we defined in the API
-    const ownerId = tournament.owner_id;
-    if (ownerId && ownerId !== locals.user.id) {
-      throw error(403, 'You do not have permission to view this tournament');
+    // 2. Obtener participantes y sus datos de alumno
+    let participants: any[] = [];
+    if (isMock) {
+      participants = [
+        { id: 'p1', student_id: 'mock-s1', score: 2, tiebreak_score: 4, rating: 1250, students: { name: 'Marc Ramos' } },
+        { id: 'p2', student_id: 'mock-s2', score: 1.5, tiebreak_score: 3, rating: 1180, students: { name: 'Lucía Sanz' } }
+      ];
+    } else {
+      const partSnap = await adminDb.collection("tournament_participants")
+        .where("tournament_id", "==", tournamentId)
+        .where("owner_id", "==", uid)
+        .get();
+        
+      participants = await Promise.all(partSnap.docs.map(async (doc: any) => {
+        const p = { id: doc.id, ...doc.data() };
+        if (p.student_id) {
+          const sSnap = await adminDb.collection("students").doc(p.student_id).get();
+          if (sSnap.exists) p.students = sSnap.data();
+        }
+        return p;
+      }));
     }
 
-    // Format participants for the UI (registeredPlayers)
+    // 3. Obtener emparejamientos
+    let pairings: any[] = [];
+    if (isMock) {
+      pairings = [
+        { id: 'm1', round: 1, board_number: 1, player1_id: 'mock-s1', player2_id: 'mock-s2', result: '1-0', player1: { name: 'Marc Ramos' }, player2: { name: 'Lucía Sanz' } }
+      ];
+    } else {
+      const matchSnap = await adminDb.collection("tournament_matches")
+        .where("tournament_id", "==", tournamentId)
+        .where("owner_id", "==", uid)
+        .get();
+        
+      pairings = await Promise.all(matchSnap.docs.map(async (doc: any) => {
+        const m = { id: doc.id, ...doc.data() };
+        if (m.player1_id) {
+          const s1Snap = await adminDb.collection("students").doc(m.player1_id).get();
+          if (s1Snap.exists) m.player1 = s1Snap.data();
+        }
+        if (m.player2_id) {
+          const s2Snap = await adminDb.collection("students").doc(m.player2_id).get();
+          if (s2Snap.exists) m.player2 = s2Snap.data();
+        }
+        return m;
+      }));
+    }
+
+    // 4. Obtener todos los alumnos del profesor para el buscador de registro
+    let allStudents: any[] = [];
+    if (!isMock) {
+      const allStudentsSnap = await adminDb.collection("students")
+        .where("owner_id", "==", uid)
+        .get();
+      allStudents = allStudentsSnap.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    }
+
+    // Format logical blocks for UI
     const registeredPlayers = participants.map(p => ({
       id: p.id,
-      tournament_id: p.tournament_id,
+      tournament_id: tournamentId,
       student_id: p.student_id,
       student_name: p.students?.name || 'Unknown',
       student_rating: p.rating || 1200,
       registration_date: p.created_at,
-      status: 'confirmed', // Simplified Firebase is usually confirmed directly
-      notes: null
+      status: 'confirmed'
     }));
 
-    // Determine unique rounds from the pairings
     const roundNumbers = [...new Set(pairings.map(p => p.round))].sort((a, b) => a - b);
     const rounds = roundNumbers.map(r => ({
       id: `round-${r}`,
       tournament_id: tournamentId,
       round_number: r,
-      status: r < (tournament.current_round || 0) ? 'completed' : (r === (tournament.current_round || 0) ? 'in_progress' : 'not_started'),
-      start_time: null,
-      end_time: null
+      status: r < (tournament.current_round || 0) ? 'completed' : (r === (tournament.current_round || 0) ? 'in_progress' : 'not_started')
     }));
 
-    // Format pairings for the UI
     const formattedPairings = pairings.map(p => ({
       id: p.id,
-      tournament_id: p.tournament_id,
       round_number: p.round,
       board_number: p.board_number,
       white_player_id: p.player1_id,
       black_player_id: p.player2_id,
       result: p.result || '*',
-      white_points: p.result === '1-0' ? 1 : (p.result === '1/2-1/2' ? 0.5 : 0),
-      black_points: p.result === '0-1' ? 1 : (p.result === '1/2-1/2' ? 0.5 : 0),
-      notes: null,
-      is_bye: p.result === 'bye',
       white_player_name: p.player1?.name || 'White',
       black_player_name: p.player2?.name || 'Black'
     }));
 
-    // Generate standings from the participants
     const standings = participants
       .sort((a, b) => (b.score || 0) - (a.score || 0) || (b.tiebreak_score || 0) - (a.tiebreak_score || 0))
       .map((p, index) => ({
@@ -80,29 +136,23 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         rating: p.rating || 1200,
         points: p.score || 0,
         games_played: pairings.filter(m => (m.player1_id === p.student_id || m.player2_id === p.student_id) && m.result && m.result !== '*').length,
-        wins: pairings.filter(m => (m.player1_id === p.student_id && m.result === '1-0') || (m.player2_id === p.student_id && m.result === '0-1')).length,
-        draws: pairings.filter(m => (m.player1_id === p.student_id || m.player2_id === p.student_id) && m.result === '1/2-1/2').length,
-        losses: pairings.filter(m => (m.player1_id === p.student_id && m.result === '0-1') || (m.player2_id === p.student_id && m.result === '1-0')).length,
-        buchholz: p.tiebreak_score || 0,
-        performance: p.rating || 1200 // Simplified
+        buchholz: p.tiebreak_score || 0
       }));
 
-    // Available students to register (those not already registered)
     const registeredStudentIds = participants.map(p => p.student_id);
     const availableStudents = allStudents
       .filter(s => !registeredStudentIds.includes(s.id))
       .map(s => ({
         id: s.id,
         name: s.name,
-        rating: 1200, // Base rating
-        school_name: (s as any).school_name || 'No school',
-        email: s.parent_email || ''
+        rating: 1200,
+        school_name: s.school_name || 'No school'
       }));
 
     return {
       user: locals.user,
       tournamentId,
-      tournament,
+      tournament: serializeRecord(tournament),
       registeredPlayers,
       rounds,
       pairings: formattedPairings,
@@ -116,3 +166,4 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     throw error(500, 'Internal server error');
   }
 };
+

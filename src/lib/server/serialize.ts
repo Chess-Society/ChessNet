@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Normaliza los datos de Firestore para que sean serializables por SvelteKit.

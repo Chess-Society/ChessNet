@@ -21,6 +21,8 @@
     CaretRight
   } from 'phosphor-svelte';
   import { initiateUpgrade } from '$lib/api/subscriptions';
+  import { t } from '$lib/i18n';
+  import { toast, showError } from '$lib/stores/toast';
   import { fade, fly, scale } from 'svelte/transition';
   import { auth } from '$lib/firebase';
 
@@ -40,7 +42,7 @@
     
     const user = auth.currentUser;
     if (!user) {
-      alert('You must be logged in to upgrade');
+      toast.error('You must be logged in to upgrade');
       isUpgrading = false;
       return;
     }
@@ -50,10 +52,10 @@
       if (result.success && result.payment_url) {
         window.location.href = result.payment_url;
       } else {
-        alert(result.error || 'Error starting the upgrade process');
+        toast.error(result.error || 'Error starting the upgrade process');
       }
     } catch (error) {
-      alert('Unexpected error. Please try again.');
+      showError(error, 'Unexpected error. Please try again.');
     } finally {
       isUpgrading = false;
       selectedPlan = '';
@@ -172,7 +174,7 @@
               </div>
               <h3 class="text-2xl font-outfit font-black text-white tracking-tight mb-2">{plan.display_name}</h3>
               <div class="flex items-baseline justify-center gap-1.5 mb-6">
-                <span class="text-5xl font-outfit font-black text-white">€{plan.name === 'premium' ? '1' : plan.price_annual}</span>
+                <span class="text-5xl font-outfit font-black text-white">{plan.name === 'premium' ? '1' : plan.price_annual}{$t('common.currency')}</span>
                 <span class="text-slate-600 font-outfit font-bold text-sm tracking-widest uppercase">/Month</span>
               </div>
               <p class="text-slate-500 font-plus-jakarta text-sm leading-relaxed px-4">{plan.description}</p>

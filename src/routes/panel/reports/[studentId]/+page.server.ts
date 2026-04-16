@@ -1,152 +1,176 @@
 import type { PageServerLoad } from './$types';
+import { error } from '@sveltejs/kit';
+import { adminDb } from '$lib/firebase-admin';
 
-export const load: PageServerLoad = async ({ params, locals, url }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
   const { studentId } = params;
 
-  // ===== BYPASS PARA DESARROLLO LOCAL =====
-  const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  if (!locals.user) {
+    throw error(401, 'Unauthorized');
+  }
 
-  if (isLocalDev) {
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
 
-    // Importar datos centralizados
+  if (isMock) {
+    // Keep existing mock logic but let's make it cleaner
     const { mockStudents, mockSchools, mockClasses, mockPayments } = await import('$lib/utils/mockData');
-
-    // Buscar el estudiante
     const student = mockStudents.find(s => s.id === studentId);
 
-    if (!student) {
-      console.error(`Mock student not found: ${studentId}`);
-      // Fallback para IDs que no coinciden exactamente (por si acaso) o error
-      throw new Error(`Student not found: ${studentId}`);
-    }
+    if (!student) throw error(404, 'Student not found');
 
     const school = mockSchools.find(s => s.id === student.school_id);
-    const studentClasses = mockClasses.filter(c => c.school_id === school?.id).slice(0, 2); // Simular clases
+    const studentClasses = mockClasses.filter(c => c.school_id === school?.id).slice(0, 2);
     const studentPayments = mockPayments.filter(p => p.student_id === student.id);
 
-    // Generar datos detallados dinámicos
-    const report = {
-      student: {
-        id: student.id,
-        name: student.name,
-        email: student.parent_email,
-        phone: student.parent_phone,
-        date_of_birth: student.date_of_birth || '2015-01-01',
-        school_id: student.school_id,
-        emergency_contact: 'Contacto de Emergencia',
-        emergency_phone: student.parent_phone,
-        medical_notes: null,
-        instructor_notes: student.notes || 'Estudiante con buen progreso general.',
-        created_at: student.created_at
-      },
-      school: {
-        id: school?.id || 'unknown',
-        name: school?.name || 'Sin colegio',
-        city: school?.city || 'Ciudad'
-      },
-      classes: studentClasses.map(c => ({
-        id: c.id,
-        name: c.name,
-        schedule: `${c.day_of_week} ${c.start_time}-${c.end_time}`,
-        price: 45.00,
-        start_date: '2024-01-10',
-        end_date: '2024-06-30'
-      })),
-      progress_summary: {
-        enrollment_date: student.created_at.split('T')[0],
-        days_enrolled: Math.floor((Date.now() - new Date(student.created_at).getTime()) / (1000 * 60 * 60 * 24)),
-        total_sessions: 20,
-        attended_sessions: 15,
-        late_sessions: 2,
-        absent_sessions: 3,
-        attendance_rate: 75,
-        punctuality_rate: 90,
-        skills_mastered: 4,
-        skills_in_progress: 3,
-        total_skills_assigned: 10,
-        skill_completion_rate: 40,
-        total_payments: studentPayments.length,
-        paid_payments: studentPayments.filter(p => p.status === 'paid').length,
-        pending_payments: studentPayments.filter(p => p.status === 'pending').length,
-        overdue_payments: studentPayments.filter(p => p.status === 'overdue').length,
-        payment_compliance: studentPayments.length > 0
-          ? (studentPayments.filter(p => p.status === 'paid').length / studentPayments.length) * 100
-          : 0,
-        tournaments_participated: 1,
-        tournament_wins: 2,
-        tournament_draws: 1,
-        tournament_losses: 2,
-        current_rating: 1200,
-        initial_rating: 1200,
-        rating_change: 0,
-        highest_rating: 1220,
-        lowest_rating: 1180,
-        last_activity_date: new Date().toISOString()
-      },
-      attendance_history: [
-        { date: '2024-02-01', class_id: 'mock-class-1', status: 'P', notes: null },
-        { date: '2024-02-08', class_id: 'mock-class-1', status: 'P', notes: null },
-        { date: '2024-02-15', class_id: 'mock-class-1', status: 'T', notes: 'Retraso leve' }
-      ],
-      skills_progress: [
-        {
-          skill_id: 'skill-1',
-          skill_name: 'Movimiento de Piezas',
-          category: 'Fundamentos',
-          status: 'completed',
-          level: 5,
-          max_level: 5,
-          completion_date: '2024-01-20',
-          notes: 'Dominado'
+    return {
+      user: locals.user,
+      studentId,
+      report: {
+        student: { ...student, date_of_birth: student.date_of_birth || '2015-01-01' },
+        school: { id: school?.id || 'unknown', name: school?.name || 'Independent', city: school?.city || '' },
+        classes: studentClasses,
+        progress_summary: {
+            enrollment_date: student.created_at.split('T')[0],
+            days_enrolled: Math.floor((Date.now() - new Date(student.created_at).getTime()) / (1000 * 60 * 60 * 24)),
+            total_sessions: 20,
+            attended_sessions: 15,
+            late_sessions: 2,
+            absent_sessions: 3,
+            attendance_rate: 75,
+            punctuality_rate: 90,
+            skills_mastered: 4,
+            skills_in_progress: 3,
+            total_skills_assigned: 10,
+            skill_completion_rate: 40,
+            total_payments: studentPayments.length,
+            paid_payments: studentPayments.filter(p => p.status === 'paid').length,
+            payment_compliance: 100
         },
-        {
-          skill_id: 'skill-2',
-          skill_name: 'Jaque Mate Básico',
-          category: 'Táctica',
-          status: 'in_progress',
-          level: 3,
-          max_level: 5,
-          completion_date: null,
-          notes: 'Practicando'
-        }
-      ],
-      payment_history: studentPayments.map(p => ({
-        id: p.id,
-        amount: p.amount,
-        concept: p.concept,
-        description: p.concept,
-        due_date: p.date,
-        paid_date: p.status === 'paid' ? p.date : null,
-        status: p.status,
-        payment_method: p.payment_method,
-        payment_reference: `REF-${p.id.substring(0, 6)}`
-      })),
+        attendance_history: [],
+        skills_progress: [],
+        payment_history: studentPayments,
+        tournament_history: [],
+        rating_history: [],
+        activity_timeline: []
+      }
+    };
+  }
+
+  try {
+    // 1. Fetch Student
+    const studentSnap = await adminDb.collection("students").doc(studentId).get();
+    if (!studentSnap.exists || studentSnap.data()?.owner_id !== uid) {
+      throw error(404, 'Student not found');
+    }
+    const student = { id: studentSnap.id, ...studentSnap.data() };
+
+    // 2. Fetch School
+    let school = { id: 'independent', name: 'Independent', city: '' };
+    if (student.school_id) {
+      const schoolSnap = await adminDb.collection("schools").doc(student.school_id).get();
+      if (schoolSnap.exists) {
+        school = { id: schoolSnap.id, ...schoolSnap.data() };
+      }
+    }
+
+    // 3. Fetch Classes (via class_students)
+    const enrollmentsSnap = await adminDb.collection("class_students")
+      .where("owner_id", "==", uid)
+      .where("student_id", "==", studentId)
+      .get();
+    
+    const classIds = enrollmentsSnap.docs.map((doc: any) => doc.data().class_id);
+    let classes: any[] = [];
+    if (classIds.length > 0) {
+      for (let i = 0; i < classIds.length; i += 30) {
+        const chunk = classIds.slice(i, i + 30);
+        const classesSnap = await adminDb.collection("classes")
+          .where("__name__", "in", chunk)
+          .get();
+        classes = [...classes, ...classesSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))];
+      }
+    }
+
+    // 4. Fetch Attendance
+    const attendanceSnap = await adminDb.collection("attendance")
+      .where("owner_id", "==", uid)
+      .where("student_id", "==", studentId)
+      .orderBy("date", "desc")
+      .get();
+    
+    const attendanceRecords = attendanceSnap.docs.map((doc: any) => doc.data());
+    const totalSessions = attendanceRecords.length;
+    const attended = attendanceRecords.filter((r: any) => r.status === 'present' || r.status === 'late').length;
+    const late = attendanceRecords.filter((r: any) => r.status === 'late').length;
+    const absent = attendanceRecords.filter((r: any) => r.status === 'absent').length;
+
+    // 5. Fetch Payments
+    const paymentsSnap = await adminDb.collection("payments")
+      .where("owner_id", "==", uid)
+      .where("student_id", "==", studentId)
+      .orderBy("date", "desc")
+      .get();
+    
+    const payments = paymentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+
+    // 6. Metrics Calculation
+    const attendanceRate = totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 0;
+    const punctualityRate = attended > 0 ? Math.round(((attended - late) / attended) * 100) : 0;
+    
+    const paidPayments = payments.filter((p: any) => p.status === 'paid').length;
+    const paymentCompliance = payments.length > 0 ? Math.round((paidPayments / payments.length) * 100) : 0;
+
+    const report = {
+      student,
+      school,
+      classes,
+      progress_summary: {
+        enrollment_date: student.created_at ? student.created_at.split('T')[0] : 'N/A',
+        days_enrolled: student.created_at ? Math.floor((Date.now() - new Date(student.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 0,
+        total_sessions: totalSessions,
+        attended_sessions: attended,
+        late_sessions: late,
+        absent_sessions: absent,
+        attendance_rate: attendanceRate,
+        punctuality_rate: punctualityRate,
+        skills_mastered: 0, // Placeholder as mastery is not yet in DB
+        skills_in_progress: 0,
+        total_skills_assigned: 0,
+        skill_completion_rate: 0,
+        total_payments: payments.length,
+        paid_payments: paidPayments,
+        pending_payments: payments.filter((p: any) => p.status === 'pending').length,
+        overdue_payments: payments.filter((p: any) => p.status === 'overdue').length,
+        payment_compliance: paymentCompliance,
+        tournaments_participated: 0,
+        tournament_wins: 0,
+        current_rating: 1200,
+        last_activity_date: attendanceRecords[0]?.date || student.updatedAt || student.created_at
+      },
+      attendance_history: attendanceRecords.slice(0, 10), // Last 10
+      skills_progress: [],
+      payment_history: payments.slice(0, 10),
       tournament_history: [],
-      rating_history: [
-        { date: '2024-01-01', rating: 1200, change: 0, event: 'Inicio' }
-      ],
-      activity_timeline: [
-        {
-          date: new Date().toISOString(),
-          type: 'attendance',
-          title: 'Registro reciente',
-          description: 'Actividad generada automáticamente',
-          status: 'neutral',
-          details: null
-        }
-      ]
+      rating_history: [],
+      activity_timeline: attendanceRecords.slice(0, 5).map((r: any) => ({
+        date: r.date,
+        type: 'attendance',
+        title: `Clase: ${r.status}`,
+        description: r.notes || 'Registro de asistencia',
+        status: r.status === 'present' ? 'success' : r.status === 'late' ? 'warning' : 'error'
+      }))
     };
 
     return {
       user: locals.user,
       studentId,
-      report
+      report: JSON.parse(JSON.stringify(report)) // Simple serialization
     };
-  }
 
-  return {
-    user: locals.user,
-    studentId,
-    report: null
-  };
+  } catch (err: any) {
+    console.error('❌ Error generating report:', err);
+    throw error(500, 'Error generating student report');
+  }
 };
+

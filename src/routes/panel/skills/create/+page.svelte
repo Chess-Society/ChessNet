@@ -21,6 +21,7 @@
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly } from 'svelte/transition';
+  import { t } from '$lib/i18n';
 
   let { data } = $props<{ data: PageData }>();
 
@@ -105,14 +106,14 @@
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Error creating skill');
+        throw new Error(result.error || $t('skills.create.error'));
       }
       
-      showToast.success('Skill created successfully');
+      showToast.success($t('skills.create.success'));
       goto('/panel/skills');
     } catch (error) {
       console.error('Error creating skill:', error);
-      showError(error, 'Error creating skill');
+      showError(error, $t('skills.create.error'));
     } finally {
       isSubmitting = false;
     }
@@ -126,7 +127,7 @@
 </script>
 
 <svelte:head>
-  <title>New Skill - ChessNet</title>
+  <title>{$t('skills.create.title')} - ChessNet</title>
 </svelte:head>
 
 <svelte:window onkeydown={handleKeyDown} />
@@ -139,7 +140,7 @@
       class="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group text-sm font-medium"
     >
       <ArrowLeft weight="bold" class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-      Back to curriculum
+      {$t('skills.create.back')}
     </button>
   </div>
 
@@ -151,8 +152,8 @@
           <Target weight="duotone" class="w-10 h-10" />
         </div>
         <div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">New Skill</h1>
-          <p class="text-zinc-500 font-medium mt-1">Define a new competency for the curriculum.</p>
+          <h1 class="text-3xl font-bold text-white tracking-tight">{$t('skills.create.title')}</h1>
+          <p class="text-zinc-500 font-medium mt-1">{$t('skills.create.subtitle')}</p>
         </div>
       </div>
       
@@ -162,7 +163,7 @@
           class="flex-1 md:flex-none px-6 py-3 rounded-full bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all text-sm font-bold flex items-center justify-center gap-2"
         >
           <X weight="bold" class="w-4 h-4" />
-          Cancel
+          {$t('common.cancel')}
         </button>
         <button 
           onclick={handleSubmit} 
@@ -171,10 +172,10 @@
         >
           {#if isSubmitting}
             <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            Saving...
+            {$t('skills.create.saving')}
           {:else}
             <FloppyDisk weight="bold" class="w-4 h-4" />
-            Create Skill
+            {$t('skills.create.save_btn')}
           {/if}
         </button>
       </div>
@@ -191,14 +192,14 @@
             <div class="space-y-3">
               <label for="name" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
                 <Note weight="duotone" class="w-4 h-4 text-violet-400" />
-                Topic Name
+                {$t('skills.create.topic_name')}
               </label>
               <div class="relative group">
                 <input
                   id="name"
                   type="text"
                   bind:value={formData.name}
-                  placeholder="e.g., Pawn structure, Pin tactics..."
+                  placeholder={$t('skills.create.topic_placeholder')}
                   class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-zinc-600 outline-none"
                   class:border-red-500={errors.name}
                 />
@@ -216,7 +217,7 @@
               <div class="space-y-3">
                 <label for="category_id" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
                   <Tag weight="duotone" class="w-4 h-4 text-violet-400" />
-                  Category
+                  {$t('skills.create.category')}
                 </label>
                 <select
                   id="category_id"
@@ -224,7 +225,7 @@
                   class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 transition-all outline-none appearance-none"
                   class:border-red-500={errors.category_id}
                 >
-                  <option value="" disabled>Select a category</option>
+                  <option value="" disabled>{$t('skills.create.category_placeholder')}</option>
                   {#each categories as category}
                     <option value={category.id}>{category.name}</option>
                   {/each}
@@ -240,7 +241,7 @@
               <div class="space-y-3">
                 <label for="difficulty" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
                   <TrendUp weight="duotone" class="w-4 h-4 text-violet-400" />
-                  Difficulty Level
+                  {$t('skills.create.difficulty')}
                 </label>
                 <select
                   id="difficulty"
@@ -258,12 +259,12 @@
             <div class="space-y-3">
               <label for="description" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
                 <Info weight="duotone" class="w-4 h-4 text-violet-400" />
-                Educational Description
+                {$t('skills.create.description')}
               </label>
               <textarea
                 id="description"
                 bind:value={formData.description}
-                placeholder="Explain in detail what this topic consist of..."
+                placeholder={$t('skills.create.description_placeholder')}
                 rows="4"
                 class="w-full bg-zinc-950 border border-zinc-800 rounded-[24px] px-6 py-5 text-white hover:border-zinc-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-zinc-600 outline-none resize-none"
               ></textarea>
@@ -276,7 +277,7 @@
                 <div class="flex items-center justify-between px-1">
                   <label class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest">
                     <Check weight="duotone" class="w-4 h-4 text-violet-400" />
-                    Learning Objectives
+                    {$t('skills.create.objectives')}
                   </label>
                   <button 
                     type="button"
@@ -284,7 +285,7 @@
                     class="p-1 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-tighter flex items-center gap-2"
                   >
                     <Plus weight="bold" class="w-3 h-3" />
-                    Add objective
+                    {$t('skills.create.add_objective')}
                   </button>
                 </div>
                 <div class="grid grid-cols-1 gap-3">
@@ -293,7 +294,7 @@
                       <input
                         type="text"
                         bind:value={formData.learning_objectives[i]}
-                        placeholder="Define a clear objective..."
+                        placeholder={$t('skills.create.objective_placeholder')}
                         class="flex-1 bg-zinc-950 border border-zinc-800 rounded-[16px] px-6 py-3 text-white focus:border-violet-500 outline-none text-sm transition-all"
                       />
                       <button 
@@ -313,7 +314,7 @@
                 <div class="flex items-center justify-between px-1">
                   <label class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest">
                     <Target weight="duotone" class="w-4 h-4 text-violet-400" />
-                    Assessment Criteria
+                    {$t('skills.create.criteria')}
                   </label>
                   <button 
                     type="button"
@@ -321,7 +322,7 @@
                     class="p-1 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-tighter flex items-center gap-2"
                   >
                     <Plus weight="bold" class="w-3 h-3" />
-                    Add criteria
+                    {$t('skills.create.add_criteria')}
                   </button>
                 </div>
                 <div class="grid grid-cols-1 gap-3">
@@ -330,7 +331,7 @@
                       <input
                         type="text"
                         bind:value={formData.assessment_criteria[i]}
-                        placeholder="How do we assess that it was learned?"
+                        placeholder={$t('skills.create.criteria_placeholder')}
                         class="flex-1 bg-zinc-950 border border-zinc-800 rounded-[16px] px-6 py-3 text-white focus:border-violet-500 outline-none text-sm transition-all"
                       />
                       <button 
@@ -350,7 +351,7 @@
                 <div class="flex items-center justify-between px-1">
                   <label class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest">
                     <Books weight="duotone" class="w-4 h-4 text-violet-400" />
-                    Suggested Resources
+                    {$t('skills.create.resources')}
                   </label>
                   <button 
                     type="button"
@@ -358,7 +359,7 @@
                     class="p-1 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-tighter flex items-center gap-2"
                   >
                     <Plus weight="bold" class="w-3 h-3" />
-                    Add resource
+                    {$t('skills.create.add_resource')}
                   </button>
                 </div>
                 <div class="grid grid-cols-1 gap-3">
@@ -367,7 +368,7 @@
                       <input
                         type="text"
                         bind:value={formData.resources[i]}
-                        placeholder="Book, video or link..."
+                        placeholder={$t('skills.create.resource_placeholder')}
                         class="flex-1 bg-zinc-950 border border-zinc-800 rounded-[16px] px-6 py-3 text-white focus:border-violet-500 outline-none text-sm transition-all"
                       />
                       <button 
@@ -388,13 +389,13 @@
               <div class="space-y-3">
                 <label for="icon" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
                   <Plus weight="duotone" class="w-4 h-4 text-violet-400" />
-                  Icon Emoji
+                  {$t('skills.create.icon')}
                 </label>
                 <input
                   id="icon"
                   type="text"
                   bind:value={formData.icon}
-                  placeholder="e.g., ♟️, 🏰, ⚔️"
+                  placeholder={$t('skills.create.icon_placeholder')}
                   class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] px-6 py-4 text-white hover:border-zinc-700 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-zinc-600 outline-none uppercase text-center text-xl font-bold"
                 />
               </div>
@@ -403,7 +404,7 @@
               <div class="space-y-3">
                 <label for="order_index" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
                   <SortAscending weight="duotone" class="w-4 h-4 text-violet-400" />
-                  Order
+                  {$t('skills.create.order')}
                 </label>
                 <input
                   id="order_index"
@@ -419,7 +420,7 @@
             <div class="space-y-3">
               <label for="resource_link" class="flex items-center gap-2 text-sm font-bold text-zinc-400 uppercase tracking-widest px-1">
                 <Link weight="duotone" class="w-4 h-4 text-violet-400" />
-                Main link of interest
+                {$t('skills.create.link')}
               </label>
               <input
                 id="resource_link"
@@ -433,7 +434,7 @@
 
           <!-- Quick Actions Footer -->
           <div class="pt-10 border-t border-zinc-800 flex flex-col items-center">
-            <p class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-4">Use Ctrl + Enter to save quickly</p>
+            <p class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-4">{$t('skills.create.quick_save')}</p>
             <button 
               onclick={handleSubmit}
               disabled={isSubmitting}
@@ -441,10 +442,10 @@
             >
                {#if isSubmitting}
                 <div class="w-5 h-5 border-3 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin"></div>
-                Creating...
+                {$t('skills.create.creating')}
               {:else}
                 <Check weight="bold" class="w-5 h-5" />
-                Finish Creation
+                {$t('skills.create.finish_btn')}
               {/if}
             </button>
           </div>
@@ -455,16 +456,16 @@
       <div class="bg-violet-600/5 border border-violet-500/10 rounded-[24px] p-8 md:p-10 shadow-2xl shadow-black/50">
         <h3 class="flex items-center gap-3 text-lg font-bold text-white mb-6">
           <Info weight="duotone" class="w-6 h-6 text-violet-400" />
-          Pro-Tips for your curriculum
+          {$t('skills.create.tips_title')}
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="space-y-2">
-            <h4 class="text-sm font-black text-violet-400 uppercase tracking-widest">Specificity</h4>
-            <p class="text-zinc-400 text-sm leading-relaxed">Name skills clearly and uniquely. "Short castle" is better than just "Castling".</p>
+            <h4 class="text-sm font-black text-violet-400 uppercase tracking-widest">{$t('skills.create.tips_spec_title')}</h4>
+            <p class="text-zinc-400 text-sm leading-relaxed">{$t('skills.create.tips_spec_desc')}</p>
           </div>
           <div class="space-y-2">
-            <h4 class="text-sm font-black text-violet-400 uppercase tracking-widest">Assessment</h4>
-            <p class="text-zinc-400 text-sm leading-relaxed">Use the description to establish what we expect from a student when mastering this topic.</p>
+            <h4 class="text-sm font-black text-violet-400 uppercase tracking-widest">{$t('skills.create.tips_ass_title')}</h4>
+            <p class="text-zinc-400 text-sm leading-relaxed">{$t('skills.create.tips_ass_desc')}</p>
           </div>
         </div>
       </div>

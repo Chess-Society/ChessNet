@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { schoolsApi } from '$lib/api/schools';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   const schoolId = params.schoolId;
@@ -9,11 +10,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     throw error(401, 'User not authenticated');
   }
 
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
   const countries = [
-    { code: 'ES', name: 'Spain' },
-    { code: 'FR', name: 'France' },
+    { code: 'ES', name: 'España' },
+    { code: 'FR', name: 'Francia' },
     { code: 'PT', name: 'Portugal' },
-    { code: 'IT', name: 'Italy' }
+    { code: 'IT', name: 'Italia' }
   ];
 
   const insuranceCompanies = [
@@ -22,13 +26,52 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     'AXA Seguros'
   ];
 
-  try {
-    // Get school data from Firebase API
-    const school = await schoolsApi.getSchool(schoolId);
+    if (isMock) {
+      const schoolData = {
+        id: schoolId,
+        name: "Centro de Prueba (MOCK)",
+        city: "Ciudad Real",
+        owner_id: uid,
+        created_at: new Date().toISOString()
+      };
+
+      return { 
+        user: locals.user, 
+        school: serializeRecord(schoolData), 
+        countries, 
+        insuranceCompanies 
+      };
+    }
+
+    try {
+      // Obtener centro usando Admin SDK
+      const schoolSnap = await adminDb.collection("schools").doc(schoolId).get();
+    
+    let schoolData: any;
+
+    if (!schoolSnap.exists) {
+      if (isMock) {
+        schoolData = {
+          id: schoolId,
+          name: "Centro de Prueba (MOCK)",
+          city: "Ciudad Real",
+          owner_id: uid,
+          created_at: new Date().toISOString()
+        };
+      } else {
+        throw error(404, 'Centro no encontrado');
+      }
+    } else {
+      schoolData = { id: schoolSnap.id, ...schoolSnap.data() };
+      
+      if (schoolData.owner_id !== uid) {
+        throw error(403, 'No tienes permiso para editar este centro');
+      }
+    }
 
     return { 
       user: locals.user, 
-      school, 
+      school: serializeRecord(schoolData), 
       countries, 
       insuranceCompanies 
     };
@@ -36,6 +79,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   } catch (err: any) {
     console.error('❌ Error in edit school page:', err);
     if (err.status) throw err;
-    throw error(404, 'School not found or error loading data');
+    throw error(500, 'Error al cargar los datos del centro');
   }
 };

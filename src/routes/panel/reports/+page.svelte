@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount } from 'svelte';
   import { 
     ChartBar, 
@@ -20,6 +21,30 @@
   let students = $derived($appStore.students || []);
   let schools = $derived($appStore.schools || []);
   let attendance = $derived($appStore.attendance || []);
+
+  // Tasa de asistencia real
+  const attendanceRate = $derived(() => {
+    if (attendance.length === 0) return 0;
+    const present = attendance.filter(a => a.status === 'P' || a.status === 'L').length;
+    return Math.round((present / attendance.length) * 100);
+  });
+
+  // Cálculo de crecimiento (estudiantes creados en los últimos 30 días)
+  const growthStats = $derived(() => {
+    if (students.length === 0) return { count: 0, percent: 0 };
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const newStudents = students.filter(s => {
+      const createdAt = s.createdAt ? new Date(s.createdAt) : new Date(0);
+      return createdAt > thirtyDaysAgo;
+    }).length;
+
+    const previousTotal = students.length - newStudents;
+    const percent = previousTotal > 0 ? (newStudents / previousTotal) * 100 : 100;
+
+    return { count: newStudents, percent: Math.round(percent) };
+  });
 
   const stats = $derived(() => {
     const totalStudents = students.length;
@@ -58,8 +83,8 @@
         <ChartBar weight="duotone" class="w-8 h-8" />
       </div>
       <div>
-        <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">Advanced Reports</h1>
-        <p class="text-slate-400 font-plus-jakarta text-sm">Visualize the pulse of your academy with real-time metrics.</p>
+        <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">{$t('reports.title')}</h1>
+        <p class="text-zinc-500 font-plus-jakarta text-sm">{$t('reports.subtitle')}</p>
       </div>
     </div>
   </div>
@@ -71,7 +96,7 @@
           <div class="bento-card p-8">
               <h3 class="text-white font-outfit font-bold mb-8 flex items-center gap-3">
                   <ChartPieSlice weight="duotone" class="w-6 h-6 text-violet-400" />
-                  Levels
+                  {$t('reports.levels')}
               </h3>
               <div class="space-y-6">
                   {#each Object.entries(stats().levels) as [level, count]}
@@ -89,7 +114,7 @@
                       </div>
                   {/each}
                   {#if Object.keys(stats().levels).length === 0}
-                      <p class="text-center text-slate-500 font-plus-jakarta text-sm py-4">No level data available.</p>
+                      <p class="text-center text-slate-500 font-plus-jakarta text-sm py-4">{$t('reports.no_levels')}</p>
                   {/if}
               </div>
           </div>
@@ -98,13 +123,13 @@
           <div class="bento-card bg-gradient-to-br from-violet-600/10 to-transparent p-8 text-center relative overflow-hidden group">
               <div class="absolute -top-6 -right-6 w-24 h-24 bg-violet-500/10 blur-2xl rounded-full"></div>
               <TrendUp weight="duotone" class="w-14 h-14 text-violet-400 mx-auto mb-6 group-hover:scale-110 transition-transform" />
-              <h4 class="text-white font-outfit font-black text-2xl mb-2 tracking-tight">Growth</h4>
-              <p class="text-violet-200/60 font-plus-jakarta text-sm mb-8">Positive trend of 8% this quarter.</p>
+              <h4 class="text-white font-outfit font-black text-2xl mb-2 tracking-tight">{$t('reports.growth')}</h4>
+              <p class="text-violet-200/60 font-plus-jakarta text-sm mb-8">{$t('reports.growth_desc')}</p>
               <div class="flex items-center justify-center gap-2 text-4xl font-outfit font-black text-white">
                   <ArrowUpRight weight="bold" class="w-8 h-8 text-violet-400" />
-                  +{Math.round(stats().totalStudents * 0.08)}
+                  +{growthStats().count}
               </div>
-              <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mt-2">New Students</p>
+              <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mt-2">{$t('reports.new_students')}</p>
           </div>
       </div>
 
@@ -113,10 +138,10 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
               <h3 class="text-white font-outfit font-bold flex items-center gap-3 text-xl tracking-tight">
                   <Users weight="duotone" class="w-8 h-8 text-violet-500" />
-                  Students per Center
+                  {$t('reports.students_per_center')}
               </h3>
               <div class="px-4 py-2 bg-white/5 border border-white/5 rounded-full text-[10px] font-outfit font-bold text-slate-400 uppercase tracking-widest">
-                  Updated today
+                  {$t('reports.updated_today')}
               </div>
           </div>
 
@@ -124,7 +149,7 @@
               {#if studentsPerCenter().length === 0}
                   <div class="h-64 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[32px] text-slate-500 font-plus-jakarta gap-4">
                       <ChartLine weight="duotone" class="w-12 h-12 text-slate-700" />
-                      <p class="italic">Not enough data to generate the breakdown by center.</p>
+                      <p class="italic">{$t('reports.no_center_data')}</p>
                   </div>
               {:else}
                   {#each studentsPerCenter() as center}
@@ -132,7 +157,7 @@
                           <div class="flex justify-between items-end mb-3">
                               <div class="flex flex-col gap-1">
                                   <p class="text-sm font-outfit font-black text-white group-hover:text-violet-400 transition-colors uppercase tracking-tight">{center.name}</p>
-                                  <p class="text-[10px] text-slate-500 font-outfit font-bold uppercase tracking-widest">{center.count} Enrolled students</p>
+                                  <p class="text-[10px] text-zinc-500 font-outfit font-bold uppercase tracking-widest">{center.count} {$t('reports.enrolled')}</p>
                               </div>
                               <span class="text-3xl font-outfit font-black text-zinc-900 group-hover:text-violet-900/20 transition-colors">{Math.round((center.count / stats().totalStudents) * 100)}%</span>
                           </div>
@@ -150,23 +175,23 @@
           <!-- Bottom Grid KPI -->
           <div class="mt-16 pt-10 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-10">
               <div>
-                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">Attendance</p>
-                  <p class="text-4xl font-outfit font-black text-white">92%</p>
+                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">{$t('reports.attendance')}</p>
+                  <p class="text-4xl font-outfit font-black text-white">{attendanceRate()}%</p>
                   <div class="flex items-center gap-1 mt-1 text-violet-400">
                       <ArrowUpRight weight="bold" class="w-3 h-3" />
-                      <span class="text-[10px] font-bold">+2.4%</span>
+                      <span class="text-[10px] font-bold">Real-time</span>
                   </div>
               </div>
               <div>
-                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">Retention</p>
+                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">{$t('reports.retention')}</p>
                   <p class="text-4xl font-outfit font-black text-white">98%</p>
                   <div class="flex items-center gap-1 mt-1 text-violet-400">
                       <ArrowUpRight weight="bold" class="w-3 h-3" />
-                      <span class="text-[10px] font-bold">Top Tier</span>
+                      <span class="text-[10px] font-bold">Estimated</span>
                   </div>
               </div>
               <div>
-                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">Satisfaction</p>
+                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">{$t('reports.satisfaction')}</p>
                   <p class="text-4xl font-outfit font-black text-violet-500 flex items-baseline">4.9<span class="text-lg text-slate-700 ml-1">/5</span></p>
                   <div class="flex gap-0.5 mt-1">
                       {#each Array(5) as _}
@@ -175,9 +200,9 @@
                   </div>
               </div>
               <div>
-                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">Subscriptions</p>
+                  <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-2">{$t('reports.subscriptions')}</p>
                   <p class="text-4xl font-outfit font-black text-white">{stats().totalStudents}</p>
-                  <p class="text-[10px] font-medium text-slate-600 mt-1 italic">Active now</p>
+                  <p class="text-[10px] font-medium text-slate-600 mt-1 italic">{$t('reports.active_now')}</p>
               </div>
           </div>
       </div>

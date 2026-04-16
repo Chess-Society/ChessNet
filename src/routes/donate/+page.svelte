@@ -2,11 +2,16 @@
   import { Heart, School, ArrowLeft, Sparkles } from 'lucide-svelte';
   import { fade } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
+  import { t, locale } from '$lib/i18n';
+
+  function toggleLocale() {
+    locale.update(l => l === 'en' ? 'es' : 'en');
+  }
 </script>
 
 <svelte:head>
-  <title>Support the Project | ChessNet Premium</title>
-  <meta name="description" content="Help maintain ChessNet. Your contribution funds the servers and the development of new tools for teachers." />
+  <title>{$t('nav.donate')} | ChessNet</title>
+  <meta name="description" content={$t('donate.subtitle')} />
 </svelte:head>
 
 <div class="min-h-screen bg-bento-bg text-surface-200 font-sans selection:bg-primary-500/30 overflow-x-hidden">
@@ -26,10 +31,20 @@
       </div>
       <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
     </a>
-    <a href="/" class="flex items-center gap-2 text-surface-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
-      <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-      Home
-    </a>
+    <div class="flex items-center gap-6 relative z-10">
+      <!-- Language Switcher -->
+      <button 
+        onclick={toggleLocale} 
+        class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-surface-400 hover:text-white hover:border-white/20 transition-all"
+      >
+        {$locale}
+      </button>
+
+      <a href="/" class="flex items-center gap-2 text-surface-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
+        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        {$t('roadmap.back')}
+      </a>
+    </div>
   </nav>
 
   <!-- Content -->
@@ -41,19 +56,18 @@
       
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-6">
         <Sparkles class="w-3.5 h-3.5" />
-        <span>Community and Passion</span>
+        <span>{$t('donate.badge')}</span>
       </div>
 
-      <h1 class="text-4xl md:text-6xl font-display font-black tracking-tight text-white mb-8">Support the <span class="text-primary-400 italic">Evolution</span></h1>
+      <h1 class="text-4xl md:text-6xl font-display font-black tracking-tight text-white mb-8">{$t('donate.title')}</h1>
       
       <p class="text-lg md:text-xl text-surface-400 leading-relaxed mb-16 max-w-2xl mx-auto font-medium">
-        ChessNet is an independent project born from a passion for chess teaching.
-        Your direct support funds the infrastructure and development of tools for thousands of students.
+        {$t('donate.subtitle')}
       </p>
 
       <div class="bento-card border-white/10 bg-white/[0.02] p-10 md:p-16 shadow-2xl relative overflow-hidden inline-block w-full">
         <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-30"></div>
-        <h3 class="text-xl font-bold text-white mb-10">Secure Donation via Stripe</h3>
+        <h3 class="text-xl font-bold text-white mb-10">{$t('donate.stripe_btn')}</h3>
         <div class="relative z-10">
           <script async src="https://js.stripe.com/v3/buy-button.js"></script>
           <stripe-buy-button
@@ -66,15 +80,15 @@
 
       <div class="mt-16 pt-12 border-t border-white/5 grid grid-cols-2 md:grid-cols-3 gap-8 grayscale opacity-50">
          <div class="flex flex-col items-center gap-2">
-           <span class="text-[10px] font-black text-surface-600 uppercase tracking-widest">Payment</span>
+           <span class="text-[10px] font-black text-surface-600 uppercase tracking-widest">{$t('donate.payment').split(': ')[0]}</span>
            <span class="text-white font-bold text-sm">STRIPE</span>
          </div>
          <div class="flex flex-col items-center gap-2">
-           <span class="text-[10px] font-black text-surface-600 uppercase tracking-widest">Security</span>
+           <span class="text-[10px] font-black text-surface-600 uppercase tracking-widest">{$t('donate.secure').split(': ')[0]}</span>
            <span class="text-white font-bold text-sm">SSL 256B</span>
          </div>
          <div class="flex flex-col items-center gap-2 col-span-2 md:col-span-1">
-           <span class="text-[10px] font-black text-surface-600 uppercase tracking-widest">Type</span>
+           <span class="text-[10px] font-black text-surface-600 uppercase tracking-widest">{$t('donate.type').split(': ')[0]}</span>
            <span class="text-white font-bold text-sm">DONATION</span>
          </div>
       </div>

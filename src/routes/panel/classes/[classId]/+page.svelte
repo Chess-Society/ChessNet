@@ -31,6 +31,7 @@
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
+  import { t } from '$lib/i18n';
 
   let { data } = $props<{ data: PageData }>();
 
@@ -49,12 +50,12 @@
     mixed: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
   };
 
-  const levelLabels = {
-    beginner: 'BEGINNER',
-    intermediate: 'INTERMEDIATE',
-    advanced: 'ADVANCED',
-    mixed: 'MIXED'
-  };
+  const levelLabels = $derived({
+    beginner: $t('common.levels.beginner'),
+    intermediate: $t('common.levels.intermediate'),
+    advanced: $t('common.levels.advanced'),
+    mixed: $t('common.levels.mixed')
+  });
 
   const handleGoBack = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -65,9 +66,9 @@
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(undefined, {
       style: 'currency',
-      currency: 'EUR'
+      currency: $t('common.currency_name') === 'EUR' ? 'EUR' : 'USD'
     }).format(amount);
   };
 </script>
@@ -85,7 +86,7 @@
         class="flex items-center gap-2 text-zinc-500 hover:text-primary-400 transition-colors group text-xs font-black uppercase tracking-widest"
       >
         <CaretLeft weight="bold" class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-        Back
+        {$t('common.back')}
       </button>
 
       <div class="flex items-center gap-6">
@@ -96,10 +97,12 @@
           <div class="flex items-center gap-3 mb-1">
              <h1 class="text-3xl font-black text-white tracking-tighter uppercase">{classData?.name}</h1>
              <span class={`text-[8px] font-black px-2 py-0.5 rounded-full border ${levelColors[classData?.level as keyof typeof levelColors] || levelColors.mixed}`}>
-               {levelLabels[classData?.level as keyof typeof levelColors] || 'UNKNOWN'}
+               {levelLabels[classData?.level as keyof typeof levelColors] || $t('common.unknown')}
              </span>
           </div>
-          <p class="text-zinc-500 text-sm font-medium uppercase tracking-widest font-body">{classData?.school?.name} • {classData?.schedule}</p>
+          <p class="text-zinc-500 text-sm font-medium uppercase tracking-widest font-body">
+            {classData?.school ? classData.school.name : $t('classes.independent')} • {classData?.schedule}
+          </p>
         </div>
       </div>
     </div>
@@ -110,14 +113,14 @@
         class="bg-zinc-900 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-zinc-800 hover:border-primary-500/50 transition-all flex items-center gap-3"
       >
         <ClipboardText weight="duotone" class="w-4 h-4 text-primary-400" />
-        Attendance
+        {$t('classes.attendance')}
       </button>
       <button 
         onclick={() => goto(`/panel/classes/${classData.id}/edit`)}
         class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/20 flex items-center gap-3"
       >
         <Gear weight="duotone" class="w-4 h-4" />
-        Configure
+        {$t('classes.configure')}
       </button>
     </div>
   </div>
@@ -129,21 +132,21 @@
       class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'overview' ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'text-zinc-500 hover:text-white'}`}
     >
       <ChartBar weight="duotone" class="w-3.5 h-3.5" />
-      Overview
+      {$t('classes.overview')}
     </button>
     <button 
       onclick={() => currentView = 'students'}
       class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'students' ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'text-zinc-500 hover:text-white'}`}
     >
       <Users weight="duotone" class="w-3.5 h-3.5" />
-      Students ({students.length})
+      {$t('classes.students')} ({students.length})
     </button>
     <button 
       onclick={() => currentView = 'skills'}
       class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${currentView === 'skills' ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'text-zinc-500 hover:text-white'}`}
     >
       <Target weight="duotone" class="w-3.5 h-3.5" />
-      Syllabus ({classSkills.length})
+      {$t('classes.syllabus')} ({classSkills.length})
     </button>
   </div>
 
@@ -155,7 +158,7 @@
            <div class="flex items-center justify-between">
               <h2 class="text-white font-black uppercase tracking-tight flex items-center gap-3">
                 <Folders weight="duotone" class="w-5 h-5 text-primary-400" />
-                Group Details
+                {$t('classes.details')}
               </h2>
            </div>
 
@@ -166,7 +169,7 @@
                     <Clock weight="duotone" class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Weekly Schedule</p>
+                    <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{$t('classes.schedule')}</p>
                     <p class="text-white font-bold">{classData?.schedule}</p>
                   </div>
                 </div>
@@ -176,8 +179,8 @@
                     <MapPin weight="duotone" class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Room / Location</p>
-                    <p class="text-white font-bold">{classData?.room || 'TO BE DEFINED'}</p>
+                    <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{$t('classes.location')}</p>
+                    <p class="text-white font-bold">{classData?.room || $t('classes.to_be_defined')}</p>
                   </div>
                 </div>
               </div>
@@ -188,9 +191,9 @@
                     <Calendar weight="duotone" class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Academic Period</p>
+                    <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{$t('classes.period')}</p>
                     <p class="text-white font-bold text-xs">
-                      {new Date(classData?.start_date).toLocaleDateString('en-US')} - {new Date(classData?.end_date).toLocaleDateString('en-US')}
+                      {new Date(classData?.start_date).toLocaleDateString()} - {new Date(classData?.end_date).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -200,7 +203,7 @@
                     <CurrencyEur weight="duotone" class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Monthly Fee</p>
+                    <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{$t('classes.fee')}</p>
                     <p class="text-white font-bold">{formatCurrency(classData?.price || 0)}</p>
                   </div>
                 </div>
@@ -209,7 +212,7 @@
 
            {#if classData?.description}
              <div class="bg-zinc-950/50 border border-zinc-900 p-6 rounded-2xl">
-               <h3 class="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-3">General Description</h3>
+               <h3 class="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-3">{$t('classes.description')}</h3>
                <p class="text-zinc-400 text-sm leading-relaxed font-medium font-body">{classData.description}</p>
              </div>
            {/if}
@@ -225,8 +228,8 @@
               <UserPlus weight="duotone" class="w-24 h-24 text-white" />
             </div>
             <UserPlus weight="duotone" class="w-8 h-8 text-primary-400 mb-4" />
-            <h4 class="text-white font-black uppercase text-sm mb-1">Enroll Student</h4>
-            <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Add new record</p>
+            <h4 class="text-white font-black uppercase text-sm mb-1">{$t('students.enroll_btn')}</h4>
+            <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{$t('students.enroll_desc')}</p>
           </button>
 
           <button 
@@ -237,8 +240,8 @@
               <ClipboardText weight="duotone" class="w-24 h-24 text-white" />
             </div>
             <ClipboardText weight="duotone" class="w-8 h-8 text-primary-400 mb-4" />
-            <h4 class="text-white font-black uppercase text-sm mb-1">Take Attendance</h4>
-            <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Mark attendance today</p>
+            <h4 class="text-white font-black uppercase text-sm mb-1">{$t('classes.take_attendance')}</h4>
+            <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{$t('classes.take_attendance')}</p>
           </button>
         </div>
       </div>
@@ -248,7 +251,7 @@
         <!-- Capacity Card -->
         <div class="bento-card p-8 space-y-6">
           <div class="flex items-center justify-between">
-            <h3 class="text-[10px] font-black text-white uppercase tracking-widest">Occupancy</h3>
+            <h3 class="text-[10px] font-black text-white uppercase tracking-widest">{$t('classes.occupancy')}</h3>
             <span class="text-xs font-black text-primary-400">{classStats.occupancy_rate}%</span>
           </div>
           
@@ -259,13 +262,13 @@
             ></div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-4 mt-4">
             <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-900 text-center">
-               <p class="text-[8px] font-black text-zinc-500 uppercase mb-1">Active</p>
+               <p class="text-[8px] font-black text-zinc-500 uppercase mb-1">{$t('students.status_active')}</p>
                <p class="text-xl font-black text-white">{classStats.active_students}</p>
             </div>
             <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-900 text-center">
-               <p class="text-[8px] font-black text-zinc-500 uppercase mb-1">Available</p>
+               <p class="text-[8px] font-black text-zinc-500 uppercase mb-1">{$t('classes.available')}</p>
                <p class="text-xl font-black text-primary-400">{(classData.max_students || 0) - classStats.total_students}</p>
             </div>
           </div>
@@ -273,19 +276,19 @@
 
         <!-- Attendance Stats -->
         <div class="bento-card p-8 space-y-6">
-           <h3 class="text-[10px] font-black text-white uppercase tracking-widest">Attendance Metrics</h3>
+           <h3 class="text-[10px] font-black text-white uppercase tracking-widest">{$t('classes.metrics')}</h3>
            
            <div class="space-y-4 font-body text-sm">
               <div class="flex items-center justify-between py-2 border-b border-zinc-900">
-                <span class="text-[10px] font-black text-zinc-500 uppercase">Average</span>
+                <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('classes.attendance_rate')}</span>
                 <span class="text-xs font-black text-primary-400">{attendanceStats.average_attendance_rate}%</span>
               </div>
               <div class="flex items-center justify-between py-2 border-b border-zinc-900">
-                <span class="text-[10px] font-black text-zinc-500 uppercase">Punctuality</span>
+                <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('classes.punctuality')}</span>
                 <span class="text-xs font-black text-blue-400">{attendanceStats.average_punctuality_rate}%</span>
               </div>
               <div class="flex items-center justify-between py-2">
-                <span class="text-[10px] font-black text-zinc-500 uppercase">Last Session</span>
+                <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('classes.last_session')}</span>
                 <span class="text-[10px] font-bold text-white uppercase">{new Date(attendanceStats.last_session_date).toLocaleDateString()}</span>
               </div>
            </div>
@@ -294,8 +297,8 @@
         <!-- Trophy/Motivation -->
         <div class="p-8 border-2 border-primary-500/20 rounded-3xl bg-primary-500/5 text-center space-y-2">
            <Trophy weight="duotone" class="w-10 h-10 text-primary-400 mx-auto mb-2" />
-           <p class="text-[10px] font-black text-white uppercase tracking-widest">Group in Progress</p>
-           <p class="text-[10px] text-zinc-500 font-bold leading-relaxed uppercase tracking-wider">This group has completed 45% of the scheduled skills.</p>
+           <p class="text-[10px] font-black text-white uppercase tracking-widest">{$t('classes.group_progress')}</p>
+           <p class="text-[10px] text-zinc-500 font-bold leading-relaxed uppercase tracking-wider">{$t('classes.progress_desc', { percent: 45 })}</p>
         </div>
       </div>
     </div>
@@ -303,14 +306,14 @@
   {:else if currentView === 'students'}
     <div class="space-y-6" in:fly={{ y: 20 }}>
       <div class="flex items-center justify-between">
-         <h2 class="text-xl font-black text-white uppercase tracking-tighter">Registered Students</h2>
+         <h2 class="text-xl font-black text-white uppercase tracking-tighter">{$t('students.records')}</h2>
          <div class="flex items-center gap-3">
              <button 
                onclick={() => goto(`/panel/classes/${classData.id}/students`)}
                class="bg-zinc-900 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-zinc-800 hover:border-primary-500/50 transition-all flex items-center gap-2"
              >
                <Users weight="duotone" class="w-4 h-4" />
-               Manage
+               {$t('common.manage')}
              </button>
          </div>
       </div>
@@ -318,17 +321,17 @@
       {#if students.length === 0}
          <div class="bento-card p-20 text-center space-y-6 border-dashed">
             <div class="w-20 h-20 bg-zinc-950 rounded-full border border-zinc-800 flex items-center justify-center mx-auto text-zinc-800">
-              <Users weight="duotone" class="w-10 h-10" />
+               <Users weight="duotone" class="w-10 h-10" />
             </div>
             <div class="space-y-2">
-              <h3 class="text-white font-black uppercase">No students yet</h3>
-              <p class="text-zinc-500 text-xs font-medium uppercase tracking-widest">Start by adding your first student to this group.</p>
+              <h3 class="text-white font-black uppercase">{$t('students.no_records')}</h3>
+              <p class="text-zinc-500 text-xs font-medium uppercase tracking-widest">{$t('students.start_adding')}</p>
             </div>
             <button 
               onclick={() => goto(`/panel/students/create?classId=${classData.id}`)}
               class="bg-primary-500 text-black px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg shadow-primary-500/20"
             >
-              Create New Student
+              {$t('students.enroll_btn')}
             </button>
          </div>
       {:else}
@@ -341,25 +344,25 @@
                      </div>
                      <div>
                         <h4 class="text-white font-black uppercase text-sm leading-tight">{student.name}</h4>
-                        <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{student.age} years • {levelLabels[student.level as keyof typeof levelLabels] || 'MIXED'}</p>
+                        <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{student.age} {$t('students.years')} • {levelLabels[student.level as keyof typeof levelLabels] || $t('common.mixed')}</p>
                      </div>
                   </div>
 
                   <div class="space-y-3 pb-6 border-b border-zinc-900 mb-6 font-body">
                      <div class="flex items-center gap-3 text-zinc-400">
                         <Envelope weight="duotone" class="w-3.5 h-3.5 text-primary-500/50" />
-                        <span class="text-[10px] font-bold truncate uppercase tracking-wider">{student.email || 'NO EMAIL'}</span>
+                        <span class="text-[10px] font-bold truncate uppercase tracking-wider">{student.email || $t('students.no_email')}</span>
                      </div>
                      <div class="flex items-center gap-3 text-zinc-400">
                         <Phone weight="duotone" class="w-3.5 h-3.5 text-primary-500/50" />
-                        <span class="text-[10px] font-bold uppercase tracking-wider">{student.phone || 'NO PHONE'}</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">{student.phone || $t('students.no_phone')}</span>
                      </div>
                   </div>
 
                   <div class="flex items-center justify-between">
                      <div class="flex items-center gap-2">
                         <div class={`w-1.5 h-1.5 rounded-full ${student.active ? 'bg-primary-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]' : 'bg-zinc-800'}`}></div>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500">{student.active ? 'ACTIVE' : 'INACTIVE'}</span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500">{student.active ? $t('students.status_active') : $t('students.status_inactive')}</span>
                      </div>
                      <button 
                        onclick={() => goto(`/panel/students/${student.id}`)}
@@ -377,13 +380,13 @@
   {:else if currentView === 'skills'}
     <div class="space-y-6" in:fly={{ y: 20 }}>
       <div class="flex items-center justify-between">
-         <h2 class="text-xl font-black text-white uppercase tracking-tighter">Scheduled Syllabus</h2>
+         <h2 class="text-xl font-black text-white uppercase tracking-tighter">{$t('classes.syllabus')}</h2>
          <button 
            onclick={() => goto(`/panel/classes/${classData.id}/skills`)}
            class="bg-primary-500 text-black px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all flex items-center gap-2"
          >
            <Plus weight="bold" class="w-4 h-4" />
-           Manage Skills
+           {$t('common.manage')}
          </button>
       </div>
 
@@ -391,8 +394,8 @@
          <div class="bento-card p-20 text-center space-y-6 border-dashed">
             <Target weight="duotone" class="w-16 h-16 text-zinc-800 mx-auto" />
             <div class="space-y-2">
-              <h3 class="text-white font-black uppercase">No objectives defined</h3>
-              <p class="text-zinc-500 text-xs font-medium uppercase tracking-widest">Assign skills from the ChessNet curriculum to this class.</p>
+              <h3 class="text-white font-black uppercase">{$t('classes.no_syllabus')}</h3>
+              <p class="text-zinc-500 text-xs font-medium uppercase tracking-widest">{$t('classes.no_syllabus_desc')}</p>
             </div>
          </div>
       {:else}

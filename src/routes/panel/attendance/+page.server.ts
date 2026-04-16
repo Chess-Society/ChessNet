@@ -1,9 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { schoolsApi } from '$lib/api/schools';
-import { studentsApi } from '$lib/api/students';
-import { classesApi } from '$lib/api/classes';
-import { attendanceApi } from '$lib/api/attendance';
-import { error } from '@sveltejs/kit';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals }) => {
 
@@ -19,52 +16,77 @@ export const load: PageServerLoad = async ({ locals }) => {
     };
   }
 
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  if (isMock) {
+    return {
+      user: locals.user,
+      attendanceData: {
+        todayStats: { totalClasses: 1, classesWithAttendance: 0, totalStudents: 2, presentStudents: 0, absentStudents: 0, attendanceRate: 0 },
+        centersWithClasses: [{
+          id: 'mock-school-1', name: 'Mock Academy', city: 'Localhost',
+          totalClasses: 1, classesToday: 0, totalStudents: 2, attendanceRate: 0, nextClass: null,
+          classes: [{ id: 'mock-class-1', name: 'Grupo Principiantes', time: 'Lunes 17:00', students: 2, present: 0, absent: 0, attendanceRate: 0, attendanceTaken: false, lastAttendance: null }]
+        }],
+        recentAttendance: [],
+        upcomingClasses: []
+      }
+    };
+  }
+
   try {
-    const userId = locals.user.id;
-    // Obtener centros y estudiantes del usuario desde Firebase API
-    const [schools, allStudents] = await Promise.all([
-      schoolsApi.getMySchools(),
-      studentsApi.getMyStudents()
+    const [schoolsSnap, studentsSnap] = await Promise.all([
+      adminDb.collection('schools').where('owner_id', '==', uid).get(),
+      adminDb.collection('students').where('owner_id', '==', uid).get()
     ]);
 
-    // Obtener todas las clases de todos los centros
-    const allSchoolsWithClasses = await Promise.all(schools.map(async (school: any) => {
-      const classes = await classesApi.getClassesBySchool(school.id);
-      const schoolStudents = allStudents.filter(s => s.school_id === school.id);
+    const schools = schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+    const allStudents = studentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+
+    const centersWithClasses = await Promise.all(schools.map(async (school: any) => {
+      const classesSnap = await adminDb.collection('classes')
+        .where('owner_id', '==', uid)
+        .where('school_id', '==', school.id)
+        .get();
+      
+      const classes = classesSnap.docs.map((d: any) => ({
+        id: d.id,
+        name: d.data().name,
+        time: d.data().schedule || 'Sin horario',
+        students: allStudents.filter((s: any) => s.class_id === d.id).length,
+        present: 0,
+        absent: 0,
+        attendanceRate: 0,
+        attendanceTaken: false,
+        lastAttendance: null
+      }));
+
+      const schoolStudents = allStudents.filter((s: any) => s.school_id === school.id);
 
       return {
         id: school.id,
         name: school.name,
         city: school.city,
         totalClasses: classes.length,
-        classesToday: 0, // Simplificación: lógica de calendario no implementada aún
+        classesToday: 0,
         totalStudents: schoolStudents.length,
         attendanceRate: 0,
         nextClass: null,
-        classes: classes.map(c => ({
-          id: c.id,
-          name: c.name,
-          time: (c as any).schedule || 'Sin horario',
-          students: 0,
-          present: 0,
-          absent: 0,
-          attendanceRate: 0,
-          attendanceTaken: false,
-          lastAttendance: null
-        }))
+        classes
       };
     }));
 
     const attendanceData = {
       todayStats: {
-        totalClasses: allSchoolsWithClasses.reduce((sum, s) => sum + s.totalClasses, 0),
+        totalClasses: centersWithClasses.reduce((sum: number, s: any) => sum + s.totalClasses, 0),
         classesWithAttendance: 0,
         totalStudents: allStudents.length,
         presentStudents: 0,
         absentStudents: 0,
         attendanceRate: 0
       },
-      centersWithClasses: allSchoolsWithClasses,
+      centersWithClasses: serializeRecord(centersWithClasses),
       recentAttendance: [],
       upcomingClasses: []
     };

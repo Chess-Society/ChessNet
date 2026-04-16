@@ -9,6 +9,20 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const uid = locals.user.uid;
+    const isMock = uid === 'chessnet-dev-uid';
+
+    if (isMock) {
+        return {
+            user: locals.user,
+            schools: [{
+                id: 'mock-school-1',
+                name: 'Mock Academy',
+                city: 'Localhost',
+                classes_count: 1,
+                students_count: 2
+            }]
+        };
+    }
     
     // Obtener centros del usuario usando Admin SDK
     const schoolsSnap = await adminDb.collection("schools")

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
@@ -13,14 +14,18 @@
     Clock,
     UserCheck,
     CloudCheck,
-    ListChecks
+    ListChecks,
+    Table,
+    Calendar
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
+  import VisualAttendanceCalendar from '$lib/components/Attendance/VisualAttendanceCalendar.svelte';
   import { fade, fly } from 'svelte/transition';
 
   let selectedClassId = $state($page.url.searchParams.get('classId') || '');
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
-
+  let viewMode = $state('list'); // 'list' | 'calendar'
+  
   // Datos reactivos
   let classes = $derived($appStore.classes || []);
   let selectedClass = $derived(classes.find(c => c.id === selectedClassId));
@@ -28,8 +33,15 @@
   
   // Alumnos inscritos en la clase seleccionada
   let classStudents = $derived(() => {
+    if (selectedClassId === 'independent') {
+      return students.filter(s => !s.class_id);
+    }
     if (!selectedClass) return [];
-    return students.filter(s => selectedClass.studentIds?.includes(s.id));
+    // Prioridad a class_id en el alumno, fallback a studentIds en la clase para retrocompatibilidad
+    return students.filter(s => 
+      s.class_id === selectedClassId || 
+      selectedClass.studentIds?.includes(s.id)
+    );
   });
 
   // Registro de asistencia actual (si existe en el store)
@@ -37,18 +49,20 @@
     return $appStore.attendance.filter(a => a.class_id === selectedClassId && a.date === selectedDate);
   });
 
-  const toggleStatus = async (studentId: string) => {
+  const setStatus = async (studentId: string, status: string) => {
     if (!selectedClassId) return;
     
     const record = currentAttendance().find(r => r.student_id === studentId);
-    const newStatus = record?.status === 'P' ? 'A' : 'P';
     
+    // Si ya tiene ese estado, no hacemos nada (evita doble guardado innecesario)
+    if (record?.status === status) return;
+
     await appStore.saveAttendance({
       id: record?.id,
       student_id: studentId,
       class_id: selectedClassId,
       date: selectedDate,
-      status: newStatus
+      status: status
     });
   };
 
@@ -96,10 +110,32 @@
         <ListChecks weight="duotone" class="w-8 h-8" />
       </div>
       <div>
-        <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">Attendance Control</h1>
-        <p class="text-slate-400 font-plus-jakarta text-sm">Manage your students' daily attendance with a professional touch.</p>
+        <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">{$t('attendance.title')}</h1>
+        <p class="text-slate-400 font-plus-jakarta text-sm">{$t('attendance.subtitle')}</p>
       </div>
     </div>
+
+    <!-- View Toggle -->
+    {#if selectedClassId}
+    <div class="flex bg-zinc-900/50 p-1 rounded-2xl border border-white/5 self-end md:self-center">
+        <button 
+            onclick={() => viewMode = 'list'}
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
+            {viewMode === 'list' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'text-slate-400 hover:text-white'}"
+        >
+            <Table weight="duotone" class="w-4 h-4" />
+            {$t('attendance.view.take')}
+        </button>
+        <button 
+            onclick={() => viewMode = 'calendar'}
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
+            {viewMode === 'calendar' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'text-slate-400 hover:text-white'}"
+        >
+            <Calendar weight="duotone" class="w-4 h-4" />
+            {$t('attendance.view.calendar')}
+        </button>
+    </div>
+    {/if}
   </div>
 
   <!-- Selection Tools Grid -->
@@ -107,14 +143,15 @@
     <!-- Class Selector -->
     <div class="lg:col-span-4 bento-card p-6">
       <label class="block">
-        <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mb-3 block">Select Class</span>
+        <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mb-3 block">{$t('attendance.select_class')}</span>
         <div class="relative">
           <Users weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
           <select 
             bind:value={selectedClassId}
             class="w-full bg-zinc-900/50 border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-sm text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 outline-none transition-all appearance-none cursor-pointer"
           >
-            <option value="">Select a class...</option>
+            <option value="">{$t('attendance.select_placeholder')}</option>
+            <option value="independent">{$t('students.independent_student')}</option>
             {#each classes as cls}
               <option value={cls.id}>{cls.name}</option>
             {/each}
@@ -126,7 +163,7 @@
     <!-- Date Picker -->
     <div class="lg:col-span-4 bento-card p-6">
       <label class="block">
-        <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mb-3 block">Session Date</span>
+        <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mb-3 block">{$t('attendance.session_date')}</span>
         <div class="relative">
           <CalendarBlank weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
           <input 
@@ -143,10 +180,10 @@
     <div class="lg:col-span-4 bento-card p-6 bg-gradient-to-br from-violet-600/5 to-transparent flex flex-col justify-between">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">Today's Summary</p>
+          <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.summary')}</p>
           <div class="flex items-baseline gap-2 mt-1">
             <span class="text-3xl font-outfit font-bold text-white">{stats().present}</span>
-            <span class="text-slate-500 font-outfit leading-none">/ {stats().total} students</span>
+            <span class="text-slate-500 font-outfit leading-none">/ {stats().total} {$t('attendance.students')}</span>
           </div>
         </div>
         <div class="relative h-12 w-12">
@@ -166,7 +203,7 @@
         class="w-full btn-pill bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center gap-2 py-3 text-xs font-bold transition-all shadow-violet-500/10 shadow-lg"
       >
         <CheckCircle weight="duotone" class="w-5 h-5" />
-        Mark All Present
+        {$t('attendance.mark_all_present')}
       </button>
     </div>
     {/if}
@@ -179,8 +216,8 @@
         <Clock weight="duotone" class="w-12 h-12" />
       </div>
       <div class="space-y-2">
-        <h2 class="text-2xl font-outfit font-bold text-white">Select a class</h2>
-        <p class="text-slate-500 font-plus-jakarta max-w-xs mx-auto">Choose the group you want to record attendance for today to see the list of students.</p>
+        <h2 class="text-2xl font-outfit font-bold text-white">{$t('attendance.select_class')}</h2>
+        <p class="text-slate-500 font-plus-jakarta max-w-xs mx-auto">{$t('attendance.select_placeholder')}</p>
       </div>
     </div>
   {:else if classStudents().length === 0}
@@ -189,23 +226,26 @@
         <Users weight="duotone" class="w-12 h-12" />
       </div>
       <div class="space-y-2">
-        <h2 class="text-2xl font-outfit font-bold text-white">No students in this class</h2>
-        <p class="text-slate-500 font-plus-jakarta max-w-xs mx-auto">This class seems to be empty. Add some students to start recording.</p>
+        <h2 class="text-2xl font-outfit font-bold text-white">{$t('attendance.no_students')}</h2>
+        <p class="text-slate-500 font-plus-jakarta max-w-xs mx-auto">{$t('attendance.no_students_desc')}</p>
+        {#if selectedClassId !== 'independent'}
         <button 
           onclick={() => goto(`/panel/classes/${selectedClassId}`)} 
           class="btn-pill px-8 py-3 bg-white/5 hover:bg-white/10 text-white font-outfit font-bold text-xs mt-6 border border-white/5 transition-all"
         >
-          Set up Class →
+          {$t('attendance.setup_class')} →
         </button>
+        {/if}
       </div>
     </div>
   {:else}
-    <div class="bento-card overflow-hidden" transition:fly={{ y: 20 }}>
+    {#if viewMode === 'list'}
+      <div class="bento-card overflow-hidden" transition:fly={{ y: 20 }}>
         <div class="px-8 py-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-            <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">Student List</span>
+            <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.list_title')}</span>
             <div class="flex items-center gap-2 text-[10px] font-outfit font-medium text-slate-500">
                 <CloudCheck weight="duotone" class="w-4 h-4 text-primary-500" />
-                Synced in real-time
+                {$t('attendance.synced')}
             </div>
         </div>
         <div class="grid grid-cols-1 divide-y divide-white/5">
@@ -214,7 +254,7 @@
                 <div class="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-all group">
                     <div class="flex items-center gap-5">
                         <div class="w-12 h-12 bg-zinc-800 border border-white/5 rounded-2xl flex items-center justify-center text-xs font-outfit font-extrabold text-violet-400 group-hover:scale-105 transition-transform">
-                            {student.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                            {student.name ? student.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : '?'}
                         </div>
                         <div>
                             <p class="text-white font-outfit font-bold group-hover:text-violet-400 transition-colors uppercase tracking-tight">{student.name}</p>
@@ -227,36 +267,49 @@
 
                     <div class="flex items-center gap-3">
                         <button 
-                            onclick={() => toggleStatus(student.id)}
+                            onclick={() => setStatus(student.id, 'P')}
                             class="flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all font-outfit font-bold text-xs
                             {status === 'present' 
                                 ? 'bg-primary-500/10 border-primary-500/20 text-primary-500 shadow-lg shadow-primary-500/5' 
                                 : 'bg-zinc-900/50 border-white/5 text-slate-500 hover:border-primary-500/50 hover:text-primary-400 hover:bg-primary-500/5'}"
                         >
                             <CheckCircle weight={status === 'present' ? 'duotone' : 'regular'} class="w-5 h-5" />
-                            Present
+                            {$t('attendance.present')}
                         </button>
                         <button 
-                            onclick={() => toggleStatus(student.id)}
+                            onclick={() => setStatus(student.id, 'A')}
                             class="flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all font-outfit font-bold text-xs
                             {status === 'absent' 
                                 ? 'bg-red-500/10 border-red-500/20 text-red-500 shadow-lg shadow-red-500/5' 
                                 : 'bg-zinc-900/50 border-white/5 text-slate-500 hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/5'}"
                         >
                             <XCircle weight={status === 'absent' ? 'duotone' : 'regular'} class="w-5 h-5" />
-                            Absent
+                            {$t('attendance.absent')}
                         </button>
                     </div>
                 </div>
             {/each}
         </div>
-    </div>
+      </div>
 
     <div class="mt-8 flex justify-end">
         <div class="flex items-center gap-3 text-slate-500 text-xs font-plus-jakarta italic bg-white/[0.02] px-4 py-2 rounded-full border border-white/5 border-dashed">
             <CloudCheck weight="duotone" class="w-5 h-5 text-violet-400" />
-            Changes are automatically saved in your workspace.
+            {$t('attendance.auto_save')}
         </div>
     </div>
+    {:else}
+        <VisualAttendanceCalendar 
+            {selectedClassId} 
+            attendance={$appStore.attendance} 
+            onDateSelect={(date: string) => {
+                selectedDate = date;
+                viewMode = 'list';
+            }}
+        />
+    {/if}
   {/if}
 </div>
+
+<style lang="postcss">
+</style>

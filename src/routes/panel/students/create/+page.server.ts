@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { schoolsApi } from '$lib/api/schools';
-import { classesApi } from '$lib/api/classes';
+import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals }) => {
   
@@ -12,17 +12,27 @@ export const load: PageServerLoad = async ({ locals }) => {
     };
   }
 
+  const uid = locals.user.uid;
+  const isMock = uid === 'chessnet-dev-uid';
+
+  if (isMock) {
+    return {
+      user: locals.user,
+      schools: [{ id: 'mock-school-1', name: 'Mock Academy', city: 'Localhost' }],
+      classes: [{ id: 'mock-class-1', name: 'Grupo Principiantes', school_id: 'mock-school-1' }]
+    };
+  }
+
   try {
-    // Obtener centros y clases del usuario desde Firebase API
-    const [schools, classes] = await Promise.all([
-      schoolsApi.getMySchools(),
-      classesApi.getMyClasses()
+    const [schoolsSnap, classesSnap] = await Promise.all([
+      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get(),
+      adminDb.collection('classes').where('owner_id', '==', uid).orderBy('name', 'asc').get()
     ]);
 
     return { 
       user: locals.user, 
-      schools,
-      classes
+      schools: serializeRecord(schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }))),
+      classes: serializeRecord(classesSnap.docs.map((d: any) => ({ id: d.id, ...d.data() })))
     };
 
   } catch (err: any) {

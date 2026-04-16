@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { 
@@ -29,10 +30,11 @@
   }
 
   import { untrack } from 'svelte';
+  import type { Tournament } from '$lib/types/tournament';
   
   let { data }: Props = $props();
 
-  let tournament = $state(untrack(() => data.tournament));
+  let tournament = $state(untrack(() => data.tournament as Tournament));
   let isSubmitting = $state(false);
   let errors = $state<Record<string, string>>({});
   let showDeleteConfirm = $state(false);
@@ -89,6 +91,7 @@
       const { tournamentDB } = await import('$lib/stores/tournaments');
       const updates = {
         ...formData,
+        format: formData.format as any,
         start_date: new Date(formData.start_date).toISOString(),
         end_date: new Date(formData.end_date).toISOString(),
         registration_deadline: new Date(formData.registration_deadline).toISOString(),
@@ -300,7 +303,7 @@
                 />
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="entry_fee">Entry Fee (€)</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="entry_fee">Entry Fee ({$t('common.currency')})</label>
                 <input 
                   id="entry_fee"
                   type="number" 
@@ -309,7 +312,7 @@
                 />
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="prize_pool">Prize Pool (€)</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="prize_pool">Prize Pool ({$t('common.currency')})</label>
                 <input 
                   id="prize_pool"
                   type="number" 
@@ -518,7 +521,7 @@
                 </div>
                 <div class="text-right">
                   <p class="text-[10px] text-zinc-500 font-bold uppercase">Prizes</p>
-                  <p class="text-sm font-black text-violet-400">€{formData.prize_pool || '0'}</p>
+                  <p class="text-sm font-black text-violet-400">{formData.prize_pool || '0'}{$t('common.currency')}</p>
                 </div>
               </div>
 
@@ -562,7 +565,7 @@
             <li class="flex justify-between">
               <span>Prize pool</span>
               <span class={formData.prize_pool > 0 ? 'text-violet-500' : 'text-zinc-600'}>
-                {formData.prize_pool > 0 ? '€' + formData.prize_pool : 'No'}
+                {formData.prize_pool > 0 ? formData.prize_pool + $t('common.currency') : 'No'}
               </span>
             </li>
           </ul>

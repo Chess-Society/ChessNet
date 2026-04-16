@@ -294,4 +294,29 @@ export const tournamentsApi = {
     const docSnap = await getDoc(docRef);
     return toData<TournamentMatch>(docSnap);
   },
+
+  // Import predefined tournament templates
+  async importPredefinedTournaments(schoolId: string): Promise<void> {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+
+    const { PREDEFINED_TOURNAMENTS } = await import("$lib/constants/predefined-content");
+
+    for (const template of PREDEFINED_TOURNAMENTS) {
+      // Check if tournament with this name already exists for this school
+      const existing = await this.getTournamentsBySchool(schoolId);
+      if (!existing.some(t => t.name === template.name)) {
+        await this.createTournament(
+          schoolId,
+          template.name,
+          template.description,
+          template.format.toLowerCase().includes("suizo") ? "swiss" : "round_robin",
+          undefined,
+          undefined,
+          template.max_players,
+          template.time_control
+        );
+      }
+    }
+  }
 };

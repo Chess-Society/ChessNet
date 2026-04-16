@@ -26,6 +26,8 @@
     MinusCircle
   } from 'phosphor-svelte';
   import { showToast, showError } from '$lib/stores/toast';
+  import { uiStore } from '$lib/stores/uiStore';
+  import { t } from '$lib/i18n';
   import type { PageData } from './$types';
   import { fade, fly } from 'svelte/transition';
 
@@ -150,9 +152,14 @@
 
   const handleUnenrollStudent = async (studentId: string) => {
     const student = enrolledStudents.find(s => s.id === studentId);
-    if (!confirm(`Are you sure you want to unenroll ${student?.first_name} ${student?.last_name}?`)) {
-      return;
-    }
+    const confirmed = await uiStore.confirm({
+      title: 'Unenroll Student',
+      message: `Are you sure you want to unenroll ${student?.first_name} ${student?.last_name}?`,
+      confirmText: 'Unenroll',
+      cancelText: 'Cancel'
+    });
+    
+    if (!confirmed) return;
 
     try {
       const response = await fetch(`/api/class-students?class_id=${classData.id}&student_id=${studentId}`, {
