@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { studentsApi } from '$lib/api/students';
 import { schoolsApi } from '$lib/api/schools';
+import { classesApi } from '$lib/api/classes';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   const studentId = params.studentId;
@@ -11,16 +12,18 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   }
 
   try {
-    // Get student data and user's schools from Firebase API
-    const [student, schools] = await Promise.all([
+    // Get student data and user's schools and classes from Firebase API
+    const [student, schools, classes] = await Promise.all([
       studentsApi.getStudent(studentId),
-      schoolsApi.getMySchools()
+      schoolsApi.getMySchools(),
+      classesApi.getMyClasses()
     ]);
 
     return { 
       user: locals.user, 
       student, 
-      schools 
+      schools,
+      classes
     };
 
   } catch (err: any) {

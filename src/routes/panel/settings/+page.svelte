@@ -20,6 +20,7 @@
   let config = $state({
     teacherName: $appStore.settings.teacherName || auth.currentUser?.displayName || '',
     teacherAvatar: $appStore.settings.teacherAvatar || auth.currentUser?.photoURL || '',
+    teacherEmail: $appStore.settings.teacherEmail || auth.currentUser?.email || '',
     notifications: true,
     theme: 'dark'
   });
@@ -29,7 +30,8 @@
   const handleSave = () => {
     appStore.updateSettings({
       teacherName: config.teacherName,
-      teacherAvatar: config.teacherAvatar
+      teacherAvatar: config.teacherAvatar,
+      teacherEmail: config.teacherEmail
     });
     saved = true;
     setTimeout(() => saved = false, 3000);
@@ -81,7 +83,7 @@
                       <input 
                         id="public-name"
                         type="text" 
-                        bind:value={$appStore.settings.teacherName}
+                        bind:value={config.teacherName}
                         placeholder="e.g. GM Academy"
                         class="w-full bg-zinc-950/50 border border-white/5 rounded-2xl px-5 py-4 text-sm text-white focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 shadow-inner"
                       />
@@ -94,7 +96,7 @@
                         <input 
                           id="public-email"
                           type="email" 
-                          bind:value={$appStore.settings.teacherEmail}
+                          bind:value={config.teacherEmail}
                           placeholder="contact@academy.com"
                           class="w-full bg-zinc-950/30 border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-sm text-slate-400 cursor-not-allowed outline-none transition-all placeholder:text-slate-700"
                           disabled

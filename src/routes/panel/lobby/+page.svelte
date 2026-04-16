@@ -47,21 +47,28 @@
   const isPremium = $derived(plan === 'premium' || isAdmin);
 
   onMount(() => {
+    // Solo escuchar si es premium o admin
+    if (!isPremium) return;
+
     // Escuchar sugerencias
     const qS = query(collection(db, 'lobby_suggestions'), orderBy('createdAt', 'desc'));
     const unsubS = onSnapshot(qS, (snap) => {
       suggestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }, (err) => {
+      console.error("❌ Lobby Suggestions Error:", err);
     });
 
     // Escuchar comunicados
     const qA = query(collection(db, 'lobby_announcements'), orderBy('createdAt', 'desc'));
     const unsubA = onSnapshot(qA, (snap) => {
       announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }, (err) => {
+      console.error("❌ Lobby Announcements Error:", err);
     });
 
     return () => {
-      unsubS();
-      unsubA();
+      if (unsubS) unsubS();
+      if (unsubA) unsubA();
     };
   });
 
