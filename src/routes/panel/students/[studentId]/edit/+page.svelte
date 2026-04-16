@@ -279,7 +279,7 @@
                   class="w-full bg-zinc-950 border border-white/5 rounded-24 px-6 py-5 text-sm font-outfit font-bold uppercase tracking-widest text-white focus:border-violet-500/50 outline-none transition-all appearance-none cursor-pointer group-hover:bg-zinc-900 focus:ring-4 focus:ring-violet-500/5"
                 >
                   <option value="">{$t('classes.independent').toUpperCase()}</option>
-                  {#each classes.filter(c => !formData.school_id || c.school_id === formData.school_id) as cls}
+                  {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as cls}
                     <option value={cls.id}>{cls.name.toUpperCase()}</option>
                   {/each}
                 </select>
