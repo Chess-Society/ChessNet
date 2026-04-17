@@ -52,29 +52,45 @@
 
   // Lobby Notifications state
   let lobbyPulse = $state(false);
-  let unsubLobby: (() => void) | null = null;
+  let unsubs: (() => void)[] = [];
 
   onMount(() => {
     if (!$authUser) return;
 
-    // Monitor for new activity in lobby
+    // 1. Monitor for new activity in lobby (community)
     const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
-    const q = query(collection(db, colName), orderBy('createdAt', 'desc'), limit(1));
+    const qLobby = query(collection(db, colName), orderBy('createdAt', 'desc'), limit(1));
     
-    unsubLobby = onSnapshot(q, (snap) => {
+    unsubs.push(onSnapshot(qLobby, (snap) => {
       if (!snap.empty) {
         const lastActivity = (snap.docs[0].data() as any).createdAt;
         const lastViewed = localStorage.getItem(`last_viewed_${colName}`);
         
-        if (lastActivity && (!lastViewed || new Date(lastActivity.toDate()).getTime() > parseInt(lastViewed))) {
-          lobbyPulse = true;
+        if (lastActivity) {
+          const activityDate = typeof lastActivity.toDate === 'function' ? lastActivity.toDate() : new Date(lastActivity);
+          const activityTime = activityDate.getTime();
+          if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
         }
       }
-    });
+    }));
+
+    // 2. Monitor for Global System Announcements
+    const qGlobal = query(collection(db, 'announcements'), where('is_global', '==', true), orderBy('created_at', 'desc'), limit(1));
+    unsubs.push(onSnapshot(qGlobal, (snap) => {
+        if (!snap.empty) {
+            const lastActivity = (snap.docs[0].data() as any).created_at;
+            const lastViewed = localStorage.getItem('last_viewed_announcements_global');
+            
+            if (lastActivity) {
+                const activityTime = new Date(lastActivity).getTime();
+                if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
+            }
+        }
+    }));
   });
 
   onDestroy(() => {
-    if (unsubLobby) unsubLobby();
+    unsubs.forEach(unsub => unsub());
   });
 
   function stopImpersonating() {

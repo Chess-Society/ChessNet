@@ -58,6 +58,7 @@
   import { invalidateAll } from "$app/navigation";
   import Logo from "$lib/components/Logo.svelte";
   import { INSIGNIAS } from "$lib/constants/insignias";
+  import { parseDate, formatDate } from "$lib/utils/date";
 
   let { data }: { data: any } = $props();
 
@@ -263,14 +264,17 @@
     if (!announcementForm.title || !announcementForm.content) return;
     isSaving = true;
     try {
+      // Usamos el formato ISO que es más amigable para la serialización en SvelteKit
+      const now = new Date().toISOString();
       await addDoc(collection(db, "announcements"), {
         ...announcementForm,
         is_global: true,
         is_published: true,
-        created_at: new Date().toISOString(),
-        published_at: new Date().toISOString(),
+        created_at: now,
+        published_at: now,
         owner_id: $authUser?.uid,
       });
+      // Recargar anuncios
       announcements = await adminApi.getGlobalAnnouncements();
       toast.success($t('admin.announcement_success'));
       announcementForm = {
@@ -280,6 +284,7 @@
         priority: "normal",
       };
     } catch (err: any) {
+      console.error("❌ Error sending announcement:", err);
       showError(err);
     } finally {
       isSaving = false;
@@ -449,29 +454,20 @@
   }
 
   // Helpers existentes corregidos
-  function formatDate(dateStr: any) {
-    if (!dateStr) return "N/A";
-    try {
-      return new Date(dateStr).toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return "N/A";
-    }
-  }
 
   function getPlanStatus(user: any) {
-    if (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) return "pro";
+    const actualPlan = user?.settings?.plan || user?.config?.settings?.subscription?.plan || "free";
+    const expiresAt = user?.settings?.planExpiresAt || user?.config?.settings?.subscription?.expiresAt;
+    const isExpired = expiresAt && new Date(expiresAt) < new Date();
     
-    // Prioridad absoluta al nuevo esquema de settings
-    const plan = user?.settings?.plan || "free";
+    let statusText = actualPlan === 'premium' ? 'pro' : actualPlan;
     
-    // Si el nuevo esquema es free, pero tiene el viejo esquema como premium, 
-    // lo mostramos como "legacy-pro" o similar para que el admin sepa que hay algo raro,
-    // pero para simplicidad y dado que vamos a limpiar, sigamos con settings.plan como único origen.
-    return plan === 'premium' ? 'pro' : plan;
+    if (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+        return `ADMIN (${statusText.toUpperCase()}${isExpired ? ' EXPIRED' : ''})`;
+    }
+    
+    if (isExpired && statusText === 'pro') return 'free (expired)';
+    return statusText;
   }
 </script>
 

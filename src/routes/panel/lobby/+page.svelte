@@ -35,6 +35,8 @@
   import { onMount } from 'svelte';
   import { ADMIN_EMAILS } from '$lib/constants';
   import { INSIGNIAS } from '$lib/constants/insignias';
+  import { uiStore } from '$lib/stores/uiStore';
+  import { parseDate, formatDate } from '$lib/utils/date';
 
   // State
   let activeTab = $state(page.url.searchParams.get('tab') || 'suggestions'); // suggestions, announcements, support
@@ -44,7 +46,13 @@
   let isSubmitting = $state(false);
   
   let suggestions = $state<any[]>([]);
-  let announcements = $state<any[]>([]);
+  let communityAnnouncements = $state<any[]>([]);
+  let globalAnnouncements = $state<any[]>([]);
+  let announcements = $derived([...globalAnnouncements, ...communityAnnouncements].sort((a,b) => {
+    const dateA = new Date(a.createdAt || a.created_at || 0).getTime();
+    const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
+    return dateB - dateA;
+  }));
   let myReports = $state<any[]>([]);
   
   // Community Chat State
@@ -87,10 +95,16 @@
       suggestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     });
 
-    // Listen for announcements
+    // Listen for community announcements
     const qA = query(collection(db, 'lobby_announcements'), orderBy('createdAt', 'desc'));
     const unsubA = onSnapshot(qA, (snap) => {
-      announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      communityAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    });
+
+    // Listen for global system announcements
+    const qGlobal = query(collection(db, 'announcements'), where('is_global', '==', true), orderBy('created_at', 'desc'), limit(10));
+    const unsubGlobal = onSnapshot(qGlobal, (snap) => {
+      globalAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data(), isGlobal: true }));
     });
 
     // Listen for my reports
@@ -119,6 +133,7 @@
     return () => {
       unsubS();
       unsubA();
+      unsubGlobal();
       unsubR();
       unsubG();
     };
@@ -141,6 +156,17 @@
         }, 100);
       });
       return unsubM;
+    }
+  });
+
+  // Clear notifications pulse when relevant tab is viewed
+  $effect(() => {
+    if (activeTab === 'announcements') {
+      const now = Date.now().toString();
+      localStorage.setItem('last_viewed_lobby_announcements', now);
+      localStorage.setItem('last_viewed_announcements_global', now);
+    } else if (activeTab === 'suggestions' && isAdmin) {
+      localStorage.setItem('last_viewed_lobby_suggestions', Date.now().toString());
     }
   });
 
@@ -273,7 +299,12 @@
 
   async function handleDelete(collectionName: string, id: string) {
     if (!isAdmin) return;
-    if (!confirm('¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.')) return;
+    const confirmed = await uiStore.confirm({
+        title: $t('common.delete'),
+        message: '¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     try {
       await deleteDoc(doc(db, collectionName, id));
@@ -283,15 +314,7 @@
     }
   }
 
-  function formatTime(dateStr: string) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '';
-    return date.toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { 
-      day: 'numeric', 
-      month: 'short'
-    });
-  }
+
 </script>
 
 <svelte:head>
@@ -569,17 +592,22 @@
             class="bg-zinc-900/40 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative group overflow-hidden flex flex-col md:flex-row gap-8"
             in:fly={{ x: 20, duration: 500 }}
           >
-             <div class="w-16 h-16 bg-violet-600/10 border border-violet-500/20 rounded-3xl flex items-center justify-center text-violet-400 flex-shrink-0">
+             {#if a.isGlobal}
+               <div class="absolute top-0 right-0 px-4 py-1.5 bg-violet-600 text-[9px] font-black uppercase tracking-widest text-white rounded-bl-2xl">
+                 OFICIAL CHESSNET
+               </div>
+             {/if}
+             <div class="w-16 h-16 {a.isGlobal ? 'bg-primary-500/10 text-primary-400 border-primary-500/20' : 'bg-violet-600/10 text-violet-400 border-violet-500/20'} border-2 rounded-3xl flex items-center justify-center flex-shrink-0 animate-float">
                 <Megaphone size={30} weight="duotone" />
              </div>
              <div class="space-y-3 flex-1">
                 <div class="flex items-center justify-between">
                    <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{a.title}</h3>
                    <div class="flex items-center gap-3">
-                      <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatTime(a.createdAt)}</span>
+                      <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatDate(a.createdAt || a.created_at)}</span>
                       {#if isAdmin}
                         <button 
-                          onclick={() => handleDelete('lobby_announcements', a.id)}
+                          onclick={() => handleDelete(a.isGlobal ? 'announcements' : 'lobby_announcements', a.id)}
                           class="p-1.5 hover:bg-red-500/10 text-slate-600 hover:text-red-400 rounded-lg transition-all"
                           title="Eliminar"
                         >
@@ -588,7 +616,7 @@
                       {/if}
                    </div>
                 </div>
-                <p class="text-slate-400 leading-relaxed font-medium">
+                <p class="text-slate-400 leading-relaxed font-outfit font-light">
                   {a.content}
                 </p>
              </div>
@@ -620,7 +648,7 @@
                       {#if isAdmin}
                         <span class="text-[9px] font-black text-violet-400 border border-violet-500/20 px-2 py-1 rounded-lg uppercase">{r.authorEmail}</span>
                       {/if}
-                      <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatTime(r.createdAt)}</span>
+                      <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatDate(r.createdAt)}</span>
                       {#if isAdmin}
                         <button 
                           onclick={() => handleDelete('lobby_reports', r.id)}

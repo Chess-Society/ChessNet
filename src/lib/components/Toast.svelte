@@ -54,57 +54,61 @@
     {@const theme = getTheme(toast.type)}
     <div 
       animate:flip={{ duration: 400 }}
-      in:fly={{ x: 100, opacity: 0, duration: 500 }}
+      in:fly={{ x: 100, opacity: 0, duration: 600, easing: quintOut }}
       out:fade={{ duration: 300 }}
-      class="group pointer-events-auto relative min-w-[340px] max-w-[420px]"
+      class="group pointer-events-auto relative min-w-[360px] max-w-[440px]"
     >
       <!-- Premium Glass Card -->
-      <div class="relative overflow-hidden rounded-2xl border {theme.border} bg-neutral-900/40 backdrop-blur-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] transition-all duration-300 group-hover:shadow-violet-500/10 group-hover:-translate-y-0.5">
+      <div class="relative overflow-hidden rounded-[2rem] border {theme.border} bg-neutral-950/80 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] transition-all duration-500 hover:shadow-violet-500/20 hover:-translate-y-1">
         
         <!-- Gradient Background Glow -->
-        <div class="absolute inset-0 bg-gradient-to-br {theme.glow} to-transparent opacity-30"></div>
+        <div class="absolute inset-0 bg-gradient-to-br {theme.glow} to-transparent opacity-20"></div>
         
         <!-- Animated Progress Line -->
-        <div class="absolute bottom-0 left-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/20 to-transparent w-full"></div>
+        <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-transparent via-{theme.icon.replace('text-', '')} to-transparent w-full opacity-30 animate-pulse"></div>
 
-        <div class="relative p-4 flex items-start gap-4">
+        <div class="relative p-5 flex items-start gap-5">
           <!-- Icon Sleeve -->
-          <div class="flex-shrink-0 w-10 h-10 rounded-xl {theme.bg} border {theme.border} flex items-center justify-center {theme.icon} shadow-inner">
+          <div class="flex-shrink-0 w-12 h-12 rounded-2xl {theme.bg} border {theme.border} flex items-center justify-center {theme.icon} shadow-inner bg-opacity-20 animate-float">
             <svelte:component 
               this={getIcon(toast.type)} 
               weight="duotone"
-              size={22} 
+              size={26} 
             />
           </div>
           
           <!-- Content -->
-          <div class="flex-1 min-w-0 pt-0.5">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-[9px] font-black uppercase tracking-[0.2em] {theme.icon} font-outfit">
+          <div class="flex-1 min-w-0 pt-1">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-black uppercase tracking-[0.25em] {theme.icon} font-outfit italic">
                 {theme.title}
               </span>
-              <span class="text-[9px] font-medium text-white/20 font-jakarta">
-                Just now
+              <span class="text-[8px] font-black text-white/20 uppercase tracking-widest font-outfit">
+                SYSTEM REV 2.5
               </span>
             </div>
-            <p class="text-[13px] font-medium leading-relaxed text-white/90 font-jakarta line-clamp-2">
+            <p class="text-[14px] font-bold leading-relaxed text-white tracking-tight font-outfit">
               {toast.message}
             </p>
           </div>
 
           <!-- Close Button -->
           <button
-            on:click={() => removeToast(toast.id)}
-            class="flex-shrink-0 -mt-1 -mr-1 p-2 rounded-xl text-white/20 hover:text-white hover:bg-white/5 transition-all group/close"
+            onclick={() => removeToast(toast.id)}
+            class="flex-shrink-0 -mt-1 -mr-1 p-2.5 rounded-xl text-white/20 hover:text-white hover:bg-white/10 transition-all group/close"
             aria-label="Close"
           >
-            <X size={14} weight="bold" class="transition-transform group-hover/close:rotate-90 group-hover/close:scale-110" />
+            <X size={16} weight="bold" class="transition-transform group-hover/close:rotate-90 group-hover/close:scale-110" />
           </button>
         </div>
 
         <!-- Inner Light Rim -->
-        <div class="absolute inset-0 rounded-2xl border border-white/5 pointer-events-none"></div>
+        <div class="absolute inset-0 rounded-[2rem] border border-white/5 pointer-events-none"></div>
       </div>
+
+      <!-- Accent Flare -->
+      <div class="absolute -left-1 top-4 bottom-4 w-[4px] rounded-full {theme.bg.replace('/10', '')} filter blur-[2px] opacity-40"></div>
+    </div>
 
       <!-- Accent Flare -->
       <div class="absolute -left-1 top-1 bottom-1 w-[3px] rounded-full bg-gradient-to-b {theme.icon.replace('text', 'bg')} filter blur-[1px] opacity-50"></div>
