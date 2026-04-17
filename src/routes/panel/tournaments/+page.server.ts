@@ -40,20 +40,26 @@ export const load: PageServerLoad = async (event) => {
     
     // Obtener torneos y estudiantes del usuario usando Admin SDK
     const [tournamentsSnap, studentsSnap] = await Promise.all([
-      adminDb.collection("tournaments").where("owner_id", "==", uid).get(),
+      adminDb.collection("local_tournaments").where("owner_id", "==", uid).get(),
       adminDb.collection("students").where("owner_id", "==", uid).get()
     ]);
 
     const tournaments = tournamentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-    const students = studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+    const students = studentsSnap.docs.map((doc: any) => ({ 
+      id: doc.id, 
+      ...doc.data(),
+      // Ensure name is always available
+      name: doc.data().name || `${doc.data().first_name || ''} ${doc.data().last_name || ''}`.trim() || 'Unknown'
+    }));
 
     // Filtrar estudiantes activos y mapearlos al formato que espera la UI
     const availableStudents = students
       .filter((s: any) => s.active !== false)
       .map((s: any) => ({
         id: s.id,
-        first_name: s.first_name || '',
-        last_name: s.last_name || '',
+        name: s.name,
+        first_name: s.first_name || s.name.split(' ')[0] || '',
+        last_name: s.last_name || s.name.split(' ').slice(1).join(' ') || '',
         chess_level: s.chess_level || 'beginner',
         school_id: s.school_id || ''
       }));

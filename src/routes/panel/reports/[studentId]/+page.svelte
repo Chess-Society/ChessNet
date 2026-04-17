@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { 
     ArrowLeft,
-    User,
+    User as UserIcon,
     Calendar,
     Clock,
     TrendingUp,
@@ -269,7 +269,7 @@
             <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
                <div class="p-8 border-b border-surface-900 bg-surface-950/50">
                   <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
-                    <User class="w-4 h-4 text-primary-400" />
+                    <UserIcon class="w-4 h-4 text-primary-400" />
                     {$t('reports.contact.title')}
                   </h3>
                </div>

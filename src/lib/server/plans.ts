@@ -24,7 +24,18 @@ export async function getUserPlan(uid: string) {
         if (!doc.exists) return 'free';
         
         const userData = doc.data();
-        return userData?.settings?.plan || 'free';
+        const plan = userData?.settings?.plan || 'free';
+        const expiresAt = userData?.settings?.planExpiresAt;
+
+        // Si tiene fecha de expiración y ya pasó, revertir a free (lógicamente)
+        if (plan === 'premium' && expiresAt) {
+            const expiryDate = new Date(expiresAt);
+            if (expiryDate < new Date()) {
+                return 'free';
+            }
+        }
+
+        return plan;
     } catch (err) {
         console.error('❌ [Plans] Fatal error fetching user plan:', err);
         return 'free';

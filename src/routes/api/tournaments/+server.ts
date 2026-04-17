@@ -41,7 +41,7 @@ export const POST: RequestHandler = async (event) => {
       updated_at: new Date().toISOString()
     };
 
-    const docRef = await adminDb.collection("tournaments").add(tournamentData);
+    const docRef = await adminDb.collection("local_tournaments").add(tournamentData);
 
     return json({ 
       success: true, 

@@ -5,7 +5,7 @@
   import { 
     CaretLeft,
     FloppyDisk,
-    User,
+    User as UserIcon,
     ArrowCounterClockwise,
     Buildings,
     Note,

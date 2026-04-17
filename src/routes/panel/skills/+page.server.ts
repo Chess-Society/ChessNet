@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { adminDb } from '$lib/firebase-admin';
 import { error } from '@sveltejs/kit';
 
+import { serializeRecord } from '$lib/server/serialize';
 import { checkPlanGating } from '$lib/server/plans';
 
 export const load: PageServerLoad = async (event) => {
@@ -27,12 +28,12 @@ export const load: PageServerLoad = async (event) => {
 
     let skillsSnap = await adminDb.collection("skills")
         .where("owner_id", "==", locals.user.uid)
-        .orderBy("created_at", "desc")
         .get();
 
-    const skills = skillsSnap.docs.map((doc: any) => {
-      const data = doc.data();
-      // Map difficulty from number to string if needed for the frontend
+    const skills = (skillsSnap?.docs || []).map((doc: any) => {
+      const data = doc.data() || {};
+      
+      // Map difficulty safely
       let difficulty = data.difficulty;
       if (typeof difficulty === 'number') {
         if (difficulty === 1) difficulty = 'beginner';
@@ -40,12 +41,40 @@ export const load: PageServerLoad = async (event) => {
         else if (difficulty === 3) difficulty = 'advanced';
       }
       
+      // Robust date parsing
+      let createdAt = new Date().toISOString();
+      if (data.created_at) {
+        try {
+          if (typeof data.created_at.toDate === 'function') {
+            createdAt = data.created_at.toDate().toISOString();
+          } else {
+            const d = new Date(data.created_at);
+            if (!isNaN(d.getTime())) {
+              createdAt = d.toISOString();
+            }
+          }
+        } catch (e) {
+          console.warn(`[Skills] Invalid date for skill ${doc.id}:`, data.created_at);
+        }
+      }
+
       return { 
         id: doc.id, 
         ...data,
+        name: data.name || 'Untitled Skill',
         difficulty: difficulty || 'beginner',
-        category: data.category || 'Uncategorized'
+        category: data.category || 'General',
+        created_at: createdAt
       };
+    });
+
+    // Sort by creation date safely
+    skills.sort((a: any, b: any) => {
+      try {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      } catch (e) {
+        return 0;
+      }
     });
 
     const stats = {
@@ -67,15 +96,23 @@ export const load: PageServerLoad = async (event) => {
       count
     }));
 
-    return {
+    // FINAL SERIALIZATION - One pass at the end
+    return serializeRecord({
       user: locals.user,
       skills,
       categories,
       stats
-    };
+    });
 
   } catch (err: any) {
     console.error('❌ Error fetching skills:', err);
-    throw error(500, 'Error loading skills');
+    // Instead of throwing 500, return empty state to prevent page crash
+    return {
+      user: locals.user,
+      skills: [],
+      categories: [],
+      stats: { total: 0, beginner: 0, intermediate: 0, advanced: 0 },
+      error: 'Failed to load skills'
+    };
   }
 };

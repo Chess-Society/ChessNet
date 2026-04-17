@@ -11,7 +11,8 @@ import {
   getDoc,
   updateDoc,
   setDoc,
-  deleteDoc
+  deleteDoc,
+  addDoc
 } from "firebase/firestore";
 
 export const adminApi = {
@@ -35,6 +36,7 @@ export const adminApi = {
       getCountFromServer(collection(db, "schools")),
       getCountFromServer(collection(db, "classes")),
       getCountFromServer(query(collection(db, "users"), where("settings.plan", "==", "premium"))),
+      // Si falla por falta de createdAt, pondremos 0 o usaremos un fallback
       getCountFromServer(query(collection(db, "users"), where("createdAt", ">=", sevenDaysAgo.toISOString())))
     ]);
 
@@ -56,8 +58,6 @@ export const adminApi = {
     const usersRef = collection(db, "users");
 
     if (emailSearch) {
-      // Búsqueda simple por prefijo (Firestore limitation: exact match or range)
-      // Nota: Para búsquedas más potentes se usaría Algolia/ElasticSearch
       q = query(
         usersRef, 
         where("email", ">=", emailSearch),
@@ -65,7 +65,7 @@ export const adminApi = {
         limit(limitCount)
       );
     } else {
-      q = query(usersRef, orderBy("createdAt", "desc"), limit(limitCount));
+      q = query(usersRef, orderBy("email"), limit(limitCount));
     }
 
     const querySnapshot = await getDocs(q);
@@ -129,6 +129,41 @@ export const adminApi = {
   },
 
   /**
+   * Obtiene las insignias desbloqueadas de un usuario.
+   */
+  async getUserInsignias(userId: string) {
+    const q = query(collection(db, "achievements"), where("owner_id", "==", userId));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+  },
+
+  /**
+   * Concede una insignia especial a un usuario.
+   */
+  async awardInsignia(userId: string, insigniaId: string) {
+    const collRef = collection(db, "achievements");
+    await addDoc(collRef, {
+      id: insigniaId,
+      owner_id: userId,
+      unlockedAt: new Date().toISOString()
+    });
+  },
+
+  /**
+   * Revoca una insignia de un usuario.
+   */
+  async revokeInsignia(userId: string, insigniaId: string) {
+    const q = query(
+      collection(db, "achievements"), 
+      where("owner_id", "==", userId),
+      where("id", "==", insigniaId)
+    );
+    const snap = await getDocs(q);
+    const promises = snap.docs.map(d => deleteDoc(doc(db, "achievements", d.id)));
+    await Promise.all(promises);
+  },
+
+  /**
    * Logs del Sistema
    */
   async getSystemLogs(limitCount = 50) {
@@ -159,5 +194,43 @@ export const adminApi = {
     const q = query(collection(db, "lobby_announcements"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  },
+
+  /**
+   * Concede acceso premium temporal a un usuario.
+   */
+  async grantTrial(userId: string, days: number) {
+    const userRef = doc(db, "users", userId);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + days);
+
+    await updateDoc(userRef, {
+      "settings.plan": "premium",
+      "settings.planExpiresAt": expiresAt.toISOString(),
+      "settings.updatedAt": new Date().toISOString()
+    });
+
+    return { expiresAt: expiresAt.toISOString() };
+  },
+
+  /**
+   * REPARACIÓN DE DATOS: 
+   * Asegura que todos los documentos de usuario tengan createdAt
+   */
+  async repairUsersData() {
+    const snap = await getDocs(collection(db, "users"));
+    console.log(`[AdminAPI] Repairing ${snap.size} users...`);
+    
+    const promises = snap.docs.map(async (docSnap) => {
+      const data = docSnap.data();
+      if (!data.createdAt) {
+        await setDoc(doc(db, "users", docSnap.id), {
+          createdAt: new Date().toISOString()
+        }, { merge: true });
+      }
+    });
+
+    await Promise.all(promises);
+    return { count: snap.size };
   }
 };

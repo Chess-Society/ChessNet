@@ -29,7 +29,7 @@
   let skills = $derived($appStore.skills || []);
 
   const filteredSkills = $derived(
-    skills.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    skills.filter(s => (s.name || '').toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const deleteSkill = async (id: string) => {

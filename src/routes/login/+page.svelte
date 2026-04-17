@@ -186,7 +186,7 @@
         Volver
       </a>
       <span class="w-1 h-1 rounded-full bg-white/10"></span>
-      <a href="https://discord.gg/G7SrFtJHnr" target="_blank" class="text-surface-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
+      <a href="/panel/lobby?tab=support" class="text-surface-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
         Soporte
       </a>
     </div>

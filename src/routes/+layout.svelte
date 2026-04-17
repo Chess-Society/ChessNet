@@ -9,12 +9,13 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { browser } from '$app/environment';
-  import { fade } from 'svelte/transition';
+  import { fade, fly } from 'svelte/transition';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import { db } from '$lib/firebase';
   import { doc, onSnapshot } from 'firebase/firestore';
   import { ADMIN_EMAILS } from '$lib/constants';
-  import { Settings } from 'lucide-svelte';
+  import { Settings, Crown, Trophy, ChevronRight } from 'lucide-svelte';
+  import { t } from '$lib/i18n';
 
   let { children } = $props();
   let maintenanceMode = $state(false);
@@ -76,77 +77,104 @@
           <div class="absolute -inset-4 bg-primary-500/20 rounded-full blur-xl animate-pulse"></div>
           <LoadingSpinner size="w-16 h-16" color="text-primary-500" />
         </div>
-        <p class="text-surface-400 text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">Initializing ChessNet</p>
+        <p class="text-surface-400 text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">{$t('common.initializing')}</p>
       </div>
     </div>
   {:else if maintenanceMode && !isAdmin}
-    <div class="fixed inset-0 flex items-center justify-center bg-[#050507] z-[100] p-6 overflow-hidden">
-      <!-- Background Architecture -->
+    <div class="fixed inset-0 flex items-center justify-center bg-[#070709] z-[100] p-4 md:p-10 overflow-hidden">
+      <!-- Premium Background Architecture -->
       <div class="absolute inset-0 -z-10">
-        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(124,58,237,0.15)_0%,transparent_70%)]"></div>
-        <div class="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_100%_100%,rgba(79,70,229,0.1)_0%,transparent_50%)]"></div>
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.18)_0%,transparent_70%)]"></div>
+        <div class="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_100%_100%,rgba(79,70,229,0.12)_0%,transparent_50%)]"></div>
+        
+        <!-- Chess Board Pattern Overlay -->
+        <div class="absolute inset-0 opacity-[0.03] grayscale invert" style="background-image: repeating-conic-gradient(#fff 0% 25%, transparent 0% 50%); background-size: 80px 80px;"></div>
+        
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#070709_100%)]"></div>
       </div>
 
-      <div class="max-w-2xl w-full text-center space-y-12 relative" in:fade={{ duration: 1000 }}>
-        <!-- Main Visual Unit -->
+      <div class="max-w-4xl w-full text-center space-y-12 relative" in:fade={{ duration: 1000 }}>
+        <!-- Abstract Visual Core -->
         <div class="relative inline-flex flex-col items-center">
-          <div class="absolute -inset-16 bg-violet-600/20 rounded-full blur-[100px] animate-pulse"></div>
+          <div class="absolute -inset-32 bg-violet-600/20 rounded-full blur-[140px] animate-pulse"></div>
           
           <div class="relative mb-8">
-            <div class="w-32 h-32 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3rem] flex items-center justify-center shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] border-b-violet-500/50">
-               <Settings class="w-14 h-14 text-violet-400 animate-spin-slow" strokeWidth={1} />
-            </div>
-            <!-- Secondary Floating Elements -->
-            <div class="absolute -top-4 -right-4 w-12 h-12 bg-[#09090b] border border-white/10 rounded-2xl flex items-center justify-center shadow-xl animate-bounce">
-                <div class="w-2 h-2 bg-violet-500 rounded-full animate-ping"></div>
+            <div class="w-32 h-32 md:w-44 md:h-44 bg-white/[0.015] backdrop-blur-3xl border border-white/10 rounded-[3rem] md:rounded-[4.5rem] flex items-center justify-center shadow-[0_40px_100px_-15px_rgba(0,0,0,0.8)] border-b-violet-500/30 relative group overflow-visible">
+               <div class="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-transparent rounded-[3rem] md:rounded-[4.5rem]"></div>
+               
+               <!-- Core Icon -->
+               <div class="relative z-10 transition-transform duration-700 group-hover:scale-110">
+                 <Crown class="w-16 h-16 md:w-20 md:h-20 text-violet-400 opacity-90 group-hover:opacity-100" strokeWidth={1.5} />
+               </div>
+               
+               <!-- Orbital Synchronizer -->
+               <div class="absolute -inset-4 border border-white/5 rounded-[4rem] md:rounded-[6rem] animate-spin-slow opacity-20"></div>
+               <div class="absolute -inset-8 border border-white/[0.02] rounded-[5rem] md:rounded-[8rem] animate-spin-reverse-slow opacity-10"></div>
+               
+               <!-- Floating Particles -->
+               <div class="absolute -top-4 -right-4 w-14 h-14 bg-[#0a0a0c] border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl animate-float">
+                  <div class="w-3 h-3 bg-violet-500 rounded-full animate-ping"></div>
+               </div>
+               <div class="absolute -bottom-2 -left-6 w-10 h-10 bg-[#0a0a0c] border border-white/5 rounded-xl flex items-center justify-center shadow-2xl animate-float-delayed">
+                  <LoadingSpinner size="w-5 h-5" color="text-indigo-400" />
+               </div>
             </div>
           </div>
 
-          <div class="space-y-4">
-            <h1 class="text-6xl md:text-7xl font-outfit font-black tracking-tighter text-white uppercase italic leading-none">
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">Mantenimiento</span><br/>
-              Evolutivo
-            </h1>
-            <div class="flex items-center justify-center gap-3">
-                <div class="h-px w-12 bg-gradient-to-r from-transparent to-violet-500"></div>
-                <span class="text-[10px] font-outfit font-black text-violet-500 uppercase tracking-[0.5em]">ChessNet System</span>
-                <div class="h-px w-12 bg-gradient-to-l from-transparent to-violet-500"></div>
+          <div class="space-y-4 md:space-y-8">
+            <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-violet-500/10 border border-violet-500/20 rounded-full mb-2">
+                <span class="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(167,139,250,0.8)]"></span>
+                <span class="text-[10px] font-outfit font-black text-violet-300 uppercase tracking-[0.3em]">Mejoras en curso</span>
             </div>
+            <h1 class="text-6xl md:text-9xl font-outfit font-black tracking-tighter text-white uppercase italic leading-[0.85]">
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-300 to-violet-500">ChessNet</span><br/>
+              <span class="text-white opacity-95">2.0</span>
+            </h1>
           </div>
         </div>
 
-        <p class="text-slate-400 text-lg md:text-xl font-plus-jakarta font-medium max-w-lg mx-auto leading-relaxed">
-          Estamos desplegando nuevas capacidades inteligentes para transformar tu gestión del ajedrez.
+        <p class="text-slate-400 text-lg md:text-2xl font-outfit font-light max-w-2xl mx-auto leading-relaxed px-6">
+          Estamos desplegando una <span class="text-white font-medium italic">evolución sistemática</span> para elevar tu experiencia de gestión educativa.
         </p>
 
-        <!-- Dynamic Status Board -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-xl mx-auto pt-6">
+        <!-- Premium Status Bento Tiles -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto pt-4 px-6">
           {#each [
-            { label: 'Sistemas', value: 'Actualizando', icon: '⚡' },
-            { label: 'Seguridad', value: 'Verificada', icon: '🛡️' },
-            { label: 'Retorno', value: 'Minutos', icon: '⏳' }
+            { label: 'Sistema', value: 'Sincronizando', icon: Crown, delay: 0, color: 'text-violet-400' },
+            { label: 'Torneos', value: 'Optimizando', icon: Trophy, delay: 150, color: 'text-indigo-400' },
+            { label: 'Servidor', value: 'Estable', icon: Settings, delay: 300, color: 'text-emerald-400' }
           ] as indicator}
-             <div class="p-6 bg-white/[0.02] backdrop-blur-md border border-white/5 rounded-3xl flex flex-col items-center gap-2 hover:bg-white/[0.04] transition-all group">
-                <span class="text-xl group-hover:scale-125 transition-transform">{indicator.icon}</span>
-                <div class="text-center">
-                    <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-widest">{indicator.label}</p>
-                    <p class="text-xs font-bold text-white mt-1 uppercase">{indicator.value}</p>
+             <div 
+               class="p-6 md:p-8 bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] rounded-[2rem] flex flex-col items-center gap-4 hover:bg-white/[0.05] hover:border-violet-500/20 transition-all group relative overflow-hidden"
+               in:fly={{ y: 20, delay: indicator.delay, duration: 600 }}
+             >
+                <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <indicator.icon class="w-24 h-24" />
+                </div>
+                <div class="w-12 h-12 bg-black/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 border border-white/5">
+                  <indicator.icon class="w-6 h-6 {indicator.color}" />
+                </div>
+                <div class="relative z-10 text-center">
+                    <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-1.5">{indicator.label}</p>
+                    <p class="text-xs font-bold text-white uppercase tracking-tight">{indicator.value}</p>
                 </div>
              </div>
           {/each}
         </div>
 
-        <div class="pt-12">
-            <div class="inline-flex items-center gap-4 px-6 py-2.5 bg-violet-500/5 border border-violet-500/20 rounded-full">
-                <div class="w-2 h-2 bg-violet-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.5)]"></div>
-                <span class="text-[10px] text-violet-400 font-outfit font-bold uppercase tracking-[0.3em]">
-                    Core Intelligence Synchronizing
-                </span>
+        <!-- Progress Indicator -->
+        <div class="max-w-xs mx-auto pt-6 flex flex-col items-center gap-4">
+            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-600 animate-shimmer scale-x-[0.6] origin-left"></div>
             </div>
+            <p class="text-[10px] text-slate-600 font-outfit font-bold uppercase tracking-[0.4em] flex items-center gap-2">
+                Progress <ChevronRight class="w-3 h-3" /> 84%
+            </p>
         </div>
       </div>
     </div>
+
   {:else}
     {@render children()}
   {/if}

@@ -6,7 +6,7 @@ service cloud.firestore {
     // Lista de administradores autorizados
     function isSuperAdmin() { 
       return isAuthenticated() && 
-        request.auth.token.email in ["andreslgumuzio@gmail.com", "tomih@chess-society.com", "admin@chessnet.app", "admin@chessnet.pro"];
+        request.auth.token.email in ["andreslgumuzio@gmail.com", "tomih@chess-society.com", "admin@chessnet.app", "admin@chessnet.pro", "escuelatopchess@gmail.com"];
     }
     
     function isOwner(docData) { return docData.owner_id == request.auth.uid; }
@@ -64,6 +64,14 @@ service cloud.firestore {
     match /lobby_announcements/{announcementId} {
       allow read: if isAuthenticated();
       allow write: if isSuperAdmin();
+    }
+
+    // Lobby: Reportes de soporte (Privados: Autor + Admin)
+    match /lobby_reports/{reportId} {
+      allow read, write: if isSuperAdmin() || (isAuthenticated() && (
+        (resource != null && resource.data.authorId == request.auth.uid) ||
+        (request.resource != null && request.resource.data.authorId == request.auth.uid)
+      ));
     }
 
     // Regla maestra para datos de negocio (centros, clases, alumnos, etc)

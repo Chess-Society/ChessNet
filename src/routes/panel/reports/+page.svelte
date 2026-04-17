@@ -36,7 +36,7 @@
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
     const newStudents = students.filter(s => {
-      const createdAt = s.createdAt ? new Date(s.createdAt) : new Date(0);
+      const createdAt = s.created_at ? new Date(s.created_at) : new Date(0);
       return createdAt > thirtyDaysAgo;
     }).length;
 

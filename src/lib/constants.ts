@@ -2,7 +2,8 @@ export const ADMIN_EMAILS = [
     'andreslgumuzio@gmail.com',
     'tomih@chess-society.com',
     'admin@chessnet.app',
-    'admin@chessnet.pro'
+    'admin@chessnet.pro',
+    'escuelatopchess@gmail.com'
 ];
 
 export const PLANS = {

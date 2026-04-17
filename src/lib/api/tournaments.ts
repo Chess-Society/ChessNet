@@ -26,7 +26,7 @@ export const tournamentsApi = {
     if (!uid) throw new Error("User not authenticated");
 
     const q = query(
-      collection(db, "tournaments"),
+      collection(db, "local_tournaments"),
       where("owner_id", "==", uid),
       orderBy("created_at", "desc")
     );
@@ -40,7 +40,7 @@ export const tournamentsApi = {
     if (!uid) throw new Error("User not authenticated");
 
     const q = query(
-      collection(db, "tournaments"),
+      collection(db, "local_tournaments"),
       where("owner_id", "==", uid),
       where("school_id", "==", schoolId),
       orderBy("created_at", "desc")
@@ -54,7 +54,7 @@ export const tournamentsApi = {
     const uid = auth.currentUser?.uid;
     if (!uid) throw new Error("User not authenticated");
 
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, "local_tournaments", id);
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) throw new Error("Tournament not found");
     
@@ -94,7 +94,7 @@ export const tournamentsApi = {
       created_at: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, "tournaments"), docData);
+    const docRef = await addDoc(collection(db, "local_tournaments"), docData);
     const docSnap = await getDoc(docRef);
     return toData<Tournament>(docSnap);
   },
@@ -104,7 +104,7 @@ export const tournamentsApi = {
     id: string,
     updates: Partial<Tournament>,
   ): Promise<Tournament> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, "local_tournaments", id);
     await updateDoc(docRef, {
       ...updates,
       updated_at: new Date().toISOString()
@@ -115,13 +115,13 @@ export const tournamentsApi = {
 
   // Delete a tournament
   async deleteTournament(id: string): Promise<void> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, "local_tournaments", id);
     await deleteDoc(docRef);
   },
 
   // Start a tournament
   async startTournament(id: string): Promise<void> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, "local_tournaments", id);
     await updateDoc(docRef, {
       status: "active",
       start_date: new Date().toISOString().split("T")[0],
@@ -130,7 +130,7 @@ export const tournamentsApi = {
 
   // Complete a tournament
   async completeTournament(id: string): Promise<void> {
-    const docRef = doc(db, "tournaments", id);
+    const docRef = doc(db, "local_tournaments", id);
     await updateDoc(docRef, {
       status: "completed",
       end_date: new Date().toISOString().split("T")[0],

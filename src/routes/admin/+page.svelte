@@ -19,6 +19,7 @@
   import {
     Gear as Settings,
     UserCheck,
+    CheckCircle,
     Clock,
     ShieldCheck,
     EnvelopeSimple as Mail,
@@ -27,6 +28,8 @@
     NotePencil as Edit3,
     Trophy,
     ChartLineUp as BarChart3,
+    User as UserIcon,
+    UserCircle,
     Users,
     Bell,
     Shield,
@@ -37,13 +40,14 @@
     MagnifyingGlass as Search,
     DotsThreeOutline as MoreHorizontal,
     ArrowLeft,
-    X,
-    IdentificationCard as UserIcon,
-    User,
-    Star,
+    Check,
     CurrencyDollar,
     Lightbulb,
-    ChatCircleDots
+    ChatCircleDots,
+    Database,
+    X,
+    Star,
+    Medal
   } from "phosphor-svelte";
   import { adminApi } from "$lib/api/admin";
   import { ADMIN_EMAILS } from "$lib/constants";
@@ -53,6 +57,7 @@
   import { toast, showError } from "$lib/stores/toast";
   import { invalidateAll } from "$app/navigation";
   import Logo from "$lib/components/Logo.svelte";
+  import { INSIGNIAS } from "$lib/constants/insignias";
 
   let { data }: { data: any } = $props();
 
@@ -98,6 +103,7 @@
   // Modales y Edición
   let selectedUser = $state<any>(null);
   let userDetails = $state<any>(null);
+  let userInsignias = $state<any[]>([]);
   let isLoadingDetails = $state(false);
   let showEditModal = $state(false);
   let isSaving = $state(false);
@@ -183,9 +189,13 @@
 
   function startMonitoring() {
     try {
+      // Usamos email como orden predeterminado para asegurar que todos los usuarios sean visibles,
+      // incluso si les falta el campo 'createdAt' (que causa que Firestore los ignore en un orderBy).
+      // El administrador puede usar el botón "Reparar" para normalizar los datos.
+      
       const q = query(
         collection(db, "users"),
-        orderBy("createdAt", "desc"),
+        orderBy("email"),
         limit(100),
       );
       const unsubscribe = onSnapshot(
@@ -205,6 +215,28 @@
       return unsubscribe;
     } catch (err: any) {
       error = err.message;
+    }
+  }
+
+  async function handleRepairUsers() {
+    const confirmed = await uiStore.confirm({
+      title: "Reparar Datos de Usuarios",
+      message: "¿Deseas inicializar los campos faltantes (createdAt) en todos los usuarios registrados?",
+      type: "warning"
+    });
+    
+    if (!confirmed) return;
+    
+    isSaving = true;
+    try {
+      const result = await adminApi.repairUsersData();
+      toast.success(`Se han revisado ${result.count} usuarios.`);
+      // No necesitamos recargar manualmente si el snapshot está activo,
+      // pero como el query de snapshot filtra por createdAt, ahora sí deberían aparecer.
+    } catch (err: any) {
+      showError(err);
+    } finally {
+      isSaving = false;
     }
   }
 
@@ -302,10 +334,16 @@
     selectedUser = user;
     showEditModal = true;
     userDetails = null;
+    userInsignias = [];
     isLoadingDetails = true;
     
     try {
-      userDetails = await adminApi.getUserDetails(user.id);
+      const [details, insignias] = await Promise.all([
+        adminApi.getUserDetails(user.id),
+        adminApi.getUserInsignias(user.id)
+      ]);
+      userDetails = details;
+      userInsignias = insignias;
     } catch (e) {
       console.error("Error fetching user details:", e);
     } finally {
@@ -313,35 +351,70 @@
     }
   }
 
+  async function handleToggleInsignia(insigniaId: string) {
+    if (!selectedUser) return;
+    const isUnlocked = userInsignias.some(i => i.id === insigniaId);
+    
+    isSaving = true;
+    try {
+      if (isUnlocked) {
+        await adminApi.revokeInsignia(selectedUser.id, insigniaId);
+        userInsignias = userInsignias.filter(i => i.id !== insigniaId);
+        toast.success("Insignia revocada con éxito");
+      } else {
+        await adminApi.awardInsignia(selectedUser.id, insigniaId);
+        // Volvemos a cargar para tener el objeto completo si fuera necesario, 
+        // o simplemente actualizamos el estado local
+        userInsignias = [...userInsignias, { id: insigniaId, unlockedAt: new Date().toISOString() }];
+        toast.success("Insignia concedida con éxito");
+      }
+    } catch (err: any) {
+      showError(err);
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function handleToggleFeaturedAdmin(insigniaId: string) {
+    if (!selectedUser) return;
+    const currentFeatured = selectedUser.settings?.featuredInsignias || [];
+    let nextFeatured: string[];
+    
+    if (currentFeatured.includes(insigniaId)) {
+      nextFeatured = currentFeatured.filter((id: string) => id !== insigniaId);
+    } else {
+      if (currentFeatured.length >= 3) {
+        toast.error("Máximo 3 insignias destacadas");
+        return;
+      }
+      nextFeatured = [...currentFeatured, insigniaId];
+    }
+
+    isSaving = true;
+    try {
+      const userRef = doc(db, 'users', selectedUser.id);
+      await updateDoc(userRef, {
+        "settings.featuredInsignias": nextFeatured
+      });
+      selectedUser.settings = { ...selectedUser.settings, featuredInsignias: nextFeatured };
+      toast.success("Perfil actualizado");
+    } catch (err: any) {
+      showError(err);
+    } finally {
+      isSaving = false;
+    }
+  }
+
   async function handleGrantPremium(userId: string, days: number) {
     isSaving = true;
     try {
-      const expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + days);
-
-      const userDocRef = doc(db, "users", userId);
-      const appDataRef = doc(db, "users", userId, "appData", "v1");
-
-      const updatePayload = {
-        "settings.plan": "premium",
-        "settings.planExpiresAt": expirationDate.toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      await updateDoc(userDocRef, updatePayload);
-
-      const snap = await getDoc(appDataRef);
-      if (snap.exists()) {
-        await updateDoc(appDataRef, {
-          "settings.plan": "premium",
-          "settings.planExpiresAt": expirationDate.toISOString(),
-        });
-      }
+      await adminApi.grantTrial(userId, days);
       showEditModal = false;
       await loadData();
       toast.success($t('admin.users.grant_success'));
       await invalidateAll();
-      await new Promise(r => setTimeout(r, 100));
+      // Pequeño delay para asegurar que Firestore se actualiza en el cliente
+      await new Promise(r => setTimeout(r, 500));
     } catch (err: any) {
       showError(err);
     } finally {
@@ -841,7 +914,20 @@
                       </div>
                       <div>
                         <p class="text-[10px] font-black text-violet-400 uppercase tracking-widest">{s.authorName || 'Anónimo'}</p>
-                        <p class="text-[9px] text-slate-500 font-bold">{formatDate(s.createdAt)}</p>
+                        <div class="flex items-center gap-1 mt-1">
+                          {#each (s.authorInsignias || []).slice(0, 3) as insigniaId}
+                            {@const insignia = INSIGNIAS.find(i => i.id === insigniaId)}
+                            {#if insignia}
+                              <div 
+                                class="w-4 h-4 rounded-md bg-black/40 border border-white/10 flex items-center justify-center p-0.5 {insignia.color}"
+                                title={$t(insignia.titleKey)}
+                              >
+                                <insignia.icon weight="duotone" class="w-full h-full" />
+                              </div>
+                            {/if}
+                          {/each}
+                          <p class="text-[9px] text-slate-500 font-bold ml-1">{formatDate(s.createdAt)}</p>
+                        </div>
                       </div>
                     </div>
                     
@@ -892,6 +978,31 @@
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Maintenance Control -->
+
+            <div
+              class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6"
+            >
+              <div class="flex items-center gap-4 mb-2">
+                 <div class="p-3 bg-violet-600/10 border border-violet-500/20 rounded-2xl">
+                   <Database weight="duotone" class="w-6 h-6 text-violet-500" />
+                 </div>
+                 <h3 class="text-lg font-bold uppercase tracking-wider">
+                   Mantenimiento
+                 </h3>
+               </div>
+              <div class="space-y-4">
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Repara inconsistencias en los datos de los usuarios (campos faltantes como createdAt).
+                </p>
+                <button
+                  onclick={handleRepairUsers}
+                  disabled={isSaving}
+                  class="w-full py-4 bg-white/5 text-violet-400 border border-violet-500/20 rounded-2xl font-black uppercase tracking-widest transition-all hover:bg-violet-500/10 active:scale-95 disabled:opacity-50"
+                >
+                  {isSaving ? 'Reparando...' : 'Reparar Usuarios'}
+                </button>
+              </div>
+            </div>
 
             <div
               class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6"
@@ -1017,7 +1128,7 @@
           >
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 bg-violet-500/20 rounded-2xl flex items-center justify-center text-violet-400 border border-violet-500/20">
-                <User weight="bold" class="w-6 h-6" />
+                <UserIcon weight="bold" class="w-6 h-6" />
               </div>
               <div>
                 <h3 class="text-xl font-black font-display uppercase italic tracking-wider">
@@ -1063,17 +1174,24 @@
             </div>
 
             <div class="space-y-4">
-              <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{$t('admin.users.grant_trial')}</p>
+              <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">CONCEDER ACCESO TEMPORAL</p>
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {#each [3, 7, 15, 28, 30, 365] as days}
+                {#each [3, 7, 15, 28, 30] as days}
                   <button
                     onclick={() => handleGrantPremium(selectedUser.id, days)}
                     disabled={isSaving}
-                    class="px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {days === 30 ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'bg-zinc-900 text-slate-400 border border-white/5 hover:bg-primary-500/10 hover:text-primary-400'}"
+                    class="px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {days === 30 ? 'bg-primary-500 text-black shadow-lg shadow-primary-500/20' : 'bg-zinc-900/60 text-slate-300 border border-white/5 hover:bg-primary-500/10 hover:text-primary-400'}"
                   >
-                    {days === 365 ? '1 AÑO' : $t('admin.users.days').replace('{n}', days.toString())}
+                    {days} DÍAS
                   </button>
                 {/each}
+                <button
+                    onclick={() => handleGrantPremium(selectedUser.id, 365)}
+                    disabled={isSaving}
+                    class="px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-violet-600 text-white shadow-lg shadow-violet-600/20 hover:bg-violet-500"
+                >
+                    1 AÑO
+                </button>
               </div>
             </div>
 
@@ -1088,6 +1206,59 @@
                   class="w-full py-4 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
                   >{$t('admin.users.revoke_premium')}</button
                 >
+              </div>
+            {/if}
+
+            <!-- Insignias Section -->
+            <div class="space-y-4 pt-6 border-t border-white/5">
+              <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">GESTIONAR INSIGNIAS ESPECIALES</p>
+              <div class="grid grid-cols-2 gap-3">
+                {#each INSIGNIAS.filter(i => i.type === 'special') as insignia}
+                  {@const isUnlocked = userInsignias.some(ui => ui.id === insignia.id)}
+                  <button
+                    onclick={() => handleToggleInsignia(insignia.id)}
+                    disabled={isSaving || isLoadingDetails}
+                    class="p-3 rounded-2xl border transition-all flex items-center gap-3 text-left group
+                    {isUnlocked 
+                      ? 'bg-violet-500/10 border-violet-500/30 text-white' 
+                      : 'bg-black/20 border-white/5 text-slate-500 hover:border-white/10 hover:bg-white/5'}"
+                  >
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center {isUnlocked ? insignia.color + ' bg-zinc-950' : 'bg-zinc-950/50'}">
+                      <insignia.icon weight={isUnlocked ? 'duotone' : 'regular'} class="w-5 h-5" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-[10px] font-black uppercase tracking-tight truncate">{$t(insignia.titleKey)}</p>
+                      <p class="text-[8px] font-medium text-slate-500 uppercase tracking-tighter">
+                        {isUnlocked ? 'CONCEDIDA' : 'BLOQUEADA'}
+                      </p>
+                    </div>
+                    {#if isUnlocked}
+                      <CheckCircle weight="fill" class="w-4 h-4 text-emerald-400" />
+                    {/if}
+                  </button>
+                {/each}
+              </div>
+            </div>
+
+            <!-- Manage Featured Insignias (Admin) -->
+            {#if userInsignias.length > 0}
+              <div class="space-y-4 pt-6 border-t border-white/5">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">DESTACAR EN PERFIL (MÁX 3)</p>
+                <div class="flex flex-wrap gap-2">
+                  {#each INSIGNIAS.filter(ins => userInsignias.some(ui => ui.id === ins.id)) as insignia}
+                    {@const isFeatured = (selectedUser.settings?.featuredInsignias || []).includes(insignia.id)}
+                    <button
+                      onclick={() => handleToggleFeaturedAdmin(insignia.id)}
+                      class="px-3 py-2 rounded-xl border transition-all flex items-center gap-2
+                      {isFeatured 
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                        : 'bg-black/20 border-white/5 text-slate-500 hover:border-white/10'}"
+                    >
+                      <insignia.icon weight={isFeatured ? 'fill' : 'regular'} class="w-3 h-3" />
+                      <span class="text-[9px] font-bold uppercase">{$t(insignia.titleKey)}</span>
+                    </button>
+                  {/each}
+                </div>
               </div>
             {/if}
           </div>

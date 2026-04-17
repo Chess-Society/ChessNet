@@ -16,9 +16,11 @@
     Users,
     ListChecks,
     Wallet,
-    Trophy,
     ChatCircleDots,
-    Lock
+    Lock,
+    Calendar,
+    Trophy,
+    Lifebuoy
   } from 'phosphor-svelte';
 
   import { fade } from 'svelte/transition';
@@ -81,7 +83,7 @@
   }
 
   // Breadcrumbs dinámicos localizados con resolución de nombres
-  let breadcrumbName = $derived.by(() => {
+  let breadcrumbItems = $derived.by(() => {
     const parts = currentRoute.replace('/panel', '').split('/').filter(e => e);
     if (parts.length === 0) return $t('nav.dashboard');
     
@@ -97,16 +99,19 @@
       'settings': 'nav.settings',
       'achievements': 'nav.achievements',
       'attendance': 'nav.attendance',
-      'leads': 'nav.leads'
+      'leads': 'nav.leads',
+      'planner': 'planner.title',
+      'lobby': 'nav.lobby',
+      'materials': 'nav.materials'
     };
     
     const base = parts[0];
     const baseName = rootMappings[base] ? $t(rootMappings[base]) : base;
     
-    // Si no hay subpartes, devolvemos el base
-    if (parts.length === 1) return baseName;
+    let items = [{ name: baseName, href: `/panel/${base}` }];
 
-    // Si hay una segunda parte (ID), intentamos buscar el nombre real en el store
+    if (parts.length === 1) return items;
+
     const id = parts[1];
     let entityName = '';
 
@@ -120,17 +125,20 @@
       entityName = $appStore.localTournaments.find(t => t.id === id)?.name || '';
     }
 
-    // Si encontramos el nombre, lo usamos. Si no, usamos "Detalles" o la acción (create/edit)
     if (entityName) {
-      if (parts[2] === 'edit') return `${baseName} / ${entityName} / ${$t('classes.edit_title') || 'Editar'}`;
-      if (parts[2] === 'attendance') return `${baseName} / ${entityName} / ${$t('nav.attendance') || 'Asistencia'}`;
-      return `${baseName} / ${entityName}`;
+      items.push({ name: entityName, href: `/panel/${base}/${id}` });
+      if (parts[2] === 'edit') items.push({ name: $t('classes.edit_title') || 'Editar', href: `/panel/${base}/${id}/edit` });
+      if (parts[2] === 'attendance') items.push({ name: $t('nav.attendance') || 'Asistencia', href: `/panel/${base}/${id}/attendance` });
+      return items;
     }
 
-    // Manejo de acciones especiales
-    if (id === 'create' || id === 'new') return `${baseName} / ${$t('common.create') || 'Nuevo'}`;
+    if (id === 'create' || id === 'new') {
+      items.push({ name: $t('common.create') || 'Nuevo', href: `/panel/${base}/${id}` });
+      return items;
+    }
     
-    return `${baseName} / ${$t('common.details') || 'Detalles'}`;
+    items.push({ name: $t('common.details') || 'Detalles', href: `/panel/${base}/${id}` });
+    return items;
   });
 
   let initials = $derived(teacherName.substring(0,2).toUpperCase());
@@ -182,9 +190,13 @@
             <House weight="duotone" size={20} />
           </button>
           
-          {#if breadcrumbName}
-            <CaretRight weight="bold" size={14} class="text-white/10" />
-            <span class="text-xs font-outfit font-bold text-white uppercase tracking-widest">{breadcrumbName}</span>
+          {#if breadcrumbItems && breadcrumbItems.length > 0}
+            {#each breadcrumbItems as item, i}
+              <CaretRight weight="bold" size={14} class="text-white/10" />
+              <a href={item.href} class="text-xs font-outfit font-bold uppercase tracking-widest transition-colors {i === breadcrumbItems.length - 1 ? 'text-white pointer-events-none' : 'text-slate-500 hover:text-violet-400'}">
+                {item.name}
+              </a>
+            {/each}
           {/if}
 
           <!-- Quick Module Switcher (Teachers only) -->
@@ -275,6 +287,12 @@
                 <GearSix weight="duotone" size={18} class="group-hover/item:rotate-90 transition-transform duration-500" /> 
                 {$t('nav.settings') || 'SETTINGS'}
               </a>
+
+              <!-- Support Link (Everyone) -->
+              <a href="/panel/lobby?tab=support" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-xl transition-all group/item">
+                <Lifebuoy weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" /> 
+                SOPORTE CHESSNET
+              </a>
               {#if data.isAdmin}
                 <a href="/admin" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-primary-400 hover:bg-primary-500/10 rounded-xl transition-all">
                   <Key weight="duotone" size={18} /> 
@@ -282,14 +300,14 @@
                 </a>
               {/if}
 
-              <!-- Lobby / Feedback (Premium feature) -->
+              <!-- Lobby / Feedback -->
               <a href="/panel/lobby" 
                 onclick={() => {
                   lobbyPulse = false;
                   const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
                   localStorage.setItem(`last_viewed_${colName}`, Date.now().toString());
                 }}
-                class="relative flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold rounded-xl transition-all group/item {plan === 'premium' ? 'text-slate-400 hover:bg-violet-600/10 hover:text-violet-400' : 'text-slate-600 hover:bg-white/5 cursor-pointer'}">
+                class="relative flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold rounded-xl transition-all group/item text-slate-400 hover:bg-violet-600/10 hover:text-violet-400">
                 <ChatCircleDots weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" />
                 <span class="flex-1">{$t('nav.lobby') || 'COMMUNITY LOBBY'}</span>
                 
@@ -299,7 +317,7 @@
 
                 {#if plan !== 'premium' && !data.isAdmin}
                   <div class="flex items-center gap-1.5 px-2 py-1 bg-violet-500/10 rounded-lg border border-violet-500/20">
-                    <Lock weight="fill" size={10} class="text-violet-400" />
+                    <Crown weight="fill" size={10} class="text-violet-400" />
                     <span class="text-[8px] text-violet-400 font-black">PRO</span>
                   </div>
                 {/if}
@@ -318,8 +336,8 @@
     </div>
   </header>
 
-  <main class="pt-20 pb-6 min-h-screen">
-    <div class="">
+  <main class="pt-20 pb-24 min-h-screen">
+    <div class="max-w-7xl mx-auto">
         {#if $authLoading}
             <div class="flex flex-col items-center justify-center min-h-[60vh] gap-6" in:fade>
                 <div class="relative">
@@ -336,6 +354,35 @@
         </div>
     </div>
   </main>
+
+  <!-- Mobile Bottom Navigation -->
+  <footer class="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-6 pb-6 pt-2 h-24 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent pointer-events-none">
+    <nav class="pointer-events-auto bg-zinc-900/80 backdrop-blur-2xl border border-white/5 rounded-3xl h-full flex items-center justify-around px-4 shadow-2xl">
+      <a href="/panel" class="flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute === '/panel' ? 'text-violet-400' : 'text-slate-500'}">
+        <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={24} />
+        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Home</span>
+      </a>
+      <a href="/panel/classes" class="flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute.includes('/classes') ? 'text-violet-400' : 'text-slate-500'}">
+        <Chalkboard weight={currentRoute.includes('/classes') ? 'fill' : 'duotone'} size={24} />
+        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Clases</span>
+      </a>
+      <a href="/panel/students" class="flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute.includes('/students') ? 'text-violet-400' : 'text-slate-500'}">
+        <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={24} />
+        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Alumnos</span>
+      </a>
+      <a href="/panel/planner" class="flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute.includes('/planner') ? 'text-violet-400' : 'text-slate-500'}">
+        <Calendar weight={currentRoute.includes('/planner') ? 'fill' : 'duotone'} size={24} />
+        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Planner</span>
+      </a>
+      <a href="/panel/lobby" class="relative flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400' : 'text-slate-500'}">
+        <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={24} />
+        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Lobby</span>
+        {#if lobbyPulse && plan === 'premium'}
+          <div class="absolute right-2 top-2 w-2 h-2 bg-violet-500 rounded-full animate-pulse shadow-glow"></div>
+        {/if}
+      </a>
+    </nav>
+  </footer>
 </div>
 
 <style lang="postcss">

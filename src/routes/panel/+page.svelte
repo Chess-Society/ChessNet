@@ -570,7 +570,7 @@
             <p class="text-[10px] text-surface-500 font-black uppercase tracking-widest leading-none mb-1">{$t('dashboard.need_help')}</p>
             <p class="text-sm font-bold text-white">{$t('dashboard.support_center')}</p>
           </div>
-          <a href="mailto:soporte@chessnet.app" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-400 hover:bg-primary-500 hover:text-white transition-all shadow-soft">
+          <a href="/panel/lobby?tab=support" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-400 hover:bg-primary-500 hover:text-white transition-all shadow-soft">
             <Plus weight="bold" size={16} />
           </a>
       </div>

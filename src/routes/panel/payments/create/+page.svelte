@@ -19,7 +19,7 @@
     ArrowUpRight,
     Tag,
     Clock,
-    User,
+    User as UserIcon,
     Student,
     Info,
     Layout
@@ -283,7 +283,7 @@
         <div class="bento-card p-8">
           <div class="flex items-center gap-4 mb-8">
             <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-              <User weight="duotone" class="w-5 h-5 text-blue-400" />
+              <UserIcon weight="duotone" class="w-5 h-5 text-blue-400" />
             </div>
             <div>
               <h3 class="text-white font-bold">Recipient</h3>
@@ -488,7 +488,7 @@
                   <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center">
                       {#if formData.payment_type === 'student'}
-                        <User weight="fill" class="w-5 h-5 text-zinc-400" />
+                        <UserIcon weight="fill" class="w-5 h-5 text-zinc-400" />
                       {:else}
                         <Buildings weight="fill" class="w-5 h-5 text-zinc-400" />
                       {/if}

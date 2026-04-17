@@ -15,6 +15,7 @@ import {
   where
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import { browser } from '$app/environment';
 import type { 
   School, 
   Student, 
@@ -45,6 +46,7 @@ export interface AppSettings {
   teacherName: string;
   teacherAvatar: string;
   teacherEmail?: string;
+  featuredInsignias?: string[]; // IDs of up to 3 featured insignias
   [key: string]: any;
 }
 
@@ -67,7 +69,7 @@ export interface AppState {
   studentBadges: StudentBadge[];
   studentStats: any[];
   reports: any[];
-  unlockedAchievements: any[];
+  unlockedInsignias: any[];
   settings: AppSettings;
   dashboardLayout: string[];
 }
@@ -95,7 +97,8 @@ const initialState: AppState = {
   settings: { 
     plan: 'free',
     teacherName: '',
-    teacherAvatar: ''
+    teacherAvatar: '',
+    featuredInsignias: []
   },
   dashboardLayout: []
 };
@@ -107,6 +110,8 @@ function createAppStore() {
 
   // Suscribirse al store de autenticación
   authStoreUser.subscribe(async (user) => {
+    if (!browser) return;
+    
     unsubscribes.forEach(unsub => unsub());
     unsubscribes = [];
 
@@ -115,20 +120,50 @@ function createAppStore() {
 
       if (!isMock) {
         const userRef = doc(db, 'users', user.uid);
-        unsubscribes.push(onSnapshot(userRef, 
-          (snap) => {
-            if (snap.exists()) {
-              const data = snap.data();
-              update(currentState => {
-                const settings = { ...currentState.settings, ...(data.settings || {}) };
-                const userEmail = (user.email || '').toLowerCase();
-                if (ADMIN_EMAILS.includes(userEmail)) settings.plan = 'premium';
-                return { ...currentState, settings, dashboardLayout: data.dashboardLayout || [] };
+        onSnapshot(userRef, 
+          async (snap) => {
+            const userEmail = (user.email || '').toLowerCase();
+            
+            if (!snap.exists()) {
+              console.log('✨ [AppStore] Initializing new user profile...');
+              await setDoc(userRef, {
+                email: userEmail,
+                createdAt: new Date().toISOString(),
+                settings: {
+                  plan: 'free',
+                  teacherName: user.displayName || '',
+                  teacherAvatar: user.photoURL || '',
+                  teacherEmail: userEmail
+                }
               });
+              return;
             }
+
+            const data = snap.data();
+            
+            // Backfill createdAt if missing
+            if (!data.createdAt) {
+              await updateDoc(userRef, { createdAt: new Date().toISOString() });
+            }
+
+            update(currentState => {
+              const settings = { 
+                ...currentState.settings, 
+                ...(data.settings || {}),
+                teacherEmail: userEmail, // Ensure email is in state
+                featuredInsignias: data.settings?.featuredInsignias || []
+              };
+              
+              if (ADMIN_EMAILS.includes(userEmail)) settings.plan = 'premium';
+              return { 
+                ...currentState, 
+                settings, 
+                dashboardLayout: data.dashboardLayout || [] 
+              };
+            });
           },
           (error) => console.error('❌ [AppStore] Settings error:', error)
-        ));
+        );
       } else {
         update(currentState => ({
           ...currentState,
@@ -147,7 +182,7 @@ function createAppStore() {
         { key: 'localTournamentRounds', path: 'local_tournament_rounds', api: '/api/local_tournament_rounds' },
         { key: 'localTournamentPairings', path: 'local_tournament_pairings', api: '/api/local_tournament_pairings' },
         { key: 'payments', path: 'payments', api: '/api/payments' },
-        { key: 'unlockedAchievements', path: 'achievements', api: '/api/achievements' }
+        { key: 'unlockedInsignias', path: 'achievements', api: '/api/achievements' }
       ];
 
       collectionsMap.forEach(({ key, path, api }) => {

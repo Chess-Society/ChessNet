@@ -69,6 +69,7 @@ export const initAuth = () => {
 
         loading.set(false);
         authInitialized.set(true);
+        cookieSynced.set(true);
         resolved = true;
         
     }, (error) => {
