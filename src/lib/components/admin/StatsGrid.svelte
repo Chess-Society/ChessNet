@@ -20,84 +20,111 @@
       totalClasses: number;
       premiumUsers: number;
       recentUsers: number;
+      totalRevenue: number;
     };
   }
 
   let { stats }: Props = $props();
 
-  const cards = $derived([
+  const primaryCards = $derived([
     {
-      label: 'Usuarios Totales',
+      label: 'Ingresos Totales',
+      value: `${stats.totalRevenue.toLocaleString()}€`,
+      icon: TrendUp,
+      color: 'from-emerald-400 to-cyan-500',
+      description: 'Facturación acumulada en plataforma'
+    },
+    {
+      label: 'Conversión Premium',
+      value: `${((stats.premiumUsers / (stats.totalUsers || 1)) * 100).toFixed(1)}%`,
+      icon: Crown,
+      color: 'from-amber-400 to-orange-500',
+      description: `${stats.premiumUsers} usuarios de pago activos`
+    }
+  ]);
+
+  const secondaryCards = $derived([
+    {
+      label: 'Profesores',
       value: stats.totalUsers,
       icon: Users,
       color: 'from-blue-500 to-indigo-600',
-      bg: 'blue',
-      trend: `+${stats.recentUsers} esta semana`
+      sub: `+${stats.recentUsers} nuevos`
     },
     {
-      label: 'Profesores Premium',
-      value: stats.premiumUsers,
-      icon: Crown,
-      color: 'from-amber-400 to-orange-500',
-      bg: 'amber',
-      trend: `${((stats.premiumUsers / stats.totalUsers) * 100).toFixed(1)}% conversión`
-    },
-    {
-      label: 'Alumnos Activos',
+      label: 'Alumnos',
       value: stats.totalStudents,
       icon: Student,
-      color: 'from-emerald-400 to-teal-500',
-      bg: 'emerald',
-      trend: 'En crecimiento'
+      color: 'from-fuchsia-500 to-pink-600',
+      sub: 'Base académica'
     },
     {
-      label: 'Escuelas & Centros',
+      label: 'Escuelas',
       value: stats.totalSchools,
       icon: Buildings,
       color: 'from-violet-500 to-purple-600',
-      bg: 'violet',
-      trend: `${stats.totalClasses} clases creadas`
+      sub: 'Centros adheridos'
+    },
+    {
+      label: 'Clases',
+      value: stats.totalClasses,
+      icon: ChalkboardTeacher,
+      color: 'from-slate-400 to-slate-600',
+      sub: 'Sesiones activas'
     }
   ]);
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-  {#each cards as card, i}
-    <div 
-      class="relative group"
-      in:fade={{ delay: i * 100 }}
-    >
-      <div class="absolute -inset-0.5 bg-gradient-to-r {card.color} rounded-[2.2rem] opacity-20 group-hover:opacity-40 transition duration-500 blur-sm"></div>
-      <div class="relative bg-[#0f172a]/60 backdrop-blur-2xl border border-white/5 p-8 rounded-[2rem] overflow-hidden shadow-2xl transition-all duration-300 group-hover:translate-y-[-4px]">
-        <!-- Gradient Mesh Backdrop -->
-        <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-gradient-to-br {card.color} opacity-[0.03] blur-3xl rounded-full"></div>
-        
-        <div class="flex items-start justify-between mb-6">
-          <div class="p-3 bg-white/5 rounded-2xl border border-white/10 group-hover:scale-110 transition-transform duration-500">
-            <card.icon weight="duotone" class="w-6 h-6 text-white" />
+<div class="space-y-8">
+  <!-- Primary Insights -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    {#each primaryCards as card, i}
+      {@const Icon = card.icon}
+      <div class="relative group" in:fade={{ delay: i * 150 }}>
+        <div class="absolute -inset-1 bg-gradient-to-r {card.color} rounded-[3rem] opacity-10 group-hover:opacity-20 transition duration-500 blur-xl"></div>
+        <div class="relative bg-black/40 backdrop-blur-3xl border border-white/10 p-10 rounded-[2.5rem] overflow-hidden">
+          <div class="flex items-center justify-between mb-8">
+            <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+              <Icon weight="duotone" class="w-8 h-8 text-white" />
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Live Sync</span>
+            </div>
           </div>
-          <div class="flex flex-col items-end">
-             <div class="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
-               <Pulse class="w-3 h-3" />
-               Live
-             </div>
-             <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+          
+          <div class="space-y-1">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">{card.label}</p>
+            <h3 class="text-6xl font-black font-display tracking-tighter text-white italic leading-none">
+              {card.value}
+            </h3>
+            <p class="text-xs font-bold text-slate-400 mt-4 tracking-tight">{card.description}</p>
           </div>
-        </div>
-
-        <div class="space-y-1">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{card.label}</p>
-          <h3 class="text-4xl font-black font-display tracking-tight text-white italic">
-            {card.value.toLocaleString()}
-          </h3>
-        </div>
-
-        <div class="mt-6 flex items-center gap-2">
-          <span class="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-white/5 rounded-lg border border-white/10 text-slate-400">
-            {card.trend}
-          </span>
         </div>
       </div>
-    </div>
-  {/each}
+    {/each}
+  </div>
+
+  <!-- Operational Grid -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+    {#each secondaryCards as card, i}
+      {@const Icon = card.icon}
+      <div class="relative group" in:fade={{ delay: 300 + (i * 100) }}>
+        <div class="bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 p-8 rounded-[2rem] transition-all duration-300">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="p-2.5 bg-white/5 rounded-xl border border-white/10 group-hover:scale-110 transition-transform">
+              <Icon weight="duotone" class="w-5 h-5 text-white/70" />
+            </div>
+            <div>
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{card.label}</p>
+              <p class="text-[8px] font-bold text-slate-600 uppercase italic leading-none">{card.sub}</p>
+            </div>
+          </div>
+          <h4 class="text-3xl font-black font-display italic text-white/90">
+             {card.value.toLocaleString()}
+          </h4>
+        </div>
+      </div>
+    {/each}
+  </div>
 </div>

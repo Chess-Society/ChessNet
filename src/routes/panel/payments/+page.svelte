@@ -26,11 +26,13 @@
     FileArrowDown,
     User,
     Buildings,
-    Eye
+    Eye,
+    PencilSimple
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { user as authUser } from '$lib/stores/auth';
   import { ADMIN_EMAILS } from '$lib/constants';
+  import { toast, showError } from '$lib/stores/toast';
   import { goto } from '$app/navigation';
   import { fade, fly, scale } from 'svelte/transition';
 
@@ -49,10 +51,15 @@
   // Reactive data using Runes
   let payments = $derived($appStore.payments || []);
   let students = $derived($appStore.students || []);
+  let schools = $derived($appStore.schools || []);
 
-  const getStudentName = (id: string) => {
+  const getEntityName = (id: string, type: 'student' | 'school' = 'student') => {
+    if (type === 'school') {
+      const school = schools.find(s => s.id === id);
+      return school?.name || $t('common.unknown');
+    }
     const student = students.find(s => s.id === id);
-    return student?.name || 'Alumno Desconocido';
+    return student?.name || $t('payments.unknown_student');
   };
 
 
@@ -65,7 +72,7 @@
     const monthlyTotal = payments
       .filter(p => {
         const d = new Date(p.paid_date || p.created_at || '');
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && p.status === 'paid';
       })
       .reduce((acc, p) => acc + (p.amount || 0), 0);
 
@@ -73,7 +80,7 @@
       .filter(p => {
         const d = new Date(p.paid_date || p.created_at || '');
         const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
-        return d.getMonth() === prevMonthDate.getMonth() && d.getFullYear() === prevMonthDate.getFullYear();
+        return d.getMonth() === prevMonthDate.getMonth() && d.getFullYear() === prevMonthDate.getFullYear() && p.status === 'paid';
       })
       .reduce((acc, p) => acc + (p.amount || 0), 0);
 
@@ -93,7 +100,9 @@
       prevMonthTotal, 
       growth: growth.toFixed(1),
       totalCount: payments.length,
-      averageTicket: payments.length > 0 ? (payments.reduce((acc, p) => acc + (p.amount || 0), 0) / payments.length).toFixed(2) : 0,
+      averageTicket: payments.filter(p => p.status === 'paid').length > 0 
+        ? (payments.filter(p => p.status === 'paid').reduce((acc, p) => acc + (p.amount || 0), 0) / payments.filter(p => p.status === 'paid').length).toFixed(2) 
+        : 0,
       portfolioHealth: health.toFixed(0),
       isHealthy: health >= 90
     };
@@ -105,7 +114,7 @@
   const filteredPayments = $derived(
     payments
       .filter(p => {
-        const studentName = getStudentName(p.student_id || '').toLowerCase();
+        const studentName = getEntityName(p.student_id || '', p.payment_type || 'student').toLowerCase();
         const concept = (p.concept || '').toLowerCase();
         const query = searchQuery.toLowerCase();
         
@@ -119,38 +128,82 @@
 
   // Modal & Actions state
   let showModal = $state(false);
+  let editMode = $state(false);
   let isDeleting = $state<string | null>(null);
 
   let newPayment = $state({
+    id: '',
     student_id: '',
     amount: 0,
     paid_date: new Date().toISOString().split('T')[0],
     concept: 'monthly_fee' as any,
-    status: 'paid' as any
+    status: 'paid' as any,
+    payment_type: 'student' as 'student' | 'school'
   });
+
+  const resetForm = () => {
+    newPayment = { 
+      id: '',
+      student_id: '', 
+      amount: 0, 
+      paid_date: new Date().toISOString().split('T')[0], 
+      concept: 'monthly_fee' as any, 
+      status: 'paid' as any,
+      payment_type: 'student'
+    };
+    editMode = false;
+  };
 
   const addPayment = async () => {
     if (!newPayment.student_id || newPayment.amount <= 0) return;
-    await appStore.addPayment({
-      ...newPayment,
-      id: crypto.randomUUID()
-    });
-    showModal = false;
-    newPayment = { student_id: '', amount: 0, paid_date: new Date().toISOString().split('T')[0], concept: 'monthly_fee' as any, status: 'paid' as any };
+    
+    try {
+      if (editMode && newPayment.id) {
+        await appStore.updatePayment(newPayment);
+        toast.success($t('payments.update_success'));
+      } else {
+        const { id, ...data } = newPayment;
+        await appStore.addPayment(data);
+        toast.success($t('payments.add_success'));
+      }
+      showModal = false;
+      resetForm();
+    } catch (err: any) {
+      console.error('Error in payment action:', err);
+      showError(err, $t('payments.error_action'));
+    }
+  };
+
+  const openEdit = (payment: any) => {
+    newPayment = { ...payment };
+    editMode = true;
+    showModal = true;
   };
 
   const deletePayment = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este registro contable?')) return;
+    if (!confirm($t('payments.confirm_delete'))) return;
     isDeleting = id;
-    await appStore.removePayment(id);
-    isDeleting = null;
+    try {
+      await appStore.removePayment(id);
+      toast.success($t('payments.delete_success'));
+    } catch (err: any) {
+      console.error('Error deleting payment:', err);
+      showError(err, $t('payments.error_delete'));
+    } finally {
+      isDeleting = null;
+    }
   };
 
   const exportToCSV = () => {
-    const headers = ['Alumno', 'Concepto', 'Fecha', 'Monto'];
+    const headers = [
+      $t('payments.student'),
+      $t('payments.concept'),
+      $t('payments.date'),
+      $t('payments.amount')
+    ];
     const rows = filteredPayments.map(p => [
-      getStudentName(p.student_id),
-      p.concept,
+      getEntityName(p.student_id, p.payment_type),
+      $t(`payments.concepts.${p.concept}`) || p.concept,
       p.paid_date,
       p.amount
     ]);
@@ -208,9 +261,9 @@
       <div class="action-group">
         <button class="btn-secondary transition-all" onclick={exportToCSV}>
           <FileArrowDown size={20} weight="bold" />
-          <span class="desktop-only text-xs font-black uppercase tracking-widest">Exportar CSV</span>
+          <span class="desktop-only text-xs font-black uppercase tracking-widest">{$t('payments.export_csv')}</span>
         </button>
-        <button class="btn-primary" onclick={() => showModal = true}>
+        <button class="btn-primary" onclick={() => { resetForm(); showModal = true; }}>
           <Plus size={20} weight="bold" />
           {$t('payments.new_payment')}
         </button>
@@ -234,7 +287,7 @@
               <ArrowDownLeft size={14} />
             {/if}
             {Math.abs(parseFloat(metrics.growth))}%
-            <span class="text-slate-500 ml-1 lowercase">vs mes anterior</span>
+            <span class="text-slate-500 ml-1 lowercase">{$t('payments.last_month')}</span>
           </div>
        </div>
        <div class="metric-visual">
@@ -265,7 +318,7 @@
           </div>
           <div class="status-indicator" class:warning={!metrics.isHealthy}>
             <div class="dot pulse"></div>
-            <span>{metrics.isHealthy ? 'AL DÍA' : 'DEUDA PENDIENTE'}</span>
+            <span>{metrics.isHealthy ? $t('payments.healthy_status') : $t('payments.unhealthy_status')}</span>
           </div>
        </div>
        <div class="metric-visual">
@@ -284,7 +337,7 @@
           </div>
           <p class="sublabel flex items-center gap-2">
             <CalendarBlank size={14} />
-            {$t('payments.active_subscription') || 'Suscripción Activa'}
+            {$t('payments.active_subscription')}
           </p>
         </div>
         <div class="metric-visual">
@@ -301,7 +354,7 @@
         <MagnifyingGlass size={20} />
         <input 
           type="text" 
-          placeholder="Filtrar por alumno o concepto..." 
+          placeholder={$t('payments.filter_placeholder')} 
           bind:value={searchQuery}
         />
       </div>
@@ -316,24 +369,24 @@
         </button>
         <button 
           class="filter-btn" 
-          class:active={activeFilter === 'monthly_fee'} 
-          onclick={() => activeFilter = 'monthly_fee'}
+          class:active={activeFilter === 'tournament'}
+          onclick={() => activeFilter = 'tournament'}
         >
-          Cuotas
+          {$t('payments.concepts.tournament')}
         </button>
         <button 
           class="filter-btn" 
           class:active={activeFilter === 'registration'} 
           onclick={() => activeFilter = 'registration'}
         >
-          Matrículas
+          {$t('payments.concepts.registration')}
         </button>
         <button 
           class="filter-btn" 
-          class:active={activeFilter === 'tournament'} 
-          onclick={() => activeFilter = 'tournament'}
+          class:active={activeFilter === 'monthly_fee'} 
+          onclick={() => activeFilter = 'monthly_fee'}
         >
-          Torneos
+          {$t('payments.concepts.monthly_fee')}
         </button>
       </div>
     </div>
@@ -342,7 +395,7 @@
       <table class="ledger-table">
         <thead>
           <tr>
-            <th class="pl-10">{$t('payments.student')}</th>
+            <th class="pl-10">{$t('payments.client_entity')}</th>
             <th>{$t('payments.reference_concept')}</th>
             <th>{$t('payments.accounting_date')}</th>
             <th class="text-right">{$t('payments.amount')}</th>
@@ -355,8 +408,8 @@
               <td colspan="5" class="empty-state">
                 <div class="empty-content">
                   <Receipt size={64} weight="thin" class="opacity-20 translate-y-2" />
-                  <p class="font-outfit text-xl font-bold tracking-tight">Sin transacciones</p>
-                  <span class="text-slate-500 font-jakarta text-sm">No hay registros que coincidan con la búsqueda.</span>
+                  <p class="font-outfit text-xl font-bold tracking-tight">{$t('common.no_results')}</p>
+                  <span class="text-slate-500 font-jakarta text-sm">{$t('payments.no_results_query')}</span>
                 </div>
               </td>
             </tr>
@@ -366,10 +419,10 @@
                 <td class="pl-10">
                   <div class="student-cell">
                     <div class="avatar shadow-inner">
-                      {getStudentName(p.student_id)[0].toUpperCase()}
+                      {getEntityName(p.student_id, p.payment_type)[0].toUpperCase()}
                     </div>
                     <div class="info">
-                      <span class="name">{getStudentName(p.student_id)}</span>
+                      <span class="name">{getEntityName(p.student_id, p.payment_type)}</span>
                       <span class="id">ID: #{p.student_id?.slice(-5).toUpperCase()}</span>
                     </div>
                   </div>
@@ -377,12 +430,9 @@
                 <td>
                   <div class="concept-cell">
                     <span class="concept">
-                      {p.concept === 'monthly_fee' ? 'Cuota Mensual' : 
-                       p.concept === 'registration' ? 'Matrícula' : 
-                       p.concept === 'tournament' ? 'Inscripción Torneo' : 
-                       p.concept === 'material' ? 'Material Didáctico' : p.concept}
+                      {$t(`payments.concepts.${p.concept}`) || p.concept}
                     </span>
-                    <span class="category">{p.payment_type === 'school' ? 'Centro/Escuela' : 'Alumno'}</span>
+                    <span class="category">{$t(`payments.type_${p.payment_type || 'student'}`)}</span>
                   </div>
                 </td>
                 <td>
@@ -394,7 +444,9 @@
                 <td class="text-right">
                   <div class="amount-cell">
                     <span class="amount">{p.amount}{$t('common.currency')}</span>
-                    <span class="status-pill success">COBRADO</span>
+                    <span class="status-pill" class:success={p.status === 'paid'} class:warning={p.status === 'pending' || p.status === 'overdue'}>
+                      {$t(`payments.status_${p.status}`).toUpperCase()}
+                    </span>
                   </div>
                 </td>
                 <td class="pr-10">
@@ -402,15 +454,22 @@
                     <button 
                       class="view-btn" 
                       onclick={() => openReceipt(p)}
-                      title="Ver Recibo"
+                      title={$t('payments.view_receipt')}
                     >
                       <Eye size={18} weight="duotone" />
+                    </button>
+                    <button 
+                      class="edit-btn" 
+                      onclick={() => openEdit(p)}
+                      title={$t('payments.edit_record')}
+                    >
+                      <PencilSimple size={18} weight="duotone" />
                     </button>
                     <button 
                       class="delete-btn" 
                       onclick={() => deletePayment(p.id)}
                       disabled={isDeleting === p.id}
-                      title="Eliminar Registro"
+                      title={$t('payments.delete_record')}
                     >
                       {#if isDeleting === p.id}
                         <ArrowClockwise size={18} class="animate-spin" />
@@ -435,11 +494,19 @@
         <div class="modal-header">
           <div class="modal-title">
             <div class="modal-icon">
-              <Plus size={24} weight="bold" />
+              {#if editMode}
+                <PencilSimple size={24} weight="bold" />
+              {:else}
+                <Plus size={24} weight="bold" />
+              {/if}
             </div>
             <div>
-              <h3 class="font-outfit uppercase tracking-tighter text-2xl">{$t('payments.new_payment')}</h3>
-              <p class="font-jakarta opacity-50 text-xs uppercase tracking-widest font-bold">{$t('payments.modal_description')}</p>
+              <h3 class="font-outfit uppercase tracking-tighter text-2xl">
+                {editMode ? $t('common.edit') + ' ' + $t('actions.payments.title') : $t('payments.new_payment')}
+              </h3>
+              <p class="font-jakarta opacity-50 text-xs uppercase tracking-widest font-bold">
+                {editMode ? 'Modifica los detalles del registro contable' : $t('payments.modal_description')}
+              </p>
             </div>
           </div>
           <button class="close-btn" onclick={() => showModal = false}>
@@ -448,15 +515,54 @@
         </div>
 
         <form class="modal-form" onsubmit={(e) => { e.preventDefault(); addPayment(); }}>
+          
+          <!-- Payment Type Selector -->
           <div class="form-group">
-            <label for="student">Alumno Asociado</label>
+            <label>{$t('payments.payment_type')}</label>
+            <div class="type-selector shadow-inner">
+               <button 
+                type="button" 
+                class="type-btn" 
+                class:active={newPayment.payment_type === 'student'} 
+                onclick={() => { if (newPayment.payment_type !== 'student') { newPayment.payment_type = 'student'; newPayment.student_id = ''; } }}
+               >
+                 <User size={16} weight={newPayment.payment_type === 'student' ? 'fill' : 'regular'} />
+                 {$t('payments.type_student')}
+               </button>
+               <button 
+                type="button" 
+                class="type-btn" 
+                class:active={newPayment.payment_type === 'school'} 
+                onclick={() => { if (newPayment.payment_type !== 'school') { newPayment.payment_type = 'school'; newPayment.student_id = ''; } }}
+               >
+                 <Buildings size={16} weight={newPayment.payment_type === 'school' ? 'fill' : 'regular'} />
+                 {$t('payments.type_school')}
+               </button>
+            </div>
+          </div>
+
+          <!-- Entity Selection -->
+          <div class="form-group">
+            <label for="entity">
+              {newPayment.payment_type === 'school' ? $t('actions.schools.title') : $t('payments.student')}
+            </label>
             <div class="select-wrapper">
-              <IdentificationCard size={20} />
-              <select bind:value={newPayment.student_id} required id="student" class="font-jakarta">
-                <option value="">Selecciona Alumno...</option>
-                {#each students as s}
-                  <option value={s.id}>{s.name.toUpperCase()}</option>
-                {/each}
+              {#if newPayment.payment_type === 'school'}
+                <Buildings size={20} />
+              {:else}
+                <Users size={20} />
+              {/if}
+              <select bind:value={newPayment.student_id} required id="entity" class="font-jakarta">
+                <option value="" disabled selected>{$t('payments.choose_student')}</option>
+                {#if newPayment.payment_type === 'school'}
+                  {#each schools as school}
+                    <option value={school.id}>{school.name}</option>
+                  {/each}
+                {:else}
+                  {#each students as student}
+                    <option value={student.id}>{student.name}</option>
+                  {/each}
+                {/if}
               </select>
               <CaretRight size={16} />
             </div>
@@ -464,14 +570,14 @@
 
           <div class="form-row">
             <div class="form-group flex-1">
-              <label for="amount">Monto ({$t('common.currency')})</label>
+              <label for="amount">{$t('payments.amount')} ({$t('common.currency')})</label>
               <div class="input-wrapper">
                 <CurrencyEur size={20} />
                 <input type="number" step="0.01" bind:value={newPayment.amount} required id="amount" placeholder="0.00" class="font-outfit" />
               </div>
             </div>
             <div class="form-group flex-1">
-              <label for="date">Fecha de Pago</label>
+              <label for="date">{$t('payments.paid_date_label')}</label>
               <div class="input-wrapper no-icon">
                 <input type="date" bind:value={newPayment.paid_date} required id="date" class="font-outfit" />
               </div>
@@ -479,25 +585,38 @@
           </div>
 
           <div class="form-group">
-            <label for="concept">Concepto de Referencia</label>
+            <label for="concept">{$t('payments.reference_concept')}</label>
             <div class="select-wrapper">
               <FileText size={20} />
               <select bind:value={newPayment.concept} required id="concept" class="font-jakarta">
-                <option value="monthly_fee">Cuota Mensual</option>
-                <option value="registration">Matrícula</option>
-                <option value="tournament">Torneo</option>
-                <option value="material">Material</option>
-                <option value="private_lesson">Clase Particular</option>
-                <option value="other">Otro</option>
+                <option value="monthly_fee">{$t('payments.concepts.monthly_fee')}</option>
+                <option value="registration">{$t('payments.concepts.registration')}</option>
+                <option value="tournament">{$t('payments.concepts.tournament')}</option>
+                <option value="material">{$t('payments.concepts.material')}</option>
+                <option value="private_lesson">{$t('payments.concepts.private_lesson')}</option>
+                <option value="other">{$t('payments.concepts.other')}</option>
+              </select>
+              <CaretRight size={16} />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="status">{$t('common.status_completed')}</label>
+            <div class="select-wrapper">
+              <CheckCircle size={20} />
+              <select bind:value={newPayment.status} required id="status" class="font-jakarta">
+                <option value="paid">{$t('payments.status_paid')}</option>
+                <option value="pending">{$t('payments.status_pending')}</option>
+                <option value="overdue">{$t('payments.status_overdue')}</option>
               </select>
               <CaretRight size={16} />
             </div>
           </div>
 
           <div class="form-actions lg:pt-4">
-            <button type="button" class="btn-ghost-alt" onclick={() => showModal = false}>Volver</button>
+            <button type="button" class="btn-ghost-alt" onclick={() => { showModal = false; resetForm(); }}>{$t('common.back')}</button>
             <button type="submit" class="btn-submit shadow-violet-flare">
-              {$t('payments.execute_registration')}
+              {editMode ? $t('common.save_changes') : $t('payments.execute_registration')}
             </button>
           </div>
         </form>
@@ -533,7 +652,7 @@
                     <p class="text-[12px] font-bold text-zinc-400 uppercase tracking-widest">Chess Academy & Management Systems</p>
                   </div>
                   <div class="text-right">
-                    <div class="text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-1">Total Pagado</div>
+                    <div class="text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-1">{$t('payments.receipt.total_paid')}</div>
                     <div class="text-4xl font-black tracking-tight">{formatCurrency(selectedPayment.amount)}</div>
                   </div>
                 </div>
@@ -541,7 +660,7 @@
                 <!-- Main Info Grid -->
                 <div class="grid grid-cols-2 gap-10 mb-14">
                   <div>
-                    <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4">Emitido a</div>
+                    <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4">{$t('payments.receipt.issued_to')}</div>
                     <div class="flex items-center gap-4">
                       <div class="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center">
                         {#if selectedPayment.payment_type === 'student'}
@@ -552,42 +671,40 @@
                       </div>
                       <div>
                         <p class="text-lg font-black text-black leading-tight italic uppercase">
-                          {getStudentName(selectedPayment.student_id)}
+                          {getEntityName(selectedPayment.student_id, selectedPayment.payment_type)}
                         </p>
                         <p class="text-[11px] font-bold text-zinc-500 uppercase italic">
-                          {selectedPayment.payment_type === 'student' ? 'Estudiante Oficial' : 'Entidad/Centro'}
+                          {selectedPayment.payment_type === 'student' ? $t('payments.category_student') : $t('payments.category_school')}
                         </p>
                       </div>
                     </div>
                   </div>
 
                   <div class="text-right">
-                    <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4">Fecha de Emisión</div>
+                    <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4">{$t('payments.receipt.issue_date')}</div>
                     <p class="text-lg font-black text-black italic">
                       {new Date(selectedPayment.paid_date || selectedPayment.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
                     </p>
-                    <p class="text-[10px] font-bold text-emerald-500 uppercase mt-1">✓ Transacción Verificada</p>
+                    <p class="text-[10px] font-bold text-emerald-500 uppercase mt-1">✓ {$t('payments.receipt.verified')}</p>
                   </div>
                 </div>
 
                 <!-- Line Items -->
                 <div class="space-y-5 mb-14">
-                  <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Detalles del Concepto</div>
+                  <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{$t('payments.receipt.concept_details')}</div>
                   <div class="bg-zinc-50 rounded-2xl p-8 border border-zinc-100">
                     <div class="flex justify-between items-start">
                       <div>
                         <p class="text-lg font-black text-black italic uppercase">
-                          {selectedPayment.concept === 'monthly_fee' ? 'Cuota Mensual' : 
-                           selectedPayment.concept === 'registration' ? 'Matrícula de Inscripción' : 
-                           selectedPayment.concept === 'tournament' ? 'Derechos de Torneo' : selectedPayment.concept}
+                          {$t(`payments.concepts.${selectedPayment.concept}`) || selectedPayment.concept}
                         </p>
                         <p class="text-xs font-bold text-zinc-500 mt-2 max-w-[300px] leading-relaxed">
-                          Este recibo confirma la recepción del pago por los servicios indicados anteriormente para el periodo correspondiente.
+                          {$t('payments.receipt.confirmation_text')}
                         </p>
                       </div>
                       <div class="text-right">
                         <p class="text-xl font-black text-black italic">{formatCurrency(selectedPayment.amount)}</p>
-                        <p class="text-[10px] font-bold text-zinc-400 uppercase mt-2">IVA INCLUIDO</p>
+                        <p class="text-[10px] font-bold text-zinc-400 uppercase mt-2">{$t('payments.receipt.tax_included')}</p>
                       </div>
                     </div>
                   </div>
@@ -596,13 +713,13 @@
                 <!-- Footer Details -->
                 <div class="grid grid-cols-2 gap-6 pt-10 border-t-2 border-dashed border-zinc-200">
                   <div>
-                    <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 italic">Método de Pago</div>
+                    <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 italic">{$t('payments.receipt.payment_method')}</div>
                     <p class="text-sm font-black text-black italic">
-                      {selectedPayment.payment_method || 'Transferencia Bancaria'}
+                      {selectedPayment.payment_method || $t('payments.method_transfer')}
                     </p>
                   </div>
                   <div class="text-right">
-                      <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 italic">Ref. de Operación</div>
+                      <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 italic">{$t('payments.receipt.ref_id')}</div>
                       <p class="text-sm font-black text-black italic font-mono">
                         {selectedPayment.id?.slice(-12).toUpperCase()}
                       </p>
@@ -613,7 +730,7 @@
                 <div class="mt-12 flex justify-center">
                   <div class="flex flex-col items-center">
                      <div class="w-48 h-1 bg-zinc-900/5 rounded-full mb-6"></div>
-                     <p class="text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em]">ChessNet International • Secure Transaction</p>
+                     <p class="text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em]">{$t('payments.receipt.footer')}</p>
                   </div>
                 </div>
               </div>
@@ -625,7 +742,7 @@
            <div class="mt-8 flex justify-center gap-4">
               <button class="px-8 py-3 bg-zinc-900 border border-white/10 text-white rounded-2xl font-bold text-sm hover:bg-zinc-800 transition-all flex items-center gap-2" onclick={() => window.print()}>
                 <FileArrowDown size={18} />
-                Descargar PDF
+                {$t('payments.receipt.download_pdf')}
               </button>
            </div>
         </div>
@@ -1046,6 +1163,9 @@
   .view-btn { border-color: rgba(139, 92, 246, 0.1); background: rgba(139, 92, 246, 0.03); color: #a78bfa; }
   .view-btn:hover { background: #8b5cf6; color: white; border-color: #8b5cf6; transform: rotate(-5deg) scale(1.1); }
 
+  .edit-btn { border-color: rgba(14, 165, 233, 0.1); background: rgba(14, 165, 233, 0.03); color: #7dd3fc; }
+  .edit-btn:hover { background: #0ea5e9; color: white; border-color: #0ea5e9; transform: scale(1.1); }
+
   .receipt-modal-card {
     width: 95%; max-width: 650px; position: relative; z-index: 1000;
   }
@@ -1093,6 +1213,43 @@
   .btn-ghost-alt:hover { color: white; border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); }
 
   .close-btn { background: rgba(255,255,255,0.03); border: none; color: #475569; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  /* Type Selector Styles */
+  .type-selector {
+    display: flex;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 18px;
+    padding: 0.4rem;
+    gap: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .type-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 14px;
+    border: none;
+    background: none;
+    color: #475569;
+    font-weight: 800;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .type-btn.active {
+    background: white;
+    color: black;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .status-pill.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+
 
   /* Utilities */
   .text-right { text-align: right; }

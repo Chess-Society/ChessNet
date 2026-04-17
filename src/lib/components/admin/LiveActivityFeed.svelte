@@ -3,7 +3,7 @@
     Pulse, 
     UserPlus, 
     Terminal, 
-    ShieldCheck, 
+    Shield, 
     Clock, 
     Bug,
     Info,

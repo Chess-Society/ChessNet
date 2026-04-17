@@ -19,7 +19,7 @@
   
   // Icons
   import { 
-    Layout, 
+    SquaresFour, 
     Users, 
     Megaphone, 
     ChatTeardropDots, 
@@ -32,7 +32,8 @@
     Star,
     ArrowArcLeft,
     Pulse,
-    CheckCircle
+    CheckCircle,
+    Shield
   } from 'phosphor-svelte';
 
   // Components
@@ -54,7 +55,8 @@
     totalSchools: 0,
     totalClasses: 0,
     premiumUsers: 0,
-    recentUsers: 0
+    recentUsers: 0,
+    totalRevenue: 0
   });
 
   let users = $state<any[]>([]);
@@ -278,7 +280,7 @@
       
       toast.success(`Iniciando suplantación de ${user.email}...`);
       setTimeout(() => {
-        window.location.href = `/panel/dashboard`;
+        window.location.href = `/panel`;
       }, 1000);
     } catch (e) {
       toast.error("Error al iniciar suplantación");
@@ -317,7 +319,7 @@
   <nav class="sticky top-0 z-[60] bg-[#020617]/80 backdrop-blur-2xl border-b border-white/5 py-6 px-8 flex items-center justify-between">
     <div class="flex items-center gap-4">
       <div class="p-3 bg-gradient-to-br from-primary-500 to-violet-600 rounded-2xl shadow-lg shadow-primary-500/20">
-        <Layout weight="duotone" class="w-6 h-6 text-white" />
+        <SquaresFour weight="duotone" class="w-6 h-6 text-white" />
       </div>
       <div>
         <h1 class="text-xl font-black font-display uppercase italic tracking-tighter leading-none">Admin Control Center</h1>
@@ -336,7 +338,7 @@
       
       <div class="flex items-center gap-3">
         <a 
-          href="/panel/dashboard" 
+          href="/panel" 
           class="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all pointer-interactions"
         >
           <ArrowArcLeft weight="bold" class="w-4 h-4" />
@@ -353,16 +355,17 @@
         <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-6">Principal</p>
         <nav class="space-y-2">
           {#each [
-            { id: 'dashboard', label: 'Dashboard', icon: Layout },
+            { id: 'dashboard', label: 'Dashboard', icon: SquaresFour },
             { id: 'users', label: 'Profesores', icon: Users },
             { id: 'lobby', label: 'Community Hub', icon: ChatTeardropDots },
             { id: 'system', label: 'Sistema & Logs', icon: Gear }
           ] as item}
+            {@const Icon = item.icon}
             <button 
               onclick={() => activeTab = item.id}
               class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all {activeTab === item.id ? 'bg-primary-500/10 text-primary-400 border border-primary-500/20 shadow-lg shadow-primary-500/5' : 'text-slate-500 hover:text-white hover:bg-white/5'}"
             >
-              <item.icon weight={activeTab === item.id ? 'duotone' : 'bold'} class="w-5 h-5" />
+              <Icon weight={activeTab === item.id ? 'duotone' : 'bold'} class="w-5 h-5" />
               {item.label}
             </button>
           {/each}
@@ -429,7 +432,7 @@
                       <div class="bg-gradient-to-br from-red-500/10 to-violet-500/10 backdrop-blur-xl border border-white/10 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
                         <div class="relative z-10 space-y-8">
                            <h3 class="text-xl font-black font-display uppercase italic tracking-wider flex items-center gap-3">
-                             <ShieldCheck weight="duotone" class="w-7 h-7 text-red-500" />
+                             <Shield weight="duotone" class="w-7 h-7 text-red-500" />
                              Critical Guard
                            </h3>
                            <div class="space-y-4">
@@ -568,7 +571,7 @@
                   {maintenanceMode}
                   onToggleMaintenance={handleToggleMaintenance}
                   onRepairData={handleRepairUsers}
-                  onClearLogs={() => toast('No disponible temporalmente')}
+                  onClearLogs={() => toast.info('No disponible temporalmente')}
                 />
              </div>
           {/if}

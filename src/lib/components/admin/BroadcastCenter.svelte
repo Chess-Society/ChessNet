@@ -69,11 +69,12 @@
     <!-- Message Type Selector -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       {#each types as t}
+        {@const Icon = t.icon}
         <button 
           onclick={() => type = t.id as any}
           class="flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all {type === t.id ? t.color + ' border border-current shadow-lg shadow-current/5 scale-[1.02]' : 'bg-black/20 border-white/5 text-slate-500 hover:border-white/20'}"
         >
-          <t.icon weight="duotone" class="w-5 h-5" />
+          <Icon weight="duotone" class="w-5 h-5" />
           <span class="text-[9px] font-black uppercase tracking-tighter">{t.label}</span>
         </button>
       {/each}

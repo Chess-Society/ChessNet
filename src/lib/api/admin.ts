@@ -29,16 +29,19 @@ export const adminApi = {
       schoolsSnap,
       classesSnap,
       premiumSnap,
-      recentSnap
+      recentSnap,
+      paymentsSnap
     ] = await Promise.all([
       getCountFromServer(collection(db, "users")),
       getCountFromServer(collection(db, "students")),
       getCountFromServer(collection(db, "schools")),
       getCountFromServer(collection(db, "classes")),
       getCountFromServer(query(collection(db, "users"), where("settings.plan", "==", "premium"))),
-      // Si falla por falta de createdAt, pondremos 0 o usaremos un fallback
-      getCountFromServer(query(collection(db, "users"), where("createdAt", ">=", sevenDaysAgo.toISOString())))
+      getCountFromServer(query(collection(db, "users"), where("createdAt", ">=", sevenDaysAgo.toISOString()))),
+      getDocs(collection(db, "payments"))
     ]);
+
+    const totalRevenue = paymentsSnap.docs.reduce((acc, d) => acc + (d.data().amount || 0), 0);
 
     return {
       totalUsers: usersSnap.data().count,
@@ -46,7 +49,8 @@ export const adminApi = {
       totalSchools: schoolsSnap.data().count,
       totalClasses: classesSnap.data().count,
       premiumUsers: premiumSnap.data().count,
-      recentUsers: recentSnap.data().count
+      recentUsers: recentSnap.data().count,
+      totalRevenue
     };
   },
 

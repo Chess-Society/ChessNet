@@ -69,7 +69,7 @@ export interface AppState {
   studentBadges: StudentBadge[];
   studentStats: any[];
   reports: any[];
-  unlockedInsignias: any[];
+  unlockedAchievements: any[];
   settings: AppSettings;
   dashboardLayout: string[];
 }
@@ -182,7 +182,7 @@ function createAppStore() {
         { key: 'localTournamentRounds', path: 'local_tournament_rounds', api: '/api/local_tournament_rounds' },
         { key: 'localTournamentPairings', path: 'local_tournament_pairings', api: '/api/local_tournament_pairings' },
         { key: 'payments', path: 'payments', api: '/api/payments' },
-        { key: 'unlockedInsignias', path: 'achievements', api: '/api/achievements' }
+        { key: 'unlockedAchievements', path: 'achievements', api: '/api/achievements' }
       ];
 
       collectionsMap.forEach(({ key, path, api }) => {
@@ -477,16 +477,53 @@ function createAppStore() {
     },
     
     addPayment: async (payment: any) => {
-      const user = auth.currentUser;
+      const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
+
+      if (user.uid === 'chessnet-dev-uid') {
+        const newPayment = { 
+          id: 'mock-pay-' + Date.now(), 
+          ...payment, 
+          owner_id: user.uid,
+          createdAt: new Date().toISOString() 
+        };
+        update(s => ({ ...s, payments: [...s.payments, newPayment] }));
+        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(appStore).payments));
+        return newPayment;
+      }
+
       const collRef = collection(db, 'payments');
-      await addDoc(collRef, { 
+      const docRef = await addDoc(collRef, { 
         ...payment, 
         owner_id: user.uid,
         createdAt: new Date().toISOString() 
       });
+      return { id: docRef.id, ...payment };
+    },
+    updatePayment: async (payment: any) => {
+      const user = get(authStoreUser);
+      if (!user) throw new Error("No authenticated user");
+
+      if (user.uid === 'chessnet-dev-uid') {
+        update(s => ({ 
+          ...s, 
+          payments: s.payments.map(p => p.id === payment.id ? { ...p, ...payment, updatedAt: new Date().toISOString() } : p) 
+        }));
+        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(appStore).payments));
+        return;
+      }
+
+      const { id, ...data } = payment;
+      const docRef = doc(db, 'payments', id);
+      await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removePayment: async (id: string) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, payments: s.payments.filter(p => p.id !== id) }));
+        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(appStore).payments));
+        return;
+      }
       await deleteDoc(doc(db, 'payments', id));
     },
 

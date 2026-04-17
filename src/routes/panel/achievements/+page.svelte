@@ -2,7 +2,7 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { appStore } from '$lib/stores/appStore';
   import { INSIGNIAS } from '$lib/constants/insignias';
-  import { Trophy, Medal, LockKey, CheckCircle, Info, Sparkle, ShieldCheck, Star, Crown, Lightning, MagicWand } from 'phosphor-svelte';
+  import { Trophy, Medal, LockKey, CheckCircle, Info, Sparkle, Shield, Star, Crown, Lightning, MagicWand } from 'phosphor-svelte';
   import { t } from '$lib/i18n';
   import { goto } from '$app/navigation';
 
@@ -28,7 +28,7 @@
       if (insignia.type === 'automatic' && insignia.condition) {
         isUnlocked = insignia.condition(stats);
       } else {
-        const found = unlockedData.find(u => u.id === insignia.id);
+        const found = unlockedData.find((u: any) => u.id === insignia.id);
         if (found) {
           isUnlocked = true;
           unlockDate = found.unlockedAt;
@@ -192,7 +192,8 @@
               {#if !insignia.isUnlocked}
                 <LockKey size={34} weight="duotone" />
               {:else}
-                <insignia.icon size={34} weight="duotone" />
+                {@const Icon = insignia.icon}
+                <Icon size={34} weight="duotone" />
               {/if}
             </div>
 
@@ -244,7 +245,7 @@
     {:else}
       <div class="col-span-full py-20 text-center space-y-4 bg-white/5 rounded-[3rem] border border-dashed border-white/10" in:fade>
          <div class="inline-flex p-5 rounded-full bg-slate-900 border border-white/5 text-slate-600 mb-2">
-           <ShieldCheck size={40} weight="duotone" />
+           <Shield size={40} weight="duotone" />
          </div>
          <h3 class="text-xl font-bold text-white">{$t('badges.no_badges_found')}</h3>
          <p class="text-slate-500 text-sm">{$t('badges.change_filters_desc')}</p>

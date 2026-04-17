@@ -4,13 +4,6 @@
   import { Warning, Info, Trash, Check, X } from 'phosphor-svelte';
   import { quintOut } from 'svelte/easing';
 
-  const getIcon = (type?: string) => {
-    switch (type) {
-      case 'danger': return Trash;
-      case 'warning': return Warning;
-      default: return Info;
-    }
-  };
 
   const getTypeStyles = (type?: string) => {
     switch (type) {
@@ -29,6 +22,14 @@
         button: 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 shadow-primary-900/40',
         accent: 'bg-primary-500/20'
       };
+    }
+  };
+
+  const getIcon = (type?: string) => {
+    switch (type) {
+      case 'danger': return Trash;
+      case 'warning': return Warning;
+      default: return Info;
     }
   };
 </script>
@@ -104,7 +105,13 @@
             <button
               type="button"
               class="inline-flex items-center justify-center px-8 py-5 rounded-2xl text-[10px] font-black text-slate-500 bg-white/[0.02] border border-white/5 hover:bg-white/[0.08] hover:text-white transition-all active:scale-95 uppercase tracking-[0.2em]"
-              onclick={() => dialog.onCancel()}
+              onclick={() => {
+                if (dialog.onCancel) {
+                  dialog.onCancel();
+                } else {
+                  uiStore.closeConfirm();
+                }
+              }}
             >
               {dialog.cancelText || 'Cancelar'}
             </button>

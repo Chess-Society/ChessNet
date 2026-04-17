@@ -309,7 +309,8 @@
                     {#each $appStore.settings.featuredInsignias as insId}
                       {@const ins = INSIGNIAS.find(i => i.id === insId)}
                       {#if ins}
-                        <ins.icon size={12} weight="fill" class={ins.color} />
+                        {@const Icon = ins.icon}
+                        <Icon size={12} weight="fill" class={ins.color} />
                       {/if}
                     {/each}
                   </div>
@@ -332,7 +333,8 @@
                     {#each $appStore.settings.featuredInsignias as insId}
                       {@const ins = INSIGNIAS.find(i => i.id === insId)}
                       {#if ins}
-                        <ins.icon size={11} weight="fill" class={ins.color} />
+                        {@const Icon = ins.icon}
+                        <Icon size={11} weight="fill" class={ins.color} />
                       {/if}
                     {/each}
                   </div>

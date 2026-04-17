@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { CheckCircle2, XCircle, School, Scale, LayoutDashboard, Sparkles, ShieldCheck } from 'lucide-svelte';
+  import { CheckCircle, XCircle, Buildings, Scales, SquaresFour, Sparkle, Shield } from 'phosphor-svelte';
   import { initiateUpgrade } from '$lib/api/subscriptions';
   import { auth } from '$lib/firebase';
   import { onAuthStateChanged, type User } from 'firebase/auth';
@@ -97,7 +97,7 @@
     <!-- Hero -->
     <div class="max-w-5xl mx-auto px-6 text-center mb-20 animate-fade-in">
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-8">
-        <Sparkles class="w-3.5 h-3.5" />
+        <Sparkle class="w-3.5 h-3.5" />
         <span>{$t('pricing.recommended')}</span>
       </div>
       <h1 class="text-5xl md:text-7xl font-display font-black text-white mb-8 tracking-tight">
@@ -119,19 +119,19 @@
             </div>
             <ul class="space-y-5 text-surface-400 font-medium text-sm">
                <li class="flex items-center gap-3">
-                 <CheckCircle2 class="w-5 h-5 text-surface-700" />
+                 <CheckCircle class="w-5 h-5 text-surface-700" />
                  <span>{$t('pricing.free.feat1')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <CheckCircle2 class="w-5 h-5 text-surface-700" />
+                 <CheckCircle class="w-5 h-5 text-surface-700" />
                  <span>{$t('pricing.free.feat2')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <CheckCircle2 class="w-5 h-5 text-surface-700" />
+                 <CheckCircle class="w-5 h-5 text-surface-700" />
                  <span>{$t('pricing.free.feat3')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <CheckCircle2 class="w-5 h-5 text-surface-700" />
+                 <CheckCircle class="w-5 h-5 text-surface-700" />
                  <span>{$t('pricing.free.feat4')}</span>
                </li>
             </ul>
@@ -153,19 +153,19 @@
             </div>
             <ul class="space-y-5 text-surface-200 font-semibold text-sm">
                <li class="flex items-center gap-3">
-                 <ShieldCheck class="w-5 h-5 text-primary-400" />
+                 <Shield class="w-5 h-5 text-primary-400" />
                  <span>{$t('pricing.premium.feat1')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <ShieldCheck class="w-5 h-5 text-primary-400" />
+                 <Shield class="w-5 h-5 text-primary-400" />
                  <span>{$t('pricing.premium.feat2')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <ShieldCheck class="w-5 h-5 text-primary-400" />
+                 <Shield class="w-5 h-5 text-primary-400" />
                  <span>{$t('pricing.premium.feat3')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <ShieldCheck class="w-5 h-5 text-primary-400" />
+                 <Shield class="w-5 h-5 text-primary-400" />
                  <span>{$t('pricing.premium.feat4')}</span>
                </li>
             </ul>
@@ -181,7 +181,7 @@
       <div class="bento-card !p-0 border-white/5 overflow-hidden">
         <div class="p-8 border-b border-white/5 bg-white/[0.01]">
           <h3 class="text-2xl font-bold text-white flex items-center gap-3">
-             <Scale class="w-6 h-6 text-primary-400" />
+             <Scales class="w-6 h-6 text-primary-400" />
              {$t('pricing.comparison.title')}
           </h3>
         </div>

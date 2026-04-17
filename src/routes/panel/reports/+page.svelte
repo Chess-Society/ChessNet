@@ -37,7 +37,7 @@
   // Tasa de asistencia real
   const attendanceRate = $derived(() => {
     if (attendance.length === 0) return 0;
-    const present = attendance.filter(a => a.status === 'P' || a.status === 'L').length;
+    const present = attendance.filter(a => a.status === 'P' || a.status === 'T').length;
     return Math.round((present / attendance.length) * 100);
   });
 

@@ -180,12 +180,13 @@
       { label: 'Jugadores', value: stats.totalPlayers, icon: Users, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
       { label: 'Únicos', value: stats.uniquePlayers, icon: Medal, color: 'text-amber-400', bg: 'bg-amber-500/10' }
     ] as stat}
+      {@const Icon = stat.icon}
       <div class="p-6 bg-zinc-900/50 border border-white/5 rounded-3xl flex flex-col gap-4 relative overflow-hidden group">
         <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-          <stat.icon weight="fill" class="w-20 h-20" />
+          <Icon weight="fill" class="w-20 h-20" />
         </div>
         <div class="w-10 h-10 {stat.bg} rounded-xl flex items-center justify-center {stat.color}">
-          <stat.icon weight="duotone" class="w-6 h-6" />
+          <Icon weight="duotone" class="w-6 h-6" />
         </div>
         <div>
           <p class="text-[10px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-1">{stat.label}</p>

@@ -152,7 +152,7 @@
       const unsubM = onSnapshot(qM, (snap) => {
         let loadedMessages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         // Ordenar en memoria por createdAt
-        messages = loadedMessages.sort((a, b) => {
+        messages = (loadedMessages as any[]).sort((a, b) => {
           const dateA = new Date(a.createdAt || 0).getTime();
           const dateB = new Date(b.createdAt || 0).getTime();
           return dateA - dateB;
@@ -549,8 +549,9 @@
                           {#each m.authorInsignias as insId}
                             {@const ins = INSIGNIAS.find(i => i.id === insId)}
                             {#if ins}
+                              {@const Icon = ins.icon}
                               <div class="group/ins relative">
-                                <ins.icon size={11} weight="fill" class={ins.color} />
+                                <Icon size={11} weight="fill" class={ins.color} />
                                 <!-- Tooltip naming insignia -->
                                 <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-[8px] font-black text-white uppercase tracking-tighter rounded border border-white/10 opacity-0 group-hover/ins:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                                   {$t(ins.titleKey)}

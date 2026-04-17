@@ -70,7 +70,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
       'Control de rupturas del rival',
       'Bloqueo preventivo'
     ],
-    icon: 'ShieldCheck'
+    icon: 'Shield'
   },
 
   // 3. CÁLCULO

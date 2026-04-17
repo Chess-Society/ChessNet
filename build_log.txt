@@ -1,0 +1,168 @@
+﻿
+> chessnet-sveltekit@1.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding SSR bundle for production...[36m[39m
+transforming...
+node.exe : 16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:478:4 Visible, non-interactive 
+elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element 
+such as `<button type="button">` or `<a>` might be more appropriate
+En línea: 1 Carácter: 1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (16:28:08 [vite-...ore appropriate:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+https://svelte.dev/e/a11y_click_events_have_key_events
+476:   <!-- Modal Nuveo Pago -->
+477:   {#if showModal}
+478:     <div class="modal-overlay" transition:fade onclick={() => showModal = false}>
+               ^
+479:       <div class="modal-card" transition:scale={{ start: 0.9, duration: 400 }} onclick={(e) => 
+e.stopPropagation()}>
+480:         <div class="modal-header">
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:478:4 `<div>` with a click handler must have an 
+ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+476:   <!-- Modal Nuveo Pago -->
+477:   {#if showModal}
+478:     <div class="modal-overlay" transition:fade onclick={() => showModal = false}>
+               ^
+479:       <div class="modal-card" transition:scale={{ start: 0.9, duration: 400 }} onclick={(e) => 
+e.stopPropagation()}>
+480:         <div class="modal-header">
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:479:6 Visible, non-interactive elements with a 
+click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button 
+type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+477:   {#if showModal}
+478:     <div class="modal-overlay" transition:fade onclick={() => showModal = false}>
+479:       <div class="modal-card" transition:scale={{ start: 0.9, duration: 400 }} onclick={(e) => 
+e.stopPropagation()}>
+                 ^
+480:         <div class="modal-header">
+481:           <div class="modal-title">
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:479:6 `<div>` with a click handler must have an 
+ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+477:   {#if showModal}
+478:     <div class="modal-overlay" transition:fade onclick={() => showModal = false}>
+479:       <div class="modal-card" transition:scale={{ start: 0.9, duration: 400 }} onclick={(e) => 
+e.stopPropagation()}>
+                 ^
+480:         <div class="modal-header">
+481:           <div class="modal-title">
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:563:4 Visible, non-interactive elements with a 
+click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button 
+type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+561:   <!-- Modal Recibo Premium -->
+562:   {#if showReceipt && selectedPayment}
+563:     <div class="modal-overlay" transition:fade onclick={() => showReceipt = false}>
+               ^
+564:       <div class="receipt-modal-card" transition:scale={{ start: 0.9, duration: 400 }} onclick={(e) => 
+e.stopPropagation()}>
+565:         <button class="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex 
+items-center justify-center transition-all" onclick={() => showReceipt = false}>
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:563:4 `<div>` with a click handler must have an 
+ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+561:   <!-- Modal Recibo Premium -->
+562:   {#if showReceipt && selectedPayment}
+563:     <div class="modal-overlay" transition:fade onclick={() => showReceipt = false}>
+               ^
+564:       <div class="receipt-modal-card" transition:scale={{ start: 0.9, duration: 400 }} onclick={(e) => 
+e.stopPropagation()}>
+565:         <button class="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex 
+items-center justify-center transition-all" onclick={() => showReceipt = false}>
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:564:6 Visible, non-interactive elements with a 
+click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button 
+type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+562:   {#if showReceipt && selectedPayment}
+563:     <div class="modal-overlay" transition:fade onclick={() => showReceipt = false}>
+564:       <div class="receipt-modal-card" transition:scale={{ start: 0.9, duration: 400 }} onclick={(e) => 
+e.stopPropagation()}>
+                 ^
+565:         <button class="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex 
+items-center justify-center transition-all" onclick={() => showReceipt = false}>
+566:            <X size={20} weight="bold" class="text-zinc-400 group-hover:text-black" />
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:564:6 `<div>` with a click handler must have an 
+ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+562:   {#if showReceipt && selectedPayment}
+563:     <div class="modal-overlay" transition:fade onclick={() => showReceipt = false}>
+564:       <div class="receipt-modal-card" transition:scale={{ start: 0.9, duration: 400 }} onclick={(e) => 
+e.stopPropagation()}>
+                 ^
+565:         <button class="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex 
+items-center justify-center transition-all" onclick={() => showReceipt = false}>
+566:            <X size={20} weight="bold" class="text-zinc-400 group-hover:text-black" />
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:1045:2 Unused CSS selector ".filter-btn.disabled"
+https://svelte.dev/e/css_unused_selector
+1043: 
+1044:   .filter-btn.active { background: white; color: #0f172a; }
+1045:   .filter-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+                            ^
+1046: 
+1047:   .ledger-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:1136:2 Unused CSS selector ".input-wrapper svg"
+https://svelte.dev/e/css_unused_selector
+1134:   .input-wrapper input:focus, .select-wrapper select:focus { border-color: #8b5cf6; background: rgba(124, 58, 
+237, 0.05); box-shadow: 0 0 30px rgba(124, 58, 237, 0.15); }
+1135: 
+1136:   .input-wrapper svg, .select-wrapper svg:first-child { position: absolute; left: 1.5rem; color: #475569; }
+                          ^
+1137:   .select-wrapper { position: relative; }
+1138:   .select-wrapper select { -webkit-appearance: none; -moz-appearance: none; appearance: none; cursor: pointer; }
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:1136:22 Unused CSS selector ".select-wrapper 
+svg:first-child"
+https://svelte.dev/e/css_unused_selector
+1134:   .input-wrapper input:focus, .select-wrapper select:focus { border-color: #8b5cf6; background: rgba(124, 58, 
+237, 0.05); box-shadow: 0 0 30px rgba(124, 58, 237, 0.15); }
+1135: 
+1136:   .input-wrapper svg, .select-wrapper svg:first-child { position: absolute; left: 1.5rem; color: #475569; }
+                                                           ^
+1137:   .select-wrapper { position: relative; }
+1138:   .select-wrapper select { -webkit-appearance: none; -moz-appearance: none; appearance: none; cursor: pointer; }
+16:28:08 [vite-plugin-svelte] src/routes/panel/payments/+page.svelte:1139:2 Unused CSS selector ".select-wrapper 
+svg:last-child"
+https://svelte.dev/e/css_unused_selector
+1137:   .select-wrapper { position: relative; }
+1138:   .select-wrapper select { -webkit-appearance: none; -moz-appearance: none; appearance: none; cursor: pointer; }
+1139:   .select-wrapper svg:last-child { position: absolute; right: 1.5rem; color: #475569; transform: rotate(90deg); 
+pointer-events: none; }
+                                      ^
+1140: 
+1141:   .form-row { display: flex; gap: 1.5rem; }
+[32mÔ£ô[39m 6851 modules transformed.
+[31mx[39m Build failed in 15.52s
+[31merror during build:
+[31msrc/routes/pricing/+page.svelte (4:44): "Scale" is not exported by "node_modules/phosphor-svelte/lib/index.js", 
+imported by "src/routes/pricing/+page.svelte".[31m
+file: [36mC:/Users/tomih/Desktop/ChessNet/src/routes/pricing/+page.svelte:4:44[31m
+[33m
+2:   import { onMount } from 'svelte';
+3:   import { goto } from '$app/navigation';
+4:   import { CheckCircle, XCircle, Buildings, Scale, SquaresFour, Sparkle, Shield } from 'phosphor-svelte';
+                                               ^
+5:   import { initiateUpgrade } from '$lib/api/subscriptions';
+6:   import { auth } from '$lib/firebase';
+[31m
+    at getRollupError (file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/parseAst.js:406:41)
+    at error (file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/parseAst.js:402:42)
+    at Module.error (file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/node-entry.js:17380:16)
+    at Module.traceVariable 
+(file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/node-entry.js:17813:29)
+    at ModuleScope.findVariable 
+(file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/node-entry.js:15403:39)
+    at FunctionScope.findVariable 
+(file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/node-entry.js:5676:38)
+    at FunctionBodyScope.findVariable 
+(file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/node-entry.js:5676:38)
+    at ReturnValueScope.findVariable 
+(file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/node-entry.js:5676:38)
+    at FunctionBodyScope.findVariable 
+(file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/node-entry.js:5676:38)
+    at Identifier.bind 
+(file:///C:/Users/tomih/Desktop/ChessNet/node_modules/rollup/dist/es/shared/node-entry.js:5450:40)[39m

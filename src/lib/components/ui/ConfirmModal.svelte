@@ -60,7 +60,7 @@
     }
   };
 
-  const config = $derived(typeConfig[type]);
+  const config = $derived(typeConfig[type as keyof typeof typeConfig]);
 </script>
 
 {#if show}

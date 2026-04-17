@@ -128,10 +128,11 @@
             { label: 'Storage', icon: HardDrive, current: upgradeData.usage_stats.storage_used_mb, max: upgradeData.user_limits.max_storage_mb },
             { label: 'Skills', icon: Target, current: upgradeData.usage_stats.custom_skills_count, max: upgradeData.user_limits.max_custom_skills }
           ] as stat}
+            {@const Icon = stat.icon}
             <div class="space-y-3">
               <div class="flex items-center justify-between text-[10px] font-outfit font-black uppercase tracking-widest text-slate-500">
                 <span class="flex items-center gap-2">
-                  <stat.icon weight="duotone" class="w-4 h-4 text-violet-500/60" />
+                  <Icon weight="duotone" class="w-4 h-4 text-violet-500/60" />
                   {stat.label}
                 </span>
               </div>

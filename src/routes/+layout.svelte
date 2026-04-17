@@ -145,15 +145,16 @@
             { label: 'Torneos', value: 'Optimizando', icon: Trophy, delay: 150, color: 'text-indigo-400' },
             { label: 'Servidor', value: 'Estable', icon: Settings, delay: 300, color: 'text-emerald-400' }
           ] as indicator}
+             {@const Icon = indicator.icon}
              <div 
                class="p-6 md:p-8 bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] rounded-[2rem] flex flex-col items-center gap-4 hover:bg-white/[0.05] hover:border-violet-500/20 transition-all group relative overflow-hidden"
                in:fly={{ y: 20, delay: indicator.delay, duration: 600 }}
              >
                 <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <indicator.icon class="w-24 h-24" />
+                    <Icon class="w-24 h-24" />
                 </div>
                 <div class="w-12 h-12 bg-black/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 border border-white/5">
-                  <indicator.icon class="w-6 h-6 {indicator.color}" />
+                  <Icon class="w-6 h-6 {indicator.color}" />
                 </div>
                 <div class="relative z-10 text-center">
                     <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-1.5">{indicator.label}</p>

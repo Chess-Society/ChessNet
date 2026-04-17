@@ -6,7 +6,7 @@
     Gear, 
     User as UserIcon, 
     Bell, 
-    ShieldCheck, 
+    Shield, 
     CreditCard, 
     At,
     Camera,
@@ -181,6 +181,7 @@
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {#each availableInsignias as insignia}
                   {@const isFeatured = config.featuredInsignias.includes(insignia.id)}
+                  {@const Icon = insignia.icon}
                   <button 
                     onclick={() => toggleInsignia(insignia.id)}
                     class="relative group p-4 rounded-2xl border transition-all flex flex-col items-center gap-3 text-center
@@ -189,7 +190,7 @@
                       : 'bg-zinc-950/40 border-white/5 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:border-white/10'}"
                   >
                       <div class="w-12 h-12 bg-black/60 rounded-xl flex items-center justify-center {insignia.color}">
-                          <insignia.icon weight={isFeatured ? 'duotone' : 'regular'} class="w-7 h-7" />
+                          <Icon weight={isFeatured ? 'duotone' : 'regular'} class="w-7 h-7" />
                       </div>
                       <p class="text-[10px] font-black uppercase tracking-tight line-clamp-1">{$t(insignia.titleKey)}</p>
                       
@@ -212,7 +213,7 @@
       <!-- Security Section -->
       <div class="bento-card p-10">
           <h2 class="text-xl font-outfit font-bold text-white mb-8 flex items-center gap-3">
-              <ShieldCheck weight="duotone" class="w-6 h-6 text-violet-500" />
+              <Shield weight="duotone" class="w-6 h-6 text-violet-500" />
               {$t('settings.security_title')}
           </h2>
           

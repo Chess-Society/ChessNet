@@ -23,7 +23,8 @@ export const handle: Handle = async ({ event, resolve }) => {
             const isMaintenance = configSnap.exists && configSnap.data()?.maintenanceMode === true;
             
             if (isMaintenance) {
-                const isAdmin = event.locals.user && ADMIN_EMAILS.includes(event.locals.user.email || '');
+                const userEmail = (event.locals.user?.email || '').toLowerCase();
+                const isAdmin = userEmail && ADMIN_EMAILS.map(e => e.toLowerCase()).includes(userEmail);
                 
                 if (!isAdmin) {
                     // Si es una petición de datos (feth), devolvemos error 503

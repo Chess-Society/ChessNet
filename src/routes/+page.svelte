@@ -9,7 +9,7 @@
     ChevronRight,
     School,
     Sparkles,
-    ShieldCheck,
+    Shield,
     Zap,
     Languages
   } from "lucide-svelte";
@@ -249,7 +249,7 @@
               <ul class="space-y-4 mb-10 text-surface-200 font-medium">
                 {#each [1, 2, 3, 4] as i}
                   <li class="flex items-center gap-3">
-                    <ShieldCheck class="w-5 h-5 text-primary-400" />
+                    <Shield class="w-5 h-5 text-primary-400" />
                     <span>{$t(`pricing.premium.feat${i}`)}</span>
                   </li>
                 {/each}

@@ -2,7 +2,7 @@
   import { t } from '$lib/i18n';
   import { 
     Terminal, 
-    ShieldCheck, 
+    Shield, 
     Database, 
     Warning,
     Pulse,
@@ -45,11 +45,11 @@
   <div class="lg:col-span-1 space-y-6">
     <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
       <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-        <ShieldCheck weight="duotone" class="w-24 h-24" />
+        <Shield weight="duotone" class="w-24 h-24" />
       </div>
       
       <h3 class="text-xl font-black font-display uppercase italic tracking-wider mb-8 flex items-center gap-3">
-        <ShieldCheck weight="duotone" class="w-6 h-6 text-primary-500" />
+        <Shield weight="duotone" class="w-6 h-6 text-primary-500" />
         Seguridad
       </h3>
 
