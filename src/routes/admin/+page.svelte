@@ -230,7 +230,7 @@
     isSaving = true;
     try {
       const result = await adminApi.repairUsersData();
-      toast.success(`Se han revisado ${result.count} usuarios.`);
+      toast.success(`Se han reparado ${result.count} de ${result.total} usuarios.`);
       // No necesitamos recargar manualmente si el snapshot está activo,
       // pero como el query de snapshot filtra por createdAt, ahora sí deberían aparecer.
     } catch (err: any) {
@@ -431,27 +431,13 @@
     if (!confirmed) return;
     isSaving = true;
     try {
-      const userDocRef = doc(db, "users", userId);
-      const appDataRef = doc(db, "users", userId, "appData", "v1");
-
-      await updateDoc(userDocRef, {
-        "settings.plan": "free",
-        "settings.planExpiresAt": null,
-      });
-
-      const snap = await getDoc(appDataRef);
-      if (snap.exists()) {
-        await updateDoc(appDataRef, {
-          "settings.plan": "free",
-          "settings.planExpiresAt": null,
-        });
-      }
+      await adminApi.revokePremium(userId);
       showEditModal = false;
       toast.success($t('admin.users.revoke_success'));
       await invalidateAll();
       await new Promise(r => setTimeout(r, 100));
     } catch (err: any) {
-      toast.error(err.message);
+      showError(err);
     } finally {
       isSaving = false;
     }
@@ -478,9 +464,13 @@
 
   function getPlanStatus(user: any) {
     if (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) return "pro";
-    const plan = user?.settings?.plan ||
-      user?.config?.settings?.subscription?.plan ||
-      "free";
+    
+    // Prioridad absoluta al nuevo esquema de settings
+    const plan = user?.settings?.plan || "free";
+    
+    // Si el nuevo esquema es free, pero tiene el viejo esquema como premium, 
+    // lo mostramos como "legacy-pro" o similar para que el admin sepa que hay algo raro,
+    // pero para simplicidad y dado que vamos a limpiar, sigamos con settings.plan como único origen.
     return plan === 'premium' ? 'pro' : plan;
   }
 </script>

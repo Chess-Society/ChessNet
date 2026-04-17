@@ -214,6 +214,39 @@ export const adminApi = {
   },
 
   /**
+   * Revoca totalmente el acceso premium de un usuario.
+   */
+  async revokePremium(userId: string) {
+    const userRef = doc(db, "users", userId);
+    const appDataRef = doc(db, "users", userId, "appData", "v1");
+
+    // Limpiamos TODAS las rutas posibles donde se guardaba el plan
+    const updates: any = {
+      "settings.plan": "free",
+      "settings.planExpiresAt": null,
+      "settings.updatedAt": new Date().toISOString(),
+      // Limpieza de campos legacy si existen (usando dot notation)
+      "config.settings.subscription.plan": null,
+      "config.settings.subscription.status": null
+    };
+
+    await updateDoc(userRef, updates);
+
+    // También limpiamos appData si existe
+    try {
+      const snap = await getDoc(appDataRef);
+      if (snap.exists()) {
+        await updateDoc(appDataRef, {
+          "settings.plan": "free",
+          "settings.planExpiresAt": null
+        });
+      }
+    } catch (e) {
+      console.warn("[AdminAPI] appData/v1 non-existent or inaccessible for user", userId);
+    }
+  },
+
+  /**
    * REPARACIÓN DE DATOS: 
    * Asegura que todos los documentos de usuario tengan createdAt
    */
@@ -221,16 +254,38 @@ export const adminApi = {
     const snap = await getDocs(collection(db, "users"));
     console.log(`[AdminAPI] Repairing ${snap.size} users...`);
     
+    let repairedCount = 0;
     const promises = snap.docs.map(async (docSnap) => {
       const data = docSnap.data();
+      let needsUpdate = false;
+      const updates: any = {};
+
+      // 1. Asegurar createdAt
       if (!data.createdAt) {
-        await setDoc(doc(db, "users", docSnap.id), {
-          createdAt: new Date().toISOString()
-        }, { merge: true });
+        updates.createdAt = new Date().toISOString();
+        needsUpdate = true;
+      }
+
+      // 2. Migrar/Limpiar plan legacy
+      const legacyPlan = data.config?.settings?.subscription?.plan;
+      if (legacyPlan) {
+        // Si no tiene plan en el nuevo formato, lo migramos
+        if (!data.settings?.plan) {
+          updates["settings.plan"] = legacyPlan;
+          updates["settings.planExpiresAt"] = data.config?.settings?.subscription?.expiresAt || null;
+        }
+        // En cualquier caso, marcamos para limpiar el legacy para evitar confusiones
+        updates["config.settings.subscription"] = null;
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) {
+        await updateDoc(doc(db, "users", docSnap.id), updates);
+        repairedCount++;
       }
     });
 
     await Promise.all(promises);
-    return { count: snap.size };
+    return { count: repairedCount, total: snap.size };
   }
 };
