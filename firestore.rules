@@ -75,15 +75,38 @@ service cloud.firestore {
       ));
     }
 
+    // Lobby: Grupos de la comunidad
+    match /community_groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // Lobby: Mensajería de la comunidad
+    match /community_messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.authorId == request.auth.uid);
+    }
+
     // Regla maestra para datos de negocio (centros, clases, alumnos, etc)
     match /{collection}/{docId} {
-      allow read: if isSuperAdmin() || (isAuthenticated() && resource != null && resource.data.owner_id == request.auth.uid);
-      allow create: if isSuperAdmin() || (isAuthenticated() && request.resource.data.owner_id == request.auth.uid);
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource != null && (
+        (resource.data.owner_id == request.auth.uid) ||
+        (resource.data.authorId == request.auth.uid)
+      ));
+      allow create: if isSuperAdmin() || (isAuthenticated() && (
+        (request.resource.data.owner_id == request.auth.uid) ||
+        (request.resource.data.authorId == request.auth.uid)
+      ));
       allow update: if isSuperAdmin() || (isAuthenticated() && (
         (resource != null && resource.data.owner_id == request.auth.uid && request.resource.data.owner_id == request.auth.uid) ||
+        (resource != null && resource.data.authorId == request.auth.uid && request.resource.data.authorId == request.auth.uid) ||
         isSuperAdmin()
       ));
-      allow delete: if isSuperAdmin() || (isAuthenticated() && resource != null && resource.data.owner_id == request.auth.uid);
+      allow delete: if isSuperAdmin() || (isAuthenticated() && resource != null && (
+        (resource.data.owner_id == request.auth.uid) ||
+        (resource.data.authorId == request.auth.uid)
+      ));
     }
   }
 }

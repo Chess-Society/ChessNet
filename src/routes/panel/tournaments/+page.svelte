@@ -22,9 +22,20 @@
   import { t, locale } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
   import { uiStore } from '$lib/stores/uiStore';
+  import { user as authUser } from '$lib/stores/auth';
+  import { ADMIN_EMAILS } from '$lib/constants';
   import { TOURNAMENT_TEMPLATES } from '$lib/constants/chess-presets';
   import { fade, fly, scale } from 'svelte/transition';
   import { showToast, showError } from '$lib/stores/toast';
+
+  const plan = $derived($appStore?.settings?.plan || 'free');
+  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+
+  onMount(() => {
+    if (plan === 'free' && !isAdmin) {
+      goto('/pricing');
+    }
+  });
 
   let searchQuery = $state('');
   let isImporting = $state(false);

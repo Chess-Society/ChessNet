@@ -190,6 +190,10 @@ export const adminApi = {
     await updateDoc(docRef, { status });
   },
 
+  async deleteSuggestion(id: string) {
+    await deleteDoc(doc(db, "lobby_suggestions", id));
+  },
+
   async getLobbyAnnouncements() {
     const q = query(collection(db, "lobby_announcements"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);

@@ -93,19 +93,19 @@
     const qS = query(collection(db, 'lobby_suggestions'), orderBy('createdAt', 'desc'));
     const unsubS = onSnapshot(qS, (snap) => {
       suggestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    });
+    }, (err) => console.error("Error suggestions listener:", err));
 
     // Listen for community announcements
     const qA = query(collection(db, 'lobby_announcements'), orderBy('createdAt', 'desc'));
     const unsubA = onSnapshot(qA, (snap) => {
       communityAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    });
+    }, (err) => console.error("Error announcements listener:", err));
 
     // Listen for global system announcements
     const qGlobal = query(collection(db, 'announcements'), where('is_global', '==', true), orderBy('created_at', 'desc'), limit(10));
     const unsubGlobal = onSnapshot(qGlobal, (snap) => {
       globalAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data(), isGlobal: true }));
-    });
+    }, (err) => console.error("Error global announcements listener:", err));
 
     // Listen for my reports
     let unsubR = () => {};
@@ -116,7 +116,7 @@
       
       unsubR = onSnapshot(qR, (snap) => {
         myReports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      });
+      }, (err) => console.error("Error reports listener:", err));
     }
 
     // Listen for groups
@@ -128,7 +128,7 @@
         selectedGroupId = groups[0].id;
         selectedGroupName = groups[0].name;
       }
-    });
+    }, (err) => console.error("Error groups listener:", err));
 
     return () => {
       unsubS();
@@ -142,19 +142,37 @@
   // Watch selectedGroupId to fetch messages
   $effect(() => {
     if (selectedGroupId) {
+      // Simplificamos la query eliminando el orderBy para evitar errores de índices ausentes
+      // Ordenamos en memoria para garantizar tiempo real inmediato sin bloqueos de Firebase
       const qM = query(
         collection(db, 'community_messages'), 
-        where('groupId', '==', selectedGroupId),
-        orderBy('createdAt', 'asc')
+        where('groupId', '==', selectedGroupId)
       );
+      
       const unsubM = onSnapshot(qM, (snap) => {
-        messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        let loadedMessages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Ordenar en memoria por createdAt
+        messages = loadedMessages.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateA - dateB;
+        });
+
         // Scroll to bottom (optional, but good UX)
         setTimeout(() => {
           const container = document.getElementById('chat-container');
-          if (container) container.scrollTop = container.scrollHeight;
+          if (container) {
+            container.scrollTo({
+              top: container.scrollHeight,
+              behavior: 'smooth'
+            });
+          }
         }, 100);
+      }, (err) => {
+        console.error("Error en listener de mensajes:", err);
+        toast.error("Error al cargar mensajes: Verifique los índices de Firestore.");
       });
+      
       return unsubM;
     }
   });
@@ -405,7 +423,7 @@
             </p>
         </div>
         <button 
-            onclick={() => goto('/panel/payments')}
+            onclick={() => goto('/pricing')}
             class="px-10 py-5 bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl shadow-violet-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto relative z-10"
         >
             <Crown size={18} weight="bold" />
@@ -426,7 +444,7 @@
             </p>
         </div>
         <button 
-            onclick={() => goto('/panel/payments')}
+            onclick={() => goto('/pricing')}
             class="px-10 py-5 bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl shadow-violet-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto relative z-10"
         >
             <Crown size={18} weight="bold" />

@@ -15,7 +15,19 @@
     Quotes
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
+  import { user as authUser } from '$lib/stores/auth';
+  import { ADMIN_EMAILS } from '$lib/constants';
+  import { goto } from '$app/navigation';
   import { fade, fly } from 'svelte/transition';
+
+  const plan = $derived($appStore?.settings?.plan || 'free');
+  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+
+  onMount(() => {
+    if (plan === 'free' && !isAdmin) {
+      goto('/pricing');
+    }
+  });
 
   // Datos reactivos
   let students = $derived($appStore.students || []);
