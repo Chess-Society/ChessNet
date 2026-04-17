@@ -109,10 +109,6 @@
       <!-- Accent Flare -->
       <div class="absolute -left-1 top-4 bottom-4 w-[4px] rounded-full {theme.bg.replace('/10', '')} filter blur-[2px] opacity-40"></div>
     </div>
-
-      <!-- Accent Flare -->
-      <div class="absolute -left-1 top-1 bottom-1 w-[3px] rounded-full bg-gradient-to-b {theme.icon.replace('text', 'bg')} filter blur-[1px] opacity-50"></div>
-    </div>
   {/each}
 </div>
 
