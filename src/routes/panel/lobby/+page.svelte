@@ -17,10 +17,15 @@
     HandWaving,
     ChatTeardropDots,
     SealCheck,
-    Lifebuoy
+    Lifebuoy,
+    Trash,
+    Hash,
+    CaretLeft,
+    PaperPlane,
+    Warning
   } from 'phosphor-svelte';
   import { db } from '$lib/firebase';
-  import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, where } from 'firebase/firestore';
+  import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, where, deleteDoc } from 'firebase/firestore';
   import { user as authUser } from '$lib/stores/auth';
   import { appStore } from '$lib/stores/appStore';
   import { t, locale } from '$lib/i18n';
@@ -41,6 +46,19 @@
   let suggestions = $state<any[]>([]);
   let announcements = $state<any[]>([]);
   let myReports = $state<any[]>([]);
+  
+  // Community Chat State
+  let groups = $state<any[]>([]);
+  let selectedGroupId = $state<string | null>(null);
+  let selectedGroupName = $state('');
+  let messages = $state<any[]>([]);
+  let newMessage = $state('');
+  let showCreateGroupModal = $state(false);
+  
+  let newGroup = $state({
+    name: '',
+    description: ''
+  });
   
   let newSuggestion = $state({
     title: '',
@@ -87,12 +105,81 @@
       });
     }
 
+    // Listen for groups
+    const qG = query(collection(db, 'community_groups'), orderBy('name', 'asc'));
+    const unsubG = onSnapshot(qG, (snap) => {
+      groups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // If no group is selected, select the first one by default if exists
+      if (!selectedGroupId && groups.length > 0) {
+        selectedGroupId = groups[0].id;
+        selectedGroupName = groups[0].name;
+      }
+    });
+
     return () => {
       unsubS();
       unsubA();
       unsubR();
+      unsubG();
     };
   });
+
+  // Watch selectedGroupId to fetch messages
+  $effect(() => {
+    if (selectedGroupId) {
+      const qM = query(
+        collection(db, 'community_messages'), 
+        where('groupId', '==', selectedGroupId),
+        orderBy('createdAt', 'asc')
+      );
+      const unsubM = onSnapshot(qM, (snap) => {
+        messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Scroll to bottom (optional, but good UX)
+        setTimeout(() => {
+          const container = document.getElementById('chat-container');
+          if (container) container.scrollTop = container.scrollHeight;
+        }, 100);
+      });
+      return unsubM;
+    }
+  });
+
+  async function handleSendMessage() {
+    if (!newMessage.trim() || !selectedGroupId) return;
+    
+    try {
+      await addDoc(collection(db, 'community_messages'), {
+        groupId: selectedGroupId,
+        text: newMessage.trim(),
+        authorId: $authUser?.uid,
+        authorName: $appStore?.settings?.teacherName || $authUser?.displayName || 'Anónimo',
+        authorAvatar: $appStore?.settings?.teacherAvatar || $authUser?.photoURL || null,
+        createdAt: new Date().toISOString()
+      });
+      newMessage = '';
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  }
+
+  async function handleCreateGroup() {
+    if (!newGroup.name || !isAdmin) return;
+    
+    isSubmitting = true;
+    try {
+      await addDoc(collection(db, 'community_groups'), {
+        ...newGroup,
+        createdAt: new Date().toISOString()
+      });
+      toast.success("Grupo creado");
+      showCreateGroupModal = false;
+      newGroup = { name: '', description: '' };
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      isSubmitting = false;
+    }
+  }
 
   async function handleSubmitSuggestion() {
     if (!newSuggestion.title || !newSuggestion.description) return;
@@ -184,6 +271,18 @@
     }
   }
 
+  async function handleDelete(collectionName: string, id: string) {
+    if (!isAdmin) return;
+    if (!confirm('¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.')) return;
+    
+    try {
+      await deleteDoc(doc(db, collectionName, id));
+      toast.success("Eliminado correctamente");
+    } catch (err: any) {
+      toast.error("Error al eliminar: " + err.message);
+    }
+  }
+
   function formatTime(dateStr: string) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -223,7 +322,7 @@
           onclick={() => activeTab = 'suggestions'}
           class="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'suggestions' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'text-zinc-500 hover:text-zinc-300'}"
         >
-          Lobby Comunidad
+          Comunidad Chat
         </button>
         <button 
           onclick={() => activeTab = 'announcements'}
@@ -239,13 +338,13 @@
         </button>
       </div>
 
-      {#if activeTab === 'suggestions'}
+      {#if activeTab === 'suggestions' && isAdmin}
         <button 
-          onclick={() => showCreateModal = true}
+          onclick={() => showCreateGroupModal = true}
           class="h-12 px-6 bg-white hover:bg-violet-100 text-zinc-950 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest group"
         >
           <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
-          Proponer
+          Nuevo Grupo
         </button>
       {:else if activeTab === 'announcements' && isAdmin}
         <button 
@@ -276,9 +375,9 @@
             <Crown size={40} weight="duotone" />
         </div>
         <div class="space-y-3 relative z-10">
-            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">Sugerencias Premium</h2>
+            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">Comunidad Premium</h2>
             <p class="text-zinc-400 text-lg font-plus-jakarta max-w-lg mx-auto">
-                Mejora a Premium para proponer nuevas funcionalidades, votar las propuestas de otros profesores y decidir el futuro de ChessNet.
+                Mejora a Premium para participar en los grupos de la comunidad, conectar con otros profesores y decidir el futuro de ChessNet.
             </p>
         </div>
         <button 
@@ -314,9 +413,9 @@
     <!-- Tab Sections -->
     {#if activeTab === 'suggestions'}
       <div class="mb-12 bg-white/[0.02] border border-white/5 rounded-3xl p-8 backdrop-blur-xl">
-        <h2 class="text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-2">Lobby de la Comunidad</h2>
+        <h2 class="text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-2">Comunidad de Profesores</h2>
         <p class="text-sm text-slate-400 max-w-2xl leading-relaxed">
-          Este es el espacio para compartir tus ideas y peticiones con otros profesores. Las sugerencias con más votos serán priorizadas en nuestro roadmap de desarrollo.
+          Participa en los grupos de discusión en tiempo real. Comparte experiencias y conecta con otros profesionales del ajedrez.
         </p>
       </div>
     {:else if activeTab === 'announcements'}
@@ -336,79 +435,131 @@
     {/if}
 
     {#if activeTab === 'suggestions'}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {#each suggestions as s (s.id)}
-          {@const hasVoted = s.votes?.includes($authUser?.uid)}
-          <div 
-            class="bg-zinc-900/40 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative group overflow-hidden flex flex-col h-full"
-            in:fly={{ y: 20, duration: 500 }}
-          >
-            <!-- Badge Status -->
-            <div class="flex items-center justify-between mb-8">
-               <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/5 
-                {s.status === 'implemented' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                 s.status === 'planned' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
-                 'bg-zinc-800 text-slate-500'}">
-                 {s.status === 'implemented' ? 'Completado' : s.status === 'planned' ? 'Planificado' : 'En Revisión'}
-               </span>
-               <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
-                  <Clock weight="bold" />
-                  {formatTime(s.createdAt)}
-               </div>
-            </div>
-
-            <div class="space-y-4 mb-8 flex-1">
-              <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight leading-tight group-hover:text-violet-400 transition-colors">
-                {s.title}
-              </h3>
-              <p class="text-sm text-slate-400 line-clamp-4 leading-relaxed font-medium">
-                {s.description}
-              </p>
-            </div>
-
-            <div class="flex items-center justify-between pt-8 border-t border-white/5">
-               <div class="flex items-center gap-3">
-                  <div class="flex items-center -space-x-2 mr-3 group/badges">
-                    {#each (s.authorInsignias || []).slice(0, 3) as insigniaId}
-                      {@const insignia = INSIGNIAS.find(i => i.id === insigniaId)}
-                      {#if insignia}
-                        <div 
-                          class="w-6 h-6 rounded-lg bg-black/60 border border-white/10 flex items-center justify-center p-1 shadow-xl transition-all hover:-translate-y-1 hover:z-10 {insignia.color}"
-                          title={$t(insignia.titleKey)}
-                        >
-                          <insignia.icon weight="duotone" class="w-full h-full" />
-                        </div>
-                      {/if}
-                    {/each}
+      <div class="flex flex-col lg:flex-row gap-8 min-h-[600px]">
+        <!-- Groups Sidebar -->
+        <div class="w-full lg:w-80 space-y-4">
+          <div class="bg-zinc-900/60 border border-white/5 rounded-[2rem] p-6 backdrop-blur-xl">
+            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 ml-2">Sub Grupos</h3>
+            <div class="space-y-2">
+              {#each groups as g (g.id)}
+                <div 
+                  role="button"
+                  tabindex="0"
+                  onclick={() => { selectedGroupId = g.id; selectedGroupName = g.name; }}
+                  onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { selectedGroupId = g.id; selectedGroupName = g.name; } }}
+                  class="w-full flex items-center justify-between p-4 rounded-2xl transition-all group/group cursor-pointer {selectedGroupId === g.id ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'bg-white/5 text-slate-400 hover:bg-white/10'}"
+                >
+                  <div class="flex items-center gap-3 truncate">
+                    <Hash weight={selectedGroupId === g.id ? 'bold' : 'duotone'} class="w-4 h-4 {selectedGroupId === g.id ? 'text-white' : 'text-violet-500'}" />
+                    <span class="font-outfit font-bold text-sm truncate uppercase tracking-tight">{g.name}</span>
                   </div>
-                  <div class="w-8 h-8 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 font-bold text-[10px] overflow-hidden">
-                    {#if s.authorAvatar}
-                      <img src={s.authorAvatar} alt="avatar" class="w-full h-full object-cover" />
+                  {#if isAdmin}
+                    <button 
+                      onclick={(e) => { e.stopPropagation(); handleDelete('community_groups', g.id); }}
+                      class="opacity-0 group-hover/group:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-slate-500 hover:text-red-400 transition-all"
+                    >
+                      <Trash weight="bold" size={12} />
+                    </button>
+                  {/if}
+                </div>
+              {:else}
+                <div class="p-6 text-center border border-dashed border-white/5 rounded-2xl">
+                  <p class="text-[10px] text-slate-600 font-bold uppercase tracking-widest">No hay grupos</p>
+                </div>
+              {/each}
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col bg-zinc-950/40 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[600px]">
+          {#if selectedGroupId}
+            <!-- Chat Header -->
+            <div class="p-6 border-b border-white/5 bg-zinc-900/40 flex items-center justify-between backdrop-blur-md">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-violet-600/20 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-400">
+                  <Hash size={20} weight="bold" />
+                </div>
+                <div>
+                  <h3 class="font-outfit font-black text-white uppercase tracking-tight">{selectedGroupName}</h3>
+                  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{groups.find(g => g.id === selectedGroupId)?.description || 'Chat de la comunidad'}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Messages List -->
+            <div 
+              id="chat-container"
+              class="flex-1 overflow-y-auto p-8 space-y-6 scroll-smooth"
+            >
+              {#each messages as m (m.id)}
+                <div class="flex gap-4 {m.authorId === $authUser?.uid ? 'flex-row-reverse' : ''}" in:fade>
+                  <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                    {#if m.authorAvatar}
+                      <img src={m.authorAvatar} alt="avatar" class="w-full h-full object-cover" />
                     {:else}
-                      {s.authorName?.[0] || '?'}
+                      <span class="text-xs font-bold text-slate-500">{m.authorName?.[0] || '?'}</span>
                     {/if}
                   </div>
-                  <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[100px]">{s.authorName || 'Anónimo'}</p>
-               </div>
+                  <div class="flex flex-col max-w-[70%] {m.authorId === $authUser?.uid ? 'items-end' : ''}">
+                    <div class="flex items-center gap-2 mb-1.5 px-1">
+                      <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{m.authorName}</span>
+                      <span class="text-[8px] text-zinc-600 font-medium">
+                        {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div class="p-4 rounded-3xl text-sm font-medium leading-relaxed {m.authorId === $authUser?.uid ? 'bg-violet-600 text-white rounded-tr-none' : 'bg-white/5 text-slate-300 rounded-tl-none'}">
+                      {m.text}
+                    </div>
+                    {#if isAdmin}
+                      <button 
+                        onclick={() => handleDelete('community_messages', m.id)}
+                        class="mt-1 p-1 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash size={10} />
+                      </button>
+                    {/if}
+                  </div>
+                </div>
+              {:else}
+                <div class="h-full flex flex-col items-center justify-center opacity-20">
+                  <ChatTeardropDots size={48} weight="duotone" />
+                  <p class="mt-4 font-outfit font-bold uppercase tracking-widest text-sm">Comienza la conversación</p>
+                </div>
+              {/each}
+            </div>
 
-               <button 
-                 onclick={() => handleVote(s.id, hasVoted)}
-                 disabled={s.status === 'implemented'}
-                 class="flex items-center gap-2 px-4 py-2 rounded-xl transition-all border {hasVoted ? 'bg-violet-600 text-white border-violet-400 shadow-lg shadow-violet-600/20' : 'bg-white/5 text-slate-400 border-white/5 hover:border-violet-500/30'}"
-               >
-                  <Star weight={hasVoted ? "fill" : "bold"} class="w-4 h-4 {hasVoted ? 'text-white' : 'text-violet-500'}" />
-                  <span class="text-xs font-black tabular-nums">{s.votes?.length || 0}</span>
-               </button>
+            <!-- Chat Input -->
+            <div class="p-6 bg-zinc-900/40 border-t border-white/5 backdrop-blur-md">
+              <form 
+                class="relative flex items-center gap-4"
+                onsubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+              >
+                <input 
+                  type="text"
+                  bind:value={newMessage}
+                  placeholder="Escribe un mensaje..."
+                  class="flex-1 bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-slate-700"
+                />
+                <button 
+                  type="submit"
+                  disabled={!newMessage.trim()}
+                  class="h-14 w-14 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl flex items-center justify-center transition-all disabled:opacity-50 disabled:grayscale hover:scale-105 active:scale-95 shadow-xl shadow-violet-600/20"
+                >
+                  <PaperPlane size={24} weight="fill" />
+                </button>
+              </form>
             </div>
-          </div>
-        {:else}
-          <div class="col-span-full py-24 text-center border-2 border-dashed border-white/5 rounded-[3rem] space-y-6">
-            <div class="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center text-slate-600 mx-auto">
-               <Lightbulb size={40} weight="duotone" />
+          {:else}
+            <div class="flex-1 flex flex-col items-center justify-center text-center p-12 space-y-4 opacity-40">
+              <div class="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center">
+                <Hash size={40} weight="duotone" />
+              </div>
+              <h3 class="text-xl font-outfit font-black uppercase tracking-tight">Selecciona un grupo</h3>
+              <p class="text-sm max-w-xs">Elige una sala de chat de la lista de la izquierda para empezar a hablar con la comunidad.</p>
             </div>
-            <p class="text-slate-500 font-medium">No hay sugerencias todavía. ¡Sé el primero en proponer algo!</p>
-          </div>
-        {/each}
+          {/if}
+        </div>
       </div>
     {:else if activeTab === 'announcements'}
       <!-- Announcements Section -->
@@ -424,7 +575,18 @@
              <div class="space-y-3 flex-1">
                 <div class="flex items-center justify-between">
                    <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{a.title}</h3>
-                   <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatTime(a.createdAt)}</span>
+                   <div class="flex items-center gap-3">
+                      <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatTime(a.createdAt)}</span>
+                      {#if isAdmin}
+                        <button 
+                          onclick={() => handleDelete('lobby_announcements', a.id)}
+                          class="p-1.5 hover:bg-red-500/10 text-slate-600 hover:text-red-400 rounded-lg transition-all"
+                          title="Eliminar"
+                        >
+                          <Trash weight="bold" size={14} />
+                        </button>
+                      {/if}
+                   </div>
                 </div>
                 <p class="text-slate-400 leading-relaxed font-medium">
                   {a.content}
@@ -459,6 +621,15 @@
                         <span class="text-[9px] font-black text-violet-400 border border-violet-500/20 px-2 py-1 rounded-lg uppercase">{r.authorEmail}</span>
                       {/if}
                       <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatTime(r.createdAt)}</span>
+                      {#if isAdmin}
+                        <button 
+                          onclick={() => handleDelete('lobby_reports', r.id)}
+                          class="p-1.5 hover:bg-red-500/10 text-slate-600 hover:text-red-400 rounded-lg transition-all"
+                          title="Eliminar"
+                        >
+                          <Trash weight="bold" size={14} />
+                        </button>
+                      {/if}
                    </div>
                 </div>
                 <p class="text-slate-400 leading-relaxed font-medium">
@@ -609,19 +780,16 @@
 {/if}
 
 <!-- Support Report Modal -->
-{#if showSupportModal}
+{#if showCreateGroupModal}
   <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md overflow-y-auto" transition:fade>
     <div 
       class="bg-[#0a0a0c] w-full max-w-xl rounded-[3rem] border border-white/10 shadow-3xl overflow-hidden relative"
       transition:scale
     >
       <div class="p-8 border-b border-white/5 flex items-center justify-between">
-        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight flex items-center gap-4">
-           <ChatTeardropDots size={24} weight="fill" class="text-amber-500" />
-           Soporte Técnico
-        </h3>
+        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Nuevo Grupo de Comunidad</h3>
         <button 
-          onclick={() => showSupportModal = false}
+          onclick={() => showCreateGroupModal = false}
           class="p-2 hover:bg-white/5 rounded-2xl transition-all"
         >
           <X weight="bold" class="w-6 h-6" />
@@ -630,40 +798,40 @@
 
       <div class="p-8 space-y-8">
         <div class="space-y-4">
-          <label for="report-title" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">¿Qué sucede?</label>
+          <label for="group-name" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Nombre del Grupo</label>
           <input 
-            id="report-title"
-            bind:value={newReport.title}
+            id="group-name"
+            bind:value={newGroup.name}
             type="text" 
-            placeholder="Ej: Error al cargar alumnos"
-            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-amber-500 outline-none transition-all placeholder:text-slate-700"
+            placeholder="Ej: Metodología, Torneos, etc."
+            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-slate-700"
           />
         </div>
 
         <div class="space-y-4">
-          <label for="report-content" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Explícanos los detalles</label>
+          <label for="group-description" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Descripción</label>
           <textarea 
-            id="report-content"
-            bind:value={newReport.content}
-            rows="5"
-            placeholder="Dinos qué estabas haciendo cuando ocurrió el error..."
-            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-amber-500 outline-none transition-all resize-none placeholder:text-slate-700"
+            id="group-description"
+            bind:value={newGroup.description}
+            rows="3"
+            placeholder="¿De qué se hablará en este grupo?"
+            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all resize-none placeholder:text-slate-700"
           ></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
            <button 
-             onclick={() => showSupportModal = false}
+             onclick={() => showCreateGroupModal = false}
              class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/5 transition-all"
            >
-             Cerrar
+             Cancelar
            </button>
            <button 
-             onclick={handleSubmitReport}
-             disabled={isSubmitting || !newReport.title || !newReport.content}
-             class="py-4 bg-amber-600 text-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-amber-600/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+             onclick={handleCreateGroup}
+             disabled={isSubmitting || !newGroup.name}
+             class="py-4 bg-violet-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-violet-600/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
            >
-             {isSubmitting ? 'Enviando...' : 'Enviar Reporte'}
+             {isSubmitting ? 'Creando...' : 'Crear Grupo'}
            </button>
         </div>
       </div>
@@ -681,12 +849,6 @@
     to { transform: rotate(360deg); }
   }
 
-  .animate-float {
-    animation: float 4s ease-in-out infinite;
-  }
-  .animate-float-delayed {
-    animation: float 4s ease-in-out infinite 2s;
-  }
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
