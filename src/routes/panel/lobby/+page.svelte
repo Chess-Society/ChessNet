@@ -180,6 +180,7 @@
         authorId: $authUser?.uid,
         authorName: $appStore?.settings?.teacherName || $authUser?.displayName || 'Anónimo',
         authorAvatar: $appStore?.settings?.teacherAvatar || $authUser?.photoURL || null,
+        authorInsignias: $appStore?.settings?.featuredInsignias || [],
         createdAt: new Date().toISOString()
       });
       newMessage = '';
@@ -523,6 +524,25 @@
                   <div class="flex flex-col max-w-[70%] {m.authorId === $authUser?.uid ? 'items-end' : ''}">
                     <div class="flex items-center gap-2 mb-1.5 px-1">
                       <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{m.authorName}</span>
+                      
+                      <!-- Author Insignias -->
+                      {#if m.authorInsignias && m.authorInsignias.length > 0}
+                        <div class="flex items-center gap-1">
+                          {#each m.authorInsignias as insId}
+                            {@const ins = INSIGNIAS.find(i => i.id === insId)}
+                            {#if ins}
+                              <div class="group/ins relative">
+                                <ins.icon size={11} weight="fill" class={ins.color} />
+                                <!-- Tooltip naming insignia -->
+                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-[8px] font-black text-white uppercase tracking-tighter rounded border border-white/10 opacity-0 group-hover/ins:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                                  {$t(ins.titleKey)}
+                                </div>
+                              </div>
+                            {/if}
+                          {/each}
+                        </div>
+                      {/if}
+
                       <span class="text-[8px] text-zinc-600 font-medium">
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>

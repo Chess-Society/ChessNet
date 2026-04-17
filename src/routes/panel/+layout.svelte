@@ -26,6 +26,7 @@
   import { fade } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
   import { appStore } from '$lib/stores/appStore';
+  import { INSIGNIAS } from '$lib/constants/insignias';
   import { t, locale } from '$lib/i18n';
   import { auth, signOut } from '$lib/firebase';
   import { onMount, onDestroy } from 'svelte';
@@ -301,7 +302,19 @@
               {/if}
             </div>
             <div class="text-left hidden sm:block pr-1">
-              <p class="text-sm font-outfit font-bold text-white leading-tight">{teacherName}</p>
+              <div class="flex items-center gap-2">
+                <p class="text-sm font-outfit font-bold text-white leading-tight">{teacherName}</p>
+                {#if $appStore?.settings?.featuredInsignias && $appStore.settings.featuredInsignias.length > 0}
+                  <div class="flex items-center gap-1.5 translate-y-[1px]">
+                    {#each $appStore.settings.featuredInsignias as insId}
+                      {@const ins = INSIGNIAS.find(i => i.id === insId)}
+                      {#if ins}
+                        <ins.icon size={12} weight="fill" class={ins.color} />
+                      {/if}
+                    {/each}
+                  </div>
+                {/if}
+              </div>
               <div class="flex items-center gap-1.5 pt-0.5">
                 <p class="text-[9px] text-slate-500 font-outfit font-black uppercase tracking-widest">Control Panel</p>
                 <CaretDown weight="bold" size={10} class="text-slate-600 group-hover:text-violet-400 transition-colors" />
@@ -312,7 +325,19 @@
           <!-- Dropdown -->
           <div class="absolute right-0 top-full mt-3 w-64 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-[100] translate-y-2 group-hover:translate-y-0">
             <div class="px-5 py-4 border-b border-white/5 bg-white/[0.02] mb-1">
-              <p class="text-sm font-outfit font-bold text-white truncate mb-0.5">{teacherName}</p>
+              <div class="flex items-center gap-2 mb-0.5">
+                <p class="text-sm font-outfit font-bold text-white truncate">{teacherName}</p>
+                {#if $appStore?.settings?.featuredInsignias && $appStore.settings.featuredInsignias.length > 0}
+                  <div class="flex items-center gap-1">
+                    {#each $appStore.settings.featuredInsignias as insId}
+                      {@const ins = INSIGNIAS.find(i => i.id === insId)}
+                      {#if ins}
+                        <ins.icon size={11} weight="fill" class={ins.color} />
+                      {/if}
+                    {/each}
+                  </div>
+                {/if}
+              </div>
               <p class="text-[10px] font-jakarta font-medium text-slate-500 truncate">{email}</p>
             </div>
             
