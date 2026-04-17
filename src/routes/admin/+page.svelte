@@ -389,8 +389,12 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-84px)] bg-[url('/noise.svg')] bg-repeat">
-      {#if isLoading && users.length === 0}
+    <main class="flex-1 p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-84px)] relative overflow-hidden">
+      <!-- Subtle Noise Overlay -->
+      <div class="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.015] pointer-events-none z-0"></div>
+      
+      <div class="relative z-10 h-full">
+        {#if isLoading && users.length === 0}
          <div class="h-full flex items-center justify-center" in:fade>
            <div class="flex flex-col items-center gap-6">
               <div class="w-16 h-16 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
@@ -577,8 +581,9 @@
           {/if}
         </div>
       {/if}
-    </main>
-  </div>
+    </div>
+  </main>
+</div>
 
   <!-- User Detail Modal (Heavy Refactor) -->
   {#if showEditModal && selectedUser}
