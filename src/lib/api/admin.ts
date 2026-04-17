@@ -315,6 +315,13 @@ export const adminApi = {
         needsUpdate = true;
       }
 
+      // 3. Marcar insignias antiguas como notificadas para evitar spam de popups
+      const unnotified = achievementsSnap.docs.filter(d => !d.data().notified);
+      if (unnotified.length > 0) {
+        const resetPromises = unnotified.map(d => updateDoc(doc(db, "achievements", d.id), { notified: true }));
+        await Promise.all(resetPromises);
+      }
+
       // 3. Migrar/Limpiar plan legacy
       const legacyPlan = data.config?.settings?.subscription?.plan;
       if (legacyPlan) {
