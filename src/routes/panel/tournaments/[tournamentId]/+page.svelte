@@ -111,13 +111,12 @@
   };
 
   // Check if current round is finished
-  let currentRoundFinished = $derived(() => {
-    if (!tournament || rounds.length === 0) return false;
-    const currentRoundNo = tournament.currentRound || 1;
-    const roundPairings = pairings.filter(p => p.round_no === currentRoundNo);
-    if (roundPairings.length === 0) return false;
-    return roundPairings.every(p => p.result !== undefined || p.bye);
-  });
+  const currentRoundFinished = $derived(
+    tournament && 
+    rounds.length > 0 && 
+    pairings.filter(p => p.round_no === (tournament.currentRound || 1)).length > 0 &&
+    pairings.filter(p => p.round_no === (tournament.currentRound || 1)).every(p => p.result !== undefined || p.bye)
+  );
 
   const handleNextRound = async () => {
     if (!tournamentId || !tournament) return;
@@ -143,7 +142,7 @@
         const api = await getLocalTournamentsApi();
         await api.updateTournament(tournamentId, { currentRound: nextRoundNo });
         await api.generatePairings(tournamentId, nextRoundNo);
-        showToast($t('tournaments.round_generated') || 'Round generated successfully');
+        showToast.success($t('tournaments.round_generated') || 'Round generated successfully');
     } catch (error) {
         console.error("Error generating next round:", error);
         showError($t('tournaments.error_generating_round') || 'Error generating round');
@@ -158,7 +157,7 @@
     try {
         const api = await getLocalTournamentsApi();
         await api.updateTournament(tournamentId, { status: 'completed' });
-        showToast($t('tournaments.completed') || 'Tournament completed!');
+        showToast.success($t('tournaments.completed') || 'Tournament completed!');
         activeTab = 'standings';
     } catch (error) {
         console.error("Error finishing tournament:", error);
@@ -176,7 +175,7 @@
     try {
         const api = await getLocalTournamentsApi();
         await api.resetRound(tournamentId, currentRoundNo);
-        showToast($t('tournaments.round_reset_success') || 'Round reset successfully');
+        showToast.success($t('tournaments.round_reset_success') || 'Round reset successfully');
     } catch (error) {
         console.error("Error resetting round:", error);
         showError($t('tournaments.error_resetting_round') || 'Error resetting round');
@@ -196,10 +195,24 @@
         } else {
              await api.withdrawPlayer(tournamentId, studentId);
         }
-        showToast(!isWithdrawn ? $t('tournaments.player_withdrawn') : $t('tournaments.player_reactivated'));
+        showToast.success(!isWithdrawn ? $t('tournaments.player_withdrawn') : $t('tournaments.player_reactivated'));
     } catch (error) {
         console.error("Error updating player status:", error);
     }
+  };
+
+  const removePlayer = async (studentId: string) => {
+      if (!tournamentId) return;
+      if (!confirm($t('tournaments.confirm_remove_player') || 'Are you sure you want to remove this player?')) return;
+      
+      try {
+          const api = await getLocalTournamentsApi();
+          await api.removePlayer(tournamentId, studentId);
+          showToast.success($t('tournaments.player_removed') || 'Player removed');
+      } catch (error) {
+          console.error("Error removing player:", error);
+          showError(error);
+      }
   };
 
   const handlePrintStandings = () => {
@@ -500,7 +513,7 @@
                                     <Printer weight="bold" class="w-5 h-5" />
                                  </button>
 
-                                 {#if currentRoundFinished() && tournament.status !== 'completed'}
+                                 {#if currentRoundFinished && tournament.status !== 'completed'}
                                      <button 
                                         onclick={handleNextRound}
                                         disabled={isProcessing}

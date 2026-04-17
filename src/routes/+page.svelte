@@ -16,7 +16,8 @@
     Calendar,
     LayoutDashboard,
     Globe2,
-    Command
+    Command,
+    Lock
   } from "lucide-svelte";
   import Logo from "$lib/components/Logo.svelte";
   import { t, locale, toggleLocale } from '$lib/i18n';
@@ -188,7 +189,7 @@
                   <div class="relative w-10 h-10 flex items-center justify-center {badge.color}">
                     <div class="absolute inset-0 {badge.glowColor} opacity-0 group-hover/insignia:opacity-20 blur-xl transition-opacity"></div>
                     {#if badge.icon}
-                      <svelte:component this={badge.icon} weight="duotone" class="w-6 h-6" />
+                      <badge.icon weight="duotone" class="w-6 h-6" />
                     {/if}
                   </div>
                 </div>
