@@ -2,7 +2,7 @@
   import { fade, scale, fly } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import type { Insignia } from '$lib/constants/insignias';
-  import { Sparkle, Confetti, X, ShareNetwork, Trophy, ChevronRight } from 'phosphor-svelte';
+  import { Sparkle, Confetti, X, ShareNetwork, Trophy, CaretRight } from 'phosphor-svelte';
   import InsigniaBadge from './InsigniaBadge.svelte';
   import { appStore } from '$lib/stores/appStore';
 
@@ -87,14 +87,14 @@
 
         <!-- Actions -->
         <div class="flex flex-col w-full gap-3 pt-4">
-            {#if (appStore.pendingAchievementIds || []).length > 1}
+            {#if ($appStore.pendingAchievementIds || []).length > 1}
               <button 
                   class="w-full flex items-center justify-center gap-3 py-5 px-8 rounded-[2rem] font-black text-[10px] uppercase tracking-widest transition-all shadow-xl hover:scale-[1.02] active:scale-95"
                   style="background: {insignia.color}; color: white; box-shadow: 0 15px 35px {insignia.color}55"
                   onclick={onClose}
               >
                   <span>SIGUIENTE LOGRO</span>
-                  <ChevronRight size={18} weight="bold" />
+                  <CaretRight size={18} weight="bold" />
               </button>
             {:else}
               <button 
