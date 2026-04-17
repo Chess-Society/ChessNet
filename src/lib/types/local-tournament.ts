@@ -30,6 +30,7 @@ export interface LocalTournamentPlayer {
   student_name?: string; // Denormalized for convenience
   rating?: number;
   seed?: number;
+  status: 'active' | 'withdrawn';
   createdAt: string;
 }
 

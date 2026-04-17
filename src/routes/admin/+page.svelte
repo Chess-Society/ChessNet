@@ -390,8 +390,11 @@
 
     <!-- Main Content Area -->
     <main class="flex-1 p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-84px)] relative overflow-hidden">
-      <!-- Subtle Noise Overlay -->
-      <div class="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.015] pointer-events-none z-0"></div>
+      <!-- Gradient Background Architecture -->
+      <div class="absolute inset-0 -z-10 bg-[#020617]">
+        <div class="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_100%_0%,rgba(67,56,202,0.05)_0%,transparent_50%)]"></div>
+        <div class="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(circle_at_0%_100%,rgba(79,70,229,0.03)_0%,transparent_50%)]"></div>
+      </div>
       
       <div class="relative z-10 h-full">
         {#if isLoading && users.length === 0}

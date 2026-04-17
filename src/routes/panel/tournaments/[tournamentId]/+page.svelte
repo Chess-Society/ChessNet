@@ -23,13 +23,20 @@
     ListNumbers,
     Table,
     ChartBar,
-    X
+    X,
+    Printer,
+    ArrowClockwise,
+    ArrowCounterClockwise,
+    UserMinus,
+    Trash
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { getLocalTournamentsApi } from '$lib/api/local-tournaments';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import { showToast, showError } from '$lib/stores/toast';
+  import TournamentBracket from '$lib/components/tournaments/TournamentBracket.svelte';
+  import TournamentCrosstable from '$lib/components/tournaments/TournamentCrosstable.svelte';
 
   const tournamentId = page.params.tournamentId;
   
@@ -103,6 +110,117 @@
       }
   };
 
+  // Check if current round is finished
+  let currentRoundFinished = $derived(() => {
+    if (!tournament || rounds.length === 0) return false;
+    const currentRoundNo = tournament.currentRound || 1;
+    const roundPairings = pairings.filter(p => p.round_no === currentRoundNo);
+    if (roundPairings.length === 0) return false;
+    return roundPairings.every(p => p.result !== undefined || p.bye);
+  });
+
+  const handleNextRound = async () => {
+    if (!tournamentId || !tournament) return;
+    const nextRoundNo = (tournament.currentRound || 0) + 1;
+    
+    // Check if tournament is actually finished
+    if (tournament.format === 'knockout') {
+        const lastRoundPairings = pairings.filter(p => p.round_no === (tournament.currentRound || 1));
+        if (lastRoundPairings.length === 1 && !lastRoundPairings[0].bye) {
+            // It was the final
+            await handleFinishTournament();
+            return;
+        }
+    } else if (tournament.format === 'swiss' || tournament.format === 'round_robin') {
+        if (nextRoundNo > (tournament.roundsPlanned || 0)) {
+            await handleFinishTournament();
+            return;
+        }
+    }
+
+    isProcessing = true;
+    try {
+        const api = await getLocalTournamentsApi();
+        await api.updateTournament(tournamentId, { currentRound: nextRoundNo });
+        await api.generatePairings(tournamentId, nextRoundNo);
+        showToast($t('tournaments.round_generated') || 'Round generated successfully');
+    } catch (error) {
+        console.error("Error generating next round:", error);
+        showError($t('tournaments.error_generating_round') || 'Error generating round');
+    } finally {
+        isProcessing = false;
+    }
+  };
+
+  const handleFinishTournament = async () => {
+    if (!tournamentId) return;
+    isProcessing = true;
+    try {
+        const api = await getLocalTournamentsApi();
+        await api.updateTournament(tournamentId, { status: 'completed' });
+        showToast($t('tournaments.completed') || 'Tournament completed!');
+        activeTab = 'standings';
+    } catch (error) {
+        console.error("Error finishing tournament:", error);
+    } finally {
+        isProcessing = false;
+    }
+  };
+
+  const handleResetRound = async () => {
+    if (!tournamentId || !tournament) return;
+    const currentRoundNo = tournament.currentRound || 1;
+    if (!confirm(`${$t('tournaments.confirm_reset_round') || 'Are you sure you want to reset the current round? All results for this round will be lost.'}`)) return;
+
+    isProcessing = true;
+    try {
+        const api = await getLocalTournamentsApi();
+        await api.resetRound(tournamentId, currentRoundNo);
+        showToast($t('tournaments.round_reset_success') || 'Round reset successfully');
+    } catch (error) {
+        console.error("Error resetting round:", error);
+        showError($t('tournaments.error_resetting_round') || 'Error resetting round');
+    } finally {
+        isProcessing = false;
+    }
+  };
+
+  const handleWithdrawPlayer = async (studentId: string, currentStatus?: string) => {
+    if (!tournamentId) return;
+    const isWithdrawn = currentStatus === 'withdrawn';
+    
+    try {
+        const api = await getLocalTournamentsApi();
+        if (isWithdrawn) {
+             await api.reactivatePlayer(tournamentId, studentId);
+        } else {
+             await api.withdrawPlayer(tournamentId, studentId);
+        }
+        showToast(!isWithdrawn ? $t('tournaments.player_withdrawn') : $t('tournaments.player_reactivated'));
+    } catch (error) {
+        console.error("Error updating player status:", error);
+    }
+  };
+
+  const handlePrintStandings = () => {
+    window.print();
+  };
+
+  const handlePrintRound = () => {
+    // Add temporary class to filter view if needed, but simple window.print() works with our CSS
+    const currentTab = activeTab;
+    window.print();
+  };
+
+  const calculateTournamentProgress = () => {
+    if (!tournament || !tournament.roundsPlanned) return 0;
+    if (tournament.status === 'completed') return 100;
+    const totalPairings = pairings.length;
+    const completedPairings = pairings.filter(p => p.result !== undefined || p.bye).length;
+    if (totalPairings === 0) return 0;
+    return Math.floor((completedPairings / (players.length * (tournament.roundsPlanned || 1) / 2)) * 100);
+  };
+
 </script>
 
 <svelte:head>
@@ -173,7 +291,9 @@
             { id: 'overview', label: $t('tournaments.tab_overview'), icon: Info },
             { id: 'players', label: $t('tournaments.tab_players'), icon: Users },
             { id: 'pairings', label: $t('tournaments.tab_pairings'), icon: Table },
-            { id: 'standings', label: $t('tournaments.tab_standings'), icon: ChartBar }
+            ...(tournament?.format === 'knockout' ? [{ id: 'brackets', label: $t('tournaments.tab_brackets'), icon: Target }] : []),
+            ...(tournament?.format === 'round_robin' ? [{ id: 'crosstable', label: $t('tournaments.tab_crosstable') || 'Crosstable', icon: ChartBar }] : []),
+            { id: 'standings', label: $t('tournaments.tab_standings'), icon: Trophy }
         ] as tab}
             <button 
                 onclick={() => activeTab = tab.id}
@@ -261,6 +381,7 @@
                         <table class="w-full text-left">
                             <thead class="bg-zinc-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                                 <tr>
+                                    <th class="px-8 py-5 w-24">{$t('tournaments.participants.seed') || 'SEED'}</th>
                                     <th class="px-8 py-5">{$t('tournaments.participants.name')}</th>
                                     <th class="px-8 py-5">{$t('tournaments.participants.elo')}</th>
                                     <th class="px-8 py-5">{$t('tournaments.participants.status')}</th>
@@ -268,24 +389,54 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-zinc-800">
-                                {#each players as player}
-                                    <tr class="hover:bg-zinc-800/30 transition-colors group">
+                                {#each players.sort((a,b) => (b.rating || 1200) - (a.rating || 1200)) as player, idx}
+                                    <tr class="hover:bg-zinc-800/30 transition-colors group {player.status === 'withdrawn' ? 'opacity-40 grayscale' : ''}">
+                                        <td class="px-8 py-5">
+                                            <div class="text-xs font-black text-zinc-700">#{idx + 1}</div>
+                                        </td>
                                         <td class="px-8 py-5">
                                             <div class="flex items-center gap-3">
                                                 <div class="w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-600 font-black group-hover:text-violet-400 group-hover:border-violet-500/30 transition-all">
-                                                    {player.student_name[0].toUpperCase()}
+                                                    {player.student_name?.[0]?.toUpperCase() || '?'}
                                                 </div>
-                                                <span class="font-bold text-white text-sm">{player.student_name}</span>
+                                                <div class="flex flex-col">
+                                                    <span class="font-bold text-white text-sm uppercase tracking-tight">{player.student_name}</span>
+                                                    {#if player.status === 'withdrawn'}
+                                                        <span class="text-[8px] text-red-500 font-black tracking-widest uppercase">{$t('tournaments.withdrawn') || 'Withdrawn'}</span>
+                                                    {/if}
+                                                </div>
                                             </div>
                                         </td>
-                                        <td class="px-8 py-5 text-zinc-400 font-medium text-sm">{player.rating || 1200}</td>
+                                        <td class="px-8 py-5 text-zinc-400 font-medium text-sm">
+                                            <div class="flex items-center gap-2">
+                                                <Target size={14} class="text-zinc-700" />
+                                                {player.rating || 1200}
+                                            </div>
+                                        </td>
                                         <td class="px-8 py-5">
-                                            <span class="px-2.5 py-1 rounded-lg bg-violet-500/5 text-violet-400 border border-violet-500/10 text-[10px] uppercase font-black tracking-widest">{$t('tournaments.status.confirmed')}</span>
+                                            <span class="px-2.5 py-1 rounded-lg {player.status === 'withdrawn' ? 'bg-red-500/5 text-red-400 border-red-500/10' : 'bg-violet-500/5 text-violet-400 border-violet-500/10'} border text-[10px] uppercase font-black tracking-widest">{player.status === 'withdrawn' ? ($t('tournaments.status_withdrawn') || 'Withdrawn') : $t('tournaments.status.confirmed')}</span>
                                         </td>
                                         <td class="px-8 py-5 text-right">
-                                            <button class="p-2 text-zinc-600 hover:text-red-400 transition-colors">
-                                                <X weight="bold" class="w-4 h-4" />
-                                            </button>
+                                            <div class="flex items-center justify-end gap-2">
+                                                <button 
+                                                    onclick={() => handleWithdrawPlayer(player.student_id, player.status)}
+                                                    class="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500 hover:text-red-400"
+                                                    title={player.status === 'withdrawn' ? 'Re-activate' : 'Withdraw'}
+                                                >
+                                                    {#if player.status === 'withdrawn'}
+                                                        <ArrowClockwise weight="bold" class="w-4 h-4" />
+                                                    {:else}
+                                                        <UserMinus weight="bold" class="w-4 h-4" />
+                                                    {/if}
+                                                </button>
+                                                <button 
+                                                    onclick={() => removePlayer(player.student_id)}
+                                                    disabled={rounds.length > 0}
+                                                    class="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500 hover:text-red-400 disabled:opacity-30"
+                                                >
+                                                    <Trash weight="bold" class="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 {/each}
@@ -326,51 +477,117 @@
                             {/if}
                         </div>
                     {:else}
+                         <!-- Round Management Header -->
+                         <div class="flex items-center justify-between mb-8 bg-zinc-900/40 p-6 rounded-[24px] border border-zinc-800">
+                             <div class="flex items-center gap-4">
+                                 <div class="w-12 h-12 bg-violet-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-violet-500/20">
+                                     <ListNumbers weight="bold" class="w-6 h-6" />
+                                 </div>
+                                 <div>
+                                     <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.round')} {tournament.currentRound || 1}</h3>
+                                     <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                                         {pairings.filter(p => p.round_no === (tournament.currentRound || 1) && (p.result !== undefined || p.bye)).length} / {pairings.filter(p => p.round_no === (tournament.currentRound || 1)).length} {$t('tournaments.games_completed')}
+                                     </p>
+                                 </div>
+                             </div>
+                             
+                             <div class="flex items-center gap-3">
+                                 <button 
+                                    onclick={handlePrintRound}
+                                    class="p-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-xl transition-all active:scale-95 flex items-center gap-2"
+                                    title={$t('tournaments.print_round') || 'Print Round'}
+                                 >
+                                    <Printer weight="bold" class="w-5 h-5" />
+                                 </button>
+
+                                 {#if currentRoundFinished() && tournament.status !== 'completed'}
+                                     <button 
+                                        onclick={handleNextRound}
+                                        disabled={isProcessing}
+                                        class="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-outfit font-black text-[10px] tracking-widest transition-all shadow-lg shadow-violet-500/10 active:scale-95 flex items-center gap-2"
+                                     >
+                                        {#if isProcessing}
+                                            <ArrowsClockwise weight="bold" class="w-4 h-4 animate-spin" />
+                                        {/if}
+                                        {(tournament.format === 'knockout' && pairings.filter(p => p.round_no === (tournament.currentRound || 1)).length === 1) ? $t('tournaments.finish_tournament') : $t('tournaments.generate_next_round')}
+                                        <CaretRight weight="bold" class="w-3 h-3" />
+                                     </button>
+                                 {/if}
+
+                                 <button 
+                                    onclick={handleResetRound}
+                                    disabled={isProcessing}
+                                    class="p-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 rounded-xl transition-all active:scale-95"
+                                    title={$t('tournaments.reset_round')}
+                                 >
+                                    <ArrowCounterClockwise weight="bold" class="w-5 h-5" />
+                                 </button>
+                             </div>
+                         </div>
+
                          {#each rounds.sort((a,b) => b.round_no - a.round_no) as round}
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl mb-8">
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl mb-8 group/round">
                                 <div class="bg-zinc-950/50 px-8 py-6 border-b border-zinc-800 flex justify-between items-center bg-gradient-to-r from-zinc-950 to-zinc-900">
                                     <div class="flex items-center gap-4">
-                                        <div class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-violet-500/20">
-                                            <ListNumbers weight="bold" class="w-6 h-6" />
-                                        </div>
-                                        <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.round')} {round.round_no}</h3>
+                                        <h3 class="text-lg font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.round')} {round.round_no}</h3>
                                     </div>
-                                    <span class="px-3 py-1 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">{$t('tournaments.status_active')}</span>
+                                    {#if round.round_no === tournament.currentRound}
+                                        <span class="px-3 py-1 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-full text-[10px] font-black uppercase tracking-widest animate-pulse">{$t('tournaments.status_active')}</span>
+                                    {:else}
+                                        <span class="px-3 py-1 bg-zinc-800 text-zinc-500 border border-zinc-700 rounded-full text-[10px] font-black uppercase tracking-widest">{$t('tournaments.status_closed')}</span>
+                                    {/if}
                                 </div>
-                                <div class="p-8 space-y-4 bg-zinc-900">
+                                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-900">
                                     {#each pairings.filter(p => p.round_no === round.round_no).sort((a,b) => a.board - b.board) as p}
-                                        <div class="grid grid-cols-11 items-center gap-2 p-5 bg-zinc-950/40 border border-zinc-800 rounded-2xl group hover:border-violet-500/30 transition-all hover:bg-zinc-950/60 shadow-lg">
-                                            <!-- Player White -->
-                                            <div class="col-span-4 text-right pr-6">
-                                                <p class="font-outfit font-bold text-white text-base group-hover:text-violet-300 transition-colors">{p.white_name}</p>
-                                                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">{$t('tournaments.white')}</p>
+                                        <div class="flex flex-col bg-zinc-950/40 border border-zinc-800 rounded-3xl group/match hover:border-violet-500/30 transition-all hover:bg-zinc-950/60 shadow-lg relative overflow-hidden">
+                                            <!-- Board Number -->
+                                            <div class="absolute top-0 right-0 p-3 opacity-10 group-hover/match:opacity-20 transition-opacity">
+                                                <span class="text-4xl font-black italic">#{p.board}</span>
                                             </div>
 
-                                            <!-- Score Box -->
-                                            <div class="col-span-3 flex justify-center">
-                                                <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-1.5 flex items-center gap-1.5 shadow-inner">
-                                                     <button 
-                                                        onclick={() => updateResult(p.id, '1-0')}
-                                                        class="w-14 h-11 rounded-lg flex items-center justify-center text-sm font-black transition-all hover:scale-105 {p.result === '1-0' ? 'bg-violet-600 text-white shadow-lg' : 'bg-zinc-950 text-zinc-600 hover:text-white hover:bg-zinc-800'}"
-                                                     >
-                                                        {p.result === '1-0' ? '1' : (p.result === '1/2-1/2' ? '½' : (p.result === '0-1' ? '0' : 'W'))}
-                                                     </button>
-                                                     <div class="w-px h-6 bg-zinc-800"></div>
-                                                     <button 
-                                                        onclick={() => updateResult(p.id, '0-1')}
-                                                        class="w-14 h-11 rounded-lg flex items-center justify-center text-sm font-black transition-all hover:scale-105 {p.result === '0-1' ? 'bg-violet-600 text-white shadow-lg' : 'bg-zinc-950 text-zinc-600 hover:text-white hover:bg-zinc-800'}"
-                                                     >
-                                                        {p.result === '0-1' ? '1' : (p.result === '1/2-1/2' ? '½' : (p.result === '1-0' ? '0' : 'B'))}
-                                                     </button>
+                                            <div class="p-6 space-y-4">
+                                                <!-- White Player -->
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-bold text-white shadow-inner">W</div>
+                                                        <span class="font-bold text-white text-sm truncate max-w-[120px]">{p.white_name}</span>
+                                                    </div>
+                                                    {#if p.result === '1-0'}
+                                                        <div class="px-3 py-1 bg-violet-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/20">WIN</div>
+                                                    {:else if p.result === '1/2-1/2'}
+                                                        <div class="px-3 py-1 bg-zinc-800 text-zinc-400 rounded-lg text-[10px] font-black uppercase tracking-widest">DRAW</div>
+                                                    {/if}
+                                                </div>
+
+                                                <!-- Black Player -->
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-8 h-8 rounded-lg bg-white border border-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-900 shadow-inner">B</div>
+                                                        <span class="font-bold text-white text-sm truncate max-w-[120px]">{p.bye ? $t('tournaments.bye') : p.black_name}</span>
+                                                    </div>
+                                                    {#if p.result === '0-1'}
+                                                        <div class="px-3 py-1 bg-violet-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/20">WIN</div>
+                                                    {:else if p.result === '1/2-1/2'}
+                                                        <div class="px-3 py-1 bg-zinc-800 text-zinc-400 rounded-lg text-[10px] font-black uppercase tracking-widest">DRAW</div>
+                                                    {/if}
                                                 </div>
                                             </div>
 
-                                            <!-- Player Black -->
-                                            <div class="col-span-4 text-left pl-6">
-                                                <p class="font-outfit font-bold text-white text-base group-hover:text-violet-300 transition-colors">
-                                                    {p.bye ? $t('tournaments.bye') : p.black_name}
-                                                </p>
-                                                <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">{$t('tournaments.black')}</p>
+                                            <!-- Rapid Result Selector -->
+                                            <div class="bg-zinc-950/80 mt-auto border-t border-zinc-800/50 p-2 flex gap-1">
+                                                {#each [
+                                                    { label: '1-0', value: '1-0', tip: $t('tournaments.white_wins') },
+                                                    { label: '½-½', value: '1/2-1/2', tip: $t('tournaments.draw') },
+                                                    { label: '0-1', value: '0-1', tip: $t('tournaments.black_wins') }
+                                                ] as res}
+                                                    <button 
+                                                        onclick={() => updateResult(p.id, res.value)}
+                                                        disabled={p.bye}
+                                                        class="flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {p.result === res.value ? 'bg-violet-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white hover:bg-zinc-800/50 disabled:opacity-30'}"
+                                                    >
+                                                        {res.label}
+                                                    </button>
+                                                {/each}
                                             </div>
                                         </div>
                                     {/each}
@@ -381,74 +598,154 @@
                 </div>
             {/if}
 
-            {#if activeTab === 'standings'}
-                 <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl" in:fly={{ y: 20 }}>
-                    <div class="p-8 border-b border-zinc-800 bg-gradient-to-r from-zinc-900 to-zinc-950 flex justify-between items-center">
-                         <h3 class="text-xl font-outfit font-black text-white flex items-center gap-3 uppercase tracking-tight">
-                             <Crown weight="fill" class="w-7 h-7 text-amber-500 drop-shadow-lg" />
-                             {$t('tournaments.tab_standings')}
-                         </h3>
-                         <div class="flex items-center gap-3">
-                             <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-950 px-3 py-1.5 rounded-full border border-zinc-800">{$t('tournaments.realtime_calc')}</span>
-                         </div>
+            {#if activeTab === 'brackets'}
+                <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl overflow-hidden min-h-[600px]" in:fly={{ y: 20 }}>
+                    <div class="mb-8">
+                        <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight flex items-center gap-3">
+                            <Target weight="fill" class="w-6 h-6 text-violet-500" />
+                            {$t('tournaments.visual_bracket')}
+                        </h3>
                     </div>
-                    <div class="overflow-x-auto min-h-[400px]">
-                        <table class="w-full text-left">
-                            <thead class="bg-zinc-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
-                                <tr>
-                                    <th class="px-8 py-5 w-24 text-center">{$t('tournaments.pos')}</th>
-                                    <th class="px-8 py-5">{$t('tournaments.participants')}</th>
-                                    <th class="px-8 py-5 text-center">{$t('tournaments.points')}</th>
-                                    <th class="px-8 py-5 text-right w-40">{$t('tournaments.performance')}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-800">
-                                {#each players.map(p => {
-                                    const playerPairings = pairings.filter(pair => pair.white_student_id === p.student_id || pair.black_student_id === p.student_id);
-                                    let pts = 0;
-                                    playerPairings.forEach(pair => {
-                                        if (pair.white_student_id === p.student_id) pts += pair.points_white || 0;
-                                        else pts += pair.points_black || 0;
-                                    });
-                                    return { ...p, currentPoints: pts };
-                                }).sort((a,b) => b.currentPoints - a.currentPoints) as player, i}
-                                    <tr class="hover:bg-zinc-800/30 transition-colors group">
-                                        <td class="px-8 py-5 text-center">
-                                            {#if i === 0}
-                                                <div class="w-10 h-10 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full flex items-center justify-center font-black mx-auto shadow-lg shadow-amber-500/5">1º</div>
-                                            {:else if i === 1}
-                                                <div class="w-10 h-10 bg-slate-100/10 text-slate-300 border border-slate-100/20 rounded-full flex items-center justify-center font-black mx-auto shadow-lg shadow-slate-500/5">2º</div>
-                                            {:else if i === 2}
-                                                <div class="w-10 h-10 bg-orange-700/10 text-orange-400 border border-orange-700/20 rounded-full flex items-center justify-center font-black mx-auto shadow-lg shadow-orange-500/5">3º</div>
-                                            {:else}
-                                                <span class="font-black text-zinc-700">{i+1}º</span>
-                                            {/if}
-                                        </td>
-                                        <td class="px-8 py-5">
-                                            <div class="flex items-center gap-3">
-                                                <span class="font-bold text-white text-base group-hover:text-violet-300 transition-colors uppercase tracking-tight">{player.student_name}</span>
-                                                {#if i === 0}<Crown weight="fill" class="w-4 h-4 text-amber-500 animate-pulse" />{/if}
-                                            </div>
-                                        </td>
-                                        <td class="px-8 py-5 text-center">
-                                            <div class="text-xl font-black text-amber-400 drop-shadow-[0_0_100px_rgba(251,191,36,0.1)]">{player.currentPoints}</div>
-                                        </td>
-                                        <td class="px-8 py-5 text-right">
-                                            <div class="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-zinc-800">
-                                                <div class="bg-violet-600 h-full transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.5)]" style="width: {(player.currentPoints / Math.max(1, rounds.length)) * 100}%"></div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {/each}
-                                {#if players.length === 0}
-                                    <tr>
-                                        <td colspan="4" class="px-8 py-20 text-center text-zinc-600 italic text-sm">{$t('tournaments.no_standings')}</td>
-                                    </tr>
-                                {/if}
-                            </tbody>
-                        </table>
-                    </div>
+                    <TournamentBracket {pairings} {players} currentRound={tournament.currentRound} format={tournament.format} />
                 </div>
+            {/if}
+
+            {#if activeTab === 'crosstable'}
+                <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl overflow-hidden min-h-[600px]" in:fly={{ y: 20 }}>
+                    <div class="mb-8">
+                        <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight flex items-center gap-3">
+                            <ChartBar weight="fill" class="w-6 h-6 text-violet-500" />
+                            {$t('tournaments.crosstable_view') || 'Result Matrix (Crosstable)'}
+                        </h3>
+                    </div>
+                    <TournamentCrosstable {players} {pairings} />
+                </div>
+            {/if}
+
+
+            {#if activeTab === 'standings'}
+                  <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl print-area" in:fly={{ y: 20 }}>
+                     <div class="p-8 border-b border-zinc-800 bg-gradient-to-r from-zinc-900 to-zinc-950 flex justify-between items-center">
+                          <h3 class="text-xl font-outfit font-black text-white flex items-center gap-3 uppercase tracking-tight">
+                              <Crown weight="fill" class="w-7 h-7 text-amber-500 drop-shadow-lg" />
+                              {$t('tournaments.tab_standings')}
+                          </h3>
+                          <div class="flex items-center gap-3 no-print">
+                              <button 
+                                onclick={handlePrintStandings}
+                                class="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-outfit font-black text-[10px] tracking-widest transition-all"
+                              >
+                                <Printer weight="bold" class="w-4 h-4" />
+                                {$t('tournaments.export_pdf')}
+                              </button>
+                              <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-950 px-3 py-1.5 rounded-full border border-zinc-800">{$t('tournaments.realtime_calc')}</span>
+                          </div>
+                     </div>
+                     <div class="overflow-x-auto min-h-[400px]">
+                         <table class="w-full text-left">
+                             <thead class="bg-zinc-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                                 <tr>
+                                     <th class="px-8 py-5 w-24 text-center">{$t('tournaments.pos')}</th>
+                                     <th class="px-8 py-5">{$t('tournaments.participants')}</th>
+                                     <th class="px-8 py-5 text-center">{$t('tournaments.points')}</th>
+                                     {#if tournament.format !== 'knockout'}
+                                         <th class="px-8 py-5 text-center">
+                                             {tournament.format === 'round_robin' ? 'SONNEB.' : 'BUCHHOLZ'}
+                                         </th>
+                                         <th class="px-8 py-5 text-center">
+                                             {tournament.format === 'round_robin' ? 'BUCHHOLZ' : 'SONNEB.'}
+                                         </th>
+                                     {/if}
+                                     <th class="px-8 py-5 text-right w-40">{$t('tournaments.performance')}</th>
+                                 </tr>
+                             </thead>
+                             <tbody class="divide-y divide-zinc-800">
+                                 {#each players.map(p => {
+                                     const playerPairings = pairings.filter(pair => pair.white_student_id === p.student_id || pair.black_student_id === p.student_id);
+                                     let pts = 0;
+                                     let buchholz = 0;
+                                     let sb = 0;
+
+                                     playerPairings.forEach(pair => {
+                                         if (!pair.result && !pair.bye) return;
+                                         const isWhite = pair.white_student_id === p.student_id;
+                                         const pPts = isWhite ? pair.points_white || 0 : pair.points_black || 0;
+                                         pts += pPts;
+                                         
+                                         const oppId = isWhite ? pair.black_student_id : pair.white_student_id;
+                                         if (oppId) {
+                                             const oppResults = pairings.filter(p2 => (p2.white_student_id === oppId || p2.black_student_id === oppId) && (p2.result || p2.bye));
+                                             let oppTotalPts = 0;
+                                             oppResults.forEach(r => {
+                                                 if (r.white_student_id === oppId) oppTotalPts += r.points_white || 0;
+                                                 else oppTotalPts += r.points_black || 0;
+                                             });
+                                             buchholz += oppTotalPts;
+                                             if (pPts === 1) sb += oppTotalPts;
+                                             else if (pPts === 0.5) sb += (oppTotalPts * 0.5);
+                                         }
+                                     });
+
+                                     const tb1 = tournament.format === 'round_robin' ? sb : buchholz;
+                                     const tb2 = tournament.format === 'round_robin' ? buchholz : sb;
+
+                                     return { ...p, currentPoints: pts, tb1, tb2 };
+                                 }).sort((a,b) => {
+                                     if (b.currentPoints !== a.currentPoints) return b.currentPoints - a.currentPoints;
+                                     if (b.tb1 !== a.tb1) return b.tb1 - a.tb1;
+                                     return b.tb2 - a.tb2;
+                                 }) as player, i}
+                                     <tr class="hover:bg-zinc-800/30 transition-colors group {player.status === 'withdrawn' ? 'opacity-40 grayscale' : ''}">
+                                         <td class="px-8 py-5 text-center">
+                                             {#if i === 0}
+                                                 <div class="w-10 h-10 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full flex items-center justify-center font-black mx-auto shadow-lg shadow-amber-500/5">1º</div>
+                                             {:else if i === 1}
+                                                 <div class="w-10 h-10 bg-slate-100/10 text-slate-300 border border-slate-100/20 rounded-full flex items-center justify-center font-black mx-auto shadow-lg shadow-slate-500/5">2º</div>
+                                             {:else if i === 2}
+                                                 <div class="w-10 h-10 bg-orange-700/10 text-orange-400 border border-orange-700/20 rounded-full flex items-center justify-center font-black mx-auto shadow-lg shadow-orange-500/5">3º</div>
+                                             {:else}
+                                                 <span class="font-black text-zinc-700">{i+1}º</span>
+                                             {/if}
+                                         </td>
+                                         <td class="px-8 py-5">
+                                             <div class="flex items-center gap-3">
+                                                 <span class="font-bold text-white text-base group-hover:text-violet-300 transition-colors uppercase tracking-tight">{player.student_name}</span>
+                                                 {#if i === 0}<Crown weight="fill" class="w-4 h-4 text-amber-500 animate-pulse" />{/if}
+                                                 {#if player.status === 'withdrawn'}
+                                                     <span class="text-[8px] text-red-500 font-black uppercase">{$t('tournaments.withdrawn_short') || 'DESC'}</span>
+                                                 {/if}
+                                             </div>
+                                         </td>
+                                         <td class="px-8 py-5 text-center">
+                                             <div class="text-xl font-black text-amber-400 drop-shadow-[0_0_100px_rgba(251,191,36,0.1)]">{player.currentPoints}</div>
+                                         </td>
+                                         {#if tournament.format !== 'knockout'}
+                                             <td class="px-8 py-5 text-center">
+                                                 <div class="text-sm font-bold text-zinc-500">{player.tb1}</div>
+                                             </td>
+                                             <td class="px-8 py-5 text-center border-l border-zinc-800/10">
+                                                 <div class="text-sm font-bold text-zinc-600">{player.tb2}</div>
+                                             </td>
+                                         {/if}
+                                         <td class="px-8 py-5 text-right font-outfit">
+                                             <div class="flex items-center justify-end gap-3">
+                                                 <div class="w-24 bg-zinc-950 h-1.5 rounded-full overflow-hidden border border-zinc-800">
+                                                     <div class="bg-violet-600 h-full transition-all duration-1000" style="width: {(player.currentPoints / Math.max(1, tournament.roundsPlanned || 1)) * 100}%"></div>
+                                                 </div>
+                                                 <span class="text-[10px] font-black text-zinc-600">{( (player.currentPoints / Math.max(1, tournament.roundsPlanned || 1)) * 100 ).toFixed(0)}%</span>
+                                             </div>
+                                         </td>
+                                     </tr>
+                                 {/each}
+                                 {#if players.length === 0}
+                                     <tr>
+                                         <td colspan="6" class="px-8 py-20 text-center text-zinc-600 italic text-sm">{$t('tournaments.no_standings')}</td>
+                                     </tr>
+                                 {/if}
+                             </tbody>
+                         </table>
+                     </div>
+                 </div>
             {/if}
         </div>
 
