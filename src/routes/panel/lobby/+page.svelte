@@ -25,7 +25,7 @@
     Warning
   } from 'phosphor-svelte';
   import { db } from '$lib/firebase';
-  import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, where, deleteDoc } from 'firebase/firestore';
+  import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, where, deleteDoc, limit } from 'firebase/firestore';
   import { user as authUser } from '$lib/stores/auth';
   import { appStore } from '$lib/stores/appStore';
   import { t, locale } from '$lib/i18n';
@@ -325,39 +325,39 @@
   
   <!-- Header Section -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-    <div class="space-y-4">
-      <div class="inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-violet-400">
+    <div class="space-y-4 lg:space-y-4">
+      <div class="hidden lg:inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-violet-400">
         <ChatCircleDots weight="fill" class="w-3 h-3" />
         COMMUNITY LOUNGE
       </div>
-      <h1 class="text-6xl font-outfit font-black text-white tracking-tighter uppercase italic leading-[0.85]">
+      <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase italic leading-[0.85]">
         El Lobby de<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">Profesores</span>
       </h1>
-      <p class="text-zinc-500 font-plus-jakarta text-lg max-w-xl">
-        Donde los mejores profesores de ajedrez dan forma al futuro de ChessNet.
+      <p class="text-zinc-500 font-plus-jakarta text-sm lg:text-lg max-w-xl">
+        Donde los profesores dan forma al futuro de ChessNet.
       </p>
     </div>
 
-    <div class="flex items-center gap-4">
-      <!-- Tabs Selector -->
-      <div class="flex p-1.5 bg-zinc-900/80 backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+      <!-- Tabs Selector (Segmented Control style) -->
+      <div class="flex p-1 bg-zinc-900/80 backdrop-blur-xl border border-white/5 rounded-xl lg:rounded-2xl shadow-2xl">
         <button 
           onclick={() => activeTab = 'suggestions'}
-          class="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'suggestions' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'text-zinc-500 hover:text-zinc-300'}"
+          class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'suggestions' ? 'bg-violet-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
         >
-          Comunidad Chat
+          Chat
         </button>
         <button 
           onclick={() => activeTab = 'announcements'}
-          class="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'announcements' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'text-zinc-500 hover:text-zinc-300'}"
+          class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'announcements' ? 'bg-violet-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
         >
           Novedades
         </button>
         <button 
           onclick={() => activeTab = 'support'}
-          class="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'support' ? 'bg-amber-600 text-black shadow-lg shadow-amber-600/20' : 'text-zinc-500 hover:text-zinc-300'}"
+          class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'support' ? 'bg-amber-600 text-black shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
         >
-          Soporte ChessNet
+          Soporte
         </button>
       </div>
 
@@ -435,23 +435,23 @@
   {:else}
     <!-- Tab Sections -->
     {#if activeTab === 'suggestions'}
-      <div class="mb-12 bg-white/[0.02] border border-white/5 rounded-3xl p-8 backdrop-blur-xl">
-        <h2 class="text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-2">Comunidad de Profesores</h2>
-        <p class="text-sm text-slate-400 max-w-2xl leading-relaxed">
+      <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
+        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">Comunidad de Profesores</h2>
+        <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed">
           Participa en los grupos de discusión en tiempo real. Comparte experiencias y conecta con otros profesionales del ajedrez.
         </p>
       </div>
     {:else if activeTab === 'announcements'}
-      <div class="mb-12 bg-white/[0.02] border border-white/5 rounded-3xl p-8 backdrop-blur-xl">
-        <h2 class="text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-2">Novedades y Comunicados</h2>
-        <p class="text-sm text-slate-400 max-w-2xl leading-relaxed">
+      <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
+        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">Novedades y Comunicados</h2>
+        <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed">
           Mantente al día con las últimas actualizaciones, mejoras de rendimiento y nuevas funcionalidades que llegan a ChessNet.
         </p>
       </div>
     {:else if activeTab === 'support'}
-      <div class="mb-12 bg-white/[0.02] border border-white/5 rounded-3xl p-8 backdrop-blur-xl">
-        <h2 class="text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-2">Soporte ChessNet</h2>
-        <p class="text-sm text-slate-400 max-w-2xl leading-relaxed font-outfit italic tracking-wider opacity-60">
+      <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
+        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">Soporte ChessNet</h2>
+        <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed font-outfit italic tracking-wider opacity-60">
           ¿Tienes algún problema técnico, error o duda con tu suscripción? Nuestro equipo de soporte te ayudará directamente aquí.
         </p>
       </div>
@@ -459,35 +459,31 @@
 
     {#if activeTab === 'suggestions'}
       <div class="flex flex-col lg:flex-row gap-8 min-h-[600px]">
-        <!-- Groups Sidebar -->
+        <!-- Groups Sidebar (Compact on mobile) -->
         <div class="w-full lg:w-80 space-y-4">
-          <div class="bg-zinc-900/60 border border-white/5 rounded-[2rem] p-6 backdrop-blur-xl">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 ml-2">Sub Grupos</h3>
-            <div class="space-y-2">
+          <div class="bg-zinc-900/60 border border-white/5 rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 backdrop-blur-xl">
+            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 lg:mb-6 ml-2">Sub Grupos</h3>
+            <div class="flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 pb-2 lg:pb-0 scrollbar-hide">
               {#each groups as g (g.id)}
                 <div 
                   role="button"
                   tabindex="0"
                   onclick={() => { selectedGroupId = g.id; selectedGroupName = g.name; }}
                   onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { selectedGroupId = g.id; selectedGroupName = g.name; } }}
-                  class="w-full flex items-center justify-between p-4 rounded-2xl transition-all group/group cursor-pointer {selectedGroupId === g.id ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'bg-white/5 text-slate-400 hover:bg-white/10'}"
+                  class="flex-shrink-0 lg:flex-shrink lg:w-full flex items-center justify-between p-3 lg:p-4 rounded-xl lg:rounded-2xl transition-all group/group cursor-pointer {selectedGroupId === g.id ? 'bg-violet-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:bg-white/10'}"
                 >
                   <div class="flex items-center gap-3 truncate">
                     <Hash weight={selectedGroupId === g.id ? 'bold' : 'duotone'} class="w-4 h-4 {selectedGroupId === g.id ? 'text-white' : 'text-violet-500'}" />
-                    <span class="font-outfit font-bold text-sm truncate uppercase tracking-tight">{g.name}</span>
+                    <span class="font-outfit font-bold text-xs lg:text-sm truncate uppercase tracking-tight">{g.name}</span>
                   </div>
-                  {#if isAdmin}
-                    <button 
+                  {#if isAdmin && selectedGroupId === g.id}
+                     <button 
                       onclick={(e) => { e.stopPropagation(); handleDelete('community_groups', g.id); }}
-                      class="opacity-0 group-hover/group:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-slate-500 hover:text-red-400 transition-all"
+                      class="hidden lg:block p-1.5 hover:bg-red-500/20 rounded-lg text-slate-500 hover:text-red-400 transition-all"
                     >
                       <Trash weight="bold" size={12} />
                     </button>
                   {/if}
-                </div>
-              {:else}
-                <div class="p-6 text-center border border-dashed border-white/5 rounded-2xl">
-                  <p class="text-[10px] text-slate-600 font-bold uppercase tracking-widest">No hay grupos</p>
                 </div>
               {/each}
             </div>
@@ -495,17 +491,17 @@
         </div>
 
         <!-- Chat Area -->
-        <div class="flex-1 flex flex-col bg-zinc-950/40 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[600px]">
+        <div class="flex-1 flex flex-col bg-zinc-950/40 border border-white/5 rounded-2xl lg:rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[500px] lg:min-h-[600px]">
           {#if selectedGroupId}
             <!-- Chat Header -->
-            <div class="p-6 border-b border-white/5 bg-zinc-900/40 flex items-center justify-between backdrop-blur-md">
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-violet-600/20 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-400">
-                  <Hash size={20} weight="bold" />
+            <div class="p-4 lg:p-6 border-b border-white/5 bg-zinc-900/40 flex items-center justify-between backdrop-blur-md">
+              <div class="flex items-center gap-3 lg:gap-4">
+                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-violet-600/20 border border-violet-500/20 rounded-xl lg:rounded-2xl flex items-center justify-center text-violet-400">
+                  <Hash size={18} weight="bold" />
                 </div>
                 <div>
-                  <h3 class="font-outfit font-black text-white uppercase tracking-tight">{selectedGroupName}</h3>
-                  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{groups.find(g => g.id === selectedGroupId)?.description || 'Chat de la comunidad'}</p>
+                  <h3 class="font-outfit font-black text-sm lg:text-base text-white uppercase tracking-tight">{selectedGroupName}</h3>
+                  <p class="text-[8px] lg:text-[10px] text-slate-500 font-bold uppercase tracking-widest">{groups.find(g => g.id === selectedGroupId)?.description || 'Comunidad'}</p>
                 </div>
               </div>
             </div>

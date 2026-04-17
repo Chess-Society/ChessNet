@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { fade, scale } from 'svelte/transition';
+  import { quintOut } from 'svelte/easing';
   import { 
     Gear, 
     User as UserIcon, 
@@ -18,7 +20,6 @@
   import { t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
   import { auth } from '$lib/firebase';
-  import { fade } from 'svelte/transition';
 
   let config = $state({
     teacherName: $appStore.settings.teacherName || auth.currentUser?.displayName || '',

@@ -13,6 +13,8 @@
     setDoc,
     getDoc,
     addDoc,
+    where,
+    deleteDoc
   } from "firebase/firestore";
   import { user as authUser, loading as authLoading } from "$lib/stores/auth";
   import { fade, slide, scale } from "svelte/transition";
@@ -58,7 +60,7 @@
   import { invalidateAll } from "$app/navigation";
   import Logo from "$lib/components/Logo.svelte";
   import { INSIGNIAS } from "$lib/constants/insignias";
-  import { parseDate, formatDate } from "$lib/utils/date";
+  import { formatDate, parseDate } from "$lib/utils/date";
 
   let { data }: { data: any } = $props();
 

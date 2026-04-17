@@ -3,6 +3,7 @@
   import { CheckCircle, WarningCircle, Info, Warning, X, Bell } from 'phosphor-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
+  import { quintOut } from 'svelte/easing';
 
   const getIcon = (type: string) => {
     switch (type) {

@@ -195,10 +195,28 @@
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
       <div class="flex items-center gap-8 min-w-0">
         
-        <button onclick={handleGoHome} class="flex items-center gap-3 cursor-pointer group transition-transform active:scale-95" type="button">
+        <!-- Desktop Logo -->
+        <button onclick={handleGoHome} class="hidden lg:flex items-center gap-3 cursor-pointer group transition-transform active:scale-95" type="button">
           <Logo className="h-10 w-10 shadow-violet-flare/20" />
-          <span class="text-2xl font-outfit font-extrabold text-white tracking-tighter hidden sm:block">ChessNet</span>
+          <span class="text-2xl font-outfit font-extrabold text-white tracking-tighter">ChessNet</span>
         </button>
+
+        <!-- Mobile iOS Navigation Bar Wrapper -->
+        <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/70 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 pt-[env(safe-area-inset-top)] z-[60]">
+          <div class="w-10">
+            {#if breadcrumbItems && breadcrumbItems.length > 1}
+              <button onclick={() => history.back()} class="text-violet-400 p-2">
+                <CaretRight weight="bold" size={20} class="rotate-180" />
+              </button>
+            {/if}
+          </div>
+          <span class="text-[17px] font-semibold text-white tracking-tight">
+            {breadcrumbItems && breadcrumbItems.length > 0 ? breadcrumbItems[breadcrumbItems.length - 1].name : 'ChessNet'}
+          </span>
+          <div class="w-10 flex justify-end">
+             <button onclick={toggleLocale} class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{ $locale }</button>
+          </div>
+        </div>
         
         <nav class="hidden lg:flex items-center gap-3 text-slate-500">
           <div class="w-px h-10 bg-white/5 mx-2"></div>
@@ -371,30 +389,30 @@
     </div>
   </main>
 
-  <!-- Mobile Bottom Navigation -->
-  <footer class="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-6 pb-6 pt-2 h-24 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent pointer-events-none">
-    <nav class="pointer-events-auto bg-zinc-900/80 backdrop-blur-2xl border border-white/5 rounded-3xl h-full flex items-center justify-around px-4 shadow-2xl">
-      <a href="/panel" class="flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute === '/panel' ? 'text-violet-400' : 'text-slate-500'}">
+  <!-- Mobile Bottom Tab Bar (iOS Style) -->
+  <footer class="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/80 backdrop-blur-2xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
+    <nav class="h-[50px] flex items-center justify-around px-2">
+      <a href="/panel" class="flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute === '/panel' ? 'text-violet-400' : 'text-slate-500'}">
         <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={24} />
-        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Home</span>
+        <span class="text-[10px] font-medium tracking-tight">Inicio</span>
       </a>
-      <a href="/panel/classes" class="flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute.includes('/classes') ? 'text-violet-400' : 'text-slate-500'}">
+      <a href="/panel/classes" class="flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute.includes('/classes') ? 'text-violet-400' : 'text-slate-500'}">
         <Chalkboard weight={currentRoute.includes('/classes') ? 'fill' : 'duotone'} size={24} />
-        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Clases</span>
+        <span class="text-[10px] font-medium tracking-tight">Clases</span>
       </a>
-      <a href="/panel/students" class="flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute.includes('/students') ? 'text-violet-400' : 'text-slate-500'}">
+      <a href="/panel/students" class="flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute.includes('/students') ? 'text-violet-400' : 'text-slate-500'}">
         <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={24} />
-        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Alumnos</span>
+        <span class="text-[10px] font-medium tracking-tight">Alumnos</span>
       </a>
-      <a href="/panel/planner" class="flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute.includes('/planner') ? 'text-violet-400' : 'text-slate-500'}">
+      <a href="/panel/planner" class="flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute.includes('/planner') ? 'text-violet-400' : 'text-slate-500'}">
         <Calendar weight={currentRoute.includes('/planner') ? 'fill' : 'duotone'} size={24} />
-        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Planner</span>
+        <span class="text-[10px] font-medium tracking-tight">Calendario</span>
       </a>
-      <a href="/panel/lobby" class="relative flex flex-col items-center gap-1.5 p-2 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400' : 'text-slate-500'}">
+      <a href="/panel/lobby" class="relative flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute.includes('/lobby') ? 'text-violet-400' : 'text-slate-500'}">
         <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={24} />
-        <span class="text-[8px] font-black uppercase tracking-widest leading-none">Lobby</span>
+        <span class="text-[10px] font-medium tracking-tight">Lobby</span>
         {#if lobbyPulse && plan === 'premium'}
-          <div class="absolute right-2 top-2 w-2 h-2 bg-violet-500 rounded-full animate-pulse shadow-glow"></div>
+          <div class="absolute top-2 right-[30%] w-2 h-2 bg-violet-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
         {/if}
       </a>
     </nav>
@@ -402,9 +420,26 @@
 </div>
 
 <style lang="postcss">
+  :root {
+    --ios-nav-height: calc(44px + env(safe-area-inset-top));
+  }
+
   :global(body) {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     @apply bg-zinc-950 text-slate-400 antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Override Jakarta and Outfit for mobile to feel more native */
+  @media (max-width: 1023px) {
+    :global(.font-jakarta), :global(.font-outfit), :global(body) {
+       font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }
+    
+    :global(main) {
+      padding-top: var(--ios-nav-height) !important;
+      padding-bottom: calc(50px + env(safe-area-inset-bottom)) !important;
+    }
   }
 
   :global(.font-outfit) {
@@ -418,6 +453,12 @@
   /* Bento specific global improvements */
   :global(.bento-card) {
     @apply bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-24 transition-all duration-300;
+  }
+
+  @media (max-width: 1023px) {
+    :global(.bento-card) {
+      @apply rounded-[20px] bg-zinc-900/80 border-white/[0.03];
+    }
   }
 
   :global(.btn-pill) {

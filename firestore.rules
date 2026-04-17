@@ -46,7 +46,8 @@ service cloud.firestore {
     }
     
     match /announcements/{docId} {
-      allow read, write: if isSuperAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
     }
     
     // Lobby: Sugerencias de la comunidad
