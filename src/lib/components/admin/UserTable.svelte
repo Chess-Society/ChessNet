@@ -10,7 +10,8 @@
     UserPlus,
     IdentificationBadge,
     Eye,
-    Trash
+    Trash,
+    Medal
   } from 'phosphor-svelte';
   import { fade } from 'svelte/transition';
 
@@ -70,6 +71,7 @@
         <thead>
           <tr class="bg-black/20 border-b border-white/5">
             <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Profesor</th>
+            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Logros</th>
             <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Plan</th>
             <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Registro</th>
             <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Acciones</th>
@@ -92,6 +94,18 @@
                     <p class="text-[10px] text-slate-500 font-medium">{user.email}</p>
                   </div>
                 </div>
+              </td>
+              <td class="px-8 py-6">
+                {#if user.badgesCount > 0}
+                  <div class="flex items-center gap-2">
+                    <div class="p-2 bg-violet-500/10 rounded-lg border border-violet-500/20">
+                      <Medal weight="fill" class="w-3.5 h-3.5 text-violet-400" />
+                    </div>
+                    <span class="text-xs font-black text-violet-300 italic">{user.badgesCount}</span>
+                  </div>
+                {:else}
+                  <span class="text-[9px] font-black text-slate-700 uppercase tracking-widest italic">Iniciado</span>
+                {/if}
               </td>
               <td class="px-8 py-6">
                 {#if getPlanStatus(user) === 'pro'}

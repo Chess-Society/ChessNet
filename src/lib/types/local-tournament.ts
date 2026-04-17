@@ -17,6 +17,11 @@ export interface LocalTournament {
   status: "draft" | "upcoming" | "in_progress" | "completed" | "cancelled";
   currentRound: number;
   start_date?: string; // Compatibilidad con vistas generales
+  end_date?: string; // Compatibilidad con vistas generales
+  registration_deadline?: string; // Compatibilidad con vistas generales
+  organizer?: string;
+  rules?: string;
+  entry_fee?: number;
   description?: string; // Compatibilidad con vistas generales
   _ttl?: number; 
   _expiresAt?: string; // ISO date when expires

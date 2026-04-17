@@ -20,6 +20,7 @@
       totalClasses: number;
       premiumUsers: number;
       recentUsers: number;
+      totalInsignias: number;
       totalRevenue: number;
     };
   }
@@ -57,6 +58,13 @@
       icon: Student,
       color: 'from-fuchsia-500 to-pink-600',
       sub: 'Base académica'
+    },
+    {
+      label: 'Insignias',
+      value: stats.totalInsignias || 0,
+       icon: Crown,
+      color: 'from-amber-400 to-orange-500',
+      sub: 'Logros desbloqueados'
     },
     {
       label: 'Escuelas',

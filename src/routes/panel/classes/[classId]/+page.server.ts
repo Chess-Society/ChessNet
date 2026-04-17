@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   const classId = params.classId;
@@ -56,7 +57,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     
     let students: any[] = [];
     if (studentIds.length > 0) {
-      // Fetch students in chunks of 30 (Firebase Admin 'in' limit is higher than client, but let's use 10 for safety/consistency)
+      // Fetch students in chunks of 30
       for (let i = 0; i < studentIds.length; i += 30) {
         const chunk = studentIds.slice(i, i + 30);
         const studentsSnap = await adminDb.collection("students")
@@ -148,7 +149,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       }
     }
     
-    return {
+    return serializeRecord({
       user: locals.user,
       class: { ...classData, school: schoolData },
       students,
@@ -172,9 +173,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         most_attended_date: mostAttended, 
         least_attended_date: leastAttended, 
         last_session_date: lastSession, 
-        next_session_date: null // This would require schedule logic
+        next_session_date: null 
       }
-    };
+    });
 
   } catch (err: any) {
     console.error('❌ Error in class detail page:', err);

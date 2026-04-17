@@ -30,6 +30,7 @@ export const adminApi = {
       classesSnap,
       premiumSnap,
       recentSnap,
+      insigniasSnap,
       paymentsSnap
     ] = await Promise.all([
       getCountFromServer(collection(db, "users")),
@@ -38,6 +39,7 @@ export const adminApi = {
       getCountFromServer(collection(db, "classes")),
       getCountFromServer(query(collection(db, "users"), where("settings.plan", "==", "premium"))),
       getCountFromServer(query(collection(db, "users"), where("createdAt", ">=", sevenDaysAgo.toISOString()))),
+      getCountFromServer(collection(db, "achievements")),
       getDocs(collection(db, "payments"))
     ]);
 
@@ -50,6 +52,7 @@ export const adminApi = {
       totalClasses: classesSnap.data().count,
       premiumUsers: premiumSnap.data().count,
       recentUsers: recentSnap.data().count,
+      totalInsignias: insigniasSnap.data().count,
       totalRevenue
     };
   },
@@ -146,11 +149,29 @@ export const adminApi = {
    */
   async awardInsignia(userId: string, insigniaId: string) {
     const collRef = collection(db, "achievements");
-    await addDoc(collRef, {
-      id: insigniaId,
-      owner_id: userId,
-      unlockedAt: new Date().toISOString()
-    });
+    const logRef = collection(db, "system_logs");
+    const userRef = doc(db, "users", userId);
+    
+    // Importación dinámica para evitar conflictos si no está en el root
+    const { increment } = await import('firebase/firestore');
+
+    await Promise.all([
+      addDoc(collRef, {
+        id: insigniaId,
+        owner_id: userId,
+        unlockedAt: new Date().toISOString()
+      }),
+      updateDoc(userRef, {
+        badgesCount: increment(1)
+      }),
+      addDoc(logRef, {
+        type: 'insignia_awarded',
+        action: 'Concesión de Insignia',
+        details: `Insignia ${insigniaId} concedida manualmente al usuario ${userId}`,
+        timestamp: new Date().toISOString(),
+        status: 'success'
+      })
+    ]);
   },
 
   /**
@@ -164,7 +185,16 @@ export const adminApi = {
     );
     const snap = await getDocs(q);
     const promises = snap.docs.map(d => deleteDoc(doc(db, "achievements", d.id)));
-    await Promise.all(promises);
+    
+    const userRef = doc(db, "users", userId);
+    const { increment } = await import('firebase/firestore');
+
+    await Promise.all([
+      ...promises,
+      updateDoc(userRef, {
+        badgesCount: increment(-1)
+      })
+    ]);
   },
 
   /**
@@ -259,11 +289,11 @@ export const adminApi = {
    * Asegura que todos los documentos de usuario tengan createdAt
    */
   async repairUsersData() {
-    const snap = await getDocs(collection(db, "users"));
-    console.log(`[AdminAPI] Repairing ${snap.size} users...`);
+    const usersSnap = await getDocs(collection(db, "users"));
+    console.log(`[AdminAPI] Repairing ${usersSnap.size} users...`);
     
     let repairedCount = 0;
-    const promises = snap.docs.map(async (docSnap) => {
+    const promises = usersSnap.docs.map(async (docSnap) => {
       const data = docSnap.data();
       let needsUpdate = false;
       const updates: any = {};
@@ -274,15 +304,23 @@ export const adminApi = {
         needsUpdate = true;
       }
 
-      // 2. Migrar/Limpiar plan legacy
+      // 2. Calcular insignias reales
+      const q = query(collection(db, "achievements"), where("owner_id", "==", docSnap.id));
+      const achievementsSnap = await getDocs(q);
+      const actualCount = achievementsSnap.size;
+
+      if (data.badgesCount !== actualCount) {
+        updates.badgesCount = actualCount;
+        needsUpdate = true;
+      }
+
+      // 3. Migrar/Limpiar plan legacy
       const legacyPlan = data.config?.settings?.subscription?.plan;
       if (legacyPlan) {
-        // Si no tiene plan en el nuevo formato, lo migramos
         if (!data.settings?.plan) {
           updates["settings.plan"] = legacyPlan;
           updates["settings.planExpiresAt"] = data.config?.settings?.subscription?.expiresAt || null;
         }
-        // En cualquier caso, marcamos para limpiar el legacy para evitar confusiones
         updates["config.settings.subscription"] = null;
         needsUpdate = true;
       }
@@ -294,6 +332,6 @@ export const adminApi = {
     });
 
     await Promise.all(promises);
-    return { count: repairedCount, total: snap.size };
+    return { count: repairedCount, total: usersSnap.size };
   }
 };

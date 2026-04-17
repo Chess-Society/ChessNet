@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   try {
-    const tournamentSnap = await adminDb.collection('tournaments').doc(tournamentId).get();
+    const tournamentSnap = await adminDb.collection('local_tournaments').doc(tournamentId).get();
 
     if (!tournamentSnap.exists) {
       throw error(404, 'Torneo no encontrado');

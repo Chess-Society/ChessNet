@@ -35,6 +35,7 @@ import {
   user as authStoreUser, 
   authInitialized as authStoreInit 
 } from './auth';
+import { toast } from './toast';
 
 import { CHESS_SYLLABUS_PRESETS } from '$lib/constants/chess-presets';
 import { ADMIN_EMAILS } from '$lib/constants';
@@ -69,7 +70,9 @@ export interface AppState {
   studentBadges: StudentBadge[];
   studentStats: any[];
   reports: any[];
+  lobbySuggestions: any[];
   unlockedAchievements: any[];
+  lastUnlockedAchievement: any | null;
   settings: AppSettings;
   dashboardLayout: string[];
 }
@@ -93,7 +96,9 @@ const initialState: AppState = {
   studentBadges: [],
   studentStats: [],
   reports: [],
+  lobbySuggestions: [],
   unlockedAchievements: [],
+  lastUnlockedAchievement: null,
   settings: { 
     plan: 'free',
     teacherName: '',
@@ -104,7 +109,8 @@ const initialState: AppState = {
 };
 
 function createAppStore() {
-  const { subscribe, set, update } = writable(initialState);
+  const store = writable(initialState);
+  const { subscribe, set, update } = store;
   let isLoaded = false;
   let unsubscribes: (() => void)[] = [];
 
@@ -182,7 +188,8 @@ function createAppStore() {
         { key: 'localTournamentRounds', path: 'local_tournament_rounds', api: '/api/local_tournament_rounds' },
         { key: 'localTournamentPairings', path: 'local_tournament_pairings', api: '/api/local_tournament_pairings' },
         { key: 'payments', path: 'payments', api: '/api/payments' },
-        { key: 'unlockedAchievements', path: 'achievements', api: '/api/achievements' }
+        { key: 'unlockedAchievements', path: 'achievements', api: '/api/achievements' },
+        { key: 'lobbySuggestions', path: 'lobby_suggestions', api: '/api/lobby_suggestions' }
       ];
 
       collectionsMap.forEach(({ key, path, api }) => {
@@ -193,7 +200,41 @@ function createAppStore() {
           unsubscribes.push(onSnapshot(q, 
             (snap) => {
               const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-              update(currentState => ({ ...currentState, [key]: docs }));
+              
+              if (key === 'unlockedAchievements' && isLoaded) {
+                 const current = get(store).unlockedAchievements;
+                 // Detect newly added achievements
+                 const newAchievements = docs.filter(d => !current.find(c => (c as any).id === (d as any).id));
+                 if (newAchievements.length > 0) {
+                   update(s => ({ ...s, lastUnlockedAchievement: newAchievements[0] }));
+                 }
+              }
+
+              update(currentState => {
+                const newState = { ...currentState, [key]: docs };
+                
+                // Achievement Checker (Automated Delivery)
+                if (isLoaded) {
+                   import('$lib/constants/insignias').then(({ INSIGNIAS }) => {
+                      const stats = {
+                        classesCount: newState.classes.length,
+                        studentsCount: newState.students.length,
+                        schoolsCount: newState.schools.length,
+                        lessonsCreatedCount: newState.skills.length,
+                        completedTournamentsCount: newState.localTournaments.filter(t => t.status === 'completed').length,
+                        lobbyContributionsCount: newState.lobbySuggestions.filter(s => s.authorId === user.uid).length
+                      };
+
+                     INSIGNIAS.forEach(insignia => {
+                       if (insignia.type === 'automatic' && insignia.condition?.(stats)) {
+                         appStore.unlockAchievement(insignia.id);
+                       }
+                     });
+                   });
+                }
+
+                return newState;
+              });
             },
             (error) => console.error(`❌ [AppStore] Error en ${path}:`, error)
           ));
@@ -234,7 +275,7 @@ function createAppStore() {
       if (user?.uid === 'chessnet-dev-uid') {
         const newSchool = { id: 'mock-school-' + Date.now(), ...school, owner_id: user.uid };
         update(s => ({ ...s, schools: [...s.schools, newSchool] }));
-        localStorage.setItem('chessnet_mock_schools', JSON.stringify(get(appStore).schools));
+        localStorage.setItem('chessnet_mock_schools', JSON.stringify(get(store).schools));
         return newSchool;
       }
       try {
@@ -255,7 +296,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, schools: s.schools.filter(school => school.id !== id) }));
-        localStorage.setItem('chessnet_mock_schools', JSON.stringify(get(appStore).schools));
+        localStorage.setItem('chessnet_mock_schools', JSON.stringify(get(store).schools));
         return;
       }
       await deleteDoc(doc(db, 'schools', id));
@@ -266,7 +307,7 @@ function createAppStore() {
       if (user?.uid === 'chessnet-dev-uid') {
         const newStudent = { id: 'mock-student-' + Date.now(), ...student, owner_id: user.uid };
         update(s => ({ ...s, students: [...s.students, newStudent] }));
-        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(appStore).students));
+        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(store).students));
         return newStudent;
       }
       try {
@@ -287,7 +328,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, students: s.students.map(std => std.id === student.id ? { ...std, ...student } : std) }));
-        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(appStore).students));
+        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(store).students));
         return;
       }
       const { id, ...data } = student;
@@ -298,7 +339,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, students: s.students.filter(std => std.id !== id) }));
-        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(appStore).students));
+        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(store).students));
         return;
       }
       await deleteDoc(doc(db, 'students', id));
@@ -309,7 +350,7 @@ function createAppStore() {
       if (user?.uid === 'chessnet-dev-uid') {
         const newClass = { id: 'mock-class-' + Date.now(), ...cls, owner_id: user.uid };
         update(s => ({ ...s, classes: [...s.classes, newClass] }));
-        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(appStore).classes));
+        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(store).classes));
         return newClass;
       }
       try {
@@ -330,7 +371,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, classes: s.classes.map(c => c.id === cls.id ? { ...c, ...cls } : c) }));
-        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(appStore).classes));
+        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(store).classes));
         return;
       }
       const { id, ...data } = cls;
@@ -340,7 +381,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, classes: s.classes.filter(c => c.id !== id) }));
-        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(appStore).classes));
+        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(store).classes));
         return;
       }
       await deleteDoc(doc(db, 'classes', id));
@@ -378,7 +419,7 @@ function createAppStore() {
           updatedAt: new Date().toISOString()
         };
         update(s => ({ ...s, localTournaments: [...s.localTournaments, newTournament] }));
-        localStorage.setItem('chessnet_mock_local_tournaments', JSON.stringify(get(appStore).localTournaments));
+        localStorage.setItem('chessnet_mock_localTournaments', JSON.stringify(get(store).localTournaments));
         return newTournament.id;
       }
 
@@ -398,7 +439,7 @@ function createAppStore() {
           ...s, 
           localTournaments: s.localTournaments.map(t => t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t) 
         }));
-        localStorage.setItem('chessnet_mock_local_tournaments', JSON.stringify(get(appStore).localTournaments));
+        localStorage.setItem('chessnet_mock_localTournaments', JSON.stringify(get(store).localTournaments));
         return;
       }
       const docRef = doc(db, 'local_tournaments', id);
@@ -408,15 +449,23 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, localTournaments: s.localTournaments.filter(t => t.id !== id) }));
-        localStorage.setItem('chessnet_mock_local_tournaments', JSON.stringify(get(appStore).localTournaments));
+        localStorage.setItem('chessnet_mock_localTournaments', JSON.stringify(get(store).localTournaments));
         return;
       }
       await deleteDoc(doc(db, 'local_tournaments', id));
     },
 
     addLocalTournamentPlayer: async (player: any) => {
-      const user = auth.currentUser;
+      const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
+      
+      if (user.uid === 'chessnet-dev-uid') {
+          const newPlayer = { ...player, id: `${player.tournament_id}_${player.student_id}`, owner_id: user.uid, createdAt: new Date().toISOString() };
+          update(s => ({ ...s, localTournamentPlayers: [...s.localTournamentPlayers, newPlayer] }));
+          localStorage.setItem('chessnet_mock_localTournamentPlayers', JSON.stringify(get(store).localTournamentPlayers));
+          return;
+      }
+
       const docId = `${player.tournament_id}_${player.student_id}`;
       const docRef = doc(db, 'local_tournament_players', docId);
       await setDoc(docRef, { 
@@ -426,12 +475,48 @@ function createAppStore() {
       }, { merge: true });
     },
     removeLocalTournamentPlayer: async (tournamentId: string, studentId: string) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+          const docId = `${tournamentId}_${studentId}`;
+          update(s => ({ ...s, localTournamentPlayers: s.localTournamentPlayers.filter(p => p.id !== docId) }));
+          localStorage.setItem('chessnet_mock_localTournamentPlayers', JSON.stringify(get(store).localTournamentPlayers));
+          return;
+      }
       await deleteDoc(doc(db, 'local_tournament_players', `${tournamentId}_${studentId}`));
     },
 
+    updateLocalTournamentPlayer: async (tournamentId: string, studentId: string, updates: any) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+          const docId = `${tournamentId}_${studentId}`;
+          update(s => ({ 
+            ...s, 
+            localTournamentPlayers: s.localTournamentPlayers.map(p => p.id === docId ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p) 
+          }));
+          localStorage.setItem('chessnet_mock_localTournamentPlayers', JSON.stringify(get(store).localTournamentPlayers));
+          return;
+      }
+      const docId = `${tournamentId}_${studentId}`;
+      const docRef = doc(db, 'local_tournament_players', docId);
+      await setDoc(docRef, { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
+    },
+
     addLocalTournamentPairing: async (pairing: any) => {
-      const user = auth.currentUser;
+      const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
+      
+      if (user.uid === 'chessnet-dev-uid') {
+          const newPairing = { 
+            ...pairing, 
+            id: 'mock-pair-' + Math.random().toString(36).substr(2, 9), 
+            owner_id: user.uid, 
+            createdAt: new Date().toISOString() 
+          };
+          update(s => ({ ...s, localTournamentPairings: [...s.localTournamentPairings, newPairing] }));
+          localStorage.setItem('chessnet_mock_localTournamentPairings', JSON.stringify(get(store).localTournamentPairings));
+          return;
+      }
+
       const collRef = collection(db, 'local_tournament_pairings');
       await addDoc(collRef, { 
         ...pairing, 
@@ -440,13 +525,30 @@ function createAppStore() {
       });
     },
     updateLocalTournamentPairing: async (id: string, updates: any) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+          update(s => ({ 
+            ...s, 
+            localTournamentPairings: s.localTournamentPairings.map(p => p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p) 
+          }));
+          localStorage.setItem('chessnet_mock_localTournamentPairings', JSON.stringify(get(store).localTournamentPairings));
+          return;
+      }
       const docRef = doc(db, 'local_tournament_pairings', id);
       await setDoc(docRef, { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
     },
 
     addLocalTournamentRound: async (round: any) => {
-      const user = auth.currentUser;
+      const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
+      
+      if (user.uid === 'chessnet-dev-uid') {
+          const newRound = { ...round, id: `${round.tournament_id}_${round.round_no}`, owner_id: user.uid, createdAt: new Date().toISOString() };
+          update(s => ({ ...s, localTournamentRounds: [...s.localTournamentRounds, newRound] }));
+          localStorage.setItem('chessnet_mock_localTournamentRounds', JSON.stringify(get(store).localTournamentRounds));
+          return;
+      }
+
       const docId = `${round.tournament_id}_${round.round_no}`;
       const docRef = doc(db, 'local_tournament_rounds', docId);
       await setDoc(docRef, { 
@@ -456,13 +558,67 @@ function createAppStore() {
       }, { merge: true });
     },
     updateLocalTournamentRound: async (id: string, updates: any) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+          update(s => ({ 
+            ...s, 
+            localTournamentRounds: s.localTournamentRounds.map(r => r.id === id ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r) 
+          }));
+          localStorage.setItem('chessnet_mock_localTournamentRounds', JSON.stringify(get(store).localTournamentRounds));
+          return;
+      }
       const docRef = doc(db, 'local_tournament_rounds', id);
       await setDoc(docRef, { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
     },
+    removeLocalTournamentRound: async (tournamentId: string, roundNo: number) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+          const docId = `${tournamentId}_${roundNo}`;
+          update(s => ({ 
+            ...s, 
+            localTournamentRounds: s.localTournamentRounds.filter(r => r.id !== docId) 
+          }));
+          localStorage.setItem('chessnet_mock_localTournamentRounds', JSON.stringify(get(store).localTournamentRounds));
+          return;
+      }
+      await deleteDoc(doc(db, 'local_tournament_rounds', `${tournamentId}_${roundNo}`));
+    },
+    removeLocalTournamentPairings: async (tournamentId: string, roundNo?: number) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+          update(s => ({ 
+            ...s, 
+            localTournamentPairings: s.localTournamentPairings.filter(p => {
+              const matchT = p.tournament_id === tournamentId;
+              const matchR = roundNo ? p.round_no === roundNo : true;
+              return !(matchT && matchR);
+            }) 
+          }));
+          localStorage.setItem('chessnet_mock_localTournamentPairings', JSON.stringify(get(store).localTournamentPairings));
+          return;
+      }
+      // Note: Full firestore removal should be handled via batch/query in the API
+    },
     
     saveAttendance: async (record: any) => {
-      const user = auth.currentUser;
+      const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
+      
+      if (user.uid === 'chessnet-dev-uid') {
+          const attendanceId = record.id || `${record.student_id}_${record.class_id}_${record.date}`;
+          const newRecord = { ...record, id: attendanceId, owner_id: user.uid, createdAt: new Date().toISOString() };
+          
+          update(s => {
+              const exists = s.attendance.find(a => a.id === attendanceId);
+              const newAttendance = exists 
+                ? s.attendance.map(a => a.id === attendanceId ? newRecord : a)
+                : [...s.attendance, newRecord];
+              return { ...s, attendance: newAttendance };
+          });
+          localStorage.setItem('chessnet_mock_attendance', JSON.stringify(get(store).attendance));
+          return;
+      }
+
       if (record.id) {
         const { id, ...data } = record;
         await setDoc(doc(db, 'attendance', id), data, { merge: true });
@@ -488,7 +644,7 @@ function createAppStore() {
           createdAt: new Date().toISOString() 
         };
         update(s => ({ ...s, payments: [...s.payments, newPayment] }));
-        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(appStore).payments));
+        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(store).payments));
         return newPayment;
       }
 
@@ -509,7 +665,7 @@ function createAppStore() {
           ...s, 
           payments: s.payments.map(p => p.id === payment.id ? { ...p, ...payment, updatedAt: new Date().toISOString() } : p) 
         }));
-        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(appStore).payments));
+        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(store).payments));
         return;
       }
 
@@ -521,7 +677,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, payments: s.payments.filter(p => p.id !== id) }));
-        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(appStore).payments));
+        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(store).payments));
         return;
       }
       await deleteDoc(doc(db, 'payments', id));
@@ -532,7 +688,7 @@ function createAppStore() {
       if (user?.uid === 'chessnet-dev-uid') {
         const newSkill = { id: 'mock-skill-' + Date.now(), ...skill, owner_id: user.uid };
         update(s => ({ ...s, skills: [...s.skills, newSkill] }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(appStore).skills));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
         return newSkill;
       }
       try {
@@ -553,7 +709,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, skills: s.skills.map(sk => sk.id === skill.id ? { ...sk, ...skill } : sk) }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(appStore).skills));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
         return;
       }
       const { id, ...data } = skill;
@@ -563,7 +719,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
         update(s => ({ ...s, skills: s.skills.filter(sk => sk.id !== id) }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(appStore).skills));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
         return;
       }
       await deleteDoc(doc(db, 'skills', id));
@@ -599,7 +755,7 @@ function createAppStore() {
       }
       
       if (isMock) {
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(appStore).skills));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
       }
     },
 
@@ -637,7 +793,7 @@ function createAppStore() {
       }
 
       if (isMock) {
-        localStorage.setItem('chessnet_mock_local_tournaments', JSON.stringify(get(appStore).localTournaments));
+        localStorage.setItem('chessnet_mock_localTournaments', JSON.stringify(get(store).localTournaments));
       }
     },
 
@@ -645,7 +801,7 @@ function createAppStore() {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
       const docRef = doc(db, 'users', user.uid);
-      const current = get(appStore);
+      const current = get(store);
       await setDoc(docRef, { 
         settings: { ...current.settings, ...settings },
         updatedAt: new Date().toISOString()
@@ -662,14 +818,24 @@ function createAppStore() {
     unlockAchievement: async (slug: string) => {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
-      const current = get(appStore);
+      
+      const current = get(store);
+      // Evitar duplicados
       if (current.unlockedAchievements.some((a: any) => a.id === slug)) return;
+
       const collRef = collection(db, 'achievements');
       await addDoc(collRef, { 
         id: slug, 
         owner_id: user.uid,
         unlockedAt: new Date().toISOString() 
       });
+
+      // Disparar notificación premium
+      toast.achievement(slug);
+    },
+
+    clearLastAchievement: () => {
+      update(s => ({ ...s, lastUnlockedAchievement: null }));
     }
   };
 }

@@ -50,6 +50,7 @@
   let activeTab = $state('overview');
   let showRegModal = $state(false);
   let selectedStudentId = $state('');
+  let manualPlayerName = $state('');
   let isProcessing = $state(false);
 
   const getStatusConfig = (status: string) => {
@@ -67,15 +68,22 @@
 
   // Logic: Registration
   const handleRegister = async () => {
-    if (!selectedStudentId || !tournamentId) return;
+    if ((!selectedStudentId && !manualPlayerName) || !tournamentId) return;
     isProcessing = true;
     try {
         const api = await getLocalTournamentsApi();
-        await api.addPlayer(tournamentId, selectedStudentId);
+        if (manualPlayerName) {
+            await api.addManualPlayer(tournamentId, manualPlayerName);
+        } else {
+            await api.addPlayer(tournamentId, selectedStudentId);
+        }
+        showToast.success($t('tournaments.player_registered') || 'Player registered successfully');
         showRegModal = false;
         selectedStudentId = '';
-    } catch (error) {
+        manualPlayerName = '';
+    } catch (error: any) {
         console.error("Error registering player:", error);
+        showError(error.message || $t('tournaments.error_registering_player') || 'Error registering player');
     } finally {
         isProcessing = false;
     }
@@ -237,7 +245,7 @@
 </script>
 
 <svelte:head>
-  <title>{tournament?.name || 'Torneo'} - ChessNet Hub</title>
+  <title>{tournament?.name || 'Torneo'} - ChessNet Dashboard</title>
 </svelte:head>
 
 {#if !tournament}
@@ -321,10 +329,21 @@
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
-        <!-- Left: Hub Content (2/3) -->
+        <!-- Left: Dashboard Content (2/3) -->
         <div class="lg:col-span-2 space-y-8">
             
             {#if activeTab === 'overview'}
+                <div class="space-y-6" in:fly={{ y: 20 }}>
+                    <!-- Info Alert: Local Tournament Clarification -->
+                    <div class="bg-violet-500/10 border border-violet-500/20 rounded-2xl p-6 flex gap-4 items-center">
+                        <div class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
+                            <Info weight="duotone" class="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p class="text-xs font-black text-violet-400 uppercase tracking-widest">Torneo Presencial</p>
+                            <p class="text-[11px] text-zinc-400 font-medium uppercase tracking-wider mt-0.5">Este es un panel de gestión para torneos en vivo. Los resultados se registran manualmente.</p>
+                        </div>
+                    </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6" in:fly={{ y: 20 }}>
                     <!-- General Details Bento -->
                     <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden group">
@@ -372,6 +391,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             {/if}
 
             {#if activeTab === 'players'}
@@ -865,6 +885,26 @@
                   </div>
               </div>
 
+              <div class="relative flex items-center gap-4 py-2">
+                  <div class="h-px bg-zinc-800 flex-1"></div>
+                  <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">O REGISTRO DIRECTO</span>
+                  <div class="h-px bg-zinc-800 flex-1"></div>
+              </div>
+
+              <div class="space-y-3">
+                  <label for="manual-name" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Nombre del Jugador (Amigos/Invitados)</label>
+                  <div class="relative group">
+                    <UserPlus weight="bold" class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
+                    <input 
+                        id="manual-name"
+                        type="text"
+                        placeholder="Escribe el nombre aquí..."
+                        bind:value={manualPlayerName}
+                        class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] pl-16 pr-8 py-5 text-sm text-white font-bold placeholder:text-zinc-700 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all shadow-inner"
+                    />
+                  </div>
+              </div>
+
               <div class="bg-violet-600/5 border border-violet-500/20 rounded-2xl p-6 flex gap-4 items-start shadow-inner">
                   <Info weight="duotone" class="w-6 h-6 text-violet-400 shrink-0" />
                   <p class="text-[11px] text-violet-300 font-plus-jakarta leading-relaxed uppercase tracking-wider">
@@ -882,7 +922,7 @@
               </button>
               <button 
                 onclick={handleRegister}
-                disabled={!selectedStudentId || isProcessing}
+                disabled={(!selectedStudentId && !manualPlayerName) || isProcessing}
                 class="flex-[2] bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-outfit font-black py-5 rounded-[20px] transition-all shadow-xl shadow-violet-500/30 flex items-center justify-center gap-3 group active:scale-95"
               >
                 {#if isProcessing}

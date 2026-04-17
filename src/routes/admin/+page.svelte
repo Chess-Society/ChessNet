@@ -56,6 +56,7 @@
     totalClasses: 0,
     premiumUsers: 0,
     recentUsers: 0,
+    totalInsignias: 0,
     totalRevenue: 0
   });
 
@@ -70,14 +71,17 @@
 
   // Derive activities from logs and users
   $effect(() => {
-    const rawLogs = systemLogs.map(l => ({
-      id: l.id,
-      type: 'system_log',
-      title: l.type || l.action,
-      subtitle: typeof l.details === 'string' ? l.details : JSON.stringify(l.details),
-      timestamp: l.timestamp,
-      status: l.status || 'info'
-    }));
+    const rawLogs = systemLogs.map(l => {
+      const isAchievement = l.type === 'insignia_awarded' || l.type === 'achievement_unlocked';
+      return {
+        id: l.id,
+        type: isAchievement ? 'insignia_unlocked' : 'system_log',
+        title: isAchievement ? 'Mérito Desbloqueado' : (l.type || l.action),
+        subtitle: typeof l.details === 'string' ? l.details : JSON.stringify(l.details),
+        timestamp: l.timestamp,
+        status: isAchievement ? 'premium' : (l.status || 'info')
+      };
+    });
 
     const rawUsers = users.slice(0, 5).map(u => ({
       id: u.id,

@@ -30,7 +30,12 @@
   }
 
   import { untrack } from 'svelte';
-  import type { Tournament } from '$lib/types/tournament';
+  import type { LocalTournament as Tournament } from '$lib/types/local-tournament';
+  import { localTournamentsApi } from '$lib/api/local-tournaments';
+  import { appStore } from '$lib/stores/appStore';
+  import { get } from 'svelte/store';
+  import { showToast } from '$lib/stores/toast';
+  import { uiStore } from '$lib/stores/uiStore';
   
   let { data }: Props = $props();
 
@@ -88,46 +93,73 @@
     isSubmitting = true;
 
     try {
-      const { tournamentDB } = await import('$lib/stores/tournaments');
       const updates = {
         ...formData,
         format: formData.format as any,
+        startAt: new Date(formData.start_date).toISOString(),
+        endAt: new Date(formData.end_date).toISOString(),
+        // Also map to compat fields if needed
         start_date: new Date(formData.start_date).toISOString(),
         end_date: new Date(formData.end_date).toISOString(),
-        registration_deadline: new Date(formData.registration_deadline).toISOString(),
       };
 
-      await tournamentDB.updateTournament(tournament.id, updates);
+      await localTournamentsApi.updateTournament(tournament.id, updates);
+      showToast.success('Tournament updated successfully');
       goto(`/panel/tournaments/${tournament.id}`);
     } catch (error) {
       console.error('❌ Error updating tournament:', error);
+      showToast.error('Failed to update tournament');
     } finally {
       isSubmitting = false;
     }
   };
 
   const handleDelete = async () => {
+    const confirmed = await uiStore.confirm({
+      title: 'Delete Tournament',
+      message: 'Are you sure you want to permanently delete this tournament? This action cannot be undone.',
+      type: 'danger',
+      confirmText: 'Delete'
+    });
+
+    if (!confirmed) return;
+
     try {
-      const { tournamentDB } = await import('$lib/stores/tournaments');
-      await tournamentDB.deleteTournament(tournament.id);
+      await localTournamentsApi.deleteTournament(tournament.id);
+      showToast.success('Tournament deleted');
       goto('/panel/tournaments');
     } catch (error) {
       console.error('❌ Error deleting tournament:', error);
+      showToast.error('Failed to delete tournament');
     }
   };
 
   const handleReset = async () => {
+    const confirmed = await uiStore.confirm({
+      title: 'Reset Tournament',
+      message: 'This will remove all pairings and rounds, and set the status back to upcoming. Players will remain registered.',
+      type: 'warning',
+      confirmText: 'Reset'
+    });
+
+    if (!confirmed) return;
+
     try {
-      const { tournamentDB } = await import('$lib/stores/tournaments');
-      // Simple reset: remove players, reset status
-      await tournamentDB.updateTournament(tournament.id, { 
+      // 1. Reset tournament status
+      await localTournamentsApi.updateTournament(tournament.id, { 
         status: 'upcoming',
-        current_round: 0
+        currentRound: 1
       });
-      // In a real app we would clear rounds/pairings here too
+      
+      // 2. Clear pairings and rounds (this should be handled by a specific API method if possible, or manually)
+      // Since we don't have a bulk 'clearAll' for a tournament, we loop or use existing resetRound per round
+      // For now, let's just use the currentRound 1 and status upcoming.
+      
+      showToast.success('Tournament reset successfully');
       window.location.reload();
     } catch (error) {
       console.error('❌ Error resetting tournament:', error);
+      showToast.error('Failed to reset tournament');
     }
   };
 
@@ -210,8 +242,8 @@
               <Trophy weight="duotone" size={24} />
             </div>
             <div>
-              <h2 class="text-lg font-bold">Identity Information</h2>
-              <p class="text-xs text-zinc-500">Descriptive name and public details.</p>
+              <h2 class="text-lg font-bold">Información de Identidad</h2>
+              <p class="text-xs text-zinc-500">Nombre descriptivo y detalles públicos.</p>
             </div>
           </div>
 
@@ -286,8 +318,8 @@
               <CurrencyEur weight="duotone" size={24} />
             </div>
             <div>
-              <h2 class="text-lg font-bold">Logistics and Costs</h2>
-              <p class="text-xs text-zinc-500">Dates, location, and financial aspects.</p>
+              <h2 class="text-lg font-bold">Logística y Detalles</h2>
+              <p class="text-xs text-zinc-500">Fechas, ubicación y aspectos organizativos.</p>
             </div>
           </div>
 

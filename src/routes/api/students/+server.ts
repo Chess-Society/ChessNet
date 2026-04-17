@@ -23,7 +23,15 @@ export const GET: RequestHandler = async (event) => {
       return json({ students });
     } catch (dbError) {
       if (isMock) {
-        return json({ students: [] });
+        return json({ 
+          students: [
+            { id: 'mock-s1', name: 'Magnus Carlsen', rating: 2850, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() },
+            { id: 'mock-s2', name: 'Hikaru Nakamura', rating: 2800, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() },
+            { id: 'mock-s3', name: 'Fabiano Caruana', rating: 2790, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() },
+            { id: 'mock-s4', name: 'Alireza Firouzja', rating: 2770, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() },
+            { id: 'mock-s5', name: 'Anish Giri', rating: 2760, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() }
+          ] 
+        });
       }
       throw dbError;
     }

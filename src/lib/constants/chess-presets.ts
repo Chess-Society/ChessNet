@@ -10,6 +10,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
     level: 'beginner',
     difficulty: 2,
     learning_objectives: ['Clavada absoluta y relativa', 'Ataque doble y horquilla', 'Atracción y Desviación'],
+    assessment_criteria: ['Identificar clavadas en ejercicios de 1 jugada', 'Resolver mates en 1 con ataque doble', 'Explicar la diferencia entre atracción y desviación'],
+    resources: ['https://lichess.org/practice/basic-tactics', 'Libro: Tratado Elemental de Ajedrez'],
     icon: 'Target'
   },
   {
@@ -19,6 +21,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
     level: 'intermediate',
     difficulty: 3,
     learning_objectives: ['Mate de Anastasia y Boden', 'Esquema de Lucena en medio juego', 'Patrones de mate de Damiano y Grecco'],
+    assessment_criteria: ['Reconocer el patrón de Boden en partidas reales', 'Ejecutar el esquema de Lucena sin errores', 'Completar test de patrones de mate (80%+ éxito)'],
+    resources: ['https://chess24.com/es/learn/tactics', 'App: Chess Tempo Patterns'],
     icon: 'Zap'
   },
   {
@@ -28,6 +32,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
     level: 'advanced',
     difficulty: 5,
     learning_objectives: ['Sacrificios de pieza entera', 'Sobrecarga y Rayos X', 'Desbloqueo de líneas'],
+    assessment_criteria: ['Calcular variantes de hasta 4 jugadas', 'Resolver problemas de nivel 2000+ elo', 'Identificar el tema táctico en posiciones complejas'],
+    resources: ['Curso: Cálculo Superior - Aagaard', 'Base de datos: Combinaciones Históricas'],
     icon: 'Lightning'
   },
 
@@ -44,6 +50,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
       'Evaluación del desarrollo dinámico',
       'Seguridad del Rey'
     ],
+    assessment_criteria: ['Realizar un balance material vs posicional', 'Detectar al menos 3 debilidades en una posición dada', 'Proponer un plan basado en la seguridad del rey'],
+    resources: ['https://chess.com/lessons/strategy-fundamentals', 'Libro: Mi Sistema - Nimzowitsch'],
     icon: 'Scale'
   },
   {
@@ -57,6 +65,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
       'Maniobras preventivas',
       'Centralización y reagrupamiento'
     ],
+    assessment_criteria: ['Mover una pieza mal situada a su casilla ideal en <3 jugadas', 'Explicar el concepto de reagrupamiento dinámico', 'Demostrar una maniobra profiláctica en el flanco de dama'],
+    resources: ['Seminario Jacobo Caselas: Maniobras Modernas', 'Base de datos de partidas magistrales'],
     icon: 'ArrowsInLineHorizontal'
   },
   {
@@ -70,6 +80,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
       'Control de rupturas del rival',
       'Bloqueo preventivo'
     ],
+    assessment_criteria: ['Anticipar la ruptura central del rival', 'Ejecutar un bloqueo exitoso de peones pasados', 'Evaluar el riesgo de contrajuego antes de atacar'],
+    resources: ['Libro: Profilaxis en el Ajedrez - Dvoretsky', 'Vídeo: Control del centro y profilaxis'],
     icon: 'Shield'
   },
 
@@ -85,6 +97,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
       'Árboles de variantes compactos',
       'Visualización de posición final'
     ],
+    assessment_criteria: ['Listar todas las jugadas candidatas relevantes', 'Visualizar posiciones a 5 jugadas de distancia', 'Evitar errores de "ceguera táctica" en el cálculo'],
+    resources: ['Libro: Grandmaster Preparation: Calculation', 'Software: visualización 3D'],
     icon: 'Cpu'
   },
 
@@ -96,6 +110,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
     level: 'beginner',
     difficulty: 2,
     learning_objectives: ['Oposición simple', 'Regla del cuadrado', 'Casillas clave'],
+    assessment_criteria: ['Ganar finales de peón con oposición', 'Aplicar la regla del cuadrado sin dudar', 'Identificar casillas ganadoras y perdedoras'],
+    resources: ['https://lichess.org/practice/pawn-endgames', 'Manual de finales de Pandolfini'],
     icon: 'CaretUp'
   },
   {
@@ -105,6 +121,8 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
     level: 'intermediate',
     difficulty: 4,
     learning_objectives: ['Puente de Lucena', 'Defensa de Philidor', 'Posición de Vancura'],
+    assessment_criteria: ['Ejecutar el puente de Lucena en partida viva', 'Defender posiciones de Philidor con éxito', 'Explicar por qué Vancura es tablas'],
+    resources: ['https://chess.com/drills/endgames/rooks', 'Vídeo: Lucena vs Philidor'],
     icon: 'Castle'
   }
 ];

@@ -116,15 +116,57 @@
           </a>
         </div>
 
-        <!-- Product Preview -->
+        <!-- Pure CSS/Svelte Insignia Hub Visual (No Images) -->
         <div class="relative w-full animate-slide-up-large" style="animation-delay: 300ms">
           <div class="absolute -inset-10 bg-primary-500/10 rounded-[3rem] blur-[80px]"></div>
-          <div class="relative rounded-[32px] p-2 bg-white/5 border border-white/10 shadow-2xl backdrop-blur-sm overflow-hidden">
-            <img 
-              src="/images/dashboard-mockup.png" 
-              alt="ChessNet Dashboard Preview" 
-              class="w-full h-auto rounded-[24px] object-cover"
-            />
+          <div class="relative rounded-[48px] p-12 bg-white/[0.02] border border-white/10 shadow-2xl backdrop-blur-md overflow-hidden group/badges">
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-primary-600/10 rounded-full blur-[120px]"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px]"></div>
+
+            <div class="max-w-4xl mx-auto flex flex-col items-center relative z-10">
+              <div class="flex items-center gap-3 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-primary-500/20 flex items-center justify-center text-primary-400">
+                  <Trophy class="w-6 h-6" />
+                </div>
+                <span class="text-[10px] font-black uppercase tracking-[0.3em] text-primary-400">{$t('nav.achievements')}</span>
+              </div>
+
+              <h2 class="text-4xl md:text-6xl font-display font-black text-white text-center mb-16 leading-[0.9] tracking-tighter uppercase">
+                {@html $t('badges.evolve_prestige')}
+              </h2>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 w-full mb-16">
+                {#each INSIGNIAS.slice(0, 5) as badge}
+                  <div class="relative group/badge p-8 rounded-[32px] bg-white/5 border border-white/5 hover:border-primary-500/30 hover:bg-white/10 transition-all flex flex-col items-center gap-6 text-center">
+                    <div class="relative w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center {badge.color} transition-transform duration-500 group-hover/badge:scale-110">
+                       <div class="absolute inset-0 {badge.glowColor} opacity-20 blur-2xl group-hover/badge:opacity-50 transition-opacity"></div>
+                       {#if badge.icon}
+                         <badge.icon weight="duotone" class="w-10 h-10" />
+                       {/if}
+                    </div>
+                    <div class="space-y-1">
+                      <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover/badge:text-white transition-colors">{$t(badge.titleKey)}</p>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+              
+              <div class="flex flex-col md:flex-row items-center gap-8 pt-10 border-t border-white/5">
+                <p class="text-slate-400 text-center md:text-left max-w-xl text-sm font-medium leading-relaxed opacity-80">
+                   {$t('badges.header_desc')}
+                </p>
+                <div class="flex -space-x-3">
+                   {#each Array(5) as _, i}
+                      <div class="w-10 h-10 rounded-full border-2 border-[#020617] bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white">
+                         {i + 1}
+                      </div>
+                   {/each}
+                   <div class="w-10 h-10 rounded-full border-2 border-[#020617] bg-primary-600 flex items-center justify-center text-[10px] font-bold text-white">
+                      +
+                   </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

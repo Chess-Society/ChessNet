@@ -20,6 +20,7 @@
   import { t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
   import { auth } from '$lib/firebase';
+  import InsigniaBadge from '$lib/components/ui/InsigniaBadge.svelte';
 
   let config = $state({
     teacherName: $appStore.settings.teacherName || auth.currentUser?.displayName || '',
@@ -41,14 +42,9 @@
   });
 
   const availableInsignias = $derived(
-    INSIGNIAS.filter(insignia => {
-      // Manual/Special insignias
-      if (insignia.type === 'special') {
-        return $appStore.unlockedInsignias.some(a => a.id === insignia.id);
-      }
-      // Automatic insignias
-      return insignia.condition ? insignia.condition(stats) : false;
-    })
+    INSIGNIAS.filter(insignia => 
+      $appStore.unlockedAchievements.some(a => a.id === insignia.id)
+    )
   );
 
   const toggleInsignia = (id: string) => {
@@ -178,26 +174,24 @@
               {$t('settings.featured_insignias_desc')}
           </p>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
               {#each availableInsignias as insignia}
                   {@const isFeatured = config.featuredInsignias.includes(insignia.id)}
-                  {@const Icon = insignia.icon}
                   <button 
                     onclick={() => toggleInsignia(insignia.id)}
-                    class="relative group p-4 rounded-2xl border transition-all flex flex-col items-center gap-3 text-center
-                    {isFeatured 
-                      ? 'bg-violet-600/10 border-violet-500/40 shadow-lg shadow-violet-500/10' 
-                      : 'bg-zinc-950/40 border-white/5 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:border-white/10'}"
+                    class="relative transition-all hover:scale-105 active:scale-95"
+                    aria-label="Toggle featured insignia"
                   >
-                      <div class="w-12 h-12 bg-black/60 rounded-xl flex items-center justify-center {insignia.color}">
-                          <Icon weight={isFeatured ? 'duotone' : 'regular'} class="w-7 h-7" />
-                      </div>
-                      <p class="text-[10px] font-black uppercase tracking-tight line-clamp-1">{$t(insignia.titleKey)}</p>
+                      <InsigniaBadge {insignia} unlocked={true} size="md" />
                       
                       {#if isFeatured}
-                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-violet-600 rounded-full flex items-center justify-center border-2 border-[#1e293b] shadow-lg" transition:scale>
-                          <Check weight="bold" class="w-3 h-3 text-white" />
+                        <div class="absolute -top-1 -right-1 w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center border-4 border-[#09090b] shadow-xl z-20" transition:scale>
+                          <Check weight="bold" class="w-4 h-4 text-white" />
                         </div>
+                      {/if}
+
+                      {#if !isFeatured && config.featuredInsignias.length >= 3}
+                        <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-[2rem] z-10"></div>
                       {/if}
                   </button>
               {/each}

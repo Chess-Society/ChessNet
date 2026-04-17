@@ -1,16 +1,24 @@
 <script lang="ts">
     import { fade, fly } from 'svelte/transition';
     import { Trophy, Target, Medal } from 'phosphor-svelte';
+    import type { LocalTournamentPairing, LocalTournamentPlayer } from '$lib/types/local-tournament';
     import { t } from '$lib/i18n';
 
-    let { pairings = [], players = [], currentRound = 1, format = 'knockout' } = $props();
+    interface Props {
+        pairings: LocalTournamentPairing[];
+        players: LocalTournamentPlayer[];
+        currentRound?: number;
+        format?: string;
+    }
+
+    let { pairings = [], players = [], currentRound = 1, format = 'knockout' }: Props = $props();
 
     // Group pairings by round
-    let roundsData = $derived(() => {
-        const rMap = new Map();
+    let roundsData = $derived.by(() => {
+        const rMap = new Map<number, LocalTournamentPairing[]>();
         pairings.forEach(p => {
             if (!rMap.has(p.round_no)) rMap.set(p.round_no, []);
-            rMap.get(p.round_no).push(p);
+            rMap.get(p.round_no)?.push(p);
         });
         
         const sortedRounds = Array.from(rMap.entries())
@@ -30,9 +38,9 @@
         return `${$t('tournaments.round')} ${roundNo}`;
     };
 
-    let totalRoundsCount = $derived(roundsData().length);
-    let winner = $derived(() => {
-        const lastRound = roundsData()[roundsData().length - 1];
+    let totalRoundsCount = $derived(roundsData.length);
+    let winner = $derived.by(() => {
+        const lastRound = roundsData[roundsData.length - 1];
         if (!lastRound) return null;
         const finalMatch = lastRound.pairs[0];
         if (!finalMatch || !finalMatch.result) return null;
@@ -46,7 +54,7 @@
 <div class="overflow-x-auto pb-16 pt-8 px-6 scrollbar-premium">
     <div class="flex gap-20 min-w-max items-start justify-center py-12 relative">
         
-        {#each roundsData() as round, rIndex}
+        {#each roundsData as round, rIndex}
             <div class="flex flex-col gap-12 relative" style="width: 280px;" in:fly={{ x: 30, delay: rIndex * 150, duration: 800 }}>
                 <!-- Round Header -->
                 <div class="text-center mb-8 relative">
@@ -133,7 +141,7 @@
         {/each}
 
         <!-- Champion Zone -->
-        {#if winner()}
+        {#if winner}
             <div class="flex flex-col items-center gap-6 ml-12 pt-16" in:fade={{ delay: 800, duration: 1000 }}>
                 <div class="relative group">
                     <!-- Glow effect -->
@@ -153,7 +161,7 @@
                 
                 <div class="text-center space-y-2 relative z-10">
                     <p class="text-[10px] font-black text-amber-500 uppercase tracking-[0.4em] drop-shadow-sm">TOURNAMENT CHAMPION</p>
-                    <h2 class="text-3xl font-outfit font-black text-white uppercase tracking-tighter drop-shadow-xl">{winner().name}</h2>
+                    <h2 class="text-3xl font-outfit font-black text-white uppercase tracking-tighter drop-shadow-xl">{winner.name}</h2>
                     <div class="flex items-center justify-center gap-2 mt-4">
                         <div class="h-px w-8 bg-zinc-800"></div>
                         <div class="w-2 h-2 rounded-full bg-amber-500"></div>

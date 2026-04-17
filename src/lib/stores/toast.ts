@@ -5,16 +5,17 @@ export type ToastType = 'success' | 'error' | 'info' | 'warning';
 export interface Toast {
   id: string;
   message: string;
-  type: ToastType;
+  type: ToastType | 'insignia';
+  insigniaId?: string;
   duration?: number;
 }
 
 function createToastStore() {
   const { subscribe, update } = writable<Toast[]>([]);
 
-  function add(message: string, type: ToastType = 'success', duration = 3000) {
+  function add(message: string, type: ToastType | 'insignia' = 'success', duration = 3000, insigniaId?: string) {
     const id = crypto.randomUUID();
-    update(all => [{ id, message, type, duration }, ...all]);
+    update(all => [{ id, message, type, duration, insigniaId }, ...all]);
 
     if (duration > 0) {
       setTimeout(() => remove(id), duration);
@@ -31,6 +32,7 @@ function createToastStore() {
     error: (m: string) => add(m, 'error'),
     info: (m: string) => add(m, 'info'),
     warning: (m: string) => add(m, 'warning'),
+    achievement: (insigniaId: string, customMessage?: string) => add(customMessage || '¡Nueva insignia desbloqueada!', 'insignia', 6000, insigniaId),
     remove
   };
 }

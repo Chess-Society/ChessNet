@@ -57,37 +57,51 @@
 
   onMount(() => {
     if (!$authUser) return;
-
-    // 1. Monitor for new activity in lobby (community)
+    
+    // Si estamos en local con el usuario de desarrollo, no conectamos los listeners de comunidad ruidosos
+    if ($authUser.uid === 'chessnet-dev-uid') {
+        console.log("🛠️ [Panel Layout] Modo desarrollo local activo. Omitiendo listeners de comunidad.");
+        return;
+    }
     const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
     const qLobby = query(collection(db, colName), orderBy('createdAt', 'desc'), limit(1));
     
-    unsubs.push(onSnapshot(qLobby, (snap) => {
-      if (!snap.empty) {
-        const lastActivity = (snap.docs[0].data() as any).createdAt;
-        const lastViewed = localStorage.getItem(`last_viewed_${colName}`);
-        
-        if (lastActivity) {
-          const activityDate = typeof lastActivity.toDate === 'function' ? lastActivity.toDate() : new Date(lastActivity);
-          const activityTime = activityDate.getTime();
-          if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
+    unsubs.push(onSnapshot(qLobby, 
+      (snap) => {
+        if (!snap.empty) {
+          const lastActivity = (snap.docs[0].data() as any).createdAt;
+          const lastViewed = localStorage.getItem(`last_viewed_${colName}`);
+          
+          if (lastActivity) {
+            const activityDate = typeof lastActivity.toDate === 'function' ? lastActivity.toDate() : new Date(lastActivity);
+            const activityTime = activityDate.getTime();
+            if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
+          }
         }
+      },
+      (error) => {
+        console.warn(`⚠️ [Panel Layout] No se pudo leer ${colName}:`, error.message);
       }
-    }));
+    ));
 
     // 2. Monitor for Global System Announcements
     const qGlobal = query(collection(db, 'announcements'), where('is_global', '==', true), orderBy('created_at', 'desc'), limit(1));
-    unsubs.push(onSnapshot(qGlobal, (snap) => {
-        if (!snap.empty) {
-            const lastActivity = (snap.docs[0].data() as any).created_at;
-            const lastViewed = localStorage.getItem('last_viewed_announcements_global');
-            
-            if (lastActivity) {
-                const activityTime = new Date(lastActivity).getTime();
-                if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
+    unsubs.push(onSnapshot(qGlobal, 
+        (snap) => {
+            if (!snap.empty) {
+                const lastActivity = (snap.docs[0].data() as any).created_at;
+                const lastViewed = localStorage.getItem('last_viewed_announcements_global');
+                
+                if (lastActivity) {
+                    const activityTime = new Date(lastActivity).getTime();
+                    if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
+                }
             }
+        },
+        (error) => {
+            console.warn('⚠️ [Panel Layout] No se pudieron leer anuncios globales:', error.message);
         }
-    }));
+    ));
   });
 
   onDestroy(() => {

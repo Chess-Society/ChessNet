@@ -21,6 +21,7 @@
   import { goto, invalidateAll } from '$app/navigation';
   import { fade, fly, scale } from 'svelte/transition';
   import { showToast, showError } from '$lib/stores/toast';
+  import { appStore } from '$lib/stores/appStore';
 
   let { data } = $props<{ data: any }>();
   let schools = $derived(data.schools || []);
@@ -45,19 +46,17 @@
 
     try {
       isSubmitting = true;
-      const response = await fetch('/api/tournaments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      
+      const tournamentToCreate = {
           ...tournament,
-          start_date: tournament.startDate,
+          startAt: tournament.startDate,
           time_control: tournament.timeControl,
           max_players: tournament.maxPlayers,
-          prize_pool: tournament.prizePool
-        })
-      });
+          prize_pool: tournament.prizePool,
+          selected_students: [] // No pre-selected students in this simplified form
+      };
 
-      if (!response.ok) throw new Error('Error creating tournament');
+      await appStore.addLocalTournament(tournamentToCreate);
 
       showToast.success($t('tournaments.create_success'));
       await invalidateAll();

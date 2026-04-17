@@ -3,6 +3,11 @@ import { query, collection, where } from "firebase/firestore";
 import { ADMIN_EMAILS } from "$lib/constants";
 
 export const getOwnerId = () => {
+  // Check for mock session first if in browser
+  if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('chessnet_mock_session') === 'true') {
+    return 'chessnet-dev-uid';
+  }
+
   const currentUser = auth.currentUser;
   if (!currentUser) return null;
 

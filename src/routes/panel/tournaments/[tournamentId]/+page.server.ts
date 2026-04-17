@@ -23,8 +23,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         description: 'Torneo anual para todos los niveles.',
         format: 'swiss',
         time_control: '10+5',
-        status: 'active',
-        current_round: 2,
+        status: 'in_progress',
+        currentRound: 2,
         owner_id: uid
       };
     } else {
@@ -82,8 +82,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         
       pairings = await Promise.all(matchSnap.docs.map(async (doc: any) => {
         const m = { id: doc.id, ...doc.data() };
-        if (m.player1_id) {
-          const s1Snap = await adminDb.collection("students").doc(m.player1_id).get();
+        // Mapear campos consistentes con localTournamentsApi
+        const p1Id = m.white_student_id || m.player1_id;
+        const p2Id = m.black_student_id || m.player2_id;
+        
+        if (p1Id) {
+          const s1Snap = await adminDb.collection("students").doc(p1Id).get();
           if (s1Snap.exists) {
             const s1Data = s1Snap.data() || {};
             m.player1 = {
@@ -92,8 +96,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
             };
           }
         }
-        if (m.player2_id) {
-          const s2Snap = await adminDb.collection("students").doc(m.player2_id).get();
+        if (p2Id) {
+          const s2Snap = await adminDb.collection("students").doc(p2Id).get();
           if (s2Snap.exists) {
             const s2Data = s2Snap.data() || {};
             m.player2 = {
@@ -144,23 +148,23 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       };
     });
 
-    const roundNumbers = [...new Set(pairings.map(p => p.round))].sort((a, b) => a - b);
+    const roundNumbers = [...new Set(pairings.map(p => p.round_no || p.round))].filter(Boolean).sort((a, b) => (a as any) - (b as any));
     const rounds = roundNumbers.map(r => ({
       id: `round-${r}`,
       tournament_id: tournamentId,
       round_number: r,
-      status: r < (tournament.current_round || 0) ? 'completed' : (r === (tournament.current_round || 0) ? 'in_progress' : 'not_started')
+      status: r < (tournament.current_round || tournament.currentRound || 0) ? 'completed' : (r === (tournament.current_round || tournament.currentRound || 0) ? 'in_progress' : 'not_started')
     }));
 
     const formattedPairings = pairings.map(p => ({
       id: p.id,
-      round_number: p.round,
-      board_number: p.board_number,
-      white_player_id: p.player1_id,
-      black_player_id: p.player2_id,
+      round_no: p.round_no || p.round,
+      board: p.board || p.board_number,
+      white_student_id: p.white_student_id || p.player1_id,
+      black_student_id: p.black_student_id || p.player2_id,
       result: p.result || '*',
-      white_player_name: p.player1?.name || 'White',
-      black_player_name: p.player2?.name || 'Black'
+      white_name: p.white_name || p.player1?.name || 'White',
+      black_name: p.black_name || p.player2?.name || 'Black'
     }));
 
     const standings = participants

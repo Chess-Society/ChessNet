@@ -7,18 +7,20 @@
     Clock, 
     Bug,
     Info,
-    Warning
+    Warning,
+    Medal,
+    Sparkle
   } from 'phosphor-svelte';
   import { slide, fade } from 'svelte/transition';
 
   interface Props {
     activities: {
       id: string;
-      type: 'user_joined' | 'system_log' | 'report';
+      type: 'user_joined' | 'system_log' | 'report' | 'insignia_unlocked';
       title: string;
       subtitle: string;
       timestamp: string;
-      status?: 'info' | 'warning' | 'error' | 'success';
+      status?: 'info' | 'warning' | 'error' | 'success' | 'premium';
       meta?: any;
     }[];
   }
@@ -39,6 +41,7 @@
 
   function getStatusIcon(activity: any) {
     if (activity.type === 'user_joined') return UserPlus;
+    if (activity.type === 'insignia_unlocked') return Medal;
     if (activity.status === 'error') return Bug;
     if (activity.status === 'warning') return Warning;
     return Info;
@@ -49,6 +52,7 @@
       case 'error': return 'bg-red-500/20 text-red-500 border-red-500/30';
       case 'warning': return 'bg-amber-500/20 text-amber-500 border-amber-500/30';
       case 'success': return 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30';
+      case 'premium': return 'bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-[0_0_15px_-5px_rgba(245,158,11,0.5)]';
       default: return 'bg-primary-500/20 text-primary-500 border-primary-500/30';
     }
   }

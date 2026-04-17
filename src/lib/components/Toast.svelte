@@ -1,9 +1,12 @@
 <script lang="ts">
   import { toasts, removeToast } from '$lib/stores/toast';
-  import { CheckCircle, WarningCircle, Info, Warning, X, Bell } from 'phosphor-svelte';
+  import { CheckCircle, WarningCircle, Info, Warning, X, Bell, Trophy, Sparkle, LockKey } from 'phosphor-svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
   import { quintOut } from 'svelte/easing';
+  import { INSIGNIAS } from '$lib/constants/insignias';
+  import InsigniaBadge from '$lib/components/ui/InsigniaBadge.svelte';
+  import { t } from '$lib/i18n';
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -11,32 +14,44 @@
       case 'error': return WarningCircle;
       case 'warning': return Warning;
       case 'info': return Info;
+      case 'insignia': return Trophy;
       default: return Bell;
     }
   };
 
   const getTheme = (type: string) => {
     switch (type) {
+      case 'insignia': return {
+        border: 'border-amber-400/50',
+        glow: 'from-amber-400/40',
+        icon: 'text-amber-400',
+        bg: 'bg-amber-400/20',
+        title: 'NUEVO LOGRO DESBLOQUEADO',
+        accent: 'bg-amber-400'
+      };
       case 'success': return {
         border: 'border-indigo-500/30',
         glow: 'from-indigo-500/20',
         icon: 'text-indigo-400',
         bg: 'bg-indigo-500/10',
-        title: 'SUCCESS'
+        title: 'ÉXITO',
+        accent: 'bg-indigo-500'
       };
       case 'error': return {
         border: 'border-rose-500/30',
         glow: 'from-rose-500/20',
         icon: 'text-rose-400',
         bg: 'bg-rose-500/10',
-        title: 'SYSTEM ERROR'
+        title: 'ERROR DEL SISTEMA',
+        accent: 'bg-rose-500'
       };
       case 'warning': return {
         border: 'border-amber-500/30',
         glow: 'from-amber-500/20',
         icon: 'text-amber-400',
         bg: 'bg-amber-500/10',
-        title: 'ALERT'
+        title: 'ALERTA',
+        accent: 'bg-amber-500'
       };
       case 'info':
       default: return {
@@ -44,7 +59,8 @@
         glow: 'from-violet-500/20',
         icon: 'text-violet-400',
         bg: 'bg-violet-500/10',
-        title: 'NOTIFICATION'
+        title: 'NOTIFICACIÓN',
+        accent: 'bg-violet-500'
       };
     }
   };
@@ -60,7 +76,19 @@
       class="group pointer-events-auto relative min-w-[360px] max-w-[440px]"
     >
       <!-- Premium Glass Card -->
-      <div class="relative overflow-hidden rounded-[2rem] border {theme.border} bg-neutral-950/80 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] transition-all duration-500 hover:shadow-violet-500/20 hover:-translate-y-1">
+      <div class="relative overflow-hidden rounded-[2rem] border {theme.border} bg-neutral-950/85 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.7)] transition-all duration-500 hover:shadow-amber-500/20 hover:-translate-y-1">
+        
+        <!-- Achievement Extra Flare -->
+        {#if toast.type === 'insignia'}
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(251,191,36,0.15),transparent_70%)] animate-pulse"></div>
+          
+          <!-- Sparkles -->
+          <div class="absolute inset-0 overflow-hidden pointer-events-none">
+             <div class="sparkle s1"></div>
+             <div class="sparkle s2"></div>
+             <div class="sparkle s3"></div>
+          </div>
+        {/if}
         
         <!-- Gradient Background Glow -->
         <div class="absolute inset-0 bg-gradient-to-br {theme.glow} to-transparent opacity-20"></div>
@@ -69,28 +97,62 @@
         <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-transparent via-{theme.icon.replace('text-', '')} to-transparent w-full opacity-30 animate-pulse"></div>
 
         <div class="relative p-5 flex items-start gap-5">
-          <!-- Icon Sleeve -->
-          <div class="flex-shrink-0 w-12 h-12 rounded-2xl {theme.bg} border {theme.border} flex items-center justify-center {theme.icon} shadow-inner bg-opacity-20 animate-float">
-            <svelte:component 
-              this={getIcon(toast.type)} 
-              weight="duotone"
-              size={26} 
-            />
-          </div>
+          <!-- Icon Sleeve or Badge Preview -->
+          {#if toast.type === 'insignia' && toast.insigniaId}
+            {@const insignia = INSIGNIAS.find(i => i.id === toast.insigniaId)}
+            {#if insignia}
+                <div class="flex-shrink-0 animate-float translate-y-1 relative">
+                    <div class="absolute inset-0 bg-amber-400/20 blur-xl rounded-full animate-pulse"></div>
+                    <InsigniaBadge {insignia} unlocked={true} size="xs" />
+                </div>
+            {/if}
+          {:else}
+            <div class="flex-shrink-0 w-12 h-12 rounded-2xl {theme.bg} border {theme.border} flex items-center justify-center {theme.icon} shadow-inner bg-opacity-20 animate-float">
+                <svelte:component 
+                this={getIcon(toast.type)} 
+                weight="duotone"
+                size={26} 
+                />
+            </div>
+          {/if}
           
           <!-- Content -->
           <div class="flex-1 min-w-0 pt-1">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-[10px] font-black uppercase tracking-[0.25em] {theme.icon} font-outfit italic">
+              <span class="text-[9px] font-black uppercase tracking-[0.3em] {theme.icon} font-outfit italic flex items-center gap-2">
+                {#if toast.type === 'insignia'}
+                    <Sparkle size={10} weight="fill" class="animate-spin-slow" />
+                {/if}
                 {theme.title}
               </span>
-              <span class="text-[8px] font-black text-white/20 uppercase tracking-widest font-outfit">
-                SYSTEM REV 2.5
+              <span class="text-[8px] font-black text-white/10 uppercase tracking-widest font-outfit">
+                CHESSNET OPS
               </span>
             </div>
-            <p class="text-[14px] font-bold leading-relaxed text-white tracking-tight font-outfit">
-              {toast.message}
-            </p>
+            {#if toast.type === 'insignia' && toast.insigniaId}
+                {@const insignia = INSIGNIAS.find(i => i.id === toast.insigniaId)}
+                <div class="space-y-1 pr-2">
+                    <p class="text-[18px] font-black leading-tight text-white tracking-tight font-outfit uppercase">
+                        {$t(insignia?.titleKey || 'badges.new_unlocked')}
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <span 
+                          class="px-2 py-0.5 rounded-md text-[8px] font-black text-white uppercase tracking-widest shadow-lg"
+                          style="background: {insignia?.color || '#333'}"
+                        >
+                            {insignia?.tier}
+                        </span>
+                        <span class="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1">
+                            <LockKey size={8} weight="bold" />
+                            DESBLOQUEADA
+                        </span>
+                    </div>
+                </div>
+            {:else}
+                <p class="text-[14px] font-bold leading-relaxed text-white tracking-tight font-outfit">
+                    {toast.message}
+                </p>
+            {/if}
           </div>
 
           <!-- Close Button -->
@@ -108,7 +170,7 @@
       </div>
 
       <!-- Accent Flare -->
-      <div class="absolute -left-1 top-4 bottom-4 w-[4px] rounded-full {theme.bg.replace('/10', '')} filter blur-[2px] opacity-40"></div>
+      <div class="absolute -left-1 top-4 bottom-4 w-[4px] rounded-full {theme.accent} filter blur-[2px] opacity-40"></div>
     </div>
   {/each}
 </div>
@@ -120,6 +182,33 @@
     background-size: 100px 100px;
     background-repeat: repeat;
     background-blend-mode: overlay;
+  }
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .sparkle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    filter: blur(1px);
+    opacity: 0;
+  }
+
+  .s1 { top: 20%; left: 30%; animation: sparkleAnim 2s infinite 0.2s; }
+  .s2 { top: 60%; left: 80%; animation: sparkleAnim 2s infinite 0.7s; }
+  .s3 { top: 80%; left: 40%; animation: sparkleAnim 2s infinite 1.3s; }
+
+  @keyframes sparkleAnim {
+    0%, 100% { opacity: 0; transform: scale(0); }
+    50% { opacity: 0.8; transform: scale(1.5); }
   }
 </style>
 
