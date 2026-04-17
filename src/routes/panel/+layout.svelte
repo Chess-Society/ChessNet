@@ -29,7 +29,7 @@
   import { t, locale } from '$lib/i18n';
   import { auth, signOut } from '$lib/firebase';
   import { onMount, onDestroy } from 'svelte';
-  import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+  import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
   import { db } from '$lib/firebase';
 
   import { user as authUser, loading as authLoading } from '$lib/stores/auth';

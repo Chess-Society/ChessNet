@@ -193,16 +193,16 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
   
-  <!-- Hero Section -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 pt-8 gap-6">
-    <div class="space-y-1">
-      <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tighter font-display">
-        {$t('dashboard.welcome_coach')} <span class="text-primary-400">👋</span>
+  <!-- Hero Section (iOS Style) -->
+  <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 lg:mb-10 pt-4 lg:pt-8 gap-4 lg:gap-6">
+    <div class="space-y-0.5 lg:space-y-1">
+      <h1 class="text-3xl lg:text-5xl font-extrabold text-white tracking-tight lg:tracking-tighter font-display">
+        {$t('dashboard.welcome_coach')} <span class="hidden lg:inline">👋</span>
       </h1>
-      <p class="text-surface-400 text-lg font-medium">{$t('dashboard.overview')}</p>
+      <p class="text-surface-500 text-sm lg:text-lg font-medium">{$t('dashboard.overview')}</p>
     </div>
     
-    <div class="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5">
+    <div class="hidden lg:flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5">
       <div class="w-12 h-12 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-400">
         <Clock weight="duotone" size={24} />
       </div>
@@ -214,21 +214,21 @@
   </div>
 
   <!-- Quick Actions Grid -->
-  <div class="mb-12">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-extrabold text-white tracking-tight flex items-center gap-3 font-display">
+  <div class="mb-8 lg:mb-12">
+    <div class="flex justify-between items-center mb-4 lg:mb-6">
+      <h2 class="text-lg lg:text-xl font-extrabold text-white tracking-tight flex items-center gap-3 font-display">
         <DotsSixVertical weight="duotone" class="text-primary-500" /> {$t('dashboard.quick_access')}
       </h2>
       <button 
         onclick={toggleEditMode}
-        class="text-xs font-bold uppercase tracking-widest flex items-center gap-2 px-4 py-2 rounded-full border border-white/5 hover:bg-white/5 transition-all {editMode ? 'bg-primary-500 text-white border-primary-500 shadow-violet-flare' : 'text-surface-400'}"
+        class="text-[9px] lg:text-xs font-bold uppercase tracking-widest flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-full border border-white/5 hover:bg-white/5 transition-all {editMode ? 'bg-primary-500 text-white border-primary-500 shadow-violet-flare' : 'text-surface-400'}"
       >
-        <GearSix weight="duotone" size={16} /> 
+        <GearSix weight="duotone" size={14} /> 
         {editMode ? $t('dashboard.save') : $t('dashboard.customize')}
       </button>
     </div>
     
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-2 lg:gap-4">
       {#each displayedActions() as action, i}
         <div 
           role="button"
