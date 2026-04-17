@@ -72,7 +72,7 @@ export interface AppState {
   reports: any[];
   lobbySuggestions: any[];
   unlockedAchievements: any[];
-  lastUnlockedAchievement: any | null;
+  pendingAchievementIds: string[]; // Queue for sequential display
   settings: AppSettings;
   dashboardLayout: string[];
 }
@@ -98,7 +98,7 @@ const initialState: AppState = {
   reports: [],
   lobbySuggestions: [],
   unlockedAchievements: [],
-  lastUnlockedAchievement: null,
+  pendingAchievementIds: [],
   settings: { 
     plan: 'free',
     teacherName: '',
@@ -202,11 +202,22 @@ function createAppStore() {
               const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
               
               if (key === 'unlockedAchievements' && isLoaded) {
-                 const current = get(store).unlockedAchievements;
-                 // Detect newly added achievements
-                 const newAchievements = docs.filter(d => !current.find(c => (c as any).id === (d as any).id));
-                 if (newAchievements.length > 0) {
-                   update(s => ({ ...s, lastUnlockedAchievement: newAchievements[0] }));
+                 const currentState = get(store);
+                 const currentIds = currentState.unlockedAchievements.map((a: any) => a.id);
+                 
+                 // Detect newly added achievements that are NOT notified
+                 const newAvailable = docs.filter((d: any) => 
+                    !d.notified && !currentIds.includes(d.id)
+                 );
+                 
+                 if (newAvailable.length > 0) {
+                    update(s => ({ 
+                      ...s, 
+                      pendingAchievementIds: [
+                        ...s.pendingAchievementIds, 
+                        ...newAvailable.map((a: any) => a.id)
+                      ]
+                    }));
                  }
               }
 
@@ -815,23 +826,52 @@ function createAppStore() {
       await setDoc(docRef, { dashboardLayout: layout }, { merge: true });
     },
 
-    unlockAchievement: async (slug: string) => {
-      const user = auth.currentUser;
-      if (!user) throw new Error("No authenticated user");
-      
-      const current = get(store);
-      // Evitar duplicados
-      if (current.unlockedAchievements.some((a: any) => a.id === slug)) return;
+    unlockAchievement: async (achievementId: string) => {
+      const user = get(authStoreUser);
+      if (!user || user.uid === 'chessnet-dev-uid') return;
+
+      const current = get(store).unlockedAchievements;
+      if (current.find((a: any) => a.id === achievementId)) return;
 
       const collRef = collection(db, 'achievements');
-      await addDoc(collRef, { 
-        id: slug, 
+      await addDoc(collRef, {
+        id: achievementId,
         owner_id: user.uid,
-        unlockedAt: new Date().toISOString() 
+        unlockedAt: new Date().toISOString(),
+        notified: false
       });
+      
+      // Update local queue manually for immediate response if needed (snapshot will also catch it)
+      update(s => ({
+        ...s,
+        pendingAchievementIds: [...s.pendingAchievementIds, achievementId]
+      }));
+    },
 
-      // Disparar notificación premium
-      toast.achievement(slug);
+    markAchievementAsNotified: async (achievementId: string) => {
+      const user = get(authStoreUser);
+      if (!user) return;
+
+      // Update state
+      update(s => ({
+        ...s,
+        pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId)
+      }));
+
+      if (user.uid === 'chessnet-dev-uid') return;
+
+      // Importar getDocs dinámicamente si no está en el scope
+      const { getDocs } = await import('firebase/firestore');
+
+      // Update Firestore
+      const q = query(
+        collection(db, 'achievements'),
+        where('owner_id', '==', user.uid),
+        where('id', '==', achievementId)
+      );
+      const snap = await getDocs(q);
+      const promises = snap.docs.map(d => updateDoc(doc(db, 'achievements', d.id), { notified: true }));
+      await Promise.all(promises);
     },
 
     clearLastAchievement: () => {

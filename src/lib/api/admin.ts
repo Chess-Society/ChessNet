@@ -159,7 +159,8 @@ export const adminApi = {
       addDoc(collRef, {
         id: insigniaId,
         owner_id: userId,
-        unlockedAt: new Date().toISOString()
+        unlockedAt: new Date().toISOString(),
+        notified: false
       }),
       updateDoc(userRef, {
         badgesCount: increment(1)

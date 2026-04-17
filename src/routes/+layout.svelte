@@ -188,14 +188,14 @@
     {@render children()}
   {/if}
 
-  {#if $appStore.lastUnlockedAchievement}
-    {@const achievementId = $appStore.lastUnlockedAchievement.id}
+  {#if $appStore.pendingAchievementIds.length > 0}
+    {@const achievementId = $appStore.pendingAchievementIds[0]}
     {@const insignia = INSIGNIAS.find(i => i.id === achievementId)}
     {#if insignia}
       <BadgeUnlockModal 
         {insignia} 
         show={true} 
-        onClose={() => appStore.clearLastAchievement()} 
+        onClose={() => appStore.markAchievementAsNotified(achievementId)} 
       />
     {/if}
   {/if}
