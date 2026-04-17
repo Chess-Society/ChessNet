@@ -181,14 +181,15 @@
             
             <div class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {#each INSIGNIAS.slice(0, 10) as badge}
-                {@const Icon = badge.icon}
                 <div 
                   class="group/insignia relative flex flex-col items-center gap-2 p-3 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 hover:border-violet-500/30 transition-all cursor-help"
                   title={$t(badge.titleKey)}
                 >
                   <div class="relative w-10 h-10 flex items-center justify-center {badge.color}">
                     <div class="absolute inset-0 {badge.glowColor} opacity-0 group-hover/insignia:opacity-20 blur-xl transition-opacity"></div>
-                    <Icon weight="duotone" class="w-6 h-6" />
+                    {#if badge.icon}
+                      <svelte:component this={badge.icon} weight="duotone" class="w-6 h-6" />
+                    {/if}
                   </div>
                 </div>
               {/each}
