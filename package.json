@@ -22,6 +22,7 @@
     "@sveltejs/adapter-netlify": "^5.2.3",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.4",
+    "@types/pdf-parse": "^1.1.5",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "autoprefixer": "^10.4.16",
@@ -39,13 +40,16 @@
     "vite": "^5.4.21"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "chess.js": "^1.0.0-beta.6",
     "chessboardjs": "^0.0.1",
     "firebase": "^12.10.0",
     "firebase-admin": "^13.8.0",
     "localforage": "^1.10.0",
     "lucide-svelte": "^0.542.0",
+    "pdf-parse": "^2.4.5",
     "phosphor-svelte": "^3.1.0",
-    "stripe": "^22.0.1"
+    "stripe": "^22.0.1",
+    "svelte-dnd-action": "^0.9.69"
   }
 }

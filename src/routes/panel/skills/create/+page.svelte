@@ -1,7 +1,8 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { appStore } from '$lib/stores/appStore';
+  import { uiStore } from '$lib/stores/uiStore';
   import { 
     ArrowLeft, 
     Target, 
@@ -110,6 +111,7 @@
     if (!validateForm() || isSubmitting) return;
 
     isSubmitting = true;
+    uiStore.setLoading(true);
     try {
       const payload = {
         ...formData,
@@ -120,23 +122,15 @@
         resources: formData.resources.filter(r => r.trim())
       };
 
-      const response = await fetch('/api/skills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        showToast.success('Skill created successfully');
-        goto('/panel/skills');
-      } else {
-        const result = await response.json();
-        throw new Error(result.error || 'Creation failed');
-      }
-    } catch (error) {
-      showError(error, 'Error creating the skill');
+      await appStore.addSkill(payload);
+      toast.success($t('common.save_success'));
+      goto('/panel/skills');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Error creating the skill');
     } finally {
       isSubmitting = false;
+      uiStore.setLoading(false);
     }
   };
 

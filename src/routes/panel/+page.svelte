@@ -25,7 +25,8 @@
     Buildings,
     Student,
     CreditCard,
-    ChatCircleDots
+    ChatCircleDots,
+    Crown
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { toast } from '$lib/stores/toast';
@@ -253,8 +254,8 @@
             class="bento-card group w-full flex flex-col items-start p-5 h-40 text-left {editMode ? 'cursor-move border-dashed border-white/20' : ''} {action.premium && !($appStore.settings.plan === 'premium' || data.isAdmin) ? 'opacity-80' : ''}"
           >
              {#if action.premium && !($appStore.settings.plan === 'premium' || data.isAdmin)}
-                <div class="absolute top-4 right-4 text-primary-400">
-                   <Lightning weight="duotone" size={18} />
+                <div class="absolute top-4 right-4 text-violet-400">
+                   <Crown weight="fill" size={18} />
                 </div>
              {/if}
             
@@ -300,8 +301,8 @@
             <div class="bento-card-inner relative z-10 !p-10 flex flex-col md:flex-row gap-10 items-center">
                 <div class="flex-1 space-y-4">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400">
-                            <Lightning weight="duotone" size={24} />
+                        <div class="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400">
+                            <Crown weight="fill" size={24} />
                         </div>
                         <h3 class="text-2xl font-extrabold text-white tracking-tight font-display">{$t('dashboard.quick_start')}</h3>
                     </div>

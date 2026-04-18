@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount, untrack } from 'svelte';
   import { goto } from '$app/navigation';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
+  import { appStore } from '$lib/stores/appStore';
+  import { uiStore } from '$lib/stores/uiStore';
   import { 
     ArrowLeft, 
     Target, 
@@ -146,9 +148,11 @@
     if (!validateForm() || isSubmitting) return;
 
     isSubmitting = true;
+    uiStore.setLoading(true);
     try {
       const payload = {
         ...formData,
+        id: data.skillId,
         name: formData.name.trim(),
         description: formData.description.trim(),
         learning_objectives: formData.learning_objectives.filter(o => o.trim()),
@@ -156,23 +160,15 @@
         resources: formData.resources.filter(r => r.trim())
       };
 
-      const response = await fetch(`/api/skills/${skillData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        showToast.success($t('skills.edit.success') || 'Skill updated successfully');
-        goto('/panel/skills');
-      } else {
-        const result = await response.json();
-        throw new Error(result.error || 'Update failed');
-      }
-    } catch (error) {
-      showError(error, $t('common.error') || 'Error updating the skill');
+      await appStore.updateSkill(payload);
+      toast.success($t('common.save_success'));
+      goto('/panel/skills');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Error updating the skill');
     } finally {
       isSubmitting = false;
+      uiStore.setLoading(false);
     }
   };
 

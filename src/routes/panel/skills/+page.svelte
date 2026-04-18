@@ -38,8 +38,17 @@
   import { appStore } from '$lib/stores/appStore';
   import { uiStore } from '$lib/stores/uiStore';
   import { CHESS_SYLLABUS_PRESETS } from '$lib/constants/chess-presets';
-  import { fade, fly, slide, scale } from 'svelte/transition';
+  import { 
+    fade, 
+    fly, 
+    slide, 
+    scale 
+  } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
+  import { toast } from '$lib/stores/toast';
+  import { dndzone } from 'svelte-dnd-action';
+  import { flip } from 'svelte/animate';
+  import type { Skill, Category, SkillWithDetails } from '$lib/types';
   import type { PageData } from './$types';
 
   let { data } = $props<{ data: PageData }>();
@@ -54,35 +63,57 @@
   let isGrouped = $state(true);
   let fileInput: HTMLInputElement;
 
-  // Reactive data from the store for real-time updates
-  let skills = $derived($appStore.skills.length > 0 ? $appStore.skills : data.skills);
+  // Local state for smooth DnD transitions, initialized from store/data
+  let skillsState = $state<SkillWithDetails[]>([]);
+  let isDragging = $state(false);
+
+  $effect(() => {
+    if (!isDragging) {
+      const source = $appStore.skills.length > 0 ? $appStore.skills : data.skills;
+      skillsState = [...source] as SkillWithDetails[];
+    }
+  });
+
+  const skills = $derived(skillsState);
 
   const categories = $derived([
     { id: 'all', name: $t('common.all'), count: skills.length },
-    ...data.categories.map(c => ({ id: c.id || c.name, name: c.name, count: c.count || 0 }))
+    ...data.categories.map((c: any) => ({ 
+      id: c.id || c.name, 
+      name: c.name, 
+      count: c.count || 0 
+    }))
   ]);
 
   let filteredSkills = $derived(
-    skills.filter((s) => {
-      const matchesSearch =
-        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || s.category_id === selectedCategory || s.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    })
+    skills
+      .filter((s) => {
+        const matchesSearch =
+          s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (s.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const catId = typeof s.category === 'string' ? s.category_id : (s.category?.id || s.category_id);
+        const matchesCategory = selectedCategory === 'all' || catId === selectedCategory || s.category === selectedCategory;
+        
+        return matchesSearch && matchesCategory;
+      })
+      .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
   );
 
   let skillsByCategory = $derived(
-    data.categories.map(cat => ({
+    data.categories.map((cat: any) => ({
       ...cat,
-      items: filteredSkills.filter(s => s.category_id === cat.id || s.category === cat.name)
-    })).filter(cat => cat.items.length > 0 || selectedCategory === cat.id)
+      items: filteredSkills.filter((s) => {
+        const sCatId = typeof s.category === 'string' ? s.category_id : (s.category?.id || s.category_id);
+        return sCatId === cat.id || s.category === cat.name;
+      })
+    })).filter((cat: any) => cat.items.length > 0 || selectedCategory === cat.id)
   );
 
   const stats = $derived({
     total: skills.length,
-    mastered: skills.filter(s => (s as any).students_mastered > 0).length,
-    advanced: skills.filter(s => s.level === 'advanced').length,
+    mastered: skills.filter((s) => (s.students_mastered || 0) > 0).length,
+    advanced: skills.filter((s) => s.level === 'advanced').length,
     hours: skills.reduce((acc, s) => acc + (Number(s.estimated_hours) || 0), 0)
   });
 
@@ -95,9 +126,15 @@
     });
     
     if (confirmed) {
-      const result = await appStore.removeSkill(id);
-      if (result) {
-        uiStore.toast($t('common.delete_success'), 'success');
+      uiStore.setLoading(true);
+      try {
+        await appStore.removeSkill(id);
+        toast.success($t('common.delete_success'));
+      } catch (err) {
+        console.error(err);
+        toast.error('Error deleting skill');
+      } finally {
+        uiStore.setLoading(false);
       }
     }
   };
@@ -113,10 +150,10 @@
       isImporting = true;
       try {
         await appStore.importCurriculum(CHESS_SYLLABUS_PRESETS);
-        uiStore.toast($t('skills.import_success'), 'success');
+        toast.success($t('skills.import_success'));
       } catch (err) {
         console.error(err);
-        uiStore.toast('Error importing syllabus', 'error');
+        toast.error('Error importing syllabus');
       } finally {
         isImporting = false;
       }
@@ -129,40 +166,53 @@
   };
 
   const extractFromPDF = async (file: File) => {
-    isExtractingAI = true;
-    extractionProgress = 0;
+    const state = $appStore;
+    const isPremium = state.settings?.plan === 'premium';
     
-    const interval = setInterval(() => {
-      extractionProgress += Math.random() * 10;
-      if (extractionProgress >= 95) {
-        clearInterval(interval);
-        finalizeExtraction();
-      }
-    }, 300);
+    if (!isPremium) {
+      toast.error($t('pricing.premium.required'));
+      return;
+    }
 
-    const finalizeExtraction = async () => {
-      await new Promise(r => setTimeout(r, 1500));
+    isExtractingAI = true;
+    extractionProgress = 20;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/skills/import-ai', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to extract syllabus');
+      }
+
+      const { skills: extractedSkills } = await response.json();
       
-      const prefix = file.name.split('.')[0].toUpperCase();
-      const extractedSkills = CHESS_SYLLABUS_PRESETS.slice(0, 6).map((s, i) => ({
-        ...s,
-        name: `${prefix} - ${s.name}`,
-        description: `Contenido escolar extraído con IA desde ${file.name}.`,
-        resources: [
-          'https://youtube.com/watch?v=chess-demo',
-          'guia-estudio-pro.pdf',
-          'https://chessnet.io/resources/whitepaper'
-        ]
-      }));
+      if (!extractedSkills || extractedSkills.length === 0) {
+        throw new Error('No skills were extracted from the document');
+      }
+
+      // Update progress for visual feedback
+      extractionProgress = 80;
 
       await appStore.importCurriculum(extractedSkills);
       extractionProgress = 100;
       
       setTimeout(() => {
         isExtractingAI = false;
-        uiStore.toast($t('skills.ui.extraction_complete'), 'success');
+        toast.success($t('skills.ui.extraction_complete'));
       }, 600);
-    };
+      
+    } catch (err: any) {
+      console.error('AI Import Error:', err);
+      isExtractingAI = false;
+      toast.error(err.message || 'Error processing PDF');
+    }
   };
 
   const getResourceType = (resource: string) => {
@@ -228,14 +278,13 @@
     if (confirmed) {
       uiStore.setLoading(true);
       try {
-        // En un caso real haríamos un batch o un Promise.all, pero appStore.removeSkill gestiona Firestore de forma individual
-        await Promise.all(selectedIds.map(id => appStore.removeSkill(id)));
+        await appStore.removeMultipleSkills(selectedIds);
         selectedIds = [];
         isSelectionMode = false;
-        uiStore.toast($t('common.delete_success'), 'success');
+        toast.success($t('common.delete_success') || 'Deleted successfully');
       } catch (err) {
         console.error(err);
-        uiStore.toast('Error deleting skills', 'error');
+        toast.error('Error deleting skills');
       } finally {
         uiStore.setLoading(false);
       }
@@ -255,18 +304,86 @@
     if (confirmed) {
       uiStore.setLoading(true);
       try {
-        await Promise.all(skills.map(s => appStore.removeSkill(s.id)));
+        await appStore.clearSyllabus();
         selectedIds = [];
         isSelectionMode = false;
-        uiStore.toast($t('common.delete_success'), 'success');
+        toast.success($t('common.delete_success') || 'Syllabus cleared');
       } catch (err) {
         console.error(err);
-        uiStore.toast('Error deleting syllabus', 'error');
+        toast.error('Error deleting syllabus');
       } finally {
         uiStore.setLoading(false);
       }
     }
   };
+
+  // Drag & Drop Handling
+  const dragDuration = 300;
+
+  function handleDndConsider(categoryId: string, e: CustomEvent<any>) {
+    const { items: newItems } = e.detail;
+    isDragging = true;
+    
+    if (categoryId === 'all') {
+      skillsState = newItems;
+    } else {
+      // Update only items in this category within the global list
+      const otherSkills = skillsState.filter(s => {
+        const sCatId = typeof s.category === 'string' ? s.category_id : (s.category?.id || s.category_id);
+        return sCatId !== categoryId && s.category !== categoryId;
+      });
+      skillsState = [...otherSkills, ...newItems].sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+  }
+
+  const handleDndFinalize = async (categoryId: string, e: CustomEvent<any>) => {
+    const { items: newItems } = e.detail;
+    isDragging = false;
+    
+    // Update local state first for immediate feedback
+    if (categoryId === 'all') {
+      skillsState = newItems;
+    } else {
+      const otherSkills = skillsState.filter(s => {
+        const sCatId = typeof s.category === 'string' ? s.category_id : (s.category?.id || s.category_id);
+        return sCatId !== categoryId && s.category !== categoryId;
+      });
+      skillsState = [...otherSkills, ...newItems];
+    }
+
+    // Prepare reordering payload
+    // We use the current index in the full list as the new order
+    const orderedList = categoryId === 'all' ? newItems : skillsState.sort((a,b) => (a.order || 0) - (b.order || 0)); // This sort is tricky
+    
+    // Better strategy: just update the orders for the items that changed
+    const reorderings = skillsState.map((item, index) => ({
+      id: item.id,
+      order: index
+    }));
+
+    try {
+      await appStore.reorderSkills(reorderings);
+      toast.success($t('common.save_success'));
+    } catch (err) {
+      console.error(err);
+      toast.error('Error reordering skills');
+      // Revert state on error?
+      isDragging = false;
+    }
+  };
+
+  // Keyboard Shortcuts
+  function handleKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && isSelectionMode) {
+      isSelectionMode = false;
+      selectedIds = [];
+    }
+  }
+
+  onMount(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  });
 </script>
 
 <svelte:head>
@@ -304,12 +421,12 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-4">
-      <button 
+        <button 
         onclick={() => goto('/panel/skills/create')}
         class="px-10 py-5 rounded-2xl bg-white text-black shadow-2xl hover:shadow-white/10 hover:-translate-y-1 transition-all flex items-center gap-3 text-xs font-black tracking-widest uppercase group active:scale-95"
       >
         <Plus weight="bold" class="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
-        <span>{$t('skills.ui.create_btn')}</span>
+        <span>{$t('skills.create_title')}</span>
       </button>
     </div>
   </div>
@@ -448,7 +565,11 @@
           {/each}
         </select>
         <button 
-          onclick={() => isSelectionMode = !isSelectionMode} 
+          onclick={() => { 
+            isSelectionMode = !isSelectionMode;
+            if (!isSelectionMode) selectedIds = [];
+            else if (selectedIds.length === 0) toast.info(`${$t('common.info')}: ${$t('skills.ui.esc_to_exit')}`);
+          }} 
           class="h-[60px] px-6 rounded-2xl border border-white/5 flex items-center gap-2 font-bold uppercase tracking-widest text-[10px] transition-all {isSelectionMode ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30' : 'bg-zinc-950/50 text-zinc-400 hover:text-white'}"
           aria-pressed={isSelectionMode}
           aria-label={$t('skills.ui.select_skills')}
@@ -486,18 +607,42 @@
               <p class="text-xs font-bold text-zinc-500 uppercase tracking-widest">{module.items.length} {$t('skills.ui.lessons')}</p>
             </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div 
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            use:dndzone={{ 
+              items: module.items, 
+              dragDisabled: isSelectionMode || searchQuery !== '', 
+              flipDurationMs: dragDuration,
+              dropTargetStyle: { outline: '2px dashed rgba(139, 92, 246, 0.5)', borderRadius: '32px' }
+            }}
+            onconsider={(e) => handleDndConsider(module.id, e)}
+            onfinalize={(e) => handleDndFinalize(module.id, e)}
+          >
             {#each module.items as skill (skill.id)}
-              {@render SkillCardComp({ skill, getDifficultyColor, getResourceType, getResourceIcon, getResourceLabel, deleteSkill })}
+              <div animate:flip={{ duration: dragDuration }}>
+                {@render SkillCardComp({ skill: skill as SkillWithDetails, getDifficultyColor, getResourceType, getResourceIcon, getResourceLabel, deleteSkill })}
+              </div>
             {/each}
           </div>
         </section>
       {/each}
     </div>
   {:else}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-10">
+    <div 
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-10"
+      use:dndzone={{ 
+        items: filteredSkills, 
+        dragDisabled: isSelectionMode || searchQuery !== '' || isGrouped, 
+        flipDurationMs: dragDuration,
+        dropTargetStyle: { outline: '2px dashed rgba(139, 92, 246, 0.5)', borderRadius: '32px' }
+      }}
+      onconsider={(e) => handleDndConsider('all', e)}
+      onfinalize={(e) => handleDndFinalize('all', e)}
+    >
       {#each filteredSkills as skill (skill.id)}
-        {@render SkillCardComp({ skill, getDifficultyColor, getResourceType, getResourceIcon, getResourceLabel, deleteSkill })}
+        <div animate:flip={{ duration: dragDuration }}>
+          {@render SkillCardComp({ skill: skill as SkillWithDetails, getDifficultyColor, getResourceType, getResourceIcon, getResourceLabel, deleteSkill })}
+        </div>
       {/each}
     </div>
   {/if}
@@ -556,8 +701,8 @@
   {/if}
 </div>
 
-{#snippet SkillCardComp({ skill, getDifficultyColor, getResourceType, getResourceIcon, getResourceLabel, deleteSkill })}
-  {@const masteredCount = (skill as any).students_mastered || 0}
+{#snippet SkillCardComp({ skill, getDifficultyColor, getResourceType, getResourceIcon, getResourceLabel, deleteSkill }: { skill: SkillWithDetails, getDifficultyColor: (d: any) => string, getResourceType: (r: string) => string, getResourceIcon: (t: string) => any, getResourceLabel: (t: string) => string, deleteSkill: (id: string, name: string) => void })}
+  {@const masteredCount = skill.students_mastered || 0}
   {@const masteryProgress = Math.min((masteredCount / 20) * 100, 100)}
   {@const isSelected = selectedIds.includes(skill.id)}
   
@@ -568,7 +713,7 @@
     role="button"
     tabindex={isSelectionMode ? 0 : -1}
     aria-pressed={isSelected}
-    aria-label={`${skill.name} - ${isSelected ? 'Selected' : 'Unselected'}`}
+    aria-label={`${skill.name} - ${isSelected ? $t('common.selected') : $t('common.not_selected')}`}
   >
     <div class="absolute -top-10 -right-10 w-40 h-40 bg-violet-600/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
     
@@ -583,6 +728,14 @@
               <CheckCircle weight="fill" class="w-4 h-4" />
             {/if}
           </div>
+        {:else}
+          <button 
+            type="button"
+            class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-zinc-600 group-hover:text-violet-400 transition-colors cursor-grab active:cursor-grabbing"
+            aria-label={$t('common.reorder') || 'Reorder lesson'}
+          >
+            <DotsThreeVertical weight="bold" class="w-5 h-5" />
+          </button>
         {/if}
         <div class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border {getDifficultyColor(skill.difficulty)} bg-black/20">
           {skill.level || 'Mastery'}
@@ -594,7 +747,7 @@
           disabled={isSelectionMode}
           onclick={(e) => { e.stopPropagation(); goto(`/panel/skills/${skill.id}/edit`); }} 
           class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all disabled:opacity-0"
-          aria-label="Edit skill"
+          aria-label={$t('skills.edit.title')}
         >
           <PencilLine weight="bold" class="w-4 h-4" />
         </button>
@@ -602,7 +755,7 @@
           disabled={isSelectionMode}
           onclick={(e) => { e.stopPropagation(); deleteSkill(skill.id, skill.name); }} 
           class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/10 flex items-center justify-center text-zinc-600 hover:text-rose-500 transition-all disabled:opacity-0"
-          aria-label="Delete skill"
+          aria-label={$t('common.delete')}
         >
           <Trash weight="bold" class="w-4 h-4" />
         </button>
@@ -634,7 +787,7 @@
         </div>
         <div class="flex items-center gap-2 text-zinc-400">
           <CheckCircle weight="fill" class="w-4 h-4" />
-          <span>{Math.round(masteryProgress)}% {$t('common.mastered') || 'Domino'}</span>
+          <span>{Math.round(masteryProgress)}% {$t('common.mastered') || 'DOMINADO'}</span>
         </div>
       </div>
       <div class="h-1 bg-zinc-950 rounded-full overflow-hidden">

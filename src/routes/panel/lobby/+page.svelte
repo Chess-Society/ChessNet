@@ -89,6 +89,12 @@
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
 
   onMount(() => {
+    // Plan Guardrail: Only premium users or admins can access the lobby
+    if (plan === 'free' && !isAdmin) {
+      goto('/pricing');
+      return;
+    }
+
     // Listen for suggestions
     const qS = query(collection(db, 'lobby_suggestions'), orderBy('createdAt', 'desc'));
     const unsubS = onSnapshot(qS, (snap) => {

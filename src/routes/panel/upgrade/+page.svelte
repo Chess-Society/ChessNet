@@ -153,14 +153,14 @@
     </div>
 
     <!-- Plans -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20">
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20 max-w-5xl mx-auto">
       {#each upgradeData.available_plans as plan, i}
         {@const isCurrent = upgradeData.current_plan.name === plan.name}
-        {@const isPopular = plan.name === 'professional'}
+        {@const isPopular = plan.name === 'premium'}
         {@const PlanIcon = getPlanIcon(plan.name)}
         <div 
-          class="bento-card p-1 relative flex flex-col group transition-all duration-500 {isPopular ? 'border-violet-500/50 scale-105 z-10 shadow-[0_40px_80px_-20px_rgba(139,92,246,0.15)]' : 'hover:border-violet-500/20 shadow-xl shadow-zinc-950'}"
-          in:fly={{ y: 40, delay: i * i * 100 }}
+          class="bento-card p-1 relative flex flex-col group transition-all duration-500 {isPopular ? 'border-violet-500/50 shadow-[0_40px_80px_-20px_rgba(139,92,246,0.15)]' : 'hover:border-violet-500/20 shadow-xl shadow-zinc-950 opacity-80'}"
+          in:fly={{ y: 40, delay: i * 100 }}
         >
           <div class="bg-zinc-900/40 rounded-[28px] p-10 flex flex-col h-full">
             {#if isPopular}
@@ -175,8 +175,8 @@
               </div>
               <h3 class="text-2xl font-outfit font-black text-white tracking-tight mb-2">{plan.display_name}</h3>
               <div class="flex items-baseline justify-center gap-1.5 mb-6">
-                <span class="text-5xl font-outfit font-black text-white">{plan.name === 'premium' ? '1' : plan.price_annual}{$t('common.currency')}</span>
-                <span class="text-slate-600 font-outfit font-bold text-sm tracking-widest uppercase">/Month</span>
+                <span class="text-5xl font-outfit font-black text-white">{plan.price_annual}{$t('common.currency')}</span>
+                <span class="text-slate-600 font-outfit font-bold text-sm tracking-widest uppercase">/{plan.name === 'premium' ? 'Month' : 'Forever'}</span>
               </div>
               <p class="text-slate-500 font-plus-jakarta text-sm leading-relaxed px-4">{plan.description}</p>
             </div>

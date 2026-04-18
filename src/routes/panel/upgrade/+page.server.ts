@@ -8,27 +8,27 @@ const PLANS = [
     id: 'plan-free',
     name: 'free',
     display_name: 'Ajedrecista',
-    description: 'Perfecto para empezar o gestionar una pequeña escuela local.',
+    description: 'Perfecto para clases particulares o grupos pequeños.',
     price_annual: 0,
     currency: 'EUR',
-    max_students: 12,
-    max_classes: 2,
+    max_students: 10,
+    max_classes: 1,
     max_schools: 1,
     max_tournaments: 0,
     max_storage_mb: 50,
     max_custom_skills: 0,
     features: [
       '1 Centro / Escuela',
-      '2 Clases simultáneas',
-      'Hasta 12 Alumnos totales',
-      'Pase de lista y Asistencia'
+      '1 Clase o grupo',
+      'Hasta 10 Alumnos totales',
+      'Control de asistencia'
     ]
   },
   {
     id: 'plan-premium',
     name: 'premium',
     display_name: 'Maestro Premium',
-    description: 'Todas las herramientas sin límites para un control profesional total.',
+    description: 'Control total sin límites para tu academia profesional.',
     price_monthly: 1,
     price_annual: 1,
     currency: 'EUR',
@@ -41,9 +41,9 @@ const PLANS = [
     features: [
       'Centros y Clases Ilimitados',
       'Alumnos Ilimitados',
-      'Gestión de Torneos (Emparejamientos)',
-      'Informes PDF y Diplomas',
-      'Exportación de datos (Excel/PDF)'
+      'Gestión de Torneos Pro',
+      'Importación IA e Informes',
+      'Lobby y Comunidad Premium'
     ]
   }
 ];
@@ -66,15 +66,21 @@ export const load: PageServerLoad = async ({ locals }) => {
     
     const currentPlan = PLANS.find(p => p.name === planName) || PLANS[0];
     
-    // Simplificamos usage statistics para el servidor (pueden cargarse en modo hidratación si es necesario,
-    // o consultarse aquí si hay impacto crítico en SEO/UX inicial)
+    // Fetch real usage statistics for the user
+    const [schoolsSnap, classesSnap, studentsSnap, tournamentsSnap] = await Promise.all([
+      adminDb.collection('schools').where('createdBy', '==', uid).count().get(),
+      adminDb.collection('classes').where('createdBy', '==', uid).count().get(),
+      adminDb.collection('students').where('createdBy', '==', uid).count().get(),
+      adminDb.collection('tournaments').where('createdBy', '==', uid).count().get()
+    ]);
+
     const usageStats = {
-      students_count: 0,
-      classes_count: 0,
-      schools_count: 0,
-      tournaments_count: 0,
-      storage_used_mb: 0,
-      custom_skills_count: 0
+      students_count: studentsSnap.data().count,
+      classes_count: classesSnap.data().count,
+      schools_count: schoolsSnap.data().count,
+      tournaments_count: tournamentsSnap.data().count,
+      storage_used_mb: 0, // Simplified for now
+      custom_skills_count: 0 // Simplified for now
     };
 
     return {

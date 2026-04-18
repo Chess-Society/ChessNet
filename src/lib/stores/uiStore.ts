@@ -12,30 +12,34 @@ export interface ConfirmConfig {
 
 function createUIStore() {
   const { subscribe, set, update } = writable<{
-    confirmDialog: ConfirmConfig | null;
+    confirmDialog: ConfirmConfig | null,
+    isLoading: boolean
   }>({
-    confirmDialog: null
+    confirmDialog: null,
+    isLoading: false
   });
 
   return {
     subscribe,
     confirm: (config: Omit<ConfirmConfig, 'onConfirm' | 'onCancel'>) => {
       return new Promise<boolean>((resolve) => {
-        set({
+        update(s => ({
+          ...s,
           confirmDialog: {
             ...config,
             onConfirm: () => {
-              set({ confirmDialog: null });
+              update(s2 => ({ ...s2, confirmDialog: null }));
               resolve(true);
             },
             onCancel: () => {
-              set({ confirmDialog: null });
+              update(s2 => ({ ...s2, confirmDialog: null }));
               resolve(false);
             }
           }
-        });
+        }));
       });
     },
+    setLoading: (loading: boolean) => update(s => ({ ...s, isLoading: loading })),
     closeConfirm: () => update(s => ({ ...s, confirmDialog: null }))
   };
 }

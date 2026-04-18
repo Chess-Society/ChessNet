@@ -12,7 +12,8 @@ import {
   query, 
   orderBy,
   updateDoc,
-  where
+  where,
+  writeBatch
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { browser } from '$app/environment';
@@ -283,6 +284,14 @@ function createAppStore() {
     
     addSchool: async (school: any) => {
       const user = get(authStoreUser);
+      const state = get(store);
+      const isPremium = state.settings?.plan === 'premium';
+      
+      if (!isPremium && state.schools.length >= 1) {
+        toast.error(get(t)('pricing.limits.school_reached'));
+        throw new Error('Limit reached');
+      }
+
       if (user?.uid === 'chessnet-dev-uid') {
         const newSchool = { id: 'mock-school-' + Date.now(), ...school, owner_id: user.uid };
         update(s => ({ ...s, schools: [...s.schools, newSchool] }));
@@ -315,6 +324,14 @@ function createAppStore() {
     
     addStudent: async (student: any) => {
       const user = get(authStoreUser);
+      const state = get(store);
+      const isPremium = state.settings?.plan === 'premium';
+
+      if (!isPremium && state.students.length >= 10) {
+        toast.error(get(t)('pricing.limits.student_reached'));
+        throw new Error('Limit reached');
+      }
+
       if (user?.uid === 'chessnet-dev-uid') {
         const newStudent = { id: 'mock-student-' + Date.now(), ...student, owner_id: user.uid };
         update(s => ({ ...s, students: [...s.students, newStudent] }));
@@ -358,6 +375,14 @@ function createAppStore() {
     
     addClass: async (cls: any) => {
       const user = get(authStoreUser);
+      const state = get(store);
+      const isPremium = state.settings?.plan === 'premium';
+
+      if (!isPremium && state.classes.length >= 1) {
+        toast.error(get(t)('pricing.limits.class_reached'));
+        throw new Error('Limit reached');
+      }
+
       if (user?.uid === 'chessnet-dev-uid') {
         const newClass = { id: 'mock-class-' + Date.now(), ...cls, owner_id: user.uid };
         update(s => ({ ...s, classes: [...s.classes, newClass] }));
@@ -734,6 +759,64 @@ function createAppStore() {
         return;
       }
       await deleteDoc(doc(db, 'skills', id));
+    },
+
+    removeMultipleSkills: async (ids: string[]) => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, skills: s.skills.filter(sk => !ids.includes(sk.id)) }));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
+        return;
+      }
+      
+      const batch = writeBatch(db);
+      ids.forEach(id => {
+        batch.delete(doc(db, 'skills', id));
+      });
+      await batch.commit();
+    },
+
+    clearSyllabus: async () => {
+      const user = get(authStoreUser);
+      if (user?.uid === 'chessnet-dev-uid') {
+        update(s => ({ ...s, skills: [] }));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify([]));
+        return;
+      }
+      const skills = get(store).skills;
+      if (skills.length === 0) return;
+      
+      const batch = writeBatch(db);
+      skills.forEach(sk => {
+        batch.delete(doc(db, 'skills', sk.id));
+      });
+      await batch.commit();
+    },
+
+    reorderSkills: async (reorderings: { id: string, order: number }[]) => {
+      const user = get(authStoreUser);
+      const isMock = user?.uid === 'chessnet-dev-uid';
+
+      if (isMock) {
+        update(s => ({
+          ...s,
+          skills: s.skills.map(sk => {
+            const update = reorderings.find(r => r.id === sk.id);
+            return update ? { ...sk, order: update.order } : sk;
+          })
+        }));
+        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
+        return;
+      }
+
+      const batch = writeBatch(db);
+      reorderings.forEach(({ id, order }) => {
+        batch.update(doc(db, 'skills', id), { 
+          order, 
+          updatedAt: new Date().toISOString() 
+        });
+      });
+      await batch.commit();
     },
 
     importCurriculum: async (skills: CreateSkillForm[]) => {

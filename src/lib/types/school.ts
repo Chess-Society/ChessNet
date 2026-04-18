@@ -81,6 +81,7 @@ export interface Skill {
   assessment_criteria?: string[];
   resources?: string[];
   order_index?: number;
+  order?: number;
   active?: boolean;
   created_at: string;
   updated_at: string;
@@ -131,7 +132,7 @@ export interface StudentWithDetails extends Student {
 }
 
 export interface SkillWithDetails extends Omit<Skill, 'category'> {
-  category?: Category;
+  category?: Category | string;
   classes_count?: number;
   students_mastered?: number;
 }
@@ -171,6 +172,7 @@ export interface CreateSkillForm {
   assessment_criteria?: string[];
   resources?: string[];
   order_index?: number;
+  order?: number;
   active?: boolean;
 }
 

@@ -34,6 +34,7 @@
   import { db } from '$lib/firebase';
 
   import { user as authUser, loading as authLoading } from '$lib/stores/auth';
+  import { uiStore } from '$lib/stores/uiStore';
   import type { LayoutData } from './$types';
   
   let { data, children } = $props<{ data: LayoutData, children: any }>();
@@ -271,15 +272,25 @@
                title={$t('nav.attendance')}>
               <ListChecks size={20} weight={currentRoute.includes('/attendance') ? 'fill' : 'duotone'} />
             </a>
-            <a href="/panel/payments" 
-               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+            <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} 
+               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
                title={$t('nav.payments')}>
               <Wallet size={20} weight={currentRoute.includes('/payments') ? 'fill' : 'duotone'} />
+              {#if plan !== 'premium'}
+                <div class="absolute -top-1 -right-1">
+                  <Crown weight="fill" size={10} class="text-violet-400" />
+                </div>
+              {/if}
             </a>
-            <a href="/panel/tournaments" 
-               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+            <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} 
+               class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
                title={$t('nav.tournaments')}>
               <Trophy size={20} weight={currentRoute.includes('/tournaments') ? 'fill' : 'duotone'} />
+              {#if plan !== 'premium'}
+                <div class="absolute -top-1 -right-1">
+                  <Crown weight="fill" size={10} class="text-violet-400" />
+                </div>
+              {/if}
             </a>
           </div>
 
@@ -375,21 +386,22 @@
                 </a>
               {/if}
 
-              <!-- Lobby / Feedback -->
-              <a href="/panel/lobby" 
+              <a href={plan === 'premium' ? '/panel/lobby' : '/pricing'} 
+                class="flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors group"
                 onclick={() => {
+                  uiStore.closeAllModals();
                   lobbyPulse = false;
                   const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
                   localStorage.setItem(`last_viewed_${colName}`, Date.now().toString());
                 }}
-                class="relative flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold rounded-xl transition-all group/item text-slate-400 hover:bg-violet-600/10 hover:text-violet-400">
-                <ChatCircleDots weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" />
-                <span class="flex-1">{$t('nav.lobby') || 'COMMUNITY LOBBY'}</span>
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-violet-600/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
+                    <ChatCircleDots weight="duotone" size={18} />
+                  </div>
+                  <span class="text-xs font-bold text-white group-hover:text-primary-400 transition-colors uppercase tracking-tight">{$t('nav.lobby')}</span>
+                </div>
                 
-                {#if lobbyPulse && plan === 'premium'}
-                  <div class="absolute right-12 top-1/2 -translate-y-1/2 w-2 h-2 bg-violet-500 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.5)] animate-pulse"></div>
-                {/if}
-
                 {#if plan !== 'premium' && !data.isAdmin}
                   <div class="flex items-center gap-1.5 px-2 py-1 bg-violet-500/10 rounded-lg border border-violet-500/20">
                     <Crown weight="fill" size={10} class="text-violet-400" />
@@ -430,6 +442,25 @@
     </div>
   </main>
 
+  <!-- Global Loading Overlay -->
+  {#if $uiStore.isLoading}
+    <div class="fixed inset-0 z-[200] flex items-center justify-center bg-zinc-950/80 backdrop-blur-md" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+      <div class="flex flex-col items-center gap-6">
+        <div class="relative w-20 h-20">
+          <div class="absolute inset-0 border-4 border-violet-500/20 rounded-full"></div>
+          <div class="absolute inset-0 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+          <div class="absolute inset-4 bg-violet-500/10 rounded-full flex items-center justify-center">
+            <Logo className="w-8 h-8 opacity-50" />
+          </div>
+        </div>
+        <div class="space-y-1 text-center">
+          <p class="text-white font-black uppercase tracking-[0.3em] text-[10px]">ChessNet AI</p>
+          <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest animate-pulse">{$t('common.processing') || 'PROCESANDO...'}</p>
+        </div>
+      </div>
+    </div>
+  {/if}
+
   <!-- Mobile Bottom Tab Bar (iOS Style) -->
   <footer class="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/80 backdrop-blur-2xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
     <nav class="h-[50px] flex items-center justify-around px-2">
@@ -445,15 +476,25 @@
         <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={24} />
         <span class="text-[10px] font-medium tracking-tight">Alumnos</span>
       </a>
-      <a href="/panel/planner" class="flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute.includes('/planner') ? 'text-violet-400' : 'text-slate-500'}">
+      <a href={plan === 'premium' ? '/panel/planner' : '/pricing'} class="relative flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute.includes('/planner') ? 'text-violet-400' : 'text-slate-500'}">
         <Calendar weight={currentRoute.includes('/planner') ? 'fill' : 'duotone'} size={24} />
         <span class="text-[10px] font-medium tracking-tight">Calendario</span>
+        {#if plan !== 'premium'}
+          <div class="absolute top-1.5 right-[30%]">
+            <Crown weight="fill" size={10} class="text-violet-400" />
+          </div>
+        {/if}
       </a>
-      <a href="/panel/lobby" class="relative flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute.includes('/lobby') ? 'text-violet-400' : 'text-slate-500'}">
+      <a href={plan === 'premium' ? '/panel/lobby' : '/pricing'} class="relative flex flex-col items-center justify-center gap-0.5 w-full h-full transition-all {currentRoute.includes('/lobby') ? 'text-violet-400' : 'text-slate-500'}">
         <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={24} />
         <span class="text-[10px] font-medium tracking-tight">Lobby</span>
         {#if lobbyPulse && plan === 'premium'}
           <div class="absolute top-2 right-[30%] w-2 h-2 bg-violet-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
+        {/if}
+        {#if plan !== 'premium'}
+          <div class="absolute top-1.5 right-[30%]">
+            <Crown weight="fill" size={10} class="text-violet-400" />
+          </div>
         {/if}
       </a>
     </nav>
