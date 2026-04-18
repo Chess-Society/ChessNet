@@ -48,35 +48,35 @@
         <Shield weight="duotone" class="w-24 h-24" />
       </div>
       
-      <h3 class="text-xl font-black font-display uppercase italic tracking-wider mb-8 flex items-center gap-3">
+      <h3 class="text-xl font-black font-display uppercase italic tracking-wider mb-8 flex items-center gap-3 text-white">
         <Shield weight="duotone" class="w-6 h-6 text-primary-500" />
-        Seguridad
+        {$t('admin.system.security_title')}
       </h3>
 
       <div class="space-y-6">
         <div class="flex items-center justify-between p-4 bg-black/20 rounded-2xl border border-white/5">
           <div>
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Modo Mantenimiento</p>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.system.maintenance_label')}</p>
             <p class="text-xs font-bold {maintenanceMode ? 'text-red-400' : 'text-emerald-400'} uppercase">
-              {maintenanceMode ? 'Activado' : 'Desactivado'}
+              {maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}
             </p>
           </div>
           <button 
             onclick={onToggleMaintenance}
             class="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all {maintenanceMode ? 'bg-red-500 text-white' : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'}"
           >
-            {maintenanceMode ? 'Apagar' : 'Encender'}
+            {maintenanceMode ? $t('admin.system.turn_off') : $t('admin.system.turn_on')}
           </button>
         </div>
 
         <div class="p-4 bg-black/20 rounded-2xl border border-white/5 space-y-3">
-          <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Optimización de Datos</p>
+          <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.system.data_optimization')}</p>
           <button 
             onclick={onRepairData}
             class="w-full py-4 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all flex items-center justify-center gap-2"
           >
             <Database weight="fill" class="w-4 h-4" />
-            Sincronizar Indices
+            {$t('admin.system.sync_indices')}
           </button>
         </div>
       </div>
@@ -88,15 +88,15 @@
         <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
           <Pulse class="w-5 h-5 text-white animate-pulse" />
         </div>
-        <h4 class="font-black uppercase italic tracking-widest text-sm text-white">Estado del Servidor</h4>
+        <h4 class="font-black uppercase italic tracking-widest text-sm text-white">{$t('admin.system.server_status')}</h4>
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-1">
-          <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Latencia API</p>
-          <p class="text-xl font-bold font-display italic">24ms</p>
+          <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.system.api_latency')}</p>
+          <p class="text-xl font-bold font-display italic text-white">24ms</p>
         </div>
         <div class="space-y-1">
-          <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Uptime</p>
+          <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.system.uptime')}</p>
           <p class="text-xl font-bold font-display italic text-emerald-400">99.9%</p>
         </div>
       </div>
@@ -109,7 +109,7 @@
       <div class="flex items-center gap-3">
         <Terminal weight="bold" class="w-5 h-5 text-emerald-400" />
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-          System Console
+          {$t('admin.system.console_title')}
           <span class="inline-flex w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         </h3>
       </div>
@@ -117,7 +117,7 @@
         <button 
           onclick={onClearLogs}
           class="p-2 text-slate-600 hover:text-red-400 transition-colors"
-          title="Limpiar Consola"
+          title={$t('admin.system.clear_console')}
         >
           <Trash weight="bold" class="w-4 h-4" />
         </button>
@@ -143,7 +143,7 @@
       {#if logs.length === 0}
         <div class="h-full flex flex-col items-center justify-center text-slate-700 py-10 space-y-4">
           <Bug weight="thin" class="w-12 h-12 opacity-20" />
-          <p class="italic">Esperando eventos del sistema...</p>
+          <p class="italic text-white">{$t('admin.system.waiting_events')}</p>
         </div>
       {/if}
     </div>

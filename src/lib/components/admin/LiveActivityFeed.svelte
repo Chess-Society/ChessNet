@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { 
     Pulse, 
     UserPlus, 
@@ -33,9 +34,9 @@
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     
-    if (diff < 60000) return 'Ahora mismo';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
+    if (diff < 60000) return $t('common.time.just_now');
+    if (diff < 3600000) return $t('common.time.minutes', { n: Math.floor(diff / 60000) });
+    if (diff < 86400000) return $t('common.time.hours', { n: Math.floor(diff / 3600000) });
     return date.toLocaleDateString();
   }
 
@@ -64,9 +65,9 @@
       <div class="p-2 bg-primary-500/20 rounded-lg">
         <Pulse weight="bold" class="w-4 h-4 text-primary-400 animate-pulse" />
       </div>
-      <h3 class="text-sm font-black uppercase tracking-widest text-white">Live Operations Pulse</h3>
+      <h3 class="text-sm font-black uppercase tracking-widest text-white">{$t('admin.activity.pulse')}</h3>
     </div>
-    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-lg">Real-time Stream</span>
+    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-lg">{$t('admin.activity.stream')}</span>
   </div>
 
   <div class="flex-1 overflow-y-auto max-h-[450px] p-2 space-y-2 custom-scrollbar">
@@ -103,7 +104,7 @@
     {:else}
       <div class="h-64 flex flex-col items-center justify-center text-slate-700 py-10 space-y-4">
         <Terminal weight="thin" class="w-12 h-12 opacity-20" />
-        <p class="italic">Esperando eventos del sistema...</p>
+        <p class="italic text-white">{$t('admin.activity.waiting')}</p>
       </div>
     {/each}
   </div>

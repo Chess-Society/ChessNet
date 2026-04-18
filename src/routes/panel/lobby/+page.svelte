@@ -297,7 +297,7 @@
         createdAt: new Date().toISOString()
       });
       
-      toast.success("Comunicado publicado");
+      toast.success($t('lobby.announcement_published'));
       showAnnouncementModal = false;
       newAnnouncement = { title: '', content: '' };
     } catch (err: any) {
@@ -309,7 +309,7 @@
 
   async function handleVote(id: string, alreadyVoted: boolean) {
     if (plan !== 'premium' && !isAdmin) {
-        toast.error("Mejora a Premium para votar propuestas");
+        toast.error($t('lobby.premium_required_vote'));
         return;
     }
     try {
@@ -326,16 +326,16 @@
     if (!isAdmin) return;
     const confirmed = await uiStore.confirm({
         title: $t('common.delete'),
-        message: '¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.',
+        message: $t('lobby.delete_confirm_desc'),
         type: 'danger'
     });
     if (!confirmed) return;
     
     try {
       await deleteDoc(doc(db, collectionName, id));
-      toast.success("Eliminado correctamente");
+      toast.success($t('common.deleted_success'));
     } catch (err: any) {
-      toast.error("Error al eliminar: " + err.message);
+      toast.error($t('common.error_deleting') + ": " + err.message);
     }
   }
 
@@ -343,7 +343,7 @@
 </script>
 
 <svelte:head>
-  <title>Lobby - ChessNet</title>
+  <title>{$t('lobby.title')} - ChessNet</title>
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-6 py-10 space-y-12" in:fade>
@@ -353,13 +353,13 @@
     <div class="space-y-4 lg:space-y-4">
       <div class="hidden lg:inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-violet-400">
         <ChatCircleDots weight="fill" class="w-3 h-3" />
-        COMMUNITY LOUNGE
+        {$t('lobby.title')}
       </div>
       <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase italic leading-[0.85]">
-        El Lobby de<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">Profesores</span>
+        {$t('lobby.title_prefix')}<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">{$t('lobby.title_suffix')}</span>
       </h1>
       <p class="text-zinc-500 font-plus-jakarta text-sm lg:text-lg max-w-xl">
-        Donde los profesores dan forma al futuro de ChessNet.
+        {$t('lobby.subtitle')}
       </p>
     </div>
 
@@ -370,19 +370,19 @@
           onclick={() => activeTab = 'suggestions'}
           class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'suggestions' ? 'bg-violet-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
         >
-          Chat
+          {$t('lobby.chat')}
         </button>
         <button 
           onclick={() => activeTab = 'announcements'}
           class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'announcements' ? 'bg-violet-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
         >
-          Novedades
+          {$t('lobby.news')}
         </button>
         <button 
           onclick={() => activeTab = 'support'}
           class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'support' ? 'bg-amber-600 text-black shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
         >
-          Soporte
+          {$t('lobby.support')}
         </button>
       </div>
 
@@ -392,7 +392,7 @@
           class="h-12 px-6 bg-white hover:bg-violet-100 text-zinc-950 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest group"
         >
           <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
-          Nuevo Grupo
+          {$t('lobby.new_group')}
         </button>
       {:else if activeTab === 'announcements' && isAdmin}
         <button 
@@ -400,7 +400,7 @@
           class="h-12 px-6 bg-primary-500 text-black rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest group"
         >
           <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
-          Anuncio
+          {$t('lobby.new_announcement')}
         </button>
       {:else if activeTab === 'support'}
         <button 
@@ -408,7 +408,7 @@
           class="h-12 px-6 bg-white hover:bg-violet-100 text-zinc-950 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest group"
         >
           <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
-          Reportar
+          {$t('lobby.report')}
         </button>
       {/if}
     </div>
@@ -423,9 +423,9 @@
             <Crown size={40} weight="duotone" />
         </div>
         <div class="space-y-3 relative z-10">
-            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">Comunidad Premium</h2>
+            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('lobby.premium_title')}</h2>
             <p class="text-zinc-400 text-lg font-plus-jakarta max-w-lg mx-auto">
-                Mejora a Premium para participar en los grupos de la comunidad, conectar con otros profesores y decidir el futuro de ChessNet.
+                {$t('lobby.premium_desc')}
             </p>
         </div>
         <button 
@@ -433,7 +433,7 @@
             class="px-10 py-5 bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl shadow-violet-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto relative z-10"
         >
             <Crown size={18} weight="bold" />
-            Empieza tu prueba Premium
+            {$t('lobby.premium_btn')}
         </button>
     </div>
   {:else if activeTab === 'announcements' && plan !== 'premium' && !isAdmin}
@@ -444,9 +444,9 @@
             <Crown size={40} weight="duotone" />
         </div>
         <div class="space-y-3 relative z-10">
-            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">Comunidad Premium</h2>
+            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('lobby.premium_title')}</h2>
             <p class="text-zinc-400 text-lg font-plus-jakarta max-w-lg mx-auto">
-                Los anuncios de la comunidad y actualizaciones oficiales solo están disponibles para usuarios Premium.
+                {$t('lobby.news_restriction')}
             </p>
         </div>
         <button 
@@ -454,30 +454,30 @@
             class="px-10 py-5 bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl shadow-violet-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto relative z-10"
         >
             <Crown size={18} weight="bold" />
-            Acceder ahora
+            {$t('lobby.access_now')}
         </button>
     </div>
   {:else}
     <!-- Tab Sections -->
     {#if activeTab === 'suggestions'}
       <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
-        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">Comunidad de Profesores</h2>
+        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">{$t('lobby.community_title')}</h2>
         <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed">
-          Participa en los grupos de discusión en tiempo real. Comparte experiencias y conecta con otros profesionales del ajedrez.
+          {$t('lobby.community_desc')}
         </p>
       </div>
     {:else if activeTab === 'announcements'}
       <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
-        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">Novedades y Comunicados</h2>
+        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">{$t('lobby.news_title')}</h2>
         <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed">
-          Mantente al día con las últimas actualizaciones, mejoras de rendimiento y nuevas funcionalidades que llegan a ChessNet.
+          {$t('lobby.news_desc')}
         </p>
       </div>
     {:else if activeTab === 'support'}
       <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
-        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">Soporte ChessNet</h2>
+        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">{$t('lobby.support_title')}</h2>
         <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed font-outfit italic tracking-wider opacity-60">
-          ¿Tienes algún problema técnico, error o duda con tu suscripción? Nuestro equipo de soporte te ayudará directamente aquí.
+          {$t('lobby.support_desc')}
         </p>
       </div>
     {/if}
@@ -487,7 +487,7 @@
         <!-- Groups Sidebar (Compact on mobile) -->
         <div class="w-full lg:w-80 space-y-4">
           <div class="bg-zinc-900/60 border border-white/5 rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 backdrop-blur-xl">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 lg:mb-6 ml-2">Sub Grupos</h3>
+            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 lg:mb-6 ml-2">{$t('lobby.subgroups')}</h3>
             <div class="flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 pb-2 lg:pb-0 scrollbar-hide">
               {#each groups as g (g.id)}
                 <div 
@@ -588,7 +588,7 @@
               {:else}
                 <div class="h-full flex flex-col items-center justify-center opacity-20">
                   <ChatTeardropDots size={48} weight="duotone" />
-                  <p class="mt-4 font-outfit font-bold uppercase tracking-widest text-sm">Comienza la conversación</p>
+                  <p class="mt-4 font-outfit font-bold uppercase tracking-widest text-sm">{$t('lobby.start_conversation')}</p>
                 </div>
               {/each}
             </div>
@@ -792,11 +792,8 @@
       transition:scale
     >
       <div class="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent pointer-events-none"></div>
-      <div class="p-8 border-b border-white/5 flex items-center justify-between relative z-10">
-        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight flex items-center gap-4">
-          <Megaphone size={24} weight="fill" class="text-violet-500" />
-          Nuevo Comunicado
-        </h3>
+      <div class="p-8 border-b border-white/5 flex items-center justify-between">
+        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('lobby.announcement_modal_title')}</h3>
         <button 
           onclick={() => showAnnouncementModal = false}
           class="p-2 hover:bg-white/5 rounded-2xl transition-all"
@@ -807,23 +804,23 @@
 
       <div class="p-8 space-y-8 relative z-10">
         <div class="space-y-4">
-          <label for="announce-title" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Asunto del Comunicado</label>
+          <label for="announce-title" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{$t('lobby.announcement_title')}</label>
           <input 
             id="announce-title"
             bind:value={newAnnouncement.title}
             type="text" 
-            placeholder="Ej: Nueva actualización del sistema"
+            placeholder={$t('lobby.announcement_placeholder')}
             class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-slate-700"
           />
         </div>
 
         <div class="space-y-4">
-          <label for="announce-content" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Mensaje Oficial</label>
+          <label for="announce-content" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{$t('lobby.announcement_content')}</label>
           <textarea 
             id="announce-content"
             bind:value={newAnnouncement.content}
             rows="5"
-            placeholder="Escribe el contenido del anuncio para los profesores..."
+            placeholder={$t('lobby.announcement_message_placeholder')}
             class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all resize-none placeholder:text-slate-700"
           ></textarea>
         </div>
@@ -833,14 +830,14 @@
              onclick={() => showAnnouncementModal = false}
              class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/5 transition-all"
            >
-             Cancelar
+             {$t('lobby.cancel')}
            </button>
            <button 
              onclick={handleSubmitAnnouncement}
              disabled={isSubmitting || !newAnnouncement.title || !newAnnouncement.content}
              class="py-4 bg-violet-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-violet-600/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
            >
-             {isSubmitting ? 'Publicando...' : 'Publicar Ahora'}
+             {isSubmitting ? $t('lobby.publishing') : $t('lobby.publish')}
            </button>
         </div>
       </div>
@@ -856,7 +853,7 @@
       transition:scale
     >
       <div class="p-8 border-b border-white/5 flex items-center justify-between">
-        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Nuevo Grupo de Comunidad</h3>
+        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('lobby.group_modal_title')}</h3>
         <button 
           onclick={() => showCreateGroupModal = false}
           class="p-2 hover:bg-white/5 rounded-2xl transition-all"
@@ -867,23 +864,23 @@
 
       <div class="p-8 space-y-8">
         <div class="space-y-4">
-          <label for="group-name" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Nombre del Grupo</label>
+          <label for="group-name" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{$t('lobby.group_name')}</label>
           <input 
             id="group-name"
             bind:value={newGroup.name}
             type="text" 
-            placeholder="Ej: Metodología, Torneos, etc."
+            placeholder={$t('lobby.group_placeholder')}
             class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-slate-700"
           />
         </div>
 
         <div class="space-y-4">
-          <label for="group-description" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Descripción</label>
+          <label for="group-description" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{$t('lobby.group_description')}</label>
           <textarea 
             id="group-description"
             bind:value={newGroup.description}
             rows="3"
-            placeholder="¿De qué se hablará en este grupo?"
+            placeholder={$t('lobby.group_desc_placeholder')}
             class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all resize-none placeholder:text-slate-700"
           ></textarea>
         </div>
@@ -893,14 +890,14 @@
              onclick={() => showCreateGroupModal = false}
              class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/5 transition-all"
            >
-             Cancelar
+             {$t('lobby.cancel')}
            </button>
            <button 
              onclick={handleCreateGroup}
              disabled={isSubmitting || !newGroup.name}
              class="py-4 bg-violet-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-violet-600/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
            >
-             {isSubmitting ? 'Creando...' : 'Crear Grupo'}
+             {isSubmitting ? $t('lobby.creating') : $t('lobby.create_group_btn')}
            </button>
         </div>
       </div>

@@ -3,6 +3,7 @@
   import { fade, scale } from 'svelte/transition';
   import { Warning, Info, Trash, Check, X } from 'phosphor-svelte';
   import { quintOut } from 'svelte/easing';
+  import { t } from '$lib/i18n';
 
 
   const getTypeStyles = (type?: string) => {
@@ -99,7 +100,7 @@
             >
               <div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
               <Check weight="bold" size={18} class="relative z-10" />
-              <span class="relative z-10">{dialog.confirmText || 'Confirmar'}</span>
+              <span class="relative z-10">{dialog.confirmText || $t('common.confirm')}</span>
             </button>
             
             <button
@@ -113,7 +114,7 @@
                 }
               }}
             >
-              {dialog.cancelText || 'Cancelar'}
+              {dialog.cancelText || $t('common.cancel')}
             </button>
           </div>
         </div>

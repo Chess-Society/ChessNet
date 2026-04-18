@@ -28,7 +28,7 @@
     teacherEmail: $appStore.settings.teacherEmail || auth.currentUser?.email || '',
     featuredInsignias: [...($appStore.settings.featuredInsignias || [])],
     notifications: true,
-    theme: 'dark'
+    theme: $t('common.theme_dark')
   });
 
   let saved = $state(false);
@@ -113,7 +113,7 @@
                         id="public-name"
                         type="text" 
                         bind:value={config.teacherName}
-                        placeholder="e.g. GM Academy"
+                        placeholder={$t('settings.public_name_placeholder')}
                         class="w-full bg-zinc-950/50 border border-white/5 rounded-2xl px-5 py-4 text-sm text-white focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 shadow-inner"
                       />
                   </div>
@@ -126,7 +126,7 @@
                           id="public-email"
                           type="email" 
                           bind:value={config.teacherEmail}
-                          placeholder="contact@academy.com"
+                          placeholder={$t('settings.contact_email_placeholder')}
                           class="w-full bg-zinc-950/30 border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-sm text-slate-400 cursor-not-allowed outline-none transition-all placeholder:text-slate-700"
                           disabled
                         />
@@ -154,7 +154,7 @@
                 </div>
                 <div>
                     <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-1">{$t('settings.current_level')}</p>
-                    <p class="text-white font-outfit font-black text-xl uppercase tracking-tight">{$t('settings.plan_prefix')} {$appStore.settings.plan || 'Free'}</p>
+                    <p class="text-white font-outfit font-black text-xl uppercase tracking-tight">{$t('settings.plan_prefix')} {$appStore.settings.plan || $t('settings.plan_free')}</p>
                 </div>
               </div>
               <a href="/panel/upgrade" class="btn-pill bg-white text-black py-3 px-8 text-xs font-outfit font-black uppercase tracking-widest shadow-xl hover:bg-zinc-200 inline-flex items-center gap-2 group">

@@ -73,7 +73,7 @@
           goto(returnTo || `/panel/students/${studentData.id}`);
         }, 400);
       } else {
-        throw new Error('Error saving');
+        throw new Error($t('students.save_error'));
       }
     } catch (error) {
       showError(error);

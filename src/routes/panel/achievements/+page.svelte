@@ -202,7 +202,7 @@
       </div>
       
       <div class="space-y-3">
-        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight italic uppercase">TU LEGADO EN<br/><span class="text-indigo-400">CHESSNET</span></h2>
+        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight italic uppercase">{$t('badges.legacy_title')}<br/><span class="text-indigo-400">CHESSNET</span></h2>
         <p class="text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed">
           {$t('badges.legacy_desc')}
         </p>

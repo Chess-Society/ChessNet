@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { Cookie, X, Shield, FileText } from 'lucide-svelte';
+  import { t } from '$lib/i18n';
 
   let showBanner = false;
   let isVisible = false;
@@ -70,7 +71,7 @@
       <div class="flex items-center justify-between p-4 border-b border-slate-600">
         <div class="flex items-center space-x-2">
           <Cookie class="w-5 h-5 text-blue-400" />
-          <h3 class="text-lg font-semibold text-white">Privacy Configuration</h3>
+          <h3 class="text-lg font-semibold text-white">{$t('cookies.title')}</h3>
         </div>
         <button
           on:click={hideBanner}
@@ -85,12 +86,10 @@
       <div class="p-4">
         <div class="mb-4">
           <p class="text-slate-300 text-sm mb-3">
-            🚧 <strong class="text-yellow-400">BETA VERSION:</strong> ChessNet is currently in development. 
-            Data may be reset when we launch the final version with the payment system.
+            🚧 <strong class="text-yellow-400">{$t('cookies.beta_title')}</strong> {$t('cookies.beta_description')}
           </p>
           <p class="text-slate-300 text-sm">
-            We use essential cookies for the operation of the platform and Google Analytics 
-            to improve your experience. By continuing, you accept our terms and policies.
+            {$t('cookies.description')}
           </p>
         </div>
 
@@ -101,21 +100,21 @@
             class="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <FileText class="w-3 h-3" />
-            <span>Terms of Service</span>
+            <span>{$t('legal.terms')}</span>
           </button>
           <button
             on:click={openPrivacy}
             class="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <Shield class="w-3 h-3" />
-            <span>Privacy Policy</span>
+            <span>{$t('legal.privacy')}</span>
           </button>
           <button
             on:click={openCookies}
             class="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <Cookie class="w-3 h-3" />
-            <span>Cookie Policy</span>
+            <span>{$t('legal.cookies')}</span>
           </button>
         </div>
 
@@ -125,13 +124,13 @@
             on:click={acceptAll}
             class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
-            Accept All
+            {$t('cookies.accept_all')}
           </button>
           <button
             on:click={acceptNecessary}
             class="flex-1 bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
-            Only Essential
+            {$t('cookies.accept_essential')}
           </button>
         </div>
       </div>

@@ -83,7 +83,7 @@
 </script>
 
 <svelte:head>
-  <title>Reports and Statistics - ChessNet</title>
+  <title>{$t('reports.title')} - ChessNet</title>
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-6 py-8" transition:fade>
@@ -114,7 +114,7 @@
                   {#each Object.entries(stats().levels) as [level, count]}
                       <div class="space-y-2">
                           <div class="flex justify-between items-end">
-                              <span class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{level}</span>
+                              <span class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{level === 'No level' ? $t('reports.no_levels') : level}</span>
                               <span class="text-sm font-outfit font-bold text-white">{count} <span class="text-slate-500 font-medium ml-1">({Math.round((count / stats().totalStudents) * 100)}%)</span></span>
                           </div>
                           <div class="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
@@ -191,7 +191,7 @@
                   <p class="text-4xl font-outfit font-black text-white">{attendanceRate()}%</p>
                   <div class="flex items-center gap-1 mt-1 text-violet-400">
                       <ArrowUpRight weight="bold" class="w-3 h-3" />
-                      <span class="text-[10px] font-bold">Real-time</span>
+                      <span class="text-[10px] font-bold">{$t('reports.real_time')}</span>
                   </div>
               </div>
               <div>
@@ -199,7 +199,7 @@
                   <p class="text-4xl font-outfit font-black text-white">98%</p>
                   <div class="flex items-center gap-1 mt-1 text-violet-400">
                       <ArrowUpRight weight="bold" class="w-3 h-3" />
-                      <span class="text-[10px] font-bold">Estimated</span>
+                      <span class="text-[10px] font-bold">{$t('reports.estimated')}</span>
                   </div>
               </div>
               <div>

@@ -29,56 +29,56 @@
 
   const primaryCards = $derived([
     {
-      label: 'Ingresos Totales',
+      label: $t('admin.stats.total_revenue'),
       value: `${stats.totalRevenue.toLocaleString()}€`,
       icon: TrendUp,
       color: 'from-emerald-400 to-cyan-500',
-      description: 'Facturación acumulada en plataforma'
+      description: $t('admin.stats.total_revenue_desc')
     },
     {
-      label: 'Conversión Premium',
+      label: $t('admin.stats.conversion_premium'),
       value: `${((stats.premiumUsers / (stats.totalUsers || 1)) * 100).toFixed(1)}%`,
       icon: Crown,
       color: 'from-amber-400 to-orange-500',
-      description: `${stats.premiumUsers} usuarios de pago activos`
+      description: $t('admin.stats.premium_users_desc', { count: stats.premiumUsers })
     }
   ]);
 
   const secondaryCards = $derived([
     {
-      label: 'Profesores',
+      label: $t('admin.stats.teachers'),
       value: stats.totalUsers,
       icon: Users,
       color: 'from-blue-500 to-indigo-600',
-      sub: `+${stats.recentUsers} nuevos`
+      sub: $t('admin.stats.teachers_sub', { count: stats.recentUsers })
     },
     {
-      label: 'Alumnos',
+      label: $t('admin.stats.students'),
       value: stats.totalStudents,
       icon: Student,
       color: 'from-fuchsia-500 to-pink-600',
-      sub: 'Base académica'
+      sub: $t('admin.stats.students_sub')
     },
     {
-      label: 'Insignias',
+      label: $t('admin.stats.insignias'),
       value: stats.totalInsignias || 0,
        icon: Crown,
       color: 'from-amber-400 to-orange-500',
-      sub: 'Logros desbloqueados'
+      sub: $t('admin.stats.insignias_sub')
     },
     {
-      label: 'Escuelas',
+      label: $t('admin.stats.schools'),
       value: stats.totalSchools,
       icon: Buildings,
       color: 'from-violet-500 to-purple-600',
-      sub: 'Centros adheridos'
+      sub: $t('admin.stats.schools_sub')
     },
     {
-      label: 'Clases',
+      label: $t('admin.stats.classes'),
       value: stats.totalClasses,
       icon: ChalkboardTeacher,
       color: 'from-slate-400 to-slate-600',
-      sub: 'Sesiones activas'
+      sub: $t('admin.stats.classes_sub')
     }
   ]);
 </script>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { toast } from '$lib/stores/toast';
+  import { toast } from 'svelte-french-toast';
   import { appStore } from '$lib/stores/appStore';
   import { uiStore } from '$lib/stores/uiStore';
   import { 
@@ -61,22 +61,22 @@
   const categories = $derived($appStore.categories.length > 0 
     ? $appStore.categories 
     : [
-        { id: 'basics', name: 'Fundamentos' },
-        { id: 'tactics', name: 'Táctica' },
-        { id: 'strategy', name: 'Estrategia' },
-        { id: 'endgames', name: 'Finales' },
-        { id: 'openings', name: 'Aperturas' }
+        { id: 'basics', name: $t('skills.category_fundamentals') },
+        { id: 'tactics', name: $t('skills.category_tactics') },
+        { id: 'strategy', name: $t('skills.category_strategy') },
+        { id: 'endgames', name: $t('skills.category_endgames') },
+        { id: 'openings', name: $t('skills.category_openings') }
       ]
   );
 
   const availablePrerequisites = $derived(data.availablePrerequisites || []);
 
   const difficultyLevels = [
-    { value: 1, label: 'Entry', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { value: 2, label: 'Novice', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { value: 3, label: 'Intermediate', color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { value: 4, label: 'Advanced', color: 'text-rose-400', bg: 'bg-rose-400/10' },
-    { value: 5, label: 'Master', color: 'text-rose-400', bg: 'bg-rose-400/10' }
+    { value: 1, label: $t('skills.difficulty.entry'), color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { value: 2, label: $t('skills.difficulty.novice'), color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { value: 3, label: $t('skills.difficulty.intermediate'), color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { value: 4, label: $t('skills.difficulty.advanced'), color: 'text-rose-400', bg: 'bg-rose-400/10' },
+    { value: 5, label: $t('skills.difficulty.master'), color: 'text-rose-400', bg: 'bg-rose-400/10' }
   ];
 
   const handleGoBack = () => {
@@ -127,7 +127,7 @@
       goto('/panel/skills');
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || 'Error creating the skill');
+      toast.error(error.message || $t('skills.save_error') || 'Error creating the skill');
     } finally {
       isSubmitting = false;
       uiStore.setLoading(false);
@@ -342,7 +342,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-[11px] font-black uppercase tracking-tight truncate">{skill.name}</p>
-                      <p class="text-[9px] font-bold text-zinc-600 uppercase">Level {skill.difficulty || 1}</p>
+                      <p class="text-[9px] font-bold text-zinc-600 uppercase">{$t('skills.ui.level')} {skill.difficulty || 1}</p>
                     </div>
                   </button>
                 {/each}

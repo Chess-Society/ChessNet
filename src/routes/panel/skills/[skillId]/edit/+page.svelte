@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, untrack } from 'svelte';
   import { goto } from '$app/navigation';
-  import { toast } from '$lib/stores/toast';
+  import { toast } from 'svelte-french-toast';
   import { appStore } from '$lib/stores/appStore';
   import { uiStore } from '$lib/stores/uiStore';
   import { 
@@ -71,11 +71,11 @@
   let showConfirmDiscard = $state(false);
 
   const difficultyLevels = [
-    { value: 1, label: 'Entry', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { value: 2, label: 'Novice', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { value: 3, label: 'Intermediate', color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { value: 4, label: 'Advanced', color: 'text-rose-400', bg: 'bg-rose-400/10' },
-    { value: 5, label: 'Master', color: 'text-rose-400', bg: 'bg-rose-400/10' }
+    { value: 1, label: $t('skills.difficulty.entry'), color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { value: 2, label: $t('skills.difficulty.novice'), color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { value: 3, label: $t('skills.difficulty.intermediate'), color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { value: 4, label: $t('skills.difficulty.advanced'), color: 'text-rose-400', bg: 'bg-rose-400/10' },
+    { value: 5, label: $t('skills.difficulty.master'), color: 'text-rose-400', bg: 'bg-rose-400/10' }
   ];
 
   const handleGoBack = () => {
@@ -165,7 +165,7 @@
       goto('/panel/skills');
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || 'Error updating the skill');
+      toast.error(error.message || $t('skills.update_error'));
     } finally {
       isSubmitting = false;
       uiStore.setLoading(false);
@@ -392,7 +392,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-[11px] font-black uppercase tracking-tight truncate">{skill.name}</p>
-                      <p class="text-[9px] font-bold text-zinc-600 uppercase">Level {skill.difficulty || 1}</p>
+                      <p class="text-[9px] font-bold text-zinc-600 uppercase">{$t('skills.ui.level')} {skill.difficulty || 1}</p>
                     </div>
                   </button>
                 {/each}

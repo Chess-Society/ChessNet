@@ -67,7 +67,7 @@
       <div class="hidden lg:flex lg:gap-x-10 items-center">
         <a href="#features" class="text-sm font-bold text-slate-400 hover:text-primary-400 transition-colors">{$t('nav.features')}</a>
         <a href="/pricing" class="text-sm font-bold text-slate-400 hover:text-primary-400 transition-colors">{$t('nav.pricing')}</a>
-        <a href="/roadmap" class="text-sm font-bold text-slate-400 hover:text-primary-400 transition-colors">Roadmap</a>
+        <a href="/roadmap" class="text-sm font-bold text-slate-400 hover:text-primary-400 transition-colors">{$t('nav.roadmap')}</a>
       </div>
 
       <div class="flex lg:flex-1 lg:justify-end gap-5 items-center">
@@ -178,19 +178,19 @@
           <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
             <div class="space-y-2">
                <span class="text-4xl font-display font-black text-white">100%</span>
-               <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Secure Cloud</p>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('landing.trust.secure')}</p>
             </div>
             <div class="space-y-2">
                <span class="text-4xl font-display font-black text-white">Global</span>
-               <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Accessibility</p>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('landing.trust.accessibility')}</p>
             </div>
             <div class="space-y-2">
                <span class="text-4xl font-display font-black text-white">Real-Time</span>
-               <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sync & Control</p>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('landing.trust.sync')}</p>
             </div>
             <div class="space-y-2">
                <span class="text-4xl font-display font-black text-white">Modern</span>
-               <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Management</p>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('landing.trust.management')}</p>
             </div>
           </div>
        </div>
@@ -269,8 +269,8 @@
             <div class="w-14 h-14 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400 mb-8">
               <Lock class="w-7 h-7" />
             </div>
-            <h3 class="text-2xl font-black text-white mb-4">Focus on Teaching</h3>
-            <p class="text-slate-400 leading-relaxed font-medium">We take care of the technical side so you can focus on your students.</p>
+            <h3 class="text-2xl font-black text-white mb-4">{$t('landing.features.technical.title')}</h3>
+            <p class="text-slate-400 leading-relaxed font-medium">{$t('landing.features.technical.desc')}</p>
           </div>
         </div>
       </div>
@@ -349,25 +349,25 @@
           <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
         </a>
         <p class="text-slate-500 max-w-xs text-xs font-bold uppercase tracking-widest leading-relaxed opacity-60">
-           The high-performance ecosystem for chess education.
+           {$t('landing.footer.slogan')}
         </p>
       </div>
       
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-16">
          <div class="space-y-6">
-           <h4 class="text-[10px] font-black text-white uppercase tracking-widest">Platform</h4>
+           <h4 class="text-[10px] font-black text-white uppercase tracking-widest">{$t('nav.platform')}</h4>
            <div class="flex flex-col gap-4 text-xs font-bold text-slate-500">
-             <a href="#features" class="hover:text-white transition-colors">Features</a>
-             <a href="/pricing" class="hover:text-white transition-colors">Pricing</a>
-             <a href="/roadmap" class="hover:text-white transition-colors">Roadmap</a>
+             <a href="#features" class="hover:text-white transition-colors">{$t('nav.features')}</a>
+             <a href="/pricing" class="hover:text-white transition-colors">{$t('nav.pricing')}</a>
+             <a href="/roadmap" class="hover:text-white transition-colors">{$t('nav.roadmap')}</a>
            </div>
          </div>
          <div class="space-y-6">
-           <h4 class="text-[10px] font-black text-white uppercase tracking-widest">Company</h4>
+           <h4 class="text-[10px] font-black text-white uppercase tracking-widest">{$t('nav.company')}</h4>
            <div class="flex flex-col gap-4 text-xs font-bold text-slate-500">
-             <a href="/legal/terms" class="hover:text-white transition-colors">Terms</a>
-             <a href="/legal/privacy" class="hover:text-white transition-colors">Privacy</a>
-             <a href="mailto:contact@chessnet.com" class="hover:text-white transition-colors">Contact</a>
+             <a href="/legal/terms" class="hover:text-white transition-colors">{$t('nav.terms')}</a>
+             <a href="/legal/privacy" class="hover:text-white transition-colors">{$t('nav.privacy')}</a>
+             <a href="mailto:contact@chessnet.com" class="hover:text-white transition-colors">{$t('nav.contact')}</a>
            </div>
          </div>
       </div>

@@ -1,203 +1,190 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { paymentsApi } from '$lib/api/payments';
-import type { PaymentFilters, CreatePaymentData } from '$lib/types';
+import { adminDb } from '$lib/firebase-admin';
+import { authenticate } from '$lib/server/auth';
+import { serializeRecord } from '$lib/server/serialize';
 
-export const GET: RequestHandler = async ({ url, locals }) => {
+export const GET: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  const { url } = event;
+  const uid = user.uid;
+
   try {
+    let query = adminDb.collection('payments').where('owner_id', '==', uid);
 
-    // ===== BYPASS PARA DESARROLLO LOCAL =====
-    const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-    
-    if (isLocalDev) {
-    }
-
-    // Parsear filtros de la query string
-    const filters: PaymentFilters = {};
-    
+    // Aplicar filtros básicos de Firestore si es posible
     const paymentType = url.searchParams.get('payment_type');
-    if (paymentType && (paymentType === 'student' || paymentType === 'school')) {
-      filters.payment_type = paymentType;
-    }
+    if (paymentType) query = query.where('payment_type', '==', paymentType);
 
     const status = url.searchParams.get('status');
-    if (status && ['pending', 'paid', 'overdue', 'cancelled', 'refunded'].includes(status)) {
-      filters.status = status as any;
-    }
+    if (status) query = query.where('status', '==', status);
 
     const concept = url.searchParams.get('concept');
-    if (concept && ['monthly_fee', 'registration', 'tournament', 'material', 'private_lesson', 'other'].includes(concept)) {
-      filters.concept = concept as any;
-    }
+    if (concept) query = query.where('concept', '==', concept);
 
     const studentId = url.searchParams.get('student_id');
-    if (studentId) filters.student_id = studentId;
+    if (studentId) query = query.where('student_id', '==', studentId);
 
     const schoolId = url.searchParams.get('school_id');
-    if (schoolId) filters.school_id = schoolId;
+    if (schoolId) query = query.where('school_id', '==', schoolId);
 
-    const classId = url.searchParams.get('class_id');
-    if (classId) filters.class_id = classId;
+    const snapshot = await query.orderBy('created_at', 'desc').get();
+    let payments = snapshot.docs.map(doc => serializeRecord({ id: doc.id, ...doc.data() }));
 
-    const dateFrom = url.searchParams.get('date_from');
-    if (dateFrom) filters.date_from = dateFrom;
-
-    const dateTo = url.searchParams.get('date_to');
-    if (dateTo) filters.date_to = dateTo;
-
-    const dueDateFrom = url.searchParams.get('due_date_from');
-    if (dueDateFrom) filters.due_date_from = dueDateFrom;
-
-    const dueDateTo = url.searchParams.get('due_date_to');
-    if (dueDateTo) filters.due_date_to = dueDateTo;
-
+    // Filtros adicionales en memoria (rangos de fechas/importes)
     const amountMin = url.searchParams.get('amount_min');
-    if (amountMin) filters.amount_min = parseFloat(amountMin);
+    if (amountMin) payments = payments.filter(p => p.amount >= parseFloat(amountMin));
 
     const amountMax = url.searchParams.get('amount_max');
-    if (amountMax) filters.amount_max = parseFloat(amountMax);
+    if (amountMax) payments = payments.filter(p => p.amount <= parseFloat(amountMax));
 
-    // Obtener pagos
-    const payments = await paymentsApi.getPayments(filters);
+    const dateFrom = url.searchParams.get('date_from');
+    if (dateFrom) payments = payments.filter(p => p.created_at >= dateFrom);
+
+    const dateTo = url.searchParams.get('date_to');
+    if (dateTo) payments = payments.filter(p => p.created_at <= dateTo);
 
     return json({
       success: true,
       data: payments,
-      message: `Found ${payments.length} payments`
+      message: `Encontrados ${payments.length} pagos`
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ API Error in GET /api/payments:', error);
-    
-    return json({
-      success: false,
-      error: 'Failed to fetch payments',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return json({ error: 'Error al obtener los pagos', details: error.message }, { status: 500 });
   }
 };
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+export const POST: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  const { request } = event;
+  const uid = user.uid;
+
   try {
-
-    // ===== BYPASS PARA DESARROLLO LOCAL =====
-    const isLocalDev = request.headers.get('host')?.includes('localhost') || 
-                       request.headers.get('host')?.includes('127.0.0.1');
+    const body = await request.json();
     
-    if (isLocalDev) {
-    }
-
-    const paymentData: CreatePaymentData = await request.json();
-
-    // Validaciones opcionales - solo validar formato si se proporciona
-    if (paymentData.amount && paymentData.amount <= 0) {
-      return json({
-        success: false,
-        error: 'El importe debe ser mayor a 0'
-      }, { status: 400 });
+    if (body.amount && body.amount <= 0) {
+      return json({ error: 'El importe debe ser mayor a 0' }, { status: 400 });
     }
 
     // Validar fechas de período si se proporcionan
-    if (paymentData.period_start && paymentData.period_end) {
-      if (new Date(paymentData.period_start) >= new Date(paymentData.period_end)) {
-        return json({
-          success: false,
-          error: 'La fecha de inicio debe ser anterior a la fecha de fin'
-        }, { status: 400 });
+    if (body.period_start && body.period_end) {
+      if (new Date(body.period_start) >= new Date(body.period_end)) {
+        return json({ error: 'La fecha de inicio debe ser anterior a la fecha de fin' }, { status: 400 });
       }
     }
 
-    // Crear el pago
-    const newPayment = await paymentsApi.createPayment(paymentData);
+    const paymentData = {
+      ...body,
+      owner_id: uid,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      status: body.status || 'pending',
+      currency: body.currency || 'EUR'
+    };
 
-    return json({
-      success: true,
-      data: newPayment,
-      message: 'Payment created successfully'
-    }, { status: 201 });
-
-  } catch (error) {
-    console.error('❌ API Error in POST /api/payments:', error);
+    const docRef = await adminDb.collection('payments').add(paymentData);
     
     return json({
-      success: false,
-      error: 'Failed to create payment',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+      success: true,
+      data: serializeRecord({ id: docRef.id, ...paymentData }),
+      message: 'Pago creado correctamente'
+    }, { status: 201 });
+
+  } catch (error: any) {
+    console.error('❌ API Error in POST /api/payments:', error);
+    return json({ error: 'Error al crear el pago' }, { status: 500 });
   }
 };
 
-export const PUT: RequestHandler = async ({ request, url, locals }) => {
+export const PUT: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  const { request, url } = event;
+  const uid = user.uid;
+  const paymentId = url.searchParams.get('id');
+
+  if (!paymentId) {
+    return json({ error: 'ID de pago requerido' }, { status: 400 });
+  }
+
   try {
+    const paymentRef = adminDb.collection('payments').doc(paymentId);
+    const paymentSnap = await paymentRef.get();
 
-    // ===== BYPASS PARA DESARROLLO LOCAL =====
-    const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-    
-    if (isLocalDev) {
-    }
-
-    const paymentId = url.searchParams.get('id');
-    if (!paymentId) {
-      return json({
-        success: false,
-        error: 'Payment ID is required'
-      }, { status: 400 });
+    if (!paymentSnap.exists || paymentSnap.data()?.owner_id !== uid) {
+      return json({ error: 'Pago no encontrado o no autorizado' }, { status: 403 });
     }
 
     const updates = await request.json();
+    const cleanUpdates = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Evitar que el usuario cambie campos críticos por error
+    delete cleanUpdates.id;
+    delete cleanUpdates.owner_id;
+    delete cleanUpdates.created_at;
 
-    // Actualizar el pago
-    const updatedPayment = await paymentsApi.updatePayment(paymentId, updates);
+    await paymentRef.update(cleanUpdates);
 
     return json({
       success: true,
-      data: updatedPayment,
-      message: 'Payment updated successfully'
+      data: { id: paymentId, ...paymentSnap.data(), ...cleanUpdates },
+      message: 'Pago actualizado correctamente'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ API Error in PUT /api/payments:', error);
-    
-    return json({
-      success: false,
-      error: 'Failed to update payment',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return json({ error: 'Error al actualizar el pago' }, { status: 500 });
   }
 };
 
-export const DELETE: RequestHandler = async ({ url, locals }) => {
+export const DELETE: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  const { url } = event;
+  const uid = user.uid;
+  const paymentId = url.searchParams.get('id');
+
+  if (!paymentId) {
+    return json({ error: 'ID de pago requerido' }, { status: 400 });
+  }
+
   try {
+    const paymentRef = adminDb.collection('payments').doc(paymentId);
+    const paymentSnap = await paymentRef.get();
 
-    // ===== BYPASS PARA DESARROLLO LOCAL =====
-    const isLocalDev = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-    
-    if (isLocalDev) {
+    if (!paymentSnap.exists || paymentSnap.data()?.owner_id !== uid) {
+      return json({ error: 'Pago no encontrado o no autorizado' }, { status: 403 });
     }
 
-    const paymentId = url.searchParams.get('id');
-    if (!paymentId) {
-      return json({
-        success: false,
-        error: 'Payment ID is required'
-      }, { status: 400 });
-    }
-
-    // Eliminar el pago
-    await paymentsApi.deletePayment(paymentId);
+    await paymentRef.delete();
 
     return json({
       success: true,
-      message: 'Payment deleted successfully'
+      message: 'Pago eliminado correctamente'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ API Error in DELETE /api/payments:', error);
-    
-    return json({
-      success: false,
-      error: 'Failed to delete payment',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return json({ error: 'Error al eliminar el pago' }, { status: 500 });
   }
 };
+

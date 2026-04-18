@@ -41,15 +41,25 @@
   let localTournaments = $derived($appStore.localTournaments || []);
   
   // Day names for matching schedule strings
-  const dayNames = {
-    es: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+  const dayNames = $derived({
+    es: [$t('planner.days.sunday'), $t('planner.days.monday'), $t('planner.days.tuesday'), $t('planner.days.wednesday'), $t('planner.days.thursday'), $t('planner.days.friday'), $t('planner.days.saturday')],
     en: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-  };
+  });
 
-  const dayShortNames = {
-    es: ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'],
+  const dayShortNames = $derived({
+    es: [$t('planner.days.sun'), $t('planner.days.mon'), $t('planner.days.tue'), $t('planner.days.wed'), $t('planner.days.thu'), $t('planner.days.fri'), $t('planner.days.sat')],
     en: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-  };
+  });
+  
+  const daysOfWeekChars = $derived([
+    $t('planner.days.mon')[0], 
+    $t('planner.days.tue')[0], 
+    $t('planner.days.wed')[0], 
+    $t('planner.days.thu')[0], 
+    $t('planner.days.fri')[0], 
+    $t('planner.days.sat')[0], 
+    $t('planner.days.sun')[0]
+  ]);
   
   // Logic to get events for the selected date
   let events = $derived.by(() => {
@@ -73,7 +83,7 @@
         type: 'class',
         title: c.name,
         time: c.schedule || '17:00',
-        location: c.school_name || 'ChessNet Center',
+        location: c.school_name || translation('planner.locations.school'),
         tag: translation('planner.classes'),
         color: 'violet',
         href: `/panel/classes/${c.id}`
@@ -94,7 +104,7 @@
           type: 'tournament',
           title: t.name,
           time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-          location: t.location || 'Online',
+          location: t.location === 'Online' ? translation('planner.locations.online') : (t.location || translation('planner.locations.on_site')),
           tag: translation('planner.tournaments'),
           color: 'indigo',
           href: `/panel/tournaments/${t.id}`,
@@ -123,8 +133,6 @@
       return d;
     });
   });
-
-  const daysOfWeekChars = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   
   function formatDate(date: Date) {
     return date.toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { 
@@ -240,7 +248,7 @@
               onclick={() => currentDate = new Date()}
               class="px-3 h-10 flex items-center justify-center bg-zinc-950 border border-zinc-800 rounded-xl text-[10px] font-black uppercase text-zinc-400 hover:text-white transition-all active:scale-95"
             >
-              TODAY
+              {$t('planner.today')}
             </button>
             <button 
               onclick={() => changeMonth(1)}
@@ -283,13 +291,13 @@
         </div>
 
         <div class="pt-6 border-t border-zinc-800 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500">
-          <span>{events.length} {$t('planner.events_count', { count: events.length }).split(' ')[1] || 'EVENTOS'}</span>
+          <span>{$t('planner.events_count', { count: events.length })}</span>
           <button 
             onclick={() => currentDate = new Date()}
             class="text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1.5"
           >
             <Sparkle weight="fill" class="w-3 h-3" />
-            GO TO TODAY
+            {$t('planner.go_to_today')}
           </button>
         </div>
       </div>
@@ -369,7 +377,7 @@
               <!-- Time -->
               <div class="flex flex-row md:flex-col items-center gap-4 md:gap-1 min-w-[120px] md:border-r border-zinc-800 md:pr-8">
                  <span class="text-white font-outfit font-black text-3xl group-hover:text-violet-400 transition-colors uppercase">{event.time.split(' ')[0]}</span>
-                 <span class="text-zinc-600 text-[10px] font-black uppercase tracking-widest">{event.time.includes(':') ? 'AM' : 'PENDING'}</span>
+                 <span class="text-zinc-600 text-[10px] font-black uppercase tracking-widest">{event.time.includes(':') ? $t('planner.am') : $t('planner.pending')}</span>
               </div>
 
               <!-- Main Content -->

@@ -140,7 +140,7 @@
     <div class="space-y-4">
       <div class="inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full">
         <div class="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse"></div>
-        <span class="text-[10px] font-outfit font-black text-violet-300 uppercase tracking-widest">Competition Engine</span>
+        <span class="text-[10px] font-outfit font-black text-violet-300 uppercase tracking-widest">{$t('tournaments.competition_engine')}</span>
       </div>
       <div>
         <h1 class="text-5xl font-outfit font-black text-white tracking-tighter uppercase italic">
@@ -175,10 +175,10 @@
   <!-- Stats Overview (Bento Grid) -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
     {#each [
-      { label: 'Total', value: stats.total, icon: Trophy, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-      { label: 'Activos', value: stats.active, icon: Clock, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-      { label: 'Jugadores', value: stats.totalPlayers, icon: Users, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-      { label: 'Únicos', value: stats.uniquePlayers, icon: Medal, color: 'text-amber-400', bg: 'bg-amber-500/10' }
+      { label: $t('tournaments.stats.total'), value: stats.total, icon: Trophy, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+      { label: $t('tournaments.stats.active'), value: stats.active, icon: Clock, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+      { label: $t('tournaments.stats.players'), value: stats.totalPlayers, icon: Users, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+      { label: $t('tournaments.stats.unique'), value: stats.uniquePlayers, icon: Medal, color: 'text-amber-400', bg: 'bg-amber-500/10' }
     ] as stat}
       {@const Icon = stat.icon}
       <div class="p-6 bg-zinc-900/50 border border-white/5 rounded-3xl flex flex-col gap-4 relative overflow-hidden group">
@@ -279,14 +279,14 @@
                 <button 
                   onclick={() => goto(`/panel/tournaments/${tournament.id}/edit`)}
                   class="w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-xl transition-all border border-transparent hover:border-white/5"
-                  aria-label="Edit"
+                  aria-label={$t('common.edit')}
                 >
                   <PencilSimple weight="bold" class="w-5 h-5" />
                 </button>
                 <button 
                   onclick={() => deleteTournament(tournament.id, tournament.name)}
                   class="w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/10"
-                  aria-label="Delete"
+                  aria-label={$t('common.delete')}
                 >
                   <Trash weight="bold" class="w-5 h-5" />
                 </button>
@@ -300,7 +300,7 @@
                       <CalendarBlank weight="duotone" class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-[9px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-0.5">Fecha</p>
+                    <p class="text-[9px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-0.5">{$t('tournaments.date_label')}</p>
                     <p class="text-sm font-bold text-slate-300 truncate">{tournament.startAt ? new Date(tournament.startAt).toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { day: 'numeric', month: 'long' }) : $t('tournaments.date_pending')}</p>
                   </div>
                </div>
@@ -310,8 +310,8 @@
                       <Users weight="duotone" class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-[9px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-0.5">Participantes</p>
-                    <p class="text-sm font-bold text-slate-300">{$appStore.localTournamentPlayers.filter(p => p.tournament_id === tournament.id).length} inscritos</p>
+                    <p class="text-[9px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-0.5">{$t('tournaments.participants')}</p>
+                    <p class="text-sm font-bold text-slate-300">{$appStore.localTournamentPlayers.filter(p => p.tournament_id === tournament.id).length} {$t('tournaments.registered_label')}</p>
                   </div>
                </div>
             </div>

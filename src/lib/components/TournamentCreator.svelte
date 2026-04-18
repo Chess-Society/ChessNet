@@ -14,6 +14,7 @@
   import { getLocalTournamentsApi } from '$lib/api/local-tournaments';
   import { studentsApi } from '$lib/api/students';
   import { schoolsApi } from '$lib/api/schools';
+  import { t } from '$lib/i18n';
   import type { 
     CreateTournamentForm, 
     Student, 
@@ -121,7 +122,7 @@
       schools = schoolsData;
     } catch (err) {
       console.error('Error loading data:', err);
-      error = 'Error al cargar los datos';
+      error = $t('tournaments.error.load_data');
     } finally {
       isLoading = false;
     }
@@ -174,7 +175,7 @@
       close();
     } catch (err) {
       console.error('Error creating tournament:', err);
-      error = err instanceof Error ? err.message : 'Error al crear el torneo';
+      error = err instanceof Error ? err.message : $t('tournaments.error.create');
     } finally {
       isLoading = false;
     }
@@ -201,9 +202,9 @@
             <Trophy class="w-6 h-6 text-yellow-500" />
           </div>
           <div>
-            <h2 class="text-xl font-semibold text-white">Crear Torneo</h2>
+            <h2 class="text-xl font-bold text-white">{$t('tournaments.create')}</h2>
             <p class="text-slate-400 text-sm">
-              {step === 1 ? 'Información básica' : step === 2 ? 'Seleccionar jugadores' : 'Confirmación'}
+              {step === 1 ? $t('tournaments.step_basic') : step === 2 ? $t('tournaments.step_players') : $t('tournaments.step_confirm')}
             </p>
           </div>
         </div>
@@ -215,17 +216,17 @@
       <!-- Progress indicator -->
       <div class="px-6 py-4 border-b border-slate-700">
         <div class="flex items-center space-x-4">
-          {#each [1, 2, 3] as stepNum}
-            <div class="flex items-center">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                {step >= stepNum ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-400'}">
-                {stepNum}
-              </div>
-              {#if stepNum < 3}
-                <div class="w-16 h-0.5 mx-2 {step > stepNum ? 'bg-orange-500' : 'bg-slate-700'}"></div>
-              {/if}
-            </div>
-          {/each}
+          <div class="flex items-center space-x-1 text-sm font-medium {step === 1 ? 'text-yellow-400' : 'text-slate-400'}">
+            <span>{$t('tournaments.step_basic')}</span>
+          </div>
+          <div class="w-8 h-px bg-slate-700"></div>
+          <div class="flex items-center space-x-1 text-sm font-medium {step === 2 ? 'text-yellow-400' : 'text-slate-400'}">
+            <span>{$t('tournaments.step_players')}</span>
+          </div>
+          <div class="w-8 h-px bg-slate-700"></div>
+          <div class="flex items-center space-x-1 text-sm font-medium {step === 3 ? 'text-yellow-400' : 'text-slate-400'}">
+            <span>{$t('tournaments.step_confirm')}</span>
+          </div>
         </div>
       </div>
 
@@ -243,13 +244,13 @@
           <div class="space-y-6">
             <div>
               <label for="tournament-name" class="block text-sm font-medium text-slate-300 mb-2">
-                Nombre del torneo *
+                {$t('tournaments.form.name')}
               </label>
               <input
                 id="tournament-name"
                 type="text"
                 bind:value={formData.name}
-                placeholder="Ej: Torneo Escolar de Primavera"
+                placeholder={$t('tournaments.form.name_placeholder')}
                 class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 required
               />
@@ -258,21 +259,21 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label for="tournament-format" class="block text-sm font-medium text-slate-300 mb-2">
-                  Formato
+                  {$t('tournaments.form.format')}
                 </label>
                 <select id="tournament-format" bind:value={formData.format} class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
-                  <option value="swiss">Sistema Suizo</option>
-                  <option value="round_robin">Round Robin</option>
-                  <option value="knockout">Eliminación Directa</option>
+                  <option value="swiss">{$t('tournaments.type_swiss')}</option>
+                  <option value="round_robin">{$t('tournaments.type_round_robin')}</option>
+                  <option value="knockout">{$t('tournaments.type_knockout')}</option>
                 </select>
               </div>
 
               <div>
                 <label for="tournament-school" class="block text-sm font-medium text-slate-300 mb-2">
-                  Centro educativo
+                  {$t('tournaments.form.school')}
                 </label>
                 <select id="tournament-school" bind:value={formData.school_id} class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
-                  <option value="">Sin centro específico</option>
+                  <option value="">{$t('tournaments.form.no_school')}</option>
                   {#each schools as school}
                     <option value={school.id}>{school.name}</option>
                   {/each}
@@ -283,20 +284,20 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label for="tournament-time" class="block text-sm font-medium text-slate-300 mb-2">
-                  Control de tiempo
+                  {$t('tournaments.time_control')}
                 </label>
                 <input
                   id="tournament-time"
                   type="text"
                   bind:value={formData.time_control}
-                  placeholder="Ej: 15+10"
+                  placeholder={$t('tournaments.form.time_control_placeholder')}
                   class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 />
               </div>
 
               <div>
                 <label for="tournament-start" class="block text-sm font-medium text-slate-300 mb-2">
-                  Fecha de inicio
+                  {$t('tournaments.form.start_date')}
                 </label>
                 <input
                   id="tournament-start"
@@ -308,7 +309,7 @@
 
               <div>
                 <label for="tournament-end" class="block text-sm font-medium text-slate-300 mb-2">
-                  Fecha de fin
+                  {$t('tournaments.form.end_date')}
                 </label>
                 <input
                   id="tournament-end"
@@ -321,12 +322,12 @@
 
             <div>
               <label for="tournament-notes" class="block text-sm font-medium text-slate-300 mb-2">
-                Notas
+                {$t('tournaments.description')}
               </label>
               <textarea
                 id="tournament-notes"
                 bind:value={formData.notes}
-                placeholder="Información adicional sobre el torneo..."
+                placeholder={$t('tournaments.form.notes_placeholder')}
                 rows="3"
                 class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
               ></textarea>
@@ -337,17 +338,17 @@
           <!-- Step 2: Player Selection -->
           <div class="space-y-6">
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-medium text-white">Seleccionar Jugadores</h3>
+              <h3 class="text-lg font-medium text-white">{$t('tournaments.step_players')}</h3>
               <div class="text-sm text-slate-400">
-                {formData.selected_students.length} seleccionados
+                {$t('tournaments.players.selected', { count: formData.selected_students.length })}
               </div>
             </div>
 
             {#if students.length === 0}
               <div class="text-center py-8">
                 <Users class="w-12 h-12 text-slate-500 mx-auto mb-4" />
-                <p class="text-slate-400">No tienes estudiantes registrados</p>
-                <p class="text-slate-500 text-sm">Crea estudiantes primero para poder organizar torneos</p>
+                <p class="text-slate-400">{$t('tournaments.players.no_students')}</p>
+                <p class="text-sm text-slate-500">{$t('tournaments.players.create_first')}</p>
               </div>
             {:else}
               <div>
@@ -355,20 +356,20 @@
                   <input
                     type="text"
                     bind:value={searchTerm}
-                    placeholder="Buscar estudiantes..."
+                    placeholder={$t('tournaments.players.search_placeholder')}
                     class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                   />
                   <button
                     onclick={selectAllStudents}
                     class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs transition-colors"
                   >
-                    Todos
+                    {$t('common.all')}
                   </button>
                   <button
                     onclick={deselectAllStudents}
                     class="px-4 py-2 hover:bg-slate-700 text-slate-400 rounded-lg text-xs transition-colors"
                   >
-                    Ninguno
+                    {$t('common.none')}
                   </button>
                 </div>
 
@@ -397,7 +398,7 @@
                   <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg flex items-center space-x-3">
                     <Info class="w-5 h-5 text-yellow-400 flex-shrink-0" />
                     <p class="text-yellow-300 text-sm">
-                      Selecciona al menos 2 jugadores para crear el torneo
+                      {$t('tournaments.players.min_required')}
                     </p>
                   </div>
                 {/if}
@@ -408,38 +409,38 @@
         {:else if step === 3}
           <!-- Step 3: Confirmation -->
           <div class="space-y-6">
-            <h3 class="text-lg font-medium text-white">Confirmar Torneo</h3>
+            <h3 class="text-lg font-medium text-white">{$t('tournaments.confirm.title')}</h3>
 
             <div class="bg-slate-700/50 rounded-lg p-4 space-y-3">
               <div class="flex justify-between">
-                <span class="text-slate-400">Nombre:</span>
+                <span class="text-slate-400">{$t('common.name')}:</span>
                 <span class="text-white font-medium">{formData.name}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-400">Formato:</span>
+                <span class="text-slate-400">{$t('tournaments.form.format')}:</span>
                 <span class="text-white">
-                  {formData.format === 'swiss' ? 'Sistema Suizo' : 
-                   formData.format === 'round_robin' ? 'Round Robin' : 'Eliminación Directa'}
+                  {formData.format === 'swiss' ? $t('tournaments.type_swiss') : 
+                   formData.format === 'round_robin' ? $t('tournaments.type_round_robin') : $t('tournaments.type_knockout')}
                 </span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-400">Jugadores:</span>
+                <span class="text-slate-400">{$t('tournaments.participants')}:</span>
                 <span class="text-white">{formData.selected_students.length}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-400">Rondas estimadas:</span>
+                <span class="text-slate-400">{$t('tournaments.confirm.estimated_rounds')}</span>
                 <span class="text-white">{calculatedRounds}</span>
               </div>
               {#if formData.time_control}
                 <div class="flex justify-between">
-                  <span class="text-slate-400">Control de tiempo:</span>
+                  <span class="text-slate-400">{$t('tournaments.time_control')}:</span>
                   <span class="text-white">{formData.time_control}</span>
                 </div>
               {/if}
             </div>
 
             <div>
-              <h4 class="text-sm font-medium text-slate-300 mb-2">Jugadores inscritos:</h4>
+              <h4 class="text-sm font-medium text-slate-300 mb-2">{$t('tournaments.confirm.registered_players')}</h4>
               <div class="bg-slate-700/50 rounded-lg p-4 max-h-40 overflow-y-auto">
                 {#each formData.selected_students as studentId}
                   {@const student = students.find(s => s.id === studentId)}
@@ -461,14 +462,14 @@
         <div class="flex items-center space-x-4">
           {#if step > 1}
             <button onclick={prevStep} class="px-6 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">
-              Anterior
+              {$t('common.previous')}
             </button>
           {/if}
         </div>
 
         <div class="flex items-center space-x-4">
           <button onclick={close} class="px-6 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">
-            Cancelar
+            {$t('common.cancel')}
           </button>
           
           {#if step < 3}
@@ -477,7 +478,7 @@
               disabled={(step === 1 && !formData.name.trim()) || (step === 2 && formData.selected_students.length < 2)}
               class="px-6 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors font-semibold"
             >
-              Siguiente
+              {$t('common.next')}
             </button>
           {:else}
             <button 
@@ -488,7 +489,7 @@
               {#if isLoading}
                 <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
               {/if}
-              Crear Torneo
+              {$t('tournaments.create')}
             </button>
           {/if}
         </div>

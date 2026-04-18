@@ -1,26 +1,36 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import { onMount } from 'svelte';
   import { Chess } from 'chess.js';
-  import type { ChessPosition } from '$lib/types';
+  import { t } from '$lib/i18n';
 
-  export let position: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  export let interactive: boolean = true;
-  export let showCoordinates: boolean = true;
-  export let size: number = 400;
-  export let orientation: 'white' | 'black' = 'white';
+  interface Props {
+    position?: string;
+    interactive?: boolean;
+    showCoordinates?: boolean;
+    size?: number;
+    orientation?: 'white' | 'black';
+    onmove?: (data: { from: string; to: string; san: string }) => void;
+    onpositionChange?: (data: { fen: string; moves: string[] }) => void;
+    oncheck?: (data: { isCheck: boolean; isCheckmate: boolean; isStalemate: boolean }) => void;
+  }
 
-  const dispatch = createEventDispatcher<{
-    move: { from: string; to: string; san: string };
-    positionChange: { fen: string; moves: string[] };
-    check: { isCheck: boolean; isCheckmate: boolean; isStalemate: boolean };
-  }>();
+  let { 
+    position = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    interactive = true,
+    showCoordinates = true,
+    size = 400,
+    orientation = 'white',
+    onmove,
+    onpositionChange,
+    oncheck
+  } = $props<Props>();
 
-  let chess: Chess;
-  let boardElement: HTMLDivElement;
-  let selectedSquare: string | null = null;
-  let possibleMoves: string[] = [];
-  let isDragging = false;
-  let dragStartSquare: string | null = null;
+  let chess = $state(new Chess(position));
+  let boardElement = $state<HTMLDivElement>();
+  let selectedSquare = $state<string | null>(null);
+  let possibleMoves = $state<string[]>([]);
+  let isDragging = $state(false);
+  let dragStartSquare = $state<string | null>(null);
 
   // Piece symbols
   const pieceSymbols: Record<string, string> = {
@@ -35,17 +45,12 @@
 
   // Get piece at square
   const getPieceAt = (square: string): string | null => {
+    // Accessing chess to ensure reactivity
+    const _ = chess;
     const piece = chess.get(square as any);
     if (!piece) return null;
     const key = `${piece.color}${piece.type}`.toUpperCase();
     return pieceSymbols[key] || null;
-  };
-
-  // Get square coordinates
-  const getSquareCoords = (square: string): { file: number; rank: number } => {
-    const file = square.charCodeAt(0) - 97; // a=0, b=1, etc.
-    const rank = parseInt(square[1]) - 1; // 1=0, 2=1, etc.
-    return { file, rank };
   };
 
   // Get square name from coordinates
@@ -60,35 +65,26 @@
     const piece = chess.get(square as any);
     
     if (selectedSquare === square) {
-      // Deselect
       selectedSquare = null;
       possibleMoves = [];
     } else if (selectedSquare && possibleMoves.includes(square)) {
-      // Make move
       try {
         const move = chess.move({
           from: selectedSquare,
           to: square,
-          promotion: 'q' // Auto-promote to queen
+          promotion: 'q' 
         });
         
         if (move) {
-          dispatch('move', {
-            from: selectedSquare,
-            to: square,
-            san: move.san
-          });
-          
-          dispatch('positionChange', {
-            fen: chess.fen(),
-            moves: chess.moves()
-          });
-
-          dispatch('check', {
+          onmove?.({ from: selectedSquare, to: square, san: move.san });
+          onpositionChange?.({ fen: chess.fen(), moves: chess.moves() });
+          oncheck?.({
             isCheck: chess.isCheck(),
             isCheckmate: chess.isCheckmate(),
             isStalemate: chess.isStalemate()
           });
+          // Update the state
+          chess = new Chess(chess.fen());
         }
       } catch (error) {
         console.error('Invalid move:', error);
@@ -97,11 +93,9 @@
       selectedSquare = null;
       possibleMoves = [];
     } else if (piece && piece.color === chess.turn()) {
-      // Select piece
       selectedSquare = square;
       possibleMoves = chess.moves({ square: square as any, verbose: true }).map((m: any) => m.to);
     } else {
-      // Deselect
       selectedSquare = null;
       possibleMoves = [];
     }
@@ -138,7 +132,6 @@
   // Handle drop
   const handleDrop = (event: DragEvent, targetSquare: string) => {
     event.preventDefault();
-    
     if (!isDragging || !dragStartSquare) return;
     
     try {
@@ -149,22 +142,14 @@
       });
       
       if (move) {
-        dispatch('move', {
-          from: dragStartSquare,
-          to: targetSquare,
-          san: move.san
-        });
-        
-        dispatch('positionChange', {
-          fen: chess.fen(),
-          moves: chess.moves()
-        });
-
-        dispatch('check', {
+        onmove?.({ from: dragStartSquare, to: targetSquare, san: move.san });
+        onpositionChange?.({ fen: chess.fen(), moves: chess.moves() });
+        oncheck?.({
           isCheck: chess.isCheck(),
           isCheckmate: chess.isCheckmate(),
           isStalemate: chess.isStalemate()
         });
+        chess = new Chess(chess.fen());
       }
     } catch (error) {
       console.error('Invalid move:', error);
@@ -176,74 +161,54 @@
     possibleMoves = [];
   };
 
-  // Handle drag end
   const handleDragEnd = () => {
     isDragging = false;
     dragStartSquare = null;
   };
 
-  // Initialize chess
-  onMount(() => {
-    chess = new Chess(position);
-    
-    // Dispatch initial state
-    dispatch('positionChange', {
-      fen: chess.fen(),
-      moves: chess.moves()
-    });
+  // Update position when prop changes
+  $effect(() => {
+    if (position !== chess.fen()) {
+      chess.load(position);
+      selectedSquare = null;
+      possibleMoves = [];
+      
+      onpositionChange?.({
+        fen: chess.fen(),
+        moves: chess.moves()
+      });
 
-    dispatch('check', {
-      isCheck: chess.isCheck(),
-      isCheckmate: chess.isCheckmate(),
-      isStalemate: chess.isStalemate()
-    });
+      oncheck?.({
+        isCheck: chess.isCheck(),
+        isCheckmate: chess.isCheckmate(),
+        isStalemate: chess.isStalemate()
+      });
+      
+      chess = new Chess(chess.fen());
+    }
   });
 
-  // Update position when prop changes
-  $: if (chess && position !== chess.fen()) {
-    chess.load(position);
-    selectedSquare = null;
-    possibleMoves = [];
-    
-    dispatch('positionChange', {
-      fen: chess.fen(),
-      moves: chess.moves()
-    });
-
-    dispatch('check', {
-      isCheck: chess.isCheck(),
-      isCheckmate: chess.isCheckmate(),
-      isStalemate: chess.isStalemate()
-    });
-  }
-
-  // Generate board squares
-  const squares: Array<{
-    square: string;
-    file: number;
-    rank: number;
-    piece: string | null;
-    isSelected: boolean;
-    isPossibleMove: boolean;
-    isHighlighted: boolean;
-  }> = [];
-  for (let rank = 7; rank >= 0; rank--) {
-    for (let file = 0; file < 8; file++) {
-      const square = getSquareName(file, rank);
-      const displayFile = orientation === 'white' ? file : 7 - file;
-      const displayRank = orientation === 'white' ? rank : 7 - rank;
-      
-      squares.push({
-        square,
-        file: displayFile,
-        rank: displayRank,
-        piece: getPieceAt(square),
-        isSelected: selectedSquare === square,
-        isPossibleMove: possibleMoves.includes(square),
-        isHighlighted: false
-      });
+  // Derived squares for the view
+  const squares = $derived.by(() => {
+    const list = [];
+    for (let rank = 7; rank >= 0; rank--) {
+      for (let file = 0; file < 8; file++) {
+        const square = getSquareName(file, rank);
+        const displayFile = orientation === 'white' ? file : 7 - file;
+        const displayRank = orientation === 'white' ? rank : 7 - rank;
+        
+        list.push({
+          square,
+          file: displayFile,
+          rank: displayRank,
+          piece: getPieceAt(square),
+          isSelected: selectedSquare === square,
+          isPossibleMove: possibleMoves.includes(square),
+        });
+      }
     }
-  }
+    return list;
+  });
 </script>
 
 <div class="chess-board-container" style="width: {size}px; height: {size}px;">
@@ -252,37 +217,33 @@
     class="chess-board relative border-2 border-slate-600 rounded-lg overflow-hidden"
     style="width: 100%; height: 100%;"
   >
-    <!-- Board squares -->
     {#each squares as { square, file, rank, piece, isSelected, isPossibleMove }}
       <div
         class="chess-square relative {getSquareColor(file, rank)} {isSelected ? 'ring-2 ring-yellow-400' : ''} {isPossibleMove ? 'ring-2 ring-green-400' : ''}"
         style="width: 12.5%; height: 12.5%; position: absolute; top: {rank * 12.5}%; left: {file * 12.5}%;"
-        on:click={() => handleSquareClick(square)}
-        on:keydown={(e) => e.key === 'Enter' || e.key === ' ' ? handleSquareClick(square) : null}
-        on:dragstart={(e) => handleDragStart(e, square)}
-        on:dragover={handleDragOver}
-        on:drop={(e) => handleDrop(e, square)}
-        on:dragend={handleDragEnd}
+        onclick={() => handleSquareClick(square)}
+        onkeydown={(e: KeyboardEvent) => e.key === 'Enter' || e.key === ' ' ? handleSquareClick(square) : null}
+        ondragstart={(e: DragEvent) => handleDragStart(e, square)}
+        ondragover={handleDragOver}
+        ondrop={(e: DragEvent) => handleDrop(e, square)}
+        ondragend={handleDragEnd}
         draggable={interactive && !!piece}
         role="button"
         tabindex="0"
-        aria-label="Casilla {square}"
+        aria-label={$t('chess.square', { square })}
       >
-        <!-- Piece -->
         {#if piece}
           <div class="absolute inset-0 flex items-center justify-center text-2xl font-bold select-none pointer-events-none">
             {piece}
           </div>
         {/if}
         
-        <!-- Possible move indicator -->
         {#if isPossibleMove && !piece}
           <div class="absolute inset-0 flex items-center justify-center">
             <div class="w-3 h-3 bg-green-500 rounded-full opacity-70"></div>
           </div>
         {/if}
         
-        <!-- Coordinates -->
         {#if showCoordinates}
           {#if file === 0}
             <div class="absolute bottom-0 left-1 text-xs font-bold text-slate-700">

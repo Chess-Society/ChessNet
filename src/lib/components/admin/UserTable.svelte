@@ -50,7 +50,7 @@
           type="text" 
           bind:value={searchQuery}
           oninput={handleSearchInput}
-          placeholder="Buscar profesor por email o ID..."
+          placeholder={$t('admin.users.search')}
           class="bg-transparent border-none outline-none text-sm w-full text-white placeholder:text-slate-600 font-medium"
         />
       </div>
@@ -59,7 +59,7 @@
     <div class="flex items-center gap-2">
       <button class="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2">
         <UserPlus class="w-4 h-4" />
-        Exportar CSV
+        {$t('admin.users.export_csv')}
       </button>
     </div>
   </div>
@@ -70,11 +70,11 @@
       <table class="w-full text-left">
         <thead>
           <tr class="bg-black/20 border-b border-white/5">
-            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Profesor</th>
-            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Logros</th>
-            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Plan</th>
-            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Registro</th>
-            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">Acciones</th>
+            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">{$t('admin.users.table.teacher')}</th>
+            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">{$t('admin.users.table.achievements')}</th>
+            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">{$t('admin.users.table.plan')}</th>
+            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">{$t('admin.users.table.registered')}</th>
+            <th class="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-display italic">{$t('admin.users.table.actions')}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-white/5">
@@ -90,7 +90,7 @@
                     {/if}
                   </div>
                   <div>
-                    <h4 class="text-sm font-bold text-white group-hover:text-primary-400 transition-colors uppercase italic">{user.displayName || 'Sin Nombre'}</h4>
+                    <h4 class="text-sm font-bold text-white group-hover:text-primary-400 transition-colors uppercase italic">{user.displayName || $t('admin.users.no_name')}</h4>
                     <p class="text-[10px] text-slate-500 font-medium">{user.email}</p>
                   </div>
                 </div>
@@ -104,25 +104,25 @@
                     <span class="text-xs font-black text-violet-300 italic">{user.badgesCount}</span>
                   </div>
                 {:else}
-                  <span class="text-[9px] font-black text-slate-700 uppercase tracking-widest italic">Iniciado</span>
+                  <span class="text-[9px] font-black text-slate-700 uppercase tracking-widest italic">{$t('admin.users.status.starter')}</span>
                 {/if}
               </td>
               <td class="px-8 py-6">
                 {#if getPlanStatus(user) === 'pro'}
                   <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/20 text-[9px] font-black uppercase tracking-widest">
                     <Crown weight="fill" class="w-3 h-3" />
-                    Premium
+                    {$t('admin.users.plan.premium')}
                   </div>
                 {:else}
                   <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 text-slate-500 rounded-xl border border-white/5 text-[9px] font-black uppercase tracking-widest">
-                    Free
+                    {$t('admin.users.plan.free')}
                   </div>
                 {/if}
               </td>
               <td class="px-8 py-6">
                 <div class="flex flex-col">
                   <span class="text-xs text-slate-300 font-bold">{formatDate(user.createdAt)}</span>
-                  <span class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">Firestore Native</span>
+                  <span class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">{$t('admin.users.table.firestore_native')}</span>
                 </div>
               </td>
               <td class="px-8 py-6">
@@ -130,20 +130,20 @@
                    <button 
                     onclick={() => onEdit(user)}
                     class="p-3 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/30 transition-all pointer-interactions"
-                    title="Gestionar"
+                    title={$t('admin.users.actions.manage')}
                    >
                     <IdentificationBadge weight="bold" class="w-4 h-4" />
                    </button>
                    <button 
                     onclick={() => onImpersonate(user)}
                     class="p-3 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-primary-500/20 hover:border-primary-500/30 transition-all pointer-interactions"
-                    title="Suplantar"
+                    title={$t('admin.users.actions.impersonate')}
                    >
                     <Eye weight="bold" class="w-4 h-4" />
                    </button>
                    <button 
                     class="p-3 bg-white/5 border border-white/10 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all pointer-interactions"
-                    title="Eliminar"
+                    title={$t('admin.users.actions.delete')}
                    >
                     <Trash weight="bold" class="w-4 h-4" />
                    </button>
@@ -160,7 +160,7 @@
         <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-700">
           <MagnifyingGlass class="w-8 h-8" />
         </div>
-        <p class="text-slate-500 italic text-sm">No se encontraron profesores que coincidan con la búsqueda.</p>
+        <p class="text-slate-500 italic text-sm">{$t('admin.users.no_results')}</p>
       </div>
     {/if}
   </div>

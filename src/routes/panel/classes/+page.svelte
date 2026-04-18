@@ -163,14 +163,14 @@
                 <button 
                   onclick={() => goto(`/panel/classes/${cls.id}/edit`)}
                   class="p-2.5 bg-white/5 border border-white/5 rounded-xl text-slate-500 hover:text-white hover:bg-violet-600/30 hover:border-violet-500/40 transition-all"
-                  title="Edit"
+                  title={$t('common.edit')}
                 >
                   <PencilSimple size={18} weight="bold" />
                 </button>
                 <button 
                   onclick={() => deleteClass(cls.id)}
                   class="p-2.5 bg-white/5 border border-white/5 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all"
-                  title="Delete"
+                  title={$t('common.delete')}
                 >
                   <Trash size={18} weight="bold" />
                 </button>

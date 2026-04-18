@@ -80,8 +80,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const response = await result.response;
     let text = response.text();
     
-    // Clean potential markdown or extra formatting
-    text = text.replace(/```json|```/g, '').trim();
+    // Clean potential markdown or extra formatting more robustly
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+        text = jsonMatch[0];
+    } else {
+        text = text.replace(/```json|```/g, '').trim();
+    }
     
     let extractedSkills = [];
     try {

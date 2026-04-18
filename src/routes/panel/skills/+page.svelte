@@ -35,6 +35,7 @@
     PencilLine
   } from 'phosphor-svelte';
   import { t } from '$lib/i18n';
+  import { toast } from 'svelte-french-toast';
   import { appStore } from '$lib/stores/appStore';
   import { uiStore } from '$lib/stores/uiStore';
   import { CHESS_SYLLABUS_PRESETS } from '$lib/constants/chess-presets';
@@ -45,7 +46,6 @@
     scale 
   } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { toast } from '$lib/stores/toast';
   import { dndzone } from 'svelte-dnd-action';
   import { flip } from 'svelte/animate';
   import type { Skill, Category, SkillWithDetails } from '$lib/types';
@@ -129,10 +129,10 @@
       uiStore.setLoading(true);
       try {
         await appStore.removeSkill(id);
-        toast.success($t('common.delete_success'));
+        toast.success($t('common.delete_success') || 'Deleted successfully');
       } catch (err) {
         console.error(err);
-        toast.error('Error deleting skill');
+        toast.error($t('skills.delete_error') || 'Error deleting skill');
       } finally {
         uiStore.setLoading(false);
       }
@@ -150,10 +150,10 @@
       isImporting = true;
       try {
         await appStore.importCurriculum(CHESS_SYLLABUS_PRESETS);
-        toast.success($t('skills.import_success'));
+        toast.success($t('skills.import_success') || 'Syllabus imported');
       } catch (err) {
         console.error(err);
-        toast.error('Error importing syllabus');
+        toast.error($t('skills.import_error') || 'Error importing syllabus');
       } finally {
         isImporting = false;
       }
@@ -211,7 +211,7 @@
     } catch (err: any) {
       console.error('AI Import Error:', err);
       isExtractingAI = false;
-      toast.error(err.message || 'Error processing PDF');
+      toast.error(err.message || $t('skills.process_error') || 'Error processing PDF');
     }
   };
 
@@ -284,7 +284,7 @@
         toast.success($t('common.delete_success') || 'Deleted successfully');
       } catch (err) {
         console.error(err);
-        toast.error('Error deleting skills');
+        toast.error($t('skills.delete_error') || 'Error deleting skills');
       } finally {
         uiStore.setLoading(false);
       }
@@ -307,10 +307,10 @@
         await appStore.clearSyllabus();
         selectedIds = [];
         isSelectionMode = false;
-        toast.success($t('common.delete_success') || 'Syllabus cleared');
+        toast.success($t('common.delete_success') || 'Syllabus deleted');
       } catch (err) {
         console.error(err);
-        toast.error('Error deleting syllabus');
+        toast.error($t('skills.delete_error') || 'Error deleting syllabus');
       } finally {
         uiStore.setLoading(false);
       }
@@ -363,10 +363,10 @@
 
     try {
       await appStore.reorderSkills(reorderings);
-      toast.success($t('common.save_success'));
+      toast.success($t('skills.reorder_success') || 'Sort order updated');
     } catch (err) {
       console.error(err);
-      toast.error('Error reordering skills');
+      toast.error($t('skills.reorder_error') || 'Error reordering skills');
       // Revert state on error?
       isDragging = false;
     }
@@ -400,7 +400,7 @@
           {$t('skills.ui.academic_manager')}
         </div>
         <div class="w-1 h-1 rounded-full bg-zinc-800"></div>
-        <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Syllabus 2.0</div>
+        <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{$t('skills.ui.slogan')}</div>
       </div>
       
       <div class="flex items-center gap-6">
@@ -738,7 +738,7 @@
           </button>
         {/if}
         <div class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border {getDifficultyColor(skill.difficulty)} bg-black/20">
-          {skill.level || 'Mastery'}
+          {skill.level || $t('skills.status_mastered')}
         </div>
       </div>
       
@@ -764,7 +764,7 @@
 
     <div class="flex-1 space-y-4 relative z-10">
       <h3 class="text-xl font-black text-white leading-tight uppercase tracking-tight group-hover:text-violet-300 transition-colors">{skill.name}</h3>
-      <p class="text-zinc-500 text-xs line-clamp-2 leading-relaxed font-medium">{skill.description || 'Syllabus module content.'}</p>
+      <p class="text-zinc-500 text-xs line-clamp-2 leading-relaxed font-medium">{skill.description || $t('skills.ui.slogan')}</p>
       {#if skill.resources && skill.resources.length > 0}
         <div class="flex flex-wrap gap-2 pt-2">
           {#each skill.resources.slice(0, 3) as res}
@@ -787,7 +787,7 @@
         </div>
         <div class="flex items-center gap-2 text-zinc-400">
           <CheckCircle weight="fill" class="w-4 h-4" />
-          <span>{Math.round(masteryProgress)}% {$t('common.mastered') || 'DOMINADO'}</span>
+          <span>{Math.round(masteryProgress)}% {$t('skills.mastered') || 'MASTERED'}</span>
         </div>
       </div>
       <div class="h-1 bg-zinc-950 rounded-full overflow-hidden">

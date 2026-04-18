@@ -345,7 +345,7 @@
             <div class="space-y-6">
               <div>
                 <h4 class="text-2xl font-outfit font-black text-white leading-tight uppercase truncate">
-                  {tournament.name || 'Tournament Name'}
+                  {tournament.name || $t('tournaments.untitled')}
                 </h4>
                 <div class="mt-2 flex">
                   <span class="px-2.5 py-1 rounded-lg border text-[10px] font-outfit font-black uppercase tracking-widest bg-violet-500/10 text-violet-400 border-violet-500/20">
@@ -375,7 +375,7 @@
         <!-- Action Card -->
         <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-6 shadow-2xl relative overflow-hidden">
           <p class="text-zinc-500 text-sm font-plus-jakarta mb-6 text-center italic">
-            "Chess is a field in which organization is as vital as the attack."
+            {$t('tournaments.quote')}
           </p>
           
           <div class="flex flex-col gap-3">

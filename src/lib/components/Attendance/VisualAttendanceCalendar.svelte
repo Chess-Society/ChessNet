@@ -85,11 +85,7 @@
     return date === today;
   };
 
-  const weekDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-  const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
+  import { locale } from '$lib/i18n';
 </script>
 
 <div class="bento-card overflow-hidden" in:fade>
@@ -101,7 +97,7 @@
             </div>
             <div>
                 <h3 class="text-lg font-outfit font-bold text-white leading-tight">
-                    {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                    {currentMonth.toLocaleDateString($locale, { month: 'long', year: 'numeric' })}
                 </h3>
                 <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest mt-0.5">
                     {$t('attendance.calendar.title')}
@@ -135,10 +131,10 @@
     <div class="p-6">
         <div class="grid grid-cols-7 gap-px bg-white/5 border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
             <!-- Days of Week -->
-            {#each weekDays as day}
+            {#each Array(7).fill(0) as _, i}
                 <div class="bg-zinc-900/80 py-3 text-center">
                     <span class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-tighter">
-                        {day}
+                        {new Date(2024, 0, 1 + i).toLocaleDateString($locale, { weekday: 'narrow' })}
                     </span>
                 </div>
             {/each}
@@ -204,15 +200,15 @@
         <div class="mt-6 flex items-center justify-center gap-8 border-t border-white/5 pt-6">
             <div class="flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full bg-primary-500"></div>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Excelencia (>80%)</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.legend.excellent')} (>80%)</span>
             </div>
             <div class="flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full bg-amber-500"></div>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Regular (50%-80%)</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.legend.regular')} (50%-80%)</span>
             </div>
             <div class="flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full bg-red-500"></div>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Crítico (&lt;50%)</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.legend.critical')} (&lt;50%)</span>
             </div>
         </div>
     </div>

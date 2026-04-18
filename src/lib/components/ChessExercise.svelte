@@ -1,37 +1,48 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount } from 'svelte';
   import { Chess } from 'chess.js';
   import ChessBoard from './ChessBoard.svelte';
   import { showToast } from '$lib/stores/toast';
   import { Lightbulb, RotateCcw, CheckCircle, XCircle, Target } from 'lucide-svelte';
   import type { ChessExercise } from '$lib/types';
+  import { t } from '$lib/i18n';
 
-  export let exercise: ChessExercise;
-  export let onComplete: (correct: boolean, timeSpent: number) => void = () => {};
+  interface Props {
+    exercise: ChessExercise;
+    onComplete?: (correct: boolean, timeSpent: number) => void;
+  }
 
-  const dispatch = createEventDispatcher<{
-    complete: { correct: boolean; timeSpent: number; hintsUsed: number };
-    hint: { hintIndex: number };
-  }>();
+  let { exercise, onComplete }: Props = $props();
 
-  let chess: Chess;
-  let currentPosition: string;
-  let moves: string[] = [];
-  let hintsUsed = 0;
-  let startTime: number;
-  let isCompleted = false;
-  let showHint = false;
-  let currentHintIndex = 0;
-  let isCorrect = false;
+  let chess = $state<Chess | null>(null);
+  let currentPosition = $state('');
+  let moves = $state<string[]>([]);
+  let hintsUsed = $state(0);
+  let startTime = $state(0);
+  let isCompleted = $state(false);
+  let showHint = $state(false);
+  let currentHintIndex = $state(0);
+  let isCorrect = $state(false);
+  let currentTime = $state(0);
 
   onMount(() => {
+    initChess();
+    const interval = setInterval(() => {
+        if (!isCompleted && startTime > 0) {
+            currentTime = Math.floor((Date.now() - startTime) / 1000);
+        }
+    }, 1000);
+    return () => clearInterval(interval);
+  });
+
+  function initChess() {
     chess = new Chess(exercise.position?.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
     currentPosition = chess.fen();
     startTime = Date.now();
-  });
+  }
 
   function handleMove(event: CustomEvent) {
-    if (isCompleted) return;
+    if (isCompleted || !chess) return;
 
     const { from, to, san } = event.detail;
     moves.push(san);
@@ -46,34 +57,30 @@
         isCorrect = true;
         const timeSpent = Math.floor((Date.now() - startTime) / 1000);
         
-        showToast.success('¡Ejercicio completado correctamente!');
-        onComplete(true, timeSpent);
-        dispatch('complete', { correct: true, timeSpent, hintsUsed });
+        showToast.success($t('simulator.exercise.completed'));
+        onComplete?.(true, timeSpent);
       }
     } else {
       // Move is incorrect
-      showToast.error('Movimiento incorrecto. Inténtalo de nuevo.');
+      showToast.error($t('simulator.exercise.incorrect'));
       resetExercise();
     }
   }
 
   function resetExercise() {
-    chess = new Chess(exercise.position?.fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-    currentPosition = chess.fen();
+    initChess();
     moves = [];
     hintsUsed = 0;
     showHint = false;
     currentHintIndex = 0;
     isCompleted = false;
     isCorrect = false;
-    startTime = Date.now();
   }
 
   function showNextHint() {
     if (currentHintIndex < (exercise.hints?.length || 0)) {
       showHint = true;
       hintsUsed++;
-      dispatch('hint', { hintIndex: currentHintIndex });
       currentHintIndex++;
     }
   }
@@ -83,9 +90,8 @@
     isCorrect = false;
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
     
-    showToast.warning('Has abandonado el ejercicio');
-    onComplete(false, timeSpent);
-    dispatch('complete', { correct: false, timeSpent, hintsUsed });
+    showToast.warning($t('simulator.exercise.abandoned'));
+    onComplete?.(false, timeSpent);
   }
 
   function getDifficultyColor(difficulty: string): string {
@@ -128,9 +134,9 @@
     
     <div class="flex items-center space-x-2">
       <button
-        on:click={resetExercise}
+        onclick={resetExercise}
         class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors"
-        title="Reiniciar ejercicio"
+        title={$t('simulator.exercise.reset')}
       >
         <RotateCcw class="w-4 h-4" />
       </button>
@@ -143,7 +149,7 @@
     
     {#if exercise.explanation && isCompleted}
       <div class="bg-slate-700 rounded-lg p-4">
-        <h4 class="font-semibold text-slate-200 mb-2">Explicación:</h4>
+        <h4 class="font-semibold text-slate-200 mb-2">{$t('simulator.exercise.explanation')}</h4>
         <p class="text-slate-300">{exercise.explanation}</p>
       </div>
     {/if}
@@ -155,14 +161,14 @@
       position={currentPosition}
       interactive={!isCompleted}
       size={400}
-      on:move={handleMove}
+      onmove={handleMove}
     />
   </div>
 
   <!-- Progress -->
   <div class="mb-6">
     <div class="flex items-center justify-between mb-2">
-      <span class="text-sm text-slate-400">Progreso</span>
+      <span class="text-sm text-slate-400">{$t('simulator.exercise.progress')}</span>
       <span class="text-sm text-slate-400">{moves.length} / {exercise.solution?.length || 0}</span>
     </div>
     <div class="w-full bg-slate-700 rounded-full h-2">
@@ -177,14 +183,14 @@
   {#if exercise.hints && exercise.hints.length > 0}
     <div class="mb-6">
       <div class="flex items-center justify-between mb-3">
-        <h4 class="font-semibold text-slate-200">Pistas</h4>
+        <h4 class="font-semibold text-slate-200">{$t('simulator.exercise.hints')}</h4>
         <button
-          on:click={showNextHint}
+          onclick={showNextHint}
           disabled={currentHintIndex >= (exercise.hints?.length || 0) || isCompleted}
-          class="btn-secondary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          class="btn-secondary text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
         >
           <Lightbulb class="w-4 h-4 mr-2" />
-          Pista ({currentHintIndex}/{exercise.hints?.length || 0})
+          {$t('simulator.exercise.hint_button')} ({currentHintIndex}/{exercise.hints?.length || 0})
         </button>
       </div>
       
@@ -201,17 +207,17 @@
   <!-- Actions -->
   <div class="flex justify-between items-center">
     <div class="flex items-center space-x-4 text-sm text-slate-400">
-      <span>Pistas usadas: {hintsUsed}</span>
-      <span>Tiempo: {Math.floor((Date.now() - startTime) / 1000)}s</span>
+      <span>{$t('simulator.exercise.hints_used', { count: hintsUsed })}</span>
+      <span>{$t('simulator.exercise.time', { seconds: currentTime })}</span>
     </div>
     
     <div class="flex space-x-2">
       {#if !isCompleted}
         <button
-          on:click={giveUp}
-          class="btn-ghost text-sm"
+          onclick={giveUp}
+          class="px-4 py-2 text-slate-400 hover:text-white transition-colors text-sm"
         >
-          Abandonar
+          {$t('simulator.exercise.give_up')}
         </button>
       {/if}
       
@@ -219,10 +225,10 @@
         <div class="flex items-center space-x-2">
           {#if isCorrect}
             <CheckCircle class="w-5 h-5 text-green-500" />
-            <span class="text-green-500 font-medium">¡Correcto!</span>
+            <span class="text-green-500 font-medium">{$t('simulator.exercise.correct_label')}</span>
           {:else}
             <XCircle class="w-5 h-5 text-red-500" />
-            <span class="text-red-500 font-medium">Incorrecto</span>
+            <span class="text-red-500 font-medium">{$t('simulator.exercise.incorrect_label')}</span>
           {/if}
         </div>
       {/if}
@@ -232,7 +238,7 @@
   <!-- Solution (shown after completion) -->
   {#if isCompleted}
     <div class="mt-6 pt-6 border-t border-slate-700">
-      <h4 class="font-semibold text-slate-200 mb-3">Solución:</h4>
+      <h4 class="font-semibold text-slate-200 mb-3">{$t('simulator.exercise.solution')}</h4>
       <div class="flex flex-wrap gap-2">
         {#each exercise.solution || [] as move, index}
           <span class="px-3 py-1 bg-slate-700 rounded-lg text-sm font-mono">

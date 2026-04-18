@@ -16,7 +16,7 @@ export const GET: RequestHandler = async (event) => {
     try {
       const snapshot = await adminDb.collection("students")
         .where("owner_id", "==", user.uid)
-        .orderBy("createdAt", "desc")
+        .orderBy("created_at", "desc")
         .get();
         
       const students = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
@@ -56,7 +56,7 @@ export const POST: RequestHandler = async (event) => {
       if (!canAddStudent) {
         return json({ 
           error: 'Límite alcanzado', 
-          message: 'Has alcanzado el límite de 12 alumnos del plan gratuito. ¡Pásate a Premium para gestionar alumnos ilimitados!',
+          message: 'Has alcanzado el límite de 10 alumnos del plan gratuito. ¡Pásate a Premium para gestionar alumnos ilimitados!',
           code: 'LIMIT_REACHED'
         }, { status: 403 });
       }
@@ -67,8 +67,8 @@ export const POST: RequestHandler = async (event) => {
     const studentData = {
       ...body,
       owner_id: user.uid,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     try {
@@ -83,6 +83,42 @@ export const POST: RequestHandler = async (event) => {
   } catch (error: any) {
     console.error('❌ Error in POST students API:', error.message);
     return json({ error: 'Error al crear el alumno' }, { status: 500 });
+  }
+};
+
+export const PUT: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  try {
+    const { request } = event;
+    const body = await request.json();
+    const { id } = body;
+
+    if (!id) return json({ error: 'ID requerido' }, { status: 400 });
+
+    const docRef = adminDb.collection("students").doc(id);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists || docSnap.data()?.owner_id !== user.uid) {
+      return json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const updateData = {
+      ...body,
+      updated_at: new Date().toISOString()
+    };
+    delete updateData.id;
+    delete updateData.owner_id;
+    delete updateData.created_at;
+
+    await docRef.update(updateData);
+    return json({ success: true, student: { id, ...docSnap.data(), ...updateData } });
+  } catch (error: any) {
+    console.error('❌ Error in PUT students API:', error.message);
+    return json({ error: 'Error al actualizar el alumno' }, { status: 500 });
   }
 };
 

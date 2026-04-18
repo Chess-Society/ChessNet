@@ -46,7 +46,7 @@ export const POST: RequestHandler = async (event) => {
       if (!canAddClass) {
         return json({ 
           error: 'Límite alcanzado', 
-          message: 'Has alcanzado el límite de 2 clases del plan gratuito. ¡Pásate a Premium para gestionar clases ilimitadas!',
+          message: 'Has alcanzado el límite de 1 clase del plan gratuito. ¡Pásate a Premium para gestionar clases ilimitadas!',
           code: 'LIMIT_REACHED'
         }, { status: 403 });
       }
@@ -73,6 +73,42 @@ export const POST: RequestHandler = async (event) => {
   } catch (error: any) {
     console.error('❌ Error in POST classes API:', error.message);
     return json({ error: 'Error al crear la clase' }, { status: 500 });
+  }
+};
+
+export const PUT: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  try {
+    const { request } = event;
+    const body = await request.json();
+    const { id } = body;
+
+    if (!id) return json({ error: 'ID requerido' }, { status: 400 });
+
+    const docRef = adminDb.collection("classes").doc(id);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists || docSnap.data()?.owner_id !== user.uid) {
+      return json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const updateData = {
+      ...body,
+      updated_at: new Date().toISOString()
+    };
+    delete updateData.id;
+    delete updateData.owner_id;
+    delete updateData.created_at;
+
+    await docRef.update(updateData);
+    return json({ success: true, class: { id, ...docSnap.data(), ...updateData } });
+  } catch (error: any) {
+    console.error('❌ Error in PUT classes API:', error.message);
+    return json({ error: 'Error al actualizar la clase' }, { status: 500 });
   }
 };
 

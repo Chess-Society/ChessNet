@@ -65,7 +65,7 @@
       
       <div class="inline-flex items-center gap-2 bg-yellow-500/10 text-yellow-400 px-5 py-2.5 rounded-2xl border border-yellow-500/20 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
         <Zap class="w-4 h-4" />
-        Subject to community feedback
+        {$t('roadmap.subject_feedback')}
       </div>
     </div>
 

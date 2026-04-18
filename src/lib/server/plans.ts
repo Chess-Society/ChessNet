@@ -62,14 +62,14 @@ export async function checkStudentLimit(uid: string) {
     const plan = await getUserPlan(uid);
     if (plan === 'premium') return true;
 
-    // Plan free: limit 12 students
+    // Plan free: limit 10 students
     const snapshot = await adminDb.collection("students")
         .where("owner_id", "==", uid)
         .count()
         .get();
         
     const count = snapshot.data().count;
-    return count < 12;
+    return count < 10;
 }
 
 export async function checkSchoolLimit(uid: string) {
@@ -90,12 +90,12 @@ export async function checkClassLimit(uid: string) {
     const plan = await getUserPlan(uid);
     if (plan === 'premium') return true;
 
-    // Plan free: limit 2 classes
+    // Plan free: limit 1 class
     const snapshot = await adminDb.collection("classes")
         .where("owner_id", "==", uid)
         .count()
         .get();
         
     const count = snapshot.data().count;
-    return count < 2;
+    return count < 1;
 }

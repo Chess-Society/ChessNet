@@ -66,24 +66,24 @@
   const validateForm = () => {
     errors = {};
 
-    if (!formData.name.trim()) errors.name = 'Name is required';
-    if (!formData.description.trim()) errors.description = 'Description is required';
-    if (formData.max_players < 2) errors.max_players = 'Minimum 2 players';
-    if (formData.max_players > 64) errors.max_players = 'Maximum 64 players';
-    if (formData.entry_fee < 0) errors.entry_fee = 'Cannot be negative';
-    if (formData.prize_pool < 0) errors.prize_pool = 'Cannot be negative';
+    if (!formData.name.trim()) errors.name = $t('tournaments.form.name_required');
+    if (!formData.description.trim()) errors.description = $t('tournaments.form.desc_required');
+    if (formData.max_players < 2) errors.max_players = $t('tournaments.form.min_players_error');
+    if (formData.max_players > 64) errors.max_players = $t('tournaments.form.max_players_error');
+    if (formData.entry_fee < 0) errors.entry_fee = $t('tournaments.form.negative_error');
+    if (formData.prize_pool < 0) errors.prize_pool = $t('tournaments.form.negative_error');
     
-    if (!formData.start_date) errors.start_date = 'Required';
-    if (!formData.end_date) errors.end_date = 'Required';
-    if (!formData.registration_deadline) errors.registration_deadline = 'Required';
+    if (!formData.start_date) errors.start_date = $t('tournaments.form.required');
+    if (!formData.end_date) errors.end_date = $t('tournaments.form.required');
+    if (!formData.registration_deadline) errors.registration_deadline = $t('tournaments.form.required');
 
     if (formData.start_date && formData.end_date) {
       if (new Date(formData.end_date) <= new Date(formData.start_date)) {
-        errors.end_date = 'Must be after start date';
+        errors.end_date = $t('tournaments.form.date_sequence_error');
       }
     }
 
-    if (!formData.location.trim()) errors.location = 'Location is required';
+    if (!formData.location.trim()) errors.location = $t('tournaments.form.location_required');
 
     return Object.keys(errors).length === 0;
   };
@@ -104,11 +104,11 @@
       };
 
       await localTournamentsApi.updateTournament(tournament.id, updates);
-      showToast.success('Tournament updated successfully');
+      showToast.success($t('tournaments.updates.success'));
       goto(`/panel/tournaments/${tournament.id}`);
     } catch (error) {
       console.error('❌ Error updating tournament:', error);
-      showToast.error('Failed to update tournament');
+      showToast.error($t('tournaments.updates.error'));
     } finally {
       isSubmitting = false;
     }
@@ -116,30 +116,28 @@
 
   const handleDelete = async () => {
     const confirmed = await uiStore.confirm({
-      title: 'Delete Tournament',
-      message: 'Are you sure you want to permanently delete this tournament? This action cannot be undone.',
+      title: $t('tournaments.delete_confirm_title'),
+      message: $t('tournaments.delete_confirm_desc'),
       type: 'danger',
-      confirmText: 'Delete'
+      confirmText: $t('common.delete')
     });
 
     if (!confirmed) return;
 
     try {
       await localTournamentsApi.deleteTournament(tournament.id);
-      showToast.success('Tournament deleted');
+      showToast.success($t('tournaments.delete.success'));
       goto('/panel/tournaments');
     } catch (error) {
       console.error('❌ Error deleting tournament:', error);
-      showToast.error('Failed to delete tournament');
+      showToast.error($t('tournaments.delete.error'));
     }
   };
 
   const handleReset = async () => {
     const confirmed = await uiStore.confirm({
-      title: 'Reset Tournament',
-      message: 'This will remove all pairings and rounds, and set the status back to upcoming. Players will remain registered.',
-      type: 'warning',
-      confirmText: 'Reset'
+      title: $t('tournaments.reset_confirm_title'),
+      confirmText: $t('common.reset')
     });
 
     if (!confirmed) return;
@@ -155,19 +153,19 @@
       // Since we don't have a bulk 'clearAll' for a tournament, we loop or use existing resetRound per round
       // For now, let's just use the currentRound 1 and status upcoming.
       
-      showToast.success('Tournament reset successfully');
+      showToast.success($t('tournaments.reset.success'));
       window.location.reload();
     } catch (error) {
       console.error('❌ Error resetting tournament:', error);
-      showToast.error('Failed to reset tournament');
+      showToast.error($t('tournaments.reset.error'));
     }
   };
 
   const formatLabels: Record<string, string> = {
-    swiss: 'Swiss System',
-    round_robin: 'Round Robin (League)',
-    knockout: 'Knockout',
-    single_elimination: 'Single Elimination'
+    swiss: $t('tournaments.type_swiss'),
+    round_robin: $t('tournaments.type_round_robin'),
+    knockout: $t('tournaments.type_knockout'),
+    single_elimination: $t('tournaments.type_knockout')
   };
 
   const statusColors: Record<string, string> = {
@@ -180,7 +178,7 @@
 </script>
 
 <svelte:head>
-  <title>Edit | {formData.name || 'Tournament'} - ChessNet</title>
+  <title>Edit | {formData.name || $t('tournaments.untitled')} - ChessNet</title>
 </svelte:head>
 
 <div class="min-h-screen bg-[#09090b] text-zinc-100 p-4 lg:p-8">
@@ -198,12 +196,12 @@
         </button>
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <h1 class="text-2xl font-bold tracking-tight">Manage Tournament</h1>
+            <h1 class="text-2xl font-bold tracking-tight">{$t('tournaments.manage_title')}</h1>
             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border {statusColors[tournament.status]}">
-              {tournament.status}
+              {$t(`tournaments.status_${tournament.status}`)}
             </span>
           </div>
-          <p class="text-zinc-500 text-sm">Modify event parameters and regulations.</p>
+          <p class="text-zinc-500 text-sm">{$t('tournaments.manage_desc')}</p>
         </div>
       </div>
 
@@ -212,7 +210,7 @@
           onclick={() => goto(`/panel/tournaments/${tournament.id}`)}
           class="px-5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 font-medium hover:bg-zinc-800 transition-all"
         >
-          Cancel
+          {$t('common.cancel')}
         </button>
         <button 
           onclick={handleSubmit}
@@ -221,10 +219,10 @@
         >
           {#if isSubmitting}
             <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            Saving...
+            {$t('tournaments.saving')}
           {:else}
             <FloppyDisk weight="duotone" size={18} />
-            Save Changes
+            {$t('common.save')}
           {/if}
         </button>
       </div>
@@ -242,20 +240,20 @@
               <Trophy weight="duotone" size={24} />
             </div>
             <div>
-              <h2 class="text-lg font-bold">Información de Identidad</h2>
-              <p class="text-xs text-zinc-500">Nombre descriptivo y detalles públicos.</p>
+              <h2 class="text-lg font-bold">{$t('tournaments.identity_info')}</h2>
+              <p class="text-xs text-zinc-500">{$t('tournaments.identity_desc')}</p>
             </div>
           </div>
 
           <div class="space-y-6">
             <div class="grid grid-cols-1 gap-4">
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="name">Tournament Name</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="name">{$t('tournaments.form.name')}</label>
                 <input 
                   id="name"
                   type="text" 
                   bind:value={formData.name}
-                  placeholder="e.g., Spring Open 2024"
+                  placeholder="{$t('tournaments.form.name_placeholder')}"
                   class="w-full bg-zinc-950 border {errors.name ? 'border-red-500' : 'border-zinc-800'} rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all placeholder:text-zinc-700"
                 />
                 {#if errors.name}
@@ -264,12 +262,12 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="description">Short Description</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="description">{$t('common.description')}</label>
                 <textarea 
                   id="description"
                   bind:value={formData.description}
                   rows="3"
-                  placeholder="A brief introduction for participants..."
+                  placeholder="{$t('tournaments.form.notes_placeholder')}"
                   class="w-full bg-zinc-950 border {errors.description ? 'border-red-500' : 'border-zinc-800'} rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all placeholder:text-zinc-700"
                 ></textarea>
                 {#if errors.description}
@@ -280,16 +278,16 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="format">Game System</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="format">{$t('tournaments.game_system')}</label>
                 <div class="relative group">
                   <select 
                     id="format"
                     bind:value={formData.format}
                     class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all appearance-none cursor-pointer"
                   >
-                    <option value="swiss">Swiss System</option>
-                    <option value="round_robin">Round Robin (League)</option>
-                    <option value="knockout">Direct Elimination</option>
+                    <option value="swiss">{$t('tournaments.type_swiss')}</option>
+                    <option value="round_robin">{$t('tournaments.type_round_robin')}</option>
+                    <option value="knockout">{$t('tournaments.type_knockout')}</option>
                   </select>
                   <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600 transition-colors group-hover:text-zinc-400">
                     <Gear weight="duotone" size={16} />
@@ -298,12 +296,12 @@
               </div>
 
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="time_control">Time Control</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="time_control">{$t('tournaments.time_control')}</label>
                 <input 
                   id="time_control"
                   type="text" 
                   bind:value={formData.time_control}
-                  placeholder="e.g., 15+10"
+                  placeholder="{$t('tournaments.form.time_control_placeholder')}"
                   class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all placeholder:text-zinc-700"
                 />
               </div>
@@ -318,15 +316,15 @@
               <CurrencyEur weight="duotone" size={24} />
             </div>
             <div>
-              <h2 class="text-lg font-bold">Logística y Detalles</h2>
-              <p class="text-xs text-zinc-500">Fechas, ubicación y aspectos organizativos.</p>
+              <h2 class="text-lg font-bold">{$t('tournaments.logistics_details')}</h2>
+              <p class="text-xs text-zinc-500">{$t('tournaments.logistics_desc')}</p>
             </div>
           </div>
 
           <div class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="max_players">Max Capacity</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="max_players">{$t('tournaments.max_capacity')}</label>
                 <input 
                   id="max_players"
                   type="number" 
@@ -335,16 +333,17 @@
                 />
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="entry_fee">Entry Fee ({$t('common.currency')})</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="entry_fee">{$t('tournaments.entry_fee_label')} ({$t('common.currency')})</label>
                 <input 
                   id="entry_fee"
                   type="number" 
                   bind:value={formData.entry_fee}
-                  class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+                  placeholder="0"
+                  class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all font-bold text-violet-500"
                 />
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="prize_pool">Prize Pool ({$t('common.currency')})</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="prize_pool">{$t('tournaments.prize_pool_label')} ({$t('common.currency')})</label>
                 <input 
                   id="prize_pool"
                   type="number" 
@@ -356,13 +355,13 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="location">Location / Platform</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="location">{$t('tournaments.location_platform')}</label>
                 <div class="relative group">
                   <input 
                     id="location"
                     type="text" 
                     bind:value={formData.location}
-                    placeholder="e.g., Central HQ or Online"
+                    placeholder="{$t('tournaments.location_platform')}"
                     class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all pl-12"
                   />
                   <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600">
@@ -371,12 +370,12 @@
                 </div>
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="organizer">Organizing Entity</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="organizer">{$t('tournaments.organizing_entity')}</label>
                 <input 
                   id="organizer"
                   type="text" 
                   bind:value={formData.organizer}
-                  placeholder="e.g., Regional Chess Club"
+                  placeholder="{$t('tournaments.organizing_entity')}"
                   class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
                 />
               </div>
@@ -384,7 +383,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-zinc-800 pt-6">
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="start_date">Start</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="start_date">{$t('tournaments.start')}</label>
                 <input 
                   id="start_date"
                   type="datetime-local" 
@@ -393,7 +392,7 @@
                 />
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="end_date">End</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="end_date">{$t('tournaments.status_completed')}</label>
                 <input 
                   id="end_date"
                   type="datetime-local" 
@@ -402,7 +401,7 @@
                 />
               </div>
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="deadline">Registration Deadline</label>
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="deadline">{$t('tournaments.registration_deadline')}</label>
                 <input 
                   id="deadline"
                   type="datetime-local" 
@@ -421,29 +420,29 @@
               <FileText weight="duotone" size={24} />
             </div>
             <div>
-              <h2 class="text-lg font-bold">Documentation</h2>
-              <p class="text-xs text-zinc-500">Technical rules and operational notes.</p>
+              <h2 class="text-lg font-bold">{$t('tournaments.documentation')}</h2>
+              <p class="text-xs text-zinc-500">{$t('tournaments.doc_desc')}</p>
             </div>
           </div>
 
           <div class="space-y-4">
             <div class="space-y-2">
-              <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="rules">Tournament Rules</label>
+              <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="rules">{$t('tournaments.rules')}</label>
               <textarea 
                 id="rules"
                 bind:value={formData.rules}
                 rows="4"
-                placeholder="Detail FIDE rules or local variations..."
+                placeholder="{$t('tournaments.rules_placeholder')}"
                 class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
               ></textarea>
             </div>
             <div class="space-y-2">
-              <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="notes">Staff Notes</label>
+              <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1" for="notes">{$t('tournaments.staff_notes')}</label>
               <textarea 
                 id="notes"
                 bind:value={formData.notes}
                 rows="2"
-                placeholder="Internal logistics, required materials..."
+                placeholder="{$t('tournaments.staff_notes_placeholder')}"
                 class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all opacity-70"
               ></textarea>
             </div>
@@ -457,17 +456,17 @@
               <Warning weight="duotone" size={24} />
             </div>
             <div>
-              <h2 class="text-lg font-bold text-red-500">Danger Zone</h2>
-              <p class="text-xs text-red-500/60">Destructive actions that cannot be undone.</p>
+              <h2 class="text-lg font-bold text-red-500">{$t('tournaments.danger_zone')}</h2>
+              <p class="text-xs text-red-500/60">{$t('tournaments.danger_zone_desc')}</p>
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 rounded-2xl bg-zinc-950/50 border border-red-500/10 flex flex-col justify-between gap-4">
               <div>
-                <h3 class="text-sm font-bold text-red-400 mb-1">Reset Tournament</h3>
+                <h3 class="text-sm font-bold text-red-400 mb-1">{$t('tournaments.reset_structure')}</h3>
                 <p class="text-xs text-zinc-500 leading-relaxed">
-                  Deletes all pairings and generated rounds. Status will revert to 'Draft'.
+                  {$t('tournaments.reset_desc')}
                 </p>
               </div>
               <button 
@@ -475,15 +474,15 @@
                 class="w-full py-2.5 rounded-xl border border-red-500/30 text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
               >
                 <ArrowCounterClockwise size={14} />
-                Reset Structure
+                {$t('tournaments.reset_structure')}
               </button>
             </div>
 
             <div class="p-4 rounded-2xl bg-zinc-950/50 border border-red-500/10 flex flex-col justify-between gap-4">
               <div>
-                <h3 class="text-sm font-bold text-red-400 mb-1">Delete Permanently</h3>
+                <h3 class="text-sm font-bold text-red-400 mb-1">{$t('tournaments.delete_permanently')}</h3>
                 <p class="text-xs text-zinc-500 leading-relaxed">
-                  Deletes the tournament and all its related data (players, payments, results).
+                  {$t('tournaments.delete_desc')}
                 </p>
               </div>
               <button 
@@ -491,7 +490,7 @@
                 class="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
               >
                 <Trash weight="duotone" size={14} />
-                Delete Tournament
+                {$t('tournaments.delete_permanently')}
               </button>
             </div>
           </div>
@@ -503,7 +502,7 @@
       <aside class="lg:col-span-4 lg:sticky lg:top-8 space-y-6">
         <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
           <div class="bg-violet-600 px-6 py-4 flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-200">Live Preview</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-200">{$t('tournaments.live_preview')}</span>
             <Layout weight="duotone" size={16} class="text-violet-200 opacity-50" />
           </div>
           
@@ -515,8 +514,8 @@
               </div>
               
               <div>
-                <h3 class="text-xl font-bold truncate">{formData.name || 'Untitled'}</h3>
-                <p class="text-xs text-zinc-500 line-clamp-2 mt-1">{formData.description || 'No description...'}</p>
+                <h3 class="text-xl font-bold truncate">{formData.name || $t('tournaments.untitled')}</h3>
+                <p class="text-xs text-zinc-500 line-clamp-2 mt-1">{formData.description || $t('tournaments.no_description')}</p>
               </div>
 
               <div class="grid grid-cols-2 gap-3 pb-4 border-b border-zinc-800">
@@ -525,7 +524,7 @@
                     <Calendar size={16} />
                   </div>
                   <div class="text-[10px]">
-                    <p class="text-zinc-500 font-bold uppercase">Start</p>
+                    <p class="text-zinc-500 font-bold uppercase">{$t('tournaments.start')}</p>
                     <p class="text-zinc-300">{formData.start_date ? new Date(formData.start_date).toLocaleDateString() : '--'}</p>
                   </div>
                 </div>
@@ -534,7 +533,7 @@
                     <MapPin size={16} />
                   </div>
                   <div class="text-[10px]">
-                    <p class="text-zinc-500 font-bold uppercase">Location</p>
+                    <p class="text-zinc-500 font-bold uppercase">{$t('tournaments.venue')}</p>
                     <p class="text-zinc-300 truncate max-w-[80px]">{formData.location || '--'}</p>
                   </div>
                 </div>
@@ -552,7 +551,7 @@
                   </div>
                 </div>
                 <div class="text-right">
-                  <p class="text-[10px] text-zinc-500 font-bold uppercase">Prizes</p>
+                  <p class="text-[10px] text-zinc-500 font-bold uppercase">{$t('tournaments.prizes_label')}</p>
                   <p class="text-sm font-black text-violet-400">{formData.prize_pool || '0'}{$t('common.currency')}</p>
                 </div>
               </div>
@@ -570,7 +569,7 @@
             <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 text-[11px] text-zinc-400 italic">
               <div class="flex gap-2 items-start">
                 <Info size={14} class="text-violet-500 mt-0.5" />
-                <p>The preview shows how this tournament will appear in the public catalog and player panel.</p>
+                <p>{$t('tournaments.preview_info')}</p>
               </div>
             </div>
           </div>
@@ -579,25 +578,25 @@
         <div class="bg-gradient-to-br from-violet-600/10 to-transparent border border-violet-500/20 rounded-3xl p-6">
           <div class="flex items-center gap-2 mb-3">
             <CheckCircle weight="duotone" size={18} class="text-violet-500" />
-            <h4 class="text-sm font-bold">Configuration Status</h4>
+            <h4 class="text-sm font-bold">{$t('tournaments.config_status')}</h4>
           </div>
           <ul class="space-y-2 text-xs text-zinc-500">
             <li class="flex justify-between">
-              <span>Required fields</span>
+              <span>{$t('tournaments.req_fields')}</span>
               <span class={validateForm() ? 'text-violet-500' : 'text-zinc-600'}>
-                {validateForm() ? 'OK' : 'Pending'}
+                {validateForm() ? $t('common.ok') : $t('common.pending')}
               </span>
             </li>
             <li class="flex justify-between">
-              <span>Rules defined</span>
+              <span>{$t('tournaments.rules_defined')}</span>
               <span class={formData.rules ? 'text-violet-500' : 'text-zinc-600'}>
-                {formData.rules ? 'OK' : 'No'}
+                {formData.rules ? $t('common.ok') : $t('common.no')}
               </span>
             </li>
             <li class="flex justify-between">
-              <span>Prize pool</span>
+              <span>{$t('tournaments.prizes_label')}</span>
               <span class={formData.prize_pool > 0 ? 'text-violet-500' : 'text-zinc-600'}>
-                {formData.prize_pool > 0 ? formData.prize_pool + $t('common.currency') : 'No'}
+                {formData.prize_pool > 0 ? formData.prize_pool + $t('common.currency') : $t('common.no')}
               </span>
             </li>
           </ul>
@@ -616,21 +615,21 @@
         <Trash weight="duotone" size={32} />
       </div>
       <div class="text-center space-y-2">
-        <h3 class="text-xl font-bold">Permanently delete tournament?</h3>
-        <p class="text-zinc-500 text-sm">This action will delete all records, players, and results. There is no turning back.</p>
+        <h3 class="text-xl font-bold">{$t('tournaments.delete_permanently_title')}</h3>
+        <p class="text-zinc-500 text-sm">{$t('tournaments.delete_permanently_desc')}</p>
       </div>
       <div class="flex gap-3 pt-4">
         <button 
           onclick={() => showDeleteConfirm = false}
           class="flex-1 px-5 py-3 rounded-2xl bg-zinc-800 text-white font-bold hover:bg-zinc-700 transition-all"
         >
-          Cancel
+          {$t('common.cancel')}
         </button>
         <button 
           onclick={handleDelete}
           class="flex-1 px-5 py-3 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-500 transition-all"
         >
-          Delete now
+          {$t('tournaments.delete_now')}
         </button>
       </div>
     </div>
@@ -645,21 +644,21 @@
         <ArrowCounterClockwise weight="duotone" size={32} />
       </div>
       <div class="text-center space-y-2">
-        <h3 class="text-xl font-bold">Reset structure?</h3>
-        <p class="text-zinc-500 text-sm">Pairings will be deleted and the tournament will return to draft status. Registered players will be kept.</p>
+        <h3 class="text-xl font-bold">{$t('tournaments.reset_structure_title')}</h3>
+        <p class="text-zinc-500 text-sm">{$t('tournaments.reset_structure_desc')}</p>
       </div>
       <div class="flex gap-3 pt-4">
         <button 
           onclick={() => showResetConfirm = false}
           class="flex-1 px-5 py-3 rounded-2xl bg-zinc-800 text-white font-bold hover:bg-zinc-700 transition-all"
         >
-          Cancel
+          {$t('common.cancel')}
         </button>
         <button 
           onclick={handleReset}
           class="flex-1 px-5 py-3 rounded-2xl bg-violet-600 text-white font-bold hover:bg-violet-500 transition-all"
         >
-          Reset
+          {$t('common.reset')}
         </button>
       </div>
     </div>

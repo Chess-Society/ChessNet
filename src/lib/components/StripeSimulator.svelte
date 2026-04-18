@@ -1,6 +1,6 @@
 <script lang="ts">
     import { fade, fly } from 'svelte/transition';
-    import { CreditCard, CheckCircle2, AlertCircle, ArrowRight, Server, Database, Globe } from 'lucide-svelte';
+    import { CreditCard, ArrowRight, Server, Database, Globe } from 'lucide-svelte';
     import { t } from '$lib/i18n';
 
     let hasEnvVars = $state(true);
@@ -67,7 +67,7 @@
 
 <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl overflow-hidden relative">
     <div class="absolute top-0 right-0 p-8 opacity-5">
-        <CreditCard class="w-32 h-32" />
+        <CreditCard class="w-32 h-32 text-indigo-500" />
     </div>
 
     <div class="relative z-10">
@@ -93,7 +93,7 @@
                             <button 
                                 aria-label="Toggle Env Vars"
                                 onclick={() => hasEnvVars = !hasEnvVars}
-                                class="w-10 h-5 rounded-full transition-colors relative {hasEnvVars ? 'bg-indigo-500' : 'bg-slate-700'}"
+                                class="w-10 h-5 rounded-full transition-colors relative {hasEnvVars ? 'bg-indigo-500' : 'bg-slate-700'} cursor-pointer"
                             >
                                 <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform {hasEnvVars ? 'translate-x-5' : ''}"></div>
                             </button>
@@ -104,7 +104,7 @@
                             <button 
                                 aria-label="Toggle Admin DB Status"
                                 onclick={() => hasCorrectImport = !hasCorrectImport}
-                                class="w-10 h-5 rounded-full transition-colors relative {hasCorrectImport ? 'bg-indigo-500' : 'bg-slate-700'}"
+                                class="w-10 h-5 rounded-full transition-colors relative {hasCorrectImport ? 'bg-indigo-500' : 'bg-slate-700'} cursor-pointer"
                             >
                                 <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform {hasCorrectImport ? 'translate-x-5' : ''}"></div>
                             </button>
@@ -115,7 +115,7 @@
                             <button 
                                 aria-label="Toggle User ID Status"
                                 onclick={() => hasUserId = !hasUserId}
-                                class="w-10 h-5 rounded-full transition-colors relative {hasUserId ? 'bg-indigo-500' : 'bg-slate-700'}"
+                                class="w-10 h-5 rounded-full transition-colors relative {hasUserId ? 'bg-indigo-500' : 'bg-slate-700'} cursor-pointer"
                             >
                                 <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform {hasUserId ? 'translate-x-5' : ''}"></div>
                             </button>
@@ -126,7 +126,7 @@
                 <button 
                     onclick={simulate}
                     disabled={isSimulating}
-                    class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-3"
+                    class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-3 cursor-pointer"
                 >
                     {#if isSimulating}
                         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -156,11 +156,11 @@
                             in:fly={{ x: -10, duration: 300 }}
                         >
                             {#if step.type === 'info'}
-                                <span class="text-blue-400">[INFO]</span>
+                                <span class="text-blue-400 font-bold">[INFO]</span>
                             {:else if step.type === 'success'}
-                                <span class="text-indigo-400">[OK]</span>
+                                <span class="text-indigo-400 font-bold">[OK]</span>
                             {:else}
-                                <span class="text-red-400">[ERR]</span>
+                                <span class="text-red-400 font-bold">[ERR]</span>
                             {/if}
                             <span class="text-slate-400">{step.text}</span>
                         </div>
@@ -173,19 +173,19 @@
                 <div class="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
                     <div class="flex gap-4">
                         <div class="flex flex-col items-center gap-1">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'stripe' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'}">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'stripe' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
                                 <Globe class="w-4 h-4" />
                             </div>
                             <span class="text-[8px] uppercase font-bold {currentPhase === 'stripe' ? 'text-indigo-400' : 'text-slate-600'}">Stripe</span>
                         </div>
                         <div class="flex flex-col items-center gap-1">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'server' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'}">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'server' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
                                 <Server class="w-4 h-4" />
                             </div>
                             <span class="text-[8px] uppercase font-bold {currentPhase === 'server' ? 'text-indigo-400' : 'text-slate-600'}">Netlify</span>
                         </div>
                         <div class="flex flex-col items-center gap-1">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'firestore' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'}">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'firestore' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
                                 <Database class="w-4 h-4" />
                             </div>
                             <span class="text-[8px] uppercase font-bold {currentPhase === 'firestore' ? 'text-indigo-400' : 'text-slate-600'}">Firestore</span>
@@ -193,8 +193,8 @@
                     </div>
 
                     {#if !isSimulating && simulationSteps.length > 0}
-                        <div class="text-xs font-bold {simulationSteps[simulationSteps.length-1].type === 'error' ? 'text-red-500' : 'text-indigo-500'}">
-                            {simulationSteps[simulationSteps.length-1].type === 'error' ? 'SIMULACIÓN FALLIDA' : 'ÉXITO'}
+                        <div class="text-xs font-black italic {simulationSteps[simulationSteps.length-1].type === 'error' ? 'text-red-500' : 'text-indigo-500'}">
+                            {simulationSteps[simulationSteps.length-1].type === 'error' ? $t('simulator.status.failed') : $t('simulator.status.success')}
                         </div>
                     {/if}
                 </div>

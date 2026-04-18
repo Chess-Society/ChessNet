@@ -60,7 +60,7 @@
 
   const validateForm = () => {
     errors = {};
-    if (!formData.first_name.trim()) errors.first_name = $t('errors.first_name_required') || 'El nombre es obligatorio';
+    if (!formData.first_name.trim()) errors.first_name = $t('students.full_name_required');
     return Object.keys(errors).length === 0;
   };
 
@@ -90,7 +90,7 @@
 
       const result = await response.json();
 
-      if (!response.ok) throw new Error(result.error || 'Error');
+      if (!response.ok) throw new Error(result.error || $t('common.error'));
       
       // Auto-enrolar si viene de una clase
       if (formData.class_id && result.student) {
@@ -284,7 +284,7 @@
         <div class="bento-card !p-10 space-y-12">
            <div class="flex items-center gap-4 pb-6 border-b border-white/5">
               <FileText size={24} weight="duotone" class="text-violet-400" />
-              <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight">{$t('students.observations').toUpperCase()}</h2>
+              <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight">{$t('students.observations')}</h2>
            </div>
 
            <div class="space-y-4">
@@ -347,7 +347,7 @@
                   </div>
                   <div class="min-w-0">
                     <p class="text-base font-outfit font-bold text-white truncate group-hover:text-violet-400 transition-colors">
-                      {formData.first_name || 'Nuevo'} {formData.last_name || 'Alumno'}
+                      {formData.first_name || $t('common.new')} {formData.last_name || $t('students.student_label')}
                     </p>
                     <p class="text-[9px] font-outfit font-black text-violet-500/60 uppercase tracking-widest mt-1 text-center">{$t('students.technical_tag')}</p>
                   </div>

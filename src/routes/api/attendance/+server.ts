@@ -137,20 +137,25 @@ export const PUT: RequestHandler = async (event) => {
       return json({ error: 'Formato de datos inválido' }, { status: 400 });
     }
 
+    // 1. Obtener todos los registros existentes para esta clase y fecha en una sola consulta
+    const existingSnapshot = await adminDb.collection("attendance")
+      .where("owner_id", "==", uid)
+      .where("class_id", "==", class_id)
+      .where("date", "==", date)
+      .get();
+    
+    // 2. Crear un mapa de student_id -> doc_id para búsqueda rápida
+    const existingMap = new Map();
+    existingSnapshot.docs.forEach(doc => {
+      existingMap.set(doc.data().student_id, doc.id);
+    });
+
     const batch = adminDb.batch();
     const results = [];
 
+    // 3. Procesar récords usando el mapa en memoria
     for (const record of records) {
       const { student_id, status, notes } = record;
-      
-      const attendanceRef = adminDb.collection("attendance")
-        .where("owner_id", "==", uid)
-        .where("student_id", "==", student_id)
-        .where("class_id", "==", class_id)
-        .where("date", "==", date)
-        .limit(1);
-      
-      const existingSnap = await attendanceRef.get();
       
       const data = {
         student_id,
@@ -162,8 +167,10 @@ export const PUT: RequestHandler = async (event) => {
         updated_at: new Date().toISOString()
       };
 
-      if (!existingSnap.empty) {
-        batch.update(adminDb.collection("attendance").doc(existingSnap.docs[0].id), data);
+      const existingId = existingMap.get(student_id);
+
+      if (existingId) {
+        batch.update(adminDb.collection("attendance").doc(existingId), data);
       } else {
         const newDocRef = adminDb.collection("attendance").doc();
         batch.set(newDocRef, {

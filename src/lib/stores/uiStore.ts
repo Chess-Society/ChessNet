@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 
 export interface ConfirmConfig {
   title: string;
-  message: string;
+  message?: string;
   confirmText?: string;
   cancelText?: string;
   type?: 'danger' | 'info' | 'warning';
@@ -27,6 +27,7 @@ function createUIStore() {
           ...s,
           confirmDialog: {
             ...config,
+            message: config.message || '',
             onConfirm: () => {
               update(s2 => ({ ...s2, confirmDialog: null }));
               resolve(true);
@@ -40,7 +41,8 @@ function createUIStore() {
       });
     },
     setLoading: (loading: boolean) => update(s => ({ ...s, isLoading: loading })),
-    closeConfirm: () => update(s => ({ ...s, confirmDialog: null }))
+    closeConfirm: () => update(s => ({ ...s, confirmDialog: null })),
+    closeAllModals: () => update(s => ({ ...s, confirmDialog: null, isLoading: false }))
   };
 }
 

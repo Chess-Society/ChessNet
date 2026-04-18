@@ -95,21 +95,52 @@ service cloud.firestore {
       allow update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.authorId == request.auth.uid);
     }
 
-    // Regla maestra para datos de negocio (centros, clases, alumnos, etc)
+    // --- CORE BUSINESS ASSETS (Restricted to Server/Admin) ---
+    // We deny client-side creation to enforce Freemium limits and security via API
+    
+    match /schools/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isSuperAdmin(); // Enforced via /api/schools
+    }
+    
+    match /classes/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isSuperAdmin(); // Enforced via /api/classes
+    }
+    
+    match /students/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isSuperAdmin(); // Enforced via /api/students
+    }
+
+    match /payments/{docId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin(); // Only server can create/update payments
+    }
+
+    match /achievements/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin(); // Only server can grant achievements
+    }
+
+    // --- MASTER RULE FOR REMAINING COLLECTIONS ---
     match /{collection}/{docId} {
+      // Avoid matching core collections already handled above
       allow read: if isSuperAdmin() || (isAuthenticated() && resource != null && (
         (resource.data.owner_id == request.auth.uid) ||
         (resource.data.authorId == request.auth.uid)
       ));
-      allow create: if isSuperAdmin() || (isAuthenticated() && (
-        (request.resource.data.owner_id == request.auth.uid) ||
-        (request.resource.data.authorId == request.auth.uid)
+      
+      allow create: if isSuperAdmin() || (isAuthenticated() && 
+        !(collection in ['schools', 'classes', 'students', 'payments', 'achievements', 'users', 'user_subscriptions']) &&
+        (request.resource.data.owner_id == request.auth.uid || request.resource.data.authorId == request.auth.uid)
+      );
+
+      allow update: if isSuperAdmin() || (isAuthenticated() && resource != null && (
+        (resource.data.owner_id == request.auth.uid && request.resource.data.owner_id == request.auth.uid) ||
+        (resource.data.authorId == request.auth.uid && request.resource.data.authorId == request.auth.uid)
       ));
-      allow update: if isSuperAdmin() || (isAuthenticated() && (
-        (resource != null && resource.data.owner_id == request.auth.uid && request.resource.data.owner_id == request.auth.uid) ||
-        (resource != null && resource.data.authorId == request.auth.uid && request.resource.data.authorId == request.auth.uid) ||
-        isSuperAdmin()
-      ));
+
       allow delete: if isSuperAdmin() || (isAuthenticated() && resource != null && (
         (resource.data.owner_id == request.auth.uid) ||
         (resource.data.authorId == request.auth.uid)

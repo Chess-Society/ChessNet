@@ -7,10 +7,6 @@
     orderBy, 
     limit, 
     onSnapshot,
-    where,
-    doc,
-    getDoc,
-    getCountFromServer
   } from 'firebase/firestore';
   import { adminApi } from '$lib/api/admin';
   import { t } from '$lib/i18n';
@@ -21,16 +17,13 @@
   import { 
     SquaresFour, 
     Users, 
-    Megaphone, 
     ChatTeardropDots, 
     Gear, 
-    SignOut,
-    IdentificationBadge,
+    ArrowArcLeft,
     X,
     UserCircle,
     Crown,
     Star,
-    ArrowArcLeft,
     Pulse,
     CheckCircle,
     Shield
@@ -76,7 +69,7 @@
       return {
         id: l.id,
         type: isAchievement ? 'insignia_unlocked' : 'system_log',
-        title: isAchievement ? 'Mérito Desbloqueado' : (l.type || l.action),
+        title: isAchievement ? $t('common.achievement') : (l.type || l.action),
         subtitle: typeof l.details === 'string' ? l.details : JSON.stringify(l.details),
         timestamp: l.timestamp,
         status: isAchievement ? 'premium' : (l.status || 'info')
@@ -86,7 +79,7 @@
     const rawUsers = users.slice(0, 5).map(u => ({
       id: u.id,
       type: 'user_joined',
-      title: 'Nuevo Profesor Registrado',
+      title: $t('admin.stats.teachers'),
       subtitle: `${u.displayName} (${u.email})`,
       timestamp: u.createdAt,
       status: 'success'
@@ -111,14 +104,11 @@
 
   onMount(async () => {
     try {
-      // 1. Load initial maintenance status
       const config = await adminApi.getMaintenanceStatus();
       maintenanceMode = config.maintenanceMode;
 
-      // 2. Start Real-time Listeners
       startRealTimeMonitoring();
 
-      // 3. Load Stats (one-time or periodic)
       refreshStats();
       const statsInterval = setInterval(refreshStats, 60000);
       unsubscribes.push(() => clearInterval(statsInterval));
@@ -126,7 +116,7 @@
       isLoading = false;
     } catch (err) {
       console.error("Admin Init Error:", err);
-      toast.error("Error al inicializar panel administrativo");
+      toast.error($t('admin.broadcast.error'));
     }
   });
 
@@ -135,7 +125,6 @@
   });
 
   function startRealTimeMonitoring() {
-    // Listen for Users (Limited to 100 for performance, searchable separately)
     const usersUnsub = onSnapshot(
       query(collection(db, "users"), orderBy("createdAt", "desc"), limit(100)),
       (snap) => {
@@ -144,7 +133,6 @@
       (err) => console.error("Users Listener Error:", err)
     );
 
-    // Listen for System Logs
     const logsUnsub = onSnapshot(
       query(collection(db, "system_logs"), orderBy("timestamp", "desc"), limit(50)),
       (snap) => {
@@ -152,7 +140,6 @@
       }
     );
 
-    // Listen for Lobby Suggestions
     const lobbyUnsub = onSnapshot(
       query(collection(db, "lobby_suggestions"), orderBy("createdAt", "desc")),
       (snap) => {
@@ -168,8 +155,6 @@
     stats = s;
   }
 
-  // --- Actions ---
-
   async function handleSearchUsers(queryStr: string) {
     if (searchTimeout) clearTimeout(searchTimeout);
     
@@ -179,7 +164,7 @@
         const results = await adminApi.getUsersList(100, queryStr);
         users = results;
       } catch (e) {
-        toast.error("Error en la búsqueda");
+        toast.error($t('admin.broadcast.error'));
       } finally {
         isLoading = false;
       }
@@ -198,7 +183,7 @@
       userDetails = details;
       userInsignias = insignias;
     } catch (err) {
-      toast.error("Error al cargar detalles");
+      toast.error($t('admin.broadcast.error'));
     } finally {
       isLoadingDetails = false;
     }
@@ -208,23 +193,22 @@
     isSaving = true;
     try {
       await adminApi.grantTrial(userId, days);
-      toast.success(`Premium concedido por ${days} días`);
-      // No necesitamos refrescar la lista porque onSnapshot se encargará
+      toast.success($t('admin.users.grant_success'));
     } catch (e) {
-      toast.error("Error al conceder premium");
+      toast.error($t('admin.broadcast.error'));
     } finally {
       isSaving = false;
     }
   }
 
   async function handleRevokePremium(userId: string) {
-    if (!confirm("¿Estás seguro de revocar el acceso premium?")) return;
+    if (!confirm($t('admin.msg.revoke_premium_confirm'))) return;
     isSaving = true;
     try {
       await adminApi.revokePremium(userId);
-      toast.success("Acceso premium revocado");
+      toast.success($t('admin.users.revoke_success'));
     } catch (e: any) {
-      toast.error(e.message || "Error al revocar");
+      toast.error(e.message || $t('admin.broadcast.error'));
     } finally {
       isSaving = false;
     }
@@ -235,9 +219,9 @@
     maintenanceMode = next;
     try {
       await adminApi.toggleMaintenanceMode(next);
-      toast.success(`Modo mantenimiento ${next ? 'activado' : 'desactivado'}`);
+      toast.success($t('admin.system.maintenance_toggle_success'));
     } catch (e) {
-      toast.error("Error al cambiar estado");
+      toast.error($t('admin.broadcast.error'));
       maintenanceMode = !next;
     }
   }
@@ -246,9 +230,9 @@
     isSaving = true;
     try {
       const res = await adminApi.repairUsersData();
-      toast.success(`Sincronización completada: ${res.count} usuarios procesados.`);
+      toast.success($t('admin.msg.sync_complete', { count: res.count }));
     } catch (e) {
-      toast.error("Error en sincronización");
+      toast.error($t('admin.broadcast.error'));
     } finally {
       isSaving = false;
     }
@@ -257,37 +241,35 @@
   async function handleUpdateSuggestionStatus(id: string, status: string) {
     try {
       await adminApi.updateSuggestionStatus(id, status);
-      toast.success("Estado actualizado");
+      toast.success($t('admin.system.maintenance_toggle_success'));
     } catch (e) {
-      toast.error("Error al actualizar");
+      toast.error($t('admin.broadcast.error'));
     }
   }
 
   async function handleDeleteSuggestion(id: string) {
-    if (!confirm("¿Eliminar sugerencia permanentemente?")) return;
+    if (!confirm($t('admin.msg.delete_suggestion_confirm'))) return;
     try {
       await adminApi.deleteSuggestion(id);
-      toast.success("Sugerencia eliminada");
+      toast.success($t('admin.lobby.delete'));
     } catch (e) {
-      toast.error("Error al eliminar");
+      toast.error($t('admin.broadcast.error'));
     }
   }
 
   async function handleImpersonate(user: any) {
-    if (!confirm(`¿Deseas entrar en la cuenta de ${user.email}?`)) return;
+    if (!confirm($t('admin.msg.impersonate_confirm', { email: user.email }))) return;
     
     try {
-      // Set the impersonation cookie via api call or similar
-      // For now, we use a simple approach: navigate to a handler or set directly if possible
       document.cookie = `impersonate_id=${user.id}; path=/; max-age=3600; SameSite=Lax`;
       document.cookie = `impersonate_email=${user.email}; path=/; max-age=3600; SameSite=Lax`;
       
-      toast.success(`Iniciando suplantación de ${user.email}...`);
+      toast.success($t('admin.msg.impersonate_start', { email: user.email }));
       setTimeout(() => {
         window.location.href = `/panel`;
       }, 1000);
     } catch (e) {
-      toast.error("Error al iniciar suplantación");
+      toast.error($t('admin.broadcast.error'));
     }
   }
 
@@ -296,9 +278,9 @@
     try {
       await adminApi.awardInsignia(selectedUser.id, insigniaId);
       userInsignias = await adminApi.getUserInsignias(selectedUser.id);
-      toast.success("Insignia concedida");
+      toast.success($t('admin.modal.award_insignias'));
     } catch (e) {
-      toast.error("Error al conceder insignia");
+      toast.error($t('admin.broadcast.error'));
     }
   }
 
@@ -307,9 +289,9 @@
     try {
       await adminApi.revokeInsignia(selectedUser.id, insigniaId);
       userInsignias = await adminApi.getUserInsignias(selectedUser.id);
-      toast.success("Insignia revocada");
+      toast.success($t('admin.modal.award_insignias'));
     } catch (e) {
-      toast.error("Error al revocar");
+      toast.error($t('admin.broadcast.error'));
     }
   }
 
@@ -326,27 +308,27 @@
         <SquaresFour weight="duotone" class="w-6 h-6 text-white" />
       </div>
       <div>
-        <h1 class="text-xl font-black font-display uppercase italic tracking-tighter leading-none">Admin Control Center</h1>
+        <h1 class="text-xl font-black font-display uppercase italic tracking-tighter leading-none">{$t('admin.title')}</h1>
         <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1">ChessNet Operational Interface v2.5</p>
       </div>
     </div>
 
     <div class="flex items-center gap-6">
       <div class="hidden md:flex flex-col items-end border-r border-white/5 pr-6 mr-6">
-        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Estado Sistema</span>
+        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.nav.status')}</span>
         <div class="flex items-center gap-2 mt-1">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-[10px] font-bold text-emerald-400 uppercase">Operational</span>
+          <span class="text-[10px] font-bold text-emerald-400 uppercase">{$t('admin.nav.operational')}</span>
         </div>
       </div>
       
       <div class="flex items-center gap-3">
         <a 
           href="/panel" 
-          class="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all pointer-interactions"
+          class="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all pointer-interactions text-white"
         >
           <ArrowArcLeft weight="bold" class="w-4 h-4" />
-          Salir Admin
+          {$t('admin.nav.exit')}
         </a>
       </div>
     </div>
@@ -356,13 +338,13 @@
     <!-- Sidebar Navigation -->
     <aside class="w-72 min-h-[calc(100vh-84px)] border-r border-white/5 bg-[#020617] p-8 space-y-8 hidden lg:block">
       <div>
-        <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-6">Principal</p>
+        <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-6">{$t('admin.sidebar.principal')}</p>
         <nav class="space-y-2">
           {#each [
-            { id: 'dashboard', label: 'Dashboard', icon: SquaresFour },
-            { id: 'users', label: 'Profesores', icon: Users },
-            { id: 'lobby', label: 'Community Hub', icon: ChatTeardropDots },
-            { id: 'system', label: 'Sistema & Logs', icon: Gear }
+            { id: 'dashboard', label: $t('admin.sidebar.dashboard'), icon: SquaresFour },
+            { id: 'users', label: $t('admin.sidebar.teachers'), icon: Users },
+            { id: 'lobby', label: $t('admin.sidebar.community'), icon: ChatTeardropDots },
+            { id: 'system', label: $t('admin.sidebar.system'), icon: Gear }
           ] as item}
             {@const Icon = item.icon}
             <button 
@@ -377,16 +359,16 @@
       </div>
 
       <div class="pt-8 border-t border-white/5">
-        <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-6">Accesos Rápidos</p>
+        <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-6">{$t('admin.sidebar.shortcuts')}</p>
         <div class="space-y-4">
            <div class="p-5 bg-white/5 rounded-[1.5rem] border border-white/5">
-             <p class="text-[10px] font-bold text-slate-400 mb-2">DB HEALTH</p>
-             <div class="flex items-center justify-between">
-               <span class="text-xl font-bold font-display italic">98%</span>
-               <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400">
-                 <CheckCircle weight="bold" class="w-5 h-5" />
-               </div>
-             </div>
+              <p class="text-[10px] font-bold text-slate-400 mb-2">{$t('admin.sidebar.db_health')}</p>
+              <div class="flex items-center justify-between">
+                <span class="text-xl font-bold font-display italic">98%</span>
+                <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400">
+                  <CheckCircle weight="bold" class="w-5 h-5" />
+                </div>
+              </div>
            </div>
         </div>
       </div>
@@ -405,7 +387,7 @@
          <div class="h-full flex items-center justify-center" in:fade>
            <div class="flex flex-col items-center gap-6">
               <div class="w-16 h-16 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
-              <p class="text-xs font-black uppercase tracking-widest text-slate-500">Cargando Sistema Real-time...</p>
+              <p class="text-xs font-black uppercase tracking-widest text-slate-500">{$t('admin.msg.loading_realtime')}</p>
            </div>
          </div>
       {:else}
@@ -415,15 +397,15 @@
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div>
                     <h2 class="text-4xl font-black font-display uppercase italic tracking-[ -0.05em] leading-[0.9]">Operational<br/><span class="text-primary-500">Overview</span></h2>
-                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-4 flex items-center gap-2">
+                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-4 flex items-center gap-2 text-white">
                       <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                      Real-time Infrastructure Sync active
+                      {$t('admin.dashboard.sync')}
                     </p>
                   </div>
                   <div class="flex items-center gap-2">
-                     <button onclick={refreshStats} class="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2">
+                     <button onclick={refreshStats} class="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2 text-white">
                         <Pulse class="w-4 h-4" />
-                        Refresh Global Data
+                        {$t('admin.dashboard.refresh')}
                      </button>
                   </div>
                 </div>
@@ -442,29 +424,29 @@
                       <!-- Critical Actions Card -->
                       <div class="bg-gradient-to-br from-red-500/10 to-violet-500/10 backdrop-blur-xl border border-white/10 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
                         <div class="relative z-10 space-y-8">
-                           <h3 class="text-xl font-black font-display uppercase italic tracking-wider flex items-center gap-3">
+                           <h3 class="text-xl font-black font-display uppercase italic tracking-wider flex items-center gap-3 text-white">
                              <Shield weight="duotone" class="w-7 h-7 text-red-500" />
-                             Critical Guard
+                             {$t('admin.guard.title')}
                            </h3>
                            <div class="space-y-4">
                              <button 
-                               onclick={handleToggleMaintenance}
-                               class="w-full flex items-center justify-between p-6 rounded-3xl border {maintenanceMode ? 'bg-red-500 text-white border-red-400 shadow-xl shadow-red-500/20' : 'bg-black/20 border-white/5 text-slate-400 hover:border-white/20'} transition-all group/btn"
+                                onclick={handleToggleMaintenance}
+                                class="w-full flex items-center justify-between p-6 rounded-3xl border {maintenanceMode ? 'bg-red-500 text-white border-red-400 shadow-xl shadow-red-500/20' : 'bg-black/20 border-white/5 text-slate-400 hover:border-white/20'} transition-all group/btn"
                              >
-                               <div class="text-left">
-                                 <p class="text-[10px] font-black uppercase tracking-widest opacity-60">Maintenance Mode</p>
-                                 <p class="text-sm font-bold uppercase italic">{maintenanceMode ? 'ACTIVE' : 'INACTIVE'}</p>
-                               </div>
-                               <Gear weight="fill" class="w-6 h-6 animate-spin-slow group-hover/btn:rotate-90 transition-transform" />
+                                <div class="text-left">
+                                  <p class="text-[10px] font-black uppercase tracking-widest opacity-60">{$t('admin.guard.maintenance_mode')}</p>
+                                  <p class="text-sm font-bold uppercase italic">{maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}</p>
+                                </div>
+                                <Gear weight="fill" class="w-6 h-6 animate-spin-slow group-hover/btn:rotate-90 transition-transform" />
                              </button>
                              
                              <button 
-                               onclick={handleRepairUsers}
-                               class="w-full flex items-center justify-between p-6 rounded-3xl bg-black/40 border border-white/5 text-slate-400 hover:border-primary-500/30 hover:bg-primary-500/10 hover:text-primary-400 transition-all"
+                                onclick={handleRepairUsers}
+                                class="w-full flex items-center justify-between p-6 rounded-3xl bg-black/40 border border-white/5 text-slate-400 hover:border-primary-500/30 hover:bg-primary-500/10 hover:text-primary-400 transition-all"
                              >
                                 <div class="text-left">
-                                  <p class="text-[10px] font-black uppercase tracking-widest opacity-60">Database Integrity</p>
-                                  <p class="text-sm font-bold uppercase italic">Sync & Repair</p>
+                                  <p class="text-[10px] font-black uppercase tracking-widest opacity-60">{$t('admin.guard.db_integrity')}</p>
+                                  <p class="text-sm font-bold uppercase italic">{$t('admin.guard.sync_repair')}</p>
                                 </div>
                                 <Pulse weight="bold" class="w-6 h-6" />
                              </button>
@@ -477,20 +459,20 @@
                       <!-- System Info -->
                       <div class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] space-y-6">
                         <div class="flex items-center justify-between">
-                          <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Environment Status</h4>
-                          <span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded text-[8px] font-black">STABLE</span>
+                          <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.env.title')}</h4>
+                          <span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded text-[8px] font-black">{$t('admin.env.stable')}</span>
                         </div>
                         <div class="space-y-4">
                           <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-600 font-bold uppercase">Uptime</span>
+                            <span class="text-slate-600 font-bold uppercase">{$t('admin.env.uptime')}</span>
                             <span class="text-white font-black italic">99.98%</span>
                           </div>
                           <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-600 font-bold uppercase">CPU Load</span>
+                            <span class="text-slate-600 font-bold uppercase">{$t('admin.env.cpu')}</span>
                             <span class="text-white font-black italic">12.4%</span>
                           </div>
                           <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-600 font-bold uppercase">Region</span>
+                            <span class="text-slate-600 font-bold uppercase">{$t('admin.env.region')}</span>
                             <span class="text-white font-black italic">europe-west3</span>
                           </div>
                         </div>
@@ -502,9 +484,9 @@
           {:else if activeTab === 'users'}
             <div class="space-y-12">
                <div>
-                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter">Directorio de Profesores</h2>
+                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter text-white">{$t('admin.users.list_title')}</h2>
                   <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
-                    Gestión total, suplantación y concesión de premium
+                    {$t('admin.users.list_subtitle')}
                   </p>
                </div>
 
@@ -519,8 +501,8 @@
           {:else if activeTab === 'lobby'}
              <div class="space-y-10">
                <div>
-                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter">Community Moderator</h2>
-                  <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2 italic">Feedback directo de la comunidad de profesores</p>
+                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter text-white">{$t('admin.lobby.title')}</h2>
+                  <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2 italic">{$t('admin.lobby.subtitle')}</p>
                </div>
 
                <div class="grid grid-cols-1 gap-6">
@@ -532,7 +514,7 @@
                      <div class="flex flex-col md:flex-row gap-8">
                        <div class="flex-1 space-y-4">
                          <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center font-black border border-white/10 uppercase">
+                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center font-black border border-white/10 uppercase text-white">
                               {s.authorName?.[0] || 'A'}
                             </div>
                             <div>
@@ -540,26 +522,26 @@
                                <p class="text-[9px] text-slate-500 font-bold uppercase italic">{new Date(s.createdAt).toLocaleDateString()}</p>
                             </div>
                          </div>
-                         <h4 class="text-xl font-black uppercase italic tracking-tight">{s.title}</h4>
+                         <h4 class="text-xl font-black uppercase italic tracking-tight text-white">{s.title}</h4>
                          <p class="text-sm text-slate-400 leading-relaxed font-medium">{s.content}</p>
                        </div>
                        
                        <div class="md:w-64 space-y-3">
-                           <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest ml-1">Update Status</p>
+                           <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest ml-1">{$t('admin.lobby.update_status')}</p>
                            <select 
                              value={s.status} 
                              onchange={(e) => handleUpdateSuggestionStatus(s.id, (e.target as HTMLSelectElement).value)}
                              class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold uppercase outline-none focus:border-primary-500 transition-all appearance-none text-slate-400"
                            >
-                             <option value="pending">En Revisión</option>
-                             <option value="planned">Planificado</option>
-                             <option value="implemented">Completado</option>
+                             <option value="pending">{$t('admin.lobby.status_pending')}</option>
+                             <option value="planned">{$t('admin.lobby.status_planned')}</option>
+                             <option value="implemented">{$t('admin.lobby.status_implemented')}</option>
                            </select>
                            <button 
                              onclick={() => handleDeleteSuggestion(s.id)}
-                             class="w-full py-3 bg-red-500/10 text-red-500 rounded-xl border border-red-500/20 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                             class="w-full py-3 bg-red-500/10 text-red-500 rounded-xl border border-red-500/20 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 cursor-pointer"
                            >
-                              Eliminar Sugerencia
+                              {$t('admin.lobby.delete')}
                            </button>
                         </div>
                      </div>
@@ -571,8 +553,8 @@
           {:else if activeTab === 'system'}
              <div class="space-y-12">
                 <div>
-                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter">System Engine</h2>
-                  <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Logs de operaciones y controles de infraestructura</p>
+                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter text-white">{$t('admin.system.engine')}</h2>
+                  <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">{$t('admin.system.engine_desc')}</p>
                 </div>
                 
                 <StripeSimulator />
@@ -606,13 +588,13 @@
               <UserCircle class="w-10 h-10" />
             </div>
             <div>
-              <h3 class="text-2xl font-black font-display uppercase italic text-white leading-none">Command Manager</h3>
+              <h3 class="text-2xl font-black font-display uppercase italic text-white leading-none">{$t('admin.modal.command_manager')}</h3>
               <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-2">{selectedUser?.email}</p>
             </div>
           </div>
           <button 
             onclick={() => showEditModal = false}
-            class="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all"
+            class="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all cursor-pointer text-white"
           >
             <X weight="bold" class="w-6 h-6" />
           </button>
@@ -622,9 +604,9 @@
            <!-- Entity Counts -->
            <div class="grid grid-cols-3 gap-6">
               {#each [
-                { label: 'Escuelas', val: userDetails?.schools || 0 },
-                { label: 'Clases', val: userDetails?.classes || 0 },
-                { label: 'Alumnos', val: userDetails?.students || 0 }
+                { label: $t('admin.stats.schools'), val: userDetails?.schools || 0 },
+                { label: $t('admin.stats.classes'), val: userDetails?.classes || 0 },
+                { label: $t('admin.stats.students'), val: userDetails?.students || 0 }
               ] as ent}
                 <div class="bg-black/40 border border-white/5 p-6 rounded-[1.5rem] text-center">
                   <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">{ent.label}</p>
@@ -641,25 +623,25 @@
            <div class="space-y-4">
               <div class="flex items-center gap-3 mb-2">
                 <Crown weight="duotone" class="w-5 h-5 text-amber-500" />
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Subscription Control</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.modal.subscription_control')}</p>
               </div>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                  {#each [3, 7, 30, 365] as days}
                    <button 
                     onclick={() => handleGrantPremium(selectedUser?.id, days)}
                     disabled={isSaving}
-                    class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-white/5 border border-white/10 hover:bg-primary-500/10 hover:text-primary-400 hover:border-primary-500/30 disabled:opacity-50"
+                    class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-white/5 border border-white/10 hover:bg-primary-500/10 hover:text-primary-400 hover:border-primary-500/30 disabled:opacity-50 text-white cursor-pointer"
                    >
-                    {days === 365 ? '1 Año' : `${days} Días`}
+                    {days === 365 ? $t('admin.modal.one_year') : $t('admin.users.days', { n: days })}
                    </button>
                  {/each}
               </div>
               {#if getPlanStatus(selectedUser) === 'pro'}
                  <button 
                   onclick={() => handleRevokePremium(selectedUser?.id)}
-                  class="w-full py-4 bg-red-500/10 text-red-500 border border-red-500/30 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all mt-2"
+                  class="w-full py-4 bg-red-500/10 text-red-500 border border-red-500/30 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all mt-2 cursor-pointer shadow-lg shadow-red-500/5"
                  >
-                  Revocar Todos los Privilegios
+                  {$t('admin.modal.revoke_privileges')}
                  </button>
               {/if}
            </div>
@@ -668,14 +650,14 @@
            <div class="space-y-4">
               <div class="flex items-center gap-3 mb-2">
                 <Star weight="duotone" class="w-5 h-5 text-violet-500" />
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Award Insignias</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.modal.award_insignias')}</p>
               </div>
               <div class="flex flex-wrap gap-2">
                 {#each INSIGNIAS as badge}
                    {@const isOwned = userInsignias.some(ui => ui.id === badge.id)}
                    <button 
                     onclick={() => isOwned ? handleRevokeInsignia(badge.id) : handleAwardInsignia(badge.id)}
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all {isOwned ? 'bg-violet-500 border-violet-400 text-white shadow-lg shadow-violet-500/20' : 'bg-black/20 border-white/10 text-slate-500 hover:border-white/30 hover:text-slate-300'}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all {isOwned ? 'bg-violet-500 border-violet-400 text-white shadow-lg shadow-violet-500/20' : 'bg-black/20 border-white/10 text-slate-500 hover:border-white/30 hover:text-slate-300'} cursor-pointer"
                    >
                     <badge.icon weight="fill" class="w-4 h-4" />
                     <span class="text-[10px] font-black uppercase tracking-widest">{$t(badge.titleKey)}</span>

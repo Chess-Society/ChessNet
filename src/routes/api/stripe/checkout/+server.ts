@@ -3,13 +3,24 @@ import type { RequestHandler } from './$types';
 import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
 
-export const POST: RequestHandler = async ({ request, url }) => {
+import { authenticate } from '$lib/server/auth';
+
+export const POST: RequestHandler = async (event) => {
+  const { request, url, locals } = event;
+  await authenticate(event);
+  
+  if (!locals.user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
   const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
   try {
-    const { plan_name, price_id, uid, user_email } = await request.json();
+    const { plan_name, price_id } = await request.json();
+    const uid = locals.user.uid;
+    const user_email = locals.user.email;
 
-    if (!price_id || !uid) {
-      return json({ success: false, error: 'Faltan parámetros obligatorios (price_id, uid)' }, { status: 400 });
+    if (!price_id) {
+      return json({ success: false, error: 'Falta el ID de precio' }, { status: 400 });
     }
 
     // Crear sesión de Stripe Checkout

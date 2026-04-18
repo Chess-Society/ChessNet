@@ -98,7 +98,7 @@
 </script>
 
 <svelte:head>
-  <title>Attendance Control - ChessNet</title>
+  <title>{$t('attendance.title')} - ChessNet</title>
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-6 py-8" transition:fade>
@@ -110,7 +110,9 @@
         <ListChecks weight="duotone" class="w-8 h-8" />
       </div>
       <div>
-        <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">{$t('attendance.title')}</h1>
+        <h1 class="text-3xl font-heading font-black text-white italic tracking-tight uppercase">
+      {$t('attendance.title')}
+    </h1>
         <p class="text-slate-400 font-plus-jakarta text-sm">{$t('attendance.subtitle')}</p>
       </div>
     </div>
@@ -242,7 +244,7 @@
     {#if viewMode === 'list'}
       <div class="bento-card overflow-hidden" transition:fly={{ y: 20 }}>
         <div class="px-8 py-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-            <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.list_title')}</span>
+                <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.list_title')}</span>
             <div class="flex items-center gap-2 text-[10px] font-outfit font-medium text-slate-500">
                 <CloudCheck weight="duotone" class="w-4 h-4 text-primary-500" />
                 {$t('attendance.synced')}
@@ -259,7 +261,7 @@
                         <div>
                             <p class="text-white font-outfit font-bold group-hover:text-violet-400 transition-colors uppercase tracking-tight">{student.name}</p>
                             <div class="flex items-center gap-2 mt-0.5">
-                                <span class="px-2 py-0.5 bg-violet-600/10 text-violet-400 text-[10px] font-bold rounded-md uppercase tracking-wider">{student.level || 'No level'}</span>
+                                <span class="px-2 py-0.5 bg-violet-600/10 text-violet-400 text-[10px] font-bold rounded-md uppercase tracking-wider">{student.level || $t('attendance.level_not_assigned')}</span>
                                 <span class="text-[10px] text-slate-500 font-medium">ID: {student.id.slice(0, 8)}</span>
                             </div>
                         </div>

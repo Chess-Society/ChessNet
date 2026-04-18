@@ -36,7 +36,7 @@
   } from 'lucide-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
-  import { t } from '$lib/i18n';
+  import { t, locale } from '$lib/i18n';
 
   let { data } = $props<{ data: PageData }>();
 
@@ -44,11 +44,11 @@
 
   // Helper functions
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+    return new Date(dateString).toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat($locale === 'es' ? 'es-ES' : 'en-US', {
       style: 'currency',
       currency: 'EUR'
     }).format(amount);
@@ -108,7 +108,7 @@
 </script>
 
 <svelte:head>
-  <title>{$t('reports.title', { name: student?.name || 'Student' })} - ChessNet</title>
+  <title>{$t('reports.title', { name: student?.name || $t('common.student') })} - ChessNet</title>
 </svelte:head>
 
 {#if !report}
@@ -233,7 +233,7 @@
          <div>
             <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.balance')}</span>
             <p class={`text-2xl font-black mt-1 uppercase leading-none ${progress.overdue_payments > 0 ? 'text-red-400' : 'text-primary-400'}`}>
-              {progress.overdue_payments > 0 ? `-${progress.overdue_payments}` : 'OK'}
+              {progress.overdue_payments > 0 ? `-${progress.overdue_payments}` : $t('reports.common.ok')}
             </p>
          </div>
          <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
@@ -577,7 +577,7 @@
                                 </span>
                              </td>
                              <td class="px-8 py-6 text-right">
-                                <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{pay.payment_reference || 'N/A'}</p>
+                                <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{pay.payment_reference || $t('reports.common.na')}</p>
                                 {#if pay.paid_date}
                                   <p class="text-[8px] font-bold text-primary-500/50 uppercase">{$t('reports.payments.paid')}: {formatDate(pay.paid_date)}</p>
                                 {/if}
@@ -638,7 +638,7 @@
                               {#each tmnt.games as g}
                                  <div class="p-5 bg-surface-950/80 border border-surface-900 rounded-2xl flex items-center justify-between group hover:border-primary-500/30 transition-all">
                                     <div class="flex items-center gap-4">
-                                       <div class="w-10 h-10 rounded-xl bg-surface-900 flex items-center justify-center text-[10px] font-black text-surface-400">R{g.round}</div>
+                                       <div class="w-10 h-10 rounded-xl bg-surface-900 flex items-center justify-center text-[10px] font-black text-surface-400">{$t('reports.common.round_short')}{g.round}</div>
                                        <div>
                                           <p class="text-[11px] font-black text-white uppercase tracking-tight">{g.opponent}</p>
                                           <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-0.5">{$t('reports.tournaments.rating')}: {g.opponent_rating}</p>

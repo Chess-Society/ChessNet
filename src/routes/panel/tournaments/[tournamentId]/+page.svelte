@@ -37,6 +37,7 @@
   import { showToast, showError } from '$lib/stores/toast';
   import TournamentBracket from '$lib/components/tournaments/TournamentBracket.svelte';
   import TournamentCrosstable from '$lib/components/tournaments/TournamentCrosstable.svelte';
+  import { uiStore } from '$lib/stores/uiStore';
 
   const tournamentId = page.params.tournamentId;
   
@@ -77,13 +78,13 @@
         } else {
             await api.addPlayer(tournamentId, selectedStudentId);
         }
-        showToast.success($t('tournaments.player_registered') || 'Player registered successfully');
+        showToast.success($t('tournaments.player_registered'));
         showRegModal = false;
         selectedStudentId = '';
         manualPlayerName = '';
     } catch (error: any) {
         console.error("Error registering player:", error);
-        showError(error.message || $t('tournaments.error_registering_player') || 'Error registering player');
+        showError(error.message || $t('tournaments.error_registering_player'));
     } finally {
         isProcessing = false;
     }
@@ -92,6 +93,15 @@
   // Logic: Start (Generate Round 1)
   const handleStart = async () => {
       if (!tournament || players.length < 2 || !tournamentId) return;
+
+      const confirmed = await uiStore.confirm({
+          title: $t('tournaments.start_tournament_confirm'),
+          icon: Play,
+          confirmText: $t('common.confirm')
+      });
+
+      if (!confirmed) return;
+
       isProcessing = true;
       try {
           const api = await getLocalTournamentsApi();
@@ -150,10 +160,10 @@
         const api = await getLocalTournamentsApi();
         await api.updateTournament(tournamentId, { currentRound: nextRoundNo });
         await api.generatePairings(tournamentId, nextRoundNo);
-        showToast.success($t('tournaments.round_generated') || 'Round generated successfully');
+        showToast.success($t('tournaments.round_generated'));
     } catch (error) {
         console.error("Error generating next round:", error);
-        showError($t('tournaments.error_generating_round') || 'Error generating round');
+        showError($t('tournaments.error_generating_round'));
     } finally {
         isProcessing = false;
     }
@@ -165,7 +175,7 @@
     try {
         const api = await getLocalTournamentsApi();
         await api.updateTournament(tournamentId, { status: 'completed' });
-        showToast.success($t('tournaments.completed') || 'Tournament completed!');
+        showToast.success($t('tournaments.status_completed'));
         activeTab = 'standings';
     } catch (error) {
         console.error("Error finishing tournament:", error);
@@ -177,16 +187,16 @@
   const handleResetRound = async () => {
     if (!tournamentId || !tournament) return;
     const currentRoundNo = tournament.currentRound || 1;
-    if (!confirm(`${$t('tournaments.confirm_reset_round') || 'Are you sure you want to reset the current round? All results for this round will be lost.'}`)) return;
+    if (!confirm($t('tournaments.confirm_reset_round'))) return;
 
     isProcessing = true;
     try {
         const api = await getLocalTournamentsApi();
         await api.resetRound(tournamentId, currentRoundNo);
-        showToast.success($t('tournaments.round_reset_success') || 'Round reset successfully');
+        showToast.success($t('tournaments.round_reset_success'));
     } catch (error) {
         console.error("Error resetting round:", error);
-        showError($t('tournaments.error_resetting_round') || 'Error resetting round');
+        showError($t('tournaments.error_resetting_round'));
     } finally {
         isProcessing = false;
     }
@@ -216,7 +226,7 @@
       try {
           const api = await getLocalTournamentsApi();
           await api.removePlayer(tournamentId, studentId);
-          showToast.success($t('tournaments.player_removed') || 'Player removed');
+          showToast.success($t('tournaments.player_removed'));
       } catch (error) {
           console.error("Error removing player:", error);
           showError(error);
@@ -252,7 +262,7 @@
   <div class="h-screen flex items-center justify-center text-zinc-500 font-outfit" in:fade>
     <div class="text-center group">
         <Trophy weight="duotone" class="w-16 h-16 mx-auto mb-4 text-zinc-800 group-hover:text-violet-500 transition-colors duration-500" />
-        <p class="text-lg font-bold">{$t('tournaments.not_found') || 'Tournament not found...'}</p>
+        <p class="text-lg font-bold">{$t('tournaments.not_found')}</p>
         <button onclick={() => goto('/panel/tournaments')} class="mt-4 text-violet-500 hover:text-violet-400 font-bold transition-colors">{$t('tournaments.back')}</button>
     </div>
   </div>
@@ -300,6 +310,7 @@
           <button 
             onclick={() => goto(`/panel/tournaments/${tournamentId}/edit`)}
             class="w-14 h-14 bg-zinc-900 border border-zinc-800 hover:border-violet-500/50 text-zinc-400 hover:text-white rounded-2xl flex items-center justify-center transition-all shadow-xl group"
+            title={$t('tournaments.manage_title')}
           >
             <Gear weight="duotone" class="w-6 h-6 group-hover:rotate-90 transition-transform duration-500" />
           </button>
@@ -313,7 +324,7 @@
             { id: 'players', label: $t('tournaments.tab_players'), icon: Users },
             { id: 'pairings', label: $t('tournaments.tab_pairings'), icon: Table },
             ...(tournament?.format === 'knockout' ? [{ id: 'brackets', label: $t('tournaments.tab_brackets'), icon: Target }] : []),
-            ...(tournament?.format === 'round_robin' ? [{ id: 'crosstable', label: $t('tournaments.tab_crosstable') || 'Crosstable', icon: ChartBar }] : []),
+            ...(tournament?.format === 'round_robin' ? [{ id: 'crosstable', label: $t('tournaments.tab_crosstable'), icon: ChartBar }] : []),
             { id: 'standings', label: $t('tournaments.tab_standings'), icon: Trophy }
         ] as tab}
             <button 
@@ -340,8 +351,8 @@
                             <Info weight="duotone" class="w-6 h-6" />
                         </div>
                         <div>
-                            <p class="text-xs font-black text-violet-400 uppercase tracking-widest">Torneo Presencial</p>
-                            <p class="text-[11px] text-zinc-400 font-medium uppercase tracking-wider mt-0.5">Este es un panel de gestión para torneos en vivo. Los resultados se registran manualmente.</p>
+                            <h2 class="text-xs font-bold text-zinc-500 uppercase tracking-widest leading-none">{$t('tournaments.type_live')}</h2>
+                            <p class="text-[10px] text-zinc-500 leading-tight mt-1">{$t('tournaments.live_panel_desc')} {$t('tournaments.live_panel_manual')}</p>
                         </div>
                     </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6" in:fly={{ y: 20 }}>
@@ -376,7 +387,7 @@
                                     <MapPin weight="duotone" class="w-5 h-5 text-zinc-500" />
                                     <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">{$t('tournaments.format')}</span>
                                 </div>
-                                <span class="text-sm font-bold text-white uppercase">{tournament.format === 'swiss' ? $t('tournaments.format_swiss') : tournament.format}</span>
+                                <span class="text-sm font-bold text-white uppercase">{tournament.format === 'swiss' ? $t('tournaments.type_swiss') : (tournament.format === 'round_robin' ? $t('tournaments.type_round_robin') : $t('tournaments.type_knockout'))}</span>
                             </div>
                         </div>
                     </div>
@@ -414,7 +425,7 @@
                         <table class="w-full text-left">
                             <thead class="bg-zinc-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                                 <tr>
-                                    <th class="px-8 py-5 w-24">{$t('tournaments.participants.seed') || 'SEED'}</th>
+                                    <th class="px-8 py-5 w-24">{$t('tournaments.participants.seed')}</th>
                                     <th class="px-8 py-5">{$t('tournaments.participants.name')}</th>
                                     <th class="px-8 py-5">{$t('tournaments.participants.elo')}</th>
                                     <th class="px-8 py-5">{$t('tournaments.participants.status')}</th>
@@ -435,7 +446,7 @@
                                                 <div class="flex flex-col">
                                                     <span class="font-bold text-white text-sm uppercase tracking-tight">{player.student_name}</span>
                                                     {#if player.status === 'withdrawn'}
-                                                        <span class="text-[8px] text-red-500 font-black tracking-widest uppercase">{$t('tournaments.withdrawn') || 'Withdrawn'}</span>
+                                                        <span class="text-[8px] text-red-500 font-black tracking-widest uppercase">{$t('tournaments.status_withdrawn')}</span>
                                                     {/if}
                                                 </div>
                                             </div>
@@ -447,14 +458,14 @@
                                             </div>
                                         </td>
                                         <td class="px-8 py-5">
-                                            <span class="px-2.5 py-1 rounded-lg {player.status === 'withdrawn' ? 'bg-red-500/5 text-red-400 border-red-500/10' : 'bg-violet-500/5 text-violet-400 border-violet-500/10'} border text-[10px] uppercase font-black tracking-widest">{player.status === 'withdrawn' ? ($t('tournaments.status_withdrawn') || 'Withdrawn') : $t('tournaments.status.confirmed')}</span>
+                                            <span class="px-2.5 py-1 rounded-lg {player.status === 'withdrawn' ? 'bg-red-500/5 text-red-400 border-red-500/10' : 'bg-violet-500/5 text-violet-400 border-violet-500/10'} border text-[10px] uppercase font-black tracking-widest">{player.status === 'withdrawn' ? $t('tournaments.status_withdrawn') : $t('tournaments.status.confirmed')}</span>
                                         </td>
                                         <td class="px-8 py-5 text-right">
                                             <div class="flex items-center justify-end gap-2">
                                                 <button 
                                                     onclick={() => handleWithdrawPlayer(player.student_id, player.status)}
                                                     class="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500 hover:text-red-400"
-                                                    title={player.status === 'withdrawn' ? 'Re-activate' : 'Withdraw'}
+                                                    title={player.status === 'withdrawn' ? $t('tournaments.player_reactivated') : $t('tournaments.player_withdrawn')}
                                                 >
                                                     {#if player.status === 'withdrawn'}
                                                         <ArrowClockwise weight="bold" class="w-4 h-4" />
@@ -466,6 +477,7 @@
                                                     onclick={() => removePlayer(player.student_id)}
                                                     disabled={rounds.length > 0}
                                                     class="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500 hover:text-red-400 disabled:opacity-30"
+                                                    title={$t('tournaments.delete_permanently')}
                                                 >
                                                     <Trash weight="bold" class="w-4 h-4" />
                                                 </button>
@@ -528,7 +540,7 @@
                                  <button 
                                     onclick={handlePrintRound}
                                     class="p-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-xl transition-all active:scale-95 flex items-center gap-2"
-                                    title={$t('tournaments.print_round') || 'Print Round'}
+                                    title={$t('tournaments.print_round')}
                                  >
                                     <Printer weight="bold" class="w-5 h-5" />
                                  </button>
@@ -585,10 +597,10 @@
                                                         <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-bold text-white shadow-inner">W</div>
                                                         <span class="font-bold text-white text-sm truncate max-w-[120px]">{p.white_name}</span>
                                                     </div>
-                                                    {#if p.result === '1-0'}
-                                                        <div class="px-3 py-1 bg-violet-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/20">WIN</div>
+                                                    {#if p.result === '1-0' || p.result === '0-1'}
+                                                        <div class="px-3 py-1 bg-violet-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/20">{$t('tournaments.win')}</div>
                                                     {:else if p.result === '1/2-1/2'}
-                                                        <div class="px-3 py-1 bg-zinc-800 text-zinc-400 rounded-lg text-[10px] font-black uppercase tracking-widest">DRAW</div>
+                                                        <div class="px-3 py-1 bg-zinc-800 text-zinc-400 rounded-lg text-[10px] font-black uppercase tracking-widest">{$t('tournaments.draw')}</div>
                                                     {/if}
                                                 </div>
 
@@ -599,9 +611,9 @@
                                                         <span class="font-bold text-white text-sm truncate max-w-[120px]">{p.bye ? $t('tournaments.bye') : p.black_name}</span>
                                                     </div>
                                                     {#if p.result === '0-1'}
-                                                        <div class="px-3 py-1 bg-violet-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/20">WIN</div>
+                                                        <div class="px-3 py-1 bg-violet-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/20">{$t('tournaments.white_wins').split(' ')[0]}</div>
                                                     {:else if p.result === '1/2-1/2'}
-                                                        <div class="px-3 py-1 bg-zinc-800 text-zinc-400 rounded-lg text-[10px] font-black uppercase tracking-widest">DRAW</div>
+                                                        <div class="px-3 py-1 bg-zinc-800 text-zinc-400 rounded-lg text-[10px] font-black uppercase tracking-widest">{$t('tournaments.draw')}</div>
                                                     {/if}
                                                 </div>
                                             </div>
@@ -648,7 +660,7 @@
                     <div class="mb-8">
                         <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight flex items-center gap-3">
                             <ChartBar weight="fill" class="w-6 h-6 text-violet-500" />
-                            {$t('tournaments.crosstable_view') || 'Result Matrix (Crosstable)'}
+                            {$t('tournaments.crosstable_view')}
                         </h3>
                     </div>
                     <TournamentCrosstable {players} {pairings} />
@@ -683,10 +695,10 @@
                                      <th class="px-8 py-5 text-center">{$t('tournaments.points')}</th>
                                      {#if tournament.format !== 'knockout'}
                                          <th class="px-8 py-5 text-center">
-                                             {tournament.format === 'round_robin' ? 'SONNEB.' : 'BUCHHOLZ'}
+                                             {tournament.format === 'round_robin' ? $t('tournaments.tiebreak_sb') : $t('tournaments.tiebreak_bh')}
                                          </th>
                                          <th class="px-8 py-5 text-center">
-                                             {tournament.format === 'round_robin' ? 'BUCHHOLZ' : 'SONNEB.'}
+                                             {tournament.format === 'round_robin' ? $t('tournaments.tiebreak_bh') : $t('tournaments.tiebreak_sb')}
                                          </th>
                                      {/if}
                                      <th class="px-8 py-5 text-right w-40">{$t('tournaments.performance')}</th>
@@ -745,7 +757,7 @@
                                                  <span class="font-bold text-white text-base group-hover:text-violet-300 transition-colors uppercase tracking-tight">{player.student_name}</span>
                                                  {#if i === 0}<Crown weight="fill" class="w-4 h-4 text-amber-500 animate-pulse" />{/if}
                                                  {#if player.status === 'withdrawn'}
-                                                     <span class="text-[8px] text-red-500 font-black uppercase">{$t('tournaments.withdrawn_short') || 'DESC'}</span>
+                                                     <span class="text-[10px] font-bold bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded uppercase">{$t('tournaments.withdrawn_short')}</span>
                                                  {/if}
                                              </div>
                                          </td>
@@ -804,15 +816,15 @@
                  <div class="space-y-4 relative z-10">
                      <div class="flex items-center justify-between p-4 bg-zinc-950/80 border border-zinc-800 rounded-2xl group/item hover:border-amber-500/30 transition-all">
                          <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-500 text-xs font-black">1º</div>
-                            <span class="text-xs font-outfit font-bold text-zinc-400 group-hover/item:text-white transition-colors">Gold Trophy + 50%</span>
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-500 text-xs font-black">{$t('tournaments.prizes.first')}</div>
+                            <span class="text-xs font-outfit font-bold text-zinc-400 group-hover/item:text-white transition-colors">{$t('tournaments.prizes.first_desc')}</span>
                          </div>
                          <Crown weight="fill" class="w-4 h-4 text-amber-500" />
                      </div>
                      <div class="flex items-center justify-between p-4 bg-zinc-950/80 border border-zinc-800 rounded-2xl group/item hover:border-slate-400/30 transition-all">
                         <div class="flex items-center gap-3">
-                           <div class="w-8 h-8 rounded-lg bg-slate-500/20 flex items-center justify-center text-slate-300 text-xs font-black">2º</div>
-                           <span class="text-xs font-outfit font-bold text-zinc-400 group-hover/item:text-white transition-colors">Silver Medal + 30%</span>
+                           <div class="w-8 h-8 rounded-lg bg-slate-500/20 flex items-center justify-center text-slate-300 text-xs font-black">{$t('tournaments.prizes.second')}</div>
+                           <span class="text-xs font-outfit font-bold text-zinc-400 group-hover/item:text-white transition-colors">{$t('tournaments.prizes.second_desc')}</span>
                         </div>
                         <Medal weight="fill" class="w-4 h-4 text-slate-400" />
                     </div>
@@ -887,18 +899,18 @@
 
               <div class="relative flex items-center gap-4 py-2">
                   <div class="h-px bg-zinc-800 flex-1"></div>
-                  <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">O REGISTRO DIRECTO</span>
+                  <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{$t('tournaments.manual_registration')}</span>
                   <div class="h-px bg-zinc-800 flex-1"></div>
               </div>
 
               <div class="space-y-3">
-                  <label for="manual-name" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Nombre del Jugador (Amigos/Invitados)</label>
+                  <label for="manual-name" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('tournaments.player_name_label')}</label>
                   <div class="relative group">
                     <UserPlus weight="bold" class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
                     <input 
                         id="manual-name"
                         type="text"
-                        placeholder="Escribe el nombre aquí..."
+                        placeholder="{$t('tournaments.form.player_name_placeholder')}"
                         bind:value={manualPlayerName}
                         class="w-full bg-zinc-950 border border-zinc-800 rounded-[20px] pl-16 pr-8 py-5 text-sm text-white font-bold placeholder:text-zinc-700 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all shadow-inner"
                     />

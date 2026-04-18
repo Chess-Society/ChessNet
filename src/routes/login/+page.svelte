@@ -7,6 +7,7 @@
   import { devLogin } from '$lib/stores/auth';
   import { dev } from '$app/environment';
   import { fade } from 'svelte/transition';
+  import { t } from '$lib/i18n';
 
   let isLoggingIn = $state(false);
   let errorMessage = $state('');
@@ -24,7 +25,7 @@
       const { user, error } = await signInWithGoogle();
       
       if (error) {
-        errorMessage = 'Error al iniciar sesión con Google. Por favor, inténtalo de nuevo.';
+        errorMessage = $t('auth.error.google');
         isLoggingIn = false;
         return;
       }
@@ -47,7 +48,7 @@
         }, 1200);
       }
     } catch (err) {
-      errorMessage = 'Ocurrió un error inesperado al conectar con Google.';
+      errorMessage = $t('auth.error.unexpected');
       isLoggingIn = false;
     }
   };
@@ -62,14 +63,14 @@
         goto('/panel');
       }, 1200);
     } catch (err) {
-      errorMessage = 'El inicio de sesión de desarrollo ha fallado';
+      errorMessage = $t('auth.error.dev');
       isLoggingIn = false;
     }
   };
 </script>
 
 <svelte:head>
-  <title>Login - ChessNet Premium</title>
+  <title>{$t('auth.login_title')} - ChessNet Premium</title>
 </svelte:head>
 
 <div class="min-h-screen bg-[#09090b] text-surface-200 font-sans flex items-center justify-center p-6 relative overflow-hidden">
@@ -91,8 +92,8 @@
           <CheckCircle2 class="w-10 h-10 text-white" />
         </div>
       </div>
-      <h2 class="text-3xl font-display font-black tracking-tighter">Bienvenido de nuevo</h2>
-      <p class="text-primary-400 font-medium mt-2 animate-pulse uppercase tracking-widest text-xs">Preparando tu Panel de Maestro...</p>
+      <h2 class="text-3xl font-display font-black tracking-tighter">{$t('auth.welcome_back')}</h2>
+      <p class="text-primary-400 font-medium mt-2 animate-pulse uppercase tracking-widest text-xs">{$t('auth.preparing_panel')}</p>
     </div>
   {/if}
 
@@ -108,7 +109,7 @@
       <h1 class="text-4xl font-display font-black tracking-tighter text-white uppercase italic">
         Chess<span class="text-primary-500">Net</span>
       </h1>
-      <p class="text-surface-400 text-sm mt-1 font-medium tracking-wide">Plataforma de Gestión de Ajedrez Profesional</p>
+      <p class="text-surface-400 text-sm mt-1 font-medium tracking-wide">{$t('auth.login_subtitle')}</p>
     </div>
 
     <div class="bento-card !p-0 overflow-hidden shadow-2xl shadow-black/50 border-white/10 bg-[#121214]/60 backdrop-blur-xl">
@@ -116,9 +117,9 @@
         <div class="text-center mb-10">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-4">
             <Sparkles class="w-3 h-3" />
-            <span>Acceso Seguro</span>
+            <span>{$t('auth.secure_access')}</span>
           </div>
-          <h2 class="text-2xl font-bold text-white tracking-tight">Iniciar Sesión</h2>
+          <h2 class="text-2xl font-bold text-white tracking-tight">{$t('auth.login_title')}</h2>
         </div>
 
         {#if errorMessage}
@@ -146,7 +147,7 @@
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.81 2.94c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
               {/if}
-              <span>Entrar con Google</span>
+              <span>{$t('auth.google_button')}</span>
             </div>
           </button>
 
@@ -155,7 +156,7 @@
               <div class="relative mb-6">
                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
                 <div class="relative flex justify-center text-[10px] uppercase tracking-[0.3em] font-bold">
-                  <span class="bg-[#121214] px-4 text-surface-500">Entorno Local</span>
+                  <span class="bg-[#121214] px-4 text-surface-500">{$t('auth.local_env')}</span>
                 </div>
               </div>
 
@@ -165,7 +166,7 @@
                 class="w-full h-14 bg-primary-500/10 hover:bg-primary-500/20 text-primary-400 font-bold rounded-2xl border border-primary-500/30 transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden group active:scale-95"
               >
                  <div class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
-                 <span class="tracking-wide">ACCESO MOCK (ChessNet)</span>
+                 <span class="tracking-wide">{$t('auth.mock_access')}</span>
                  <ArrowLeft class="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 rotate-180 transition-all" />
               </button>
             </div>
@@ -174,7 +175,7 @@
 
         <div class="mt-10 pt-8 border-t border-white/5">
           <p class="text-[10px] text-surface-600 font-bold uppercase tracking-[0.2em] text-center italic">
-            "El ajedrez es la vida en miniatura"
+            {$t('auth.quote')}
           </p>
         </div>
       </div>
@@ -183,11 +184,11 @@
     <div class="flex items-center justify-center gap-6">
       <a href="/" class="flex items-center gap-2 text-surface-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
         <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        Volver
+        {$t('auth.back_to_home')}
       </a>
       <span class="w-1 h-1 rounded-full bg-white/10"></span>
       <a href="/panel/lobby?tab=support" class="text-surface-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
-        Soporte
+        {$t('auth.support')}
       </a>
     </div>
   </div>

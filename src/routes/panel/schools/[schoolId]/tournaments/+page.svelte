@@ -8,6 +8,7 @@
     Settings
   } from 'lucide-svelte';
   import type { PageData } from './$types';
+  import { t } from '$lib/i18n';
 
   export let data: PageData;
 
@@ -25,7 +26,7 @@
 </script>
 
 <svelte:head>
-  <title>Torneos - ChessNet</title>
+  <title>{$t('tournaments.school_tournaments_title')} - ChessNet</title>
 </svelte:head>
 
 <div class="min-h-screen bg-slate-900">
@@ -43,15 +44,15 @@
           <div class="flex items-center space-x-3">
             <Trophy class="w-6 h-6 text-primary-500" />
             <div>
-              <h1 class="text-xl font-bold text-white">Torneos y Competiciones</h1>
-              <p class="text-sm text-slate-400">Centro ID: {data.schoolId}</p>
+              <h1 class="text-xl font-bold text-white">{$t('tournaments.hub_title')}</h1>
+              <p class="text-sm text-slate-400">{$t('tournaments.school_id')}: {data.schoolId}</p>
             </div>
           </div>
         </div>
         
         <button class="btn-primary">
           <Plus class="w-4 h-4 mr-2" />
-          Nuevo torneo
+          {$t('tournaments.new_tournament_btn')}
         </button>
       </div>
     </div>
@@ -66,21 +67,21 @@
             <Settings class="w-6 h-6 text-blue-500" />
           </div>
           <div>
-            <h3 class="text-lg font-semibold">Módulo de Torneos en Configuración</h3>
-            <p class="text-slate-400">El sistema de torneos está siendo configurado</p>
+            <h3 class="text-lg font-semibold">{$t('tournaments.module_configuring')}</h3>
+            <p class="text-slate-400">{$t('tournaments.module_configuring_subtitle')}</p>
           </div>
         </div>
         <p class="text-slate-300 mb-4">
-          Esta sección permitirá crear y gestionar torneos de ajedrez, competiciones y eventos para tus estudiantes.
+          {$t('tournaments.module_description')}
         </p>
         <div class="flex space-x-3">
           <button class="btn-primary">
             <Plus class="w-4 h-4 mr-2" />
-            Crear mi primer torneo
+            {$t('tournaments.create_first_tournament')}
           </button>
           <button class="btn-secondary">
             <Trophy class="w-4 h-4 mr-2" />
-            Ver documentación
+            {$t('tournaments.view_docs')}
           </button>
         </div>
       </div>
@@ -94,8 +95,8 @@
             <Trophy class="w-6 h-6 text-primary-500" />
           </div>
           <div>
-            <h3 class="font-semibold">Torneos Suizos</h3>
-            <p class="text-sm text-slate-400">Sistema de emparejamiento automático</p>
+            <h3 class="font-semibold">{$t('tournaments.swiss_tournaments')}</h3>
+            <p class="text-sm text-slate-400">{$t('tournaments.auto_pairing')}</p>
           </div>
         </div>
       </div>
@@ -106,8 +107,8 @@
             <Plus class="w-6 h-6 text-green-500" />
           </div>
           <div>
-            <h3 class="font-semibold">Torneos por Eliminación</h3>
-            <p class="text-sm text-slate-400">Competiciones directas</p>
+            <h3 class="font-semibold">{$t('tournaments.elimination_tournaments')}</h3>
+            <p class="text-sm text-slate-400">{$t('tournaments.direct_competitions')}</p>
           </div>
         </div>
       </div>
@@ -118,8 +119,8 @@
             <Settings class="w-6 h-6 text-yellow-500" />
           </div>
           <div>
-            <h3 class="font-semibold">Torneos por Equipos</h3>
-            <p class="text-sm text-slate-400">Competiciones grupales</p>
+            <h3 class="font-semibold">{$t('tournaments.team_tournaments')}</h3>
+            <p class="text-sm text-slate-400">{$t('tournaments.group_competitions')}</p>
           </div>
         </div>
       </div>
@@ -131,7 +132,7 @@
         <div class="flex items-center">
           <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
           <p class="text-green-300 text-sm">
-            ✅ Módulo de torneos funcionando correctamente. Listo para configurar competiciones.
+            ✅ {$t('tournaments.module_active')}
           </p>
         </div>
       </div>
