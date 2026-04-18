@@ -25,7 +25,7 @@
     Warning
   } from 'phosphor-svelte';
   import { db } from '$lib/firebase';
-  import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, where, deleteDoc, limit } from 'firebase/firestore';
+  import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, where, deleteDoc, limit } from 'firebase/firestore';
   import { user as authUser } from '$lib/stores/auth';
   import { appStore } from '$lib/stores/appStore';
   import { t, locale } from '$lib/i18n';
