@@ -415,7 +415,7 @@
 
         <form onsubmit={(e) => { e.preventDefault(); addPayment(); }} class="ledger-form">
           <div class="form-section">
-            <span class="label">Categoría de la Entidad</span>
+            <span class="label">{$t('payments.entity_category')}</span>
             <div class="toggle-group">
               <button type="button" class:active={formState.payment_type === 'student'} onclick={() => formState.payment_type = 'student'}>
                 <User size={18} /> {$t('common.student')}
@@ -457,7 +457,7 @@
 
           <div class="grid-2">
             <div class="field-group">
-              <label for="concept-select">Concepto</label>
+              <label for="concept-select">{$t('payments.concept')}</label>
               <select id="concept-select" bind:value={formState.concept} required>
                 <option value="monthly_fee">{$t('payments.concepts.monthly_fee')}</option>
                 <option value="registration">{$t('payments.concepts.registration')}</option>
@@ -467,17 +467,17 @@
               </select>
             </div>
             <div class="field-group">
-              <label for="status-select">Estado</label>
+              <label for="status-select">{$t('common.status')}</label>
               <select id="status-select" bind:value={formState.status} required>
-                <option value="paid">Pagado</option>
-                <option value="pending">Pendiente</option>
-                <option value="overdue">Vencido</option>
+                <option value="paid">{$t('payments.status_paid')}</option>
+                <option value="pending">{$t('payments.status_pending')}</option>
+                <option value="overdue">{$t('payments.status_overdue')}</option>
               </select>
             </div>
           </div>
 
           <div class="field-group">
-             <span class="label">Método de Pago</span>
+             <span class="label">{$t('payments.payment_method')}</span>
              <div class="method-pills">
                {#each ['transfer', 'cash', 'card'] as m}
                  <button type="button" class:selected={formState.payment_method === m} onclick={() => formState.payment_method = m}>
@@ -487,8 +487,22 @@
              </div>
           </div>
 
-          <div class="form-footer">
-            <button type="submit" class="submit-btn">{editMode ? $t('payments.edit_record') : $t('payments.new_payment')}</button>
+          <div class="form-footer flex gap-3 mt-4">
+            {#if editMode}
+              <button 
+                type="button" 
+                class="flex-1 p-4 bg-red-500/10 text-red-500 rounded-2xl font-bold uppercase text-xs tracking-widest hover:bg-red-500/20 transition-colors"
+                onclick={() => {
+                  if (formState.id) {
+                    deletePayment(formState.id);
+                    showModal = false;
+                  }
+                }}
+              >
+                {$t('common.delete')}
+              </button>
+            {/if}
+            <button type="submit" class="submit-btn flex-[2] mt-0">{editMode ? $t('payments.edit_record') : $t('payments.new_payment')}</button>
           </div>
         </form>
       </div>

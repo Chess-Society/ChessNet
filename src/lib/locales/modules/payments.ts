@@ -70,6 +70,9 @@ export const en = {
     'payments.modal_subtitle': 'Define the accounting parameters of the transaction',
     'payments.operation_date': 'Operation Date',
     'payments.select_entity': 'Select {type}',
+    'payments.entity_category': 'Entity Category',
+    'payments.concept': 'Concept',
+    'payments.payment_method': 'Payment Method',
 };
 
 export const es = {
@@ -144,4 +147,7 @@ export const es = {
     'payments.modal_subtitle': 'Define los parámetros contables de la transacción',
     'payments.operation_date': 'Fecha de Operación',
     'payments.select_entity': 'Seleccionar {type}',
+    'payments.entity_category': 'Categoría de la Entidad',
+    'payments.concept': 'Concepto',
+    'payments.payment_method': 'Método de Pago',
 };
