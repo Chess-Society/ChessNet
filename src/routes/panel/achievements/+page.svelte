@@ -4,6 +4,7 @@
   import { INSIGNIAS } from '$lib/constants/insignias';
   import { Trophy, Medal, LockKey, CheckCircle, Info, Sparkle, Shield, Star, Crown, Lightning, MagicWand, Users } from 'phosphor-svelte';
   import { t } from '$lib/i18n';
+  import { user } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
   import InsigniaBadge from '$lib/components/ui/InsigniaBadge.svelte';
 
@@ -19,7 +20,7 @@
     schoolsCount: schools.length,
     lessonsCreatedCount: $appStore.skills?.length || 0,
     completedTournamentsCount: tournaments.filter(t => t.status === 'completed').length,
-    lobbyContributionsCount: $appStore.lobbySuggestions?.filter(s => s.authorId === $appStore.user?.uid).length || 0
+    lobbyContributionsCount: $appStore.lobbySuggestions?.filter(s => s.authorId === $user?.uid).length || 0
   });
 
   // Procesar cuáles están desbloqueadas

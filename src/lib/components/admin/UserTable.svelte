@@ -64,9 +64,10 @@
     </div>
   </div>
 
-  <!-- Users Table -->
+  <!-- Users Grid (Mobile) / Table (Desktop) -->
   <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden">
-    <div class="overflow-x-auto">
+    <!-- Desktop Table View -->
+    <div class="hidden lg:block overflow-x-auto">
       <table class="w-full text-left">
         <thead>
           <tr class="bg-black/20 border-b border-white/5">
@@ -141,18 +142,63 @@
                    >
                     <Eye weight="bold" class="w-4 h-4" />
                    </button>
-                   <button 
-                    class="p-3 bg-white/5 border border-white/10 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all pointer-interactions"
-                    title={$t('admin.users.actions.delete')}
-                   >
-                    <Trash weight="bold" class="w-4 h-4" />
-                   </button>
                 </div>
               </td>
             </tr>
           {/each}
         </tbody>
       </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="lg:hidden divide-y divide-white/5">
+      {#each users as user (user.id)}
+        <div class="p-6 space-y-4 hover:bg-white/[0.01] transition-colors">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/5 overflow-hidden">
+                {#if user.photoURL}
+                  <img src={user.photoURL} alt="" class="w-full h-full object-cover" />
+                {:else}
+                  <div class="w-full h-full flex items-center justify-center text-slate-500">
+                    <UserCircle size={20} />
+                  </div>
+                {/if}
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-white uppercase italic tracking-tight">{user.displayName || $t('admin.users.no_name')}</h4>
+                <p class="text-[9px] text-slate-500 font-medium">{user.email}</p>
+              </div>
+            </div>
+            {#if getPlanStatus(user) === 'pro'}
+              <Crown weight="fill" class="w-4 h-4 text-amber-500" />
+            {/if}
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <div class="flex flex-col gap-1">
+              <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest">{$t('admin.users.table.registered')}</p>
+              <p class="text-[10px] text-slate-300 font-bold">{formatDate(user.createdAt)}</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <button 
+                onclick={() => onEdit(user)}
+                class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-400 hover:text-white transition-all"
+              >
+                <IdentificationBadge weight="bold" class="w-3.5 h-3.5" />
+                <span class="text-[9px] font-black uppercase tracking-widest">{$t('admin.users.actions.manage')}</span>
+              </button>
+              <button 
+                onclick={() => onImpersonate(user)}
+                class="p-2.5 bg-white/5 border border-white/10 rounded-lg text-slate-400"
+              >
+                <Eye weight="bold" class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      {/each}
     </div>
 
     {#if users.length === 0}

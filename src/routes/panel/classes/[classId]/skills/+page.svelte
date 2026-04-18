@@ -19,13 +19,16 @@
     CaretUp,
     Trash,
     Info,
-    CheckCircle
+    CheckCircle,
+    ArrowsDownUp,
+    FolderSimple
   } from 'phosphor-svelte';
   import { showToast, showError } from '$lib/stores/toast';
   import { uiStore } from '$lib/stores/uiStore';
   import { t } from '$lib/i18n';
   import type { PageData } from './$types';
-  import { fade, fly, scale } from 'svelte/transition';
+  import { fade, fly, scale, slide } from 'svelte/transition';
+  import { quintOut } from 'svelte/easing';
 
   let { data } = $props<{ data: PageData }>();
   
@@ -68,7 +71,7 @@
     availableSkillsByCategory = (data.availableSkillsByCategory as unknown as Record<string, ExtendedSkill[]>) || {};
     stats = data.stats || { assigned: 0, available: 0, byCategory: {} as Record<string, number> };
     
-    // Expandir todas las categorías por defecto al cargar datos
+    // Expand categories by default
     Object.keys(availableSkillsByCategory).forEach(category => {
       if (expandedCategories[category] === undefined) {
         expandedCategories[category] = true;
@@ -80,7 +83,7 @@
   let isAssigning = $state(false);
   let expandedCategories = $state<Record<string, boolean>>({});
 
-  // Filtrar skills disponibles por búsqueda
+  // Search filter
   let filteredAvailableSkills = $derived(
     Object.entries(availableSkillsByCategory || {}).reduce((acc, [category, skills]) => {
       const filtered = skills.filter(skill =>
@@ -95,37 +98,32 @@
   );
 
   const difficultyColors: Record<string, string> = {
-    beginner: 'text-primary-400 bg-primary-500/10 border-primary-500/20',
-    intermediate: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-    advanced: 'text-red-400 bg-red-500/10 border-red-500/20'
+    beginner: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    intermediate: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    advanced: 'text-rose-400 bg-rose-500/10 border-rose-500/20'
   };
 
   const difficultyLabels: Record<string, string> = {
-    beginner: 'Beginner',
-    intermediate: 'Intermediate',
-    advanced: 'Advanced'
+    beginner: $t('common.levels.beginner'),
+    intermediate: $t('common.levels.intermediate'),
+    advanced: $t('common.levels.advanced')
   };
 
   const categoryIcons: Record<string, any> = {
     'Fundamentals': BookOpen,
     'Tactics': Lightning,
     'Endgames': Star,
-    'Openings': Trophy
+    'Openings': Trophy,
+    'Strategy': Target
   };
 
   const categoryColors: Record<string, string> = {
-    'Fundamentals': 'text-blue-400 bg-blue-500/10',
-    'Tactics': 'text-yellow-400 bg-yellow-500/10',
-    'Endgames': 'text-purple-400 bg-purple-500/10',
-    'Openings': 'text-primary-400 bg-primary-500/10'
+    'Fundamentals': 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+    'Tactics': 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+    'Endgames': 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+    'Openings': 'text-primary-400 bg-primary-500/10 border-primary-500/20',
+    'Strategy': 'text-rose-400 bg-rose-500/10 border-rose-500/20'
   };
-
-  onMount(() => {
-    // Expandir todas las categorías por defecto
-    Object.keys(availableSkillsByCategory).forEach(category => {
-      expandedCategories[category] = true;
-    });
-  });
 
   const handleGoBack = () => {
     goto(`/panel/classes/${classData?.id}`);
@@ -184,7 +182,7 @@
           stats.byCategory[skillToMove.category]++;
         }
         
-        showToast.success(`Skill "${skillToMove?.name}" assigned correctly`);
+        showToast.success($t('common.success.action'));
       } else {
         const error = await response.json();
         showToast.error(error.error || 'Error assigning skill');
@@ -199,10 +197,10 @@
   const handleUnassignSkill = async (skillId: string) => {
     const skill = assignedSkills.find(s => s.id === skillId);
     const confirmed = await uiStore.confirm({
-      title: 'Remove Skill',
-      message: `Are you sure you want to remove "${skill?.name}" from the syllabus?`,
-      confirmText: 'Remove',
-      cancelText: 'Cancel'
+      title: $t('skills.delete_title'),
+      message: `${$t('skills.delete_skill_confirm')} "${skill?.name}"?`,
+      confirmText: $t('common.remove'),
+      cancelText: $t('common.cancel')
     });
     
     if (!confirmed) return;
@@ -231,7 +229,7 @@
           }
         }
         
-        showToast.success(`Skill "${skill?.name}" removed from syllabus`);
+        showToast.success($t('common.success.action'));
       } else {
         const error = await response.json();
         showToast.error(error.error || 'Error removing skill');
@@ -278,164 +276,214 @@
   <title>Syllabus - {classData?.name || 'Class'} - ChessNet</title>
 </svelte:head>
 
-<div class="space-y-10 animate-fade-in pb-20" in:fade>
-  <!-- Header -->
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div class="space-y-12 pb-24 max-w-[1600px] mx-auto px-4 md:px-0">
+  <!-- Elevated Header -->
+  <header class="flex flex-col md:flex-row md:items-end justify-between gap-8 pt-4">
     <div class="space-y-6">
       <button 
         onclick={handleGoBack}
-        class="flex items-center gap-2 text-zinc-500 hover:text-white transition-all group text-[10px] font-black uppercase tracking-[0.2em]"
+        class="flex items-center gap-2.5 text-zinc-500 hover:text-white transition-all group px-4 py-2 bg-zinc-900/40 border border-white/5 rounded-2xl w-fit"
       >
-        <CaretLeft weight="bold" class="w-3 h-3 transition-transform group-hover:-translate-x-1" />
-        Back to Class
+        <CaretLeft weight="bold" class="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+        <span class="text-[10px] font-black uppercase tracking-[0.2em]">{ $t('common.back') }</span>
       </button>
 
-      <div class="flex items-center gap-6">
-        <div class="w-16 h-16 bg-primary-500/10 border border-primary-500/20 rounded-3xl flex items-center justify-center text-primary-400 shadow-2xl shadow-primary-500/10">
-          <Target weight="duotone" class="w-8 h-8" />
-        </div>
-        <div>
-          <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-none">Syllabus</h1>
-          <p class="text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
-            <span class="text-primary-500">●</span> {classData?.name} <span class="text-zinc-800">|</span> Skills and Objectives
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Quick Info Dashboard -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[24px] shadow-xl relative overflow-hidden group">
-      <div class="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 blur-[40px] -mr-16 -mt-16"></div>
-      <div class="flex items-center gap-4 relative z-10">
-        <div class="w-12 h-12 bg-zinc-950 rounded-2xl border border-zinc-800 flex items-center justify-center text-primary-400">
-          <CheckCircle weight="duotone" class="w-6 h-6" />
-        </div>
-        <div>
-          <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1.5">Assigned</p>
-          <p class="text-2xl font-black text-white leading-none tracking-tighter">{stats.assigned}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[24px] shadow-xl relative overflow-hidden group">
-      <div class="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 blur-[40px] -mr-16 -mt-16"></div>
-      <div class="flex items-center gap-4 relative z-10">
-        <div class="w-12 h-12 bg-zinc-950 rounded-2xl border border-zinc-800 flex items-center justify-center text-primary-400">
-          <Plus weight="duotone" class="w-6 h-6" />
-        </div>
-        <div>
-          <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1.5">Available</p>
-          <p class="text-2xl font-black text-white leading-none tracking-tighter">{stats.available}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[24px] shadow-xl relative overflow-hidden group col-span-1 md:col-span-2">
-      <div class="absolute top-0 right-0 w-64 h-32 bg-blue-500/5 blur-[60px] -mr-32 -mt-16"></div>
-      <div class="flex items-center gap-8 relative z-10 h-full">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 bg-zinc-950 rounded-2xl border border-zinc-800 flex items-center justify-center text-blue-400">
-            <Lightning weight="duotone" class="w-6 h-6" />
+      <div class="flex items-center gap-8">
+        <div class="relative group">
+          <div class="absolute -inset-2 bg-primary-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="w-20 h-20 bg-gradient-to-br from-zinc-800 to-zinc-950 border border-white/10 rounded-[2.5rem] flex items-center justify-center text-primary-400 shadow-2xl relative">
+            <Target weight="duotone" class="w-10 h-10" />
+            <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-zinc-900 border border-white/10 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow-lg">
+              {stats.assigned}
+            </div>
           </div>
-          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest whitespace-nowrap">By Category</p>
         </div>
-        <div class="flex items-center gap-6 overflow-x-auto pb-1 no-scrollbar">
+        <div>
+          <h1 class="text-6xl font-black text-white tracking-tight uppercase leading-[0.9] flex flex-col">
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-400 to-zinc-600 italic font-serif normal-case text-3xl mb-1 tracking-normal font-medium">{$t('common.classes')}</span>
+            {$t('classes.syllabus')}
+          </h1>
+          <div class="flex items-center gap-3 mt-4">
+            <span class="h-px w-8 bg-primary-500/50"></span>
+            <p class="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
+              {classData?.name} <span class="w-1 h-1 bg-zinc-700 rounded-full"></span> { $t('skills.ui.global_topics') }
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Strategic Metrics Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <!-- Assigned Pulse -->
+    <div class="bento-card group perspective transition-all duration-500">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 blur-[50px] rounded-full -mr-16 -mt-16 group-hover:bg-primary-500/20 transition-all duration-700"></div>
+      <div class="relative z-10 flex flex-col h-full justify-between gap-6">
+        <div class="flex items-start justify-between">
+          <div class="w-12 h-12 bg-primary-500/10 border border-primary-500/20 rounded-2xl flex items-center justify-center text-primary-400 shadow-lg shadow-primary-500/5 group-hover:scale-110 transition-transform duration-500">
+            <CheckCircle weight="duotone" class="w-6 h-6" />
+          </div>
+          <div class="text-right">
+            <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">{$t('classes.target_active')}</span>
+            <span class="text-2xl font-black text-white tracking-widest">#{stats.assigned}</span>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div class="h-1.5 w-full bg-zinc-950/50 rounded-full overflow-hidden border border-white/5">
+            <div 
+              class="h-full bg-gradient-to-r from-primary-600 to-primary-400 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"
+              style="width: {(stats.assigned / (stats.assigned + stats.available)) * 100}%"
+            ></div>
+          </div>
+          <p class="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{$t('classes.lessons_assigned', { count: stats.assigned })}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Bank -->
+    <div class="bento-card group">
+      <div class="relative z-10 flex flex-col h-full justify-between gap-6">
+        <div class="flex items-start justify-between">
+          <div class="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-500">
+            <FolderSimple weight="duotone" class="w-6 h-6" />
+          </div>
+          <div class="text-right">
+            <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">{$t('classes.bank_depth')}</span>
+            <span class="text-2xl font-black text-white tracking-widest">{stats.available}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex -space-x-2">
+            {#each Array(3) as _, i}
+              <div class="w-6 h-6 bg-zinc-800 border-2 border-zinc-900 rounded-full flex items-center justify-center">
+                 <Star weight="fill" class="w-2.5 h-2.5 text-zinc-600" />
+              </div>
+            {/each}
+          </div>
+          <span class="text-[9px] font-black text-blue-400 uppercase tracking-widest">{$t('classes.resources_available')}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Distribution -->
+    <div class="bento-card group col-span-1 md:col-span-2 overflow-hidden">
+      <div class="absolute -right-8 -bottom-8 w-48 h-48 bg-zinc-800/10 rounded-full blur-3xl group-hover:bg-primary-500/5 transition-all duration-1000"></div>
+      <div class="relative z-10 flex flex-col h-full gap-4">
+        <div class="flex items-center gap-4 border-b border-white/5 pb-4">
+          <div class="w-10 h-10 bg-zinc-950/50 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 group-hover:text-primary-400 transition-colors">
+            <ArrowsDownUp weight="duotone" class="w-5 h-5" />
+          </div>
+          <h4 class="text-[10px] font-black text-white uppercase tracking-[0.2em]">{ $t('skills.ui.group_by_category') }</h4>
+        </div>
+        
+        <div class="flex flex-wrap gap-4 mt-2">
           {#each Object.entries(stats.byCategory) as [category, count]}
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3 bg-zinc-950/50 border border-white/5 px-4 py-2.5 rounded-2xl hover:border-white/10 transition-all cursor-default">
               <span class="text-lg font-black text-white leading-none">{count}</span>
-              <span class="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{category}</span>
+              <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{category}</span>
             </div>
           {/each}
           {#if Object.keys(stats.byCategory).length === 0}
-            <span class="text-[10px] font-bold text-zinc-700 uppercase tracking-widest">No categories assigned</span>
+            <div class="flex items-center gap-2 text-zinc-700">
+              <span class="text-[10px] font-black uppercase tracking-[0.2em]">{$t('classes.no_categories')}</span>
+            </div>
           {/if}
         </div>
       </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-    <!-- Current Syllabus (Assigned Skills) -->
-    <div class="space-y-6">
+  <!-- Matrix Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
+    <!-- Left Column: Active Syllabus -->
+    <div class="space-y-8">
       <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
-          <Target weight="duotone" class="w-7 h-7 text-primary-500" />
-          Current Syllabus
-          <span class="text-xs bg-zinc-900 border border-zinc-800 text-zinc-500 px-3 py-1 rounded-full">{assignedSkills.length}</span>
-        </h2>
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-px bg-primary-500/30"></div>
+          <h2 class="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
+            {$t('classes.current_syllabus_title')}
+            <span class="text-xs font-medium bg-white/5 border border-white/10 text-zinc-400 px-3 py-1 rounded-lg tracking-widest">{assignedSkills.length}</span>
+          </h2>
+        </div>
       </div>
 
       {#if assignedSkills.length === 0}
-        <div class="bg-zinc-900/50 border border-zinc-800 rounded-[32px] p-24 text-center space-y-6">
-           <div class="w-24 h-24 bg-zinc-950 rounded-full border border-zinc-800 flex items-center justify-center mx-auto text-zinc-800">
-             <Target weight="duotone" class="w-12 h-12" />
-           </div>
-           <div>
-             <h3 class="text-white font-black uppercase tracking-widest text-sm">Empty Syllabus</h3>
-             <p class="text-zinc-500 text-[10px] font-medium uppercase mt-2 tracking-widest">Add skills from the bank on the right</p>
-           </div>
+        <div class="bento-card border-dashed border-zinc-800 bg-transparent flex flex-col items-center justify-center py-24 text-center group">
+          <div class="w-20 h-20 bg-zinc-900 border border-white/5 rounded-3xl flex items-center justify-center text-zinc-800 mb-6 group-hover:text-primary-500/50 transition-colors duration-500">
+            <Target weight="duotone" class="w-10 h-10" />
+          </div>
+          <h3 class="text-white font-black uppercase tracking-[0.2em] text-sm">{$t('classes.empty_syllabus')}</h3>
+          <p class="text-zinc-600 text-[10px] font-medium uppercase mt-2 tracking-[0.2em] max-w-xs">{ $t('skills.skills_empty_desc') }</p>
         </div>
       {:else}
         <div class="space-y-4">
           {#each assignedSkills as skill, index (skill.id)}
-            <div class="bg-zinc-900/50 border border-zinc-800 rounded-[24px] p-6 hover:border-zinc-700 transition-all shadow-xl group relative overflow-hidden" in:fly={{ y: 20, delay: index * 50 }}>
-              <div class="flex items-start gap-6 relative z-10">
-                <!-- Reorder Controls -->
-                <div class="flex flex-col items-center gap-2 pt-1">
-                  <span class="w-8 h-8 bg-zinc-950 border border-zinc-800 rounded-lg flex items-center justify-center text-[10px] font-black text-primary-400">
-                    {skill.order}
+            <div 
+              class="bento-card p-0 overflow-hidden group hover:scale-[1.01] transition-transform duration-500"
+              in:fly={{ y: 20, delay: index * 50, duration: 800, easing: quintOut }}
+            >
+              <div class="flex">
+                <!-- Order Side Pane -->
+                <div class="w-14 bg-zinc-950/50 border-r border-white/5 flex flex-col items-center py-6 gap-4">
+                  <span class="text-[10px] font-black text-primary-500/50 tracking-tighter group-hover:text-primary-400 transition-colors uppercase">
+                    P{index + 1}
                   </span>
-                  <div class="flex flex-col gap-1">
+                  <div class="flex flex-col gap-2">
                     <button 
                       onclick={() => moveSkillUp(index)}
                       disabled={index === 0}
-                      class="p-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-zinc-600 hover:text-white disabled:opacity-20 transition-colors"
+                      class="p-2 bg-white/5 border border-white/5 rounded-lg text-zinc-600 hover:text-white disabled:opacity-5 transition-all active:scale-90"
                     >
                       <CaretUp weight="bold" class="w-3 h-3" />
                     </button>
                     <button 
                       onclick={() => moveSkillDown(index)}
                       disabled={index === assignedSkills.length - 1}
-                      class="p-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-zinc-600 hover:text-white disabled:opacity-20 transition-colors"
+                      class="p-2 bg-white/5 border border-white/5 rounded-lg text-zinc-600 hover:text-white disabled:opacity-5 transition-all active:scale-90"
                     >
                       <CaretDown weight="bold" class="w-3 h-3" />
                     </button>
                   </div>
                 </div>
 
-                <div class="flex-1">
-                  <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-3">
+                <!-- Main Content -->
+                <div class="flex-1 p-6 flex flex-col justify-between">
+                  <div class="flex items-start justify-between gap-6">
+                    <div class="flex items-center gap-4">
                       {#if categoryIcons[skill.category]}
                         {@const Icon = categoryIcons[skill.category]}
-                        <div class={`p-2 rounded-xl border ${categoryColors[skill.category] || 'bg-zinc-500/10 border-zinc-500/20'}`}>
-                          <Icon weight="duotone" class="w-5 h-5" />
+                        <div class={`w-12 h-12 rounded-2xl border flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-transform duration-500 ${categoryColors[skill.category] || 'bg-zinc-800/40 border-white/10'}`}>
+                          <Icon weight="duotone" class="w-6 h-6" />
                         </div>
                       {/if}
-                      <h3 class="text-lg font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors leading-none">{skill.name}</h3>
+                      <div>
+                        <h3 class="text-lg font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors">{skill.name}</h3>
+                        <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">{skill.category}</p>
+                      </div>
                     </div>
+                    
                     <button 
                       onclick={() => handleUnassignSkill(skill.id)}
-                      class="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-600 hover:text-red-400 hover:border-red-500/30 transition-all"
-                      title="Remove from syllabus"
+                      class="w-10 h-10 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/20 transition-all opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 group-hover:shadow-[0_0_15px_rgba(244,63,94,0.2)]"
                     >
-                      <Trash weight="duotone" class="w-4 h-4" />
+                      <Trash weight="duotone" class="w-4.5 h-4.5" />
                     </button>
                   </div>
-                  
-                  <p class="text-zinc-500 text-xs leading-relaxed font-medium mb-5">{skill.description}</p>
-                  
-                  <div class="flex items-center justify-between border-t border-zinc-800/50 pt-4">
-                    <div class="flex items-center gap-4">
-                      <span class="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{skill.category}</span>
-                      <span class={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${difficultyColors[skill.difficulty] || 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20'}`}>
+
+                  <p class="text-zinc-500 text-[11px] leading-relaxed font-medium my-6 border-l-2 border-white/5 pl-4 line-clamp-2 italic">
+                    {skill.description}
+                  </p>
+
+                  <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                    <div class="flex items-center gap-2">
+                       <div class={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] border ${difficultyColors[skill.difficulty] || 'bg-white/5 border-white/10 text-zinc-400'}`}>
                         {difficultyLabels[skill.difficulty]}
-                      </span>
+                      </div>
                     </div>
-                    <span class="text-[8px] font-bold text-zinc-700 uppercase tracking-widest">
-                      {skill.assigned_at ? new Date(skill.assigned_at).toLocaleDateString('en-US') : ''}
+                    <span class="text-[8px] font-black text-zinc-700 uppercase tracking-widest flex items-center gap-2">
+                      <Clock weight="bold" class="w-3 h-3" />
+                      {skill.assigned_at ? new Date(skill.assigned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric'}) : '--'}
                     </span>
                   </div>
                 </div>
@@ -446,80 +494,80 @@
       {/if}
     </div>
 
-    <!-- Available Skills -->
-    <div class="space-y-6">
-      <div class="flex flex-col gap-6">
-        <h2 class="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
-          <BookOpen weight="duotone" class="w-7 h-7 text-primary-500" />
-          Skills Bank
-          <span class="text-xs bg-zinc-900 border border-zinc-800 text-zinc-500 px-3 py-1 rounded-full">{stats.available}</span>
-        </h2>
+    <!-- Right Column: Skills Bank -->
+    <div class="space-y-8">
+      <div class="flex flex-col gap-8">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-px bg-blue-500/30"></div>
+          <h2 class="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
+            {$t('classes.hiring_bank')}
+            <span class="text-xs font-medium bg-white/5 border border-white/10 text-zinc-400 px-3 py-1 rounded-lg tracking-widest">{stats.available}</span>
+          </h2>
+        </div>
 
-        <!-- Premium Search -->
+        <!-- Premium High-Density Search -->
         <div class="relative group">
-          <MagnifyingGlass weight="bold" class="absolute left-5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-primary-400 transition-colors" />
+          <div class="absolute -inset-1 bg-gradient-to-r from-primary-500/20 to-blue-500/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+          <MagnifyingGlass weight="bold" class="absolute left-6 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-white transition-all duration-300" />
           <input
             type="text"
-            placeholder="SEARCH SKILLS..."
+            placeholder={ $t('skills.ui.search_placeholder') }
             bind:value={searchQuery}
-            class="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-4 pl-14 pr-6 text-white font-black uppercase tracking-widest text-[10px] focus:outline-none focus:border-primary-500 transition-all placeholder:text-zinc-700 shadow-xl"
+            class="w-full bg-zinc-900/40 border border-white/5 rounded-2xl py-5 pl-16 pr-6 text-white font-black uppercase tracking-[0.15em] text-[11px] focus:outline-none focus:border-white/20 transition-all placeholder:text-zinc-700 backdrop-blur-xl"
           />
         </div>
       </div>
 
       {#if Object.keys(filteredAvailableSkills).length === 0}
-        <div class="bg-zinc-900/50 border border-zinc-800 rounded-[32px] p-24 text-center space-y-6 mt-4">
-           <div class="w-24 h-24 bg-zinc-950 rounded-full border border-zinc-800 flex items-center justify-center mx-auto text-zinc-800">
-             <MagnifyingGlass weight="duotone" class="w-12 h-12" />
+        <div class="bento-card border-dashed border-zinc-800 bg-transparent flex flex-col items-center justify-center py-24 text-center mt-4">
+           <div class="w-20 h-20 bg-zinc-900 border border-white/5 rounded-full flex items-center justify-center text-zinc-800 mb-6">
+             <MagnifyingGlass weight="duotone" class="w-10 h-10" />
            </div>
-           <div>
-             <h3 class="text-white font-black uppercase tracking-widest text-sm">No Results</h3>
-             <p class="text-zinc-500 text-[10px] font-medium uppercase mt-2 tracking-widest">No matching skills found</p>
-           </div>
+           <h3 class="text-white font-black uppercase tracking-widest text-sm">{$t('classes.target_not_found')}</h3>
+           <p class="text-zinc-600 text-[10px] font-medium uppercase mt-2 tracking-widest">{$t('classes.adjust_search')}</p>
         </div>
       {:else}
         <div class="space-y-6">
-          {#each Object.entries(filteredAvailableSkills) as [category, skills]}
-            <div class="bg-zinc-900/50 border border-zinc-800 rounded-[28px] overflow-hidden shadow-xl">
-              <!-- Categoría Header -->
+          {#each Object.entries(filteredAvailableSkills) as [category, skills], catIndex}
+            <div 
+              class="rounded-[2.5rem] overflow-hidden border border-white/5 bg-zinc-900/20 backdrop-blur-3xl"
+              in:fly={{ y: 20, delay: 100 + (catIndex * 100) }}
+            >
+              <!-- Category Trigger -->
               <button
                 onclick={() => toggleCategory(category)}
-                class="w-full p-6 flex items-center justify-between hover:bg-zinc-800/50 transition-colors border-b border-transparent group/header"
-                class:border-zinc-800={expandedCategories[category]}
+                class="w-full p-8 flex items-center justify-between hover:bg-white/5 transition-all text-left group/trigger"
               >
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-6">
                   {#if categoryIcons[category]}
                     {@const Icon = categoryIcons[category]}
-                    <div class={`p-3 rounded-2xl border ${categoryColors[category] || 'bg-zinc-500/10 border-zinc-500/20'}`}>
-                      <Icon weight="duotone" class="w-6 h-6" />
+                    <div class={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-all duration-500 group-hover/trigger:scale-110 ${categoryColors[category] || 'bg-zinc-800/40 border-white/10'}`}>
+                      <Icon weight="duotone" class="w-7 h-7" />
                     </div>
                   {/if}
-                  <div class="text-left">
-                    <h3 class="text-base font-black text-white uppercase tracking-tight group-hover/header:text-primary-400 transition-colors">{category}</h3>
-                    <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{skills.length} available</p>
+                  <div>
+                    <h3 class="text-xl font-black text-white uppercase tracking-tight group-hover/trigger:text-primary-400 transition-colors">{category}</h3>
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mt-1">{$t('classes.skills_indexed', { count: skills.length })}</p>
                   </div>
                 </div>
                 
-                <div class="w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-600 group-hover/header:text-white transition-all">
-                  {#if expandedCategories[category]}
-                    <CaretUp weight="bold" class="w-4 h-4" />
-                  {:else}
-                    <CaretDown weight="bold" class="w-4 h-4" />
-                  {/if}
+                <div class={`w-12 h-12 bg-zinc-950/50 border border-white/5 rounded-2xl flex items-center justify-center text-zinc-600 group-hover/trigger:text-white transition-all transform ${expandedCategories[category] ? 'rotate-180' : ''}`}>
+                  <CaretDown weight="bold" class="w-5 h-5" />
                 </div>
               </button>
 
               {#if expandedCategories[category]}
-                <div class="divide-y divide-zinc-800/50">
+                <div class="divide-y divide-white/5 border-t border-white/5 overflow-hidden" transition:slide={{ duration: 500, easing: quintOut }}>
                   {#each skills as skill (skill.id)}
-                    <div class="p-6 hover:bg-zinc-800/30 transition-colors group/item">
-                      <div class="flex items-start justify-between gap-6">
+                    <div class="p-8 hover:bg-white/[0.03] transition-all group/item relative overflow-hidden">
+                      <div class="relative z-10 flex items-start justify-between gap-8">
                         <div class="flex-1">
-                          <h4 class="text-sm font-black text-white uppercase tracking-tight mb-2 group-hover/item:text-primary-400 transition-colors">{skill.name}</h4>
-                          <p class="text-zinc-500 text-[11px] leading-relaxed font-medium mb-4">{skill.description}</p>
-                          <div class="flex items-center gap-1.5 px-2 py-1 bg-zinc-950/50 w-fit rounded-lg border border-zinc-800">
+                          <h4 class="text-sm font-black text-white uppercase tracking-wider group-hover/item:text-primary-400 transition-colors">{skill.name}</h4>
+                          <p class="text-zinc-500 text-[11px] leading-relaxed font-medium my-4 line-clamp-2">{skill.description}</p>
+                          
+                          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950/50 w-fit rounded-xl border border-white/5">
                             {#each getDifficultyStars(skill.skill?.difficulty || (skill as any).difficulty || 0) as filled}
-                              <Star weight={filled ? "fill" : "regular"} class={`w-3.5 h-3.5 ${filled ? 'text-yellow-400' : 'text-zinc-800'}`} />
+                              <Star weight={filled ? "fill" : "regular"} class={`w-3.5 h-3.5 ${filled ? 'text-amber-400' : 'text-zinc-800'}`} />
                             {/each}
                           </div>
                         </div>
@@ -527,13 +575,12 @@
                         <button 
                           onclick={() => handleAssignSkill(skill.id)}
                           disabled={isAssigning}
-                          class="bg-white text-black p-3.5 rounded-2xl hover:bg-primary-500 hover:text-white transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed group/btn active:scale-95"
-                          title="Add to syllabus"
+                          class="bg-white text-black w-14 h-14 rounded-2xl flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all shadow-2xl disabled:opacity-50 group/btn active:scale-90"
                         >
                           {#if isAssigning}
                             <div class="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent"></div>
                           {:else}
-                            <Plus weight="bold" class="w-5 h-5" />
+                            <Plus weight="bold" class="w-6 h-6" />
                           {/if}
                         </button>
                       </div>
@@ -550,12 +597,32 @@
 </div>
 
 <style lang="postcss">
+  .bento-card {
+    @apply bg-zinc-900/40 backdrop-blur-3xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden;
+  }
+
+  .perspective {
+    perspective: 1000px;
+  }
+
   :global(.animate-fade-in) {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  :global(.skill-card .check-icon) {
+    color: #4ade80;
+  }
+
+  :global(.skill-card .timer-icon) {
+    color: #a1a1aa;
+  }
+
+  :global(.skill-card .category-icon) {
+    color: #f59e0b;
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
@@ -567,3 +634,4 @@
     scrollbar-width: none;
   }
 </style>
+

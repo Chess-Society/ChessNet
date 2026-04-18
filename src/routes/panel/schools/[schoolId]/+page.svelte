@@ -25,7 +25,10 @@
     MagnifyingGlass,
     Funnel,
     X,
-    Layout
+    Layout,
+    ArrowUpRight,
+    CheckCircle,
+    TrendUp
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
@@ -97,157 +100,181 @@
 
 <div class="space-y-12 pb-20 px-6 max-w-7xl mx-auto" in:fade>
   <!-- Header Section -->
-  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-10 pt-8">
-    <div class="space-y-6">
+  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-10 pt-12">
+    <div class="space-y-8">
       <button 
         onclick={() => goto('/panel/schools')}
-        class="flex items-center gap-2 text-zinc-500 hover:text-violet-400 transition-all group text-[10px] font-black uppercase tracking-[0.2em]"
+        class="flex items-center gap-2 text-slate-500 hover:text-violet-400 transition-all group text-[11px] font-bold uppercase tracking-[0.2em]"
       >
-        <CaretLeft size={16} weight="bold" class="transition-transform group-hover:-translate-x-1" />
-        {$t('schools.back')}
+        <div class="p-1.5 bg-white/5 border border-white/10 rounded-lg group-hover:bg-violet-500/10 group-hover:border-violet-500/30 transition-all">
+          <CaretLeft size={16} weight="bold" class="transition-transform group-hover:-translate-x-1" />
+        </div>
+        {$t('back')}
       </button>
 
       <div class="flex items-center gap-8">
-        <div class="w-24 h-24 bg-violet-600/10 border border-violet-500/20 rounded-[2.5rem] flex items-center justify-center text-violet-400 shadow-[0_0_50px_rgba(139,92,246,0.1)] transform -rotate-3 hover:rotate-0 transition-all duration-500 group">
-          <Buildings size={48} weight="duotone" class="group-hover:scale-110 transition-transform" />
+        <div class="relative">
+          <div class="absolute inset-0 bg-violet-500/20 blur-2xl rounded-full"></div>
+          <div class="w-24 h-24 bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-violet-500/40 rounded-[2.5rem] flex items-center justify-center text-violet-400 shadow-2xl backdrop-blur-xl relative z-10 rotate-3 hover:rotate-0 transition-all duration-500 group">
+            <Buildings size={48} weight="duotone" class="group-hover:scale-110 transition-transform" />
+          </div>
         </div>
         <div>
-          <h1 class="text-5xl font-outfit font-black text-white tracking-tighter uppercase">{school?.name}</h1>
-          <div class="flex flex-wrap items-center gap-4 mt-3">
+          <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-4xl md:text-5xl font-outfit font-black text-white tracking-tighter uppercase line-clamp-1">{school?.name}</h1>
+            <div class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center gap-2">
+              <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-4">
             {#if school?.city}
-              <span class="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-900/50 px-4 py-1.5 rounded-full border border-zinc-800">
-                <MapPin size={14} weight="duotone" class="text-violet-500" />
+              <span class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/5 px-4 py-2 rounded-xl border border-white/5 backdrop-blur-md">
+                <MapPin size={14} weight="fill" class="text-violet-500" />
                 {school.city}
               </span>
             {/if}
-            <span class="flex items-center gap-2 text-[10px] font-black text-violet-400 uppercase tracking-widest bg-violet-500/10 px-4 py-1.5 rounded-full border border-violet-500/20">
-              <Pulse size={14} weight="bold" />
-              {$t('schools.active')}
+            <span class="flex items-center gap-2 text-[10px] font-bold text-violet-400 uppercase tracking-widest bg-violet-500/5 px-4 py-2 rounded-xl border border-violet-500/10 backdrop-blur-md">
+              <Users size={14} weight="bold" />
+              {stats.totalStudents} {$t('nav.students')}
             </span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="flex items-center gap-4 bg-zinc-900/30 p-2 rounded-2xl border border-zinc-800/50 backdrop-blur-sm">
+    <div class="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5 backdrop-blur-xl shadow-2xl">
       <button 
         onclick={() => school?.id && goto(`/panel/schools/${school.id}/edit`)}
-        class="flex items-center gap-2 px-6 py-3 text-[10px] font-black uppercase tracking-widest bg-zinc-950/50 hover:bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 rounded-xl transition-all"
+        class="flex items-center gap-2 px-6 py-4 text-[11px] font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 rounded-xl transition-all shadow-lg active:scale-95"
       >
-        <PencilSimple size={16} weight="duotone" />
-        {$t('schools.edit')}
+        <PencilSimple size={18} weight="bold" />
+        {$t('common.edit')}
       </button>
       <button 
         onclick={() => school?.id && goto(`/panel/classes/create?schoolId=${school.id}`)}
-        class="bg-violet-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 transition-all shadow-[0_10px_30px_-10px_rgba(139,92,246,0.4)] flex items-center gap-2 group"
+        class="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-violet-flare flex items-center gap-3 group ring-1 ring-white/20"
       >
-        <Plus size={16} weight="bold" class="group-hover:rotate-90 transition-transform" />
-        {$t('dashboard.step2')}
+        <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform" />
+        Add Class
       </button>
     </div>
   </div>
 
-  <!-- Bento Stats Grid -->
+  <!-- Stats Bento Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2rem] border-b-4 border-b-violet-500 shadow-xl group hover:-translate-y-1 transition-all duration-300">
-      <div class="flex items-start justify-between mb-4">
-        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('schools.stats.classes')}</p>
-        <div class="p-2 bg-violet-500/10 rounded-xl text-violet-400">
-          <GraduationCap size={20} weight="duotone" />
+    <div class="bento-card p-8 border border-white/5 group hover:border-violet-500/40 transition-all relative overflow-hidden">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-violet-500/5 blur-3xl rounded-full"></div>
+      <div class="flex items-start justify-between mb-6">
+        <div class="p-3 bg-violet-500/10 rounded-2xl text-violet-400 border border-violet-500/20 group-hover:scale-110 transition-transform">
+          <GraduationCap size={24} weight="duotone" />
         </div>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Groups</span>
       </div>
-      <div class="flex items-baseline gap-2">
+      <div class="space-y-1">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{stats.totalClasses}</h3>
-        <span class="text-[10px] font-bold text-zinc-600 uppercase">{$t('nav.classes')}</span>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Classes</p>
       </div>
     </div>
     
-    <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2rem] border-b-4 border-b-blue-500 shadow-xl group hover:-translate-y-1 transition-all duration-300">
-      <div class="flex items-start justify-between mb-4">
-        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('schools.stats.capacity')}</p>
-        <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400">
-          <Users size={20} weight="duotone" />
+    <div class="bento-card p-8 border border-white/5 group hover:border-blue-500/40 transition-all relative overflow-hidden">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/5 blur-3xl rounded-full"></div>
+      <div class="flex items-start justify-between mb-6">
+        <div class="p-3 bg-blue-500/10 rounded-2xl text-blue-400 border border-blue-500/20 group-hover:scale-110 transition-transform">
+          <Users size={24} weight="duotone" />
         </div>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Students</span>
       </div>
-      <div class="flex items-baseline gap-2">
-        <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{stats.totalCapacity || 0}</h3>
-        <span class="text-[10px] font-bold text-zinc-600 uppercase">{$t('schools.stats.slots')}</span>
+      <div class="space-y-1">
+        <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{stats.totalStudents || 0}</h3>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Enrollment</p>
       </div>
     </div>
 
-    <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2rem] border-b-4 border-b-purple-500 shadow-xl group hover:-translate-y-1 transition-all duration-300">
-      <div class="flex items-start justify-between mb-4">
-        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('schools.stats.diversity')}</p>
-        <div class="p-2 bg-purple-500/10 rounded-xl text-purple-400">
-          <Target size={20} weight="duotone" />
+    <div class="bento-card p-8 border border-white/5 group hover:border-fuchsia-500/40 transition-all relative overflow-hidden">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-fuchsia-500/5 blur-3xl rounded-full"></div>
+      <div class="flex items-start justify-between mb-6">
+        <div class="p-3 bg-fuchsia-500/10 rounded-2xl text-fuchsia-400 border border-fuchsia-500/20 group-hover:scale-110 transition-transform">
+          <Target size={24} weight="duotone" />
         </div>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Occupancy</span>
       </div>
-      <div class="flex items-baseline gap-2">
-        <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{Object.values(stats.levels || {}).filter((v: any) => v > 0).length}</h3>
-        <span class="text-[10px] font-bold text-zinc-600 uppercase">{$t('schools.stats.levels')}</span>
+      <div class="space-y-1">
+        <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">
+          {Math.round((stats.totalStudents / (stats.totalCapacity || 1)) * 100)}%
+        </h3>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Capacity Rate</p>
       </div>
     </div>
 
-    <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2rem] border-b-4 border-b-amber-500 shadow-xl group hover:-translate-y-1 transition-all duration-300">
-      <div class="flex items-start justify-between mb-4">
-        <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('schools.stats.avg_perf')}</p>
-        <div class="p-2 bg-amber-500/10 rounded-xl text-amber-400">
-          <ChartLineUp size={20} weight="duotone" />
+    <div class="bento-card p-8 border border-white/5 group hover:border-amber-500/40 transition-all relative overflow-hidden">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/5 blur-3xl rounded-full"></div>
+      <div class="flex items-start justify-between mb-6">
+        <div class="p-3 bg-amber-500/10 rounded-2xl text-amber-400 border border-amber-500/20 group-hover:scale-110 transition-transform">
+          <TrendUp size={24} weight="duotone" />
         </div>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Performance</span>
       </div>
-      <div class="flex items-baseline gap-2">
-        <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">88%</h3>
-        <span class="text-[10px] font-bold text-zinc-600 uppercase">{$t('common.target')}</span>
+      <div class="space-y-1">
+        <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">92%</h3>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Average Progress</p>
       </div>
     </div>
   </div>
 
   <!-- Classes Section -->
   <div class="space-y-8">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-800 pb-6">
-      <h2 class="text-2xl font-outfit font-black text-white uppercase tracking-tight flex items-center gap-3">
-        <div class="p-2 bg-zinc-900 rounded-xl border border-zinc-800">
-          <BookOpen size={24} weight="duotone" class="text-violet-400" />
-        </div>
-        {$t('schools.training_classes')}
-      </h2>
-      
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-white/5 pb-8">
       <div class="flex items-center gap-4">
-        <div class="flex bg-zinc-950 p-1.5 rounded-2xl border border-zinc-800 shadow-inner">
+        <div class="p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl">
+          <BookOpen size={28} weight="duotone" class="text-violet-400" />
+        </div>
+        <div>
+          <h2 class="text-2xl font-outfit font-black text-white uppercase tracking-tight">
+            {$t('schools.training_classes')}
+          </h2>
+          <p class="text-xs text-slate-500 font-jakarta mt-0.5">Manage groups and student rosters</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-6">
+        <div class="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md shadow-inner">
           {#each ['active', 'all'] as status}
             <button 
               onclick={() => selectedStatus = status}
-              class={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStatus === status ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+              class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStatus === status ? 'bg-white/10 text-white shadow-xl ring-1 ring-white/10' : 'text-slate-500 hover:text-slate-300'}`}
             >
-              {status === 'active' ? $t('dashboard.stats.active') : $t('schools.history')}
+              {status === 'active' ? 'Active' : 'History'}
             </button>
           {/each}
         </div>
         
-        <div class="relative">
-          <select bind:value={selectedLevel} class="appearance-none bg-zinc-950 border border-zinc-800 rounded-2xl pl-6 pr-12 py-3.5 text-[10px] font-black text-white uppercase tracking-widest outline-none cursor-pointer hover:border-zinc-700 transition-all shadow-inner">
-            <option value="">{$t('schools.all_levels')}</option>
-            <option value="beginner">{$t('common.levels.beginner').toUpperCase()}</option>
-            <option value="intermediate">{$t('common.levels.intermediate').toUpperCase()}</option>
-            <option value="advanced">{$t('common.levels.advanced').toUpperCase()}</option>
+        <div class="relative group">
+          <select bind:value={selectedLevel} class="appearance-none bg-black/40 border border-white/5 rounded-2xl pl-6 pr-14 py-3.5 text-[10px] font-black text-white uppercase tracking-widest outline-none cursor-pointer hover:border-white/20 transition-all shadow-inner backdrop-blur-md">
+            <option value="">All Levels</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
           </select>
-          <CaretRight size={14} weight="bold" class="absolute right-5 top-1/2 -translate-y-1/2 rotate-90 text-zinc-500 pointer-events-none" />
+          <CaretRight size={14} weight="bold" class="absolute right-6 top-1/2 -translate-y-1/2 rotate-90 text-slate-500 pointer-events-none group-hover:text-violet-400 transition-colors" />
         </div>
       </div>
     </div>
 
     {#if filteredClasses.length === 0}
-      <div class="bg-zinc-900/30 backdrop-blur-sm p-32 text-center space-y-8 rounded-[3rem] border border-dashed border-zinc-800">
-        <div class="w-24 h-24 bg-zinc-900 rounded-[2.5rem] flex items-center justify-center border border-zinc-800 mx-auto text-zinc-800">
-          <Star size={48} weight="duotone" class="opacity-30" />
+      <div class="bento-card border-dashed border-white/10 p-24 text-center space-y-10" in:fade>
+        <div class="relative inline-block">
+          <div class="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center border border-white/10 mx-auto text-slate-700">
+            <Star size={48} weight="duotone" class="opacity-20 animate-pulse" />
+          </div>
         </div>
         <div class="max-w-xs mx-auto space-y-4">
-          <h3 class="text-lg font-outfit font-black text-white uppercase tracking-widest">{$t('schools.no_classes')}</h3>
-          <p class="text-sm font-jakarta text-zinc-500 leading-relaxed">{$t('schools.no_classes_desc')}</p>
+          <h3 class="text-xl font-outfit font-bold text-white uppercase tracking-widest">No Classes Found</h3>
+          <p class="text-sm font-jakarta text-slate-500 leading-relaxed">Start by creating your first training group for this center.</p>
         </div>
         <button 
           onclick={handleCreateClass}
-          class="bg-violet-600 text-white px-10 py-5 rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-violet-500 transition-all shadow-[0_20px_40px_-10px_rgba(139,92,246,0.3)] ring-8 ring-violet-500/5"
+          class="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-10 py-5 rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-violet-flare ring-8 ring-violet-500/5"
         >
           {$t('schools.create_class')}
         </button>
@@ -256,54 +283,67 @@
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         {#each filteredClasses as item, i}
           <div 
-            class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 p-8 rounded-[2.5rem] group hover:border-violet-500/30 transition-all duration-500 relative overflow-hidden flex flex-col justify-between"
-            in:fly={{ y: 20, delay: i * 50 }}
+            class="bento-card p-8 border border-white/5 group hover:border-violet-500/40 transition-all duration-500 relative overflow-hidden flex flex-col justify-between"
+            in:fly={{ y: 20, delay: i * 80 }}
           >
             <!-- Background Decoration -->
-            <div class="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 group-hover:scale-110">
+            <div class="absolute -right-12 -bottom-12 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 group-hover:scale-110 pointer-events-none rotate-12">
               <GraduationCap size={200} weight="fill" />
             </div>
 
-            <div>
-              <div class="flex items-start justify-between mb-8 relative z-10">
-                <div class="space-y-3">
-                  <span class={`text-[8px] font-black uppercase tracking-[0.3em] px-3 py-1 rounded-full border shadow-sm ${
+            <div class="relative z-10">
+              <div class="flex items-start justify-between mb-8">
+                <div class="space-y-4">
+                  <span class={`text-[9px] font-bold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-xl border shadow-lg backdrop-blur-md ${
                     item.level === 'beginner' ? 'bg-violet-500/10 border-violet-500/20 text-violet-400' :
                     item.level === 'intermediate' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
-                    'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                    'bg-amber-500/10 border-amber-500/20 text-amber-400'
                   }`}>
-                    {$t(`common.levels.${item.level}`)}
+                    {item.level}
                   </span>
-                  <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight group-hover:text-violet-400 transition-colors leading-tight">{item.name}</h3>
+                  <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight group-hover:text-violet-400 transition-colors leading-tight line-clamp-2">{item.name}</h3>
                 </div>
                 
-                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                  <button onclick={() => handleEditClass(item.id)} class="p-3 bg-zinc-950/50 text-zinc-500 hover:text-white hover:bg-zinc-900 rounded-xl transition-all border border-zinc-800 shadow-xl" title={$t('common.edit')}>
-                    <PencilSimple size={18} weight="duotone" />
+                <div class="flex flex-col gap-2 translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                  <button 
+                    onclick={(e) => { e.stopPropagation(); handleEditClass(item.id); }} 
+                    class="p-3 bg-white/5 text-slate-400 hover:text-white hover:bg-violet-600/30 rounded-xl transition-all border border-white/10 shadow-2xl backdrop-blur-md"
+                  >
+                    <PencilSimple size={18} weight="bold" />
                   </button>
-                  <button onclick={() => deleteClass(item.id)} class="p-3 bg-zinc-950/50 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-zinc-800 shadow-xl" title={$t('common.delete')}>
-                    <Trash size={18} weight="duotone" />
+                  <button 
+                    onclick={(e) => { e.stopPropagation(); deleteClass(item.id); }} 
+                    class="p-3 bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded-xl transition-all border border-white/10 shadow-2xl backdrop-blur-md"
+                  >
+                    <Trash size={18} weight="bold" />
                   </button>
                 </div>
               </div>
 
-              <div class="space-y-4 mb-10 relative z-10">
-                <div class="flex items-center justify-between text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
-                  <span class="flex items-center gap-2"><Users size={16} weight="duotone" class="text-violet-500" /> {$t('nav.students')}</span>
-                  <span class="text-zinc-200">{(item.students_count || 0)} <span class="text-zinc-700 mx-1">/</span> {item.max_students || '∞'}</span>
+              <div class="space-y-4 mb-10">
+                <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em]">
+                  <span class="flex items-center gap-2"><Users size={16} weight="duotone" class="text-violet-400" /> Enrollment</span>
+                  <span class="text-white">
+                    {(item.students_count || 0)} 
+                    <span class="text-slate-600 mx-1">/</span> 
+                    {item.max_students || '15'}
+                  </span>
                 </div>
-                <div class="h-2 bg-zinc-950 rounded-full overflow-hidden p-0.5 border border-zinc-800 shadow-inner">
-                  <div class="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(139,92,246,0.3)]" style={`width: ${Math.min(((item.students_count || 0) / (item.max_students || 10)) * 100, 100)}%`}></div>
+                <div class="h-2 w-full bg-slate-800/50 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                  <div 
+                    class="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full transition-all duration-1000 ease-out" 
+                    style={`width: ${Math.min(((item.students_count || 0) / (item.max_students || 15)) * 100, 100)}%`}
+                  ></div>
                 </div>
               </div>
             </div>
 
             <button 
               onclick={() => handleViewClass(item.id)}
-              class="w-full py-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-white hover:border-violet-500/50 hover:bg-zinc-900 transition-all flex items-center justify-center gap-3 group/btn relative z-10 shadow-lg"
+              class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white hover:border-violet-500/50 hover:bg-violet-600/20 transition-all flex items-center justify-center gap-3 group/btn relative z-10 shadow-2xl backdrop-blur-md active:scale-95"
             >
-              {$t('classes.view_panel')}
-              <CaretRight size={16} weight="bold" class="group-hover/btn:translate-x-1 transition-transform" />
+              Class Panel
+              <CaretRight size={16} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>
         {/each}
@@ -314,10 +354,11 @@
 
 <ConfirmModal
   bind:show={showDeleteModal}
-  title={$t('common.danger_zone')}
+  title="DANGER ZONE"
   message={$t('classes.delete_confirm').replace('{name}', classToDeleteName)}
-  confirmText={$t('common.delete')}
-  cancelText={$t('common.cancel')}
+  confirmText="DELETE PERMANENTLY"
+  cancelText="CANCEL"
   onConfirm={confirmDelete}
   type="danger"
 />
+

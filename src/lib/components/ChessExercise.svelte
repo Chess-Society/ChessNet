@@ -41,10 +41,10 @@
     startTime = Date.now();
   }
 
-  function handleMove(event: CustomEvent) {
+  function handleMove(data: { from: string; to: string; san: string }) {
     if (isCompleted || !chess) return;
 
-    const { from, to, san } = event.detail;
+    const { from, to, san } = data;
     moves.push(san);
     
     // Check if the move is correct

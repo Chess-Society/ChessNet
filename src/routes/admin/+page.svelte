@@ -26,7 +26,8 @@
     Star,
     Pulse,
     CheckCircle,
-    Shield
+    Shield,
+    Lifebuoy
   } from 'phosphor-svelte';
 
   // Components
@@ -35,6 +36,7 @@
   import SystemConsole from '$lib/components/admin/SystemConsole.svelte';
   import LiveActivityFeed from '$lib/components/admin/LiveActivityFeed.svelte';
   import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
+  import TicketManager from '$lib/components/admin/TicketManager.svelte';
   import StripeSimulator from '$lib/components/StripeSimulator.svelte';
 
   // Constants
@@ -56,6 +58,7 @@
   let users = $state<any[]>([]);
   let systemLogs = $state<any[]>([]);
   let lobbySuggestions = $state<any[]>([]);
+  let supportTickets = $state<any[]>([]);
   let activities = $state<any[]>([]);
   let maintenanceMode = $state(false);
   let isLoading = $state(true);
@@ -147,7 +150,14 @@
       }
     );
 
-    unsubscribes.push(usersUnsub, logsUnsub, lobbyUnsub);
+    const ticketsUnsub = onSnapshot(
+      query(collection(db, "lobby_reports"), orderBy("createdAt", "desc")),
+      (snap) => {
+        supportTickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+    );
+
+    unsubscribes.push(usersUnsub, logsUnsub, lobbyUnsub, ticketsUnsub);
   }
 
   async function refreshStats() {
@@ -314,7 +324,7 @@
     </div>
 
     <div class="flex items-center gap-6">
-      <div class="hidden md:flex flex-col items-end border-r border-white/5 pr-6 mr-6">
+      <div class="hidden sm:flex flex-col items-end border-r border-white/5 pr-6 mr-6">
         <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.nav.status')}</span>
         <div class="flex items-center gap-2 mt-1">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -328,11 +338,25 @@
           class="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all pointer-interactions text-white"
         >
           <ArrowArcLeft weight="bold" class="w-4 h-4" />
-          {$t('admin.nav.exit')}
+          <span class="hidden md:inline">{$t('admin.nav.exit')}</span>
         </a>
       </div>
     </div>
   </nav>
+
+  <!-- Mobile Only Header Stats (Premium) -->
+  <div class="lg:hidden grid grid-cols-3 gap-2 p-4 border-b border-white/5 bg-[#020617]">
+    {#each [
+      { label: 'Users', val: stats.totalUsers },
+      { label: 'Rev', val: `$${Math.round(stats.totalRevenue)}` },
+      { label: 'Tickets', val: supportTickets.filter(t => t.status === 'open').length }
+    ] as s}
+      <div class="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
+        <p class="text-[8px] font-black text-slate-600 uppercase tracking-tighter">{s.label}</p>
+        <p class="text-xs font-black text-white italic">{s.val}</p>
+      </div>
+    {/each}
+  </div>
 
   <div class="flex">
     <!-- Sidebar Navigation -->
@@ -343,6 +367,7 @@
           {#each [
             { id: 'dashboard', label: $t('admin.sidebar.dashboard'), icon: SquaresFour },
             { id: 'users', label: $t('admin.sidebar.teachers'), icon: Users },
+            { id: 'tickets', label: $t('admin.sidebar.support'), icon: Lifebuoy },
             { id: 'lobby', label: $t('admin.sidebar.community'), icon: ChatTeardropDots },
             { id: 'system', label: $t('admin.sidebar.system'), icon: Gear }
           ] as item}
@@ -353,6 +378,11 @@
             >
               <Icon weight={activeTab === item.id ? 'duotone' : 'bold'} class="w-5 h-5" />
               {item.label}
+              {#if item.id === 'tickets' && supportTickets.filter(t => t.status === 'open').length > 0}
+                <span class="ml-auto px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-lg animate-pulse">
+                  {supportTickets.filter(t => t.status === 'open').length}
+                </span>
+              {/if}
             </button>
           {/each}
         </nav>
@@ -375,7 +405,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-84px)] relative overflow-hidden">
+    <main class="flex-1 p-6 md:p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-84px)] relative overflow-hidden pb-32 md:pb-10">
       <!-- Gradient Background Architecture -->
       <div class="absolute inset-0 -z-10 bg-[#020617]">
         <div class="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_100%_0%,rgba(67,56,202,0.05)_0%,transparent_50%)]"></div>
@@ -396,8 +426,8 @@
              <div class="space-y-12">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div>
-                    <h2 class="text-4xl font-black font-display uppercase italic tracking-[ -0.05em] leading-[0.9]">Operational<br/><span class="text-primary-500">Overview</span></h2>
-                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-4 flex items-center gap-2 text-white">
+                    <h2 class="text-4xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.9]">Operational<br/><span class="text-primary-500">Overview</span></h2>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] mt-4 flex items-center gap-2 text-slate-500">
                       <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                       {$t('admin.dashboard.sync')}
                     </p>
@@ -496,6 +526,11 @@
                   onImpersonate={handleImpersonate}
                   onSearch={handleSearchUsers}
                />
+            </div>
+
+          {:else if activeTab === 'tickets'}
+            <div in:fade>
+              <TicketManager tickets={supportTickets} />
             </div>
 
           {:else if activeTab === 'lobby'}
@@ -669,6 +704,55 @@
       </div>
     </div>
   {/if}
+
+  <!-- Premium Mobile Navigation for Admins -->
+  <div class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[450px] z-[100] transition-all duration-500">
+    <div class="bg-black/80 backdrop-blur-2xl border border-white/10 p-2.5 rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] flex items-center justify-between">
+      {#each [
+        { id: 'dashboard', icon: SquaresFour, label: 'Dash' },
+        { id: 'users', icon: Users, label: 'Users' }
+      ] as item}
+        {@const Icon = item.icon}
+        <button 
+          onclick={() => activeTab = item.id}
+          class="flex flex-col items-center gap-1.5 py-3 px-5 rounded-2xl transition-all {activeTab === item.id ? 'text-primary-400' : 'text-zinc-500 opacity-60'}"
+        >
+          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={22} />
+          <span class="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+        </button>
+      {/each}
+
+      <!-- Center Support Ticket Spotlight (Amber) -->
+      <button 
+        onclick={() => activeTab = 'tickets'}
+        class="relative group active:scale-95 transition-all -translate-y-4"
+      >
+        <div class="absolute -inset-4 bg-amber-500/20 rounded-full blur-2xl group-hover:bg-amber-500/30 transition-all"></div>
+        <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center shadow-[0_10px_30px_-5px_rgba(245,158,11,0.5)] border-4 border-black group-hover:rotate-12 transition-all">
+          <Lifebuoy weight="fill" size={28} class="text-black" />
+          {#if supportTickets.filter(t => t.status === 'open').length > 0}
+            <div class="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white border-2 border-black rounded-full flex items-center justify-center text-[10px] font-black">
+              {supportTickets.filter(t => t.status === 'open').length}
+            </div>
+          {/if}
+        </div>
+      </button>
+
+      {#each [
+        { id: 'lobby', icon: ChatTeardropDots, label: 'Hub' },
+        { id: 'system', icon: Gear, label: 'System' }
+      ] as item}
+        {@const Icon = item.icon}
+        <button 
+          onclick={() => activeTab = item.id}
+          class="flex flex-col items-center gap-1.5 py-3 px-5 rounded-2xl transition-all {activeTab === item.id ? 'text-primary-400' : 'text-zinc-500 opacity-60'}"
+        >
+          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={22} />
+          <span class="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+        </button>
+      {/each}
+    </div>
+  </div>
 </div>
 
 <style>

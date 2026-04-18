@@ -69,6 +69,7 @@
 <div class="fixed top-8 right-6 z-[9999] flex flex-col gap-4 pointer-events-none">
   {#each $toasts as toast (toast.id)}
     {@const theme = getTheme(toast.type)}
+    {@const Icon = getIcon(toast.type)}
     <div 
       animate:flip={{ duration: 400 }}
       in:fly={{ x: 100, opacity: 0, duration: 600, easing: quintOut }}
@@ -108,8 +109,7 @@
             {/if}
           {:else}
             <div class="flex-shrink-0 w-12 h-12 rounded-2xl {theme.bg} border {theme.border} flex items-center justify-center {theme.icon} shadow-inner bg-opacity-20 animate-float">
-                <svelte:component 
-                this={getIcon(toast.type)} 
+                <Icon 
                 weight="duotone"
                 size={26} 
                 />

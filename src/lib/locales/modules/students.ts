@@ -80,6 +80,10 @@ export const en = {
     'students.full_name_required': 'The full name is required',
     'students.personal_data': 'Personal Data',
     'students.last_name_placeholder': 'Example: DOE',
+    'students.active_students': 'Active',
+    'students.avg_per_class': 'Avg. Students / Class',
+    'students.new_student_btn': 'NEW STUDENT',
+    'students.report_view': 'REPORT',
 };
 
 export const es = {
@@ -164,4 +168,8 @@ export const es = {
     'students.full_name_required': 'El nombre completo es obligatorio',
     'students.personal_data': 'Datos Personales',
     'students.last_name_placeholder': 'Ej. NADIE',
+    'students.active_students': 'Activos',
+    'students.avg_per_class': 'Media Alumnos / Clase',
+    'students.new_student_btn': 'NUEVO ALUMNO',
+    'students.report_view': 'INFORME',
 };

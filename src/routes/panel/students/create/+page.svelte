@@ -1,6 +1,5 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
-
   import { page } from '$app/stores';
   import { 
     ArrowLeft,
@@ -13,13 +12,16 @@
     Lightning,
     FloppyDiskBack,
     IdentificationBadge,
-    CaretRight
+    CaretRight,
+    CaretLeft,
+    FloppyDisk
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { appStore } from '$lib/stores/appStore';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import { showToast, showError } from '$lib/stores/toast';
+  
   let { data } = $props<{ data: PageData }>();
 
   let plan = $derived($appStore.settings.plan || 'free');
@@ -127,237 +129,533 @@
 
 <svelte:window on:keydown={handleKeyDown} />
 
-<div class="max-w-5xl mx-auto px-6 pb-24 pt-8" in:fade>
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
-      <div class="space-y-6">
-        <button 
-          onclick={handleGoBack}
-          class="flex items-center gap-3 text-slate-500 hover:text-violet-400 transition-all group font-outfit font-bold uppercase tracking-widest text-[10px]"
-        >
-          <div class="p-2 bg-white/5 rounded-lg border border-white/10 group-hover:border-violet-500/30 transition-all">
-            <ArrowLeft size={14} weight="bold" />
-          </div>
-          {$t('students.back')}
-        </button>
+<div class="page-container" in:fade>
+  <div class="glow-bg"></div>
 
-        <div class="flex items-center gap-6">
-          <div class="w-16 h-16 bg-violet-600/10 border border-violet-500/20 rounded-24 flex items-center justify-center text-violet-400 shadow-violet-flare/10 shadow-xl">
-            <IdentificationBadge size={32} weight="duotone" />
+  <!-- Header Section -->
+  <header class="main-header">
+    <div class="title-section">
+      <button 
+        onclick={handleGoBack}
+        class="back-orb"
+        title={$t('common.back')}
+      >
+        <CaretLeft size={24} weight="bold" />
+      </button>
+      <div class="flex items-center gap-6">
+        <div class="header-icon">
+          <Plus size={32} weight="bold" />
+        </div>
+        <div class="text-group">
+          <h1 class="gradient-text font-outfit">{$t('students.new_title')}</h1>
+          <p class="subtitle mt-1">{$t('students.new_subtitle')}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-section">
+      <button 
+        class="glass-btn secondary" 
+        onclick={handleGoBack}
+      >
+        <X size={20} weight="bold" />
+        <span class="font-outfit font-bold">{$t('common.cancel')}</span>
+      </button>
+      <button 
+        class="glass-btn primary" 
+        onclick={handleSubmit}
+        disabled={isSubmitting}
+      >
+        {#if isSubmitting}
+          <div class="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent"></div>
+        {:else}
+          <FloppyDisk size={20} weight="bold" />
+        {/if}
+        <span class="font-outfit font-bold">{$t('students.confirm_registration')}</span>
+      </button>
+    </div>
+  </header>
+
+  {#if isLimitReached}
+    <div class="limit-warning mb-12" in:fly={{ y: 20 }}>
+      <div class="absolute inset-0 bg-gradient-to-r from-violet-600/20 to-transparent"></div>
+      <div class="warning-icon">
+        <Lightning size={32} weight="duotone" />
+      </div>
+      <div class="warning-text">
+        <h3>{$t('panel.limits.students')}</h3>
+        <p>{$t('pricing.premium.desc')}</p>
+      </div>
+      <a href="/panel/upgrade" class="upgrade-btn">
+        {$t('panel.upgrade')}
+      </a>
+    </div>
+  {/if}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2 space-y-8">
+      {#if isFromClass}
+        <div class="enrollment-tip" in:fade>
+          <div class="tip-icon">
+            <CheckCircle size={24} weight="duotone" />
           </div>
           <div>
-            <h1 class="text-4xl md:text-5xl font-outfit font-extrabold text-white tracking-tighter">{$t('students.new_title')}</h1>
-            <p class="text-slate-400 font-jakarta text-lg font-medium">{$t('students.new_subtitle')}</p>
+            <p class="tip-label">{$t('classes.enroll')}</p>
+            <p class="tip-desc">{$t('students.new_subtitle')}</p>
           </div>
         </div>
-      </div>
+      {/if}
 
-      <div class="flex items-center gap-4">
-        <button 
-          onclick={handleGoBack}
-          class="btn-pill bg-zinc-900 text-white px-8 py-4 font-bold border border-white/5 hover:bg-zinc-800 transition-all flex items-center gap-3 text-sm"
-        >
-          <X size={18} weight="bold" />
-          {$t('common.cancel')}
-        </button>
-        <button 
-          onclick={handleSubmit}
-          disabled={isSubmitting}
-          class="btn-pill bg-violet-600 text-white px-10 py-4 font-bold hover:bg-violet-500 transition-all shadow-violet-flare flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-        >
-          {#if isSubmitting}
-            <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-          {:else}
-            <FloppyDiskBack size={20} weight="duotone" />
-          {/if}
-          {$t('students.confirm_registration')}
-        </button>
-      </div>
+      <!-- Form Section -->
+      <section class="bento-card !p-10 space-y-12">
+        <div class="flex items-center gap-4 border-b border-white/5 pb-8">
+          <IdentificationBadge size={24} weight="duotone" class="text-violet-400" />
+          <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">{$t('students.personal_data')}</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div class="space-y-4">
+            <label for="first_name" class="input-label">{$t('students.first_name')} <span class="text-violet-500">*</span></label>
+            <div class="input-wrapper">
+              <input
+                id="first_name"
+                type="text"
+                bind:value={formData.first_name}
+                placeholder={$t('students.first_name_placeholder')}
+                class="glass-input {errors.first_name ? 'error' : ''}"
+              />
+            </div>
+            {#if errors.first_name}
+              <p class="error-msg">{errors.first_name}</p>
+            {/if}
+          </div>
+
+          <div class="space-y-4">
+            <label for="last_name" class="input-label">{$t('students.last_name')}</label>
+            <div class="input-wrapper">
+              <input
+                id="last_name"
+                type="text"
+                bind:value={formData.last_name}
+                placeholder={$t('students.last_name_placeholder')}
+                class="glass-input"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <label for="school" class="input-label">{$t('students.educational_school')} ({$t('common.optional')})</label>
+            <div class="input-wrapper group">
+              <select id="school" bind:value={formData.school_id} class="glass-select">
+                <option value="">{$t('students.independent_student')}</option>
+                {#each schools as school}
+                  <option value={school.id}>{school.name}</option>
+                {/each}
+              </select>
+              <CaretRight weight="bold" class="select-arrow rotate-90" />
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <label for="class" class="input-label">{$t('students.group_label')} ({$t('common.optional')})</label>
+            <div class="input-wrapper group">
+              <select id="class" bind:value={formData.class_id} class="glass-select">
+                <option value="">{$t('students.individual_class')}</option>
+                {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as c}
+                  <option value={c.id}>{c.name}</option>
+                {/each}
+              </select>
+              <CaretRight weight="bold" class="select-arrow rotate-90" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Observations -->
+      <section class="bento-card !p-10 space-y-10">
+        <div class="flex items-center gap-4 border-b border-white/5 pb-8">
+          <FileText size={24} weight="duotone" class="text-violet-400" />
+          <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">{$t('students.observations')}</h2>
+        </div>
+
+        <div class="space-y-4">
+          <label for="notes" class="input-label">{$t('students.notes_label')}</label>
+          <textarea
+            id="notes"
+            bind:value={formData.notes}
+            placeholder={$t('students.notes_placeholder')}
+            class="glass-textarea"
+          ></textarea>
+        </div>
+      </section>
     </div>
 
-    {#if isLimitReached}
-      <div class="bento-card border-violet-500/50 p-10 flex flex-col md:flex-row items-center gap-8 mb-10 overflow-hidden relative shadow-violet-flare/20" in:fly={{ y: 20 }}>
-        <div class="absolute inset-0 bg-gradient-to-r from-violet-600/10 to-transparent"></div>
-        <div class="w-20 h-20 bg-violet-600/20 rounded-2xl flex items-center justify-center text-violet-400 shrink-0 border border-violet-500/30 relative z-10">
-          <Lightning size={40} weight="duotone" class="animate-pulse" />
-        </div>
-        <div class="flex-grow text-center md:text-left relative z-10">
-          <h3 class="text-2xl font-outfit font-extrabold text-white tracking-tight">{$t('panel.limits.students')}</h3>
-          <p class="text-slate-400 font-jakarta text-lg font-medium mt-1">{$t('pricing.premium.desc')}</p>
-        </div>
-        <a 
-          href="/panel/upgrade"
-          class="btn-pill bg-white text-black px-10 py-4 font-black uppercase tracking-widest hover:bg-slate-100 transition-all relative z-10 active:scale-95 shadow-xl"
-        >
-          {$t('panel.upgrade')}
-        </a>
-      </div>
-    {/if}
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Main Form Section -->
-      <div class="lg:col-span-2 space-y-8">
-        {#if isFromClass}
-          <div class="bento-card !p-6 border-l-4 border-l-violet-500 flex items-center gap-5 transition-all">
-             <div class="w-12 h-12 bg-violet-600/10 rounded-xl flex items-center justify-center text-violet-400">
-                <CheckCircle size={28} weight="duotone" />
-             </div>
-             <div>
-                <p class="text-xs font-outfit font-black text-violet-400 uppercase tracking-widest leading-none mb-1.5">{$t('classes.enroll')}</p>
-                <p class="text-sm font-jakarta font-medium text-slate-500">{$t('students.new_subtitle')}</p>
-             </div>
-          </div>
-        {/if}
-
-        <div class="bento-card !p-10 space-y-12">
-          <div class="flex items-center gap-4 pb-6 border-b border-white/5">
-             <IdentificationBadge size={24} weight="duotone" class="text-violet-400" />
-             <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight">{$t('students.personal_data')}</h2>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-             <div class="space-y-4">
-                <label for="first_name" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1">{$t('students.first_name')} <span class="text-violet-500">*</span></label>
-                <input
-                  id="first_name"
-                  type="text"
-                  bind:value={formData.first_name}
-                  placeholder={$t('students.first_name_placeholder')}
-                  class={`w-full bg-zinc-950 border rounded-24 px-8 py-5 text-base font-medium text-white outline-none transition-all placeholder:text-slate-700 font-jakarta ${errors.first_name ? 'border-red-500/50 focus:border-red-500 shadow-lg shadow-red-500/5' : 'border-white/10 focus:border-violet-500/50'}`}
-                />
-                {#if errors.first_name}
-                  <p class="text-red-400 text-xs font-jakarta font-bold ml-2">{errors.first_name}</p>
-                {/if}
-             </div>
-
-             <div class="space-y-4">
-                <label for="last_name" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1">{$t('students.last_name')}</label>
-                <input
-                  id="last_name"
-                  type="text"
-                  bind:value={formData.last_name}
-                  placeholder={$t('students.last_name_placeholder')}
-                  class="w-full bg-zinc-950 border border-white/10 rounded-24 px-8 py-5 text-base font-medium text-white focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 font-jakarta"
-                />
-             </div>
-
-             <div class="space-y-4">
-                <label for="school" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1">{$t('students.educational_school')} ({$t('common.optional')})</label>
-                <div class="relative group">
-                  <select
-                    id="school"
-                    bind:value={formData.school_id}
-                    class={`w-full bg-zinc-950 border rounded-24 px-8 py-5 text-base font-medium text-white outline-none transition-all font-jakarta appearance-none ${errors.school_id ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-violet-500/50'}`}
-                  >
-                    <option value="">{$t('students.independent_student')}</option>
-                    {#each schools as school}
-                      <option value={school.id}>{school.name}</option>
-                    {/each}
-                  </select>
-                  <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 group-hover:text-violet-400 transition-colors">
-                    <CaretRight weight="bold" class="rotate-90" />
-                  </div>
-                </div>
-             </div>
-
-             <div class="space-y-4">
-                <label for="class" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1">{$t('students.group_label')} ({$t('common.optional')})</label>
-                <div class="relative group">
-                  <select
-                    id="class"
-                    bind:value={formData.class_id}
-                    class="w-full bg-zinc-950 border border-white/10 rounded-24 px-8 py-5 text-base font-medium text-white focus:border-violet-500/50 outline-none transition-all font-jakarta appearance-none"
-                  >
-                    <option value="">{$t('students.individual_class')}</option>
-                    {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as c}
-                      <option value={c.id}>{c.name}</option>
-                    {/each}
-                  </select>
-                  <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 group-hover:text-violet-400 transition-colors">
-                    <CaretRight weight="bold" class="rotate-90" />
-                  </div>
-                </div>
-             </div>
-          </div>
+    <!-- Sidebar -->
+    <div class="space-y-8">
+      <section class="bento-card !p-8 space-y-8 relative overflow-hidden group">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/5 blur-3xl rounded-full"></div>
+        
+        <div class="flex items-center gap-3 mb-6 relative z-10">
+           <BookOpen size={22} weight="duotone" class="text-violet-400" />
+           <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">{$t('students.guidance_title')}</h3>
         </div>
 
-        <div class="bento-card !p-10 space-y-12">
-           <div class="flex items-center gap-4 pb-6 border-b border-white/5">
-              <FileText size={24} weight="duotone" class="text-violet-400" />
-              <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight">{$t('students.observations')}</h2>
+        <div class="space-y-6 relative z-10">
+           {#each [1, 2, 3] as i}
+           <div class="flex gap-4 group/item">
+              <div class="guidance-step">0{i}</div>
+              <p class="text-xs font-jakarta font-medium text-slate-400 leading-relaxed group-hover/item:text-slate-300 transition-colors">
+                 {@html $t(`students.guidance_${i}`)}
+              </p>
            </div>
+           {/each}
+        </div>
+      </section>
 
-           <div class="space-y-4">
-              <label for="notes" class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest ml-1">{$t('students.notes_label')}</label>
-              <textarea
-                id="notes"
-                bind:value={formData.notes}
-                placeholder={$t('students.notes_placeholder')}
-                class="w-full bg-zinc-950 border border-white/10 rounded-24 px-8 py-6 text-base font-medium text-white h-48 resize-none focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 font-jakarta"
-              ></textarea>
+      <!-- Preview -->
+      <section class="bento-card !p-8 space-y-6">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{$t('students.preview_label')}</h3>
+          <div class="w-1.5 h-1.5 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]"></div>
+        </div>
+        
+        <div class="preview-box">
+           <div class="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent"></div>
+           <div class="flex items-center gap-5 relative z-10">
+              <div class="preview-avatar">
+                 {formData.first_name ? formData.first_name.charAt(0).toUpperCase() : '?'}
+              </div>
+              <div class="min-w-0">
+                <p class="text-base font-outfit font-bold text-white truncate group-hover:text-violet-400 transition-colors">
+                  {formData.first_name || $t('common.new')} {formData.last_name || $t('students.student_label')}
+                </p>
+                <div class="flex items-center gap-2 mt-1 Opacity-60">
+                  <div class="w-2 h-2 rounded-full bg-slate-500"></div>
+                  <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-widest leading-none">{$t('students.technical_tag')}</p>
+                </div>
+              </div>
            </div>
         </div>
-      </div>
-
-      <!-- Stats/Guidance Column -->
-      <div class="space-y-8">
-         <div class="bento-card !p-8 space-y-8 relative overflow-hidden group">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/5 blur-3xl rounded-full"></div>
-            
-            <div class="flex items-center gap-3 relative z-10">
-               <BookOpen size={22} weight="duotone" class="text-violet-400" />
-               <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">{$t('students.guidance_title')}</h3>
-            </div>
-
-            <div class="space-y-6 relative z-10">
-               <div class="flex gap-4">
-                  <div class="w-8 h-8 bg-zinc-950 rounded-xl flex items-center justify-center text-xs font-outfit font-black text-violet-400 border border-white/5 shadow-inner">01</div>
-                  <p class="text-xs font-jakarta font-medium text-slate-400 leading-relaxed">
-                     {@html $t('students.guidance_1')}
-                  </p>
-               </div>
-               <div class="flex gap-4">
-                  <div class="w-8 h-8 bg-zinc-950 rounded-xl flex items-center justify-center text-xs font-outfit font-black text-violet-400 border border-white/5 shadow-inner">02</div>
-                  <p class="text-xs font-jakarta font-medium text-slate-400 leading-relaxed">
-                     {@html $t('students.guidance_2')}
-                  </p>
-               </div>
-               <div class="flex gap-4">
-                  <div class="w-8 h-8 bg-zinc-950 rounded-xl flex items-center justify-center text-xs font-outfit font-black text-violet-400 border border-white/5 shadow-inner">03</div>
-                  <p class="text-xs font-jakarta font-medium text-slate-400 leading-relaxed">
-                     {@html $t('students.guidance_3')}
-                  </p>
-               </div>
-            </div>
-         </div>
-
-         <!-- Preview Card -->
-         <div class="bento-card !p-8 space-y-6">
-            <div class="flex items-center justify-between">
-              <h3 class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{$t('students.preview_label')}</h3>
-              <div class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></div>
-            </div>
-            
-            <div class="p-6 bg-zinc-950 rounded-24 border border-white/5 space-y-5 relative overflow-hidden group">
-               <div class="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-               
-               <div class="flex items-center gap-5 relative z-10">
-                  <div class="w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-extrabold text-xl shadow-inner text-center">
-                     {formData.first_name ? formData.first_name.charAt(0).toUpperCase() : '?'}
-                  </div>
-                  <div class="min-w-0">
-                    <p class="text-base font-outfit font-bold text-white truncate group-hover:text-violet-400 transition-colors">
-                      {formData.first_name || $t('common.new')} {formData.last_name || $t('students.student_label')}
-                    </p>
-                    <p class="text-[9px] font-outfit font-black text-violet-500/60 uppercase tracking-widest mt-1 text-center">{$t('students.technical_tag')}</p>
-                  </div>
-               </div>
-            </div>
-         </div>
-      </div>
+      </section>
     </div>
+  </div>
 </div>
 
 <style lang="postcss">
-  /* Student creation specialized layout */
+  .page-container {
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+    min-height: 100vh;
+    z-index: 1;
+  }
+
+  .glow-bg {
+    position: fixed;
+    top: -10%;
+    right: -10%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3.5rem;
+    gap: 2rem;
+  }
+
+  .title-section {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+  }
+
+  .back-orb {
+    width: 54px;
+    height: 54px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .back-orb:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    border-color: rgba(139, 92, 246, 0.3);
+    transform: translateX(-5px);
+  }
+
+  .header-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a78bfa;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+  }
+
+  .gradient-text {
+    font-size: 3rem;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+     color: #94a3b8;
+     font-family: 'Jakarta';
+     font-size: 1.1rem;
+     font-weight: 500;
+  }
+
+  .action-section {
+    display: flex;
+    gap: 1.25rem;
+  }
+
+  .glass-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.75rem;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .glass-btn.primary {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 10px 25px rgba(255,255,255,0.1);
+  }
+
+  .glass-btn.primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(255,255,255,0.15);
+  }
+
+  .glass-btn.secondary {
+    background: rgba(255,255,255,0.03);
+    color: #fff;
+  }
+
+  .glass-btn.secondary:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  .limit-warning {
+    position: relative;
+    background: rgba(139, 92, 246, 0.05);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 28px;
+    padding: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    overflow: hidden;
+  }
+
+  .warning-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a78bfa;
+    z-index: 10;
+  }
+
+  .warning-text {
+    flex-grow: 1;
+    z-index: 10;
+  }
+
+  .warning-text h3 {
+    font-family: 'Outfit';
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 0.25rem;
+  }
+
+  .warning-text p {
+    color: #94a3b8;
+    font-family: 'Jakarta';
+    font-weight: 500;
+  }
+
+  .upgrade-btn {
+    padding: 0.9rem 2.5rem;
+    background: #fff;
+    color: #000;
+    border-radius: 50px;
+    font-family: 'Outfit';
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+    z-index: 10;
+    box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+  }
+
+  .enrollment-tip {
+    background: rgba(139, 92, 246, 0.05);
+    border-left: 4px solid #7c3aed;
+    padding: 1.5rem;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .tip-icon { color: #8b5cf6; }
+  .tip-label { font-family: 'Outfit'; font-weight: 900; font-size: 0.7rem; color: #a78bfa; text-transform: uppercase; letter-spacing: 1px; }
+  .tip-desc { font-family: 'Jakarta'; font-weight: 500; font-size: 0.9rem; color: #64748b; }
+
+  .input-label {
+    display: block;
+    font-family: 'Outfit';
+    font-weight: 900;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #475569;
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .glass-input, .glass-select, .glass-textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 1.15rem 1.5rem;
+    color: #fff;
+    font-size: 1rem;
+    font-family: 'Jakarta';
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-input:focus, .glass-select:focus, .glass-textarea:focus {
+    background: rgba(0,0,0,0.4);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 1px 1px rgba(139, 92, 246, 0.2);
+    outline: none;
+  }
+
+  .glass-input.error { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
+
+  .glass-select {
+    appearance: none;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .input-wrapper :global(.select-arrow) {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    pointer-events: none;
+    color: #475569;
+    transition: color 0.3s;
+  }
+
+  .input-wrapper:hover :global(.select-arrow) { color: #a78bfa; }
+
+  .glass-textarea {
+    min-height: 180px;
+    resize: none;
+    line-height: 1.6;
+  }
+
+  .error-msg {
+    color: #f87171;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    padding-left: 0.75rem;
+  }
+
+  .guidance-step {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit';
+    font-weight: 900;
+    font-size: 0.75rem;
+    color: #7c3aed;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+  }
+
+  .preview-box {
+    position: relative;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 24px;
+    padding: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .preview-avatar {
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a78bfa;
+    font-family: 'Outfit';
+    font-weight: 900;
+    font-size: 1.5rem;
+  }
+
+  @media (max-width: 1024px) {
+    .main-header { flex-direction: column; align-items: flex-start; }
+    .gradient-text { font-size: 2.25rem; }
+    .action-section { width: 100%; }
+    .glass-btn { flex: 1; justify-content: center; }
+  }
 </style>

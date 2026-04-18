@@ -85,28 +85,28 @@
 
 <div class="space-y-8">
   <!-- Primary Insights -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
     {#each primaryCards as card, i}
       {@const Icon = card.icon}
       <div class="relative group" in:fade={{ delay: i * 150 }}>
-        <div class="absolute -inset-1 bg-gradient-to-r {card.color} rounded-[3rem] opacity-10 group-hover:opacity-20 transition duration-500 blur-xl"></div>
-        <div class="relative bg-black/40 backdrop-blur-3xl border border-white/10 p-10 rounded-[2.5rem] overflow-hidden">
-          <div class="flex items-center justify-between mb-8">
-            <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-              <Icon weight="duotone" class="w-8 h-8 text-white" />
+        <div class="absolute -inset-1 bg-gradient-to-r {card.color} rounded-[2rem] md:rounded-[3rem] opacity-10 group-hover:opacity-20 transition duration-500 blur-xl"></div>
+        <div class="relative bg-black/40 backdrop-blur-3xl border border-white/10 p-6 md:p-10 rounded-[1.8rem] md:rounded-[2.5rem] overflow-hidden">
+          <div class="flex items-center justify-between mb-4 md:mb-8">
+            <div class="p-3 md:p-4 bg-white/5 rounded-2xl border border-white/10">
+              <Icon weight="duotone" class="w-6 h-6 md:w-8 md:h-8 text-white" />
             </div>
             <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span class="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Live Sync</span>
+              <span class="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Live</span>
             </div>
           </div>
           
           <div class="space-y-1">
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">{card.label}</p>
-            <h3 class="text-6xl font-black font-display tracking-tighter text-white italic leading-none">
+            <p class="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">{card.label}</p>
+            <h3 class="text-4xl md:text-6xl font-black font-display tracking-tighter text-white italic leading-none">
               {card.value}
             </h3>
-            <p class="text-xs font-bold text-slate-400 mt-4 tracking-tight">{card.description}</p>
+            <p class="text-[10px] md:text-xs font-bold text-slate-400 mt-4 tracking-tight">{card.description}</p>
           </div>
         </div>
       </div>

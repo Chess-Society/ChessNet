@@ -196,11 +196,14 @@
   
   <!-- Hero Section (iOS Style) -->
   <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 lg:mb-10 pt-4 lg:pt-8 gap-4 lg:gap-6">
-    <div class="space-y-0.5 lg:space-y-1">
-      <h1 class="text-3xl lg:text-5xl font-extrabold text-white tracking-tight lg:tracking-tighter font-display">
-        {$t('dashboard.welcome_coach')} <span class="hidden lg:inline">👋</span>
+    <div class="space-y-2 lg:space-y-1">
+      <h1 class="text-3xl lg:text-5xl font-extrabold text-white tracking-tight lg:tracking-tighter font-display leading-tight">
+        <span class="block text-violet-400 lg:text-white lg:inline italic lg:not-italic group-hover:text-primary-400 transition-colors">
+          {$t('panel.motto_primary') || 'Entrena con pasión,'}
+        </span> 
+        <span class="block lg:inline">{$t('panel.motto_secondary') || 'lidera con estrategia.'}</span>
       </h1>
-      <p class="text-surface-500 text-sm lg:text-lg font-medium">{$t('dashboard.overview')}</p>
+      <p class="text-slate-500 text-sm lg:text-lg font-medium tracking-wide">{$t('dashboard.overview')}</p>
     </div>
     
     <div class="hidden lg:flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5">
@@ -216,20 +219,13 @@
 
   <!-- Quick Actions Grid -->
   <div class="mb-8 lg:mb-12">
-    <div class="flex justify-between items-center mb-4 lg:mb-6">
-      <h2 class="text-lg lg:text-xl font-extrabold text-white tracking-tight flex items-center gap-3 font-display">
-        <DotsSixVertical weight="duotone" class="text-primary-500" /> {$t('dashboard.quick_access')}
-      </h2>
-      <button 
-        onclick={toggleEditMode}
-        class="text-[9px] lg:text-xs font-bold uppercase tracking-widest flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 rounded-full border border-white/5 hover:bg-white/5 transition-all {editMode ? 'bg-primary-500 text-white border-primary-500 shadow-violet-flare' : 'text-surface-400'}"
-      >
-        <GearSix weight="duotone" size={14} /> 
-        {editMode ? $t('dashboard.save') : $t('dashboard.customize')}
-      </button>
+    <!-- Mobile Action Grid Header -->
+    <div class="lg:hidden mb-4">
+      <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">{$t('dashboard.quick_access')}</p>
+      <div class="h-0.5 w-12 bg-violet-500 rounded-full"></div>
     </div>
-    
-    <div class="grid grid-cols-2 lg:grid-cols-6 gap-2 lg:gap-4">
+
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4">
       {#each displayedActions() as action, i}
         <div 
           role="button"
@@ -571,7 +567,7 @@
             <p class="text-[10px] text-surface-500 font-black uppercase tracking-widest leading-none mb-1">{$t('dashboard.need_help')}</p>
             <p class="text-sm font-bold text-white">{$t('dashboard.support_center')}</p>
           </div>
-          <a href="/panel/lobby?tab=support" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-400 hover:bg-primary-500 hover:text-white transition-all shadow-soft">
+          <a href="/panel/support" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-surface-400 hover:bg-primary-500 hover:text-white transition-all shadow-soft">
             <Plus weight="bold" size={16} />
           </a>
       </div>

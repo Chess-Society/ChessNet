@@ -53,6 +53,7 @@
     {#if $uiStore.confirmDialog}
       {@const dialog = $uiStore.confirmDialog}
       {@const styles = getTypeStyles(dialog.type)}
+      {@const Icon = getIcon(dialog.type)}
       <div 
         class="relative w-full max-w-md overflow-hidden bg-[#121214]/90 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] shadow-[0_32px_128px_-16px_rgba(0,0,0,0.8)]"
         transition:scale={{ duration: 450, start: 0.92, easing: quintOut }}
@@ -79,7 +80,7 @@
           <div class="flex flex-col items-center text-center gap-8">
             <div class="flex-shrink-0 p-6 rounded-[2rem] border-2 {styles.iconBg} animate-float shadow-2xl relative">
               <div class="absolute inset-0 blur-xl {styles.accent} opacity-50"></div>
-              <svelte:component this={getIcon(dialog.type)} weight="duotone" size={44} class="relative z-10" />
+              <Icon weight="duotone" size={44} class="relative z-10" />
             </div>
             
             <div class="space-y-4">

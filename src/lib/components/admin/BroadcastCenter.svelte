@@ -14,7 +14,8 @@
   import { collection, addDoc } from 'firebase/firestore';
 
   let message = $state("");
-  let type = $state<"info" | "warning" | "success" | "critical">("info");
+  let title = $state("");
+  let type = $state<"news" | "feature" | "improvement" | "critical">("news");
   let isSending = $state(false);
 
   async function handleSend() {
@@ -23,6 +24,7 @@
     try {
       // Send to lobby_announcements (which displays in the lobby chat)
       await addDoc(collection(db, "lobby_announcements"), {
+        title: title || "Actualización del Sistema",
         content: message,
         type: type,
         authorName: "Admin ChessNet",
@@ -33,6 +35,7 @@
 
       toast.success($t('admin.broadcast.success'));
       message = "";
+      title = "";
     } catch (e) {
       toast.error($t('admin.broadcast.error'));
     } finally {
@@ -41,10 +44,10 @@
   }
 
   const types = $derived([
-    { id: 'info', icon: Info, color: 'text-blue-400 border-blue-500/30 bg-blue-500/10', label: $t('admin.broadcast.type_info') },
-    { id: 'success', icon: CheckCircle, color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10', label: $t('admin.broadcast.type_success') },
-    { id: 'warning', icon: Warning, color: 'text-amber-400 border-amber-500/30 bg-amber-500/10', label: $t('admin.broadcast.type_warning') },
-    { id: 'critical', icon: Megaphone, color: 'text-red-400 border-red-500/30 bg-red-500/10', label: $t('admin.broadcast.type_critical') }
+    { id: 'news', icon: Info, color: 'text-blue-400 border-blue-500/30 bg-blue-500/10', label: 'News' },
+    { id: 'feature', icon: CheckCircle, color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10', label: 'Feature' },
+    { id: 'improvement', icon: Warning, color: 'text-amber-400 border-amber-500/30 bg-amber-500/10', label: 'Update' },
+    { id: 'critical', icon: Megaphone, color: 'text-red-400 border-red-500/30 bg-red-500/10', label: 'Urgent' }
   ]);
 </script>
 
@@ -75,6 +78,15 @@
           <span class="text-[9px] font-black uppercase tracking-tighter">{item.label}</span>
         </button>
       {/each}
+    </div>
+
+    <!-- Title Input -->
+    <div class="relative">
+      <input 
+        bind:value={title}
+        placeholder="Título del anuncio..."
+        class="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-primary-500/50 transition-all shadow-inner"
+      />
     </div>
 
     <!-- Message Input -->

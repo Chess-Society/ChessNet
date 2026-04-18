@@ -39,13 +39,10 @@
   import { parseDate, formatDate } from '$lib/utils/date';
 
   // State
-  let activeTab = $state(page.url.searchParams.get('tab') || 'suggestions'); // suggestions, announcements, support
   let showCreateModal = $state(false);
-  let showAnnouncementModal = $state(false);
-  let showSupportModal = $state(false);
   let isSubmitting = $state(false);
+  let newsDismissed = $state(false);
   
-  let suggestions = $state<any[]>([]);
   let communityAnnouncements = $state<any[]>([]);
   let globalAnnouncements = $state<any[]>([]);
   let announcements = $derived([...globalAnnouncements, ...communityAnnouncements].sort((a,b) => {
@@ -53,7 +50,6 @@
     const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
     return dateB - dateA;
   }));
-  let myReports = $state<any[]>([]);
   
   // Community Chat State
   let groups = $state<any[]>([]);
@@ -74,16 +70,6 @@
     category: 'feature' // feature, bug, improvement
   });
 
-  let newAnnouncement = $state({
-    title: '',
-    content: ''
-  });
-
-  let newReport = $state({
-    title: '',
-    content: '',
-    type: 'bug' // bug, billing, general
-  });
 
   const plan = $derived($appStore?.settings?.plan || 'free');
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
@@ -95,11 +81,10 @@
       return;
     }
 
-    // Listen for suggestions
-    const qS = query(collection(db, 'lobby_suggestions'), orderBy('createdAt', 'desc'));
-    const unsubS = onSnapshot(qS, (snap) => {
-      suggestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    }, (err) => console.error("Error suggestions listener:", err));
+    // Check if news was dismissed this session
+    if (sessionStorage.getItem('lobby_news_dismissed') === 'true') {
+      newsDismissed = true;
+    }
 
     // Listen for community announcements
     const qA = query(collection(db, 'lobby_announcements'), orderBy('createdAt', 'desc'));
@@ -113,18 +98,6 @@
       globalAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data(), isGlobal: true }));
     }, (err) => console.error("Error global announcements listener:", err));
 
-    // Listen for my reports
-    let unsubR = () => {};
-    if ($authUser) {
-      const qR = isAdmin 
-        ? query(collection(db, 'lobby_reports'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'lobby_reports'), where('authorId', '==', $authUser.uid), orderBy('createdAt', 'desc'));
-      
-      unsubR = onSnapshot(qR, (snap) => {
-        myReports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      }, (err) => console.error("Error reports listener:", err));
-    }
-
     // Listen for groups
     const qG = query(collection(db, 'community_groups'), orderBy('name', 'asc'));
     const unsubG = onSnapshot(qG, (snap) => {
@@ -137,10 +110,8 @@
     }, (err) => console.error("Error groups listener:", err));
 
     return () => {
-      unsubS();
       unsubA();
       unsubGlobal();
-      unsubR();
       unsubG();
     };
   });
@@ -148,8 +119,6 @@
   // Watch selectedGroupId to fetch messages
   $effect(() => {
     if (selectedGroupId) {
-      // Simplificamos la query eliminando el orderBy para evitar errores de índices ausentes
-      // Ordenamos en memoria para garantizar tiempo real inmediato sin bloqueos de Firebase
       const qM = query(
         collection(db, 'community_messages'), 
         where('groupId', '==', selectedGroupId)
@@ -157,14 +126,13 @@
       
       const unsubM = onSnapshot(qM, (snap) => {
         let loadedMessages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // Ordenar en memoria por createdAt
         messages = (loadedMessages as any[]).sort((a, b) => {
           const dateA = new Date(a.createdAt || 0).getTime();
           const dateB = new Date(b.createdAt || 0).getTime();
           return dateA - dateB;
         });
 
-        // Scroll to bottom (optional, but good UX)
+        // Scroll to bottom
         setTimeout(() => {
           const container = document.getElementById('chat-container');
           if (container) {
@@ -176,21 +144,19 @@
         }, 100);
       }, (err) => {
         console.error("Error en listener de mensajes:", err);
-        toast.error("Error al cargar mensajes: Verifique los índices de Firestore.");
       });
       
       return unsubM;
     }
   });
 
-  // Clear notifications pulse when relevant tab is viewed
+  // Clear notifications pulse when lobby is viewed
   $effect(() => {
-    if (activeTab === 'announcements') {
-      const now = Date.now().toString();
-      localStorage.setItem('last_viewed_lobby_announcements', now);
-      localStorage.setItem('last_viewed_announcements_global', now);
-    } else if (activeTab === 'suggestions' && isAdmin) {
-      localStorage.setItem('last_viewed_lobby_suggestions', Date.now().toString());
+    const now = Date.now().toString();
+    localStorage.setItem('last_viewed_lobby_announcements', now);
+    localStorage.setItem('last_viewed_announcements_global', now);
+    if (isAdmin) {
+      localStorage.setItem('last_viewed_lobby_suggestions', now);
     }
   });
 
@@ -262,65 +228,6 @@
     }
   }
 
-  async function handleSubmitReport() {
-    if (!newReport.title || !newReport.content) return;
-    
-    isSubmitting = true;
-    try {
-      await addDoc(collection(db, 'lobby_reports'), {
-        ...newReport,
-        authorId: $authUser?.uid,
-        authorName: $appStore?.settings?.teacherName || $authUser?.displayName || 'Anónimo',
-        authorEmail: $authUser?.email,
-        status: 'open',
-        createdAt: new Date().toISOString()
-      });
-      
-      toast.success("Reporte enviado. Nos pondremos en contacto pronto.");
-      showSupportModal = false;
-      newReport = { title: '', content: '', type: 'bug' };
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      isSubmitting = false;
-    }
-  }
-
-  async function handleSubmitAnnouncement() {
-    if (!newAnnouncement.title || !newAnnouncement.content) return;
-    if (!isAdmin) return;
-
-    isSubmitting = true;
-    try {
-      await addDoc(collection(db, 'lobby_announcements'), {
-        ...newAnnouncement,
-        createdAt: new Date().toISOString()
-      });
-      
-      toast.success($t('lobby.announcement_published'));
-      showAnnouncementModal = false;
-      newAnnouncement = { title: '', content: '' };
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      isSubmitting = false;
-    }
-  }
-
-  async function handleVote(id: string, alreadyVoted: boolean) {
-    if (plan !== 'premium' && !isAdmin) {
-        toast.error($t('lobby.premium_required_vote'));
-        return;
-    }
-    try {
-      const docRef = doc(db, 'lobby_suggestions', id);
-      await updateDoc(docRef, {
-        votes: alreadyVoted ? arrayRemove($authUser?.uid) : arrayUnion($authUser?.uid)
-      });
-    } catch (err: any) {
-      console.error(err);
-    }
-  }
 
   async function handleDelete(collectionName: string, id: string) {
     if (!isAdmin) return;
@@ -339,7 +246,21 @@
     }
   }
 
+  function dismissNews() {
+    newsDismissed = true;
+    sessionStorage.setItem('lobby_news_dismissed', 'true');
+  }
 
+  const latestAnnouncement = $derived(announcements[0]);
+  const showPill = $derived(!newsDismissed && latestAnnouncement);
+
+  function getAnnouncementColor(a: any) {
+    if (a.isGlobal) return 'from-violet-600 to-indigo-700';
+    if (a.type === 'feature') return 'from-emerald-500 to-teal-600';
+    if (a.type === 'improvement') return 'from-amber-500 to-orange-600';
+    if (a.type === 'critical') return 'from-red-500 to-rose-600';
+    return 'from-blue-500 to-indigo-600';
+  }
 </script>
 
 <svelte:head>
@@ -353,10 +274,10 @@
     <div class="space-y-4 lg:space-y-4">
       <div class="hidden lg:inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-violet-400">
         <ChatCircleDots weight="fill" class="w-3 h-3" />
-        {$t('lobby.title')}
+        Lobby de Profesores
       </div>
       <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase italic leading-[0.85]">
-        {$t('lobby.title_prefix')}<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">{$t('lobby.title_suffix')}</span>
+        Comunidad<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">ChessNet</span>
       </h1>
       <p class="text-zinc-500 font-plus-jakarta text-sm lg:text-lg max-w-xl">
         {$t('lobby.subtitle')}
@@ -364,29 +285,14 @@
     </div>
 
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-      <!-- Tabs Selector (Segmented Control style) -->
-      <div class="flex p-1 bg-zinc-900/80 backdrop-blur-xl border border-white/5 rounded-xl lg:rounded-2xl shadow-2xl">
-        <button 
-          onclick={() => activeTab = 'suggestions'}
-          class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'suggestions' ? 'bg-violet-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
-        >
-          {$t('lobby.chat')}
-        </button>
-        <button 
-          onclick={() => activeTab = 'announcements'}
-          class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'announcements' ? 'bg-violet-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
-        >
-          {$t('lobby.news')}
-        </button>
-        <button 
-          onclick={() => activeTab = 'support'}
-          class="flex-1 px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all {activeTab === 'support' ? 'bg-amber-600 text-black shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}"
-        >
-          {$t('lobby.support')}
-        </button>
+      <!-- Tabs Selector -->
+      <div class="flex items-center gap-2 bg-zinc-900/50 p-1.5 rounded-2xl border border-white/5">
+        <div class="flex-1 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-zinc-800 text-white shadow-lg">
+          {$t('lobby.community')}
+        </div>
       </div>
 
-      {#if activeTab === 'suggestions' && isAdmin}
+      {#if isAdmin}
         <button 
           onclick={() => showCreateGroupModal = true}
           class="h-12 px-6 bg-white hover:bg-violet-100 text-zinc-950 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest group"
@@ -394,119 +300,59 @@
           <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
           {$t('lobby.new_group')}
         </button>
-      {:else if activeTab === 'announcements' && isAdmin}
-        <button 
-          onclick={() => showAnnouncementModal = true}
-          class="h-12 px-6 bg-primary-500 text-black rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest group"
-        >
-          <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
-          {$t('lobby.new_announcement')}
-        </button>
-      {:else if activeTab === 'support'}
-        <button 
-          onclick={() => showSupportModal = true}
-          class="h-12 px-6 bg-white hover:bg-violet-100 text-zinc-950 rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest group"
-        >
-          <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
-          {$t('lobby.report')}
-        </button>
       {/if}
     </div>
   </div>
 
   <!-- Main Content -->
-  {#if activeTab === 'suggestions' && plan !== 'premium' && !isAdmin}
-    <!-- Restricted Access Notice for Suggestions -->
-    <div class="bg-violet-600/10 border border-violet-500/20 rounded-[2.5rem] p-12 text-center space-y-6 relative overflow-hidden group">
-        <div class="absolute -right-24 -top-24 w-64 h-64 bg-violet-500/10 rounded-full blur-[100px] group-hover:bg-violet-500/20 transition-all duration-700"></div>
-        <div class="w-20 h-20 bg-violet-500/20 border border-violet-500/30 rounded-3xl flex items-center justify-center text-violet-400 mx-auto relative z-10">
+  {#if plan !== 'premium' && !isAdmin}
+    <!-- Restricted Access Notice -->
+    <div class="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-10 text-center space-y-6 relative overflow-hidden group backdrop-blur-3xl">
+        <div class="absolute -right-24 -top-24 w-60 h-60 bg-violet-600/10 rounded-full blur-[100px] group-hover:bg-violet-600/20 transition-all duration-700"></div>
+        <div class="w-20 h-20 bg-violet-600/20 border border-violet-500/30 rounded-[1.5rem] flex items-center justify-center text-violet-400 mx-auto relative z-10 shadow-2xl shadow-violet-600/20">
             <Crown size={40} weight="duotone" />
         </div>
         <div class="space-y-3 relative z-10">
-            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('lobby.premium_title')}</h2>
-            <p class="text-zinc-400 text-lg font-plus-jakarta max-w-lg mx-auto">
-                {$t('lobby.premium_desc')}
+            <h2 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Comunidad Premium</h2>
+            <p class="text-zinc-400 text-lg font-plus-jakarta max-w-2xl mx-auto leading-relaxed">
+                Únete a la élite docente: comparte metodologías, accede a recursos exclusivos y conecta con la red de profesores más influyente.
             </p>
         </div>
         <button 
             onclick={() => goto('/pricing')}
-            class="px-10 py-5 bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl shadow-violet-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto relative z-10"
+            class="px-12 py-6 bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-[0.2em] text-sm rounded-2xl shadow-2xl shadow-violet-600/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-4 mx-auto relative z-10"
         >
-            <Crown size={18} weight="bold" />
-            {$t('lobby.premium_btn')}
-        </button>
-    </div>
-  {:else if activeTab === 'announcements' && plan !== 'premium' && !isAdmin}
-    <!-- Restricted Access Notice for Announcements -->
-    <div class="bg-violet-600/10 border border-violet-500/20 rounded-[2.5rem] p-12 text-center space-y-6 relative overflow-hidden group">
-        <div class="absolute -right-24 -top-24 w-64 h-64 bg-violet-500/10 rounded-full blur-[100px] group-hover:bg-violet-500/20 transition-all duration-700"></div>
-        <div class="w-20 h-20 bg-violet-500/20 border border-violet-500/30 rounded-3xl flex items-center justify-center text-violet-400 mx-auto relative z-10">
-            <Crown size={40} weight="duotone" />
-        </div>
-        <div class="space-y-3 relative z-10">
-            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('lobby.premium_title')}</h2>
-            <p class="text-zinc-400 text-lg font-plus-jakarta max-w-lg mx-auto">
-                {$t('lobby.news_restriction')}
-            </p>
-        </div>
-        <button 
-            onclick={() => goto('/pricing')}
-            class="px-10 py-5 bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-2xl shadow-violet-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto relative z-10"
-        >
-            <Crown size={18} weight="bold" />
-            {$t('lobby.access_now')}
+            <Crown size={20} weight="bold" />
+            Descubrir Planes
         </button>
     </div>
   {:else}
-    <!-- Tab Sections -->
-    {#if activeTab === 'suggestions'}
-      <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
-        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">{$t('lobby.community_title')}</h2>
-        <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed">
-          {$t('lobby.community_desc')}
-        </p>
-      </div>
-    {:else if activeTab === 'announcements'}
-      <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
-        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">{$t('lobby.news_title')}</h2>
-        <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed">
-          {$t('lobby.news_desc')}
-        </p>
-      </div>
-    {:else if activeTab === 'support'}
-      <div class="mb-6 lg:mb-12 bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-3xl p-4 lg:p-8 backdrop-blur-xl">
-        <h2 class="text-base lg:text-xl font-outfit font-black text-white uppercase italic tracking-wider mb-1 lg:mb-2">{$t('lobby.support_title')}</h2>
-        <p class="text-xs lg:text-sm text-slate-400 max-w-2xl leading-relaxed font-outfit italic tracking-wider opacity-60">
-          {$t('lobby.support_desc')}
-        </p>
-      </div>
-    {/if}
-
-    {#if activeTab === 'suggestions'}
-      <div class="flex flex-col lg:flex-row gap-8 min-h-[600px]">
-        <!-- Groups Sidebar (Compact on mobile) -->
-        <div class="w-full lg:w-80 space-y-4">
-          <div class="bg-zinc-900/60 border border-white/5 rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 backdrop-blur-xl">
-            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 lg:mb-6 ml-2">{$t('lobby.subgroups')}</h3>
-            <div class="flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 pb-2 lg:pb-0 scrollbar-hide">
+    <!-- Chat Section -->
+    <div class="flex flex-col lg:flex-row gap-8 min-h-[700px]">
+        <!-- Groups Sidebar -->
+        <div class="w-full lg:w-80 space-y-6">
+          <div class="bg-zinc-900/60 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-xl h-full flex flex-col">
+            <h3 class="text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-6 ml-2 flex items-center gap-2">
+              <Hash size={14} class="text-violet-500" />
+              SALA DE CANALES
+            </h3>
+            <div class="flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-3 pb-4 lg:pb-0 scrollbar-hide flex-1">
               {#each groups as g (g.id)}
-                <div 
-                  role="button"
-                  tabindex="0"
-                  onclick={() => { selectedGroupId = g.id; selectedGroupName = g.name; }}
-                  onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { selectedGroupId = g.id; selectedGroupName = g.name; } }}
-                  class="flex-shrink-0 lg:flex-shrink lg:w-full flex items-center justify-between p-3 lg:p-4 rounded-xl lg:rounded-2xl transition-all group/group cursor-pointer {selectedGroupId === g.id ? 'bg-violet-600 text-white shadow-lg' : 'bg-white/5 text-slate-400 hover:bg-white/10'}"
-                >
-                  <div class="flex items-center gap-3 truncate">
-                    <Hash weight={selectedGroupId === g.id ? 'bold' : 'duotone'} class="w-4 h-4 {selectedGroupId === g.id ? 'text-white' : 'text-violet-500'}" />
-                    <span class="font-outfit font-bold text-xs lg:text-sm truncate uppercase tracking-tight">{g.name}</span>
-                  </div>
+                <div class="relative group/group flex-shrink-0 lg:flex-shrink-0 lg:w-full">
+                  <button 
+                    onclick={() => { selectedGroupId = g.id; selectedGroupName = g.name; }}
+                    class="w-full flex items-center justify-between p-4 rounded-2xl transition-all {selectedGroupId === g.id ? 'bg-violet-600 text-white shadow-xl shadow-violet-600/20' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-transparent hover:border-white/10'}"
+                  >
+                    <div class="flex items-center gap-3 truncate">
+                      <span class="font-outfit font-bold text-sm truncate uppercase tracking-tight">{g.name}</span>
+                    </div>
+                  </button>
                   {#if isAdmin && selectedGroupId === g.id}
-                     <button 
+                    <button 
                       onclick={(e) => { e.stopPropagation(); handleDelete('community_groups', g.id); }}
-                      class="hidden lg:block p-1.5 hover:bg-red-500/20 rounded-lg text-slate-500 hover:text-red-400 transition-all"
+                      class="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block p-1.5 hover:bg-red-500/20 rounded-lg text-white/60 hover:text-white transition-all z-10"
                     >
-                      <Trash weight="bold" size={12} />
+                      <Trash weight="bold" size={14} />
                     </button>
                   {/if}
                 </div>
@@ -516,17 +362,17 @@
         </div>
 
         <!-- Chat Area -->
-        <div class="flex-1 flex flex-col bg-zinc-950/40 border border-white/5 rounded-2xl lg:rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[500px] lg:min-h-[600px]">
+        <div class="flex-1 flex flex-col bg-zinc-950/40 border border-white/5 rounded-[3rem] overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] min-h-[600px] lg:min-h-[700px] relative">
           {#if selectedGroupId}
             <!-- Chat Header -->
-            <div class="p-4 lg:p-6 border-b border-white/5 bg-zinc-900/40 flex items-center justify-between backdrop-blur-md">
-              <div class="flex items-center gap-3 lg:gap-4">
-                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-violet-600/20 border border-violet-500/20 rounded-xl lg:rounded-2xl flex items-center justify-center text-violet-400">
-                  <Hash size={18} weight="bold" />
+            <div class="p-6 lg:p-8 border-b border-white/5 bg-zinc-900/40 flex items-center justify-between backdrop-blur-3xl">
+              <div class="flex items-center gap-4 lg:gap-6">
+                <div class="w-12 h-12 lg:w-14 lg:h-14 bg-violet-600 text-white rounded-2xl flex items-center justify-center shadow-2xl shadow-violet-600/20">
+                  <Hash size={24} weight="bold" />
                 </div>
                 <div>
-                  <h3 class="font-outfit font-black text-sm lg:text-base text-white uppercase tracking-tight">{selectedGroupName}</h3>
-                  <p class="text-[8px] lg:text-[10px] text-slate-500 font-bold uppercase tracking-widest">{groups.find(g => g.id === selectedGroupId)?.description || 'Comunidad'}</p>
+                  <h3 class="font-outfit font-black text-lg lg:text-2xl text-white uppercase tracking-tight italic">#{selectedGroupName}</h3>
+                  <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{groups.find(g => g.id === selectedGroupId)?.description || 'Canal de discusión'}</p>
                 </div>
               </div>
             </div>
@@ -534,195 +380,98 @@
             <!-- Messages List -->
             <div 
               id="chat-container"
-              class="flex-1 overflow-y-auto p-8 space-y-6 scroll-smooth"
+              class="flex-1 overflow-y-auto p-10 space-y-8 scroll-smooth"
             >
               {#each messages as m (m.id)}
-                <div class="flex gap-4 {m.authorId === $authUser?.uid ? 'flex-row-reverse' : ''}" in:fade>
-                  <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                <div class="flex gap-5 {m.authorId === $authUser?.uid ? 'flex-row-reverse' : ''}" in:fade>
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex-shrink-0 overflow-hidden flex items-center justify-center shadow-lg relative group/avatar">
                     {#if m.authorAvatar}
                       <img src={m.authorAvatar} alt="avatar" class="w-full h-full object-cover" />
                     {:else}
-                      <span class="text-xs font-bold text-slate-500">{m.authorName?.[0] || '?'}</span>
+                      <span class="text-xs font-bold text-zinc-500">{m.authorName?.[0] || '?'}</span>
                     {/if}
                   </div>
-                  <div class="flex flex-col max-w-[70%] {m.authorId === $authUser?.uid ? 'items-end' : ''}">
-                    <div class="flex items-center gap-2 mb-1.5 px-1">
-                      <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{m.authorName}</span>
+                  <div class="flex flex-col max-w-[75%] {m.authorId === $authUser?.uid ? 'items-end' : ''}">
+                    <div class="flex items-center gap-3 mb-2 px-1">
+                      <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{m.authorName}</span>
                       
-                      <!-- Author Insignias -->
                       {#if m.authorInsignias && m.authorInsignias.length > 0}
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1.5">
                           {#each m.authorInsignias as insId}
                             {@const ins = INSIGNIAS.find(i => i.id === insId)}
                             {#if ins}
                               {@const Icon = ins.icon}
-                              <div class="group/ins relative">
-                                <Icon size={11} weight="fill" class={ins.color} />
-                                <!-- Tooltip naming insignia -->
-                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-[8px] font-black text-white uppercase tracking-tighter rounded border border-white/10 opacity-0 group-hover/ins:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                  {$t(ins.titleKey)}
-                                </div>
-                              </div>
+                              <Icon size={12} weight="fill" class={ins.color} />
                             {/if}
                           {/each}
                         </div>
                       {/if}
 
-                      <span class="text-[8px] text-zinc-600 font-medium">
+                      <span class="text-[9px] text-zinc-600 font-bold">
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <div class="p-4 rounded-3xl text-sm font-medium leading-relaxed {m.authorId === $authUser?.uid ? 'bg-violet-600 text-white rounded-tr-none' : 'bg-white/5 text-slate-300 rounded-tl-none'}">
+                    <div class="px-6 py-4 rounded-[2rem] text-sm font-medium leading-[1.6] shadow-xl {m.authorId === $authUser?.uid ? 'bg-violet-600 text-white rounded-tr-none' : 'bg-white/5 text-zinc-300 rounded-tl-none border border-white/5'}">
                       {m.text}
                     </div>
                     {#if isAdmin}
                       <button 
                         onclick={() => handleDelete('community_messages', m.id)}
-                        class="mt-1 p-1 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                        class="mt-2 text-[10px] font-bold text-red-500/40 hover:text-red-500 transition-colors uppercase tracking-widest px-2"
                       >
-                        <Trash size={10} />
+                        Eliminar
                       </button>
                     {/if}
                   </div>
                 </div>
               {:else}
-                <div class="h-full flex flex-col items-center justify-center opacity-20">
-                  <ChatTeardropDots size={48} weight="duotone" />
-                  <p class="mt-4 font-outfit font-bold uppercase tracking-widest text-sm">{$t('lobby.start_conversation')}</p>
+                <div class="h-full flex flex-col items-center justify-center opacity-20 scale-110">
+                  <ChatTeardropDots size={80} weight="duotone" class="text-violet-500 shadow-violet-600/20" />
+                  <p class="mt-6 font-outfit font-black uppercase tracking-[0.3em] text-lg italic">Sé el primero en hablar</p>
                 </div>
               {/each}
             </div>
 
             <!-- Chat Input -->
-            <div class="p-6 bg-zinc-900/40 border-t border-white/5 backdrop-blur-md">
+            <div class="p-8 bg-zinc-900/40 border-t border-white/5 backdrop-blur-3xl">
               <form 
                 class="relative flex items-center gap-4"
                 onsubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
               >
-                <input 
-                  type="text"
-                  bind:value={newMessage}
-                  placeholder="Escribe un mensaje..."
-                  class="flex-1 bg-white/[0.03] border border-white/10 rounded-2xl py-4 px-6 text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-slate-700"
-                />
+                <div class="relative flex-1 group">
+                  <div class="absolute inset-0 bg-violet-600/5 rounded-2xl blur-xl transition-all group-focus-within:bg-violet-600/10"></div>
+                  <input 
+                    type="text"
+                    bind:value={newMessage}
+                    placeholder="Escribe algo interesante para la comunidad..."
+                    class="relative w-full bg-white/[0.03] border border-white/10 rounded-2xl py-5 px-8 text-white font-medium focus:border-violet-500/50 outline-none transition-all placeholder:text-zinc-800"
+                  />
+                </div>
                 <button 
                   type="submit"
                   disabled={!newMessage.trim()}
-                  class="h-14 w-14 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl flex items-center justify-center transition-all disabled:opacity-50 disabled:grayscale hover:scale-105 active:scale-95 shadow-xl shadow-violet-600/20"
+                  class="h-[60px] w-[60px] bg-white hover:bg-violet-100 text-zinc-950 rounded-2xl flex items-center justify-center transition-all disabled:opacity-30 disabled:grayscale hover:scale-105 active:scale-95 shadow-2xl group"
                 >
-                  <PaperPlane size={24} weight="fill" />
+                  <PaperPlane size={28} weight="fill" class="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                 </button>
               </form>
             </div>
           {:else}
-            <div class="flex-1 flex flex-col items-center justify-center text-center p-12 space-y-4 opacity-40">
-              <div class="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center">
-                <Hash size={40} weight="duotone" />
+            <div class="flex-1 flex flex-col items-center justify-center text-center p-20 space-y-8 opacity-40">
+              <div class="w-32 h-32 bg-white/5 rounded-[3rem] flex items-center justify-center relative">
+                <div class="absolute inset-0 bg-white/5 rounded-[3rem] animate-ping opacity-20"></div>
+                <Hash size={64} weight="duotone" />
               </div>
-              <h3 class="text-xl font-outfit font-black uppercase tracking-tight">Selecciona un grupo</h3>
-              <p class="text-sm max-w-xs">Elige una sala de chat de la lista de la izquierda para empezar a hablar con la comunidad.</p>
+              <div class="space-y-3">
+                <h3 class="text-3xl font-outfit font-black uppercase tracking-tight italic">Selecciona un canal</h3>
+                <p class="text-lg max-w-sm mx-auto font-medium">Únete a la conversación con profesores de todo el mundo.</p>
+              </div>
             </div>
           {/if}
         </div>
       </div>
-    {:else if activeTab === 'announcements'}
-      <!-- Announcements Section -->
-      <div class="space-y-6">
-        {#each announcements as a (a.id)}
-          <div 
-            class="bg-zinc-900/40 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative group overflow-hidden flex flex-col md:flex-row gap-8"
-            in:fly={{ x: 20, duration: 500 }}
-          >
-             {#if a.isGlobal}
-               <div class="absolute top-0 right-0 px-4 py-1.5 bg-violet-600 text-[9px] font-black uppercase tracking-widest text-white rounded-bl-2xl">
-                 OFICIAL CHESSNET
-               </div>
-             {/if}
-             <div class="w-16 h-16 {a.isGlobal ? 'bg-primary-500/10 text-primary-400 border-primary-500/20' : 'bg-violet-600/10 text-violet-400 border-violet-500/20'} border-2 rounded-3xl flex items-center justify-center flex-shrink-0 animate-float">
-                <Megaphone size={30} weight="duotone" />
-             </div>
-             <div class="space-y-3 flex-1">
-                <div class="flex items-center justify-between">
-                   <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{a.title}</h3>
-                   <div class="flex items-center gap-3">
-                      <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatDate(a.createdAt || a.created_at)}</span>
-                      {#if isAdmin}
-                        <button 
-                          onclick={() => handleDelete(a.isGlobal ? 'announcements' : 'lobby_announcements', a.id)}
-                          class="p-1.5 hover:bg-red-500/10 text-slate-600 hover:text-red-400 rounded-lg transition-all"
-                          title="Eliminar"
-                        >
-                          <Trash weight="bold" size={14} />
-                        </button>
-                      {/if}
-                   </div>
-                </div>
-                <p class="text-slate-400 leading-relaxed font-outfit font-light">
-                  {a.content}
-                </p>
-             </div>
-          </div>
-        {:else}
-          <div class="py-24 text-center border-2 border-dashed border-white/5 rounded-[3rem] space-y-6">
-            <div class="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center text-slate-600 mx-auto">
-               <Megaphone size={40} weight="duotone" />
-            </div>
-            <p class="text-slate-500 font-medium">No hay comunicaciones oficiales en este momento.</p>
-          </div>
-        {/each}
-      </div>
-    {:else}
-      <!-- Support Section -->
-      <div class="space-y-6">
-        {#each myReports as r (r.id)}
-          <div 
-            class="bg-zinc-900/40 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative group overflow-hidden flex flex-col md:flex-row gap-8"
-            in:fly={{ x: 20, duration: 500 }}
-          >
-             <div class="w-16 h-16 {r.status === 'open' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'} border rounded-3xl flex items-center justify-center flex-shrink-0">
-                <Warning size={30} weight="duotone" />
-             </div>
-             <div class="space-y-3 flex-1">
-                <div class="flex items-center justify-between">
-                   <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{r.title}</h3>
-                   <div class="flex items-center gap-4">
-                      {#if isAdmin}
-                        <span class="text-[9px] font-black text-violet-400 border border-violet-500/20 px-2 py-1 rounded-lg uppercase">{r.authorEmail}</span>
-                      {/if}
-                      <span class="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">{formatDate(r.createdAt)}</span>
-                      {#if isAdmin}
-                        <button 
-                          onclick={() => handleDelete('lobby_reports', r.id)}
-                          class="p-1.5 hover:bg-red-500/10 text-slate-600 hover:text-red-400 rounded-lg transition-all"
-                          title="Eliminar"
-                        >
-                          <Trash weight="bold" size={14} />
-                        </button>
-                      {/if}
-                   </div>
-                </div>
-                <p class="text-slate-400 leading-relaxed font-medium">
-                  {r.content}
-                </p>
-                <div class="flex items-center gap-2 pt-2">
-                   <span class="px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest {r.status === 'open' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}">
-                     {r.status === 'open' ? 'Pendiente' : 'Cerrado'}
-                   </span>
-                </div>
-             </div>
-          </div>
-        {:else}
-          <div class="py-24 text-center border-2 border-dashed border-white/5 rounded-[3rem] space-y-6">
-            <div class="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center text-slate-600 mx-auto">
-               <HandWaving size={40} weight="duotone" />
-            </div>
-            <p class="text-slate-500 font-medium">No has enviado ningún reporte todavía. Estamos aquí para ayudarte.</p>
-          </div>
-        {/each}
-      </div>
     {/if}
-  {/if}
-</div>
+  </div>
 
 <!-- Create Suggestion Modal -->
 {#if showCreateModal}
@@ -732,51 +481,51 @@
       transition:scale
     >
       <div class="p-8 border-b border-white/5 flex items-center justify-between">
-        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Nueva Sugerencia</h3>
+        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Proponer Mejora</h3>
         <button 
           onclick={() => showCreateModal = false}
           class="p-2 hover:bg-white/5 rounded-2xl transition-all"
         >
-          <X weight="bold" class="w-6 h-6" />
+          <X weight="bold" class="w-6 h-6 text-zinc-500" />
         </button>
       </div>
 
       <div class="p-8 space-y-8">
         <div class="space-y-4">
-          <label for="suggestion-title" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Título de la Idea</label>
+          <label for="suggestion-title" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Título de la Idea</label>
           <input 
             id="suggestion-title"
             bind:value={newSuggestion.title}
             type="text" 
             placeholder="Ej: Modo multijugador para torneos"
-            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-slate-700"
+            class="w-full py-5 px-8 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-zinc-800 shadow-inner"
           />
         </div>
 
         <div class="space-y-4">
-          <label for="suggestion-description" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Descripción Detallada</label>
+          <label for="suggestion-description" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Descripción Detallada</label>
           <textarea 
             id="suggestion-description"
             bind:value={newSuggestion.description}
             rows="5"
-            placeholder="Explica cómo esta idea ayudaría a otros profesores..."
-            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all resize-none placeholder:text-slate-700"
+            placeholder="¿Cómo ayudaría esto a otros profesores?"
+            class="w-full py-5 px-8 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all resize-none placeholder:text-zinc-800 shadow-inner"
           ></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
            <button 
              onclick={() => showCreateModal = false}
-             class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/5 transition-all"
+             class="py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-white/5 transition-all"
            >
              Cancelar
            </button>
            <button 
              onclick={handleSubmitSuggestion}
              disabled={isSubmitting || !newSuggestion.title || !newSuggestion.description}
-             class="py-4 bg-violet-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-violet-600/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+             class="py-5 bg-violet-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-2xl shadow-violet-600/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
            >
-             {isSubmitting ? 'Enviando...' : 'Publicar Sugerencia'}
+             {isSubmitting ? 'Enviando...' : 'Publicar Idea'}
            </button>
         </div>
       </div>
@@ -784,68 +533,8 @@
   </div>
 {/if}
 
-<!-- Create Announcement Modal -->
-{#if showAnnouncementModal}
-  <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md overflow-y-auto" transition:fade>
-    <div 
-      class="bg-[#0a0a0c] w-full max-w-xl rounded-[3rem] border border-violet-500/20 shadow-3xl overflow-hidden relative"
-      transition:scale
-    >
-      <div class="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent pointer-events-none"></div>
-      <div class="p-8 border-b border-white/5 flex items-center justify-between">
-        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('lobby.announcement_modal_title')}</h3>
-        <button 
-          onclick={() => showAnnouncementModal = false}
-          class="p-2 hover:bg-white/5 rounded-2xl transition-all"
-        >
-          <X weight="bold" class="w-6 h-6" />
-        </button>
-      </div>
 
-      <div class="p-8 space-y-8 relative z-10">
-        <div class="space-y-4">
-          <label for="announce-title" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{$t('lobby.announcement_title')}</label>
-          <input 
-            id="announce-title"
-            bind:value={newAnnouncement.title}
-            type="text" 
-            placeholder={$t('lobby.announcement_placeholder')}
-            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-slate-700"
-          />
-        </div>
-
-        <div class="space-y-4">
-          <label for="announce-content" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{$t('lobby.announcement_content')}</label>
-          <textarea 
-            id="announce-content"
-            bind:value={newAnnouncement.content}
-            rows="5"
-            placeholder={$t('lobby.announcement_message_placeholder')}
-            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all resize-none placeholder:text-slate-700"
-          ></textarea>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-           <button 
-             onclick={() => showAnnouncementModal = false}
-             class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/5 transition-all"
-           >
-             {$t('lobby.cancel')}
-           </button>
-           <button 
-             onclick={handleSubmitAnnouncement}
-             disabled={isSubmitting || !newAnnouncement.title || !newAnnouncement.content}
-             class="py-4 bg-violet-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-violet-600/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-           >
-             {isSubmitting ? $t('lobby.publishing') : $t('lobby.publish')}
-           </button>
-        </div>
-      </div>
-    </div>
-  </div>
-{/if}
-
-<!-- Support Report Modal -->
+<!-- Create Group Modal -->
 {#if showCreateGroupModal}
   <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md overflow-y-auto" transition:fade>
     <div 
@@ -853,51 +542,51 @@
       transition:scale
     >
       <div class="p-8 border-b border-white/5 flex items-center justify-between">
-        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('lobby.group_modal_title')}</h3>
+        <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Nuevo Canal</h3>
         <button 
           onclick={() => showCreateGroupModal = false}
           class="p-2 hover:bg-white/5 rounded-2xl transition-all"
         >
-          <X weight="bold" class="w-6 h-6" />
+          <X weight="bold" class="w-6 h-6 text-zinc-500" />
         </button>
       </div>
 
       <div class="p-8 space-y-8">
         <div class="space-y-4">
-          <label for="group-name" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{$t('lobby.group_name')}</label>
+          <label for="group-name" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Nombre del Canal</label>
           <input 
             id="group-name"
             bind:value={newGroup.name}
             type="text" 
-            placeholder={$t('lobby.group_placeholder')}
-            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-slate-700"
+            placeholder="Ej: Metodología Avanzada"
+            class="w-full py-5 px-8 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-zinc-800 shadow-inner"
           />
         </div>
 
         <div class="space-y-4">
-          <label for="group-description" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{$t('lobby.group_description')}</label>
-          <textarea 
-            id="group-description"
+          <label for="group-desc" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Propósito</label>
+          <input 
+            id="group-desc"
             bind:value={newGroup.description}
-            rows="3"
-            placeholder={$t('lobby.group_desc_placeholder')}
-            class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all resize-none placeholder:text-slate-700"
-          ></textarea>
+            type="text" 
+            placeholder="¿De qué se hablará aquí?"
+            class="w-full py-5 px-8 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-zinc-800 shadow-inner"
+          />
         </div>
 
         <div class="grid grid-cols-2 gap-4">
            <button 
              onclick={() => showCreateGroupModal = false}
-             class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/5 transition-all"
+             class="py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-white/5 transition-all"
            >
-             {$t('lobby.cancel')}
+             Cancelar
            </button>
            <button 
              onclick={handleCreateGroup}
              disabled={isSubmitting || !newGroup.name}
-             class="py-4 bg-violet-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-violet-600/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+             class="py-5 bg-white text-zinc-950 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all disabled:opacity-50"
            >
-             {isSubmitting ? $t('lobby.creating') : $t('lobby.create_group_btn')}
+             {isSubmitting ? 'Creando...' : 'Crear Canal'}
            </button>
         </div>
       </div>
@@ -905,7 +594,58 @@
   </div>
 {/if}
 
+{#if showPill}
+  <div 
+    class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] w-[95%] max-w-md"
+    in:fly={{ y: 50, duration: 800 }}
+    out:fade
+  >
+    <div class="relative group">
+      <!-- Outer border/glow based on color -->
+      <div class="absolute -inset-[1px] bg-gradient-to-r {getAnnouncementColor(latestAnnouncement)} rounded-[2rem] opacity-40 group-hover:opacity-100 transition-opacity"></div>
+      
+      <div class="relative bg-zinc-950/90 backdrop-blur-3xl p-1.5 rounded-[2rem] shadow-3xl flex items-center gap-4 overflow-hidden">
+        <!-- Leading Icon Badge -->
+        <div class="w-14 h-14 bg-gradient-to-br {getAnnouncementColor(latestAnnouncement)} rounded-[1.5rem] flex items-center justify-center text-white shadow-xl flex-shrink-0">
+          <Megaphone weight="fill" size={24} />
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 min-w-0 py-1">
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+            <p class="text-[8px] font-black text-white/60 uppercase tracking-[0.2em]">
+              {latestAnnouncement.type || 'Actualización'}
+            </p>
+          </div>
+          <h4 class="text-xs font-black text-white uppercase italic tracking-tight truncate">
+            {latestAnnouncement.title || 'Novedades'}
+          </h4>
+          <p class="text-[10px] text-zinc-500 font-medium truncate mt-0.5">
+            {latestAnnouncement.content}
+          </p>
+        </div>
+
+        <!-- Actions -->
+        <button 
+          onclick={dismissNews}
+          class="p-4 hover:bg-white/5 text-zinc-600 hover:text-white rounded-2xl transition-all mr-2"
+        >
+          <X weight="bold" size={16} />
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
 <style lang="postcss">
+  :global(.scrollbar-hide::-webkit-scrollbar) {
+    display: none;
+  }
+  :global(.scrollbar-hide) {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
   /* Custom glass effects */
   :global(.animate-spin-slow) {
     animation: spin 8s linear infinite;

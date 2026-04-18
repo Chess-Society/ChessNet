@@ -13,36 +13,69 @@
     X,
     Funnel,
     GraduationCap,
-    IdentificationBadge
+    IdentificationBadge,
+    ChartBar,
+    TrendUp,
+    AddressBook,
+    Eye,
+    ArrowClockwise,
+    FileText
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
-  import { fade, fly } from 'svelte/transition';
+  import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
+  import { toast } from '$lib/stores/toast';
+  import StudentReportModal from '$lib/components/admin/StudentReportModal.svelte';
 
-  // Filters
+  // Filters & State
   let searchQuery = $state('');
   let selectedSchool = $state('');
+  let isDeleting = $state<string | null>(null);
+  let reportingStudentId = $state<string | null>(null);
 
   // Reactive data from store
   let students = $derived($appStore.students || []);
   let schools = $derived($appStore.schools || []);
+  let classes = $derived($appStore.classes || []);
 
-  const filteredStudents = $derived(() => {
-    return students.filter(s => {
+  const metrics = $derived.by(() => {
+    const activeCount = students.length; // Future: filter by active status if implemented
+    const schoolsCount = new Set(students.map(s => s.school_id).filter(Boolean)).size;
+    const avgStudentsPerClass = classes.length > 0 ? (students.length / classes.length).toFixed(1) : 0;
+
+    return {
+      total: students.length,
+      active: activeCount,
+      schools: schoolsCount,
+      avgPerClass: avgStudentsPerClass
+    };
+  });
+
+  const filteredStudents = $derived(
+    students.filter(s => {
       const nameMatch = s.name.toLowerCase().includes(searchQuery.toLowerCase());
       const schoolMatch = !selectedSchool || s.school_id === selectedSchool;
       return nameMatch && schoolMatch;
-    });
-  });
+    })
+  );
 
   const getSchoolName = (id: string | undefined) => {
+    if (!id) return $t('students.unassigned');
     return schools.find(s => s.id === id)?.name || $t('students.unassigned');
   };
 
-  const deleteStudent = (id: string) => {
+  const deleteStudent = async (id: string) => {
     const student = students.find(s => s.id === id);
     if (confirm($t('students.delete_simple_confirm', { name: student?.name }))) {
-      appStore.removeStudent(id);
+      isDeleting = id;
+      try {
+        await appStore.removeStudent(id);
+        toast.success($t('students.toast_update_success'));
+      } catch (err) {
+        toast.error($t('students.toast_update_error'));
+      } finally {
+        isDeleting = null;
+      }
     }
   };
 
@@ -55,207 +88,285 @@
   <title>{$t('students.community_title')} - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-6 pb-12" transition:fade>
+<div class="max-w-7xl mx-auto px-6 py-12" in:fade={{ duration: 400 }}>
   
-  <!-- Header Section -->
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 pt-8">
-    <div class="space-y-4 lg:space-y-4">
-      <div class="flex items-center gap-4 lg:gap-6">
-        <div class="w-12 h-12 lg:w-16 lg:h-16 bg-violet-600/10 border border-violet-500/20 rounded-xl lg:rounded-24 flex items-center justify-center text-violet-400 shadow-violet-flare/10 shadow-xl">
-          <Users size={24} weight="duotone" class="lg:hidden" />
-          <Users size={32} weight="duotone" class="hidden lg:block" />
+  <!-- Header & Title Area -->
+  <div class="flex flex-col lg:flex-row items-center justify-between gap-8 mb-16">
+    <div class="flex items-center gap-8">
+      <div class="w-16 h-16 bg-zinc-950 border border-zinc-800 rounded-[24px] flex items-center justify-center text-zinc-400 shadow-2xl shrink-0">
+        <Users weight="bold" class="w-8 h-8" />
+      </div>
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+            <span class="px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-[10px] font-black text-violet-400 uppercase tracking-widest">{$t('students.community_title')}</span>
+            <span class="w-1.5 h-1.5 bg-zinc-800 rounded-full"></span>
+            <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">{metrics.total} {$t('common.students')}</span>
         </div>
-        <div>
-          <h1 class="text-2xl lg:text-5xl font-outfit font-extrabold text-white tracking-tight lg:tracking-tighter">{$t('students.community_title')}</h1>
-          <p class="text-slate-400 font-jakarta text-sm lg:text-lg font-medium">{$t('students.community_subtitle')}</p>
-        </div>
+        <h1 class="text-5xl lg:text-7xl font-outfit font-black text-white tracking-tighter uppercase italic">{$t('students.community_title')}</h1>
+        <p class="text-zinc-500 font-medium text-lg mt-1 max-w-xl">{$t('students.community_subtitle')}</p>
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center gap-3 lg:gap-4">
-      <div class="bento-card !px-4 lg:!px-8 !py-3 lg:!py-4 flex items-center gap-4 lg:gap-8 backdrop-blur-xl">
-         <div class="text-right">
-            <p class="text-[9px] lg:text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{$t('students.registered')}</p>
-            <p class="text-xl lg:text-2xl font-outfit font-bold text-white tracking-tighter">{students.length}</p>
-         </div>
-         <div class="w-px h-8 lg:h-10 bg-white/5"></div>
-         <div class="text-right">
-            <p class="text-[9px] lg:text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{$t('students.active_count')}</p>
-            <p class="text-xl lg:text-2xl font-outfit font-bold text-violet-400 tracking-tighter">{students.length}</p>
-         </div>
-      </div>
-      
+    <div class="flex items-center gap-3">
+      <button 
+        onclick={() => { searchQuery = ''; selectedSchool = ''; }}
+        class="h-14 w-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all flex items-center justify-center active:scale-95"
+        title={$t('students.clear_filters')}
+      >
+        <ArrowClockwise weight="bold" class="w-6 h-6" />
+      </button>
       <button 
         onclick={() => goto('/panel/students/create')}
-        class="btn-pill bg-violet-600 text-white px-6 lg:px-10 py-3 lg:py-4 font-bold hover:bg-violet-500 transition-all shadow-violet-flare flex items-center gap-2 lg:gap-3 group text-xs lg:text-sm"
+        class="h-14 px-8 rounded-2xl bg-violet-600 text-white font-black hover:bg-violet-500 transition-all flex items-center gap-3 shadow-xl shadow-violet-500/20 active:scale-95 uppercase text-[10px] tracking-widest"
       >
-        <Plus size={20} weight="bold" class="transition-transform group-hover:rotate-90 lg:w-6 lg:h-6" />
-        {$t('students.recruit_btn')}
+        <Plus weight="bold" class="w-5 h-5" />
+        {$t('students.new_student_btn')}
       </button>
     </div>
   </div>
 
-  <!-- Search and Filters Layer (iOS Style) -->
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-2 lg:gap-4 mb-6 lg:mb-10">
-    <div class="md:col-span-7 relative group">
-      <MagnifyingGlass size={18} weight="duotone" class="absolute left-5 lg:left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-violet-400 transition-colors lg:w-5 lg:h-5" />
-      <input
-        type="text"
-        placeholder={$t('students.search_placeholder')}
-        bind:value={searchQuery}
-        class="w-full bg-zinc-900/50 border border-white/5 rounded-xl lg:rounded-2xl pl-12 lg:pl-16 pr-6 py-3 lg:py-4 text-xs lg:text-sm text-white focus:border-violet-500 outline-none transition-all backdrop-blur-xl font-jakarta placeholder:text-slate-600"
-      />
+  <!-- Bento Metrics Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden group">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 blur-[60px] rounded-full -mr-16 -mt-16"></div>
+      <div class="flex flex-col gap-4 relative z-10">
+        <div class="w-12 h-12 bg-violet-500/10 rounded-2xl flex items-center justify-center text-violet-400">
+          <GraduationCap weight="bold" size={24} />
+        </div>
+        <div>
+          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('common.total_students')}</p>
+          <p class="text-4xl font-outfit font-black text-white italic">{metrics.total}</p>
+        </div>
+      </div>
     </div>
 
-    <div class="grid grid-cols-2 md:contents gap-2">
-      <div class="md:col-span-3 relative group">
-        <Buildings size={18} weight="duotone" class="absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-violet-400 lg:w-5 lg:h-5" />
+    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col gap-4 relative z-10">
+        <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-400">
+          <TrendUp weight="bold" size={24} />
+        </div>
+        <div>
+          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('students.active_students')}</p>
+          <p class="text-4xl font-outfit font-black text-white italic">{metrics.active}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col gap-4 relative z-10">
+        <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-400">
+          <Buildings weight="bold" size={24} />
+        </div>
+        <div>
+          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('common.schools')}</p>
+          <p class="text-4xl font-outfit font-black text-white italic">{metrics.schools}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col gap-4 relative z-10">
+        <div class="w-12 h-12 bg-fuchsia-500/10 rounded-2xl flex items-center justify-center text-fuchsia-400">
+          <ChartBar weight="bold" size={24} />
+        </div>
+        <div>
+          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('students.avg_per_class')}</p>
+          <p class="text-4xl font-outfit font-black text-white italic">{metrics.avgPerClass}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <!-- Search & Filters Container -->
+  <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-6 lg:p-10 shadow-2xl mb-12">
+    <div class="flex flex-col md:flex-row items-center gap-6">
+      <div class="w-full relative group">
+        <div class="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors">
+          <MagnifyingGlass weight="bold" size={24} />
+        </div>
+        <input 
+          type="text" 
+          bind:value={searchQuery}
+          placeholder={$t('students.search_placeholder')}
+          class="w-full h-16 bg-zinc-950 border border-zinc-800 rounded-2xl pl-16 pr-6 text-white font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 transition-all shadow-inner placeholder:text-zinc-700"
+        />
+      </div>
+
+      <div class="w-full md:w-96 relative group">
+        <div class="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors">
+          <Buildings weight="bold" size={24} />
+        </div>
         <select 
-          bind:value={selectedSchool} 
-          class="w-full bg-zinc-900/50 border border-white/5 rounded-xl lg:rounded-2xl pl-10 lg:pl-16 pr-10 py-3 lg:py-4 text-xs lg:text-sm text-white focus:border-violet-500 outline-none transition-all appearance-none cursor-pointer backdrop-blur-xl font-jakarta"
+          bind:value={selectedSchool}
+          class="w-full h-16 bg-zinc-950 border border-zinc-800 rounded-2xl pl-16 pr-6 text-white font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 transition-all appearance-none cursor-pointer"
         >
-          <option value="">{$t('students.centers_filter')}</option>
+          <option value="">{$t('common.all_schools')}</option>
           {#each schools as school}
             <option value={school.id}>{school.name}</option>
           {/each}
         </select>
-      </div>
-
-      <div class="md:col-span-2">
-        <button 
-          onclick={() => { searchQuery = ''; selectedSchool = ''; }}
-          class="w-full h-full bg-white/5 border border-white/10 text-white px-4 lg:px-6 py-3 lg:py-4 rounded-xl lg:rounded-2xl text-[10px] lg:text-sm font-bold hover:bg-white/10 transition-all backdrop-blur-xl font-outfit uppercase tracking-widest"
-        >
-          {$t('students.clear_filters')}
-        </button>
+        <div class="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none">
+          <CaretRight weight="bold" size={20} class="rotate-90 text-zinc-700" />
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Students Grid -->
-  {#if students.length === 0}
-    {@const hasClasses = $appStore.classes.length > 0}
-    <div class="bento-card border-dashed border-white/10 p-20 md:p-40 text-center space-y-10" in:fade>
-      <div class="relative inline-block">
-        <div class="w-32 h-32 bg-violet-600/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-violet-500/20 text-violet-400 animate-bounce-subtle shadow-violet-flare/20 shadow-2xl">
-          <Users size={64} weight="duotone" />
-        </div>
-        {#if !hasClasses}
-          <div class="absolute -bottom-2 -right-2 bg-zinc-950 border border-white/10 p-4 rounded-2xl shadow-2xl">
-             <GraduationCap size={28} weight="duotone" class="text-amber-400" />
-          </div>
-        {:else}
-          <div class="absolute -bottom-2 -right-2 bg-zinc-950 border border-white/10 p-4 rounded-2xl shadow-2xl">
-             <Plus size={28} weight="bold" class="text-violet-400" />
-          </div>
-        {/if}
+    <!-- Students Table Section -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="border-bottom border-zinc-800 bg-zinc-950/50 backdrop-blur-md">
+              <th class="px-8 py-6 text-left text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('students.full_name')}</th>
+              <th class="px-8 py-6 text-center text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden md:table-cell">{$t('students.level')}</th>
+              <th class="px-8 py-6 text-center text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden md:table-cell">{$t('common.classes')}</th>
+              <th class="px-8 py-6 text-left text-[10px] font-black text-zinc-500 uppercase tracking-widest hidden lg:table-cell">{$t('students.educational_school')}</th>
+              <th class="px-8 py-6 text-right text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('common.actions')}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-800">
+            {#if students.length === 0}
+              <tr>
+                <td colspan="5" class="py-32">
+                  <div class="flex flex-col items-center justify-center gap-6">
+                    <div class="w-24 h-24 bg-zinc-950 border border-zinc-800 rounded-[32px] flex items-center justify-center text-zinc-800">
+                      <Users size={48} weight="bold" />
+                    </div>
+                    <div class="text-center">
+                      <h3 class="text-xl font-outfit font-black text-white uppercase italic tracking-wider">{$t('students.no_students')}</h3>
+                      <p class="text-zinc-500 font-medium mt-2">{$t('students.no_students_desc') || 'Empieza por añadir a tu primer alumno.'}</p>
+                    </div>
+                    <button 
+                      onclick={() => goto('/panel/students/create')}
+                      class="h-12 px-8 rounded-xl bg-violet-600 text-white font-black hover:bg-violet-500 transition-all shadow-xl shadow-violet-500/20 active:scale-95 uppercase text-[10px] tracking-widest"
+                    >
+                      {$t('students.recruit_btn')}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {:else if filteredStudents.length === 0}
+              <tr>
+                <td colspan="5" class="py-32">
+                  <div class="flex flex-col items-center justify-center gap-6">
+                    <div class="w-24 h-24 bg-zinc-950 border border-zinc-800 rounded-[32px] flex items-center justify-center text-zinc-800">
+                      <MagnifyingGlass size={48} weight="bold" />
+                    </div>
+                    <div class="text-center">
+                      <h3 class="text-xl font-outfit font-black text-white uppercase italic tracking-wider">{$t('students.no_results_title')}</h3>
+                      <p class="text-zinc-500 font-medium mt-2">{$t('students.no_results_desc') || 'Prueba con otros términos de búsqueda.'}</p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {:else}
+              {#each filteredStudents as student, i}
+                <tr class="group hover:bg-zinc-800/30 transition-all cursor-pointer">
+                  <td class="px-8 py-6">
+                    <div class="flex items-center gap-4">
+                      <div class="w-12 h-12 bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center justify-center text-violet-400 font-outfit font-black text-sm shadow-inner overflow-hidden uppercase">
+                        {getInitials(student.name)}
+                      </div>
+                      <div>
+                        <p class="text-white font-bold leading-none">{student.name}</p>
+                        <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('students.student_label')}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-8 py-6 text-center hidden md:table-cell">
+                    <span class="px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-lg text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                      {student.level || '--'}
+                    </span>
+                  </td>
+                  <td class="px-8 py-6 text-center hidden md:table-cell">
+                    <div class="flex justify-center">
+                      <div class="h-8 min-w-[32px] px-2 bg-zinc-950 border border-zinc-800 rounded-lg flex items-center justify-center text-[10px] font-black text-zinc-500 uppercase">
+                        {student.class_id ? 1 : 0}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-8 py-6 hidden lg:table-cell">
+                    <div class="flex items-center gap-2 text-zinc-400 font-medium">
+                      <Buildings weight="bold" class="w-4 h-4 text-zinc-600" />
+                      <span class="text-sm">{getSchoolName(student.school_id)}</span>
+                    </div>
+                  </td>
+                  <td class="px-8 py-6 text-right">
+                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        class="h-10 px-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95 group/btn shadow-lg shadow-emerald-500/5"
+                        onclick={(e) => { e.stopPropagation(); reportingStudentId = student.id; }}
+                        title={$t('students.report_view')}
+                      >
+                        <FileText weight="bold" size={16} class="group-hover/btn:rotate-6 transition-transform" />
+                        <span class="text-[10px] font-black uppercase tracking-widest">{$t('students.report_view')}</span>
+                      </button>
+                      <button 
+                        class="h-10 w-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all flex items-center justify-center active:scale-95"
+                        onclick={() => goto(`/panel/students/${student.id}`)}
+                        title={$t('students.view_profile')}
+                      >
+                        <Eye weight="bold" size={18} />
+                      </button>
+                      <button 
+                        class="h-10 w-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all flex items-center justify-center active:scale-95"
+                        onclick={() => goto(`/panel/students/${student.id}/edit`)}
+                        title={$t('common.edit')}
+                      >
+                        <PencilSimple weight="bold" size={18} />
+                      </button>
+                      <button 
+                        class="h-10 w-10 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center active:scale-95"
+                        onclick={() => deleteStudent(student.id)}
+                        disabled={isDeleting === student.id}
+                        title={$t('common.delete')}
+                      >
+                        <Trash weight="bold" size={18} />
+                      </button>
+                    </div>
+                    <div class="group-hover:hidden">
+                      <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                        {$t('students.status_active')}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+            {/if}
+          </tbody>
+        </table>
       </div>
-      
-      <div class="max-w-md mx-auto space-y-4">
-        {#if !hasClasses}
-          <h2 class="text-3xl font-outfit font-extrabold text-white tracking-tighter">{$t('students.no_schools_title')}</h2>
-          <p class="text-slate-500 font-jakarta text-lg font-medium leading-relaxed">{$t('students.no_schools_desc')}</p>
-        {:else}
-          <h2 class="text-3xl font-outfit font-extrabold text-white tracking-tighter">{$t('students.community_waits')}</h2>
-          <p class="text-slate-500 font-jakarta text-lg font-medium leading-relaxed">{$t('students.enroll_first_desc')}</p>
-        {/if}
-      </div>
-
-      <button 
-        onclick={() => goto(!hasClasses ? '/panel/classes' : '/panel/students/create')}
-        class="btn-pill bg-violet-600 hover:bg-violet-500 text-white px-12 py-6 font-bold transition-all shadow-violet-flare flex items-center gap-4 mx-auto group ring-8 ring-violet-500/5 text-xl"
-      >
-        {#if !hasClasses}
-          <GraduationCap size={28} weight="duotone" />
-          {$t('students.config_classes_btn')}
-        {:else}
-          <Plus size={28} weight="bold" class="transition-transform group-hover:rotate-90" />
-          {$t('students.enroll_student_btn')}
-        {/if}
-      </button>
     </div>
-  {:else if filteredStudents().length === 0}
-    <div class="bento-card border-dashed border-white/10 p-32 text-center space-y-6">
-      <div class="w-24 h-24 bg-white/5 rounded-3xl flex items-center justify-center mx-auto border border-white/10 text-slate-600">
-        <MagnifyingGlass size={48} weight="duotone" />
-      </div>
-      <div class="max-w-md mx-auto space-y-6">
-        <h2 class="text-3xl font-outfit font-bold text-white tracking-tight">{$t('students.no_results_title')}</h2>
-        <p class="text-slate-500 font-jakarta text-lg leading-relaxed">{$t('students.no_results_desc')}</p>
-        
-        <button 
-          onclick={() => { searchQuery = ''; selectedSchool = ''; }}
-          class="text-violet-400 font-bold hover:text-white transition-colors underline underline-offset-8 decoration-violet-500/30"
-        >
-          {$t('students.clear_filters')}
-        </button>
-      </div>
-    </div>
-  {:else}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each filteredStudents() as student, i}
-        <div 
-          class="bento-card !p-5 lg:!p-8 border border-white/5 hover:border-violet-500/30 transition-all group relative overflow-hidden"
-          in:fly={{ y: 20, delay: i * 50 }}
-        >
-          <div class="flex items-start justify-between mb-6 lg:mb-8 relative z-10">
-            <div class="flex items-center gap-4 lg:gap-5">
-              <div class="w-12 h-12 lg:w-16 lg:h-16 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-extrabold text-lg lg:text-2xl group-hover:scale-105 group-hover:bg-violet-500/10 group-hover:border-violet-500/30 transition-all shadow-inner relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                {getInitials(student.name)}
-              </div>
-              <div class="min-w-0">
-                <h3 class="text-white font-outfit font-bold text-lg lg:text-xl leading-snug group-hover:text-violet-400 transition-colors truncate">{student.name}</h3>
-                <p class="text-[9px] lg:text-[11px] font-jakarta font-black text-slate-500 uppercase tracking-widest mt-1 lg:mt-1.5 flex items-center gap-2">
-                  <Buildings weight="duotone" size={12} class="text-violet-500/60 lg:w-3.5 lg:h-3.5" />
-                  {getSchoolName(student.school_id)}
-                </p>
-              </div>
-            </div>
+  </div>
 
-            <div class="flex items-center lg:flex-col gap-1 lg:gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all lg:-translate-y-2 lg:group-hover:translate-y-0 duration-300">
-                <button 
-                  onclick={() => goto(`/panel/students/${student.id}/edit`)}
-                  class="p-2 lg:p-3 bg-white/5 border border-white/10 rounded-lg lg:rounded-xl text-slate-400 hover:text-white hover:bg-violet-600 hover:border-violet-500 transition-all shadow-lg"
-                  title={$t('common.edit')}
-                >
-                  <PencilSimple size={14} weight="bold" class="lg:w-4.5 lg:h-4.5" />
-                </button>
-                <button 
-                  onclick={() => deleteStudent(student.id)}
-                  class="p-2 lg:p-3 bg-white/5 border border-white/10 rounded-lg lg:rounded-xl text-slate-400 hover:text-white hover:bg-red-600 hover:border-red-500 transition-all shadow-lg"
-                  title={$t('common.delete')}
-                >
-                  <Trash size={14} weight="bold" class="lg:w-4.5 lg:h-4.5" />
-                </button>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between pt-4 lg:pt-6 border-t border-white/5 relative z-10">
-            <div class="flex items-center gap-2">
-               <span class="px-2 lg:px-3 py-1 lg:py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] lg:text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">
-                  {$t('students.student_label')}
-               </span>
-               {#if student.level}
-                <span class="px-2 lg:px-3 py-1 lg:py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-lg text-[8px] lg:text-[10px] font-outfit font-black text-violet-400 uppercase tracking-widest">
-                  {student.level}
-                </span>
-               {/if}
-            </div>
-
-            <button 
-              onclick={() => goto(`/panel/students/${student.id}`)}
-              class="flex items-center gap-1 text-[9px] lg:text-[11px] font-outfit font-bold text-violet-400 uppercase tracking-widest hover:text-white transition-all group/btn"
-            >
-              {$t('students.view_profile')}
-              <CaretRight size={12} weight="bold" class="transition-transform group-hover/btn:translate-x-1 lg:w-3.5 lg:h-3.5" />
-            </button>
-          </div>
-          
-          <!-- Decorative element -->
-          <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-violet-600/5 blur-3xl rounded-full group-hover:bg-violet-600/10 transition-colors"></div>
-        </div>
-      {/each}
-    </div>
+  {#if reportingStudentId}
+    <StudentReportModal 
+      studentId={reportingStudentId} 
+      onclose={() => reportingStudentId = null} 
+    />
   {/if}
-</div>
+
+<style lang="postcss">
+  /* Premium Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
+  }
+
+  /* Table Transitions */
+  tr {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+</style>

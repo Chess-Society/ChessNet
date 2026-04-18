@@ -220,111 +220,125 @@
   </div>
 
   {#if filteredTournaments.length === 0}
-    <div class="bg-zinc-900/30 border-2 border-dashed border-zinc-800 rounded-[40px] p-20 text-center flex flex-col items-center gap-8" in:fly={{ y: 20 }}>
-      <div class="w-24 h-24 bg-zinc-800/50 rounded-[32px] flex items-center justify-center text-zinc-700 shadow-inner border border-zinc-800/50">
-        <Trophy weight="duotone" class="w-12 h-12 opacity-50" />
+    <div class="bg-zinc-900/30 border-2 border-dashed border-zinc-800 rounded-[40px] p-24 text-center flex flex-col items-center gap-10 shadow-inner" in:fly={{ y: 20 }}>
+      <div class="relative">
+        <div class="absolute inset-0 bg-violet-500/20 blur-[50px] rounded-full"></div>
+        <div class="w-32 h-32 bg-zinc-800/50 rounded-[40px] flex items-center justify-center text-zinc-700 shadow-2xl border border-zinc-700/50 relative">
+          <Trophy weight="duotone" class="w-16 h-16 opacity-30" />
+        </div>
       </div>
-      <div class="space-y-3">
-        <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('common.no_results')}</h2>
-        <p class="text-zinc-500 font-medium max-w-xs mx-auto text-base">{$t('tournaments.no_tournaments_desc')}</p>
+      <div class="space-y-4 max-w-sm">
+        <h2 class="text-4xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('common.no_results')}</h2>
+        <p class="text-zinc-500 font-medium text-lg leading-relaxed">{$t('tournaments.no_tournaments_desc')}</p>
       </div>
       <div class="flex flex-wrap justify-center items-center gap-4">
         <button 
           onclick={handleImportTemplates}
           disabled={isImporting}
-          class="px-8 py-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-[10px] transition-all border border-zinc-700 flex items-center gap-3 shadow-xl active:scale-95"
+          class="px-10 py-5 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest text-[11px] transition-all border border-zinc-800 flex items-center gap-4 shadow-xl active:scale-95 group"
         >
-          <Sparkle weight="fill" class="w-5 h-5 text-violet-400 {isImporting ? 'animate-spin' : ''}" />
+          <Sparkle weight="fill" class="w-6 h-6 text-violet-400 group-hover:rotate-12 transition-transform {isImporting ? 'animate-spin' : ''}" />
           {isImporting ? $t('common.loading') : $t('tournaments.import_btn')}
         </button>
 
         <button 
           onclick={() => goto('/panel/tournaments/create')}
-          class="px-8 py-4 rounded-2xl bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-violet-600/20 transition-all flex items-center gap-3 active:scale-95"
+          class="px-10 py-5 rounded-2xl bg-violet-600 hover:bg-violet-500 text-white font-black uppercase tracking-widest text-[11px] shadow-[0_20px_40px_rgba(124,58,237,0.3)] transition-all flex items-center gap-4 active:scale-95"
         >
-          <Plus weight="bold" class="w-5 h-5" />
+          <Plus weight="bold" class="w-6 h-6" />
           {$t('tournaments.new_button')}
         </button>
       </div>
     </div>
   {:else}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-32">
       {#each filteredTournaments as tournament, i (tournament.id)}
         {@const status = getStatusConfig(tournament.status)}
         <div 
-          class="group relative bg-zinc-900/40 border border-white/5 rounded-[32px] p-8 flex flex-col justify-between hover:border-violet-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-black/60 overflow-hidden backdrop-blur-sm"
+          class="group relative bg-[#0c0c0e] border border-zinc-800 rounded-[40px] p-8 flex flex-col hover:border-violet-500/50 transition-all duration-700 hover:shadow-[0_40px_80px_rgba(0,0,0,0.8)] overflow-hidden"
           in:fly={{ y: 30, delay: i * 50, duration: 600 }}
         >
-          <!-- Premium Hover Gradient -->
-          <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none duration-700"></div>
+          <!-- Animated Background Elements -->
+          <div class="absolute -top-24 -right-24 w-64 h-64 bg-violet-600/5 rounded-full blur-[80px] group-hover:bg-violet-600/10 transition-all duration-700"></div>
+          <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-600/5 rounded-full blur-[80px] group-hover:bg-indigo-600/10 transition-all duration-700"></div>
           
-          <div class="relative z-10">
-            <!-- Header -->
-            <div class="flex items-start justify-between mb-8">
-              <div class="flex items-center gap-5">
-                <div class="w-16 h-16 bg-zinc-950 border border-white/5 rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-black text-2xl group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white transition-all duration-500 shadow-2xl ring-1 ring-white/5">
-                  {tournament.name[0].toUpperCase()}
-                </div>
-                <div>
-                  <h3 class="text-white font-outfit font-black text-xl leading-none group-hover:text-violet-400 transition-colors uppercase italic tracking-tight">{tournament.name}</h3>
-                  <div class="mt-3 flex">
-                    <span class="px-3 py-1 rounded-full border text-[9px] font-outfit font-black uppercase tracking-widest {status.bg} {status.color} {status.border} shadow-sm">
-                       {status.label}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+          <div class="relative z-10 flex flex-col h-full">
+            <!-- Top Actions Overlay -->
+            <div class="absolute top-0 right-0 p-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-[-10px] group-hover:translate-y-0">
                 <button 
                   onclick={() => goto(`/panel/tournaments/${tournament.id}/edit`)}
-                  class="w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-xl transition-all border border-transparent hover:border-white/5"
+                  class="w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-2xl transition-all"
                   aria-label={$t('common.edit')}
                 >
                   <PencilSimple weight="bold" class="w-5 h-5" />
                 </button>
                 <button 
                   onclick={() => deleteTournament(tournament.id, tournament.name)}
-                  class="w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/10"
+                  class="w-10 h-10 flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-2xl transition-all"
                   aria-label={$t('common.delete')}
                 >
                   <Trash weight="bold" class="w-5 h-5" />
                 </button>
-              </div>
             </div>
 
-            <!-- Stats -->
-            <div class="grid grid-cols-1 gap-4 mb-4">
-                <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 group/stat hover:bg-white/[0.08] transition-all">
-                  <div class="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center text-zinc-400 group-hover/stat:text-violet-400 transition-colors border border-white/5">
-                      <CalendarBlank weight="duotone" class="w-5 h-5" />
+            <!-- Avatar & Header -->
+            <div class="flex items-center gap-6 mb-10">
+                <div class="w-20 h-20 bg-zinc-950 border border-zinc-800 rounded-3xl flex items-center justify-center text-zinc-400 font-outfit font-black text-3xl group-hover:scale-105 group-hover:border-violet-500/30 group-hover:text-violet-400 transition-all duration-700 shadow-2xl relative shrink-0">
+                  <div class="absolute inset-0 bg-violet-600/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  {tournament.name[0].toUpperCase()}
+                </div>
+                <div class="min-w-0">
+                  <h3 class="text-white font-outfit font-black text-2xl leading-none group-hover:text-violet-400 transition-colors uppercase italic tracking-tighter truncate">{tournament.name}</h3>
+                  <div class="mt-4 flex">
+                    <span class="px-4 py-1.5 rounded-full border text-[10px] font-outfit font-black uppercase tracking-[0.15em] {status.bg} {status.color} {status.border} shadow-lg backdrop-blur-md">
+                       {status.label}
+                    </span>
                   </div>
-                  <div>
-                    <p class="text-[9px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-0.5">{$t('tournaments.date_label')}</p>
-                    <p class="text-sm font-bold text-slate-300 truncate">{tournament.startAt ? new Date(tournament.startAt).toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { day: 'numeric', month: 'long' }) : $t('tournaments.date_pending')}</p>
-                  </div>
-               </div>
-               
-               <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 group/stat hover:bg-white/[0.08] transition-all">
-                  <div class="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center text-zinc-400 group-hover/stat:text-indigo-400 transition-colors border border-white/5">
-                      <Users weight="duotone" class="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p class="text-[9px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-0.5">{$t('tournaments.participants')}</p>
-                    <p class="text-sm font-bold text-slate-300">{$appStore.localTournamentPlayers.filter(p => p.tournament_id === tournament.id).length} {$t('tournaments.registered_label')}</p>
-                  </div>
-               </div>
+                </div>
             </div>
-          </div>
 
-          <!-- Actions -->
-          <div class="pt-6 relative z-10">
+            <!-- Bento Stats Panel -->
+            <div class="space-y-3 mb-10 mt-auto">
+                <div class="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-800/50 rounded-2xl group/item hover:border-zinc-700 transition-all">
+                  <div class="flex items-center gap-4">
+                      <CalendarBlank weight="duotone" class="w-5 h-5 text-zinc-600 group-hover:text-violet-400" />
+                      <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('tournaments.date_label')}</span>
+                  </div>
+                  <span class="text-xs font-bold text-zinc-300">
+                    {tournament.startAt ? new Date(tournament.startAt).toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { day: 'numeric', month: 'short' }) : $t('tournaments.date_pending')}
+                  </span>
+                </div>
+                
+                <div class="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-800/50 rounded-2xl group/item hover:border-zinc-700 transition-all">
+                  <div class="flex items-center gap-4">
+                      <Users weight="duotone" class="w-5 h-5 text-zinc-600 group-hover:text-indigo-400" />
+                      <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('tournaments.participants')}</span>
+                  </div>
+                  <span class="text-xs font-bold text-zinc-300">
+                    {$appStore.localTournamentPlayers.filter(p => p.tournament_id === tournament.id).length} {$t('tournaments.registered_label')}
+                  </span>
+                </div>
+
+                <div class="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-800/50 rounded-2xl group/item hover:border-zinc-700 transition-all">
+                  <div class="flex items-center gap-4">
+                      <Trophy weight="duotone" class="w-5 h-5 text-zinc-600 group-hover:text-amber-400" />
+                      <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('tournaments.format')}</span>
+                  </div>
+                  <span class="text-[10px] font-black text-amber-500/80 uppercase">
+                    {tournament.format?.replace('_', ' ') || 'SWISS'}
+                  </span>
+                </div>
+            </div>
+
+            <!-- Manage Button -->
             <button 
               onclick={() => goto(`/panel/tournaments/${tournament.id}`)}
-              class="w-full h-14 bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center gap-3 rounded-2xl text-[11px] font-outfit font-black transition-all duration-300 shadow-xl shadow-violet-600/10 hover:shadow-violet-600/30 group/btn uppercase tracking-[0.2em]"
+              class="w-full h-16 bg-zinc-950 hover:bg-violet-600 border border-zinc-800 hover:border-violet-500 text-zinc-400 hover:text-white flex items-center justify-center gap-4 rounded-3xl text-[12px] font-outfit font-black transition-all duration-500 shadow-xl group/btn uppercase tracking-[0.2em] group-hover:translate-y-[-4px]"
             >
               {$t('tournaments.manage')}
-              <CaretRight weight="bold" class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+              <div class="w-8 h-8 rounded-full bg-zinc-900 group-hover/btn:bg-violet-500 flex items-center justify-center transition-colors">
+                 <CaretRight weight="bold" class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+              </div>
             </button>
           </div>
         </div>

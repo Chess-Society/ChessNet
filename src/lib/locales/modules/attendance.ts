@@ -33,6 +33,15 @@ export const en = {
     'attendance.legend.excellent': 'Excellent',
     'attendance.legend.regular': 'Regular',
     'attendance.legend.critical': 'Critical',
+    'attendance.session_pulse': 'Session Pulse',
+    'attendance.participation_rate': 'Participation Rate',
+    'attendance.operational_intelligence': 'Operational Intelligence',
+    'attendance.management_protocol': 'Management Protocol',
+    'attendance.engagement_level': 'Engagement level',
+    'attendance.active_streak': 'Active Streak',
+    'attendance.session_insights': 'Session Insights',
+    'attendance.mark_present_btn': 'Mark Present',
+    'attendance.mark_absent_btn': 'Mark Absent',
 };
 
 export const es = {
@@ -70,4 +79,13 @@ export const es = {
     'attendance.legend.excellent': 'Excelencia',
     'attendance.legend.regular': 'Regular',
     'attendance.legend.critical': 'Crítico',
+    'attendance.session_pulse': 'Pulso de Sesión',
+    'attendance.participation_rate': 'Tasa de Participación',
+    'attendance.operational_intelligence': 'Inteligencia Operativa',
+    'attendance.management_protocol': 'Protocolo de Gestión',
+    'attendance.engagement_level': 'Nivel de Compromiso',
+    'attendance.active_streak': 'Racha Activa',
+    'attendance.session_insights': 'Métricas de Sesión',
+    'attendance.mark_present_btn': 'Marcar Presente',
+    'attendance.mark_absent_btn': 'Marcar Ausente',
 };

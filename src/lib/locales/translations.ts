@@ -19,6 +19,7 @@ import * as chess from './modules/chess';
 import * as landing from './modules/landing';
 import * as roadmap from './modules/roadmap';
 import * as attendance from './modules/attendance';
+import * as payments from './modules/payments';
 
 export const translations = {
     en: {
@@ -43,6 +44,7 @@ export const translations = {
         ...landing.en,
         ...roadmap.en,
         ...attendance.en,
+        ...payments.en,
     },
     es: {
         ...admin.es,
@@ -66,5 +68,6 @@ export const translations = {
         ...landing.es,
         ...roadmap.es,
         ...attendance.es,
+        ...payments.es,
     }
 };

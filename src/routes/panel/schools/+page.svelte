@@ -9,10 +9,15 @@
     MapPin,
     Users,
     CaretRight,
-    MagnifyingGlass
+    MagnifyingGlass,
+    ArrowUpRight,
+    Globe,
+    GraduationCap,
+    Info,
+    CheckCircle
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
-  import { fade, fly } from 'svelte/transition';
+  import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
 
@@ -21,13 +26,18 @@
 
   let searchQuery = $state('');
 
-  // Datos reactivos desde el store
+  // Svelte 5 reactive data
   let schools = $derived($appStore.schools || []);
   let students = $derived($appStore.students || []);
 
-  const filteredSchools = $derived(() => {
-    return schools.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  });
+  // KPIs
+  const totalSchools = $derived(schools.length);
+  const totalStudents = $derived(students.length);
+  const avgStudentsPerSchool = $derived(totalSchools > 0 ? Math.round(totalStudents / totalSchools) : 0);
+
+  const filteredSchools = $derived(
+    schools.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const getStudentCount = (school_id: string) => {
     return students.filter(s => s.school_id === school_id).length;
@@ -69,118 +79,221 @@
 
 <div class="max-w-7xl mx-auto px-6 pb-12" transition:fade>
   
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 pt-8">
-    <div class="space-y-4">
-      <div class="flex items-center gap-4">
-        <div class="w-14 h-14 bg-violet-500/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-400 shadow-[0_0_20px_rgba(139,92,246,0.1)]">
-          <Buildings size={32} weight="duotone" />
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 pt-12">
+    <div class="space-y-6">
+      <div class="flex items-center gap-6">
+        <div class="relative">
+          <div class="absolute inset-0 bg-violet-500/30 blur-2xl rounded-full"></div>
+          <div class="w-16 h-16 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/40 rounded-[1.5rem] flex items-center justify-center text-violet-400 backdrop-blur-xl relative z-10 shadow-xl">
+            <Buildings size={36} weight="duotone" />
+          </div>
         </div>
         <div>
-          <h1 class="text-4xl font-outfit font-bold text-white tracking-tight">{$t('schools.title')}</h1>
-          <p class="text-slate-400 font-jakarta text-sm">{$t('schools.subtitle')}</p>
+          <div class="flex items-center gap-3 mb-1">
+            <h1 class="text-4xl md:text-5xl font-outfit font-black text-white tracking-tight leading-none bg-gradient-to-r from-white via-white to-white/50 bg-clip-text text-transparent">
+              {$t('schools.title')}
+            </h1>
+            <span class="px-3 py-1 bg-violet-500/10 border border-violet-500/30 rounded-full text-[10px] font-outfit font-bold text-violet-400 uppercase tracking-widest mt-1">
+              PRO
+            </span>
+          </div>
+          <p class="text-slate-400 font-jakarta text-sm md:text-base max-w-lg">
+            {$t('schools.subtitle')}
+          </p>
         </div>
       </div>
     </div>
 
     <button 
       onclick={() => goto('/panel/schools/create')}
-      class="btn-pill bg-violet-600 text-white px-8 py-3.5 font-bold hover:bg-violet-500 transition-all shadow-violet-flare flex items-center gap-2 group"
+      class="btn-pill px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-violet-flare flex items-center gap-3 group ring-1 ring-white/20"
     >
-      <Plus size={20} weight="bold" class="transition-transform group-hover:rotate-90" />
+      <div class="p-1 bg-white/20 rounded-lg group-hover:rotate-90 transition-transform">
+        <Plus size={18} weight="bold" />
+      </div>
       {$t('schools.add_btn')}
     </button>
   </div>
 
-  <div class="relative group mb-10">
-    <MagnifyingGlass size={20} class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-violet-400 transition-colors" />
+  <!-- Stats Bento Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <div class="bento-card p-6 border border-white/5 flex flex-col gap-4 group hover:border-violet-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <div class="w-12 h-12 bg-violet-500/10 rounded-2xl flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
+          <Buildings size={24} weight="duotone" />
+        </div>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('schools.active_centers')}</span>
+      </div>
+      <div>
+        <div class="text-3xl font-outfit font-bold text-white mb-1">{totalSchools}</div>
+        <div class="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
+          <ArrowUpRight size={14} />
+          <span>{$t('schools.full_capacity')}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bento-card p-6 border border-white/5 flex flex-col gap-4 group hover:border-fuchsia-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <div class="w-12 h-12 bg-fuchsia-500/10 rounded-2xl flex items-center justify-center text-fuchsia-400 group-hover:scale-110 transition-transform">
+          <Users size={24} weight="duotone" />
+        </div>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('common.total_students')}</span>
+      </div>
+      <div>
+        <div class="text-3xl font-outfit font-bold text-white mb-1">{totalStudents}</div>
+        <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+          <CheckCircle size={14} class="text-emerald-400" />
+          <span>{$t('schools.verified_enrollment')}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bento-card p-6 border border-white/5 flex flex-col gap-4 group hover:border-amber-500/30 transition-all">
+      <div class="flex items-center justify-between">
+        <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+          <GraduationCap size={24} weight="duotone" />
+        </div>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('schools.avg_groups')}</span>
+      </div>
+      <div>
+        <div class="text-3xl font-outfit font-bold text-white mb-1">{avgStudentsPerSchool}</div>
+        <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+          <Info size={14} />
+          <span>{$t('schools.growth_metric')}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="relative group mb-10 translate-y-0 hover:-translate-y-1 transition-transform">
+    <div class="absolute inset-0 bg-violet-500/5 blur-xl group-focus-within:bg-violet-500/10 transition-colors"></div>
+    <MagnifyingGlass size={22} weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-violet-400 transition-colors z-20" />
     <input
       type="text"
       placeholder={$t('schools.search_placeholder')}
       bind:value={searchQuery}
-      class="w-full bg-bento-card border border-white/5 rounded-2xl pl-14 pr-6 py-4 text-sm text-white focus:border-violet-500/50 outline-none transition-all backdrop-blur-xl font-jakarta"
+      class="w-full bg-bento-card border border-white/5 rounded-2xl pl-16 pr-6 py-5 text-base text-white focus:border-violet-500/50 outline-none transition-all backdrop-blur-2xl font-jakarta relative z-10 shadow-2xl"
     />
   </div>
 
-  {#if filteredSchools().length === 0}
-    <div class="bento-card border-dashed border-white/10 p-16 md:p-32 text-center space-y-8" in:fade>
-      <div class="relative inline-block">
-        <div class="w-32 h-32 bg-violet-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-violet-500/20 text-violet-400 animate-bounce-subtle shadow-violet-flare">
+  {#if filteredSchools.length === 0}
+    <div 
+      class="bento-card border-dashed border-white/10 p-16 md:p-24 text-center space-y-10 relative overflow-hidden" 
+      in:fade
+    >
+      <div class="absolute inset-0 bg-gradient-to-b from-violet-500/5 to-transparent pointer-events-none"></div>
+      
+      <div class="relative inline-block scale-110">
+        <div class="w-32 h-32 bg-violet-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-violet-500/20 text-violet-400 animate-pulse-slow shadow-violet-flare relative z-10">
           <Buildings size={64} weight="duotone" />
         </div>
-        <div class="absolute -bottom-2 -right-2 bg-bento-bg border border-white/10 p-3 rounded-2xl shadow-xl">
-             <Plus size={24} weight="bold" class="text-violet-400" />
+        <div class="absolute -bottom-2 -right-2 bg-bento-bg border border-white/10 p-3 rounded-2xl shadow-2xl z-20 text-violet-400">
+             <Plus size={24} weight="bold" />
         </div>
       </div>
       
-      <div class="max-w-md mx-auto space-y-4">
-        <h2 class="text-3xl font-outfit font-bold text-white tracking-tight">{$t('schools.empty_title')}</h2>
+      <div class="max-w-md mx-auto space-y-4 relative z-10">
+        <h2 class="text-3xl md:text-4xl font-outfit font-bold text-white tracking-tight">{$t('schools.empty_title')}</h2>
         <p class="text-slate-500 font-jakarta text-lg leading-relaxed">{$t('schools.empty_subtitle')}</p>
       </div>
 
       <button 
         onclick={() => goto('/panel/schools/create')}
-        class="btn-pill bg-violet-600 hover:bg-violet-500 text-white px-10 py-5 font-bold transition-all shadow-violet-flare flex items-center gap-3 mx-auto group ring-8 ring-violet-500/5 text-lg"
+        class="btn-pill bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:scale-105 active:scale-95 text-white px-10 py-5 font-bold transition-all shadow-violet-flare flex items-center gap-3 mx-auto group ring-8 ring-violet-500/5 text-lg relative z-10"
       >
         <Plus size={24} weight="bold" class="transition-transform group-hover:rotate-90" />
         {$t('schools.empty_btn')}
       </button>
     </div>
   {:else}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each filteredSchools() as school, i}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {#each filteredSchools as school, i}
         <div 
-          class="bento-card p-6 border border-white/5 hover:border-violet-500/30 transition-all group relative overflow-hidden"
-          in:fly={{ y: 20, delay: i * 50 }}
+          role="article"
+          class="bento-card p-6 border border-white/5 hover:border-violet-500/40 transition-all group relative flex flex-col"
+          in:fly={{ y: 20, delay: i * 80 }}
         >
-          <div class="flex items-center justify-between mb-6 relative z-10">
-            <div class="flex items-center gap-4">
-              <div class="w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-bold text-xl group-hover:scale-105 transition-all shadow-inner">
+          <!-- Background Glow Effect -->
+          <div class="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          
+          <div class="flex items-start justify-between mb-8 relative z-10">
+            <div class="flex items-center gap-5">
+              <div class="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-black text-2xl group-hover:scale-110 group-hover:rotate-3 transition-all shadow-2xl relative overflow-hidden">
+                <div class="absolute inset-0 bg-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 {school.name[0].toUpperCase()}
               </div>
-              <div>
-                <h3 class="text-white font-outfit font-bold text-lg leading-tight group-hover:text-violet-400 transition-colors">{school.name}</h3>
-                <div class="flex items-center gap-1.5 text-slate-500 font-jakarta text-[11px] mt-0.5 uppercase tracking-wide">
-                    <MapPin size={12} weight="fill" class="text-slate-600" />
-                    {school.city || $t('schools.location_not_defined')}
-
+              <div class="space-y-1">
+                <h3 class="text-white font-outfit font-bold text-xl leading-snug group-hover:text-violet-400 transition-colors line-clamp-1">{school.name}</h3>
+                <div class="flex items-center gap-2 text-slate-500 font-jakarta text-[11px] uppercase tracking-[0.15em] font-semibold">
+                    <MapPin size={14} weight="fill" class="text-violet-500/50" />
+                    <span class="line-clamp-1">{school.city || $t('schools.location_not_defined')}</span>
                 </div>
               </div>
             </div>
 
-            <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+            <div class="flex flex-col gap-2 translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                 <button 
                   onclick={() => goto(`/panel/schools/${school.id}/edit`)}
-                  class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-violet-600/20 hover:border-violet-500/30 transition-all"
-                  title={$t('common.edit')}
+                  class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-violet-600/30 hover:border-violet-500/50 transition-all hover:scale-110 active:scale-90 shadow-lg backdrop-blur-md"
+                  aria-label={$t('common.edit')}
                 >
-                  <PencilSimple size={18} />
+                  <PencilSimple size={18} weight="bold" />
                 </button>
                 <button 
                   onclick={() => deleteSchool(school.id)}
-                  class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all"
-                  title={$t('common.delete')}
+                  class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/20 hover:border-red-500/30 transition-all hover:scale-110 active:scale-90 shadow-lg backdrop-blur-md"
+                  aria-label={$t('common.delete')}
                 >
-                  <Trash size={18} />
+                  <Trash size={18} weight="bold" />
                 </button>
             </div>
           </div>
 
-          <div class="flex items-center justify-between pt-5 border-t border-white/5 relative z-10">
-            <div class="flex items-center gap-4">
-               <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                  <Users size={16} weight="duotone" class="text-violet-400" />
-                  <span class="text-xs font-outfit font-bold text-white">{getStudentCount(school.id)}</span>
-                  <span class="text-[10px] font-jakarta text-slate-500 uppercase tracking-widest">{$t('nav.students')}</span>
-               </div>
+          <div class="mt-auto space-y-6 relative z-10">
+            <!-- Student Progress Indicator -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                <div class="flex items-center gap-2">
+                  <Users size={14} weight="duotone" class="text-violet-400" />
+                  <span>{$t('reports.enrolled')}</span>
+                </div>
+                <span class="text-white">{getStudentCount(school.id)}</span>
+              </div>
+              <div class="h-1.5 w-full bg-slate-800/50 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                <div 
+                  class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all duration-1000 ease-out relative"
+                  style="width: {Math.min((getStudentCount(school.id) / 30) * 100, 100)}%"
+                >
+                   <div class="absolute inset-0 bg-[linear-gradient(90deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shimmer_2s_infinite]"></div>
+                </div>
+              </div>
             </div>
 
-            <button 
-              onclick={() => goto(`/panel/schools/${school.id}`)}
-              class="flex items-center gap-1.5 text-[11px] font-outfit font-bold text-violet-400 uppercase tracking-widest hover:text-white transition-all group/btn"
-            >
-              {$t('schools.manage_btn')}
-              <CaretRight size={14} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />
-            </button>
+            <div class="flex items-center justify-between pt-6 border-t border-white/5">
+              <div class="flex -space-x-3 overflow-hidden">
+                {#each Array(Math.min(getStudentCount(school.id), 4)) as _, j}
+                  <div class="h-8 w-8 rounded-full ring-2 ring-bento-bg bg-white/10 border border-white/10 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                    S{j+1}
+                  </div>
+                {/each}
+                {#if getStudentCount(school.id) > 4}
+                  <div class="h-8 w-8 rounded-full ring-2 ring-bento-bg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-[10px] font-bold text-violet-400 backdrop-blur-sm">
+                    +{getStudentCount(school.id) - 4}
+                  </div>
+                {/if}
+              </div>
+
+              <button 
+                onclick={() => goto(`/panel/schools/${school.id}`)}
+                class="flex items-center gap-2 px-5 py-2.5 bg-violet-500/10 border border-violet-500/20 rounded-xl text-[12px] font-outfit font-bold text-violet-400 uppercase tracking-[0.1em] hover:bg-violet-600 hover:text-white hover:shadow-violet-flare transition-all group/btn active:scale-95"
+              >
+                {$t('schools.manage_btn')}
+                <CaretRight size={14} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />
+              </button>
+            </div>
           </div>
         </div>
       {/each}
@@ -191,9 +304,26 @@
 <ConfirmModal
   bind:show={showDeleteModal}
   title={$t('schools.delete_btn')}
-  message={$t('schools.delete_confirm').replace('{name}', schoolToDelete?.name || '')}
+  message={$t('schools.delete_confirm')}
   confirmText={$t('common.delete')}
   cancelText={$t('common.cancel')}
   onConfirm={confirmDelete}
   type="danger"
 />
+
+<style>
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  :global(.animate-pulse-slow) {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(0.98); }
+  }
+</style>
+

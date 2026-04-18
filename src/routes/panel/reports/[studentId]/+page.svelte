@@ -2,38 +2,38 @@
   import { goto } from '$app/navigation';
   import { 
     ArrowLeft,
-    User as UserIcon,
-    Calendar,
+    IdentificationCard,
+    CalendarBlank,
     Clock,
-    TrendingUp,
-    TrendingDown,
+    TrendUp,
+    TrendDown,
     Target,
     BookOpen,
     Trophy,
-    DollarSign,
+    CurrencyEur,
     Phone,
-    Mail,
+    EnvelopeSimple,
     MapPin,
     CheckCircle,
-    AlertTriangle,
+    Warning,
     XCircle,
-    Award,
-    Activity,
-    BarChart3,
-    PieChart,
+     Medal,
+     ChartBar,
+    ChartPieSlice,
     Users,
-    School,
+    Buildings,
     FileText,
     Star,
-    Zap,
+    Lightning,
     Timer,
-    ChevronRight,
-    Search,
-    Download,
-    Share2,
+    CaretRight,
+    MagnifyingGlass,
+    DownloadSimple,
+    ShareNetwork,
     Briefcase,
-    Layers
-  } from 'lucide-svelte';
+    Stack,
+    Pulse
+  } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
   import { t, locale } from '$lib/i18n';
@@ -41,10 +41,15 @@
   let { data } = $props<{ data: PageData }>();
 
   let selectedTab = $state<'overview' | 'attendance' | 'skills' | 'payments' | 'tournaments' | 'timeline'>('overview');
+  let hoveredKpi = $state<string | null>(null);
 
   // Helper functions
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+    return new Date(dateString).toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { 
+      day: 'numeric', 
+      month: 'short', 
+      year: 'numeric' 
+    }).toUpperCase();
   };
 
   const formatCurrency = (amount: number) => {
@@ -59,16 +64,16 @@
       case 'P': return CheckCircle;
       case 'T': return Clock;
       case 'A': return XCircle;
-      default: return AlertTriangle;
+      default: return Warning;
     }
   };
 
   const getAttendanceTheme = (status: string) => {
     switch (status) {
-      case 'P': return 'text-primary-400 border-primary-500/20 bg-primary-500/10';
-      case 'T': return 'text-orange-400 border-orange-500/20 bg-orange-500/10';
-      case 'A': return 'text-red-400 border-red-500/20 bg-red-500/10';
-      default: return 'text-surface-400 border-surface-500/20 bg-surface-500/10';
+      case 'P': return 'emerald';
+      case 'T': return 'amber';
+      case 'A': return 'rose';
+      default: return 'slate';
     }
   };
 
@@ -88,571 +93,589 @@
   const progress = $derived(report?.progress_summary);
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'attendance', label: 'Attendance', icon: Calendar },
-    { id: 'skills', label: 'Skills', icon: Zap },
-    { id: 'payments', label: 'Payments', icon: DollarSign },
-    { id: 'tournaments', label: 'Tournaments', icon: Trophy },
-    { id: 'timeline', label: 'Timeline', icon: Timer },
+    { id: 'overview', label: 'Overview', icon: Stack },
+    { id: 'attendance', label: 'Attendance', icon: CalendarBlank },
+    { id: 'skills', label: 'Syllabus', icon: Lightning },
+    { id: 'payments', label: 'Payments', icon: CurrencyEur },
+    { id: 'tournaments', label: 'Competitions', icon: Trophy },
+    { id: 'timeline', label: 'Activity', icon: Timer },
   ] as const;
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'attendance': return Calendar;
-      case 'skill': return Zap;
-      case 'payment': return DollarSign;
+      case 'attendance': return CalendarBlank;
+      case 'skill': return Lightning;
+      case 'payment': return CurrencyEur;
       case 'tournament': return Trophy;
-      default: return Activity;
+      default: return Pulse;
     }
   };
 </script>
 
 <svelte:head>
-  <title>{$t('reports.title', { name: student?.name || $t('common.student') })} - ChessNet</title>
+  <title>{student?.name ? `${student.name} - ${$t('reports.title')}` : $t('reports.title')} | ChessNet</title>
 </svelte:head>
 
-{#if !report}
-  <div class="min-h-[60vh] flex items-center justify-center p-8" in:fade>
-    <div class="glass-panel p-12 text-center max-w-md space-y-6 border-t-4 border-red-500">
-      <div class="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center text-red-400 mx-auto shadow-2xl">
-        <AlertTriangle class="w-10 h-10" />
+<div class="report-detail-container" in:fade={{ duration: 400 }}>
+  {#if !report}
+    <div class="empty-layout" in:fade>
+      <div class="error-glass">
+        <div class="error-icon">
+          <Warning weight="duotone" />
+        </div>
+        <div class="error-text">
+          <h2>{$t('reports.not_found')}</h2>
+          <p>{$t('reports.not_found_desc')}</p>
+        </div>
+        <button onclick={() => goto('/panel/reports')} class="back-btn">
+          <ArrowLeft />
+          {$t('common.back')}
+        </button>
       </div>
-      <div>
-        <h2 class="text-2xl font-black text-white uppercase tracking-tighter">{$t('reports.not_found')}</h2>
-        <p class="text-[10px] font-black text-surface-500 uppercase tracking-widest mt-2">{$t('reports.not_found_desc')}</p>
-      </div>
-      <button
-        onclick={() => goto('/panel/reports')}
-        class="w-full bg-surface-950 border border-surface-900 py-4 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest hover:border-primary-500/50 transition-all flex items-center justify-center gap-3"
-      >
-        <ArrowLeft class="w-4 h-4" />
-        {$t('common.back')}
-      </button>
     </div>
-  </div>
-{:else}
-  <div class="space-y-10 animate-fade-in pb-20" in:fade>
+  {:else}
+    <!-- Top Action Bar -->
+    <nav class="action-bar" in:fly={{ y: -20, duration: 600 }}>
+      <button onclick={() => goto('/panel/reports')} class="icon-btn-back">
+        <ArrowLeft weight="bold" />
+      </button>
+      
+      <div class="action-group">
+        <button class="secondary-btn">
+          <ShareNetwork weight="bold" />
+        </button>
+        <button class="secondary-btn">
+          <DownloadSimple weight="bold" />
+        </button>
+        <button class="primary-btn">
+          <FileText weight="fill" />
+          <span>{$t('reports.generate_pdf')}</span>
+        </button>
+      </div>
+    </nav>
+
     <!-- Header Section -->
-    <div class="flex flex-col xl:flex-row gap-8 items-start justify-between">
-      <div class="flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-        <div class="relative group">
-          <div class="absolute inset-0 bg-primary-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-          <div class="w-32 h-32 bg-surface-950 border-4 border-surface-900 rounded-[2.5rem] flex items-center justify-center text-primary-400 text-5xl font-black shadow-2xl relative z-10 group-hover:border-primary-500/30 transition-all">
-            {student.name.charAt(0)}
-          </div>
-          <div class="absolute -bottom-2 -right-2 bg-primary-500 text-black p-2 rounded-xl shadow-lg z-20">
-            <Trophy class="w-4 h-4" />
+    <header class="profile-header">
+      <div class="profile-main">
+        <div class="avatar-orb-wrap">
+          <div class="avatar-orb">
+            <span class="initial">{student.name.charAt(0)}</span>
+            <div class="orb-glow"></div>
+            <div class="status-indicator {student.status === 'active' ? 'active' : 'inactive'}"></div>
           </div>
         </div>
-
-        <div class="space-y-3">
-          <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
-            <h1 class="text-4xl font-black text-white tracking-tighter uppercase leading-none">{student.name}</h1>
-            <span class="bg-primary-500/10 border border-primary-500/20 text-primary-400 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
-              <CheckCircle class="w-3 h-3" />
+        
+        <div class="profile-info">
+          <div class="name-row">
+            <h1>{student.name}</h1>
+            <span class="verified-badge">
+              <CheckCircle weight="fill" />
               {$t('reports.common.verified')}
             </span>
           </div>
           
-          <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-surface-500 text-[10px] font-bold uppercase tracking-widest">
-            <div class="flex items-center gap-2">
-              <School class="w-3 h-3 text-primary-400" />
-              {report.school.name}
+          <div class="meta-row">
+            <div class="meta-item">
+              <Buildings weight="duotone" class="text-violet-400" />
+              <span>{report.school.name}</span>
             </div>
-            <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
-            <div class="flex items-center gap-2">
-              <Calendar class="w-3 h-3 text-primary-400" />
-              {calculateAge(student.date_of_birth)} {$t('reports.years')}
+            <div class="meta-divider"></div>
+            <div class="meta-item">
+              <CalendarBlank weight="duotone" class="text-emerald-400" />
+              <span>{calculateAge(student.date_of_birth)} {$t('reports.years')}</span>
             </div>
-            <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
-            <div class="flex items-center gap-2">
-              <Clock class="w-3 h-3 text-primary-400" />
-              {$t('reports.active_since')} {formatDate(progress.enrollment_date)}
-            </div>
-            <div class="w-1.5 h-1.5 rounded-full bg-surface-800"></div>
-            <div class="flex items-center gap-2">
-              <div class={`w-2 h-2 rounded-full ${student.status === 'active' ? 'bg-primary-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' : 'bg-surface-700'}`}></div>
-              {student.status ? $t(`reports.status.${student.status.toLowerCase()}`) : '---'}
+            <div class="meta-divider"></div>
+            <div class="meta-item">
+              <Clock weight="duotone" class="text-amber-400" />
+              <span>{$t('reports.active_since')} {formatDate(progress.enrollment_date)}</span>
             </div>
           </div>
         </div>
       </div>
+    </header>
 
-      <div class="flex items-center gap-4 w-full md:w-auto">
-        <button class="flex-1 md:flex-none bg-surface-950/50 border border-surface-900 p-4 rounded-2xl text-white hover:border-primary-500/30 transition-all backdrop-blur-xl group">
-          <Share2 class="w-5 h-5 group-hover:scale-110 transition-transform" />
-        </button>
-        <button class="flex-1 md:flex-none bg-surface-950/50 border border-surface-900 p-4 rounded-2xl text-white hover:border-primary-500/30 transition-all backdrop-blur-xl group">
-          <Download class="w-5 h-5 group-hover:scale-110 transition-transform" />
-        </button>
-        <button class="flex-[3] md:flex-none bg-primary-500 text-black px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-400 transition-all shadow-lg flex items-center justify-center gap-3">
-          <FileText class="w-4 h-4" />
-          {$t('reports.generate_pdf')}
-        </button>
+    <!-- KPI Metrics Grid -->
+    <section class="kpi-metrics-grid">
+      <div 
+        class="metric-card violet"
+        class:active={hoveredKpi === 'attendance'}
+        onmouseenter={() => hoveredKpi = 'attendance'}
+        onmouseleave={() => hoveredKpi = null}
+        role="region"
+      >
+        <div class="card-content">
+          <span class="card-label">{$t('reports.metrics.attendance')}</span>
+          <div class="card-value-wrap">
+            <span class="card-value">{progress.attendance_rate.toFixed(1)}%</span>
+            <div class="card-icon">
+              <Pulse weight="duotone" />
+            </div>
+          </div>
+        </div>
+        <div class="card-bg-glow"></div>
       </div>
-    </div>
 
-    <!-- Quick Stats Grid -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="glass-panel p-6 border-l-4 border-primary-500 flex items-center justify-between group">
-         <div>
-            <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.attendance')}</span>
-            <p class="text-2xl font-black text-white mt-1 uppercase leading-none">{progress.attendance_rate.toFixed(1)}%</p>
-         </div>
-         <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400 group-hover:scale-110 transition-transform">
-            <Activity class="w-6 h-6" />
-         </div>
-      </div>
-      
-      <div class="glass-panel p-6 border-l-4 border-blue-500 flex items-center justify-between group">
-         <div>
-            <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.rating')}</span>
-            <div class="flex items-baseline gap-2">
-              <p class="text-2xl font-black text-white mt-1 uppercase leading-none">{progress.current_rating}</p>
-              <span class={`text-[10px] font-black ${progress.rating_change >= 0 ? 'text-primary-400' : 'text-red-400'}`}>
-                {progress.rating_change >= 0 ? '▲' : '▼'} {Math.abs(progress.rating_change)}
+      <div 
+        class="metric-card emerald"
+        class:active={hoveredKpi === 'rating'}
+        onmouseenter={() => hoveredKpi = 'rating'}
+        onmouseleave={() => hoveredKpi = null}
+        role="region"
+      >
+        <div class="card-content">
+          <span class="card-label">{$t('reports.metrics.rating')}</span>
+          <div class="card-value-wrap">
+            <div class="value-group">
+              <span class="card-value">{progress.current_rating}</span>
+              <span class="trend {progress.rating_change >= 0 ? 'up' : 'down'}">
+                {#if progress.rating_change >= 0}
+                  <TrendUp weight="bold" />
+                {:else}
+                  <TrendDown weight="bold" />
+                {/if}
+                {Math.abs(progress.rating_change)}
               </span>
             </div>
-         </div>
-         <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-            <Trophy class="w-6 h-6" />
-         </div>
+            <div class="card-icon">
+              <Trophy weight="duotone" />
+            </div>
+          </div>
+        </div>
+        <div class="card-bg-glow"></div>
       </div>
 
-      <div class="glass-panel p-6 border-l-4 border-purple-500 flex items-center justify-between group">
-         <div>
-            <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.skills')}</span>
-            <p class="text-2xl font-black text-white mt-1 uppercase leading-none">{progress.skill_completion_rate.toFixed(1)}%</p>
-         </div>
-         <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-            <Zap class="w-6 h-6" />
-         </div>
+      <div 
+        class="metric-card amber"
+        class:active={hoveredKpi === 'skills'}
+        onmouseenter={() => hoveredKpi = 'skills'}
+        onmouseleave={() => hoveredKpi = null}
+        role="region"
+      >
+        <div class="card-content">
+          <span class="card-label">{$t('reports.metrics.skills')}</span>
+          <div class="card-value-wrap">
+            <span class="card-value">{progress.skill_completion_rate.toFixed(1)}%</span>
+            <div class="card-icon">
+              <Lightning weight="duotone" />
+            </div>
+          </div>
+        </div>
+        <div class="card-bg-glow"></div>
       </div>
 
-      <div class="glass-panel p-6 border-l-4 border-orange-500 flex items-center justify-between group">
-         <div>
-            <span class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{$t('reports.metrics.balance')}</span>
-            <p class={`text-2xl font-black mt-1 uppercase leading-none ${progress.overdue_payments > 0 ? 'text-red-400' : 'text-primary-400'}`}>
+      <div 
+        class="metric-card {progress.overdue_payments > 0 ? 'rose' : 'indigo'}"
+        class:active={hoveredKpi === 'balance'}
+        onmouseenter={() => hoveredKpi = 'balance'}
+        onmouseleave={() => hoveredKpi = null}
+        role="region"
+      >
+        <div class="card-content">
+          <span class="card-label">{$t('reports.metrics.balance')}</span>
+          <div class="card-value-wrap">
+            <span class="card-value">
               {progress.overdue_payments > 0 ? `-${progress.overdue_payments}` : $t('reports.common.ok')}
-            </p>
-         </div>
-         <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
-            <DollarSign class="w-6 h-6" />
-         </div>
+            </span>
+            <div class="card-icon">
+              <CurrencyEur weight="duotone" />
+            </div>
+          </div>
+        </div>
+        <div class="card-bg-glow"></div>
       </div>
-    </div>
+    </section>
 
     <!-- Navigation Tabs -->
-    <div class="flex flex-wrap gap-2 p-1.5 bg-surface-950/50 border border-surface-900 rounded-[2rem] backdrop-blur-xl">
-      {#each tabs as tab}
-        <button
-          onclick={() => selectedTab = tab.id}
-          class={`flex items-center gap-3 px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-            selectedTab === tab.id 
-              ? 'bg-primary-500 text-black shadow-xl scale-[1.02]' 
-              : 'text-surface-500 hover:text-white hover:bg-surface-900'
-          }`}
-        >
-          <tab.icon class="w-4 h-4" />
-          <span class="hidden sm:inline">{$t(`reports.tabs.${tab.id}`)}</span>
-        </button>
-      {/each}
+    <div class="tabs-container">
+      <div class="tabs-scroll">
+        {#each tabs as tab}
+          <button 
+            onclick={() => selectedTab = tab.id}
+            class="tab-btn"
+            class:active={selectedTab === tab.id}
+          >
+            <tab.icon weight={selectedTab === tab.id ? 'fill' : 'bold'} />
+            <span class="tab-label">{$t(`reports.tabs.${tab.id}`)}</span>
+          </button>
+        {/each}
+      </div>
     </div>
 
-    <!-- Tab Content -->
-    <div class="space-y-8" in:fade={{ duration: 200 }}>
+    <!-- Main Content Area -->
+    {#key selectedTab}
+      <main class="content-wrapper" in:fade={{ duration: 300 }}>
       {#if selectedTab === 'overview'}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Left Column: Details & Notes -->
-          <div class="lg:col-span-2 space-y-8">
-            <!-- Basic Info Card -->
-            <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
-               <div class="p-8 border-b border-surface-900 bg-surface-950/50">
-                  <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
-                    <UserIcon class="w-4 h-4 text-primary-400" />
-                    {$t('reports.contact.title')}
-                  </h3>
-               </div>
-               <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div class="space-y-6">
-                    <div class="group">
-                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">{$t('reports.contact.email')}</p>
-                      <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
-                        <Mail class="w-4 h-4 text-primary-400" />
-                        {student.email}
-                      </div>
-                    </div>
-                    <div class="group">
-                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">{$t('reports.contact.phone')}</p>
-                      <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
-                        <Phone class="w-4 h-4 text-primary-400" />
-                        {student.phone}
-                      </div>
-                    </div>
+        <div class="overview-grid">
+          <!-- Contact & Notes -->
+          <div class="bento-column">
+            <div class="bento-card contact-card">
+              <div class="card-header">
+                <IdentificationCard weight="duotone" />
+                <h3>{$t('reports.contact.title')}</h3>
+              </div>
+              <div class="card-body contact-grid">
+                <div class="info-group">
+                  <span class="label">{$t('reports.contact.email')}</span>
+                  <div class="info-val">
+                    <EnvelopeSimple />
+                    <span>{student.email}</span>
                   </div>
-                  <div class="space-y-6">
-                    <div class="group">
-                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">{$t('reports.contact.birth')}</p>
-                      <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
-                        <Calendar class="w-4 h-4 text-primary-400" />
-                        {formatDate(student.date_of_birth)}
-                      </div>
-                    </div>
-                    <div class="group">
-                      <p class="text-[9px] font-black text-surface-600 uppercase tracking-widest mb-1">{$t('reports.contact.last_activity')}</p>
-                      <div class="flex items-center gap-3 text-white font-bold tracking-tight bg-surface-950/50 p-3 rounded-xl border border-surface-900 group-hover:border-primary-500/30 transition-all">
-                        <Activity class="w-4 h-4 text-primary-400" />
-                        {formatDate(progress.last_activity_date)}
-                      </div>
-                    </div>
+                </div>
+                <div class="info-group">
+                  <span class="label">{$t('reports.contact.phone')}</span>
+                  <div class="info-val">
+                    <Phone />
+                    <span>{student.phone}</span>
                   </div>
-               </div>
+                </div>
+                <div class="info-group">
+                  <span class="label">{$t('reports.contact.birth')}</span>
+                  <div class="info-val">
+                    <CalendarBlank />
+                    <span>{formatDate(student.date_of_birth)}</span>
+                  </div>
+                </div>
+                <div class="info-group">
+                  <span class="label">{$t('reports.contact.last_activity')}</span>
+                  <div class="info-val">
+                    <Pulse />
+                    <span>{formatDate(progress.last_activity_date)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Instructor Notes -->
             {#if student.instructor_notes}
-              <div class="glass-panel p-8 border-t-4 border-orange-500">
-                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                  <FileText class="w-4 h-4 text-orange-400" />
-                  {$t('reports.observations.title')}
-                </h3>
-                <div class="p-6 bg-surface-950/80 border border-surface-900 rounded-2xl italic text-surface-300 text-sm leading-relaxed relative overflow-hidden">
-                   <div class="absolute top-0 right-0 p-4 opacity-10">
-                      <BookOpen class="w-12 h-12" />
-                   </div>
-                   "{student.instructor_notes}"
+              <div class="bento-card notes-card">
+                <div class="card-header">
+                  <FileText weight="duotone" class="text-amber-400" />
+                  <h3>{$t('reports.observations.title')}</h3>
+                </div>
+                <div class="card-body">
+                  <blockquote class="instructor-note">
+                    <BookOpen class="quote-icon" />
+                    <p>"{student.instructor_notes}"</p>
+                  </blockquote>
                 </div>
               </div>
             {/if}
 
-            <!-- Enrolled Classes -->
-            <div class="glass-panel p-8 border-t-4 border-blue-500">
-               <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                <Layers class="w-4 h-4 text-blue-400" />
-                {$t('reports.programs.title')}
-               </h3>
-               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {#each report.classes as cls}
-                    <div class="p-5 bg-surface-950/50 border border-surface-900 rounded-2xl group hover:border-blue-500/30 transition-all">
-                       <div class="flex items-center justify-between mb-3">
-                          <h4 class="text-sm font-black text-white uppercase tracking-tight">{cls.name}</h4>
-                          <span class="text-[10px] font-black text-primary-400">{formatCurrency(cls.price)}/{$t('reports.programs.per_month')}</span>
-                       </div>
-                       <div class="flex items-center gap-2 text-[10px] font-bold text-surface-500 uppercase">
-                          <Clock class="w-3.5 h-3.5" />
-                          {cls.schedule}
-                       </div>
+            <div class="bento-card groups-card">
+              <div class="card-header">
+                <Stack weight="duotone" class="text-blue-400" />
+                <h3>{$t('reports.programs.title')}</h3>
+              </div>
+              <div class="card-body groups-grid">
+                {#each report.classes as cls}
+                  <div class="group-item">
+                    <div class="group-info">
+                      <span class="group-name">{cls.name}</span>
+                      <span class="group-price">{formatCurrency(cls.price)}<small>/{$t('reports.programs.per_month')}</small></span>
                     </div>
-                  {/each}
-               </div>
+                    <div class="group-schedule">
+                      <Clock weight="bold" />
+                      <span>{cls.schedule}</span>
+                    </div>
+                  </div>
+                {/each}
+              </div>
             </div>
           </div>
 
-          <!-- Right Column: Performance Charts -->
-          <div class="space-y-8">
-             <!-- Rating Evolution -->
-             <div class="glass-panel p-8 border-t-4 border-primary-500">
-                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">{$t('reports.history.rating')}</h3>
-                <div class="space-y-4">
-                   {#each report.rating_history as entry}
-                     <div class="flex items-center justify-between p-4 bg-surface-950/50 border border-surface-900 rounded-2xl group hover:bg-surface-950 transition-colors">
-                        <div>
-                           <p class="text-[10px] font-black text-white uppercase tracking-tight">{entry.event}</p>
-                           <p class="text-[8px] font-black text-surface-600 uppercase mt-0.5">{formatDate(entry.date)}</p>
-                        </div>
-                        <div class="text-right">
-                           <p class="text-sm font-black text-white">{entry.rating}</p>
-                           <p class={`text-[9px] font-black ${entry.change >= 0 ? 'text-primary-400' : 'text-red-400'}`}>
-                             {entry.change >= 0 ? '+' : ''}{entry.change}
-                           </p>
-                        </div>
-                     </div>
-                   {/each}
+          <!-- Progress Charts -->
+          <div class="charts-column">
+            <div class="bento-card history-card">
+              <div class="card-header">
+                <ChartBar weight="duotone" />
+                <h3>{$t('reports.history.rating')}</h3>
+              </div>
+              <div class="card-body history-list scroll-visual">
+                {#each report.rating_history as entry}
+                  <div class="history-item">
+                    <div class="history-main">
+                      <span class="history-event">{entry.event}</span>
+                      <span class="history-date">{formatDate(entry.date)}</span>
+                    </div>
+                    <div class="history-value">
+                      <span class="val">{entry.rating}</span>
+                      <span class="change {entry.change >= 0 ? 'pos' : 'neg'}">
+                        {entry.change >= 0 ? '+' : ''}{entry.change}
+                      </span>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            </div>
+
+            <div class="bento-card syllabus-card">
+              <div class="card-header">
+                <ChartPieSlice weight="duotone" class="text-violet-400" />
+                <h3>{$t('reports.skills.status')}</h3>
+              </div>
+              <div class="card-body syllabus-progress">
+                <div class="progress-item mastered">
+                  <div class="item-header">
+                    <span>{$t('reports.skills.mastered')}</span>
+                    <span class="count">{report.skills?.filter((s: any) => s.status === 'completed').length || 0} / {report.skills?.length || 0}</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill" style="width: {progress.total_skills_assigned > 0 ? (progress.skills_mastered/progress.total_skills_assigned)*100 : 0}%"></div>
+                  </div>
                 </div>
-             </div>
 
-             <!-- Skills Breakdown -->
-             <div class="glass-panel p-8 border-t-4 border-purple-500">
-                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">{$t('reports.skills.status')}</h3>
-                <div class="space-y-5">
-                   <div class="space-y-2">
-                      <div class="flex justify-between text-[10px] font-black tracking-widest text-primary-400">
-                        <span>{$t('reports.skills.mastered')}</span>
-                        <span>{report.skills?.filter((s: any) => s.status === 'completed').length || 0} / {report.skills?.length || 0}</span>
-                      </div>
-                      <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
-                        <div class="h-full bg-primary-500" style="width: {progress.total_skills_assigned > 0 ? (progress.skills_mastered/progress.total_skills_assigned)*100 : 0}%"></div>
-                      </div>
-                   </div>
-
-                   <div class="space-y-2">
-                      <div class="flex justify-between text-[10px] font-black tracking-widest text-blue-400">
-                        <span>{$t('reports.skills.in_progress')}</span>
-                        <span>{progress.skills_in_progress}</span>
-                      </div>
-                      <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
-                        <div class="h-full bg-blue-500" style="width: {progress.total_skills_assigned > 0 ? (progress.skills_in_progress/progress.total_skills_assigned)*100 : 0}%"></div>
-                      </div>
-                   </div>
-
-                   <div class="space-y-2">
-                      <div class="flex justify-between text-[10px] font-black tracking-widest text-surface-600">
-                        <span>{$t('reports.skills.pending')}</span>
-                        <span>{progress.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress}</span>
-                      </div>
-                      <div class="h-2 bg-surface-950 rounded-full border border-surface-900 overflow-hidden">
-                        <div class="h-full bg-surface-800" style="width: {progress.total_skills_assigned > 0 ? ((progress.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress)/progress.total_skills_assigned)*100 : 0}%"></div>
-                      </div>
-                   </div>
+                <div class="progress-item study">
+                  <div class="item-header">
+                    <span>{$t('reports.skills.in_progress')}</span>
+                    <span class="count">{progress.skills_in_progress}</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill" style="width: {progress.total_skills_assigned > 0 ? (progress.skills_in_progress/progress.total_skills_assigned)*100 : 0}%"></div>
+                  </div>
                 </div>
-             </div>
+
+                <div class="progress-item pending">
+                  <div class="item-header">
+                    <span>{$t('reports.skills.pending')}</span>
+                    <span class="count">{progress.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress}</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill" style="width: {progress.total_skills_assigned > 0 ? ((progress.total_skills_assigned - progress.skills_mastered - progress.skills_in_progress)/progress.total_skills_assigned)*100 : 0}%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       {/if}
 
       {#if selectedTab === 'attendance'}
-        <div class="space-y-8" in:fade>
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="glass-panel p-8 text-center border-b-4 border-primary-500">
-               <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.attended_sessions}</p>
-               <p class="text-[9px] font-black text-primary-400 uppercase tracking-[0.2em]">{$t('reports.attendance.present')}</p>
+        <div class="attendance-layout">
+          <div class="attendance-stats">
+            <div class="stat-pill">
+              <span class="val">{progress.attended_sessions}</span>
+              <span class="label">{$t('reports.attendance.present')}</span>
             </div>
-            <div class="glass-panel p-8 text-center border-b-4 border-orange-500">
-               <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.late_sessions}</p>
-               <p class="text-[9px] font-black text-orange-400 uppercase tracking-[0.2em]">{$t('reports.attendance.late')}</p>
+            <div class="stat-pill amber">
+              <span class="val">{progress.late_sessions}</span>
+              <span class="label">{$t('reports.attendance.late')}</span>
             </div>
-            <div class="glass-panel p-8 text-center border-b-4 border-red-500">
-               <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.absent_sessions}</p>
-               <p class="text-[9px] font-black text-red-400 uppercase tracking-[0.2em]">{$t('reports.attendance.absent')}</p>
+            <div class="stat-pill rose">
+              <span class="val">{progress.absent_sessions}</span>
+              <span class="label">{$t('reports.attendance.absent')}</span>
             </div>
-            <div class="glass-panel p-8 text-center border-b-4 border-blue-500">
-               <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.punctuality_rate.toFixed(0)}%</p>
-               <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">{$t('reports.attendance.punctuality')}</p>
+            <div class="stat-pill violet">
+              <span class="val">{progress.punctuality_rate.toFixed(0)}%</span>
+              <span class="label">{$t('reports.attendance.punctuality')}</span>
             </div>
           </div>
 
-          <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
-             <div class="p-8 border-b border-surface-900">
-                <h3 class="text-xs font-black text-white uppercase tracking-[0.2em]">{$t('reports.attendance.record')}</h3>
-             </div>
-             <div class="divide-y divide-surface-900/50">
-                {#each report.attendance_history as h}
-                  {@const Icon = getAttendanceIcon(h.status)}
-                  <div class="p-6 flex flex-wrap items-center justify-between gap-4 group hover:bg-surface-950/50 transition-colors">
-                     <div class="flex items-center gap-5">
-                        <div class={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all ${getAttendanceTheme(h.status)}`}>
-                           <Icon class="w-6 h-6" />
-                        </div>
-                        <div>
-                           <p class="text-xs font-black text-white uppercase tracking-tight">{formatDate(h.date)}</p>
-                           <p class="text-[10px] font-bold text-surface-600 uppercase tracking-widest mt-0.5">{$t('reports.attendance.status')}: {h.status === 'P' ? $t('reports.attendance.present') : h.status === 'T' ? $t('reports.attendance.late') : $t('reports.attendance.absent')}</p>
-                        </div>
-                     </div>
-                     {#if h.notes}
-                        <div class="bg-surface-950 border border-surface-900 px-5 py-3 rounded-xl max-w-sm">
-                           <p class="text-[10px] text-surface-400 italic">"{h.notes}"</p>
-                        </div>
-                     {/if}
+          <div class="bento-card">
+            <div class="card-header">
+              <CalendarBlank weight="duotone" />
+              <h3>{$t('reports.attendance.record')}</h3>
+            </div>
+            <div class="attendance-log">
+              {#each report.attendance_history as h}
+                {@const Icon = getAttendanceIcon(h.status)}
+                {@const theme = getAttendanceTheme(h.status)}
+                <div class="log-item {theme}">
+                  <div class="log-info">
+                    <div class="status-box">
+                      <Icon weight="fill" />
+                    </div>
+                    <div class="log-text">
+                      <span class="date">{formatDate(h.date)}</span>
+                      <span class="status-label">
+                        {h.status === 'P' ? $t('reports.attendance.present') : h.status === 'T' ? $t('reports.attendance.late') : $t('reports.attendance.absent')}
+                      </span>
+                    </div>
                   </div>
-                {/each}
-             </div>
+                  {#if h.notes}
+                    <div class="log-note">
+                      <span>"{h.notes}"</span>
+                    </div>
+                  {/if}
+                </div>
+              {/each}
+            </div>
           </div>
         </div>
       {/if}
 
       {#if selectedTab === 'skills'}
-        <div class="space-y-8" in:fade>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="skills-layout">
+          <div class="category-summary">
             {#each ['fundamentals', 'tactics', 'endgames'] as category}
               {@const catSkills = (report.skills_progress as any[]).filter(s => s.category.toLowerCase() === category.toLowerCase())}
               {@const completed = catSkills.filter(s => s.status === 'completed').length}
-              <div class="glass-panel p-8 flex items-center justify-between border-t-4 border-purple-500">
-                 <div class="flex flex-col">
-                    <h4 class="text-[10px] font-black text-surface-500 uppercase tracking-[0.2em] mb-1">
-                       {$t(`reports.skills.categories.${category}`)}
-                    </h4>
-                    <p class="text-3xl font-black text-white tracking-tighter">{completed} / {catSkills.length}</p>
-                 </div>
-                 <div class="w-16 h-16 rounded-full border-4 border-surface-900 flex items-center justify-center relative">
-                    <svg class="absolute inset-0 w-full h-full -rotate-90">
-                       <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="4" class="text-surface-900" />
-                       <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" stroke-width="4" class="text-purple-500" stroke-dasharray="175.9" stroke-dashoffset={175.9 - (175.9 * (completed / (catSkills.length || 1)))} />
+              {@const ratio = (completed / (catSkills.length || 1)) * 100}
+              <div class="category-card">
+                <div class="cat-label">{$t(`reports.skills.categories.${category}`)}</div>
+                <div class="cat-main">
+                  <span class="cat-count">{completed} / {catSkills.length}</span>
+                  <div class="progress-circle">
+                    <svg viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="16" class="track" />
+                      <circle cx="18" cy="18" r="16" class="fill" style="stroke-dasharray: {ratio}, 100" />
                     </svg>
-                    <span class="text-[10px] font-black text-white">{catSkills.length > 0 ? ((completed/catSkills.length)*100).toFixed(0) : 0}%</span>
-                 </div>
+                    <span class="percent">{ratio.toFixed(0)}%</span>
+                  </div>
+                </div>
               </div>
             {/each}
           </div>
 
-          <div class="grid grid-cols-1 gap-4">
-             {#each report.skills_progress as skill}
-                <div class="glass-panel p-8 group hover:border-purple-500/30 transition-all border-l-8 {skill.status === 'completed' ? 'border-primary-500' : skill.status === 'in_progress' ? 'border-blue-500' : 'border-surface-800'}">
-                   <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                      <div class="space-y-2">
-                         <div class="flex items-center gap-3">
-                           <h4 class="text-lg font-black text-white uppercase tracking-tight">{skill.skill_name}</h4>
-                           <span class="text-[8px] font-black text-surface-600 border border-surface-800 px-2 py-0.5 rounded uppercase">{skill.category}</span>
-                         </div>
-                         {#if skill.notes}
-                           <p class="text-[11px] text-surface-400 italic max-w-xl">"{skill.notes}"</p>
-                         {/if}
-                      </div>
-                      
-                      <div class="flex items-center gap-10">
-                         <div class="text-center">
-                            <p class="text-2xl font-black text-white">{skill.level} / {skill.max_level}</p>
-                            <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-1">{$t('reports.skills.level')}</p>
-                         </div>
-                         <div class="text-right">
-                            <span class={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
-                               skill.status === 'completed' ? 'text-primary-400 border-primary-500/20 bg-primary-500/10' : 
-                               skill.status === 'in_progress' ? 'text-blue-400 border-blue-500/20 bg-blue-500/10' : 
-                               'text-surface-500 border-surface-800 bg-surface-950'
-                            }`}>
-                               {skill.status === 'completed' ? $t('reports.skills.completed') : skill.status === 'in_progress' ? $t('reports.skills.in_progress') : $t('reports.skills.not_started')}
-                            </span>
-                            {#if skill.completion_date}
-                              <p class="text-[8px] font-black text-surface-600 uppercase mt-2 tracking-widest">{$t('reports.skills.completed_on')}: {formatDate(skill.completion_date)}</p>
-                            {/if}
-                         </div>
-                      </div>
-                   </div>
+          <div class="skills-grid">
+            {#each report.skills_progress as skill}
+              <div class="skill-entry {skill.status}">
+                <div class="skill-header">
+                  <div class="skill-title">
+                    <h4>{skill.skill_name}</h4>
+                    <span class="category-tag">{skill.category}</span>
+                  </div>
+                  <span class="status-pill">
+                    {skill.status === 'completed' ? $t('reports.skills.completed') : skill.status === 'in_progress' ? $t('reports.skills.in_progress') : $t('reports.skills.not_started')}
+                  </span>
                 </div>
-             {/each}
+                
+                {#if skill.notes}
+                  <p class="skill-note">"{skill.notes}"</p>
+                {/if}
+
+                <div class="skill-meta">
+                  <div class="skill-levels">
+                    <span class="lv-label">{$t('reports.skills.level')}</span>
+                    <span class="lv-val">{skill.level} / {skill.max_level}</span>
+                  </div>
+                  {#if skill.completion_date}
+                    <span class="completion-date">{formatDate(skill.completion_date)}</span>
+                  {/if}
+                </div>
+              </div>
+            {/each}
           </div>
         </div>
       {/if}
 
       {#if selectedTab === 'payments'}
-         <div class="space-y-8" in:fade>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              <div class="glass-panel p-8 text-center border-t-4 border-surface-900">
-                 <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.total_payments}</p>
-                 <p class="text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">{$t('reports.payments.issued')}</p>
-              </div>
-              <div class="glass-panel p-8 text-center border-t-4 border-primary-500">
-                 <p class="text-4xl font-black text-primary-400 tracking-tighter mb-2">{progress.paid_payments}</p>
-                 <p class="text-[10px] font-black text-primary-500/50 uppercase tracking-[0.2em]">{$t('reports.payments.settled')}</p>
-              </div>
-              <div class="glass-panel p-8 text-center border-t-4 border-red-500">
-                 <p class="text-4xl font-black text-red-400 tracking-tighter mb-2">{progress.overdue_payments}</p>
-                 <p class="text-[9px] font-black text-red-500/50 uppercase tracking-[0.2em]">{$t('reports.payments.overdue')}</p>
-              </div>
-              <div class="glass-panel p-8 text-center border-t-4 border-blue-500">
-                 <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.payment_compliance.toFixed(0)}%</p>
-                 <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">{$t('reports.payments.compliance')}</p>
-              </div>
+        <div class="payments-layout">
+          <div class="metric-row">
+            <div class="stat-pill">
+              <span class="val">{progress.total_payments}</span>
+              <span class="label">{$t('reports.payments.issued')}</span>
             </div>
+            <div class="stat-pill emerald">
+              <span class="val">{progress.paid_payments}</span>
+              <span class="label">{$t('reports.payments.settled')}</span>
+            </div>
+            <div class="stat-pill rose">
+              <span class="val">{progress.overdue_payments}</span>
+              <span class="label">{$t('reports.payments.overdue')}</span>
+            </div>
+            <div class="stat-pill violet">
+              <span class="val">{progress.payment_compliance.toFixed(0)}%</span>
+              <span class="label">{$t('reports.payments.compliance')}</span>
+            </div>
+          </div>
 
-            <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
-               <div class="overflow-x-auto">
-                  <table class="w-full text-left">
-                     <thead>
-                        <tr class="bg-surface-950/80 border-b border-surface-900">
-                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500">{$t('reports.payments.concept')}</th>
-                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-right">{$t('reports.payments.amount')}</th>
-                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-center">{$t('reports.payments.status')}</th>
-                           <th class="px-8 py-5 text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 text-right">{$t('reports.payments.reference')}</th>
-                        </tr>
-                     </thead>
-                     <tbody class="divide-y divide-surface-900/50">
-                        {#each report.payment_history as pay}
-                          <tr class="hover:bg-primary-500/[0.02] transition-colors group">
-                             <td class="px-8 py-6">
-                                <div>
-                                   <p class="text-xs font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors">{pay.description}</p>
-                                   <p class="text-[9px] font-black text-surface-600 uppercase mt-1 tracking-widest">{$t('reports.payments.due')}: {formatDate(pay.due_date)}</p>
-                                </div>
-                             </td>
-                             <td class="px-8 py-6 text-right font-black text-white text-sm">
-                                {formatCurrency(pay.amount)}
-                             </td>
-                             <td class="px-8 py-6 text-center">
-                                <span class={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${
-                                   pay.status === 'paid' ? 'text-primary-400 border-primary-500/20 bg-primary-500/10' : 
-                                   pay.status === 'overdue' ? 'text-red-400 border-red-500/20 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 
-                                   'text-orange-400 border-orange-500/20 bg-orange-500/10'
-                                }`}>
-                                   {pay.status === 'paid' ? $t('reports.payments.settled') : pay.status === 'overdue' ? $t('reports.payments.overdue') : $t('reports.payments.pending')}
-                                </span>
-                             </td>
-                             <td class="px-8 py-6 text-right">
-                                <p class="text-[9px] font-black text-surface-500 uppercase tracking-widest">{pay.payment_reference || $t('reports.common.na')}</p>
-                                {#if pay.paid_date}
-                                  <p class="text-[8px] font-bold text-primary-500/50 uppercase">{$t('reports.payments.paid')}: {formatDate(pay.paid_date)}</p>
-                                {/if}
-                             </td>
-                          </tr>
-                        {/each}
-                     </tbody>
-                  </table>
-               </div>
+          <div class="bento-card">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>{$t('reports.payments.concept')}</th>
+                    <th>{$t('reports.payments.amount')}</th>
+                    <th>{$t('reports.payments.status')}</th>
+                    <th class="text-right">{$t('reports.payments.reference')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each report.payment_history as pay}
+                    <tr class={pay.status}>
+                      <td>
+                        <div class="concept-cell">
+                          <span class="desc">{pay.description}</span>
+                          <span class="due">{$t('reports.payments.due')}: {formatDate(pay.due_date)}</span>
+                        </div>
+                      </td>
+                      <td class="amount">{formatCurrency(pay.amount)}</td>
+                      <td>
+                        <span class="status-badge {pay.status}">
+                          {pay.status === 'paid' ? $t('reports.payments.settled') : pay.status === 'overdue' ? $t('reports.payments.overdue') : $t('reports.payments.pending')}
+                        </span>
+                      </td>
+                      <td class="text-right reference">
+                        <span>{pay.payment_reference || '---'}</span>
+                        {#if pay.paid_date}
+                          <small>{$t('reports.payments.paid')}: {formatDate(pay.paid_date)}</small>
+                        {/if}
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
             </div>
-         </div>
+          </div>
+        </div>
       {/if}
 
       {#if selectedTab === 'tournaments'}
-         <div class="space-y-8" in:fade>
+         <div class="tournaments-layout">
             {#if report.tournament_history.length > 0}
-               <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div class="glass-panel p-8 text-center border-b-4 border-yellow-500">
-                     <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.tournaments_participated}</p>
-                     <p class="text-[9px] font-black text-yellow-500/50 uppercase tracking-[0.2em]">{$t('reports.tournaments.played')}</p>
+               <div class="metric-row">
+                  <div class="stat-pill amber">
+                     <span class="val">{progress.tournaments_participated}</span>
+                     <span class="label">{$t('reports.tournaments.played')}</span>
                   </div>
-                  <div class="glass-panel p-8 text-center border-b-4 border-primary-500">
-                     <p class="text-4xl font-black text-primary-400 tracking-tighter mb-2">{progress.tournament_wins}</p>
-                     <p class="text-[10px] font-black text-primary-500/50 uppercase tracking-[0.2em]">{$t('reports.tournaments.wins')}</p>
+                  <div class="stat-pill emerald">
+                     <span class="val">{progress.tournament_wins}</span>
+                     <span class="label">{$t('reports.tournaments.wins')}</span>
                   </div>
-                  <div class="glass-panel p-8 text-center border-b-4 border-surface-500">
-                     <p class="text-4xl font-black text-white tracking-tighter mb-2">{progress.tournament_draws}</p>
-                     <p class="text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">{$t('reports.tournaments.draws')}</p>
+                  <div class="stat-pill slate">
+                     <span class="val">{progress.tournament_draws}</span>
+                     <span class="label">{$t('reports.tournaments.draws')}</span>
                   </div>
-                  <div class="glass-panel p-8 text-center border-b-4 border-red-500">
-                     <p class="text-4xl font-black text-red-400 tracking-tighter mb-2">{progress.tournament_losses}</p>
-                     <p class="text-[9px] font-black text-red-500/50 uppercase tracking-[0.2em]">{$t('reports.tournaments.losses')}</p>
+                  <div class="stat-pill rose">
+                     <span class="val">{progress.tournament_losses}</span>
+                     <span class="label">{$t('reports.tournaments.losses')}</span>
                   </div>
                </div>
 
-               <div class="grid grid-cols-1 gap-8">
+               <div class="tournaments-stack">
                   {#each report.tournament_history as tmnt}
-                     <div class="glass-panel overflow-hidden border-t-4 border-primary-500">
-                        <div class="p-8 border-b border-surface-900 bg-surface-950/50 flex flex-wrap items-center justify-between gap-6">
-                           <div class="space-y-1">
-                              <h3 class="text-xl font-black text-white uppercase tracking-tighter">{tmnt.name}</h3>
-                              <div class="flex items-center gap-4 text-[9px] font-black text-surface-500 uppercase tracking-[0.2em]">
+                     <div class="tournament-panel">
+                        <div class="panel-header">
+                           <div class="tmnt-info">
+                              <h3>{tmnt.name}</h3>
+                              <div class="tmnt-meta">
                                  <span>{formatDate(tmnt.date)}</span>
-                                 <span class="w-1.5 h-1.5 rounded-full bg-surface-800"></span>
+                                 <div class="dot"></div>
                                  <span>{tmnt.format}</span>
-                                 <span class="w-1.5 h-1.5 rounded-full bg-surface-800"></span>
+                                 <div class="dot"></div>
                                  <span>{tmnt.participants} {$t('reports.tournaments.participants')}</span>
                               </div>
                            </div>
-                           <div class="text-right">
-                              <p class="text-2xl font-black text-white tracking-tighter">{$t('reports.tournaments.position')}: {tmnt.final_position} <span class="text-primary-500">/ {tmnt.participants}</span></p>
-                              <p class="text-[9px] font-black text-primary-400 uppercase tracking-widest mt-1">{$t('reports.tournaments.score')}: {tmnt.points} PTS</p>
+                           <div class="tmnt-result">
+                              <div class="pos">{$t('reports.tournaments.position')}: <b>{tmnt.final_position}</b> <small>/ {tmnt.participants}</small></div>
+                              <div class="pts">{$t('reports.tournaments.score')}: {tmnt.points} PTS</div>
                            </div>
                         </div>
-                        <div class="p-8">
-                           <h4 class="text-[9px] font-black text-surface-600 uppercase tracking-[0.2em] mb-4">{$t('reports.tournaments.games')}</h4>
-                           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="panel-body">
+                           <div class="games-grid">
                               {#each tmnt.games as g}
-                                 <div class="p-5 bg-surface-950/80 border border-surface-900 rounded-2xl flex items-center justify-between group hover:border-primary-500/30 transition-all">
-                                    <div class="flex items-center gap-4">
-                                       <div class="w-10 h-10 rounded-xl bg-surface-900 flex items-center justify-center text-[10px] font-black text-surface-400">{$t('reports.common.round_short')}{g.round}</div>
-                                       <div>
-                                          <p class="text-[11px] font-black text-white uppercase tracking-tight">{g.opponent}</p>
-                                          <p class="text-[8px] font-black text-surface-600 uppercase tracking-widest mt-0.5">{$t('reports.tournaments.rating')}: {g.opponent_rating}</p>
-                                       </div>
-                                    </div>
-                                    <div class="text-right flex flex-col items-end gap-1.5">
-                                       <span class={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${
-                                          g.result === '1-0' ? 'text-primary-400 border border-primary-500/20 bg-primary-500/10' :
-                                          g.result === '0-1' ? 'text-red-400 border border-red-500/20 bg-red-500/10' :
-                                          'text-orange-400 border border-orange-500/20 bg-orange-500/10'
-                                       }`}>
+                                 <div class="game-card {g.result === '1-0' ? 'win' : g.result === '0-1' ? 'loss' : 'draw'}">
+                                    <div class="game-header">
+                                       <span class="round">{$t('reports.common.round_short')}{g.round}</span>
+                                       <span class="result-badge">
                                           {g.result === '1-0' ? $t('reports.tournaments.wins') : g.result === '0-1' ? $t('reports.tournaments.losses') : $t('reports.tournaments.draws')}
                                        </span>
-                                       <span class="text-[10px]">{g.color === 'white' ? `⚪ ${$t('reports.tournaments.color_white')}` : `⚫ ${$t('reports.tournaments.color_black')}`}</span>
+                                    </div>
+                                    <div class="game-main">
+                                       <span class="opponent">{g.opponent}</span>
+                                       <span class="rating">ELO: {g.opponent_rating}</span>
+                                    </div>
+                                    <div class="game-meta">
+                                       <span class="color">{g.color === 'white' ? '⚪' : '⚫'} {g.color === 'white' ? $t('reports.tournaments.color_white') : $t('reports.tournaments.color_black')}</span>
                                     </div>
                                  </div>
                               {/each}
@@ -662,54 +685,42 @@
                   {/each}
                </div>
             {:else}
-               <div class="glass-panel p-24 text-center space-y-6">
-                  <div class="w-20 h-20 bg-surface-950 border border-surface-900 rounded-3xl flex items-center justify-center mx-auto text-surface-800">
-                     <Trophy class="w-10 h-10" />
-                  </div>
-                  <div>
-                    <p class="text-[10px] font-black text-white uppercase tracking-[0.3em]">{$t('reports.no_history')}</p>
-                    <p class="text-[9px] font-bold text-surface-500 uppercase tracking-widest mt-2">{$t('reports.no_history_desc')}</p>
-                  </div>
+               <div class="empty-notif">
+                  <div class="notif-icon"><Trophy weight="duotone" /></div>
+                  <h4>{$t('reports.no_history')}</h4>
+                  <p>{$t('reports.no_history_desc')}</p>
                </div>
             {/if}
          </div>
       {/if}
 
       {#if selectedTab === 'timeline'}
-         <div class="max-w-4xl mx-auto space-y-12 py-10" in:fade>
-            <div class="relative">
-               <!-- Vertical Line -->
-               <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-surface-900/50"></div>
-
-               <div class="space-y-12">
-                  {#each report.activity_timeline as act, i}
+         <div class="timeline-layout">
+            <div class="timeline-container">
+               <div class="timeline-line"></div>
+               <div class="timeline-events">
+                  {#each report.activity_timeline as act}
                      {@const ActIcon = getActivityIcon(act.type)}
-                     <div class="relative pl-16 group">
-                        <!-- Dot -->
-                        <div class={`absolute left-[1.125rem] top-0 w-3 h-3 rounded-full border-2 border-surface-950 z-10 transition-all group-hover:scale-150 ${
-                           act.status === 'positive' ? 'bg-primary-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]' :
-                           act.status === 'negative' ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
-                           'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'
-                        }`}></div>
-
-                        <div class="glass-panel p-6 group-hover:border-primary-500/20 transition-all">
-                           <div class="flex items-center justify-between mb-3">
-                              <div class="flex items-center gap-3">
-                                 <div class="p-2 bg-surface-950 rounded-lg text-surface-500 group-hover:text-primary-400 transition-colors">
-                                    <ActIcon class="w-4 h-4" />
-                                 </div>
-                                 <h4 class="text-sm font-black text-white uppercase tracking-tight">{act.title}</h4>
+                     <div class="event-entry {act.status}">
+                        <div class="event-marker">
+                           <div class="marker-dot"></div>
+                        </div>
+                        <div class="event-glass">
+                           <div class="event-header">
+                              <div class="event-title">
+                                 <div class="icon-wrap"><ActIcon /></div>
+                                 <h4>{act.title}</h4>
                               </div>
-                              <span class="text-[9px] font-black text-surface-600 uppercase tracking-widest">{formatDate(act.date)}</span>
+                              <span class="event-date">{formatDate(act.date)}</span>
                            </div>
-                           <p class="text-[11px] text-surface-400 leading-relaxed mb-4">{act.description}</p>
+                           <p class="event-desc">{act.description}</p>
                            
                            {#if act.details && Object.keys(act.details).length > 0}
-                              <div class="flex flex-wrap gap-4 pt-4 border-t border-surface-900/50">
+                              <div class="event-details">
                                  {#each Object.entries(act.details) as [key, value]}
-                                    <div class="flex flex-col">
-                                       <span class="text-[8px] font-black text-surface-600 uppercase tracking-widest">{key}</span>
-                                       <span class="text-[10px] font-black text-white uppercase mt-0.5">{value}</span>
+                                    <div class="detail-pill">
+                                       <span class="lab">{key}</span>
+                                       <span class="val">{value}</span>
                                     </div>
                                  {/each}
                               </div>
@@ -720,14 +731,1083 @@
                </div>
             </div>
          </div>
-      {/if}
-    </div>
-  </div>
-{/if}
+       {/if}
+      </main>
+    {/key}
+  {/if}
+</div>
 
-<style lang="postcss">
-  /* Transitions and micro-interactions */
-  :global(.glass-panel) {
-    transition: all 300ms;
+<style>
+  .report-detail-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: white;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Navigation Bar */
+  .action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .icon-btn-back {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: all 0.3s;
+  }
+
+  .icon-btn-back:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    transform: translateX(-3px);
+  }
+
+  .action-group {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .secondary-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s;
+  }
+
+  .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .primary-btn {
+    background: #a855f7;
+    color: black;
+    padding: 0 1.5rem;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+  }
+
+  .primary-btn:hover {
+    background: #c084fc;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+  }
+
+  /* Header Section */
+  .profile-header {
+    margin-bottom: 3rem;
+  }
+
+  .profile-main {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  .avatar-orb-wrap {
+    position: relative;
+  }
+
+  .avatar-orb {
+    width: 110px;
+    height: 110px;
+    background: rgba(168, 85, 247, 0.1);
+    border: 2px solid rgba(168, 85, 247, 0.2);
+    border-radius: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .avatar-orb .initial {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    color: #c084fc;
+  }
+
+  .orb-glow {
+    position: absolute;
+    inset: -15px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%);
+    filter: blur(20px);
+    z-index: -1;
+  }
+
+  .status-indicator {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 24px;
+    height: 24px;
+    border: 4px solid #020617;
+    border-radius: 50%;
+  }
+
+  .status-indicator.active {
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+  }
+
+  .profile-info h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -2px;
+    background: linear-gradient(to bottom, #fff, #94a3b8);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .name-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .verified-badge {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    padding: 0.4rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #64748b;
+  }
+
+  .meta-divider {
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+
+  /* KPI Grid */
+  .kpi-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .metric-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 28px;
+    padding: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .metric-card.active {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .metric-card.violet { border-left: 4px solid #a855f7; }
+  .metric-card.emerald { border-left: 4px solid #10b981; }
+  .metric-card.amber { border-left: 4px solid #f59e0b; }
+  .metric-card.rose { border-left: 4px solid #f43f5e; }
+  .metric-card.indigo { border-left: 4px solid #6366f1; }
+
+  .card-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-value-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .card-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.25rem;
+    font-weight: 800;
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #64748b;
+  }
+
+  .metric-card.violet .card-icon { color: #a855f7; background: rgba(168, 85, 247, 0.1); }
+  .metric-card.emerald .card-icon { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+  .metric-card.amber .card-icon { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+  .metric-card.rose .card-icon { color: #f43f5e; background: rgba(244, 63, 94, 0.1); }
+
+  .value-group {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .trend {
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .trend.up { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .trend.down { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
+
+  /* Tabs Section */
+  .tabs-container {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 0.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .tabs-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-radius: 18px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    transition: all 0.3s;
+  }
+
+  .tab-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .tab-btn.active {
+    background: #a855f7;
+    color: black;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+  }
+
+  /* Bento Layouts */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 2rem;
+  }
+
+  .bento-column, .charts-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .bento-card {
+    background: rgba(30, 41, 59, 0.3);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 32px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .card-header h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .card-header :global(svg) {
+    font-size: 1.25rem;
+    color: #94a3b8;
+  }
+
+  .card-body {
+    padding: 2rem;
+  }
+
+  /* Contact Card */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .info-group .label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .info-val {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .info-val :global(svg) {
+    color: #a855f7;
+    font-size: 1.1rem;
+  }
+
+  /* Notes Card */
+  .instructor-note {
+    position: relative;
+    background: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    margin: 0;
+  }
+
+  .quote-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 3rem;
+    color: rgba(245, 158, 11, 0.1);
+  }
+
+  .instructor-note p {
+    font-style: italic;
+    color: #d1d5db;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Groups Card */
+  .groups-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .group-item {
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: all 0.3s;
+  }
+
+  .group-item:hover {
+    border-color: rgba(96, 165, 250, 0.3);
+    background: rgba(15, 23, 42, 0.5);
+  }
+
+  .group-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .group-name {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.95rem;
+  }
+
+  .group-price {
+    color: #60a5fa;
+    font-weight: 800;
+  }
+
+  .group-price small {
+    font-size: 0.6rem;
+    margin-left: 2px;
+  }
+
+  .group-schedule {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  /* History Card */
+  .history-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0 1rem;
+  }
+
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  .history-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .history-event {
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .history-date {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .history-value {
+    text-align: right;
+  }
+
+  .history-value .val {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+  }
+
+  .history-value .change {
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  .change.pos { color: #10b981; }
+  .change.neg { color: #f43f5e; }
+
+  /* Syllabus Progress */
+  .syllabus-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .progress-item .item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .mastered .item-header { color: #a855f7; }
+  .study .item-header { color: #3b82f6; }
+  .pending .item-header { color: #475569; }
+
+  .progress-track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s ease-out;
+  }
+
+  .mastered .progress-fill { background: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+  .study .progress-fill { background: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+  .pending .progress-fill { background: #334155; }
+
+  /* Attendance Log */
+  .attendance-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-pill {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .stat-pill .val {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-pill .label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+  }
+
+  .stat-pill.amber .val { color: #f59e0b; }
+  .stat-pill.rose .val { color: #f43f5e; }
+  .stat-pill.violet .val { color: #a855f7; }
+
+  .attendance-log {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    transition: all 0.3s;
+  }
+
+  .log-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .log-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .status-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+
+  .log-item.emerald .status-box { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .log-item.amber .status-box { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+  .log-item.rose .status-box { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
+
+  .log-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .log-text .date {
+    font-weight: 800;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+  }
+
+  .status-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .log-note {
+    background: rgba(15, 23, 42, 0.5);
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-style: italic;
+    max-width: 400px;
+  }
+
+  /* Skills View */
+  .category-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .category-card {
+    background: rgba(30, 41, 59, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 28px;
+    padding: 2rem;
+  }
+
+  .cat-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    color: #64748b;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .cat-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .cat-count {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+  }
+
+  .progress-circle {
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+
+  .progress-circle svg {
+    transform: rotate(-90deg);
+  }
+
+  .progress-circle circle {
+    fill: none;
+    stroke-width: 4;
+  }
+
+  .progress-circle .track { stroke: rgba(255, 255, 255, 0.05); }
+  .progress-circle .fill { 
+    stroke: #a855f7; 
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease-out;
+  }
+
+  .progress-circle .percent {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .skill-entry {
+    background: rgba(30, 41, 59, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 24px;
+    padding: 1.75rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .skill-entry.completed { border-left: 6px solid #a855f7; }
+  .skill-entry.in_progress { border-left: 6px solid #3b82f6; }
+
+  .skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .skill-title h4 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .category-tag {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #475569;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+  }
+
+  .status-pill {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+  }
+
+  .completed .status-pill { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+
+  .skill-note {
+    font-style: italic;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .skill-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    padding-top: 1rem;
+  }
+
+  .skill-levels {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .lv-label { font-size: 0.65rem; font-weight: 800; color: #475569; text-transform: uppercase; }
+  .lv-val { font-weight: 800; color: #e2e8f0; }
+
+  .completion-date {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+  }
+
+  /* Payments Table */
+  .table-container {
+    padding: 1rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    padding: 1.5rem 2rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.15rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  td {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  }
+
+  .concept-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .concept-cell .desc { font-weight: 700; font-size: 1rem; }
+  .concept-cell .due { font-size: 0.65rem; color: #475569; text-transform: uppercase; font-weight: 800; }
+
+  .amount { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.1rem; }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .status-badge.paid { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .status-badge.overdue { background: rgba(244, 63, 94, 0.1); color: #f43f5e; box-shadow: 0 0 15px rgba(244, 63, 94, 0.1); }
+  .status-badge.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+  .reference { display: flex; flex-direction: column; gap: 0.2rem; }
+  .reference span { font-weight: 700; color: #64748b; font-size: 0.8rem; }
+  .reference small { font-size: 0.6rem; color: #475569; font-weight: 800; text-transform: uppercase; }
+
+  /* Tournaments Section */
+  .tournaments-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .tournament-panel {
+    background: rgba(30, 41, 59, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 32px;
+    overflow: hidden;
+  }
+
+  .tournament-panel .panel-header {
+    background: rgba(255, 255, 255, 0.01);
+    padding: 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tmnt-info h3 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .tmnt-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.05em;
+  }
+
+  .tmnt-meta .dot { width: 4px; height: 4px; border-radius: 50%; background: #334155; }
+
+  .tmnt-result { text-align: right; }
+  .tmnt-result .pos { font-size: 1.5rem; font-weight: 600; }
+  .tmnt-result .pos b { color: #a855f7; font-size: 2rem; font-family: 'Outfit'; }
+  .tmnt-result .pts { font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 0.25rem; }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 2.5rem;
+  }
+
+  .game-card {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transition: all 0.3s;
+  }
+
+  .game-card:hover { transform: translateY(-3px); border-color: rgba(255, 255, 255, 0.1); }
+
+  .game-header { display: flex; justify-content: space-between; align-items: center; }
+  .game-header .round { 
+    background: #020617; 
+    padding: 0.3rem 0.6rem; 
+    border-radius: 6px; 
+    font-size: 0.65rem; 
+    font-weight: 800; 
+  }
+
+  .result-badge { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 6px; }
+  .win .result-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .loss .result-badge { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
+  .draw .result-badge { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+  .game-main { display: flex; flex-direction: column; }
+  .game-main .opponent { font-weight: 800; font-size: 1rem; }
+  .game-main .rating { font-size: 0.7rem; color: #475569; font-weight: 700; margin-top: 0.15rem; }
+
+  .game-meta { border-top: 1px solid rgba(255, 255, 255, 0.03); padding-top: 0.75rem; color: #64748b; font-size: 0.75rem; font-weight: 700; }
+
+  /* Timeline View */
+  .timeline-layout {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .timeline-container { position: relative; }
+  .timeline-line { position: absolute; left: 1.5rem; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, 0.05); }
+
+  .event-entry { position: relative; padding-left: 4.5rem; margin-bottom: 4rem; }
+  .event-marker { position: absolute; left: 1rem; top: 0.5rem; }
+  .marker-dot { 
+    width: 1rem; height: 1rem; border-radius: 50%; 
+    background: #1e293b; border: 3px solid #334155; 
+    transition: all 0.3s;
+  }
+
+  .event-entry:hover .marker-dot { transform: scale(1.4); }
+
+  .event-entry.positive .marker-dot { background: #10b981; box-shadow: 0 0 10px #10b981; }
+  .event-entry.negative .marker-dot { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
+  .event-entry.neutral .marker-dot { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+
+  .event-glass {
+    background: rgba(30, 41, 59, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 28px;
+    padding: 2rem;
+    transition: all 0.3s;
+  }
+
+  .event-entry:hover .event-glass { border-color: rgba(255, 255, 255, 0.08); background: rgba(30, 41, 59, 0.3); }
+
+  .event-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .event-title { display: flex; align-items: center; gap: 1rem; }
+  .icon-wrap { 
+    width: 36px; height: 36px; border-radius: 10px; 
+    background: rgba(255, 255, 255, 0.03); 
+    display: flex; align-items: center; justify-content: center; 
+    color: #64748b;
+  }
+
+  .event-title h4 { font-weight: 800; font-size: 1.1rem; margin: 0; }
+  .event-date { font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase; }
+
+  .event-desc { font-size: 0.95rem; color: #94a3b8; line-height: 1.6; margin-bottom: 1.5rem; }
+
+  .event-details { display: flex; flex-wrap: wrap; gap: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.03); padding-top: 1.25rem; }
+  .detail-pill { display: flex; flex-direction: column; gap: 0.1rem; }
+  .detail-pill .lab { font-size: 0.6rem; font-weight: 800; color: #475569; text-transform: uppercase; }
+  .detail-pill .val { font-size: 0.85rem; font-weight: 800; color: #e2e8f0; }
+
+  /* Empty States */
+  .empty-layout { min-height: 60vh; display: flex; align-items: center; justify-content: center; }
+  .error-glass { 
+    background: rgba(30, 41, 59, 0.4); 
+    backdrop-filter: blur(20px); 
+    padding: 4rem; border-radius: 40px; 
+    text-align: center; border: 1px solid rgba(255, 255, 255, 0.05);
+    max-width: 500px;
+  }
+  .error-icon { font-size: 4rem; color: #f43f5e; margin-bottom: 2rem; }
+  .error-text h2 { font-family: 'Outfit'; font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; }
+  .error-text p { color: #64748b; margin-bottom: 3rem; }
+  .back-btn { 
+    width: 100%; height: 60px; background: #020617; 
+    border: 1px solid #1e293b; border-radius: 18px; 
+    font-weight: 800; text-transform: uppercase; 
+    display: flex; align-items: center; justify-content: center; gap: 1rem; 
+  }
+
+  .empty-notif { text-align: center; padding: 6rem 2rem; }
+  .notif-icon { font-size: 4rem; color: #1e293b; margin-bottom: 2rem; }
+  .empty-notif h4 { font-family: 'Outfit'; font-size: 1.5rem; font-weight: 800; margin: 0 0 1rem 0; }
+  .empty-notif p { color: #475569; }
+
+  /* Scroll Visual */
+  .scroll-visual::-webkit-scrollbar { width: 4px; }
+  .scroll-visual::-webkit-scrollbar-track { background: transparent; }
+  .scroll-visual::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
+
+  @media (max-width: 1024px) {
+    .overview-grid { grid-template-columns: 1fr; }
+    .profile-main { flex-direction: column; text-align: center; }
+    .name-row { justify-content: center; flex-direction: column; }
+    .meta-row { justify-content: center; flex-wrap: wrap; }
+    .attendance-stats, .metric-row { grid-template-columns: repeat(2, 1fr); }
+    .category-summary { grid-template-columns: 1fr; }
   }
 </style>
+style>

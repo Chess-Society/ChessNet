@@ -28,7 +28,10 @@
     ArrowClockwise,
     ArrowCounterClockwise,
     UserMinus,
-    Trash
+    Trash,
+    Circle,
+    Flag,
+    Handshake
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { getLocalTournamentsApi } from '$lib/api/local-tournaments';
@@ -96,7 +99,6 @@
 
       const confirmed = await uiStore.confirm({
           title: $t('tournaments.start_tournament_confirm'),
-          icon: Play,
           confirmText: $t('common.confirm')
       });
 
@@ -134,6 +136,38 @@
     rounds.length > 0 && 
     pairings.filter(p => p.round_no === (tournament.currentRound || 1)).length > 0 &&
     pairings.filter(p => p.round_no === (tournament.currentRound || 1)).every(p => p.result !== undefined || p.bye)
+  );
+
+  const sortedStandings = $derived(
+    players.map(p => {
+        const playerPairings = pairings.filter(pair => pair.white_student_id === p.student_id || pair.black_student_id === p.student_id);
+        let pts = 0; let buchholz = 0; let sb = 0;
+        playerPairings.forEach(pair => {
+            if (!pair.result && !pair.bye) return;
+            const isWhite = pair.white_student_id === p.student_id;
+            const pPts = isWhite ? pair.points_white || 0 : pair.points_black || 0;
+            pts += pPts;
+            const oppId = isWhite ? pair.black_student_id : pair.white_student_id;
+            if (oppId) {
+                const oppResults = pairings.filter(p2 => (p2.white_student_id === oppId || p2.black_student_id === oppId) && (p2.result || p2.bye));
+                let oppTotalPts = 0;
+                oppResults.forEach(r => {
+                    if (r.white_student_id === oppId) oppTotalPts += r.points_white || 0;
+                    else oppTotalPts += r.points_black || 0;
+                });
+                buchholz += oppTotalPts;
+                if (pPts === 1) sb += oppTotalPts;
+                else if (pPts === 0.5) sb += (oppTotalPts * 0.5);
+            }
+        });
+        const tb1 = (tournament?.format === 'round_robin') ? sb : buchholz;
+        const tb2 = (tournament?.format === 'round_robin') ? buchholz : sb;
+        return { ...p, currentPoints: pts, tb1, tb2 };
+    }).sort((a,b) => {
+        if (b.currentPoints !== a.currentPoints) return b.currentPoints - a.currentPoints;
+        if (b.tb1 !== a.tb1) return b.tb1 - a.tb1;
+        return b.tb2 - a.tb2;
+    })
   );
 
   const handleNextRound = async () => {
@@ -338,71 +372,109 @@
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mb-24">
         
         <!-- Left: Dashboard Content (2/3) -->
         <div class="lg:col-span-2 space-y-8">
             
             {#if activeTab === 'overview'}
-                <div class="space-y-6" in:fly={{ y: 20 }}>
-                    <!-- Info Alert: Local Tournament Clarification -->
-                    <div class="bg-violet-500/10 border border-violet-500/20 rounded-2xl p-6 flex gap-4 items-center">
-                        <div class="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
-                            <Info weight="duotone" class="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h2 class="text-xs font-bold text-zinc-500 uppercase tracking-widest leading-none">{$t('tournaments.type_live')}</h2>
-                            <p class="text-[10px] text-zinc-500 leading-tight mt-1">{$t('tournaments.live_panel_desc')} {$t('tournaments.live_panel_manual')}</p>
-                        </div>
-                    </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" in:fly={{ y: 20 }}>
-                    <!-- General Details Bento -->
+                <div class="space-y-8" in:fly={{ y: 20 }}>
+                    <!-- Tournament Progress Section -->
                     <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-8 opacity-5">
-                            <CalendarBlank weight="duotone" class="w-32 h-32 text-white" />
-                        </div>
-                        <h3 class="text-xl font-outfit font-black text-white mb-8 flex items-center gap-3 uppercase tracking-tight relative z-10">
-                            <div class="w-11 h-11 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400">
-                                <CalendarBlank weight="duotone" class="w-6 h-6" />
-                            </div>
-                            {$t('tournaments.logistics')}
-                        </h3>
-                        <div class="space-y-6 relative z-10">
-                            <div class="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
-                                <div class="flex items-center gap-4">
-                                    <Clock weight="duotone" class="w-5 h-5 text-zinc-500" />
-                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">{$t('tournaments.start')}</span>
+                        <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-transparent opacity-100"></div>
+                        <div class="relative z-10 flex flex-col md:flex-row gap-8 items-center">
+                            <div class="w-32 h-32 relative shrink-0">
+                                <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                    <circle class="text-zinc-800" stroke-width="8" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50"/>
+                                    <circle class="text-violet-500 transition-all duration-1000 ease-out" stroke-width="8" stroke-dasharray="263.89" stroke-dashoffset={263.89 - (calculateTournamentProgress() / 100) * 263.89} stroke-linecap="round" stroke="currentColor" fill="transparent" r="42" cx="50" cy="50"/>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span class="text-2xl font-black text-white">{calculateTournamentProgress()}%</span>
+                                    <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">{$t('common.status_in_progress')}</span>
                                 </div>
-                                <span class="text-sm font-bold text-white">{tournament.startAt ? new Date(tournament.startAt).toLocaleDateString() : $t('tournaments.date_pending')}</span>
                             </div>
-                            <div class="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
-                                <div class="flex items-center gap-4">
-                                    <Target weight="duotone" class="w-5 h-5 text-zinc-500" />
-                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">{$t('tournaments.time_control')}</span>
+                            <div class="flex-1 space-y-4 text-center md:text-left">
+                                <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.competition_engine')}</h3>
+                                <p class="text-zinc-400 text-sm leading-relaxed max-w-md">
+                                    {$t('tournaments.live_panel_desc')} {$t('tournaments.live_panel_manual')}
+                                </p>
+                                <div class="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                                    <div class="flex items-center gap-2 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-xl text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                                        <Trophy size={14} class="text-amber-500" />
+                                        {tournament.format?.toUpperCase() || 'SWISS'}
+                                    </div>
+                                    <div class="flex items-center gap-2 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-xl text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                                        <Users size={14} class="text-indigo-500" />
+                                        {players.length} / {tournament.max_players || '∞'}
+                                    </div>
                                 </div>
-                                <span class="text-sm font-bold text-white">{tournament.time_control || '10+5'}</span>
-                            </div>
-                            <div class="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
-                                <div class="flex items-center gap-4">
-                                    <MapPin weight="duotone" class="w-5 h-5 text-zinc-500" />
-                                    <span class="text-xs font-outfit font-black text-zinc-400 uppercase tracking-widest">{$t('tournaments.format')}</span>
-                                </div>
-                                <span class="text-sm font-bold text-white uppercase">{tournament.format === 'swiss' ? $t('tournaments.type_swiss') : (tournament.format === 'round_robin' ? $t('tournaments.type_round_robin') : $t('tournaments.type_knockout'))}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Description Bento -->
-                    <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden group md:col-span-1">
-                        <h3 class="text-xl font-outfit font-black text-white mb-6 uppercase tracking-tight">{$t('tournaments.description')}</h3>
-                        <div class="bg-zinc-950/50 p-6 rounded-2xl border border-zinc-800/50 min-h-[160px]">
-                            <p class="text-zinc-400 font-plus-jakarta leading-relaxed text-sm">
-                                {tournament.description || $t('tournaments.no_description')}
-                            </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                        <!-- Advanced Logistics Bento -->
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-8 opacity-5">
+                                <CalendarBlank weight="duotone" class="w-32 h-32 text-white" />
+                            </div>
+                            <h3 class="text-xl font-outfit font-black text-white mb-8 flex items-center gap-3 uppercase tracking-tight relative z-10">
+                                <div class="w-11 h-11 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400">
+                                    <CalendarBlank weight="duotone" class="w-6 h-6" />
+                                </div>
+                                {$t('tournaments.logistics')}
+                            </h3>
+                            <div class="space-y-4 relative z-10">
+                                {#each [
+                                    { icon: Clock, label: $t('tournaments.start'), value: tournament.startAt ? new Date(tournament.startAt).toLocaleDateString() : $t('tournaments.date_pending') },
+                                    { icon: Target, label: $t('tournaments.time_control'), value: tournament.time_control || '10+5' },
+                                    { icon: ListNumbers, label: $t('tournaments.rounds'), value: `${tournament.currentRound || 0} / ${tournament.roundsPlanned || '?'}` },
+                                    { icon: MapPin, label: $t('tournaments.venue'), value: (tournament.location || 'Local').slice(0, 20) + ((tournament.location?.length ?? 0) > 20 ? '...' : '') }
+                                ] as item}
+                                    <div class="flex items-center justify-between p-4 bg-zinc-950/50 border border-zinc-800/50 rounded-2xl hover:bg-zinc-950 hover:border-zinc-800 transition-all">
+                                        <div class="flex items-center gap-4">
+                                            <item.icon weight="duotone" class="w-5 h-5 text-zinc-600" />
+                                            <span class="text-[10px] font-outfit font-black text-zinc-500 uppercase tracking-widest">{item.label}</span>
+                                        </div>
+                                        <span class="text-xs font-bold text-white">{item.value}</span>
+                                    </div>
+                                {/each}
+                            </div>
+                        </div>
+
+                        <!-- Stats & Performance Bento -->
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] p-8 shadow-2xl relative overflow-hidden group">
+                            <h3 class="text-xl font-outfit font-black text-white mb-8 flex items-center gap-3 uppercase tracking-tight relative z-10">
+                                <div class="w-11 h-11 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400">
+                                    <ChartBar weight="duotone" class="w-6 h-6" />
+                                </div>
+                                {$t('reports.performance_title')}
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-6 bg-zinc-950/50 border border-zinc-800/50 rounded-2xl text-center space-y-2">
+                                    <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{$t('tournaments.participants.elo')}</span>
+                                    <span class="text-2xl font-black text-white tracking-tighter">
+                                        {players.length > 0 ? (players.reduce((a,b) => a + (b.rating || 1200), 0) / players.length).toFixed(0) : '1200'}
+                                    </span>
+                                    <span class="text-[8px] font-bold text-emerald-500 block uppercase">AVG ELO</span>
+                                </div>
+                                <div class="p-6 bg-zinc-950/50 border border-zinc-800/50 rounded-2xl text-center space-y-2">
+                                    <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{$t('tournaments.prizes.total')}</span>
+                                    <span class="text-2xl font-black text-amber-400 tracking-tighter">
+                                        {tournament.prize_pool || 0}€
+                                    </span>
+                                    <span class="text-[8px] font-bold text-amber-500/50 block uppercase">LIQUID POOL</span>
+                                </div>
+                            </div>
+                            <!-- Small Chart Decor -->
+                            <div class="mt-8 flex items-end gap-1 h-12 px-2">
+                                {#each Array(15) as _, i}
+                                    <div class="flex-1 bg-violet-600/20 rounded-full hover:bg-violet-500 transition-all duration-500 group-hover:h-full" style="height: {20 + Math.random() * 80}%"></div>
+                                {/each}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             {/if}
 
             {#if activeTab === 'players'}
@@ -619,17 +691,19 @@
                                             </div>
 
                                             <!-- Rapid Result Selector -->
-                                            <div class="bg-zinc-950/80 mt-auto border-t border-zinc-800/50 p-2 flex gap-1">
+                                            <div class="bg-zinc-950 mt-auto border-t border-zinc-800/50 p-3 grid grid-cols-3 gap-2">
                                                 {#each [
-                                                    { label: '1-0', value: '1-0', tip: $t('tournaments.white_wins') },
-                                                    { label: '½-½', value: '1/2-1/2', tip: $t('tournaments.draw') },
-                                                    { label: '0-1', value: '0-1', tip: $t('tournaments.black_wins') }
+                                                    { label: '1-0', value: '1-0', tip: $t('tournaments.white_wins'), icon: Crown, color: 'text-amber-500 hover:bg-amber-500/10' },
+                                                    { label: '½-½', value: '1/2-1/2', tip: $t('tournaments.draw'), icon: Handshake, color: 'text-zinc-400 hover:bg-white/5' },
+                                                    { label: '0-1', value: '0-1', tip: $t('tournaments.black_wins'), icon: Circle, color: 'text-indigo-400 hover:bg-indigo-500/10' }
                                                 ] as res}
                                                     <button 
                                                         onclick={() => updateResult(p.id, res.value)}
                                                         disabled={p.bye}
-                                                        class="flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {p.result === res.value ? 'bg-violet-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white hover:bg-zinc-800/50 disabled:opacity-30'}"
+                                                        class="group/res py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex flex-col items-center gap-1.5 {p.result === res.value ? 'bg-violet-600 text-white shadow-lg' : 'bg-zinc-900/50 text-zinc-500 hover:text-white border border-transparent hover:border-zinc-800'}"
+                                                        title={res.tip}
                                                     >
+                                                        <res.icon size={16} weight={p.result === res.value ? 'fill' : 'duotone'} class={p.result === res.value ? 'text-white' : res.color.split(' ')[0]} />
                                                         {res.label}
                                                     </button>
                                                 {/each}
@@ -667,9 +741,8 @@
                 </div>
             {/if}
 
-
             {#if activeTab === 'standings'}
-                  <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl print-area" in:fly={{ y: 20 }}>
+                 <div class="bg-zinc-900 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl print-area" in:fly={{ y: 20 }}>
                      <div class="p-8 border-b border-zinc-800 bg-gradient-to-r from-zinc-900 to-zinc-950 flex justify-between items-center">
                           <h3 class="text-xl font-outfit font-black text-white flex items-center gap-3 uppercase tracking-tight">
                               <Crown weight="fill" class="w-7 h-7 text-amber-500 drop-shadow-lg" />
@@ -686,6 +759,50 @@
                               <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-950 px-3 py-1.5 rounded-full border border-zinc-800">{$t('tournaments.realtime_calc')}</span>
                           </div>
                      </div>
+
+                     <!-- Podium Visual -->
+                     <div class="p-8 bg-zinc-950 border-b border-zinc-900 flex justify-center items-end gap-2 md:gap-6 min-h-[240px]">
+
+                        {#if sortedStandings.length >= 2}
+                            <!-- 2nd Place -->
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-16 h-16 bg-slate-100/10 border border-slate-400/20 rounded-2xl flex items-center justify-center text-slate-300 shadow-xl" in:scale={{ delay: 200 }}>
+                                    <span class="text-xl font-black">2</span>
+                                </div>
+                                <div class="w-24 md:w-32 h-20 bg-gradient-to-b from-slate-100/10 to-transparent rounded-t-2xl border-x border-t border-slate-100/10 flex flex-col items-center justify-center p-2">
+                                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-tighter truncate w-full text-center">{sortedStandings[1].student_name}</span>
+                                    <span class="text-xs font-black text-white">{sortedStandings[1].currentPoints}pts</span>
+                                </div>
+                            </div>
+                        {/if}
+
+                        {#if sortedStandings.length >= 1}
+                            <!-- 1st Place -->
+                            <div class="flex flex-col items-center gap-3 relative -top-4">
+                                <div class="w-20 h-20 bg-amber-500/10 border border-amber-400/30 rounded-[24px] flex items-center justify-center text-amber-500 shadow-[0_0_40px_rgba(251,191,36,0.2)]" in:scale={{ delay: 400 }}>
+                                    <Crown weight="fill" class="w-10 h-10" />
+                                </div>
+                                <div class="w-28 md:w-40 h-32 bg-gradient-to-b from-amber-500/20 to-transparent rounded-t-3xl border-x border-t border-amber-500/20 flex flex-col items-center justify-center p-4">
+                                    <span class="text-[11px] font-black text-amber-500 uppercase tracking-tight text-center leading-tight mb-1">{sortedStandings[0].student_name}</span>
+                                    <span class="text-2xl font-black text-white">{sortedStandings[0].currentPoints}pts</span>
+                                </div>
+                            </div>
+                        {/if}
+
+                        {#if sortedStandings.length >= 3}
+                            <!-- 3rd Place -->
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-16 h-16 bg-orange-700/10 border border-orange-700/20 rounded-2xl flex items-center justify-center text-orange-400 shadow-xl" in:scale={{ delay: 600 }}>
+                                    <span class="text-xl font-black">3</span>
+                                </div>
+                                <div class="w-24 md:w-32 h-16 bg-gradient-to-b from-orange-700/10 to-transparent rounded-t-2xl border-x border-t border-orange-700/10 flex flex-col items-center justify-center p-2">
+                                    <span class="text-[9px] font-black text-orange-400 uppercase tracking-tighter truncate w-full text-center">{sortedStandings[2].student_name}</span>
+                                    <span class="text-xs font-black text-white">{sortedStandings[2].currentPoints}pts</span>
+                                </div>
+                            </div>
+                        {/if}
+                     </div>
+
                      <div class="overflow-x-auto min-h-[400px]">
                          <table class="w-full text-left">
                              <thead class="bg-zinc-950/50 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
@@ -705,41 +822,7 @@
                                  </tr>
                              </thead>
                              <tbody class="divide-y divide-zinc-800">
-                                 {#each players.map(p => {
-                                     const playerPairings = pairings.filter(pair => pair.white_student_id === p.student_id || pair.black_student_id === p.student_id);
-                                     let pts = 0;
-                                     let buchholz = 0;
-                                     let sb = 0;
-
-                                     playerPairings.forEach(pair => {
-                                         if (!pair.result && !pair.bye) return;
-                                         const isWhite = pair.white_student_id === p.student_id;
-                                         const pPts = isWhite ? pair.points_white || 0 : pair.points_black || 0;
-                                         pts += pPts;
-                                         
-                                         const oppId = isWhite ? pair.black_student_id : pair.white_student_id;
-                                         if (oppId) {
-                                             const oppResults = pairings.filter(p2 => (p2.white_student_id === oppId || p2.black_student_id === oppId) && (p2.result || p2.bye));
-                                             let oppTotalPts = 0;
-                                             oppResults.forEach(r => {
-                                                 if (r.white_student_id === oppId) oppTotalPts += r.points_white || 0;
-                                                 else oppTotalPts += r.points_black || 0;
-                                             });
-                                             buchholz += oppTotalPts;
-                                             if (pPts === 1) sb += oppTotalPts;
-                                             else if (pPts === 0.5) sb += (oppTotalPts * 0.5);
-                                         }
-                                     });
-
-                                     const tb1 = tournament.format === 'round_robin' ? sb : buchholz;
-                                     const tb2 = tournament.format === 'round_robin' ? buchholz : sb;
-
-                                     return { ...p, currentPoints: pts, tb1, tb2 };
-                                 }).sort((a,b) => {
-                                     if (b.currentPoints !== a.currentPoints) return b.currentPoints - a.currentPoints;
-                                     if (b.tb1 !== a.tb1) return b.tb1 - a.tb1;
-                                     return b.tb2 - a.tb2;
-                                 }) as player, i}
+                                 {#each sortedStandings as player, i}
                                      <tr class="hover:bg-zinc-800/30 transition-colors group {player.status === 'withdrawn' ? 'opacity-40 grayscale' : ''}">
                                          <td class="px-8 py-5 text-center">
                                              {#if i === 0}
@@ -790,7 +873,7 @@
                              </tbody>
                          </table>
                      </div>
-                 </div>
+                  </div>
             {/if}
         </div>
 
@@ -977,3 +1060,4 @@
         background: #3f3f46;
     }
 </style>
+

@@ -236,6 +236,36 @@ export const adminApi = {
   },
 
   /**
+   * Support Ticket Management
+   */
+  async getSupportTickets() {
+    const q = query(collection(db, "lobby_reports"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  },
+
+  async updateTicketStatus(id: string, status: string) {
+    const docRef = doc(db, "lobby_reports", id);
+    await updateDoc(docRef, { 
+      status,
+      updatedAt: new Date().toISOString()
+    });
+  },
+
+  async respondToTicket(id: string, response: string) {
+    const docRef = doc(db, "lobby_reports", id);
+    await updateDoc(docRef, { 
+      adminResponse: response,
+      status: 'resolved',
+      respondedAt: new Date().toISOString()
+    });
+  },
+
+  async deleteTicket(id: string) {
+    await deleteDoc(doc(db, "lobby_reports", id));
+  },
+
+  /**
    * Concede acceso premium temporal a un usuario.
    */
   async grantTrial(userId: string, days: number) {

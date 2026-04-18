@@ -20,6 +20,7 @@
     Lock
   } from "lucide-svelte";
   import Logo from "$lib/components/Logo.svelte";
+  import InsigniaBadge from "$lib/components/ui/InsigniaBadge.svelte";
   import { t, locale, toggleLocale } from '$lib/i18n';
   import { INSIGNIAS } from '$lib/constants/insignias';
 
@@ -137,17 +138,9 @@
 
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 w-full mb-16">
                 {#each INSIGNIAS.slice(0, 5) as badge}
-                  <div class="relative group/badge p-8 rounded-[32px] bg-white/5 border border-white/5 hover:border-primary-500/30 hover:bg-white/10 transition-all flex flex-col items-center gap-6 text-center">
-                    <div class="relative w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center {badge.color} transition-transform duration-500 group-hover/badge:scale-110">
-                       <div class="absolute inset-0 {badge.glowColor} opacity-20 blur-2xl group-hover/badge:opacity-50 transition-opacity"></div>
-                       {#if badge.icon}
-                         <badge.icon weight="duotone" class="w-10 h-10" />
-                       {/if}
-                    </div>
-                    <div class="space-y-1">
-                      <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover/badge:text-white transition-colors">{$t(badge.titleKey)}</p>
-                    </div>
-                  </div>
+                   <div class="flex justify-center">
+                     <InsigniaBadge insignia={badge} unlocked={true} size="lg" />
+                   </div>
                 {/each}
               </div>
               

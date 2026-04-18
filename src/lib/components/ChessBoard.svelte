@@ -23,9 +23,10 @@
     onmove,
     onpositionChange,
     oncheck
-  } = $props<Props>();
+  }: Props = $props();
 
-  let chess = $state(new Chess(position));
+  let chess = $state() as Chess;
+  $effect.pre(() => { if (!chess) chess = new Chess(position); });
   let boardElement = $state<HTMLDivElement>();
   let selectedSquare = $state<string | null>(null);
   let possibleMoves = $state<string[]>([]);

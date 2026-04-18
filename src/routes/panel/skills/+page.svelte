@@ -568,7 +568,7 @@
           onclick={() => { 
             isSelectionMode = !isSelectionMode;
             if (!isSelectionMode) selectedIds = [];
-            else if (selectedIds.length === 0) toast.info(`${$t('common.info')}: ${$t('skills.ui.esc_to_exit')}`);
+            else if (selectedIds.length === 0) toast(`${$t('common.info')}: ${$t('skills.ui.esc_to_exit')}`);
           }} 
           class="h-[60px] px-6 rounded-2xl border border-white/5 flex items-center gap-2 font-bold uppercase tracking-widest text-[10px] transition-all {isSelectionMode ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30' : 'bg-zinc-950/50 text-zinc-400 hover:text-white'}"
           aria-pressed={isSelectionMode}

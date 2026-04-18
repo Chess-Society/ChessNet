@@ -98,6 +98,13 @@ export const en = {
     'reports.attendance.late': 'Late',
     'reports.attendance.absent': 'Absent',
     'reports.attendance.punctuality': 'Punctuality',
+    'reports.premium_analytics': 'PREMIUM ANALYTICS',
+    'reports.active_centers': 'Active Centers',
+    'reports.locations': 'Locations',
+    'reports.health_score': 'Academy Health',
+    'reports.steady_recovery': 'Steady Recovery',
+    'reports.last_30_days': 'Last 30 days',
+    'reports.alumni': 'Alumni',
 };
 
 export const es = {
@@ -200,4 +207,11 @@ export const es = {
     'reports.attendance.late': 'Tarde',
     'reports.attendance.absent': 'Ausente',
     'reports.attendance.punctuality': 'Puntualidad',
+    'reports.premium_analytics': 'ANALÍTICA PREMIUM',
+    'reports.active_centers': 'Centros Activos',
+    'reports.locations': 'Ubicaciones',
+    'reports.health_score': 'Salud de la Academia',
+    'reports.steady_recovery': 'Recuperación Estable',
+    'reports.last_30_days': 'Últimos 30 días',
+    'reports.alumni': 'Alumnos',
 };

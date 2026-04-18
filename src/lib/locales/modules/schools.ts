@@ -10,6 +10,13 @@ export const en = {
     'schools.manage_btn': 'Manage Center',
     'schools.delete_btn': 'Delete Center',
     'schools.delete_confirm': 'Are you sure you want to delete this center? Associated classes will persist.',
+    'schools.active_centers': 'Active Centers',
+    'schools.total_students': 'Total Students',
+    'schools.avg_groups': 'Avg. Groups',
+    'schools.new_center_btn': 'NEW CENTER',
+    'schools.growth_metric': 'Growth Metric',
+    'schools.full_capacity': 'Full Capacity',
+    'schools.verified_enrollment': 'Verified Enrollment',
 };
 
 export const es = {
@@ -24,4 +31,11 @@ export const es = {
     'schools.manage_btn': 'Gestionar Centro',
     'schools.delete_btn': 'Eliminar Centro',
     'schools.delete_confirm': '¿Estás seguro de eliminar este centro? Las clases asociadas persistirán.',
+    'schools.active_centers': 'Centros Activos',
+    'schools.total_students': 'Total Alumnos',
+    'schools.avg_groups': 'Media Grupos',
+    'schools.new_center_btn': 'NUEVO CENTRO',
+    'schools.growth_metric': 'Métrica de Crecimiento',
+    'schools.full_capacity': 'Capacidad Máxima',
+    'schools.verified_enrollment': 'Matriculación Verificada',
 };

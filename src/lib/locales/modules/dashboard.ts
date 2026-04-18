@@ -1,6 +1,6 @@
 export const en = {
     'dashboard.welcome_coach': 'Welcome, Coach',
-    'dashboard.overview': 'Global perspective of your academy.',
+    'dashboard.overview': 'Your pedagogical operations center.',
     'dashboard.today_is': 'Today is',
     'dashboard.quick_access': 'Quick Access',
     'dashboard.save': 'Save',
@@ -39,7 +39,7 @@ export const en = {
 
 export const es = {
     'dashboard.welcome_coach': 'Bienvenido, Coach',
-    'dashboard.overview': 'Perspectiva global de tu academia.',
+    'dashboard.overview': 'Tu centro de operaciones pedagógicas.',
     'dashboard.today_is': 'Hoy es',
     'dashboard.quick_access': 'Acceso Rápido',
     'dashboard.save': 'Guardar',
