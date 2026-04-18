@@ -30,7 +30,7 @@
   
   // Metrics calculations
   const attendance = $derived($appStore.attendance.filter(a => a.student_id === studentId));
-  const payments = $derived($appStore.payments.filter(p => p.student_id === studentId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+  const payments = $derived($appStore.payments.filter(p => p.student_id === studentId).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
   const tournamentResults = $derived($appStore.localTournamentPlayers.filter(p => p.student_id === studentId));
   
   const attendanceStats = $derived.by(() => {
@@ -47,7 +47,7 @@
   const paymentStatus = $derived.by(() => {
     if (payments.length === 0) return 'pending';
     const lastPayment = payments[0];
-    const lastDate = new Date(lastPayment.date);
+    const lastDate = new Date(lastPayment.created_at);
     const today = new Date();
     const diffMonths = (today.getFullYear() - lastDate.getFullYear()) * 12 + (today.getMonth() - lastDate.getMonth());
     return diffMonths <= 1 ? 'ok' : 'overdue';
@@ -162,7 +162,7 @@
               <div class="space-y-3">
                 {#each payments.slice(0, 2) as payment}
                   <div class="flex items-center justify-between text-sm">
-                    <span class="text-zinc-500 font-medium">{formatDate(payment.date)}</span>
+                    <span class="text-zinc-500 font-medium">{formatDate(payment.created_at)}</span>
                     <span class="text-white font-bold">{payment.amount}€</span>
                   </div>
                 {/each}
@@ -190,7 +190,7 @@
                         {$appStore.localTournaments.find(t => t.id === result.tournament_id)?.name || '---'}
                       </p>
                       <p class="text-[10px] text-zinc-600 font-black uppercase tracking-tighter mt-1">
-                        {formatDate($appStore.localTournaments.find(t => t.id === result.tournament_id)?.date || '')}
+                        {formatDate($appStore.localTournaments.find(t => t.id === result.tournament_id)?.startAt || '')}
                       </p>
                     </div>
                     <div class="flex items-center gap-2">

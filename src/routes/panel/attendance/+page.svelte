@@ -76,7 +76,7 @@
   const setStatus = async (studentId: string, status: string) => {
     if (!selectedClassId || isProcessing) return;
     
-    const record = currentAttendance().find(r => r.student_id === studentId);
+    const record = currentAttendance.find(r => r.student_id === studentId);
     if (record?.status === status) return;
 
     try {
@@ -97,7 +97,7 @@
   };
 
   const getStatus = (studentId: string) => {
-    const record = currentAttendance().find(r => r.student_id === studentId);
+    const record = currentAttendance.find(r => r.student_id === studentId);
     if (!record) return 'unmarked';
     return record.status === 'P' ? 'present' : 'absent';
   };
@@ -106,9 +106,9 @@
     if (!selectedClassId || isProcessing) return;
     try {
       isProcessing = true;
-      const targetStudents = classStudents();
+      const targetStudents = classStudents;
       for (const student of targetStudents) {
-        const record = currentAttendance().find(r => r.student_id === student.id);
+        const record = currentAttendance.find(r => r.student_id === student.id);
         if (record?.status !== 'P') {
           await appStore.saveAttendance({
             id: record?.id,
@@ -320,7 +320,7 @@
           </div>
         </div>
       </div>
-    {:else if classStudents().length === 0}
+    {:else if classStudents.length === 0}
       <div class="bento-card p-24 bg-zinc-900/30 backdrop-blur-3xl border border-dashed border-white/10 rounded-[4rem] text-center max-w-4xl mx-auto space-y-10" in:scale={{ start: 0.95 }}>
         <div class="w-32 h-32 bg-zinc-950 rounded-[2.5rem] border border-white/5 mx-auto flex items-center justify-center text-slate-700 shadow-inner">
           <UsersThree size={64} weight="duotone" />
