@@ -376,7 +376,17 @@
                     <div class="quick-actions">
                       <button class="act-btn" onclick={() => { selectedPayment = p; showReceipt = true; }}><Eye size={18} /></button>
                       <button class="act-btn" onclick={() => openEdit(p)}><PencilSimple size={18} /></button>
-                      <button class="act-btn delete" onclick={() => deletePayment(p.id)}><Trash size={18} /></button>
+                      <button 
+                        class="act-btn delete" 
+                        onclick={() => deletePayment(p.id)} 
+                        disabled={isDeleting === p.id}
+                      >
+                        {#if isDeleting === p.id}
+                          <div class="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin"></div>
+                        {:else}
+                          <Trash size={18} />
+                        {/if}
+                      </button>
                     </div>
                   </div>
                 </td>
@@ -397,8 +407,8 @@
             <Plus size={24} weight="bold" />
           </div>
           <div class="text">
-            <h2>{editMode ? 'Editar Registro' : 'Nuevo Registro'}</h2>
-            <p>Define los parámetros contables de la transacción</p>
+            <h2>{editMode ? $t('payments.edit_record') : $t('payments.new_record')}</h2>
+            <p>{$t('payments.modal_subtitle')}</p>
           </div>
           <button class="close-x" onclick={() => showModal = false}><X size={24} /></button>
         </div>
@@ -408,19 +418,19 @@
             <span class="label">Categoría de la Entidad</span>
             <div class="toggle-group">
               <button type="button" class:active={formState.payment_type === 'student'} onclick={() => formState.payment_type = 'student'}>
-                <User size={18} /> Alumno
+                <User size={18} /> {$t('common.student')}
               </button>
               <button type="button" class:active={formState.payment_type === 'school'} onclick={() => formState.payment_type = 'school'}>
-                <Buildings size={18} /> Colegio
+                <Buildings size={18} /> {$t('common.school')}
               </button>
             </div>
           </div>
 
           <div class="field-group">
-            <label for="entity-select">Seleccionar {formState.payment_type === 'school' ? 'Colegio' : 'Alumno'}</label>
+            <label for="entity-select">{$t('payments.select_entity', { type: formState.payment_type === 'school' ? $t('common.school') : $t('common.student') })}</label>
             <div class="select-input">
               <select id="entity-select" bind:value={formState.student_id} required>
-                <option value="" disabled selected>Elige una opción...</option>
+                <option value="" disabled selected>{$t('common.select_option')}...</option>
                 {#if formState.payment_type === 'school'}
                   {#each schools as school}
                     <option value={school.id}>{school.name}</option>
@@ -436,11 +446,11 @@
 
           <div class="grid-2">
             <div class="field-group">
-              <label for="amount-input">Importe (€)</label>
+              <label for="amount-input">{$t('payments.amount')} (€)</label>
               <input id="amount-input" type="number" step="0.01" bind:value={formState.amount} required />
             </div>
             <div class="field-group">
-              <label for="date-input">Fecha de Operación</label>
+              <label for="date-input">{$t('payments.operation_date')}</label>
               <input id="date-input" type="date" bind:value={formState.paid_date} required />
             </div>
           </div>
@@ -449,11 +459,11 @@
             <div class="field-group">
               <label for="concept-select">Concepto</label>
               <select id="concept-select" bind:value={formState.concept} required>
-                <option value="monthly_fee">Cuota Mensual</option>
-                <option value="registration">Matrícula</option>
-                <option value="tournament">Inscripción Torneo</option>
-                <option value="material">Material</option>
-                <option value="other">Otros</option>
+                <option value="monthly_fee">{$t('payments.concepts.monthly_fee')}</option>
+                <option value="registration">{$t('payments.concepts.registration')}</option>
+                <option value="tournament">{$t('payments.concepts.tournament')}</option>
+                <option value="material">{$t('payments.concepts.material')}</option>
+                <option value="other">{$t('payments.concepts.other')}</option>
               </select>
             </div>
             <div class="field-group">

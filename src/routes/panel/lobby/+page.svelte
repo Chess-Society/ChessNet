@@ -280,9 +280,9 @@
           <Lightbulb weight="duotone" size={20} />
         </div>
         <div class="space-y-1">
-          <h4 class="text-[10px] font-black text-amber-500/80 uppercase tracking-widest italic leading-none">Rincón del Docente</h4>
+          <h4 class="text-[10px] font-black text-amber-500/80 uppercase tracking-widest italic leading-none">{$t('lobby.teacher_corner')}</h4>
           <p class="text-xs text-zinc-400 leading-relaxed font-medium">
-            "El ajedrez no solo enseña estrategia, sino paciencia y resiliencia. En el aula, úsalo para fomentar la autoevaluación: pregunta a tus alumnos ¿por qué creéis que falló ese plan?"
+            {$t('lobby.pedagogical_tip')}
           </p>
         </div>
       </div>

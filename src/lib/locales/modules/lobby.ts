@@ -50,6 +50,8 @@ export const en = {
     'lobby.report': 'Report',
     'lobby.dismiss': 'Close',
     'lobby.update_label': 'Update',
+    'lobby.teacher_corner': "Teacher's Corner",
+    'lobby.pedagogical_tip': '"Chess doesn\'t just teach strategy, but patience and resilience. In the classroom, use it to foster self-evaluation: ask your students why they think that plan failed."',
 };
 
 export const es = {
@@ -104,4 +106,6 @@ export const es = {
     'lobby.report': 'Reportar',
     'lobby.dismiss': 'Cerrar',
     'lobby.update_label': 'Actualización',
+    'lobby.teacher_corner': 'Rincón del Docente',
+    'lobby.pedagogical_tip': '"El ajedrez no solo enseña estrategia, sino paciencia y resiliencia. En el aula, úsalo para fomentar la autoevaluación: pregunta a tus alumnos ¿por qué creéis que falló ese plan?"',
 };

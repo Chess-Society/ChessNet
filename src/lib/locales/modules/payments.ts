@@ -66,6 +66,10 @@ export const en = {
     'payments.transactions_settled': '{n} transactions settled',
     'payments.open_records': '{n} open records',
     'payments.ledger': 'Ledger',
+    'payments.new_record': 'New Record',
+    'payments.modal_subtitle': 'Define the accounting parameters of the transaction',
+    'payments.operation_date': 'Operation Date',
+    'payments.select_entity': 'Select {type}',
 };
 
 export const es = {
@@ -136,4 +140,8 @@ export const es = {
     'payments.transactions_settled': '{n} transacciones liquidadas',
     'payments.open_records': '{n} registros abiertos',
     'payments.ledger': 'Contabilidad',
+    'payments.new_record': 'Nuevo Registro',
+    'payments.modal_subtitle': 'Define los parámetros contables de la transacción',
+    'payments.operation_date': 'Fecha de Operación',
+    'payments.select_entity': 'Seleccionar {type}',
 };

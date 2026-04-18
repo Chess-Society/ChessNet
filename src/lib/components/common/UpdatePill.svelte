@@ -50,7 +50,7 @@
 {#if showPill}
   {@const Icon = getIcon(latestAnnouncement.type)}
   <div 
-    class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] w-[95%] max-w-md px-4"
+    class="fixed bottom-28 lg:bottom-10 left-1/2 -translate-x-1/2 z-[200] w-[95%] max-w-md px-4"
     in:fly={{ y: 50, duration: 800, delay: 1000 }}
     out:fade
   >

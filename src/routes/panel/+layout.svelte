@@ -197,17 +197,33 @@
 </script>
 
 <div class="min-h-screen bg-zinc-950 text-slate-300 font-jakarta selection:bg-violet-500/30">
+  <!-- Impersonation Banner -->
   {#if isImpersonating}
-    <div class="fixed top-0 inset-x-0 h-10 bg-red-600 z-[60] flex items-center justify-center gap-3 px-4 shadow-lg border-b border-white/10">
+    <div class="fixed top-0 inset-x-0 h-10 bg-red-600 z-[100] flex items-center justify-center gap-3 px-4 shadow-lg border-b border-white/10">
       <Warning weight="duotone" class="w-4 h-4 text-white" />
-      <span class="text-[10px] font-outfit font-black text-white uppercase tracking-widest">Impersonation Mode Active</span>
+      <span class="text-[10px] font-outfit font-black text-white uppercase tracking-widest">{$t('admin.impersonation_active') || 'Impersonation Mode Active'}</span>
       <button onclick={stopImpersonating} class="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-[9px] font-bold text-white transition-all uppercase tracking-widest border border-white/10">
-        Back to Admin
+        {$t('admin.back_to_admin') || 'Back to Admin'}
       </button>
     </div>
   {/if}
 
-  <header class="fixed top-0 right-0 left-0 bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5 z-50 transition-all {isImpersonating ? 'mt-10' : ''}">
+  <!-- Mobile Header (Premium App Style) -->
+  <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-50 {isImpersonating ? 'translate-y-10' : ''}">
+    <button onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto">
+      <Logo className="h-7 w-7 shadow-violet-flare/20" />
+      <span class="text-lg font-outfit font-black text-white tracking-tighter uppercase italic">ChessNet</span>
+    </button>
+    
+    <div class="flex items-center gap-4 pointer-events-auto">
+       <button onclick={toggleLocale} class="text-[9px] font-black text-slate-500 hover:text-primary-400 uppercase tracking-widest transition-colors">{ $locale }</button>
+       {#if plan === 'premium'}
+         <Crown weight="fill" size={14} class="text-amber-500" />
+       {/if}
+    </div>
+  </div>
+
+  <header class="hidden lg:block fixed top-0 right-0 left-0 bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5 z-40 transition-all {isImpersonating ? 'mt-10' : ''}">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-6">
       <div class="flex items-center gap-4 lg:gap-8 min-w-0 flex-1">
         
@@ -216,22 +232,6 @@
           <Logo className="h-10 w-10 shadow-violet-flare/20" />
           <span class="text-2xl font-outfit font-extrabold text-white tracking-tighter">ChessNet</span>
         </button>
-
-        <!-- Mobile iOS Navigation Bar Wrapper -->
-        <!-- Mobile Header (Premium App Style) -->
-        <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-[60]">
-          <button onclick={handleGoHome} class="flex items-center gap-2">
-            <Logo className="h-8 w-8" />
-            <span class="text-xl font-outfit font-black text-white tracking-tighter">ChessNet</span>
-          </button>
-          
-          <div class="flex items-center gap-3">
-             <button onclick={toggleLocale} class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{ $locale }</button>
-             <a href="/panel/settings" class="text-slate-400 p-1 hover:text-white transition-colors">
-               <GearSix weight="bold" size={22} />
-             </a>
-          </div>
-        </div>
         
         <nav class="hidden lg:flex items-center gap-2 text-slate-500 min-w-0 flex-shrink">
           <div class="w-px h-10 bg-white/5 mx-1 flex-shrink-0"></div>
@@ -423,14 +423,14 @@
     </div>
   </header>
 
-  <main class="pt-20 pb-24 min-h-screen">
-    <div class="max-w-7xl mx-auto">
+  <main class="pt-20 lg:pt-20 pb-32 lg:pb-24 min-h-screen {isImpersonating ? 'mt-10' : ''}">
+    <div class="max-w-7xl mx-auto px-4 lg:px-0">
         {#if $authLoading}
             <div class="flex flex-col items-center justify-center min-h-[60vh] gap-6" in:fade>
                 <div class="relative">
                   <div class="w-12 h-12 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
                   <div class="absolute inset-x-0 -bottom-12 flex justify-center">
-                    <p class="text-slate-500 font-outfit font-black uppercase tracking-[0.3em] text-[10px] whitespace-nowrap">Verifying session</p>
+                    <p class="text-slate-500 font-outfit font-black uppercase tracking-[0.3em] text-[10px] whitespace-nowrap">{$t('common.loading')}</p>
                   </div>
                 </div>
             </div>
@@ -525,8 +525,8 @@
     }
     
     :global(main) {
-      padding-top: var(--ios-nav-height) !important;
-      padding-bottom: calc(85px + env(safe-area-inset-bottom)) !important;
+      padding-top: calc(var(--ios-nav-height) + 1rem) !important;
+      padding-bottom: calc(160px + env(safe-area-inset-bottom)) !important;
     }
   }
 
