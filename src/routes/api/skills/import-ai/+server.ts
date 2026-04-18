@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import pdf from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '$env/dynamic/private';
 
@@ -29,11 +29,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
     // Extract text from PDF
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const uint8Array = new Uint8Array(arrayBuffer);
     
     let pdfText = '';
     try {
-        const pdfData = await pdf(buffer);
+        const parser = new PDFParse({ data: uint8Array });
+        const pdfData = await parser.getText();
         pdfText = pdfData.text;
     } catch (pdfError: any) {
         console.error('PDF Parse Error:', pdfError);
