@@ -48,6 +48,8 @@ export const en = {
     'lobby.subgroups': 'Sub Groups',
     'lobby.start_conversation': 'Start the conversation',
     'lobby.report': 'Report',
+    'lobby.dismiss': 'Close',
+    'lobby.update_label': 'Update',
 };
 
 export const es = {
@@ -100,4 +102,6 @@ export const es = {
     'lobby.subgroups': 'Sub Grupos',
     'lobby.start_conversation': 'Comienza la conversación',
     'lobby.report': 'Reportar',
+    'lobby.dismiss': 'Cerrar',
+    'lobby.update_label': 'Actualización',
 };

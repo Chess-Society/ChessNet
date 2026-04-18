@@ -38,6 +38,7 @@
   import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
   import TicketManager from '$lib/components/admin/TicketManager.svelte';
   import StripeSimulator from '$lib/components/StripeSimulator.svelte';
+  import UpdatePill from '$lib/components/common/UpdatePill.svelte';
 
   // Constants
   import { INSIGNIAS } from '$lib/constants/insignias';
@@ -754,6 +755,8 @@
     </div>
   </div>
 </div>
+
+<UpdatePill />
 
 <style>
   :global(.pointer-interactions) {

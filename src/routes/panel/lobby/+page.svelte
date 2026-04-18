@@ -37,11 +37,11 @@
   import { INSIGNIAS } from '$lib/constants/insignias';
   import { uiStore } from '$lib/stores/uiStore';
   import { parseDate, formatDate } from '$lib/utils/date';
+  import UpdatePill from '$lib/components/common/UpdatePill.svelte';
 
   // State
   let showCreateModal = $state(false);
   let isSubmitting = $state(false);
-  let newsDismissed = $state(false);
   
   let communityAnnouncements = $state<any[]>([]);
   let globalAnnouncements = $state<any[]>([]);
@@ -81,10 +81,7 @@
       return;
     }
 
-    // Check if news was dismissed this session
-    if (sessionStorage.getItem('lobby_news_dismissed') === 'true') {
-      newsDismissed = true;
-    }
+
 
     // Listen for community announcements
     const qA = query(collection(db, 'lobby_announcements'), orderBy('createdAt', 'desc'));
@@ -246,13 +243,7 @@
     }
   }
 
-  function dismissNews() {
-    newsDismissed = true;
-    sessionStorage.setItem('lobby_news_dismissed', 'true');
-  }
 
-  const latestAnnouncement = $derived(announcements[0]);
-  const showPill = $derived(!newsDismissed && latestAnnouncement);
 
   function getAnnouncementColor(a: any) {
     if (a.isGlobal) return 'from-violet-600 to-indigo-700';
@@ -282,6 +273,19 @@
       <p class="text-zinc-500 font-plus-jakarta text-sm lg:text-lg max-w-xl">
         {$t('lobby.subtitle')}
       </p>
+
+      <!-- Pedagogical Bit - Teacher's Corner -->
+      <div class="mt-6 p-6 bg-amber-500/5 border border-amber-500/10 rounded-3xl flex items-start gap-4 max-w-xl group hover:bg-amber-500/10 transition-all duration-500">
+        <div class="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center text-amber-500 shrink-0 group-hover:scale-110 transition-transform">
+          <Lightbulb weight="duotone" size={20} />
+        </div>
+        <div class="space-y-1">
+          <h4 class="text-[10px] font-black text-amber-500/80 uppercase tracking-widest italic leading-none">Rincón del Docente</h4>
+          <p class="text-xs text-zinc-400 leading-relaxed font-medium">
+            "El ajedrez no solo enseña estrategia, sino paciencia y resiliencia. En el aula, úsalo para fomentar la autoevaluación: pregunta a tus alumnos ¿por qué creéis que falló ese plan?"
+          </p>
+        </div>
+      </div>
     </div>
 
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
@@ -594,49 +598,7 @@
   </div>
 {/if}
 
-{#if showPill}
-  <div 
-    class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] w-[95%] max-w-md"
-    in:fly={{ y: 50, duration: 800 }}
-    out:fade
-  >
-    <div class="relative group">
-      <!-- Outer border/glow based on color -->
-      <div class="absolute -inset-[1px] bg-gradient-to-r {getAnnouncementColor(latestAnnouncement)} rounded-[2rem] opacity-40 group-hover:opacity-100 transition-opacity"></div>
-      
-      <div class="relative bg-zinc-950/90 backdrop-blur-3xl p-1.5 rounded-[2rem] shadow-3xl flex items-center gap-4 overflow-hidden">
-        <!-- Leading Icon Badge -->
-        <div class="w-14 h-14 bg-gradient-to-br {getAnnouncementColor(latestAnnouncement)} rounded-[1.5rem] flex items-center justify-center text-white shadow-xl flex-shrink-0">
-          <Megaphone weight="fill" size={24} />
-        </div>
-
-        <!-- Content -->
-        <div class="flex-1 min-w-0 py-1">
-          <div class="flex items-center gap-2 mb-0.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-            <p class="text-[8px] font-black text-white/60 uppercase tracking-[0.2em]">
-              {latestAnnouncement.type || 'Actualización'}
-            </p>
-          </div>
-          <h4 class="text-xs font-black text-white uppercase italic tracking-tight truncate">
-            {latestAnnouncement.title || 'Novedades'}
-          </h4>
-          <p class="text-[10px] text-zinc-500 font-medium truncate mt-0.5">
-            {latestAnnouncement.content}
-          </p>
-        </div>
-
-        <!-- Actions -->
-        <button 
-          onclick={dismissNews}
-          class="p-4 hover:bg-white/5 text-zinc-600 hover:text-white rounded-2xl transition-all mr-2"
-        >
-          <X weight="bold" size={16} />
-        </button>
-      </div>
-    </div>
-  </div>
-{/if}
+<UpdatePill />
 
 <style lang="postcss">
   :global(.scrollbar-hide::-webkit-scrollbar) {

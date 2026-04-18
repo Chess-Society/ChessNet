@@ -115,7 +115,8 @@ service cloud.firestore {
 
     match /payments/{docId} {
       allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow write: if isSuperAdmin(); // Only server can create/update payments
+      allow create, update: if isSuperAdmin(); // Only server can create/update payments
+      allow delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
     }
 
     match /achievements/{docId} {

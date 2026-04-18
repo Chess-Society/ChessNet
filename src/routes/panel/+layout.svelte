@@ -462,45 +462,45 @@
   {/if}
 
   <!-- Mobile Bottom Tab Bar (Premium App Style) -->
-  <footer class="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 backdrop-blur-2xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
-    <div class="h-[70px] relative px-4 flex items-center justify-between">
+  <footer class="lg:hidden fixed bottom-10 left-6 right-6 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/5 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] pb-[env(safe-area-inset-bottom)]">
+    <div class="h-16 relative px-2 flex items-center justify-between">
       <nav class="flex items-center justify-around w-full relative">
         <!-- Left Side -->
-        <a href="/panel" class="flex flex-col items-center justify-center gap-1 w-14 h-14 transition-all {currentRoute === '/panel' ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[9px] uppercase tracking-wider">{$t('nav.dashboard').split(' ')[0]}</span>
+        <a href="/panel" class="flex flex-col items-center justify-center gap-0.5 w-12 transition-all {currentRoute === '/panel' ? 'text-violet-400 font-bold' : 'text-slate-500'}">
+          <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-[0.05em] leading-none">{$t('nav.dashboard').split(' ')[0]}</span>
         </a>
         
-        <a href={plan === 'premium' ? '/panel/lobby' : '/pricing'} class="relative flex flex-col items-center justify-center gap-1 w-14 h-14 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[9px] uppercase tracking-wider">{$t('nav.lobby').split(' ')[1] || $t('nav.lobby')}</span>
+        <a href={plan === 'premium' ? '/panel/lobby' : '/pricing'} class="relative flex flex-col items-center justify-center gap-0.5 w-12 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
+          <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-[0.05em] leading-none">{$t('nav.lobby').split(' ')[1] || $t('nav.lobby')}</span>
           {#if lobbyPulse && plan === 'premium'}
-            <div class="absolute top-2 right-2 w-2 h-2 bg-violet-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
+            <div class="absolute top-0 right-2 w-2 h-2 bg-violet-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
           {/if}
         </a>
-
+ 
         <!-- Center Yellow Support Button -->
-        <div class="relative -top-6 px-4">
+        <div class="relative -top-5 px-1">
           <a href="/panel/support" 
-             class="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_0_20px_rgba(245,158,11,0.4)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
-             title={$t('support.title')}>
+             class="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_8px_20px_rgba(245,158,11,0.3)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
+             title={$t('nav.support')}>
             <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <Lifebuoy weight="bold" size={28} class="text-zinc-950" />
+            <Lifebuoy weight="bold" size={24} class="text-zinc-950" />
           </a>
-          <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-            <span class="text-[9px] font-black text-amber-500 uppercase tracking-widest">Support</span>
+          <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+            <span class="text-[8px] font-black text-amber-500 uppercase tracking-widest leading-none">{$t('nav.support')}</span>
           </div>
         </div>
-
+ 
         <!-- Right Side -->
-        <a href="/panel/students" class="flex flex-col items-center justify-center gap-1 w-14 h-14 transition-all {currentRoute.includes('/students') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[9px] uppercase tracking-wider">{$t('nav.students')}</span>
+        <a href="/panel/students" class="flex flex-col items-center justify-center gap-0.5 w-12 transition-all {currentRoute.includes('/students') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
+          <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-[0.05em] leading-none">{$t('nav.students')}</span>
         </a>
-
-        <a href="/panel/settings" class="flex flex-col items-center justify-center gap-1 w-14 h-14 transition-all {currentRoute.includes('/settings') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <GearSix weight={currentRoute.includes('/settings') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[9px] uppercase tracking-wider">Profile</span>
+ 
+        <a href="/panel/settings" class="flex flex-col items-center justify-center gap-0.5 w-12 transition-all {currentRoute.includes('/settings') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
+          <GearSix weight={currentRoute.includes('/settings') ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-[0.05em] leading-none">{$t('nav.profile')}</span>
         </a>
       </nav>
     </div>
