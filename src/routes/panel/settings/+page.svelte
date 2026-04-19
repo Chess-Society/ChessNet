@@ -14,12 +14,15 @@
     FloppyDisk,
     Sparkle,
     Lock,
-    Medal
+    Medal,
+    Warning
   } from 'phosphor-svelte';
   import { INSIGNIAS } from '$lib/constants/insignias';
   import { t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
+  import { uiStore } from '$lib/stores/uiStore';
   import { auth } from '$lib/firebase';
+  import toast from 'svelte-french-toast';
   import InsigniaBadge from '$lib/components/ui/InsigniaBadge.svelte';
 
   let config = $state({
