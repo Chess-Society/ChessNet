@@ -4,9 +4,7 @@
   import Logo from '$lib/components/Logo.svelte';
   import { t, locale } from '$lib/i18n';
 
-  function toggleLocale() {
-    locale.update(l => l === 'en' ? 'es' : 'en');
-  }
+
 </script>
 
 <svelte:head>
@@ -32,13 +30,7 @@
       <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
     </a>
     <div class="flex items-center gap-6 relative z-10">
-      <!-- Language Switcher -->
-      <button 
-        onclick={toggleLocale} 
-        class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-surface-400 hover:text-white hover:border-white/20 transition-all"
-      >
-        {$locale}
-      </button>
+
 
       <a href="/" class="flex items-center gap-2 text-surface-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
         <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

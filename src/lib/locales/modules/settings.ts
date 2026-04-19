@@ -1,27 +1,3 @@
-export const en = {
-    'settings.title': 'Account Settings',
-    'settings.subtitle': 'Update your profile and application preferences.',
-    'settings.profile_title': 'Profile',
-    'settings.profile_desc': 'Manage your personal information and how others see you.',
-    'settings.public_name': 'Public Name',
-    'settings.contact_email': 'Contact Email',
-    'settings.email_lock_desc': 'The email is linked to your authentication and cannot be changed.',
-    'settings.subscription_title': 'Membership & Plan',
-    'settings.current_level': 'CURRENT LEVEL',
-    'settings.plan_prefix': 'PLAN:',
-    'settings.plan_free': 'Free',
-    'settings.manage_btn': 'MANAGE PLAN',
-    'settings.featured_insignias_title': 'Featured Insignias',
-    'settings.featured_insignias_desc': 'Select up to 3 unlocked insignias to showcase on your profile and community lobby.',
-    'settings.no_insignias': 'You haven\'t unlocked any insignias yet.',
-    'settings.insignia_hub_link': 'Visit the Achievement Hub',
-    'settings.security_title': 'Security & Privacy',
-    'settings.smart_sync': 'Cloud Smart Sync',
-    'settings.smart_sync_desc': 'Your data is automatically backed up and synced across all your devices.',
-    'settings.public_name_placeholder': 'e.g. GM Academy',
-    'settings.contact_email_placeholder': 'contact@academy.com',
-};
-
 export const es = {
     'settings.title': 'Ajustes de Cuenta',
     'settings.subtitle': 'Actualiza tu perfil y preferencias de la aplicación.',

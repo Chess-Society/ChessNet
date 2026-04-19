@@ -13,7 +13,8 @@ import {
   orderBy,
   updateDoc,
   where,
-  writeBatch
+  writeBatch,
+  getDocs
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { browser } from '$app/environment';
@@ -113,6 +114,7 @@ function createAppStore() {
   const store = writable(initialState);
   const { subscribe, set, update } = store;
   let isLoaded = false;
+  let initializedCollections = new Set<string>();
   let unsubscribes: (() => void)[] = [];
 
   // Suscribirse al store de autenticación
@@ -202,7 +204,7 @@ function createAppStore() {
             (snap) => {
               const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
               
-              if (key === 'unlockedAchievements' && isLoaded) {
+              if (key === 'unlockedAchievements' && initializedCollections.has(key)) {
                  const currentState = get(store);
                  const currentIds = currentState.unlockedAchievements.map((a: any) => a.id);
                  
@@ -220,6 +222,11 @@ function createAppStore() {
                       ]
                     }));
                  }
+              }
+
+              // Mark collection as initialized after the first snapshot
+              if (!initializedCollections.has(key)) {
+                initializedCollections.add(key);
               }
 
               update(currentState => {
@@ -938,23 +945,32 @@ function createAppStore() {
       // Update state
       update(s => ({
         ...s,
-        pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId)
+        pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId),
+        unlockedAchievements: s.unlockedAchievements.map(a => a.id === achievementId ? { ...a, notified: true } : a)
       }));
 
       if (user.uid === 'chessnet-dev-uid') return;
-
-      // Importar getDocs dinámicamente si no está en el scope
-      const { getDocs } = await import('firebase/firestore');
 
       // Update Firestore
       const q = query(
         collection(db, 'achievements'),
         where('owner_id', '==', user.uid),
-        where('id', '==', achievementId)
+        where('id', '==', achievementId),
+        where('notified', '==', false)
       );
-      const snap = await getDocs(q);
-      const promises = snap.docs.map(d => updateDoc(doc(db, 'achievements', d.id), { notified: true }));
-      await Promise.all(promises);
+      
+      try {
+        const snap = await getDocs(q);
+        if (snap.empty) return;
+        
+        const batch = writeBatch(db);
+        snap.docs.forEach(d => {
+          batch.update(doc(db, 'achievements', d.id), { notified: true });
+        });
+        await batch.commit();
+      } catch (error) {
+        console.error('❌ [AppStore] Error marking achievement as notified:', error);
+      }
     },
 
     clearLastAchievement: () => {

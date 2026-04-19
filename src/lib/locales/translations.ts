@@ -22,30 +22,6 @@ import * as attendance from './modules/attendance';
 import * as payments from './modules/payments';
 
 export const translations = {
-    en: {
-        ...admin.en,
-        ...badges.en,
-        ...classes.en,
-        ...common.en,
-        ...dashboard.en,
-        ...errors.en,
-        ...lobby.en,
-        ...planner.en,
-        ...pricing.en,
-        ...reports.en,
-        ...schools.en,
-        ...settings.en,
-        ...simulator.en,
-        ...skills.en,
-        ...students.en,
-        ...tournaments.en,
-        ...support.en,
-        ...chess.en,
-        ...landing.en,
-        ...roadmap.en,
-        ...attendance.en,
-        ...payments.en,
-    },
     es: {
         ...admin.es,
         ...badges.es,
@@ -71,3 +47,4 @@ export const translations = {
         ...payments.es,
     }
 };
+

@@ -258,7 +258,7 @@
   <title>{$t('lobby.title')} - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto px-6 py-10 space-y-12" in:fade>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-8 sm:space-y-12" in:fade>
   
   <!-- Header Section -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -267,10 +267,10 @@
         <ChatCircleDots weight="fill" class="w-3 h-3" />
         Lobby de Profesores
       </div>
-      <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase italic leading-[0.85]">
+      <h1 class="text-3xl sm:text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase italic leading-[0.85]">
         Comunidad<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">ChessNet</span>
       </h1>
-      <p class="text-zinc-500 font-plus-jakarta text-sm lg:text-lg max-w-xl">
+      <p class="text-zinc-500 font-plus-jakarta text-xs sm:text-sm lg:text-lg max-w-xl">
         {$t('lobby.subtitle')}
       </p>
 
@@ -311,14 +311,15 @@
   <!-- Main Content -->
   {#if plan !== 'premium' && !isAdmin}
     <!-- Restricted Access Notice -->
-    <div class="bg-zinc-900/40 border border-white/5 rounded-[2.5rem] p-10 text-center space-y-6 relative overflow-hidden group backdrop-blur-3xl">
+    <div class="bg-zinc-900/40 border border-white/5 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 text-center space-y-6 relative overflow-hidden group backdrop-blur-3xl">
         <div class="absolute -right-24 -top-24 w-60 h-60 bg-violet-600/10 rounded-full blur-[100px] group-hover:bg-violet-600/20 transition-all duration-700"></div>
-        <div class="w-20 h-20 bg-violet-600/20 border border-violet-500/30 rounded-[1.5rem] flex items-center justify-center text-violet-400 mx-auto relative z-10 shadow-2xl shadow-violet-600/20">
-            <Crown size={40} weight="duotone" />
+        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-violet-600/20 border border-violet-500/30 rounded-2xl sm:rounded-[1.5rem] flex items-center justify-center text-violet-400 mx-auto relative z-10 shadow-2xl shadow-violet-600/20">
+            <Crown size={32} weight="duotone" class="sm:hidden" />
+            <Crown size={40} weight="duotone" class="hidden sm:block" />
         </div>
-        <div class="space-y-3 relative z-10">
-            <h2 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Comunidad Premium</h2>
-            <p class="text-zinc-400 text-lg font-plus-jakarta max-w-2xl mx-auto leading-relaxed">
+        <div class="space-y-2 sm:space-y-3 relative z-10">
+            <h2 class="text-xl sm:text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Comunidad Premium</h2>
+            <p class="text-zinc-400 text-sm sm:text-lg font-plus-jakarta max-w-2xl mx-auto leading-relaxed">
                 Únete a la élite docente: comparte metodologías, accede a recursos exclusivos y conecta con la red de profesores más influyente.
             </p>
         </div>
@@ -332,12 +333,12 @@
     </div>
   {:else}
     <!-- Chat Section -->
-    <div class="flex flex-col lg:flex-row gap-8 min-h-[700px]">
+    <div class="flex flex-col lg:flex-row gap-6 sm:gap-8 min-h-[600px] sm:min-h-[700px]">
         <!-- Groups Sidebar -->
-        <div class="w-full lg:w-80 space-y-6">
-          <div class="bg-zinc-900/60 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-xl h-full flex flex-col">
-            <h3 class="text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-6 ml-2 flex items-center gap-2">
-              <Hash size={14} class="text-violet-500" />
+        <div class="w-full lg:w-80 space-y-4 lg:space-y-6">
+          <div class="bg-zinc-900/60 border border-white/5 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 backdrop-blur-xl h-full flex flex-col">
+            <h3 class="text-[9px] sm:text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-4 sm:mb-6 ml-2 flex items-center gap-2">
+              <Hash size={12} class="text-violet-500" />
               SALA DE CANALES
             </h3>
             <div class="flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-3 pb-4 lg:pb-0 scrollbar-hide flex-1">
@@ -366,17 +367,18 @@
         </div>
 
         <!-- Chat Area -->
-        <div class="flex-1 flex flex-col bg-zinc-950/40 border border-white/5 rounded-[3rem] overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] min-h-[600px] lg:min-h-[700px] relative">
+        <div class="flex-1 flex flex-col bg-zinc-950/40 border border-white/5 rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] relative">
           {#if selectedGroupId}
             <!-- Chat Header -->
-            <div class="p-6 lg:p-8 border-b border-white/5 bg-zinc-900/40 flex items-center justify-between backdrop-blur-3xl">
+            <div class="p-5 sm:p-8 border-b border-white/5 bg-zinc-900/40 flex items-center justify-between backdrop-blur-3xl">
               <div class="flex items-center gap-4 lg:gap-6">
-                <div class="w-12 h-12 lg:w-14 lg:h-14 bg-violet-600 text-white rounded-2xl flex items-center justify-center shadow-2xl shadow-violet-600/20">
-                  <Hash size={24} weight="bold" />
+                <div class="w-10 h-10 sm:w-14 sm:h-14 bg-violet-600 text-white rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl shadow-violet-600/20 shrink-0">
+                  <Hash size={20} weight="bold" class="sm:hidden" />
+                  <Hash size={24} weight="bold" class="hidden sm:block" />
                 </div>
-                <div>
-                  <h3 class="font-outfit font-black text-lg lg:text-2xl text-white uppercase tracking-tight italic">#{selectedGroupName}</h3>
-                  <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{groups.find(g => g.id === selectedGroupId)?.description || 'Canal de discusión'}</p>
+                <div class="min-w-0">
+                  <h3 class="font-outfit font-black text-base sm:text-2xl text-white uppercase tracking-tight italic truncate">#{selectedGroupName}</h3>
+                  <p class="text-[8px] sm:text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] truncate">{(groups.find(g => g.id === selectedGroupId)?.description || 'Canal de discusión')}</p>
                 </div>
               </div>
             </div>
@@ -384,7 +386,7 @@
             <!-- Messages List -->
             <div 
               id="chat-container"
-              class="flex-1 overflow-y-auto p-10 space-y-8 scroll-smooth"
+              class="flex-1 overflow-y-auto p-5 sm:p-10 space-y-6 sm:space-y-8 scroll-smooth"
             >
               {#each messages as m (m.id)}
                 <div class="flex gap-5 {m.authorId === $authUser?.uid ? 'flex-row-reverse' : ''}" in:fade>
@@ -437,9 +439,9 @@
             </div>
 
             <!-- Chat Input -->
-            <div class="p-8 bg-zinc-900/40 border-t border-white/5 backdrop-blur-3xl">
+            <div class="p-5 sm:p-8 bg-zinc-900/40 border-t border-white/5 backdrop-blur-3xl">
               <form 
-                class="relative flex items-center gap-4"
+                class="relative flex items-center gap-3 sm:gap-4"
                 onsubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
               >
                 <div class="relative flex-1 group">
@@ -447,16 +449,17 @@
                   <input 
                     type="text"
                     bind:value={newMessage}
-                    placeholder="Escribe algo interesante para la comunidad..."
-                    class="relative w-full bg-white/[0.03] border border-white/10 rounded-2xl py-5 px-8 text-white font-medium focus:border-violet-500/50 outline-none transition-all placeholder:text-zinc-800"
+                    placeholder={$t('lobby.type_placeholder') || "Escribe algo..."}
+                    class="relative w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 sm:py-5 px-5 sm:px-8 text-sm sm:text-base text-white font-medium focus:border-violet-500/50 outline-none transition-all placeholder:text-zinc-800"
                   />
                 </div>
                 <button 
                   type="submit"
                   disabled={!newMessage.trim()}
-                  class="h-[60px] w-[60px] bg-white hover:bg-violet-100 text-zinc-950 rounded-2xl flex items-center justify-center transition-all disabled:opacity-30 disabled:grayscale hover:scale-105 active:scale-95 shadow-2xl group"
+                  class="h-[52px] w-[52px] sm:h-[60px] sm:w-[60px] bg-white hover:bg-violet-100 text-zinc-950 rounded-2xl flex items-center justify-center transition-all disabled:opacity-30 disabled:grayscale hover:scale-105 active:scale-95 shadow-2xl group shrink-0"
                 >
-                  <PaperPlane size={28} weight="fill" class="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                  <PaperPlane size={24} weight="fill" class="sm:hidden group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                  <PaperPlane size={28} weight="fill" class="hidden sm:block group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                 </button>
               </form>
             </div>

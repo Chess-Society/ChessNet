@@ -51,14 +51,14 @@
   ]);
 </script>
 
-<div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden group">
+<div class="bg-zinc-900/40 backdrop-blur-xl border border-white/5 p-5 sm:p-10 rounded-[2.5rem] shadow-2xl space-y-6 sm:space-y-8 relative overflow-hidden group">
   <!-- Mesh Gradient Background -->
   <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-500/10 blur-[100px] rounded-full group-hover:bg-primary-500/20 transition-all duration-1000"></div>
 
   <div class="flex items-center justify-between">
     <div class="space-y-1">
       <h3 class="text-xl font-black font-display uppercase italic tracking-wider flex items-center gap-3 text-white">
-        <Globe weight="duotone" class="w-6 h-6 text-primary-500" />
+        <Globe weight="duotone" class="w-6 h-6 text-violet-500" />
         {$t('admin.broadcast.title')}
       </h3>
       <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-9">{$t('admin.broadcast.subtitle')}</p>
@@ -94,15 +94,15 @@
       <textarea 
         bind:value={message}
         placeholder={$t('admin.broadcast.placeholder')}
-        class="w-full bg-black/40 border border-white/10 rounded-3xl p-6 min-h-[160px] text-sm text-white placeholder:text-slate-600 outline-none focus:border-primary-500/50 transition-all resize-none shadow-inner"
+        class="w-full bg-black/40 border border-white/10 rounded-3xl p-5 sm:p-6 min-h-[160px] text-sm text-white placeholder:text-slate-600 outline-none focus:border-violet-500/50 transition-all resize-none shadow-inner"
       ></textarea>
       
-      <div class="absolute bottom-6 right-6 flex items-center gap-4">
+      <div class="mt-4 sm:absolute sm:bottom-6 sm:right-6 flex flex-col sm:flex-row items-center gap-4">
         <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">{$t('admin.broadcast.characters', { count: message.length })}</span>
         <button 
           onclick={handleSend}
           disabled={!message.trim() || isSending}
-          class="flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-primary-500 to-violet-600 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 disabled:grayscale text-white"
+          class="w-full sm:w-auto flex items-center justify-center gap-3 px-6 sm:px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-violet-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 disabled:grayscale text-white"
         >
           {#if isSending}
             <div class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>

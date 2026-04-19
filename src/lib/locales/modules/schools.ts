@@ -1,24 +1,3 @@
-export const en = {
-    'schools.title': 'Learning Centers',
-    'schools.subtitle': 'Administrate your schools, clubs, and official training centers.',
-    'schools.add_btn': 'Add Center',
-    'schools.search_placeholder': 'Search centers...',
-    'schools.empty_title': 'No centers registered',
-    'schools.empty_subtitle': 'Add the schools where you teach to associate them with your groups and students.',
-    'schools.empty_btn': 'Create First School',
-    'schools.location_not_defined': 'Location not defined',
-    'schools.manage_btn': 'Manage Center',
-    'schools.delete_btn': 'Delete Center',
-    'schools.delete_confirm': 'Are you sure you want to delete this center? Associated classes will persist.',
-    'schools.active_centers': 'Active Centers',
-    'schools.total_students': 'Total Students',
-    'schools.avg_groups': 'Avg. Groups',
-    'schools.new_center_btn': 'NEW CENTER',
-    'schools.growth_metric': 'Growth Metric',
-    'schools.full_capacity': 'Full Capacity',
-    'schools.verified_enrollment': 'Verified Enrollment',
-};
-
 export const es = {
     'schools.title': 'Centros de Enseñanza',
     'schools.subtitle': 'Administra tus colegios, clubes y sedes oficiales de entrenamiento.',

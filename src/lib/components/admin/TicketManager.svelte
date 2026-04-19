@@ -55,18 +55,18 @@
   }));
 </script>
 
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8">
   <div class="flex items-center justify-between">
     <div>
-      <h2 class="text-4xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.9]">Support<br/><span class="text-amber-500">Tickets</span></h2>
-      <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-4 italic">{$t('admin.support.subtitle')}</p>
+      <h2 class="text-3xl sm:text-4xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.9]">Support<br/><span class="text-amber-500">Tickets</span></h2>
+      <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-3 sm:mt-4 italic">{$t('admin.support.subtitle')}</p>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 gap-6">
+  <div class="grid grid-cols-1 gap-4 sm:gap-6">
     {#each sortedTickets as ticket (ticket.id)}
       <div 
-        class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group"
+        class="bg-zinc-900/40 backdrop-blur-xl border border-white/5 p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl relative overflow-hidden group"
         in:slide
       >
         <div class="flex flex-col xl:flex-row gap-8">
@@ -106,7 +106,7 @@
               </div>
             </div>
 
-            <p class="text-sm text-slate-400 leading-relaxed font-medium bg-black/20 p-6 rounded-2xl border border-white/5">
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium bg-black/20 p-4 sm:p-6 rounded-2xl border border-white/5">
               {ticket.content}
             </p>
 

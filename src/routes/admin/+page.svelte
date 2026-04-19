@@ -311,16 +311,16 @@
   }
 </script>
 
-<div class="min-h-screen bg-[#020617] text-white selection:bg-primary-500/30">
+<div class="min-w-[320px] min-h-screen bg-zinc-950 text-white selection:bg-violet-500/30">
   <!-- Top Navigation Bar -->
-  <nav class="sticky top-0 z-[60] bg-[#020617]/80 backdrop-blur-2xl border-b border-white/5 py-6 px-8 flex items-center justify-between">
-    <div class="flex items-center gap-4">
-      <div class="p-3 bg-gradient-to-br from-primary-500 to-violet-600 rounded-2xl shadow-lg shadow-primary-500/20">
-        <SquaresFour weight="duotone" class="w-6 h-6 text-white" />
+  <nav class="sticky top-0 z-[60] bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5 pt-[env(safe-area-inset-top)] px-4 sm:px-8 flex items-center justify-between">
+    <div class="flex items-center gap-3 sm:gap-4 py-4 sm:py-6">
+      <div class="p-2.5 sm:p-3 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl shadow-lg shadow-violet-500/20">
+        <SquaresFour weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-white" />
       </div>
       <div>
-        <h1 class="text-xl font-black font-display uppercase italic tracking-tighter leading-none">{$t('admin.title')}</h1>
-        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1">ChessNet Operational Interface v2.5</p>
+        <h1 class="text-sm sm:text-xl font-black font-display uppercase italic tracking-tighter leading-none">{$t('admin.title')}</h1>
+        <p class="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 opacity-60">ChessNet Operational Interface v2.5</p>
       </div>
     </div>
 
@@ -345,23 +345,23 @@
     </div>
   </nav>
 
-  <!-- Mobile Only Header Stats (Premium) -->
-  <div class="lg:hidden grid grid-cols-3 gap-2 p-4 border-b border-white/5 bg-[#020617]">
+  <!-- Mobile Only Header Stats (Premium Bento Style) -->
+  <div class="lg:hidden grid grid-cols-3 gap-3 p-4 border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl">
     {#each [
-      { label: 'Users', val: stats.totalUsers },
-      { label: 'Rev', val: `$${Math.round(stats.totalRevenue)}` },
-      { label: 'Tickets', val: supportTickets.filter(t => t.status === 'open').length }
+      { label: 'Users', val: stats.totalUsers, color: 'text-violet-400' },
+      { label: 'Rev', val: `$${Math.round(stats.totalRevenue)}`, color: 'text-emerald-400' },
+      { label: 'Tickets', val: supportTickets.filter(t => t.status === 'open').length, color: 'text-amber-400' }
     ] as s}
-      <div class="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
-        <p class="text-[8px] font-black text-slate-600 uppercase tracking-tighter">{s.label}</p>
-        <p class="text-xs font-black text-white italic">{s.val}</p>
+      <div class="p-4 bg-white/[0.02] rounded-2xl border border-white/5 text-center group active:scale-95 transition-all">
+        <p class="text-[7px] font-black text-slate-500 uppercase tracking-widest mb-1">{s.label}</p>
+        <p class="text-xs font-black {s.color} italic leading-none">{s.val}</p>
       </div>
     {/each}
   </div>
 
   <div class="flex">
     <!-- Sidebar Navigation -->
-    <aside class="w-72 min-h-[calc(100vh-84px)] border-r border-white/5 bg-[#020617] p-8 space-y-8 hidden lg:block">
+    <aside class="w-72 min-h-[calc(100vh-84px)] border-r border-white/5 bg-zinc-950 p-8 space-y-8 hidden lg:block">
       <div>
         <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-6">{$t('admin.sidebar.principal')}</p>
         <nav class="space-y-2">
@@ -406,10 +406,10 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-6 md:p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-84px)] relative overflow-hidden pb-32 md:pb-10">
+    <main class="flex-1 p-4 sm:p-6 md:p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-84px)] relative overflow-hidden pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-10">
       <!-- Gradient Background Architecture -->
-      <div class="absolute inset-0 -z-10 bg-[#020617]">
-        <div class="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_100%_0%,rgba(67,56,202,0.05)_0%,transparent_50%)]"></div>
+      <div class="absolute inset-0 -z-10 bg-zinc-950">
+        <div class="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_100%_0%,rgba(139,92,246,0.05)_0%,transparent_50%)]"></div>
         <div class="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(circle_at_0%_100%,rgba(79,70,229,0.03)_0%,transparent_50%)]"></div>
       </div>
       
@@ -422,17 +422,18 @@
            </div>
          </div>
       {:else}
-        <div in:fade={{ duration: 400 }}>
-          {#if activeTab === 'dashboard'}
-             <div class="space-y-12">
-                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                  <div>
-                    <h2 class="text-4xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.9]">Operational<br/><span class="text-primary-500">Overview</span></h2>
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] mt-4 flex items-center gap-2 text-slate-500">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                      {$t('admin.dashboard.sync')}
-                    </p>
-                  </div>
+          {#each [activeTab] as _ (activeTab)}
+          <div in:fade={{ duration: 400 }}>
+            {#if activeTab === 'dashboard'}
+               <div class="space-y-8 sm:space-y-12">
+                  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                      <h2 class="text-3xl sm:text-4xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.9]">Operational<br/><span class="text-violet-500">Overview</span></h2>
+                      <p class="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] mt-4 flex items-center gap-2 text-slate-500">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        {$t('admin.dashboard.sync')}
+                      </p>
+                    </div>
                   <div class="flex items-center gap-2">
                      <button onclick={refreshStats} class="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2 text-white">
                         <Pulse class="w-4 h-4" />
@@ -605,6 +606,7 @@
              </div>
           {/if}
         </div>
+        {/each}
       {/if}
     </div>
   </main>
@@ -612,44 +614,44 @@
 
   <!-- User Detail Modal (Heavy Refactor) -->
   {#if showEditModal && selectedUser}
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md" transition:fade>
+    <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/90 backdrop-blur-md" transition:fade>
       <div 
-        class="bg-[#0f172a] w-full max-w-2xl rounded-[3rem] border border-white/10 shadow-3xl overflow-hidden relative"
-        transition:scale={{ start: 0.9, duration: 400 }}
+        class="bg-zinc-950 w-full max-w-2xl rounded-t-[2.5rem] sm:rounded-[3rem] border-t sm:border border-white/10 shadow-3xl overflow-hidden relative max-h-[90vh] overflow-y-auto"
+        transition:fly={{ y: 100, duration: 400 }}
       >
         <!-- Modal Header -->
-        <div class="px-10 py-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-primary-500/10 to-transparent">
-          <div class="flex items-center gap-6">
-            <div class="w-16 h-16 bg-white/5 rounded-[1.5rem] flex items-center justify-center text-primary-400 border border-white/10">
-              <UserCircle class="w-10 h-10" />
+        <div class="sticky top-0 z-10 px-6 sm:px-10 py-6 sm:py-8 border-b border-white/5 flex items-center justify-between bg-zinc-950/80 backdrop-blur-xl">
+          <div class="flex items-center gap-4 sm:gap-6">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-white/5 rounded-2xl sm:rounded-[1.5rem] flex items-center justify-center text-violet-400 border border-white/10">
+              <UserCircle class="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
             <div>
-              <h3 class="text-2xl font-black font-display uppercase italic text-white leading-none">{$t('admin.modal.command_manager')}</h3>
-              <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-2">{selectedUser?.email}</p>
+              <h3 class="text-lg sm:text-2xl font-black font-display uppercase italic text-white leading-none">{$t('admin.modal.command_manager')}</h3>
+              <p class="text-[8px] sm:text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-2 truncate max-w-[150px] sm:max-w-none">{selectedUser?.email}</p>
             </div>
           </div>
           <button 
             onclick={() => showEditModal = false}
-            class="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all cursor-pointer text-white"
+            class="p-3 sm:p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all cursor-pointer text-white"
           >
-            <X weight="bold" class="w-6 h-6" />
+            <X weight="bold" class="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
 
-        <div class="p-10 space-y-10">
+        <div class="p-6 sm:p-10 space-y-8 sm:space-y-10">
            <!-- Entity Counts -->
-           <div class="grid grid-cols-3 gap-6">
+           <div class="grid grid-cols-3 gap-3 sm:gap-6">
               {#each [
                 { label: $t('admin.stats.schools'), val: userDetails?.schools || 0 },
                 { label: $t('admin.stats.classes'), val: userDetails?.classes || 0 },
                 { label: $t('admin.stats.students'), val: userDetails?.students || 0 }
               ] as ent}
-                <div class="bg-black/40 border border-white/5 p-6 rounded-[1.5rem] text-center">
-                  <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">{ent.label}</p>
+                <div class="bg-black/40 border border-white/5 p-4 sm:p-6 rounded-[1.5rem] text-center">
+                  <p class="text-[7px] sm:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 truncate">{ent.label}</p>
                   {#if isLoadingDetails}
-                    <div class="h-8 w-12 bg-white/5 animate-pulse mx-auto rounded-lg"></div>
+                    <div class="h-6 sm:h-8 w-10 sm:w-12 bg-white/5 animate-pulse mx-auto rounded-lg"></div>
                   {:else}
-                    <span class="text-3xl font-black font-display italic text-white">{ent.val}</span>
+                    <span class="text-xl sm:text-3xl font-black font-display italic text-white leading-none">{ent.val}</span>
                   {/if}
                 </div>
               {/each}
@@ -707,8 +709,8 @@
   {/if}
 
   <!-- Premium Mobile Navigation for Admins -->
-  <div class="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[450px] z-[100] transition-all duration-500">
-    <div class="bg-black/80 backdrop-blur-2xl border border-white/10 p-2.5 rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] flex items-center justify-between">
+  <div class="lg:hidden fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[450px] z-[100] pb-[env(safe-area-inset-bottom)]">
+    <div class="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-2 sm:p-2.5 rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] flex items-center justify-between">
       {#each [
         { id: 'dashboard', icon: SquaresFour, label: 'Dash' },
         { id: 'users', icon: Users, label: 'Users' }
@@ -716,23 +718,23 @@
         {@const Icon = item.icon}
         <button 
           onclick={() => activeTab = item.id}
-          class="flex flex-col items-center gap-1.5 py-3 px-5 rounded-2xl transition-all {activeTab === item.id ? 'text-primary-400' : 'text-zinc-500 opacity-60'}"
+          class="flex flex-col items-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 px-4 sm:px-5 rounded-2xl transition-all {activeTab === item.id ? 'text-violet-400' : 'text-zinc-500'}"
         >
-          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={22} />
-          <span class="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={20} class="sm:w-[22px] sm:h-[22px]" />
+          <span class="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
         </button>
       {/each}
 
       <!-- Center Support Ticket Spotlight (Amber) -->
       <button 
         onclick={() => activeTab = 'tickets'}
-        class="relative group active:scale-95 transition-all -translate-y-4"
+        class="relative group active:scale-95 transition-all -translate-y-4 sm:-translate-y-5"
       >
         <div class="absolute -inset-4 bg-amber-500/20 rounded-full blur-2xl group-hover:bg-amber-500/30 transition-all"></div>
-        <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center shadow-[0_10px_30px_-5px_rgba(245,158,11,0.5)] border-4 border-black group-hover:rotate-12 transition-all">
-          <Lifebuoy weight="fill" size={28} class="text-black" />
+        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center shadow-[0_10px_30px_-5px_rgba(245,158,11,0.5)] border-4 border-zinc-950 group-hover:rotate-12 transition-all">
+          <Lifebuoy weight="fill" size={24} class="sm:w-[28px] sm:h-[28px] text-zinc-950" />
           {#if supportTickets.filter(t => t.status === 'open').length > 0}
-            <div class="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white border-2 border-black rounded-full flex items-center justify-center text-[10px] font-black">
+            <div class="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 text-white border-2 border-zinc-950 rounded-full flex items-center justify-center text-[8px] sm:text-[10px] font-black">
               {supportTickets.filter(t => t.status === 'open').length}
             </div>
           {/if}
@@ -746,10 +748,10 @@
         {@const Icon = item.icon}
         <button 
           onclick={() => activeTab = item.id}
-          class="flex flex-col items-center gap-1.5 py-3 px-5 rounded-2xl transition-all {activeTab === item.id ? 'text-primary-400' : 'text-zinc-500 opacity-60'}"
+          class="flex flex-col items-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 px-4 sm:px-5 rounded-2xl transition-all {activeTab === item.id ? 'text-violet-400' : 'text-zinc-500'}"
         >
-          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={22} />
-          <span class="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={20} class="sm:w-[22px] sm:h-[22px]" />
+          <span class="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
         </button>
       {/each}
     </div>

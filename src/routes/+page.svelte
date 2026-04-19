@@ -11,7 +11,6 @@
     Sparkles,
     Shield,
     Zap,
-    Languages,
     BarChart3,
     Calendar,
     LayoutDashboard,
@@ -21,7 +20,7 @@
   } from "lucide-svelte";
   import Logo from "$lib/components/Logo.svelte";
   import InsigniaBadge from "$lib/components/ui/InsigniaBadge.svelte";
-  import { t, locale, toggleLocale } from '$lib/i18n';
+  import { t, locale } from '$lib/i18n';
   import { INSIGNIAS } from '$lib/constants/insignias';
 
   let { data } = $props();
@@ -72,13 +71,7 @@
       </div>
 
       <div class="flex lg:flex-1 lg:justify-end gap-5 items-center">
-        <button 
-          onclick={toggleLocale}
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-[10px] font-black tracking-widest text-slate-300"
-        >
-          <Languages class="w-3.5 h-3.5" />
-          { $locale === 'en' ? 'EN' : 'ES' }
-        </button>
+
         <button onclick={goToLogin} class="hidden sm:block text-sm font-bold text-slate-400 hover:text-white transition-colors">
           {$t('nav.login')}
         </button>

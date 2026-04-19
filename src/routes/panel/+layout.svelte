@@ -40,6 +40,7 @@
   let { data, children } = $props<{ data: LayoutData, children: any }>();
 
   let isLoggingOut = $state(false);
+  let showMobileMenu = $state(false);
 
   // Reactividad del store
   let teacherName = $derived($appStore?.settings?.teacherName || $authUser?.displayName || ($authLoading ? '...' : 'User'));
@@ -191,9 +192,7 @@
 
   const handleGoHome = () => goto('/panel');
 
-  function toggleLocale() {
-    locale.update(l => l === 'en' ? 'es' : 'en');
-  }
+
 </script>
 
 <div class="min-h-screen bg-zinc-950 text-slate-300 font-jakarta selection:bg-violet-500/30">
@@ -209,19 +208,107 @@
   {/if}
 
   <!-- Mobile Header (Premium App Style) -->
-  <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-50 {isImpersonating ? 'translate-y-10' : ''}">
+  <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-[60] {isImpersonating ? 'translate-y-10' : ''}">
     <button onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto">
       <Logo className="h-7 w-7 shadow-violet-flare/20" />
       <span class="text-lg font-outfit font-black text-white tracking-tighter uppercase italic">ChessNet</span>
     </button>
     
     <div class="flex items-center gap-4 pointer-events-auto">
-       <button onclick={toggleLocale} class="text-[9px] font-black text-slate-500 hover:text-primary-400 uppercase tracking-widest transition-colors">{ $locale }</button>
-       {#if plan === 'premium'}
-         <Crown weight="fill" size={14} class="text-amber-500" />
-       {/if}
+       <button 
+         onclick={() => showMobileMenu = true}
+         class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-[10px] ring-2 ring-white/10 overflow-hidden"
+       >
+         {#if teacherAvatar}
+           <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover" />
+         {:else}
+           {initials}
+         {/if}
+       </button>
     </div>
   </div>
+
+  <!-- Mobile Side Menu Drawer -->
+  {#if showMobileMenu}
+    <div class="fixed inset-0 z-[100] lg:hidden" in:fade={{ duration: 200 }}>
+      <!-- Backdrop -->
+      <button 
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-default w-full h-full border-none" 
+        onclick={() => showMobileMenu = false}
+        aria-label="Close menu"
+      ></button>
+      
+      <!-- Drawer -->
+      <div 
+        class="absolute right-0 top-0 bottom-0 w-[280px] bg-zinc-950 border-l border-white/5 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]"
+        transition:fly={{ x: 280, duration: 300 }}
+      >
+        <div class="p-8 flex flex-col items-center text-center border-b border-white/5">
+          <div class="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-2xl mb-4 shadow-xl shadow-violet-500/10">
+            {#if teacherAvatar}
+              <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover rounded-[2rem]" />
+            {:else}
+              {initials}
+            {/if}
+          </div>
+          <h3 class="text-lg font-bold text-white font-outfit leading-tight">{teacherName}</h3>
+          <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{email}</p>
+          
+          <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+            {#if plan === 'premium'}
+              <Crown weight="fill" size={10} class="text-amber-500" />
+              <span class="text-[8px] font-black text-white uppercase tracking-widest">PREMIUM COACH</span>
+            {:else}
+              <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">FREE PLAN</span>
+            {/if}
+          </div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+          <a href="/panel/settings" 
+             onclick={() => showMobileMenu = false}
+             class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-violet-500/10 hover:text-violet-400 transition-all font-outfit">
+            <GearSix weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.settings')}</span>
+          </a>
+          
+          {#if data.isAdmin}
+            <a href="/admin" 
+               onclick={() => showMobileMenu = false}
+               class="flex items-center gap-4 px-6 py-4 rounded-2xl text-amber-500 font-black bg-amber-500/5 border border-amber-500/10 transition-all font-outfit">
+              <Key weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">ADMINISTRATION</span>
+            </a>
+          {/if}
+
+          <div class="h-px bg-white/5 my-4 mx-4"></div>
+
+          <a href="/panel/schools" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-white/5 transition-all font-outfit">
+            <Buildings weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.schools')}</span>
+          </a>
+          <a href="/panel/classes" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-white/5 transition-all font-outfit">
+            <Chalkboard weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.classes')}</span>
+          </a>
+          <a href="/panel/attendance" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-white/5 transition-all font-outfit">
+            <ListChecks weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.attendance')}</span>
+          </a>
+        </nav>
+
+        <div class="p-6 border-t border-white/5">
+          <button 
+            onclick={handleLogout}
+            class="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-red-500/10 text-red-500 font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+          >
+            <SignOut weight="bold" size={18} />
+            {$t('nav.logout')}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <header class="hidden lg:block fixed top-0 right-0 left-0 bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5 z-40 transition-all {isImpersonating ? 'mt-10' : ''}">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-6">
@@ -299,12 +386,7 @@
 
       <div class="flex items-center gap-4 flex-shrink-0">
         <!-- Language Switcher -->
-        <button 
-          onclick={toggleLocale} 
-          class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-outfit font-black uppercase tracking-widest text-slate-500 hover:text-white hover:border-white/20 transition-all sm:flex hidden"
-        >
-          {$locale}
-        </button>
+
         
         <!-- Subscription Badge -->
         <div class="hidden md:flex items-center gap-2.5 bg-white/5 rounded-full py-2 px-4 border border-white/5 group hover:border-violet-500/20 transition-all flex-shrink-0">
@@ -462,45 +544,45 @@
   {/if}
 
   <!-- Mobile Bottom Tab Bar (Premium App Style) -->
-  <footer class="lg:hidden fixed bottom-10 left-6 right-6 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/5 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] pb-[env(safe-area-inset-bottom)]">
+  <footer class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5">
     <div class="h-16 relative px-2 flex items-center justify-between">
       <nav class="flex items-center justify-around w-full relative">
         <!-- Left Side -->
-        <a href="/panel" class="flex flex-col items-center justify-center gap-0.5 w-12 transition-all {currentRoute === '/panel' ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={20} />
-          <span class="text-[8px] font-black uppercase tracking-[0.05em] leading-none">{$t('nav.dashboard').split(' ')[0]}</span>
+        <a href="/panel" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute === '/panel' ? 'text-violet-400 font-bold' : 'text-slate-500'}">
+          <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={22} />
+          <span class="text-[7px] font-black uppercase tracking-widest leading-none">{$t('nav.dashboard').split(' ')[0]}</span>
         </a>
         
-        <a href={plan === 'premium' ? '/panel/lobby' : '/pricing'} class="relative flex flex-col items-center justify-center gap-0.5 w-12 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={20} />
-          <span class="text-[8px] font-black uppercase tracking-[0.05em] leading-none">{$t('nav.lobby').split(' ')[1] || $t('nav.lobby')}</span>
+        <a href={plan === 'premium' ? '/panel/lobby' : '/pricing'} class="relative flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
+          <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={22} />
+          <span class="text-[7px] font-black uppercase tracking-widest leading-none">{$t('nav.lobby').split(' ')[1] || $t('nav.lobby')}</span>
           {#if lobbyPulse && plan === 'premium'}
-            <div class="absolute top-0 right-2 w-2 h-2 bg-violet-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
+            <div class="absolute top-0 right-1 w-2 h-2 bg-violet-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
           {/if}
         </a>
  
         <!-- Center Yellow Support Button -->
-        <div class="relative -top-5 px-1">
+        <div class="relative -top-6 px-1">
           <a href="/panel/support" 
-             class="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_8px_20px_rgba(245,158,11,0.3)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
+             class="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_8px_20px_rgba(245,158,11,0.4)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
              title={$t('nav.support')}>
             <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Lifebuoy weight="bold" size={24} class="text-zinc-950" />
           </a>
           <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-            <span class="text-[8px] font-black text-amber-500 uppercase tracking-widest leading-none">{$t('nav.support')}</span>
+            <span class="text-[7px] font-black text-amber-500 uppercase tracking-[0.2em] leading-none">Help</span>
           </div>
         </div>
  
         <!-- Right Side -->
-        <a href="/panel/students" class="flex flex-col items-center justify-center gap-0.5 w-12 transition-all {currentRoute.includes('/students') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={20} />
-          <span class="text-[8px] font-black uppercase tracking-[0.05em] leading-none">{$t('nav.students')}</span>
+        <a href="/panel/students" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/students') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
+          <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={22} />
+          <span class="text-[7px] font-black uppercase tracking-widest leading-none">{$t('nav.students')}</span>
         </a>
  
-        <a href="/panel/settings" class="flex flex-col items-center justify-center gap-0.5 w-12 transition-all {currentRoute.includes('/settings') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <GearSix weight={currentRoute.includes('/settings') ? 'fill' : 'duotone'} size={20} />
-          <span class="text-[8px] font-black uppercase tracking-[0.05em] leading-none">{$t('nav.profile')}</span>
+        <a href="/panel/planner" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/planner') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
+          <Calendar weight={currentRoute.includes('/planner') ? 'fill' : 'duotone'} size={22} />
+          <span class="text-[7px] font-black uppercase tracking-widest leading-none">{$t('nav.planner') || 'Plan'}</span>
         </a>
       </nav>
     </div>
@@ -526,7 +608,7 @@
     
     :global(main) {
       padding-top: calc(var(--ios-nav-height) + 1rem) !important;
-      padding-bottom: calc(160px + env(safe-area-inset-bottom)) !important;
+      padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
     }
   }
 

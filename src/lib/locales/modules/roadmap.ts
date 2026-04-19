@@ -1,27 +1,3 @@
-export const en = {
-    'roadmap.title': 'Product Roadmap',
-    'roadmap.subtitle': 'What we\'re building next. Vote for your favorite features.',
-    'roadmap.back': 'Back to Home',
-    'roadmap.feedback': 'Community Feedback Driven',
-    'roadmap.subject_feedback': 'Subject to community feedback',
-    'roadmap.discord': 'Join Discord',
-    'roadmap.start': 'Start Now',
-    'roadmap.cta_title': 'Help us shape the future',
-    'roadmap.cta_desc': 'Your feedback is invaluable. Join our community and help us prioritize the features that matter most to your academy.',
-    'roadmap.q1_title': 'Core Infrastructure',
-    'roadmap.q1_desc1': 'Advanced analytics dashboard for teachers',
-    'roadmap.q1_desc2': 'Automated attendance reports with AI',
-    'roadmap.q1_desc3': 'Multi-center management optimization',
-    'roadmap.q2_title': 'Gamification & Social',
-    'roadmap.q2_desc1': 'Insignia and achievement system expansion',
-    'roadmap.q2_desc2': 'Public academy profiles and talent showcase',
-    'roadmap.q2_desc3': 'Interactive student training challenges',
-    'roadmap.q3_title': 'Mobile & Integration',
-    'roadmap.q3_desc1': 'Native iOS and Android application',
-    'roadmap.q3_desc2': 'Deep integration with chess playing platforms',
-    'roadmap.q3_desc3': 'Advanced billing and subscription management',
-};
-
 export const es = {
     'roadmap.title': 'Hoja de Ruta',
     'roadmap.subtitle': 'Lo que estamos construyendo. Vota por tus funciones favoritas.',

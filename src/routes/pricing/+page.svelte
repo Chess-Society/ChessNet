@@ -39,9 +39,7 @@
     }
   }
 
-  function toggleLocale() {
-    locale.update(l => l === 'en' ? 'es' : 'en');
-  }
+
 </script>
 
 <svelte:head>
@@ -71,13 +69,7 @@
       </div>
       
       <div class="flex lg:flex-1 lg:justify-end gap-3 sm:gap-6 items-center">
-        <!-- Language Switcher -->
-        <button 
-          onclick={toggleLocale} 
-          class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-surface-400 hover:text-white hover:border-white/20 transition-all"
-        >
-          {$locale}
-        </button>
+
 
         {#if isAuthLoading}
           <div class="w-32 h-10 bg-white/5 animate-pulse rounded-full"></div>
@@ -95,83 +87,83 @@
 
   <main class="relative z-10 pt-32 pb-24">
     <!-- Hero -->
-    <div class="max-w-5xl mx-auto px-6 text-center mb-20 animate-fade-in">
-      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-8">
+    <div class="max-w-5xl mx-auto px-6 text-center mb-12 sm:mb-20 animate-fade-in">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-6 sm:mb-8">
         <Sparkle class="w-3.5 h-3.5" />
         <span>{$t('pricing.recommended')}</span>
       </div>
-      <h1 class="text-5xl md:text-7xl font-display font-black text-white mb-8 tracking-tight">
+      <h1 class="text-4xl md:text-7xl font-display font-black text-white mb-6 sm:mb-8 tracking-tight leading-tight">
         {$t('pricing.title')}
       </h1>
-      <p class="max-w-2xl mx-auto text-lg md:text-xl text-surface-400">{$t('pricing.subtitle')}</p>
+      <p class="max-w-2xl mx-auto text-base md:text-xl text-surface-400">{$t('pricing.subtitle')}</p>
     </div>
 
     <!-- Pricing Cards -->
     <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 mb-32">
        <!-- Free Plan -->
-       <div class="bento-card !rounded-[40px] flex flex-col group hover:border-surface-700 transition-all duration-500">
-         <div class="p-12 flex-1">
-            <h3 class="text-2xl font-bold text-white mb-2">{$t('pricing.free.title')}</h3>
-            <p class="text-surface-500 text-sm mb-8">{$t('pricing.free.desc')}</p>
-            <div class="flex items-baseline gap-1 mb-10">
-              <span class="text-6xl font-black text-white italic">{$t('pricing.free.price')}</span>
-              <span class="text-surface-600 font-bold uppercase tracking-widest text-[10px]">{$t('pricing.free.period')}</span>
-            </div>
-            <ul class="space-y-5 text-surface-400 font-medium text-sm">
-               <li class="flex items-center gap-3">
-                 <CheckCircle class="w-5 h-5 text-surface-700" />
-                 <span>{$t('pricing.free.feat1')}</span>
-               </li>
-               <li class="flex items-center gap-3">
-                 <CheckCircle class="w-5 h-5 text-surface-700" />
-                 <span>{$t('pricing.free.feat2')}</span>
-               </li>
-               <li class="flex items-center gap-3">
-                 <CheckCircle class="w-5 h-5 text-surface-700" />
-                 <span>{$t('pricing.free.feat3')}</span>
-               </li>
-               <li class="flex items-center gap-3">
-                 <CheckCircle class="w-5 h-5 text-surface-700" />
-                 <span>{$t('pricing.free.feat4')}</span>
-               </li>
-            </ul>
-         </div>
-         <div class="p-12 pt-0">
-            <button onclick={() => goto('/login')} class="btn-secondary w-full py-5 text-lg font-bold">{$t('nav.startFree')}</button>
-         </div>
-       </div>
+        <div class="bento-card !rounded-[32px] sm:!rounded-[40px] flex flex-col group hover:border-surface-700 transition-all duration-500">
+          <div class="p-8 sm:p-12 flex-1">
+             <h3 class="text-xl sm:text-2xl font-bold text-white mb-2">{$t('pricing.free.title')}</h3>
+             <p class="text-surface-500 text-xs sm:text-sm mb-6 sm:mb-8">{$t('pricing.free.desc')}</p>
+             <div class="flex items-baseline gap-1 mb-8 sm:mb-10">
+               <span class="text-5xl sm:text-6xl font-black text-white italic">{$t('pricing.free.price')}</span>
+               <span class="text-surface-600 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">{$t('pricing.free.period')}</span>
+             </div>
+             <ul class="space-y-4 sm:space-y-5 text-surface-400 font-medium text-sm">
+                <li class="flex items-center gap-3">
+                  <CheckCircle class="w-5 h-5 text-surface-700 shrink-0" />
+                  <span class="text-sm">{$t('pricing.free.feat1')}</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <CheckCircle class="w-5 h-5 text-surface-700 shrink-0" />
+                  <span class="text-sm">{$t('pricing.free.feat2')}</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <CheckCircle class="w-5 h-5 text-surface-700 shrink-0" />
+                  <span class="text-sm">{$t('pricing.free.feat3')}</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <CheckCircle class="w-5 h-5 text-surface-700 shrink-0" />
+                  <span class="text-sm">{$t('pricing.free.feat4')}</span>
+                </li>
+             </ul>
+          </div>
+          <div class="p-8 sm:p-12 pt-0">
+             <button onclick={() => goto('/login')} class="btn-secondary w-full py-4 sm:py-5 text-base sm:text-lg font-bold">{$t('nav.startFree')}</button>
+          </div>
+        </div>
 
        <!-- Premium Plan -->
-       <div class="bento-card !rounded-[40px] border-primary-500/40 bg-primary-500/[0.02] flex flex-col shadow-2xl shadow-primary-500/10 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 px-8 py-3 bg-primary-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-3xl">{$t('pricing.recommended')}</div>
-          <div class="p-12 flex-1">
-            <h3 class="text-2xl font-bold text-primary-400 mb-2">{$t('pricing.premium.title')}</h3>
-            <p class="text-surface-400/80 text-sm mb-8">{$t('pricing.premium.desc')}</p>
-            <div class="flex items-baseline gap-1 mb-10">
-              <span class="text-6xl font-black text-white italic">{$t('pricing.premium.price')}</span>
-              <span class="text-primary-500/60 font-bold uppercase tracking-widest text-[10px]">{$t('pricing.premium.period')}</span>
+       <div class="bento-card !rounded-[32px] sm:!rounded-[40px] border-primary-500/40 bg-primary-500/[0.02] flex flex-col shadow-2xl shadow-primary-500/10 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 px-6 sm:px-8 py-2 sm:py-3 bg-primary-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-bl-2xl sm:rounded-bl-3xl">{$t('pricing.recommended')}</div>
+          <div class="p-8 sm:p-12 flex-1">
+            <h3 class="text-xl sm:text-2xl font-bold text-primary-400 mb-2">{$t('pricing.premium.title')}</h3>
+            <p class="text-surface-400/80 text-xs sm:text-sm mb-6 sm:mb-8">{$t('pricing.premium.desc')}</p>
+            <div class="flex items-baseline gap-1 mb-8 sm:mb-10">
+              <span class="text-5xl sm:text-6xl font-black text-white italic">{$t('pricing.premium.price')}</span>
+              <span class="text-primary-500/60 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">{$t('pricing.premium.period')}</span>
             </div>
-            <ul class="space-y-5 text-surface-200 font-semibold text-sm">
+            <ul class="space-y-4 sm:space-y-5 text-surface-200 font-semibold text-sm">
                <li class="flex items-center gap-3">
-                 <Shield class="w-5 h-5 text-primary-400" />
-                 <span>{$t('pricing.premium.feat1')}</span>
+                 <Shield class="w-5 h-5 text-primary-400 shrink-0" />
+                 <span class="text-sm">{$t('pricing.premium.feat1')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <Shield class="w-5 h-5 text-primary-400" />
-                 <span>{$t('pricing.premium.feat2')}</span>
+                 <Shield class="w-5 h-5 text-primary-400 shrink-0" />
+                 <span class="text-sm">{$t('pricing.premium.feat2')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <Shield class="w-5 h-5 text-primary-400" />
-                 <span>{$t('pricing.premium.feat3')}</span>
+                 <Shield class="w-5 h-5 text-primary-400 shrink-0" />
+                 <span class="text-sm">{$t('pricing.premium.feat3')}</span>
                </li>
                <li class="flex items-center gap-3">
-                 <Shield class="w-5 h-5 text-primary-400" />
-                 <span>{$t('pricing.premium.feat4')}</span>
+                 <Shield class="w-5 h-5 text-primary-400 shrink-0" />
+                 <span class="text-sm">{$t('pricing.premium.feat4')}</span>
                </li>
             </ul>
           </div>
-          <div class="p-12 pt-0">
-             <button onclick={handleSubscribe} class="btn-primary w-full py-5 text-lg font-extrabold shadow-xl shadow-primary-500/20">{$t('pricing.premium.cta')}</button>
+          <div class="p-8 sm:p-12 pt-0">
+             <button onclick={handleSubscribe} class="btn-primary w-full py-4 sm:py-5 text-base sm:text-lg font-extrabold shadow-xl shadow-primary-500/20">{$t('pricing.premium.cta')}</button>
           </div>
        </div>
     </div>
@@ -189,9 +181,9 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-white/[0.02]">
-                <th class="py-6 px-10 text-[10px] font-black uppercase tracking-widest text-surface-600">{$t('pricing.comparison.module')}</th>
-                <th class="py-6 px-10 text-center text-xs font-bold uppercase text-surface-400 tracking-tighter">{$t('pricing.free.title')}</th>
-                <th class="py-6 px-10 text-center text-xs font-black uppercase text-primary-400 tracking-tighter bg-primary-500/[0.03]">{$t('pricing.premium.title')}</th>
+                <th class="py-4 sm:py-6 px-4 sm:px-10 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-surface-600">{$t('pricing.comparison.module')}</th>
+                <th class="py-4 sm:py-6 px-4 sm:px-10 text-center text-[10px] sm:text-xs font-bold uppercase text-surface-400 tracking-tighter">{$t('pricing.free.title')}</th>
+                <th class="py-4 sm:py-6 px-4 sm:px-10 text-center text-[10px] sm:text-xs font-black uppercase text-primary-400 tracking-tighter bg-primary-500/[0.03]">{$t('pricing.premium.title')}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-white/5">
@@ -205,9 +197,9 @@
                 [$t('pricing.table.feat7'), $t('pricing.table.basic'), $t('pricing.table.priority')]
               ] as [title, free, premium]}
                 <tr class="hover:bg-white/[0.01] transition-colors">
-                  <td class="py-5 px-10 text-sm font-medium text-surface-300">{title}</td>
-                  <td class="py-5 px-10 text-center text-sm font-bold text-surface-500">{free}</td>
-                  <td class="py-5 px-10 text-center text-sm font-black text-white bg-primary-500/[0.03]">{premium}</td>
+                  <td class="py-4 sm:py-5 px-4 sm:px-10 text-xs sm:text-sm font-medium text-surface-300">{title}</td>
+                  <td class="py-4 sm:py-5 px-4 sm:px-10 text-center text-xs sm:text-sm font-bold text-surface-500">{free}</td>
+                  <td class="py-4 sm:py-5 px-4 sm:px-10 text-center text-xs sm:text-sm font-black text-white bg-primary-500/[0.03]">{premium}</td>
                 </tr>
               {/each}
             </tbody>
@@ -217,8 +209,8 @@
     </div>
 
     <!-- FAQ -->
-    <div class="max-w-3xl mx-auto px-6 mt-32">
-      <h3 class="text-3xl font-display font-black text-white text-center mb-16 italic">{$t('pricing.faq.title')}</h3>
+    <div class="max-w-3xl mx-auto px-6 mt-16 sm:mt-32">
+      <h3 class="text-2xl sm:text-3xl font-display font-black text-white text-center mb-10 sm:mb-16 italic">{$t('pricing.faq.title')}</h3>
       <div class="space-y-12">
         <div class="group">
           <h4 class="text-lg font-bold text-white mb-3 group-hover:text-primary-400 transition-colors">

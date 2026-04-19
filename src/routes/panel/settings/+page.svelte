@@ -72,23 +72,23 @@
   <title>{$t('settings.title')} - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto px-6 py-8" transition:fade>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8" transition:fade>
   
-  <div class="flex items-center gap-4 mb-12">
-    <div class="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-500 shadow-xl shadow-violet-500/5">
-      <Gear weight="duotone" class="w-8 h-8" />
+  <div class="flex items-center gap-4 mb-8 sm:mb-12">
+    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-500 shadow-xl shadow-violet-500/5">
+      <Gear weight="duotone" class="w-6 h-6 sm:w-8 sm:h-8" />
     </div>
     <div>
-      <h1 class="text-3xl font-outfit font-extrabold text-white tracking-tight">{$t('settings.title')}</h1>
-      <p class="text-slate-400 font-plus-jakarta text-sm">{$t('settings.subtitle')}</p>
+      <h1 class="text-2xl sm:text-3xl font-outfit font-extrabold text-white tracking-tight">{$t('settings.title')}</h1>
+      <p class="text-slate-400 font-plus-jakarta text-[11px] sm:text-sm">{$t('settings.subtitle')}</p>
     </div>
   </div>
 
   <div class="space-y-8">
       <!-- Profile Section -->
-      <div class="bento-card p-10">
-          <h2 class="text-xl font-outfit font-bold text-white mb-10 flex items-center gap-3">
-              <UserIcon weight="duotone" class="w-6 h-6 text-violet-500" />
+      <div class="bento-card p-6 sm:p-10">
+          <h2 class="text-lg sm:text-xl font-outfit font-bold text-white mb-6 sm:mb-10 flex items-center gap-3">
+              <UserIcon weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-violet-500" />
               {$t('settings.profile_title')}
           </h2>
 
@@ -141,40 +141,40 @@
       </div>
 
       <!-- Subscription Section -->
-      <div class="bento-card p-10">
-          <h2 class="text-xl font-outfit font-bold text-white mb-8 flex items-center gap-3">
-              <CreditCard weight="duotone" class="w-6 h-6 text-violet-500" />
+      <div class="bento-card p-6 sm:p-10">
+          <h2 class="text-lg sm:text-xl font-outfit font-bold text-white mb-6 sm:mb-8 flex items-center gap-3">
+              <CreditCard weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-violet-500" />
               {$t('settings.subscription_title')}
           </h2>
 
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-8 bg-zinc-950/50 border border-white/5 rounded-3xl shadow-inner group">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-8 bg-zinc-950/50 border border-white/5 rounded-3xl shadow-inner group">
               <div class="flex items-center gap-5">
-                <div class="w-12 h-12 bg-violet-600/10 rounded-2xl flex items-center justify-center text-violet-500">
-                  <Sparkle weight="duotone" class="w-6 h-6" />
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-violet-600/10 rounded-2xl flex items-center justify-center text-violet-500 shrink-0">
+                  <Sparkle weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                    <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-1">{$t('settings.current_level')}</p>
-                    <p class="text-white font-outfit font-black text-xl uppercase tracking-tight">{$t('settings.plan_prefix')} {$appStore.settings.plan || $t('settings.plan_free')}</p>
+                    <p class="text-[9px] sm:text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-1">{$t('settings.current_level')}</p>
+                    <p class="text-white font-outfit font-black text-lg sm:text-xl uppercase tracking-tight">{$t('settings.plan_prefix')} {$appStore.settings.plan || $t('settings.plan_free')}</p>
                 </div>
               </div>
-              <a href="/panel/upgrade" class="btn-pill bg-white text-black py-3 px-8 text-xs font-outfit font-black uppercase tracking-widest shadow-xl hover:bg-zinc-200 inline-flex items-center gap-2 group">
+              <a href="/panel/upgrade" class="btn-pill bg-white text-black py-2.5 sm:py-3 px-6 sm:px-8 text-[10px] sm:text-xs font-outfit font-black uppercase tracking-widest shadow-xl hover:bg-zinc-200 inline-flex items-center justify-center gap-2 group">
                   {$t('settings.manage_btn')}
-                  <Gear weight="bold" class="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
+                  <Gear weight="bold" class="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:rotate-90 transition-transform duration-500" />
               </a>
           </div>
       </div>
 
       <!-- Featured Insignias Section -->
-      <div class="bento-card p-10">
-          <h2 class="text-xl font-outfit font-bold text-white mb-8 flex items-center gap-3">
-              <Medal weight="duotone" class="w-6 h-6 text-violet-500" />
+      <div class="bento-card p-6 sm:p-10">
+          <h2 class="text-lg sm:text-xl font-outfit font-bold text-white mb-6 sm:mb-8 flex items-center gap-3">
+              <Medal weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-violet-500" />
               {$t('settings.featured_insignias_title')}
           </h2>
-          <p class="text-xs text-slate-500 mb-8 max-w-lg leading-relaxed">
+          <p class="text-[11px] sm:text-xs text-slate-500 mb-6 sm:mb-8 max-w-lg leading-relaxed">
               {$t('settings.featured_insignias_desc')}
           </p>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
               {#each availableInsignias as insignia}
                   {@const isFeatured = config.featuredInsignias.includes(insignia.id)}
                   <button 
@@ -205,9 +205,9 @@
       </div>
 
       <!-- Security Section -->
-      <div class="bento-card p-10">
-          <h2 class="text-xl font-outfit font-bold text-white mb-8 flex items-center gap-3">
-              <Shield weight="duotone" class="w-6 h-6 text-violet-500" />
+      <div class="bento-card p-6 sm:p-10">
+          <h2 class="text-lg sm:text-xl font-outfit font-bold text-white mb-6 sm:mb-8 flex items-center gap-3">
+              <Shield weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-violet-500" />
               {$t('settings.security_title')}
           </h2>
           
@@ -225,10 +225,10 @@
       </div>
 
       <!-- Floating Save Bar -->
-      <div class="sticky bottom-8 flex justify-center z-50 pt-10 pointer-events-none">
+      <div class="sticky bottom-4 sm:bottom-8 flex justify-center z-50 pt-10 pointer-events-none pb-[env(safe-area-inset-bottom)]">
           <button 
             onclick={handleSave}
-            class="btn-pill bg-violet-600 hover:bg-violet-500 text-white font-outfit font-black px-10 py-5 shadow-violet-flare flex items-center gap-3 transition-all hover:scale-105 active:scale-95 pointer-events-auto"
+            class="btn-pill bg-violet-600 hover:bg-violet-500 text-white font-outfit font-black px-8 sm:px-10 py-4 sm:py-5 shadow-violet-flare flex items-center gap-3 transition-all hover:scale-105 active:scale-95 pointer-events-auto text-[10px] sm:text-sm"
           >
             {#if saved}
               <Check weight="bold" class="w-5 h-5" />
