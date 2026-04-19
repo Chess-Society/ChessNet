@@ -124,7 +124,7 @@
             <h1 class="text-4xl md:text-5xl font-outfit font-black text-white tracking-tighter uppercase line-clamp-1">{school?.name}</h1>
             <div class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center gap-2">
               <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
+              <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">{$t('common.active')}</span>
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-4">
@@ -136,7 +136,7 @@
             {/if}
             <span class="flex items-center gap-2 text-[10px] font-bold text-violet-400 uppercase tracking-widest bg-violet-500/5 px-4 py-2 rounded-xl border border-violet-500/10 backdrop-blur-md">
               <Users size={14} weight="bold" />
-              {stats.totalStudents} {$t('nav.students')}
+              {stats.totalStudents} {$t('common.students')}
             </span>
           </div>
         </div>
@@ -156,24 +156,24 @@
         class="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-violet-flare flex items-center gap-3 group ring-1 ring-white/20"
       >
         <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform" />
-        Add Class
+        {$t('schools.details.add_class')}
       </button>
     </div>
   </div>
 
   <!-- Stats Bento Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
     <div class="bento-card p-8 border border-white/5 group hover:border-violet-500/40 transition-all relative overflow-hidden">
       <div class="absolute -right-4 -top-4 w-24 h-24 bg-violet-500/5 blur-3xl rounded-full"></div>
       <div class="flex items-start justify-between mb-6">
         <div class="p-3 bg-violet-500/10 rounded-2xl text-violet-400 border border-violet-500/20 group-hover:scale-110 transition-transform">
           <GraduationCap size={24} weight="duotone" />
         </div>
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Groups</span>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{$t('schools.details.groups')}</span>
       </div>
       <div class="space-y-1">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{stats.totalClasses}</h3>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Classes</p>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{$t('schools.details.active_classes')}</p>
       </div>
     </div>
     
@@ -183,11 +183,11 @@
         <div class="p-3 bg-blue-500/10 rounded-2xl text-blue-400 border border-blue-500/20 group-hover:scale-110 transition-transform">
           <Users size={24} weight="duotone" />
         </div>
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Students</span>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{$t('common.students')}</span>
       </div>
       <div class="space-y-1">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{stats.totalStudents || 0}</h3>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Enrollment</p>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{$t('schools.details.total_enrollment')}</p>
       </div>
     </div>
 
@@ -197,13 +197,13 @@
         <div class="p-3 bg-fuchsia-500/10 rounded-2xl text-fuchsia-400 border border-fuchsia-500/20 group-hover:scale-110 transition-transform">
           <Target size={24} weight="duotone" />
         </div>
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Occupancy</span>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{$t('schools.details.occupancy')}</span>
       </div>
       <div class="space-y-1">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">
           {Math.round((stats.totalStudents / (stats.totalCapacity || 1)) * 100)}%
         </h3>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Capacity Rate</p>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{$t('schools.details.capacity_rate')}</p>
       </div>
     </div>
 
@@ -213,11 +213,11 @@
         <div class="p-3 bg-amber-500/10 rounded-2xl text-amber-400 border border-amber-500/20 group-hover:scale-110 transition-transform">
           <TrendUp size={24} weight="duotone" />
         </div>
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Performance</span>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{$t('schools.details.performance')}</span>
       </div>
       <div class="space-y-1">
         <h3 class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">92%</h3>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Average Progress</p>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{$t('schools.details.avg_progress')}</p>
       </div>
     </div>
   </div>
@@ -231,9 +231,9 @@
         </div>
         <div>
           <h2 class="text-2xl font-outfit font-black text-white uppercase tracking-tight">
-            {$t('schools.training_classes')}
+            {$t('nav.classes')}
           </h2>
-          <p class="text-xs text-slate-500 font-jakarta mt-0.5">Manage groups and student rosters</p>
+          <p class="text-xs text-slate-500 font-jakarta mt-0.5">{$t('schools.details.manage_desc')}</p>
         </div>
       </div>
       
@@ -244,17 +244,17 @@
               onclick={() => selectedStatus = status}
               class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStatus === status ? 'bg-white/10 text-white shadow-xl ring-1 ring-white/10' : 'text-slate-500 hover:text-slate-300'}`}
             >
-              {status === 'active' ? 'Active' : 'History'}
+              {status === 'active' ? $t('common.active') : $t('schools.details.history')}
             </button>
           {/each}
         </div>
         
         <div class="relative group">
           <select bind:value={selectedLevel} class="appearance-none bg-black/40 border border-white/5 rounded-2xl pl-6 pr-14 py-3.5 text-[10px] font-black text-white uppercase tracking-widest outline-none cursor-pointer hover:border-white/20 transition-all shadow-inner backdrop-blur-md">
-            <option value="">All Levels</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
+            <option value="">{$t('common.all')}</option>
+            <option value="beginner">{$t('common.levels.beginner')}</option>
+            <option value="intermediate">{$t('common.levels.intermediate')}</option>
+            <option value="advanced">{$t('common.levels.advanced')}</option>
           </select>
           <CaretRight size={14} weight="bold" class="absolute right-6 top-1/2 -translate-y-1/2 rotate-90 text-slate-500 pointer-events-none group-hover:text-violet-400 transition-colors" />
         </div>
@@ -269,8 +269,8 @@
           </div>
         </div>
         <div class="max-w-xs mx-auto space-y-4">
-          <h3 class="text-xl font-outfit font-bold text-white uppercase tracking-widest">No Classes Found</h3>
-          <p class="text-sm font-jakarta text-slate-500 leading-relaxed">Start by creating your first training group for this center.</p>
+          <h3 class="text-xl font-outfit font-bold text-white uppercase tracking-widest">{$t('schools.details.no_classes')}</h3>
+          <p class="text-sm font-jakarta text-slate-500 leading-relaxed">{$t('schools.details.no_classes_desc')}</p>
         </div>
         <button 
           onclick={handleCreateClass}
@@ -322,7 +322,7 @@
 
               <div class="space-y-4 mb-10">
                 <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em]">
-                  <span class="flex items-center gap-2"><Users size={16} weight="duotone" class="text-violet-400" /> Enrollment</span>
+                  <span class="flex items-center gap-2"><Users size={16} weight="duotone" class="text-violet-400" /> {$t('schools.details.enrollment')}</span>
                   <span class="text-white">
                     {(item.students_count || 0)} 
                     <span class="text-slate-600 mx-1">/</span> 
@@ -337,12 +337,12 @@
                 </div>
               </div>
             </div>
-
+            
             <button 
               onclick={() => handleViewClass(item.id)}
               class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white hover:border-violet-500/50 hover:bg-violet-600/20 transition-all flex items-center justify-center gap-3 group/btn relative z-10 shadow-2xl backdrop-blur-md active:scale-95"
             >
-              Class Panel
+              {$t('schools.details.class_panel')}
               <CaretRight size={16} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />
             </button>
           </div>
@@ -354,10 +354,10 @@
 
 <ConfirmModal
   bind:show={showDeleteModal}
-  title="DANGER ZONE"
+  title={$t('schools.danger_zone')}
   message={$t('classes.delete_confirm').replace('{name}', classToDeleteName)}
-  confirmText="DELETE PERMANENTLY"
-  cancelText="CANCEL"
+  confirmText={$t('schools.delete_permanently')}
+  cancelText={$t('common.cancel')}
   onConfirm={confirmDelete}
   type="danger"
 />

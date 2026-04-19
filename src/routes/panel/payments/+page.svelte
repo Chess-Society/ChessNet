@@ -31,6 +31,7 @@
   import { user as authUser } from '$lib/stores/auth';
   import { ADMIN_EMAILS } from '$lib/constants';
   import { toast, showError } from '$lib/stores/toast';
+  import { uiStore } from '$lib/stores/uiStore';
   import { goto } from '$app/navigation';
   import { fade, fly, scale } from 'svelte/transition';
 
@@ -159,7 +160,16 @@
   };
 
   const deletePayment = async (id: string) => {
-    if (!confirm($t('payments.confirm_delete'))) return;
+    const confirmed = await uiStore.confirm({
+      title: $t('payments.confirm_delete'),
+      message: $t('payments.modal_description'),
+      type: 'danger',
+      confirmText: $t('common.delete'),
+      cancelText: $t('common.cancel')
+    });
+
+    if (!confirmed) return;
+
     isDeleting = id;
     try {
       await appStore.removePayment(id);

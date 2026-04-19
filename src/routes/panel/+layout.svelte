@@ -61,23 +61,39 @@
   // Scroll logic for mobile nav
   let lastScrollY = $state(0);
   let isNavVisible = $state(true);
-  let navThreshold = 50;
+  let navThreshold = 30; // Reducido para mayor sensibilidad
 
   function handleScroll() {
-    const currentScrollY = window.scrollY;
+    const currentScrollY = window.scrollY || document.documentElement.scrollTop;
     
-    if (currentScrollY < 10) {
+    if (currentScrollY < 20) {
       isNavVisible = true;
+    } else if (Math.abs(currentScrollY - lastScrollY) < 5) {
+      return; // Ignorar micro-scrolls
     } else if (currentScrollY > lastScrollY && currentScrollY > navThreshold) {
-      // Scrolling down
       isNavVisible = false;
     } else if (currentScrollY < lastScrollY) {
-      // Scrolling up
       isNavVisible = true;
     }
     
     lastScrollY = currentScrollY;
   }
+
+  // Lock body scroll when mobile menu is open
+  $effect(() => {
+    if (showMobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Close menu on route change
+  $effect(() => {
+    if ($page.url.pathname) {
+      showMobileMenu = false;
+    }
+  });
 
   onMount(() => {
     if (!$authUser) return;
@@ -176,7 +192,7 @@
   // Breadcrumbs dinámicos localizados con resolución de nombres
   let breadcrumbItems = $derived.by(() => {
     const parts = currentRoute.replace('/panel', '').split('/').filter(e => e);
-    if (parts.length === 0) return $t('nav.dashboard');
+    if (parts.length === 0) return [{ name: $t('nav.dashboard'), href: '/panel' }];
     
     // Mapeo de rutas raíz a claves de traducción
     const rootMappings: Record<string, string> = {
@@ -207,13 +223,13 @@
     let entityName = '';
 
     if (base === 'schools') {
-      entityName = $appStore.schools.find(s => s.id === id)?.name || '';
+      entityName = $appStore?.schools?.find(s => s.id === id)?.name || '';
     } else if (base === 'classes') {
-      entityName = $appStore.classes.find(c => c.id === id)?.name || '';
+      entityName = $appStore?.classes?.find(c => c.id === id)?.name || '';
     } else if (base === 'students') {
-      entityName = $appStore.students.find(s => s.id === id)?.name || '';
+      entityName = $appStore?.students?.find(s => s.id === id)?.name || '';
     } else if (base === 'tournaments') {
-      entityName = $appStore.localTournaments.find(t => t.id === id)?.name || '';
+      entityName = $appStore?.localTournaments?.find(t => t.id === id)?.name || '';
     }
 
     if (entityName) {
@@ -618,8 +634,9 @@
   {/if}
 
   <!-- Mobile Bottom Tab Bar (Premium App Style) -->
-  <div  
-    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-90 opacity-40 hover:opacity-70'}"
+  <div 
+    id="mobile-nav-bar"
+    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer overflow-hidden {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-75 opacity-30 blur-[2px] pointer-events-auto'}"
     role="button"
     tabindex="0"
     onclick={() => isNavVisible = true}

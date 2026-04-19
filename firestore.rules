@@ -100,23 +100,23 @@ service cloud.firestore {
     
     match /schools/{docId} {
       allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isSuperAdmin(); // Enforced via /api/schools
+      allow create: if isSuperAdmin() || (isAuthenticated() && request.resource.data.owner_id == request.auth.uid);
     }
     
     match /classes/{docId} {
       allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isSuperAdmin(); // Enforced via /api/classes
+      allow create: if isSuperAdmin() || (isAuthenticated() && request.resource.data.owner_id == request.auth.uid);
     }
     
     match /students/{docId} {
       allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isSuperAdmin(); // Enforced via /api/students
+      allow create: if isSuperAdmin() || (isAuthenticated() && request.resource.data.owner_id == request.auth.uid);
     }
 
     match /payments/{docId} {
       allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create, update: if isSuperAdmin(); // Only server can create/update payments
-      allow delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create, update: if isSuperAdmin(); // Only server/admin can create/update payments
+      allow delete: if isSuperAdmin(); // Restrict deletion to SuperAdmin for audit integrity
     }
 
     match /achievements/{docId} {
@@ -124,28 +124,113 @@ service cloud.firestore {
       allow write: if isSuperAdmin(); // Only server can grant achievements
     }
 
-    // --- MASTER RULE FOR REMAINING COLLECTIONS ---
-    match /{collection}/{docId} {
-      // Avoid matching core collections already handled above
-      allow read: if isSuperAdmin() || (isAuthenticated() && resource != null && (
-        (resource.data.owner_id == request.auth.uid) ||
-        (resource.data.authorId == request.auth.uid)
-      ));
-      
-      allow create: if isSuperAdmin() || (isAuthenticated() && 
-        !(collection in ['schools', 'classes', 'students', 'payments', 'achievements', 'users', 'user_subscriptions']) &&
-        (request.resource.data.owner_id == request.auth.uid || request.resource.data.authorId == request.auth.uid)
-      );
+    // --- SECONDARY ASSETS & PROGRESS TRACKING ---
+    
+    match /curriculum_units/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
 
-      allow update: if isSuperAdmin() || (isAuthenticated() && resource != null && (
-        (resource.data.owner_id == request.auth.uid && request.resource.data.owner_id == request.auth.uid) ||
-        (resource.data.authorId == request.auth.uid && request.resource.data.authorId == request.auth.uid)
-      ));
+    match /lessons/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
 
-      allow delete: if isSuperAdmin() || (isAuthenticated() && resource != null && (
-        (resource.data.owner_id == request.auth.uid) ||
-        (resource.data.authorId == request.auth.uid)
-      ));
+    match /lesson_resources/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /local_tournaments/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /local_tournament_players/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /local_tournament_pairings/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /local_tournament_rounds/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /tournament_participants/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /tournament_matches/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /badges/{docId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin() || (isAuthenticated() && (resource == null || resource.data.owner_id == request.auth.uid) && request.resource.data.owner_id == request.auth.uid);
+    }
+
+    match /student_badges/{docId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin() || (isAuthenticated() && (resource == null || resource.data.owner_id == request.auth.uid) && request.resource.data.owner_id == request.auth.uid);
+    }
+
+    match /student_stats/{studentId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin() || (isAuthenticated() && (resource == null || resource.data.owner_id == request.auth.uid) && request.resource.data.owner_id == request.auth.uid);
+    }
+
+    match /activity_logs/{docId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /class_students/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /class_skills/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /attendance/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /skills/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /chess_exercises/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /exercise_attempts/{docId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /parent_messages/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    // Default deny for anything else
+    match /{allPaths=**} {
+      allow read, write: if isSuperAdmin();
     }
   }
 }

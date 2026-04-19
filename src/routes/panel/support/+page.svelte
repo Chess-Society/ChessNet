@@ -49,7 +49,7 @@
         reports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       }, (err) => {
         console.error("Error reports listener:", err);
-        toast.error("Error al cargar los tickets de soporte");
+        toast.error($t('support.toast_loading_error'));
       });
     }
     return () => unsubR();
@@ -57,7 +57,7 @@
 
   async function handleSubmitReport() {
     if (!newReport.title || !newReport.content) {
-      toast.error("Por favor, rellena todos los campos");
+      toast.error($t('support.toast_fill_all'));
       return;
     }
     
@@ -73,7 +73,7 @@
         createdAt: new Date().toISOString()
       });
       
-      toast.success("Ticket enviado correctamente. Nos pondremos en contacto pronto.");
+      toast.success($t('support.toast_sent_success'));
       showCreateModal = false;
       newReport = { title: '', content: '', type: 'bug' };
     } catch (err: any) {
@@ -85,17 +85,17 @@
 
   async function handleDelete(id: string) {
     const confirmed = await uiStore.confirm({
-      title: "Eliminar Ticket",
-      message: "¿Estás seguro de que deseas eliminar este ticket de soporte?",
+      title: $t('support.delete_title'),
+      message: $t('support.delete_confirm'),
       type: 'danger'
     });
     if (!confirmed) return;
     
     try {
       await deleteDoc(doc(db, 'lobby_reports', id));
-      toast.success("Ticket eliminado");
+      toast.success($t('support.toast_deleted'));
     } catch (err: any) {
-      toast.error("Error al eliminar: " + err.message);
+      toast.error($t('support.error_delete', { error: err.message }));
     }
   }
 
@@ -121,7 +121,7 @@
         {$t('support.title')}
       </div>
       <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase italic leading-[0.85]">
-        Centro de<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Asistencia</span>
+        {$t('support.center_title_prefix')}<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">{$t('support.center_title')}</span>
       </h1>
       <p class="text-zinc-500 font-plus-jakarta text-sm lg:text-lg max-w-xl">
         {$t('support.desc')}
@@ -271,13 +271,13 @@
           <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white">
             <HandWaving size={32} weight="duotone" />
           </div>
-          <h3 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tighter">¿Necesitas ayuda rápida?</h3>
+          <h3 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('support.quick_help_title')}</h3>
           <p class="text-violet-200/60 font-medium leading-relaxed">
-            Revisa nuestra base de conocimientos para encontrar respuestas inmediatas a las preguntas más frecuentes.
+            {$t('support.quick_help_desc')}
           </p>
         </div>
         <a href="/faq" class="flex items-center gap-3 text-white font-black uppercase tracking-[0.2em] text-[10px] group-hover:gap-5 transition-all">
-          Ir a FAQ <ArrowRight weight="bold" size={16} />
+          {$t('support.faq_link')} <ArrowRight weight="bold" size={16} />
         </a>
       </div>
     </div>
@@ -289,9 +289,9 @@
           <Envelope size={32} weight="duotone" />
         </div>
         <div class="space-y-2">
-          <h3 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tighter">Correo Directo</h3>
+          <h3 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('support.direct_email_title')}</h3>
           <p class="text-zinc-500 font-medium max-w-sm">
-            Si prefieres el método tradicional o no puedes acceder al panel, escríbenos a:
+            {$t('support.direct_email_desc')}
           </p>
         </div>
         <div class="text-xl font-outfit font-black text-amber-500 uppercase tracking-tight">
@@ -341,7 +341,7 @@
               id="report-title"
               bind:value={newReport.title}
               type="text" 
-              placeholder="Ej: No puedo subir el logo del centro"
+              placeholder={$t('support.placeholder_example')}
               class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-amber-500 outline-none transition-all placeholder:text-zinc-800"
             />
           </div>
@@ -352,7 +352,7 @@
               id="report-content"
               bind:value={newReport.content}
               rows="5"
-              placeholder="Describe qué ha ocurrido y cómo podemos reproducirlo..."
+              placeholder={$t('support.placeholder_desc')}
               class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-2xl text-white font-medium focus:border-amber-500 outline-none transition-all resize-none placeholder:text-zinc-800"
             ></textarea>
           </div>

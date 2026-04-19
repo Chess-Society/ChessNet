@@ -73,14 +73,14 @@
       });
 
       if (!response.ok) throw new Error('Update error');
-      showToast.success($t('schools.update_success'));
+      showToast.success($t('schools.toast_success'));
       await invalidateAll();
       setTimeout(() => {
         goto(`/panel/schools/${schoolData.id}`);
       }, 400);
     } catch (error) {
       console.error('Error:', error);
-      showError(error as Error, $t('schools.update_error'));
+      showError(error as Error, $t('schools.toast_error'));
     } finally {
       isSubmitting = false;
     }
@@ -187,11 +187,12 @@
                   bind:value={formData.country} 
                   class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl px-5 py-3.5 text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all cursor-pointer font-medium"
                 >
-                  <option value="US">USA</option>
-                  <option value="ES">{$t('pricing.faq.a3').includes('Ayuda') ? 'España' : 'Spain'}</option>
-                  <option value="MX">Mexico</option>
-                  <option value="AR">Argentina</option>
-                  <option value="CO">Colombia</option>
+                  <option value="ES">{$t('schools.country_spain')}</option>
+                  <option value="MX">{$t('schools.country_mexico')}</option>
+                  <option value="AR">{$t('schools.country_argentina')}</option>
+                  <option value="CO">{$t('schools.country_colombia')}</option>
+                  <option value="US">{$t('schools.country_usa')}</option>
+                  <option value="OT">{$t('schools.country_others')}</option>
                 </select>
                 <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 text-xs">▼</div>
               </div>
@@ -281,7 +282,7 @@
         
         <div class="space-y-4">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-zinc-500">School ID</span>
+            <span class="text-xs font-medium text-zinc-500">{$t('schools.id_label')}</span>
             <span class="text-[10px] font-bold text-white font-mono bg-zinc-950 px-2 py-1 rounded-lg border border-zinc-800">
               {schoolData?.id.split('-')[0].toUpperCase()}
             </span>

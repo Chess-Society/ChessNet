@@ -134,7 +134,7 @@ function createAppStore() {
             const userEmail = (user.email || '').toLowerCase();
             
             if (!snap.exists()) {
-              console.log('✨ [AppStore] Initializing new user profile...');
+
               await setDoc(userRef, {
                 email: userEmail,
                 createdAt: new Date().toISOString(),
@@ -723,7 +723,17 @@ function createAppStore() {
         localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(store).payments));
         return;
       }
-      await deleteDoc(doc(db, 'payments', id));
+      
+      // Optimistic update for better UX
+      update(s => ({ ...s, payments: s.payments.filter(p => p.id !== id) }));
+      
+      try {
+        await deleteDoc(doc(db, 'payments', id));
+      } catch (error) {
+        // Rollback if needed, though onSnapshot will usually sync it back if it fails
+        console.error('❌ [AppStore] Error removing payment:', error);
+        throw error;
+      }
     },
 
     addSkill: async (skill: any) => {
