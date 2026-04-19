@@ -175,12 +175,33 @@ export const DELETE: RequestHandler = async (event) => {
     return json({ error: 'ID de pago requerido' }, { status: 400 });
   }
 
+  console.log(`🗑️ [DELETE /api/payments] uid=${uid} paymentId=${paymentId}`);
+
   try {
     const paymentRef = adminDb.collection('payments').doc(paymentId);
     const paymentSnap = await paymentRef.get();
 
     if (!paymentSnap.exists) {
-      return json({ error: 'Pago no encontrado' }, { status: 404 });
+      // Fallback: buscar por query para detectar si el doc existe en Firestore
+      // pero el ID tiene algún problema de encoding o path
+      const querySnap = await adminDb
+        .collection('payments')
+        .where('owner_id', '==', uid)
+        .get();
+      
+      const matchingDoc = querySnap.docs.find(d => d.id === paymentId);
+      
+      if (!matchingDoc) {
+        console.warn(`⚠️ [DELETE /api/payments] Doc ${paymentId} not found. User ${uid} has ${querySnap.size} payments.`);
+        // Si no existe pero el optimistic update ya lo limpió del store, retornamos éxito
+        // para no mostrar un error al usuario cuando el resultado es correcto
+        return json({ success: true, message: 'Pago ya eliminado' });
+      }
+
+      // El doc existe pero el .doc(id) no lo encuentra — inconsistencia de Admin SDK
+      await matchingDoc.ref.delete();
+      console.log(`✅ [DELETE /api/payments] Deleted via query fallback: ${paymentId}`);
+      return json({ success: true, message: 'Pago eliminado correctamente' });
     }
 
     const data = paymentSnap.data()!;
@@ -192,6 +213,7 @@ export const DELETE: RequestHandler = async (event) => {
     }
 
     await paymentRef.delete();
+    console.log(`✅ [DELETE /api/payments] Deleted: ${paymentId}`);
 
     return json({
       success: true,
@@ -203,3 +225,4 @@ export const DELETE: RequestHandler = async (event) => {
     return json({ error: 'Error al eliminar el pago' }, { status: 500 });
   }
 };
+
