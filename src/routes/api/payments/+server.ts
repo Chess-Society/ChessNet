@@ -124,26 +124,34 @@ export const PUT: RequestHandler = async (event) => {
     const paymentRef = adminDb.collection('payments').doc(paymentId);
     const paymentSnap = await paymentRef.get();
 
-    if (!paymentSnap.exists || paymentSnap.data()?.owner_id !== uid) {
+    if (!paymentSnap.exists) {
+      return json({ error: 'Pago no encontrado' }, { status: 404 });
+    }
+
+    const data = paymentSnap.data()!;
+    // Compatibilidad: documentos antiguos pueden usar 'userId' en lugar de 'owner_id'
+    const docOwner = data.owner_id || data.userId || null;
+    if (docOwner !== uid) {
+      console.warn(`⚠️ [PUT /api/payments] User ${uid} tried to update payment ${paymentId} owned by ${docOwner}`);
       return json({ error: 'Pago no encontrado o no autorizado' }, { status: 403 });
     }
 
     const updates = await request.json();
     const cleanUpdates = {
       ...updates,
+      owner_id: uid, // Normalizar al campo estándar
       updated_at: new Date().toISOString()
     };
     
     // Evitar que el usuario cambie campos críticos por error
     delete cleanUpdates.id;
-    delete cleanUpdates.owner_id;
     delete cleanUpdates.created_at;
 
     await paymentRef.update(cleanUpdates);
 
     return json({
       success: true,
-      data: { id: paymentId, ...paymentSnap.data(), ...cleanUpdates },
+      data: { id: paymentId, ...data, ...cleanUpdates },
       message: 'Pago actualizado correctamente'
     });
 
@@ -171,7 +179,15 @@ export const DELETE: RequestHandler = async (event) => {
     const paymentRef = adminDb.collection('payments').doc(paymentId);
     const paymentSnap = await paymentRef.get();
 
-    if (!paymentSnap.exists || paymentSnap.data()?.owner_id !== uid) {
+    if (!paymentSnap.exists) {
+      return json({ error: 'Pago no encontrado' }, { status: 404 });
+    }
+
+    const data = paymentSnap.data()!;
+    // Compatibilidad: documentos antiguos pueden usar 'userId' en lugar de 'owner_id'
+    const docOwner = data.owner_id || data.userId || null;
+    if (docOwner !== uid) {
+      console.warn(`⚠️ [DELETE /api/payments] User ${uid} tried to delete payment ${paymentId} owned by '${docOwner}'. Doc fields: ${Object.keys(data).join(', ')}`);
       return json({ error: 'Pago no encontrado o no autorizado' }, { status: 403 });
     }
 
@@ -187,4 +203,3 @@ export const DELETE: RequestHandler = async (event) => {
     return json({ error: 'Error al eliminar el pago' }, { status: 500 });
   }
 };
-
