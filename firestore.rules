@@ -40,7 +40,8 @@ service cloud.firestore {
     // Configuración del sistema y Logs (Solo Admin)
     // Configuración del sistema y Logs
     match /system/config {
-      allow read: if true;
+      // Requiere autenticación para proteger información del sistema
+      allow read: if isAuthenticated();
       allow write: if isSuperAdmin();
     }
     
@@ -75,11 +76,20 @@ service cloud.firestore {
     }
 
     // Lobby: Reportes de soporte (Privados: Autor + Admin)
+    // SEGURIDAD: Separar create/update/delete para evitar modificación de campos sensibles
     match /lobby_reports/{reportId} {
-      allow read, write: if isSuperAdmin() || (isAuthenticated() && (
-        (resource != null && resource.data.authorId == request.auth.uid) ||
-        (request.resource != null && request.resource.data.authorId == request.auth.uid)
-      ));
+      // Lectura: solo el autor del reporte o un admin
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.authorId == request.auth.uid);
+      // Crear: solo el propio usuario, debe ser el autor
+      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+      // Actualizar: el usuario puede añadir mensajes pero NO puede cambiar authorId, status ni createdAt
+      allow update: if isSuperAdmin() || (
+        isAuthenticated() &&
+        resource.data.authorId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['authorId', 'status', 'createdAt'])
+      );
+      // Eliminar: solo el admin puede borrar tickets
+      allow delete: if isSuperAdmin();
     }
 
     // Lobby: Grupos de la comunidad

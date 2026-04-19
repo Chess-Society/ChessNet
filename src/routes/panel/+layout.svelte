@@ -20,7 +20,9 @@
     Lock,
     Calendar,
     Trophy,
-    Lifebuoy
+    Lifebuoy,
+    BookOpen,
+    Medal
   } from 'phosphor-svelte';
 
   import { fade, fly } from 'svelte/transition';
@@ -79,12 +81,12 @@
     lastScrollY = currentScrollY;
   }
 
-  // Lock body scroll when mobile menu is open
+  // Lock body scroll when mobile menu is open (iOS Safari safe)
   $effect(() => {
     if (showMobileMenu) {
-      document.body.style.overflow = 'hidden';
+      document.body.classList.add('menu-open');
     } else {
-      document.body.style.overflow = '';
+      document.body.classList.remove('menu-open');
     }
   });
 
@@ -283,7 +285,8 @@
 
   <!-- Mobile Header (Premium App Style) -->
   <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-[60] {isImpersonating ? 'translate-y-10' : ''}">
-    <button onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto">
+    <!-- Logo: min 44x44px para área táctil Apple HIG -->
+    <button onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto min-w-[44px] min-h-[44px] -ml-2 pl-2">
       <Logo className="h-7 w-7 shadow-violet-flare/20" />
       <span class="text-lg font-outfit font-black text-white tracking-tighter uppercase italic">ChessNet</span>
     </button>
@@ -341,7 +344,7 @@
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
           <a href="/panel/settings" 
              onclick={() => showMobileMenu = false}
-             class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-violet-500/10 hover:text-violet-400 transition-all font-outfit">
+             class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-violet-500/10 hover:text-violet-400 transition-all font-outfit {currentRoute.includes('/settings') ? 'bg-violet-500/10 text-violet-400' : ''}">
             <GearSix weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.settings')}</span>
           </a>
@@ -355,19 +358,50 @@
             </a>
           {/if}
 
-          <div class="h-px bg-white/5 my-4 mx-4"></div>
+          <div class="h-px bg-white/5 my-2 mx-4"></div>
+          <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.management') || 'Gestión'}</p>
 
-          <a href="/panel/schools" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-white/5 transition-all font-outfit">
+          <a href="/panel/schools" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <Buildings weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.schools')}</span>
           </a>
-          <a href="/panel/classes" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-white/5 transition-all font-outfit">
+          <a href="/panel/classes" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <Chalkboard weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.classes')}</span>
           </a>
-          <a href="/panel/attendance" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-white/5 transition-all font-outfit">
+          <a href="/panel/students" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <Users weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.students')}</span>
+          </a>
+          <a href="/panel/attendance" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <ListChecks weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.attendance')}</span>
+          </a>
+
+          <div class="h-px bg-white/5 my-2 mx-4"></div>
+          <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.premium_features') || 'Avanzado'}</p>
+
+          <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <div class="flex items-center gap-4">
+              <Wallet weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.payments')}</span>
+            </div>
+            {#if plan !== 'premium'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
+          </a>
+          <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <div class="flex items-center gap-4">
+              <Trophy weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.tournaments')}</span>
+            </div>
+            {#if plan !== 'premium'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
+          </a>
+          <a href="/panel/skills" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/skills') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <BookOpen weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.skills') || 'Temario'}</span>
+          </a>
+          <a href="/panel/achievements" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/achievements') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <Medal weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.achievements')}</span>
           </a>
         </nav>
 
@@ -647,12 +681,12 @@
         <!-- Left Side -->
         <a href="/panel" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute === '/panel' ? 'text-violet-400 font-bold' : 'text-slate-500'}">
           <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[7px] font-black uppercase tracking-widest leading-none">{$t('nav.dashboard').split(' ')[0]}</span>
+          <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.dashboard').split(' ')[0]}</span>
         </a>
         
         <a href={plan === 'premium' ? '/panel/lobby' : '/pricing'} class="relative flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
           <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[7px] font-black uppercase tracking-widest leading-none">{$t('nav.lobby').split(' ')[1] || $t('nav.lobby')}</span>
+          <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.lobby').split(' ')[1] || $t('nav.lobby')}</span>
           {#if lobbyPulse && plan === 'premium'}
             <div class="absolute top-0 right-1 w-2 h-2 bg-violet-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
           {/if}
@@ -682,12 +716,12 @@
         <!-- Right Side -->
         <a href="/panel/students" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/students') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
           <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[7px] font-black uppercase tracking-widest leading-none">{$t('nav.students')}</span>
+          <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.students')}</span>
         </a>
  
         <a href="/panel/planner" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/planner') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
           <Calendar weight={currentRoute.includes('/planner') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[7px] font-black uppercase tracking-widest leading-none">{$t('nav.planner') || 'Plan'}</span>
+          <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.planner') || 'Plan'}</span>
         </a>
       </nav>
     </div>
@@ -707,13 +741,15 @@
 
   /* Override Jakarta and Outfit for mobile to feel more native */
   @media (max-width: 1023px) {
-    :global(.font-jakarta), :global(.font-outfit), :global(body) {
-       font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
-    }
-    
     :global(main) {
       padding-top: calc(var(--ios-nav-height) + 1rem) !important;
       padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
+    }
+    /* iOS Safari scroll fix: usar position fixed en body cuando el drawer está abierto */
+    :global(body.menu-open) {
+      position: fixed;
+      width: 100%;
+      overflow: hidden;
     }
   }
 

@@ -84,7 +84,7 @@
 
   <main class="relative z-10">
     <!-- Hero Section -->
-    <section class="relative pt-64 pb-32 px-6">
+    <section class="relative pt-36 sm:pt-48 lg:pt-64 pb-32 px-6">
       <div class="max-w-5xl mx-auto flex flex-col items-center text-center">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-[0.2em] mb-12 animate-fade-in">
           <Sparkles class="w-3.5 h-3.5" />
@@ -339,7 +339,7 @@
         </p>
       </div>
       
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-16">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-8 sm:gap-16">
          <div class="space-y-6">
            <h4 class="text-[10px] font-black text-white uppercase tracking-widest">{$t('nav.platform')}</h4>
            <div class="flex flex-col gap-4 text-xs font-bold text-slate-500">

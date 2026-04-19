@@ -58,15 +58,19 @@
     }
   };
 
-  const handleSave = () => {
-    appStore.updateSettings({
-      teacherName: config.teacherName,
-      teacherAvatar: config.teacherAvatar,
-      teacherEmail: config.teacherEmail,
-      featuredInsignias: config.featuredInsignias
-    });
-    saved = true;
-    setTimeout(() => saved = false, 3000);
+  const handleSave = async () => {
+    try {
+      await appStore.updateSettings({
+        teacherName: config.teacherName,
+        teacherAvatar: config.teacherAvatar,
+        teacherEmail: config.teacherEmail,
+        featuredInsignias: config.featuredInsignias
+      });
+      saved = true;
+      setTimeout(() => saved = false, 3000);
+    } catch (err: any) {
+      toast.error(err?.message || 'Error guardando la configuración');
+    }
   };
 
 </script>

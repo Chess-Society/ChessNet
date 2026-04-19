@@ -11,8 +11,13 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
   try {
     let sessionCookie: string;
+    const isDev = process.env.NODE_ENV === 'development';
 
     if (token === 'mock-chessnet-token') {
+      // Mock session SOLO en desarrollo — rechazado en producción
+      if (!isDev) {
+        return json({ error: 'Token inválido' }, { status: 401 });
+      }
       sessionCookie = 'mock-session-chessnet';
     } else {
       // Definimos el tiempo de expiración (5 días)
@@ -23,7 +28,6 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
 
     // La guardamos en la cookie __session (estándar de Firebase Hosting/CDN)
-    const isDev = process.env.NODE_ENV === 'development';
     cookies.set('__session', sessionCookie, {
       path: '/',
       httpOnly: true,

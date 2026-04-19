@@ -15,8 +15,9 @@ export async function authenticate(event: RequestEvent) {
     }
 
     try {
-        // Bypass para desarrollo local
-        if (sessionCookie === 'mock-session-chessnet') {
+        // Bypass SOLO para desarrollo local — bloqueado en producción
+        const isDev = process.env.NODE_ENV === 'development';
+        if (isDev && sessionCookie === 'mock-session-chessnet') {
             event.locals.user = {
                 uid: 'chessnet-dev-uid',
                 email: 'admin@chessnet.pro',
@@ -61,13 +62,8 @@ export async function requireUser(event: RequestEvent) {
 }
 
 export async function requireAdmin(event: RequestEvent) {
-    const { isAdmin } = await authenticate(event);
+    const { isAdmin, user } = await authenticate(event);
     if (!isAdmin) {
-        const { user } = await authenticate(event);
-        if (user) {
-            throw redirect(303, '/panel');
-        } else {
-            throw redirect(303, '/login');
-        }
+        throw redirect(303, user ? '/panel' : '/login');
     }
 }

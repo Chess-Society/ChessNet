@@ -691,13 +691,15 @@ function createAppStore() {
         return newPayment;
       }
 
-      const collRef = collection(db, 'payments');
-      const docRef = await addDoc(collRef, { 
-        ...payment, 
-        owner_id: user.uid,
-        createdAt: new Date().toISOString() 
+      // Usar API para bypassear las Firestore Rules (el cliente no puede escribir en /payments)
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payment)
       });
-      return { id: docRef.id, ...payment };
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Error al crear pago');
+      return result.data;
     },
     updatePayment: async (payment: any) => {
       const user = get(authStoreUser);
@@ -727,14 +729,19 @@ function createAppStore() {
         return;
       }
       
-      // Optimistic update for better UX
+      // Optimistic update para mejor UX
       update(s => ({ ...s, payments: s.payments.filter(p => p.id !== id) }));
       
       try {
-        await deleteDoc(doc(db, 'payments', id));
+        // Usar API para bypassear las Firestore Rules (el cliente no puede borrar en /payments)
+        const response = await fetch(`/api/payments?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'Error al eliminar pago');
+        }
       } catch (error) {
-        // Rollback is usually handled by onSnapshot sync, but we could re-add if needed
-        console.error('❌ [AppStore] Error removing payment:', error);
+        console.error('❌ [AppStore] Error removing payment via API:', error);
+        // El onSnapshot se encargará de restablecerlo si falla
         throw error;
       }
     },
@@ -936,26 +943,31 @@ function createAppStore() {
       const current = get(store).unlockedAchievements;
       if (current.find((a: any) => a.id === achievementId)) return;
 
-      const collRef = collection(db, 'achievements');
-      await addDoc(collRef, {
-        id: achievementId,
-        owner_id: user.uid,
-        unlockedAt: new Date().toISOString(),
-        notified: false
-      });
-      
-      // Update local queue manually for immediate response if needed (snapshot will also catch it)
-      update(s => ({
-        ...s,
-        pendingAchievementIds: [...s.pendingAchievementIds, achievementId]
-      }));
+      // Usar API para bypassear las Firestore Rules (solo admin puede escribir en /achievements)
+      try {
+        const response = await fetch('/api/achievements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ achievementId })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error al desbloquear logro');
+        if (!result.alreadyUnlocked) {
+          update(s => ({
+            ...s,
+            pendingAchievementIds: [...s.pendingAchievementIds, achievementId]
+          }));
+        }
+      } catch (error) {
+        console.error('❌ [AppStore] Error unlocking achievement via API:', error);
+      }
     },
 
     markAchievementAsNotified: async (achievementId: string) => {
       const user = get(authStoreUser);
       if (!user) return;
 
-      // Update state
+      // Actualizar estado local primero
       update(s => ({
         ...s,
         pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId),
@@ -964,25 +976,15 @@ function createAppStore() {
 
       if (user.uid === 'chessnet-dev-uid') return;
 
-      // Update Firestore
-      const q = query(
-        collection(db, 'achievements'),
-        where('owner_id', '==', user.uid),
-        where('id', '==', achievementId),
-        where('notified', '==', false)
-      );
-      
+      // Usar API para bypassear las Firestore Rules al marcar como notificado
       try {
-        const snap = await getDocs(q);
-        if (snap.empty) return;
-        
-        const batch = writeBatch(db);
-        snap.docs.forEach(d => {
-          batch.update(doc(db, 'achievements', d.id), { notified: true });
+        await fetch('/api/achievements', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ achievementId })
         });
-        await batch.commit();
       } catch (error) {
-        console.error('❌ [AppStore] Error marking achievement as notified:', error);
+        console.error('❌ [AppStore] Error marking achievement as notified via API:', error);
       }
     },
 
@@ -994,19 +996,18 @@ function createAppStore() {
       const currentUser = get(authStoreUser);
       if (!currentUser) throw new Error("No authenticated user");
 
-      const uid = currentUser.uid;
-      
-      // Delete the main user record.
-      if (uid !== 'chessnet-dev-uid') {
-        await deleteDoc(doc(db, 'users', uid));
-        
-        // Delete the Auth account (from real Firebase)
-        const firebaseUser = auth.currentUser;
-        if (firebaseUser) await firebaseUser.delete();
-      } else {
-        // Mock deletion
+      if (currentUser.uid === 'chessnet-dev-uid') {
+        // Mock deletion local
         localStorage.clear();
         sessionStorage.clear();
+        return;
+      }
+
+      // Llamar al endpoint que borra TODOS los datos en batch y la cuenta de Auth
+      const response = await fetch('/api/users/me', { method: 'DELETE' });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.details || err.error || 'Error al eliminar cuenta');
       }
     }
   };
