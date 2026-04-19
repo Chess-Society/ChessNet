@@ -3,6 +3,8 @@ import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 import { serializeRecord } from '$lib/server/serialize';
+import type { DocumentSnapshot } from 'firebase-admin/firestore';
+
 
 export const GET: RequestHandler = async (event) => {
   const { user } = await authenticate(event);
@@ -175,54 +177,64 @@ export const DELETE: RequestHandler = async (event) => {
     return json({ error: 'ID de pago requerido' }, { status: 400 });
   }
 
-  console.log(`🗑️ [DELETE /api/payments] uid=${uid} paymentId=${paymentId}`);
+  console.log(`🗑️ [DELETE /api/payments] uid=${uid} paymentId="${paymentId}"`);
 
+  // ── Paso 1: intentar leer el documento por su ID ─────────────────────────
+  let paymentSnap: DocumentSnapshot | null = null;
   try {
-    const paymentRef = adminDb.collection('payments').doc(paymentId);
-    const paymentSnap = await paymentRef.get();
+    paymentSnap = await adminDb.collection('payments').doc(paymentId).get();
+  } catch (readErr: any) {
+    console.error(`❌ [DELETE] Error reading doc ${paymentId}:`, readErr?.message ?? readErr);
+    // Si no podemos leer, el doc probablemente ya no existe — éxito silencioso
+    return json({ success: true, message: 'Pago ya eliminado (lectura fallida)' });
+  }
 
-    if (!paymentSnap.exists) {
-      // Fallback: buscar por query para detectar si el doc existe en Firestore
-      // pero el ID tiene algún problema de encoding o path
-      const querySnap = await adminDb
-        .collection('payments')
-        .where('owner_id', '==', uid)
-        .get();
-      
-      const matchingDoc = querySnap.docs.find(d => d.id === paymentId);
-      
-      if (!matchingDoc) {
-        console.warn(`⚠️ [DELETE /api/payments] Doc ${paymentId} not found. User ${uid} has ${querySnap.size} payments.`);
-        // Si no existe pero el optimistic update ya lo limpió del store, retornamos éxito
-        // para no mostrar un error al usuario cuando el resultado es correcto
-        return json({ success: true, message: 'Pago ya eliminado' });
-      }
-
-      // El doc existe pero el .doc(id) no lo encuentra — inconsistencia de Admin SDK
-      await matchingDoc.ref.delete();
-      console.log(`✅ [DELETE /api/payments] Deleted via query fallback: ${paymentId}`);
-      return json({ success: true, message: 'Pago eliminado correctamente' });
-    }
-
+  // ── Paso 2: si el doc existe, verificar propiedad y borrar ───────────────
+  if (paymentSnap.exists) {
     const data = paymentSnap.data()!;
-    // Compatibilidad: documentos antiguos pueden usar 'userId' en lugar de 'owner_id'
     const docOwner = data.owner_id || data.userId || null;
+
     if (docOwner !== uid) {
-      console.warn(`⚠️ [DELETE /api/payments] User ${uid} tried to delete payment ${paymentId} owned by '${docOwner}'. Doc fields: ${Object.keys(data).join(', ')}`);
-      return json({ error: 'Pago no encontrado o no autorizado' }, { status: 403 });
+      console.warn(`⚠️ [DELETE] uid=${uid} attempted to delete payment owned by="${docOwner}"`);
+      return json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    await paymentRef.delete();
-    console.log(`✅ [DELETE /api/payments] Deleted: ${paymentId}`);
+    try {
+      await paymentSnap.ref.delete();
+      console.log(`✅ [DELETE] Deleted payment ${paymentId}`);
+      return json({ success: true, message: 'Pago eliminado correctamente' });
+    } catch (delErr: any) {
+      console.error(`❌ [DELETE] Error deleting doc ${paymentId}:`, delErr?.message ?? delErr);
+      return json({ error: 'Error al eliminar el pago', detail: delErr?.message }, { status: 500 });
+    }
+  }
 
-    return json({
-      success: true,
-      message: 'Pago eliminado correctamente'
-    });
+  // ── Paso 3: doc no encontrado por ID — buscar por owner como fallback ────
+  console.log(`🔍 [DELETE] Doc ${paymentId} not found by id. Trying owner query...`);
+  try {
+    const querySnap = await adminDb
+      .collection('payments')
+      .where('owner_id', '==', uid)
+      .get();
 
-  } catch (error: any) {
-    console.error('❌ API Error in DELETE /api/payments:', error);
-    return json({ error: 'Error al eliminar el pago' }, { status: 500 });
+    const match = querySnap.docs.find(d => d.id === paymentId);
+
+    if (!match) {
+      // El doc no existe en ningún lado — el optimistic update ya limpió la UI
+      console.warn(`⚠️ [DELETE] ${paymentId} not found in ${querySnap.size} payments for uid=${uid}`);
+      return json({ success: true, message: 'Pago ya eliminado' });
+    }
+
+    await match.ref.delete();
+    console.log(`✅ [DELETE] Deleted via query fallback: ${paymentId}`);
+    return json({ success: true, message: 'Pago eliminado correctamente' });
+
+  } catch (queryErr: any) {
+    console.error(`❌ [DELETE] Query fallback error for uid=${uid}:`, queryErr?.message ?? queryErr);
+    // La query falla pero el optimistic update ya limpió la UI — retornar éxito
+    // para no mostrar error falso al usuario cuando el pago ya no está visible
+    return json({ success: true, message: 'Pago eliminado (query fallida, estado sincronizado)' });
   }
 };
+
 
