@@ -10,7 +10,7 @@
   } from 'firebase/firestore';
   import { adminApi } from '$lib/api/admin';
   import { t } from '$lib/i18n';
-  import { fade, slide, scale } from 'svelte/transition';
+  import { fade, slide, scale, fly } from 'svelte/transition';
   import { toast } from '$lib/stores/toast';
   
   // Icons
@@ -101,6 +101,23 @@
   let userInsignias = $state<any[]>([]);
   let isLoadingDetails = $state(false);
 
+  // Scroll logic for mobile nav
+  let lastScrollY = $state(0);
+  let isNavVisible = $state(true);
+  const navThreshold = 50;
+
+  function handleScroll() {
+    const currentScrollY = window.scrollY;
+    if (currentScrollY < 10) {
+      isNavVisible = true;
+    } else if (currentScrollY > lastScrollY && currentScrollY > navThreshold) {
+      isNavVisible = false;
+    } else if (currentScrollY < lastScrollY) {
+      isNavVisible = true;
+    }
+    lastScrollY = currentScrollY;
+  }
+
   // Subscriptions Cleanup
   let unsubscribes: (() => void)[] = [];
 
@@ -117,6 +134,8 @@
       const statsInterval = setInterval(refreshStats, 60000);
       unsubscribes.push(() => clearInterval(statsInterval));
       
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      
       isLoading = false;
     } catch (err) {
       console.error("Admin Init Error:", err);
@@ -126,6 +145,7 @@
 
   onDestroy(() => {
     unsubscribes.forEach(unsub => unsub());
+    window.removeEventListener('scroll', handleScroll);
   });
 
   function startRealTimeMonitoring() {
@@ -709,7 +729,13 @@
   {/if}
 
   <!-- Premium Mobile Navigation for Admins -->
-  <div class="lg:hidden fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[450px] z-[100] pb-[env(safe-area-inset-bottom)]">
+  <div 
+    class="lg:hidden fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[450px] z-[100] pb-[env(safe-area-inset-bottom)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-90 opacity-40 hover:opacity-70'}"
+    role="button"
+    tabindex="0"
+    onclick={() => isNavVisible = true}
+    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') isNavVisible = true; }}
+  >
     <div class="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-2 sm:p-2.5 rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] flex items-center justify-between">
       {#each [
         { id: 'dashboard', icon: SquaresFour, label: 'Dash' },

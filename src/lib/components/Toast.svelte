@@ -176,10 +176,7 @@
 </div>
 
 <style>
-  /* Noise pattern integration */
-  .backdrop-blur-3xl {
-    /* Grainy noise texture removed per user request */
-  }
+
   .animate-spin-slow {
     animation: spin 3s linear infinite;
   }

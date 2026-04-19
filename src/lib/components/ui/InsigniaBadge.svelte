@@ -223,9 +223,7 @@
     animation: iridescent 12s linear infinite;
   }
 
-  .bg-noise {
-    /* Grainy noise texture removed per user request */
-  }
+
 
   .insignia-wrapper:hover .card-frame {
     transform: translateY(-4px) rotateX(4deg) rotateY(4deg);

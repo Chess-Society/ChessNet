@@ -237,7 +237,7 @@
             <div class="mt-6 p-6 bg-violet-600/10 border border-violet-500/20 rounded-3xl space-y-3 relative group/response">
               <div class="flex items-center gap-3 text-violet-400">
                 <Envelope weight="fill" size={16} />
-                <span class="text-[10px] font-black uppercase tracking-[0.2em]">Respuesta de ChessNet</span>
+                <span class="text-[10px] font-black uppercase tracking-[0.2em]">{$t('support.admin_response')}</span>
               </div>
               <p class="text-sm text-zinc-300 italic">"{r.adminResponse}"</p>
             </div>

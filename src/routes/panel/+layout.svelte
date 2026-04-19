@@ -23,7 +23,7 @@
     Lifebuoy
   } from 'phosphor-svelte';
 
-  import { fade } from 'svelte/transition';
+  import { fade, fly } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
   import { appStore } from '$lib/stores/appStore';
   import { INSIGNIAS } from '$lib/constants/insignias';
@@ -53,9 +53,31 @@
   // Impersonation state
   let isImpersonating = $derived(!!data.impersonateEmail);
 
-  // Lobby Notifications state
+  // Lobby & Support Notifications state
   let lobbyPulse = $state(false);
+  let supportPulse = $state(false);
   let unsubs: (() => void)[] = [];
+
+  // Scroll logic for mobile nav
+  let lastScrollY = $state(0);
+  let isNavVisible = $state(true);
+  let navThreshold = 50;
+
+  function handleScroll() {
+    const currentScrollY = window.scrollY;
+    
+    if (currentScrollY < 10) {
+      isNavVisible = true;
+    } else if (currentScrollY > lastScrollY && currentScrollY > navThreshold) {
+      // Scrolling down
+      isNavVisible = false;
+    } else if (currentScrollY < lastScrollY) {
+      // Scrolling up
+      isNavVisible = true;
+    }
+    
+    lastScrollY = currentScrollY;
+  }
 
   onMount(() => {
     if (!$authUser) return;
@@ -104,10 +126,46 @@
             console.warn('⚠️ [Panel Layout] No se pudieron leer anuncios globales:', error.message);
         }
     ));
+
+    // 3. Monitor for Support Tickets (User or Admin)
+    const qTickets = data.isAdmin
+      ? query(collection(db, 'lobby_reports'), where('status', '==', 'open'), orderBy('createdAt', 'desc'), limit(1))
+      : query(collection(db, 'lobby_reports'), where('authorId', '==', $authUser.uid), orderBy('createdAt', 'desc'), limit(1));
+
+    unsubs.push(onSnapshot(qTickets,
+      (snap) => {
+        if (!snap.empty) {
+          const ticket = snap.docs[0].data() as any;
+          const lastUpdate = ticket.updatedAt || ticket.createdAt;
+          const lastViewedSupport = localStorage.getItem('last_viewed_support');
+
+          if (data.isAdmin) {
+            // Admin sees pulse if there are ANY open tickets
+            supportPulse = true;
+          } else {
+            // User sees pulse if their latest ticket has a response and haven't seen it yet
+            if (ticket.adminResponse && lastUpdate) {
+              const updateTime = new Date(lastUpdate).getTime();
+              if (!lastViewedSupport || updateTime > parseInt(lastViewedSupport)) {
+                supportPulse = true;
+              }
+            }
+          }
+        } else if (data.isAdmin) {
+          supportPulse = false;
+        }
+      },
+      (error) => {
+        console.warn('⚠️ [Panel Layout] No se pudieron leer tickets de soporte:', error.message);
+      }
+    ));
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
   });
 
   onDestroy(() => {
     unsubs.forEach(unsub => unsub());
+    window.removeEventListener('scroll', handleScroll);
   });
 
   function stopImpersonating() {
@@ -457,14 +515,30 @@
               </a>
 
               <!-- Support Link (Everyone) -->
-              <a href="/panel/support" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-xl transition-all group/item">
-                <Lifebuoy weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" /> 
-                {$t('support.title') || 'SOPORTE CHESSNET'}
+              <a href="/panel/support" 
+                 class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-xl transition-all group/item"
+                 onclick={() => {
+                   supportPulse = false;
+                   localStorage.setItem('last_viewed_support', Date.now().toString());
+                 }}
+              >
+                <div class="flex items-center gap-3">
+                  <Lifebuoy weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" /> 
+                  {$t('support.title') || 'SOPORTE CHESSNET'}
+                </div>
+                {#if supportPulse}
+                  <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
+                {/if}
               </a>
               {#if data.isAdmin}
-                <a href="/admin" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-primary-400 hover:bg-primary-500/10 rounded-xl transition-all">
-                  <Key weight="duotone" size={18} /> 
-                  ADMINISTRATION
+                <a href="/admin" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-primary-400 hover:bg-primary-500/10 rounded-xl transition-all group/admin">
+                  <div class="flex items-center gap-3">
+                    <Key weight="duotone" size={18} /> 
+                    ADMINISTRATION
+                  </div>
+                  {#if supportPulse}
+                    <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
+                  {/if}
                 </a>
               {/if}
 
@@ -544,7 +618,13 @@
   {/if}
 
   <!-- Mobile Bottom Tab Bar (Premium App Style) -->
-  <footer class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5">
+  <div  
+    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-90 opacity-40 hover:opacity-70'}"
+    role="button"
+    tabindex="0"
+    onclick={() => isNavVisible = true}
+    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') isNavVisible = true; }}
+  >
     <div class="h-16 relative px-2 flex items-center justify-between">
       <nav class="flex items-center justify-around w-full relative">
         <!-- Left Side -->
@@ -565,9 +645,17 @@
         <div class="relative -top-6 px-1">
           <a href="/panel/support" 
              class="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_8px_20px_rgba(245,158,11,0.4)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
-             title={$t('nav.support')}>
+             title={$t('nav.support')}
+             onclick={() => {
+               supportPulse = false;
+               localStorage.setItem('last_viewed_support', Date.now().toString());
+             }}
+          >
             <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Lifebuoy weight="bold" size={24} class="text-zinc-950" />
+            {#if supportPulse}
+              <div class="absolute top-2 right-2 w-3 h-3 bg-white rounded-full animate-pulse shadow-lg ring-2 ring-amber-600"></div>
+            {/if}
           </a>
           <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
             <span class="text-[7px] font-black text-amber-500 uppercase tracking-[0.2em] leading-none">Help</span>
@@ -586,7 +674,7 @@
         </a>
       </nav>
     </div>
-  </footer>
+  </div>
 </div>
 
 <style lang="postcss">

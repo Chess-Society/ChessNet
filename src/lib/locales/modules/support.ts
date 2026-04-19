@@ -21,6 +21,8 @@ export const es = {
     'support.priority.critical': 'Crítica',
     'support.my_tickets': 'Mis Tickets',
     'support.recent_activity': 'Actividad Reciente',
+    'support.admin_response': 'Respuesta del Administrador',
+    'support.wait_response': 'Estamos procesando tu solicitud, te responderemos aquí mismo.',
     'support.no_tickets': 'Aún no has creado ningún ticket.',
     'support.admin_view': 'Gestión de Tickets',
     'donate.title': 'Apoya el Desarrollo de ChessNet',
