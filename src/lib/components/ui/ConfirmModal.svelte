@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
-  import { X, Warning, CheckCircle, Info } from 'phosphor-svelte';
+  import { X, Warning, CheckCircle, Info, Trash } from 'phosphor-svelte';
   import { t } from '$lib/i18n';
 
   let { 
@@ -38,70 +38,85 @@
       icon: Warning,
       color: 'text-amber-400',
       bg: 'bg-amber-400/10',
-      btn: 'bg-amber-500 hover:bg-amber-600'
+      glow: 'shadow-amber-900/20',
+      btn: 'bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-amber-950',
+      border: 'border-amber-500/20'
     },
     danger: {
-      icon: Warning,
+      icon: Trash,
       color: 'text-red-400',
       bg: 'bg-red-400/10',
-      btn: 'bg-red-500 hover:bg-red-600'
+      glow: 'shadow-red-900/20',
+      btn: 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white',
+      border: 'border-red-500/20'
     },
     info: {
       icon: Info,
-      color: 'text-blue-400',
-      bg: 'bg-blue-400/10',
-      btn: 'bg-blue-500 hover:bg-blue-600'
+      color: 'text-violet-400',
+      bg: 'bg-violet-400/10',
+      glow: 'shadow-violet-900/20',
+      btn: 'bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white',
+      border: 'border-violet-500/20'
     },
     success: {
       icon: CheckCircle,
       color: 'text-emerald-400',
       bg: 'bg-emerald-400/10',
-      btn: 'bg-emerald-500 hover:bg-emerald-600'
+      glow: 'shadow-emerald-900/20',
+      btn: 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white',
+      border: 'border-emerald-500/20'
     }
   };
 
-  const config = $derived(typeConfig[type as keyof typeof typeConfig]);
+  const config = $derived(typeConfig[type as keyof typeof typeConfig] || typeConfig.warning);
 </script>
 
 {#if show}
   <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <!-- Backdrop -->
+    <!-- Backdrop with intense blur -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div 
-      class="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm" 
+      class="absolute inset-0 bg-zinc-950/60 backdrop-blur-xl" 
       onclick={handleCancel}
-      transition:fade={{ duration: 200 }}
+      transition:fade={{ duration: 300 }}
     ></div>
 
     <!-- Modal Card -->
     <div 
-      class="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-32 shadow-2xl overflow-hidden"
-      transition:scale={{ duration: 200, start: 0.95 }}
+      class="relative w-full max-w-md bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden ring-1 ring-white/10"
+      transition:scale={{ duration: 300, start: 0.95, easing: (t) => t * (2 - t) }}
     >
-      <div class="p-8">
-        <div class="flex items-center gap-4 mb-6">
-          <div class="p-3 rounded-2xl {config.bg} {config.color}">
-            <config.icon size={24} weight="duotone" />
+      <!-- Premium Glow Detail -->
+      <div class="absolute -top-24 -left-24 w-48 h-48 {config.bg} blur-[80px] opacity-50"></div>
+      
+      <div class="p-10 relative">
+        <div class="flex flex-col items-center text-center gap-6">
+          <div class="w-20 h-20 rounded-3xl {config.bg} {config.color} {config.border} border flex items-center justify-center shadow-2xl {config.glow}">
+            <config.icon size={40} weight="duotone" />
           </div>
-          <div>
-            <h3 class="text-xl font-outfit font-bold text-white leading-tight">{title}</h3>
-            <p class="text-sm text-slate-500 font-jakarta mt-1 lowercase first-letter:uppercase">{message}</p>
+          
+          <div class="space-y-2">
+            <h3 class="text-2xl font-outfit font-bold text-white tracking-tight leading-tight">{title}</h3>
+            <p class="text-slate-400 font-jakarta text-[15px] leading-relaxed max-w-[280px] mx-auto">
+              {message}
+            </p>
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <button 
-            onclick={handleCancel}
-            class="flex-1 py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-outfit font-bold text-sm transition-all border border-white/5 active:scale-95"
-          >
-            {cancelText || $t('common.cancel') || 'Cancel'}
-          </button>
+        <div class="flex flex-col gap-3 mt-10">
           <button 
             onclick={handleConfirm}
-            class="flex-1 py-3 px-4 rounded-xl {config.btn} text-white font-outfit font-bold text-sm transition-all shadow-lg active:scale-95"
+            class="w-full py-4 px-6 rounded-2xl {config.btn} font-outfit font-bold text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 uppercase tracking-widest"
           >
             {confirmText || $t('common.confirm') || 'Confirm'}
+          </button>
+          
+          <button 
+            onclick={handleCancel}
+            class="w-full py-4 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 font-outfit font-bold text-sm transition-all border border-white/5 active:scale-95 uppercase tracking-widest"
+          >
+            {cancelText || $t('common.cancel') || 'Cancel'}
           </button>
         </div>
       </div>
@@ -109,10 +124,18 @@
       <!-- Close button top right -->
       <button 
         onclick={handleCancel}
-        class="absolute top-4 right-4 p-2 text-slate-500 hover:text-white transition-colors"
+        class="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full"
       >
-        <X size={18} />
+        <X size={20} />
       </button>
     </div>
   </div>
 {/if}
+
+<style>
+  /* Extra smooth typography */
+  h3 {
+    text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+</style>
+

@@ -128,13 +128,19 @@
       </p>
     </div>
 
-    <button 
-      onclick={() => showCreateModal = true}
-      class="h-14 px-8 bg-white hover:bg-amber-100 text-zinc-950 rounded-2xl shadow-2xl shadow-white/5 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 font-black text-xs uppercase tracking-widest group"
-    >
-      <Plus size={20} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
-      {$t('support.new_ticket')}
-    </button>
+    <div class="flex items-center gap-6">
+      <a href="/faq" class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-amber-400 transition-all flex items-center gap-2">
+        <span>PREGUNTAS FRECUENTES</span>
+        <ArrowRight weight="bold" class="w-3 h-3" />
+      </a>
+      <button 
+        onclick={() => showCreateModal = true}
+        class="h-14 px-8 bg-white hover:bg-amber-100 text-zinc-950 rounded-2xl shadow-2xl shadow-white/5 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 font-black text-xs uppercase tracking-widest group"
+      >
+        <Plus size={20} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
+        {$t('support.new_ticket')}
+      </button>
+    </div>
   </div>
 
   <!-- Stats Bento Grid -->
@@ -282,23 +288,7 @@
       </div>
     </div>
 
-    <div class="bg-zinc-900 border border-white/5 p-10 rounded-[2.5rem] relative overflow-hidden group hover:border-white/10 transition-all">
-      <div class="absolute -right-24 -bottom-24 w-64 h-64 bg-amber-500/10 rounded-full blur-[100px] group-hover:bg-amber-500/20 transition-all duration-700"></div>
-      <div class="space-y-6 relative z-10">
-        <div class="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500">
-          <Envelope size={32} weight="duotone" />
-        </div>
-        <div class="space-y-2">
-          <h3 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('support.direct_email_title')}</h3>
-          <p class="text-zinc-500 font-medium max-w-sm">
-            {$t('support.direct_email_desc')}
-          </p>
-        </div>
-        <div class="text-xl font-outfit font-black text-amber-500 uppercase tracking-tight">
-          support@chessnet.com
-        </div>
-      </div>
-    </div>
+
   </div>
 </div>
 

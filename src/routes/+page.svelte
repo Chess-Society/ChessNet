@@ -351,9 +351,9 @@
          <div class="space-y-6">
            <h4 class="text-[10px] font-black text-white uppercase tracking-widest">{$t('nav.company')}</h4>
            <div class="flex flex-col gap-4 text-xs font-bold text-slate-500">
+             <a href="/faq" class="hover:text-white transition-colors">FAQ</a>
              <a href="/legal/terms" class="hover:text-white transition-colors">{$t('nav.terms')}</a>
              <a href="/legal/privacy" class="hover:text-white transition-colors">{$t('nav.privacy')}</a>
-             <a href="mailto:contact@chessnet.com" class="hover:text-white transition-colors">{$t('nav.contact')}</a>
            </div>
          </div>
       </div>

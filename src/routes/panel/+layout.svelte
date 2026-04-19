@@ -636,13 +636,13 @@
   <!-- Mobile Bottom Tab Bar (Premium App Style) -->
   <div 
     id="mobile-nav-bar"
-    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer overflow-hidden {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-75 opacity-30 blur-[2px] pointer-events-auto'}"
+    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-75 opacity-30 blur-[2px] pointer-events-auto'}"
     role="button"
     tabindex="0"
     onclick={() => isNavVisible = true}
     onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') isNavVisible = true; }}
   >
-    <div class="h-16 relative px-2 flex items-center justify-between">
+    <div class="h-20 relative px-2 flex items-center justify-between pb-1">
       <nav class="flex items-center justify-around w-full relative">
         <!-- Left Side -->
         <a href="/panel" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute === '/panel' ? 'text-violet-400 font-bold' : 'text-slate-500'}">

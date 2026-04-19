@@ -224,6 +224,48 @@
           </div>
       </div>
 
+      <!-- Danger Zone Section -->
+      <div class="bento-card p-6 sm:p-10 border-red-500/10 hover:border-red-500/20">
+          <h2 class="text-lg sm:text-xl font-outfit font-bold text-red-500 mb-6 sm:mb-8 flex items-center gap-3">
+              <Warning weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6" />
+              {$t('settings.danger_zone_title') || 'Zona de Peligro'}
+          </h2>
+          
+          <div class="p-6 bg-red-500/5 rounded-2xl border border-red-500/10 flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div class="text-center sm:text-left">
+                  <p class="text-sm font-outfit font-bold text-white mb-1">{$t('settings.delete_account_title') || 'Eliminar Mi Cuenta'}</p>
+                  <p class="text-[11px] text-slate-500 font-plus-jakarta leading-relaxed max-w-sm">
+                      {$t('settings.delete_account_desc') || 'Esta acción es irreversible. Se eliminarán permanentemente todos tus datos, escuelas, alumnos y registros vinculados.'}
+                  </p>
+              </div>
+              <button 
+                onclick={async () => {
+                  const confirmed = await uiStore.confirm({
+                    title: $t('settings.delete_account_confirm_title') || '¿Eliminar cuenta permanentemente?',
+                    message: $t('settings.delete_account_confirm_msg') || 'Perderás todos tus registros y acceso a la plataforma. No hay vuelta atrás.',
+                    type: 'danger'
+                  });
+                  if (!confirmed) return;
+                  
+                  try {
+                    await appStore.deleteAccount();
+                    await fetch('/api/auth/session', { method: 'DELETE' });
+                    window.location.href = '/login';
+                  } catch (err: any) {
+                    if (err.code === 'auth/requires-recent-login') {
+                        toast.error($t('settings.delete_login_required') || 'Por seguridad, debes haber iniciado sesión recientemente para eliminar tu cuenta. Cierra sesión e ingresa de nuevo.');
+                    } else {
+                        toast.error(err.message);
+                    }
+                  }
+                }}
+                class="px-6 py-3 bg-red-500/10 hover:bg-red-50 text-red-500 hover:text-red-600 font-outfit font-black text-[10px] uppercase tracking-widest rounded-xl transition-all border border-red-500/20"
+              >
+                {$t('settings.delete_account_btn') || 'Borrar Todo'}
+              </button>
+          </div>
+      </div>
+
       <!-- Floating Save Bar -->
       <div class="sticky bottom-4 sm:bottom-8 flex justify-center z-50 pt-10 pointer-events-none pb-[env(safe-area-inset-bottom)]">
           <button 

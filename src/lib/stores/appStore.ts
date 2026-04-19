@@ -719,8 +719,11 @@ function createAppStore() {
     removePayment: async (id: string) => {
       const user = get(authStoreUser);
       if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, payments: s.payments.filter(p => p.id !== id) }));
-        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(store).payments));
+        update(s => {
+          const newState = { ...s, payments: s.payments.filter(p => p.id !== id) };
+          localStorage.setItem('chessnet_mock_payments', JSON.stringify(newState.payments));
+          return newState;
+        });
         return;
       }
       
@@ -730,7 +733,7 @@ function createAppStore() {
       try {
         await deleteDoc(doc(db, 'payments', id));
       } catch (error) {
-        // Rollback if needed, though onSnapshot will usually sync it back if it fails
+        // Rollback is usually handled by onSnapshot sync, but we could re-add if needed
         console.error('❌ [AppStore] Error removing payment:', error);
         throw error;
       }
@@ -985,6 +988,26 @@ function createAppStore() {
 
     clearLastAchievement: () => {
       update(s => ({ ...s, lastUnlockedAchievement: null }));
+    },
+
+    deleteAccount: async () => {
+      const currentUser = get(authStoreUser);
+      if (!currentUser) throw new Error("No authenticated user");
+
+      const uid = currentUser.uid;
+      
+      // Delete the main user record.
+      if (uid !== 'chessnet-dev-uid') {
+        await deleteDoc(doc(db, 'users', uid));
+        
+        // Delete the Auth account (from real Firebase)
+        const firebaseUser = auth.currentUser;
+        if (firebaseUser) await firebaseUser.delete();
+      } else {
+        // Mock deletion
+        localStorage.clear();
+        sessionStorage.clear();
+      }
     }
   };
 }
