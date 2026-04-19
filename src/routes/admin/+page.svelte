@@ -12,6 +12,7 @@
   import { t } from '$lib/i18n';
   import { fade, slide, scale, fly } from 'svelte/transition';
   import { toast } from '$lib/stores/toast';
+  import { uiStore } from '$lib/stores/uiStore';
   
   // Icons
   import { 
@@ -236,7 +237,15 @@
   }
 
   async function handleRevokePremium(userId: string) {
-    if (!confirm($t('admin.msg.revoke_premium_confirm'))) return;
+    const confirmed = await uiStore.confirm({
+      title: $t('admin.msg.revoke_premium_confirm'),
+      message: $t('common.undone_action'),
+      type: 'danger',
+      confirmText: $t('common.delete'),
+      cancelText: $t('common.cancel')
+    });
+
+    if (!confirmed) return;
     isSaving = true;
     try {
       await adminApi.revokePremium(userId);
@@ -282,7 +291,15 @@
   }
 
   async function handleDeleteSuggestion(id: string) {
-    if (!confirm($t('admin.msg.delete_suggestion_confirm'))) return;
+    const confirmed = await uiStore.confirm({
+      title: $t('admin.msg.delete_suggestion_confirm'),
+      message: $t('common.undone_action'),
+      type: 'danger',
+      confirmText: $t('common.delete'),
+      cancelText: $t('common.cancel')
+    });
+
+    if (!confirmed) return;
     try {
       await adminApi.deleteSuggestion(id);
       toast.success($t('admin.lobby.delete'));
@@ -292,7 +309,15 @@
   }
 
   async function handleImpersonate(user: any) {
-    if (!confirm($t('admin.msg.impersonate_confirm', { email: user.email }))) return;
+    const confirmed = await uiStore.confirm({
+      title: $t('admin.msg.impersonate_confirm', { email: user.email }),
+      message: $t('admin.msg.impersonate_warning'),
+      type: 'warning',
+      confirmText: $t('common.accept'),
+      cancelText: $t('common.cancel')
+    });
+
+    if (!confirmed) return;
     
     try {
       document.cookie = `impersonate_id=${user.id}; path=/; max-age=3600; SameSite=Lax`;

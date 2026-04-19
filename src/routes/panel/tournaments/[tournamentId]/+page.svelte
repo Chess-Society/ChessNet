@@ -221,7 +221,15 @@
   const handleResetRound = async () => {
     if (!tournamentId || !tournament) return;
     const currentRoundNo = tournament.currentRound || 1;
-    if (!confirm($t('tournaments.confirm_reset_round'))) return;
+    const confirmed = await uiStore.confirm({
+      title: $t('tournaments.confirm_reset_round'),
+      message: $t('common.undone_action'),
+      type: 'danger',
+      confirmText: $t('common.reset'),
+      cancelText: $t('common.cancel')
+    });
+
+    if (!confirmed) return;
 
     isProcessing = true;
     try {
@@ -255,7 +263,14 @@
 
   const removePlayer = async (studentId: string) => {
       if (!tournamentId) return;
-      if (!confirm($t('tournaments.confirm_remove_player') || 'Are you sure you want to remove this player?')) return;
+      const confirmed = await uiStore.confirm({
+          title: $t('tournaments.confirm_remove_player'),
+          message: $t('common.undone_action'),
+          type: 'danger',
+          confirmText: $t('common.delete'),
+          cancelText: $t('common.cancel')
+      });
+      if (!confirmed) return;
       
       try {
           const api = await getLocalTournamentsApi();

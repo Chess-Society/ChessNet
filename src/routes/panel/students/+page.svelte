@@ -25,6 +25,7 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import { toast } from '$lib/stores/toast';
+  import { uiStore } from '$lib/stores/uiStore';
   import StudentReportModal from '$lib/components/admin/StudentReportModal.svelte';
 
   // Filters & State
@@ -66,7 +67,15 @@
 
   const deleteStudent = async (id: string) => {
     const student = students.find(s => s.id === id);
-    if (confirm($t('students.delete_simple_confirm', { name: student?.name }))) {
+    const confirmed = await uiStore.confirm({
+      title: $t('students.delete_simple_confirm', { name: student?.name }),
+      message: $t('common.undone_action'),
+      type: 'danger',
+      confirmText: $t('common.delete'),
+      cancelText: $t('common.cancel')
+    });
+
+    if (confirmed) {
       isDeleting = id;
       try {
         await appStore.removeStudent(id);

@@ -13,6 +13,7 @@
   import { t } from '$lib/i18n';
   import { adminApi } from '$lib/api/admin';
   import { toast } from '$lib/stores/toast';
+  import { uiStore } from '$lib/stores/uiStore';
   import { formatDate } from '$lib/utils/date';
 
   let { tickets = [] } = $props();
@@ -39,7 +40,15 @@
   }
 
   async function handleDelete(id: string) {
-    if (!confirm($t('admin.msg.delete_suggestion_confirm'))) return;
+    const confirmed = await uiStore.confirm({
+      title: $t('admin.msg.delete_suggestion_confirm'),
+      message: $t('common.undone_action'),
+      type: 'danger',
+      confirmText: $t('common.delete'),
+      cancelText: $t('common.cancel')
+    });
+
+    if (!confirmed) return;
     try {
       await adminApi.deleteTicket(id);
       toast.success($t('admin.support.delete_ticket'));
