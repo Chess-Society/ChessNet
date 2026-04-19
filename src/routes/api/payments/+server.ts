@@ -35,20 +35,20 @@ export const GET: RequestHandler = async (event) => {
     if (schoolId) query = query.where('school_id', '==', schoolId);
 
     const snapshot = await query.orderBy('created_at', 'desc').get();
-    let payments = snapshot.docs.map(doc => serializeRecord({ id: doc.id, ...doc.data() }));
+    let payments = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
 
     // Filtros adicionales en memoria (rangos de fechas/importes)
     const amountMin = url.searchParams.get('amount_min');
-    if (amountMin) payments = payments.filter(p => p.amount >= parseFloat(amountMin));
+    if (amountMin) payments = payments.filter((p: any) => p.amount >= parseFloat(amountMin));
 
     const amountMax = url.searchParams.get('amount_max');
-    if (amountMax) payments = payments.filter(p => p.amount <= parseFloat(amountMax));
+    if (amountMax) payments = payments.filter((p: any) => p.amount <= parseFloat(amountMax));
 
     const dateFrom = url.searchParams.get('date_from');
-    if (dateFrom) payments = payments.filter(p => p.created_at >= dateFrom);
+    if (dateFrom) payments = payments.filter((p: any) => p.created_at >= dateFrom);
 
     const dateTo = url.searchParams.get('date_to');
-    if (dateTo) payments = payments.filter(p => p.created_at <= dateTo);
+    if (dateTo) payments = payments.filter((p: any) => p.created_at <= dateTo);
 
     return json({
       success: true,
@@ -190,8 +190,9 @@ export const DELETE: RequestHandler = async (event) => {
   }
 
   // ── Paso 2: si el doc existe, verificar propiedad y borrar ───────────────
-  if (paymentSnap.exists) {
-    const data = paymentSnap.data()!;
+  const snap = paymentSnap!; // guaranteed non-null after try-catch above
+  if (snap.exists) {
+    const data = snap.data()!;
     const docOwner = data.owner_id || data.userId || null;
 
     if (docOwner !== uid) {
@@ -200,7 +201,7 @@ export const DELETE: RequestHandler = async (event) => {
     }
 
     try {
-      await paymentSnap.ref.delete();
+      await snap.ref.delete();
       console.log(`✅ [DELETE] Deleted payment ${paymentId}`);
       return json({ success: true, message: 'Pago eliminado correctamente' });
     } catch (delErr: any) {
@@ -217,7 +218,7 @@ export const DELETE: RequestHandler = async (event) => {
       .where('owner_id', '==', uid)
       .get();
 
-    const match = querySnap.docs.find(d => d.id === paymentId);
+    const match = querySnap.docs.find((d: any) => d.id === paymentId);
 
     if (!match) {
       // El doc no existe en ningún lado — el optimistic update ya limpió la UI
