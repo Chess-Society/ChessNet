@@ -87,7 +87,7 @@
       title: $t('admin.stats.teachers'),
       subtitle: `${u.displayName} (${u.email})`,
       timestamp: u.createdAt,
-      status: 'success'
+      status: 'premium'
     }));
 
     activities = [...rawLogs, ...rawUsers]
@@ -359,60 +359,55 @@
   }
 </script>
 
-<div class="min-w-[320px] min-h-screen bg-zinc-950 text-white selection:bg-violet-500/30">
+<div class="min-w-[320px] min-h-screen bg-[#02040a] text-white selection:bg-violet-500/30 font-sans">
   <!-- Top Navigation Bar -->
-  <nav class="sticky top-0 z-[60] bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5 pt-[env(safe-area-inset-top)] px-4 sm:px-8 flex items-center justify-between">
-    <div class="flex items-center gap-3 sm:gap-4 py-4 sm:py-6">
-      <div class="p-2.5 sm:p-3 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl shadow-lg shadow-violet-500/20">
-        <SquaresFour weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+  <nav class="sticky top-0 z-[60] bg-[#02040a]/90 backdrop-blur-2xl border-b border-white/10 pt-[env(safe-area-inset-top)] px-4 sm:px-8 flex items-center justify-between">
+    <div class="flex items-center gap-3 sm:gap-4 py-4 sm:py-5">
+      <div class="w-9 h-9 bg-primary-600 flex items-center justify-center rounded-none">
+        <SquaresFour weight="bold" class="w-5 h-5 text-white" />
       </div>
       <div>
-        <h1 class="text-sm sm:text-xl font-black font-display uppercase italic tracking-tighter leading-none">{$t('admin.title')}</h1>
-        <p class="text-[8px] sm:text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 opacity-60">ChessNet Operational Interface v2.5</p>
+        <h1 class="text-sm sm:text-base font-black font-display uppercase italic tracking-tighter leading-none">ChessNet <span class="text-primary-500">/</span> {$t('admin.title')}</h1>
+        <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-[0.2em] mt-0.5">OPERATIONAL INTERFACE // v2.5</p>
       </div>
     </div>
 
-    <div class="flex items-center gap-6">
-      <div class="hidden sm:flex flex-col items-end border-r border-white/5 pr-6 mr-6">
-        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.nav.status')}</span>
-        <div class="flex items-center gap-2 mt-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-[10px] font-bold text-emerald-400 uppercase">{$t('admin.nav.operational')}</span>
-        </div>
+    <div class="flex items-center gap-4">
+      <div class="hidden sm:flex items-center gap-2 px-4 py-2 bg-violet-500/5 border border-violet-500/20">
+        <span class="w-1.5 h-1.5 bg-violet-500 animate-pulse"></span>
+        <span class="text-[9px] font-mono font-black text-violet-400 uppercase tracking-widest">{$t('admin.nav.operational')}</span>
       </div>
       
-      <div class="flex items-center gap-3">
-        <a 
-          href="/panel" 
-          class="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all pointer-interactions text-white"
-        >
-          <ArrowArcLeft weight="bold" class="w-4 h-4" />
-          <span class="hidden md:inline">{$t('admin.nav.exit')}</span>
-        </a>
-      </div>
+      <a 
+        href="/panel" 
+        class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-white/10 hover:border-white/20 transition-all text-white rounded-none"
+      >
+        <ArrowArcLeft weight="bold" class="w-4 h-4" />
+        <span class="hidden md:inline">{$t('admin.nav.exit')}</span>
+      </a>
     </div>
   </nav>
 
-  <!-- Mobile Only Header Stats (Premium Bento Style) -->
-  <div class="lg:hidden grid grid-cols-3 gap-3 p-4 border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl">
+  <!-- Mobile Only Header Stats -->
+  <div class="lg:hidden grid grid-cols-3 gap-px bg-white/10 border-b border-white/10">
     {#each [
       { label: 'Users', val: stats.totalUsers, color: 'text-violet-400' },
-      { label: 'Rev', val: `$${Math.round(stats.totalRevenue)}`, color: 'text-emerald-400' },
+      { label: 'Revenue', val: `$${Math.round(stats.totalRevenue)}`, color: 'text-violet-400' },
       { label: 'Tickets', val: supportTickets.filter(t => t.status === 'open').length, color: 'text-amber-400' }
     ] as s}
-      <div class="p-4 bg-white/[0.02] rounded-2xl border border-white/5 text-center group active:scale-95 transition-all">
-        <p class="text-[7px] font-black text-slate-500 uppercase tracking-widest mb-1">{s.label}</p>
-        <p class="text-xs font-black {s.color} italic leading-none">{s.val}</p>
+      <div class="p-4 bg-[#02040a] text-center">
+        <p class="text-[7px] font-mono font-black text-slate-600 uppercase tracking-widest mb-1">{s.label}</p>
+        <p class="text-sm font-black font-display {s.color} italic leading-none">{s.val}</p>
       </div>
     {/each}
   </div>
 
   <div class="flex">
     <!-- Sidebar Navigation -->
-    <aside class="w-72 min-h-[calc(100vh-84px)] border-r border-white/5 bg-zinc-950 p-8 space-y-8 hidden lg:block">
-      <div>
-        <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-6">{$t('admin.sidebar.principal')}</p>
-        <nav class="space-y-2">
+    <aside class="w-64 min-h-[calc(100vh-57px)] border-r border-white/10 bg-[#02040a] hidden lg:flex flex-col">
+      <div class="p-6 space-y-1">
+        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-[0.3em] mb-5 px-2">{$t('admin.sidebar.principal')}</p>
+        <nav class="space-y-px">
           {#each [
             { id: 'dashboard', label: $t('admin.sidebar.dashboard'), icon: SquaresFour },
             { id: 'users', label: $t('admin.sidebar.teachers'), icon: Users },
@@ -423,12 +418,12 @@
             {@const Icon = item.icon}
             <button 
               onclick={() => activeTab = item.id}
-              class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all {activeTab === item.id ? 'bg-primary-500/10 text-primary-400 border border-primary-500/20 shadow-lg shadow-primary-500/5' : 'text-slate-500 hover:text-white hover:bg-white/5'}"
+              class="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-mono font-black uppercase tracking-widest transition-all {activeTab === item.id ? 'bg-primary-500/10 text-primary-400 border-l-2 border-primary-500' : 'text-slate-600 hover:text-white hover:bg-white/5 border-l-2 border-transparent'} rounded-none"
             >
-              <Icon weight={activeTab === item.id ? 'duotone' : 'bold'} class="w-5 h-5" />
-              {item.label}
+              <Icon weight={activeTab === item.id ? 'fill' : 'bold'} class="w-4 h-4 flex-shrink-0" />
+              <span class="truncate">{item.label}</span>
               {#if item.id === 'tickets' && supportTickets.filter(t => t.status === 'open').length > 0}
-                <span class="ml-auto px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-lg animate-pulse">
+                <span class="ml-auto px-1.5 py-0.5 bg-amber-500 text-black text-[9px] font-black animate-pulse">
                   {supportTickets.filter(t => t.status === 'open').length}
                 </span>
               {/if}
@@ -437,36 +432,33 @@
         </nav>
       </div>
 
-      <div class="pt-8 border-t border-white/5">
-        <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-6">{$t('admin.sidebar.shortcuts')}</p>
-        <div class="space-y-4">
-           <div class="p-5 bg-white/5 rounded-[1.5rem] border border-white/5">
-              <p class="text-[10px] font-bold text-slate-400 mb-2">{$t('admin.sidebar.db_health')}</p>
-              <div class="flex items-center justify-between">
-                <span class="text-xl font-bold font-display italic">98%</span>
-                <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400">
-                  <CheckCircle weight="bold" class="w-5 h-5" />
-                </div>
-              </div>
-           </div>
+      <div class="mt-auto p-6 border-t border-white/10">
+        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-[0.3em] mb-4">{$t('admin.sidebar.shortcuts')}</p>
+        <div class="bg-white/[0.02] border border-white/10 p-4 rounded-none">
+          <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest mb-3">{$t('admin.sidebar.db_health')}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-2xl font-black font-display italic">98%</span>
+            <div class="w-8 h-8 bg-violet-500/10 flex items-center justify-center text-violet-400 rounded-none">
+              <CheckCircle weight="bold" class="w-4 h-4" />
+            </div>
+          </div>
         </div>
       </div>
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-4 sm:p-6 md:p-10 max-w-[1600px] mx-auto min-h-[calc(100vh-84px)] relative overflow-hidden pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-10">
-      <!-- Gradient Background Architecture -->
-      <div class="absolute inset-0 -z-10 bg-zinc-950">
-        <div class="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_100%_0%,rgba(139,92,246,0.05)_0%,transparent_50%)]"></div>
-        <div class="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(circle_at_0%_100%,rgba(79,70,229,0.03)_0%,transparent_50%)]"></div>
+    <main class="flex-1 p-4 sm:p-6 md:p-10 max-w-[1400px] mx-auto min-h-[calc(100vh-57px)] relative overflow-hidden pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-10">
+      <!-- Subtle Background -->
+      <div class="absolute inset-0 -z-10 bg-[#02040a]">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_0%,rgba(124,58,237,0.04)_0%,transparent_60%)]"></div>
       </div>
       
       <div class="relative z-10 h-full">
         {#if isLoading && users.length === 0}
          <div class="h-full flex items-center justify-center" in:fade>
            <div class="flex flex-col items-center gap-6">
-              <div class="w-16 h-16 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
-              <p class="text-xs font-black uppercase tracking-widest text-slate-500">{$t('admin.msg.loading_realtime')}</p>
+              <div class="w-12 h-12 border-2 border-primary-500/20 border-t-primary-500 animate-spin rounded-none"></div>
+              <p class="text-[10px] font-mono font-black uppercase tracking-widest text-slate-600">{$t('admin.msg.loading_realtime')}</p>
            </div>
          </div>
       {:else}
@@ -476,14 +468,14 @@
                <div class="space-y-8 sm:space-y-12">
                   <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                      <h2 class="text-3xl sm:text-4xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.9]">Operational<br/><span class="text-violet-500">Overview</span></h2>
-                      <p class="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] mt-4 flex items-center gap-2 text-slate-500">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/10 text-[9px] font-mono font-black text-primary-400 uppercase tracking-[0.3em] mb-5 rounded-none">
+                        <span class="w-1.5 h-1.5 bg-violet-500 animate-pulse rounded-none"></span>
                         {$t('admin.dashboard.sync')}
-                      </p>
+                      </div>
+                      <h2 class="text-4xl sm:text-5xl font-black font-display uppercase italic tracking-[-0.04em] leading-[0.85]">Operational<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-500">Overview</span></h2>
                     </div>
                   <div class="flex items-center gap-2">
-                     <button onclick={refreshStats} class="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2 text-white">
+                     <button onclick={refreshStats} class="px-6 py-3 bg-white/5 border border-white/10 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-2 text-white rounded-none">
                         <Pulse class="w-4 h-4" />
                         {$t('admin.dashboard.refresh')}
                      </button>
@@ -492,70 +484,62 @@
 
                 <StatsGrid {stats} />
 
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-px bg-white/10 border border-white/10">
                    <!-- Real-time Activity Hub -->
-                   <div class="xl:col-span-2 space-y-10">
+                   <div class="xl:col-span-2 bg-[#02040a] p-8 space-y-8">
                       <LiveActivityFeed {activities} />
                       <BroadcastCenter />
                    </div>
 
-                   <!-- Info & Critical Actions -->
-                   <div class="space-y-10">
-                      <!-- Critical Actions Card -->
-                      <div class="bg-gradient-to-br from-red-500/10 to-violet-500/10 backdrop-blur-xl border border-white/10 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
-                        <div class="relative z-10 space-y-8">
-                           <h3 class="text-xl font-black font-display uppercase italic tracking-wider flex items-center gap-3 text-white">
-                             <Shield weight="duotone" class="w-7 h-7 text-red-500" />
-                             {$t('admin.guard.title')}
-                           </h3>
-                           <div class="space-y-4">
-                             <button 
-                                onclick={handleToggleMaintenance}
-                                class="w-full flex items-center justify-between p-6 rounded-3xl border {maintenanceMode ? 'bg-red-500 text-white border-red-400 shadow-xl shadow-red-500/20' : 'bg-black/20 border-white/5 text-slate-400 hover:border-white/20'} transition-all group/btn"
-                             >
-                                <div class="text-left">
-                                  <p class="text-[10px] font-black uppercase tracking-widest opacity-60">{$t('admin.guard.maintenance_mode')}</p>
-                                  <p class="text-sm font-bold uppercase italic">{maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}</p>
-                                </div>
-                                <Gear weight="fill" class="w-6 h-6 animate-spin-slow group-hover/btn:rotate-90 transition-transform" />
-                             </button>
-                             
-                             <button 
-                                onclick={handleRepairUsers}
-                                class="w-full flex items-center justify-between p-6 rounded-3xl bg-black/40 border border-white/5 text-slate-400 hover:border-primary-500/30 hover:bg-primary-500/10 hover:text-primary-400 transition-all"
-                             >
-                                <div class="text-left">
-                                  <p class="text-[10px] font-black uppercase tracking-widest opacity-60">{$t('admin.guard.db_integrity')}</p>
-                                  <p class="text-sm font-bold uppercase italic">{$t('admin.guard.sync_repair')}</p>
-                                </div>
-                                <Pulse weight="bold" class="w-6 h-6" />
-                             </button>
-                           </div>
+                   <!-- Critical Actions & System Info -->
+                   <div class="bg-[#02040a] p-8 space-y-6 border-l border-white/10">
+                      <!-- Guard Card -->
+                      <div class="space-y-4">
+                        <div class="flex items-center gap-3 mb-4">
+                          <div class="w-6 h-6 bg-red-500/10 flex items-center justify-center rounded-none">
+                            <Shield weight="duotone" class="w-3.5 h-3.5 text-red-500" />
+                          </div>
+                          <h3 class="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-red-400">{$t('admin.guard.title')}</h3>
                         </div>
-                        <!-- Decorative element -->
-                        <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-red-500/5 blur-[80px] rounded-full"></div>
+                        <button 
+                           onclick={handleToggleMaintenance}
+                           class="w-full flex items-center justify-between p-5 border {maintenanceMode ? 'bg-red-500 text-white border-red-400' : 'bg-white/[0.02] border-white/10 text-slate-400 hover:border-white/20 hover:text-white'} transition-all rounded-none"
+                        >
+                           <div class="text-left">
+                             <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">{$t('admin.guard.maintenance_mode')}</p>
+                             <p class="text-xs font-black uppercase italic">{maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}</p>
+                           </div>
+                           <Gear weight="fill" class="w-5 h-5" />
+                        </button>
+                        
+                        <button 
+                           onclick={handleRepairUsers}
+                           class="w-full flex items-center justify-between p-5 bg-white/[0.02] border border-white/10 text-slate-400 hover:border-primary-500/30 hover:bg-primary-500/10 hover:text-primary-400 transition-all rounded-none"
+                        >
+                           <div class="text-left">
+                             <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">{$t('admin.guard.db_integrity')}</p>
+                             <p class="text-xs font-black uppercase italic">{$t('admin.guard.sync_repair')}</p>
+                           </div>
+                           <Pulse weight="bold" class="w-5 h-5" />
+                        </button>
                       </div>
 
                       <!-- System Info -->
-                      <div class="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] space-y-6">
-                        <div class="flex items-center justify-between">
-                          <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.env.title')}</h4>
-                          <span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded text-[8px] font-black">{$t('admin.env.stable')}</span>
+                      <div class="border-t border-white/10 pt-6 space-y-4">
+                        <div class="flex items-center justify-between mb-4">
+                          <h4 class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-[0.3em]">{$t('admin.env.title')}</h4>
+                          <span class="px-2 py-1 bg-violet-500/10 text-violet-500 border border-violet-500/20 text-[8px] font-mono font-black rounded-none">{$t('admin.env.stable')}</span>
                         </div>
-                        <div class="space-y-4">
-                          <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-600 font-bold uppercase">{$t('admin.env.uptime')}</span>
-                            <span class="text-white font-black italic">99.98%</span>
+                        {#each [
+                          { label: $t('admin.env.uptime'), val: '99.98%' },
+                          { label: $t('admin.env.cpu'), val: '12.4%' },
+                          { label: $t('admin.env.region'), val: 'eu-west3' }
+                        ] as row}
+                          <div class="flex justify-between items-center">
+                            <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">{row.label}</span>
+                            <span class="text-[10px] font-black italic text-white">{row.val}</span>
                           </div>
-                          <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-600 font-bold uppercase">{$t('admin.env.cpu')}</span>
-                            <span class="text-white font-black italic">12.4%</span>
-                          </div>
-                          <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-600 font-bold uppercase">{$t('admin.env.region')}</span>
-                            <span class="text-white font-black italic">europe-west3</span>
-                          </div>
-                        </div>
+                        {/each}
                       </div>
                    </div>
                 </div>
@@ -590,33 +574,33 @@
                   <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2 italic">{$t('admin.lobby.subtitle')}</p>
                </div>
 
-               <div class="grid grid-cols-1 gap-6">
+               <div class="space-y-px bg-white/10 border border-white/10">
                  {#each lobbySuggestions as s (s.id)}
                    <div 
-                    class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl"
+                    class="bg-[#02040a] p-8"
                     in:slide
                    >
                      <div class="flex flex-col md:flex-row gap-8">
                        <div class="flex-1 space-y-4">
                          <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center font-black border border-white/10 uppercase text-white">
+                            <div class="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center font-mono font-black uppercase text-white text-sm rounded-none">
                               {s.authorName?.[0] || 'A'}
                             </div>
                             <div>
-                               <p class="text-[10px] font-black text-primary-400 uppercase tracking-widest">{s.authorName}</p>
-                               <p class="text-[9px] text-slate-500 font-bold uppercase italic">{new Date(s.createdAt).toLocaleDateString()}</p>
+                               <p class="text-[10px] font-mono font-black text-primary-400 uppercase tracking-widest">{s.authorName}</p>
+                               <p class="text-[9px] text-slate-600 font-mono font-black uppercase">{new Date(s.createdAt).toLocaleDateString()}</p>
                             </div>
                          </div>
-                         <h4 class="text-xl font-black uppercase italic tracking-tight text-white">{s.title}</h4>
-                         <p class="text-sm text-slate-400 leading-relaxed font-medium">{s.content}</p>
+                         <h4 class="text-lg font-black uppercase italic tracking-tight text-white">{s.title}</h4>
+                         <p class="text-sm text-slate-500 leading-relaxed">{s.content}</p>
                        </div>
                        
-                       <div class="md:w-64 space-y-3">
-                           <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest ml-1">{$t('admin.lobby.update_status')}</p>
+                       <div class="md:w-56 space-y-2 flex-shrink-0">
+                           <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-3">{$t('admin.lobby.update_status')}</p>
                            <select 
                              value={s.status} 
                              onchange={(e) => handleUpdateSuggestionStatus(s.id, (e.target as HTMLSelectElement).value)}
-                             class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold uppercase outline-none focus:border-primary-500 transition-all appearance-none text-slate-400"
+                             class="w-full bg-black/40 border border-white/10 px-4 py-3 text-[10px] font-mono font-black uppercase outline-none focus:border-primary-500 transition-all appearance-none text-slate-400 rounded-none"
                            >
                              <option value="pending">{$t('admin.lobby.status_pending')}</option>
                              <option value="planned">{$t('admin.lobby.status_planned')}</option>
@@ -624,7 +608,7 @@
                            </select>
                            <button 
                              onclick={() => handleDeleteSuggestion(s.id)}
-                             class="w-full py-3 bg-red-500/10 text-red-500 rounded-xl border border-red-500/20 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 cursor-pointer"
+                             class="w-full py-3 bg-red-500/10 text-red-500 border border-red-500/20 text-[9px] font-mono font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all cursor-pointer rounded-none"
                            >
                               {$t('admin.lobby.delete')}
                            </button>
@@ -660,46 +644,46 @@
   </main>
 </div>
 
-  <!-- User Detail Modal (Heavy Refactor) -->
+  <!-- User Detail Modal -->
   {#if showEditModal && selectedUser}
     <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/90 backdrop-blur-md" transition:fade>
       <div 
-        class="bg-zinc-950 w-full max-w-2xl rounded-t-[2.5rem] sm:rounded-[3rem] border-t sm:border border-white/10 shadow-3xl overflow-hidden relative max-h-[90vh] overflow-y-auto"
+        class="bg-[#02040a] w-full max-w-2xl border border-white/10 shadow-2xl overflow-hidden relative max-h-[90vh] overflow-y-auto rounded-none"
         transition:fly={{ y: 100, duration: 400 }}
       >
         <!-- Modal Header -->
-        <div class="sticky top-0 z-10 px-6 sm:px-10 py-6 sm:py-8 border-b border-white/5 flex items-center justify-between bg-zinc-950/80 backdrop-blur-xl">
-          <div class="flex items-center gap-4 sm:gap-6">
-            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-white/5 rounded-2xl sm:rounded-[1.5rem] flex items-center justify-center text-violet-400 border border-white/10">
-              <UserCircle class="w-8 h-8 sm:w-10 sm:h-10" />
+        <div class="sticky top-0 z-10 px-8 py-5 border-b border-white/10 flex items-center justify-between bg-[#02040a]/95 backdrop-blur-xl">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-violet-400 rounded-none">
+              <UserCircle class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="text-lg sm:text-2xl font-black font-display uppercase italic text-white leading-none">{$t('admin.modal.command_manager')}</h3>
-              <p class="text-[8px] sm:text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-2 truncate max-w-[150px] sm:max-w-none">{selectedUser?.email}</p>
+              <h3 class="text-sm font-mono font-black uppercase tracking-widest text-white">{$t('admin.modal.command_manager')}</h3>
+              <p class="text-[9px] font-mono text-slate-600 uppercase mt-0.5 truncate max-w-[200px]">{selectedUser?.email}</p>
             </div>
           </div>
           <button 
             onclick={() => showEditModal = false}
-            class="p-3 sm:p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all cursor-pointer text-white"
+            class="w-8 h-8 bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all cursor-pointer text-white rounded-none"
           >
-            <X weight="bold" class="w-5 h-5 sm:w-6 sm:h-6" />
+            <X weight="bold" class="w-4 h-4" />
           </button>
         </div>
 
-        <div class="p-6 sm:p-10 space-y-8 sm:space-y-10">
+        <div class="p-8 space-y-8">
            <!-- Entity Counts -->
-           <div class="grid grid-cols-3 gap-3 sm:gap-6">
+           <div class="grid grid-cols-3 gap-px bg-white/10 border border-white/10">
               {#each [
                 { label: $t('admin.stats.schools'), val: userDetails?.schools || 0 },
                 { label: $t('admin.stats.classes'), val: userDetails?.classes || 0 },
                 { label: $t('admin.stats.students'), val: userDetails?.students || 0 }
               ] as ent}
-                <div class="bg-black/40 border border-white/5 p-4 sm:p-6 rounded-[1.5rem] text-center">
-                  <p class="text-[7px] sm:text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 truncate">{ent.label}</p>
+                <div class="bg-[#02040a] p-5 text-center">
+                  <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest mb-2 truncate">{ent.label}</p>
                   {#if isLoadingDetails}
-                    <div class="h-6 sm:h-8 w-10 sm:w-12 bg-white/5 animate-pulse mx-auto rounded-lg"></div>
+                    <div class="h-7 w-12 bg-white/5 animate-pulse mx-auto rounded-none"></div>
                   {:else}
-                    <span class="text-xl sm:text-3xl font-black font-display italic text-white leading-none">{ent.val}</span>
+                    <span class="text-3xl font-black font-display italic text-white leading-none">{ent.val}</span>
                   {/if}
                 </div>
               {/each}
@@ -707,16 +691,16 @@
 
            <!-- Premium Commands -->
            <div class="space-y-4">
-              <div class="flex items-center gap-3 mb-2">
-                <Crown weight="duotone" class="w-5 h-5 text-amber-500" />
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.modal.subscription_control')}</p>
+              <div class="flex items-center gap-3">
+                <Crown weight="duotone" class="w-4 h-4 text-amber-500" />
+                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">{$t('admin.modal.subscription_control')}</p>
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/10 border border-white/10">
                  {#each [3, 7, 30, 365] as days}
                    <button 
                     onclick={() => handleGrantPremium(selectedUser?.id, days)}
                     disabled={isSaving}
-                    class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-white/5 border border-white/10 hover:bg-primary-500/10 hover:text-primary-400 hover:border-primary-500/30 disabled:opacity-50 text-white cursor-pointer"
+                    class="py-4 bg-[#02040a] text-[10px] font-mono font-black uppercase tracking-widest transition-all hover:bg-primary-500/10 hover:text-primary-400 disabled:opacity-50 text-slate-400 cursor-pointer rounded-none"
                    >
                     {days === 365 ? $t('admin.modal.one_year') : $t('admin.users.days', { n: days })}
                    </button>
@@ -725,7 +709,7 @@
               {#if getPlanStatus(selectedUser) === 'pro'}
                  <button 
                   onclick={() => handleRevokePremium(selectedUser?.id)}
-                  class="w-full py-4 bg-red-500/10 text-red-500 border border-red-500/30 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all mt-2 cursor-pointer shadow-lg shadow-red-500/5"
+                  class="w-full py-3.5 bg-red-500/10 text-red-500 border border-red-500/30 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all cursor-pointer rounded-none"
                  >
                   {$t('admin.modal.revoke_privileges')}
                  </button>
@@ -734,19 +718,19 @@
 
            <!-- Badge Command -->
            <div class="space-y-4">
-              <div class="flex items-center gap-3 mb-2">
-                <Star weight="duotone" class="w-5 h-5 text-violet-500" />
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.modal.award_insignias')}</p>
+              <div class="flex items-center gap-3">
+                <Star weight="duotone" class="w-4 h-4 text-violet-500" />
+                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">{$t('admin.modal.award_insignias')}</p>
               </div>
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-wrap gap-1.5">
                 {#each INSIGNIAS as badge}
                    {@const isOwned = userInsignias.some(ui => ui.id === badge.id)}
                    <button 
                     onclick={() => isOwned ? handleRevokeInsignia(badge.id) : handleAwardInsignia(badge.id)}
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all {isOwned ? 'bg-violet-500 border-violet-400 text-white shadow-lg shadow-violet-500/20' : 'bg-black/20 border-white/10 text-slate-500 hover:border-white/30 hover:text-slate-300'} cursor-pointer"
+                    class="flex items-center gap-2 px-3 py-2.5 border transition-all {isOwned ? 'bg-violet-500 border-violet-400 text-white' : 'bg-white/[0.02] border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-300'} cursor-pointer rounded-none"
                    >
-                    <badge.icon weight="fill" class="w-4 h-4" />
-                    <span class="text-[10px] font-black uppercase tracking-widest">{$t(badge.titleKey)}</span>
+                    <badge.icon weight="fill" class="w-3.5 h-3.5" />
+                    <span class="text-[9px] font-mono font-black uppercase tracking-widest">{$t(badge.titleKey)}</span>
                    </button>
                 {/each}
               </div>
@@ -756,15 +740,15 @@
     </div>
   {/if}
 
-  <!-- Premium Mobile Navigation for Admins -->
+  <!-- Mobile Navigation for Admins -->
   <div 
-    class="lg:hidden fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[450px] z-[100] pb-[env(safe-area-inset-bottom)] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer overflow-hidden {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-75 opacity-30 blur-[2px]'}"
+    class="lg:hidden fixed bottom-5 left-4 right-4 z-[100] pb-[env(safe-area-inset-bottom)] transition-all duration-500 {isNavVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-30 pointer-events-none'}"
     onclick={() => isNavVisible = true}
     role="button"
     tabindex="0"
     onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') isNavVisible = true; }}
   >
-    <div class="bg-zinc-900/90 backdrop-blur-2xl border border-white/10 p-2 sm:p-2.5 rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)] flex items-center justify-between">
+    <div class="bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-stretch rounded-none">
       {#each [
         { id: 'dashboard', icon: SquaresFour, label: 'Dash' },
         { id: 'users', icon: Users, label: 'Users' }
@@ -772,40 +756,38 @@
         {@const Icon = item.icon}
         <button 
           onclick={() => activeTab = item.id}
-          class="flex flex-col items-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 px-4 sm:px-5 rounded-2xl transition-all {activeTab === item.id ? 'text-violet-400' : 'text-zinc-500'}"
+          class="flex-1 flex flex-col items-center gap-1.5 py-4 transition-all border-r border-white/5 {activeTab === item.id ? 'text-primary-400 bg-primary-500/5' : 'text-slate-600 hover:text-white'} rounded-none"
         >
-          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={20} class="sm:w-[22px] sm:h-[22px]" />
-          <span class="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={20} />
+          <span class="text-[8px] font-mono font-black uppercase tracking-widest">{item.label}</span>
         </button>
       {/each}
 
-      <!-- Center Support Ticket Spotlight (Amber) -->
+      <!-- Center Tickets Button -->
       <button 
         onclick={() => activeTab = 'tickets'}
-        class="relative group active:scale-95 transition-all -translate-y-4 sm:-translate-y-5"
+        class="relative flex-1 flex flex-col items-center gap-1.5 py-4 transition-all border-r border-white/5 {activeTab === 'tickets' ? 'text-amber-400 bg-amber-500/5' : 'text-slate-600 hover:text-amber-400'} rounded-none"
       >
-        <div class="absolute -inset-4 bg-amber-500/20 rounded-full blur-2xl group-hover:bg-amber-500/30 transition-all"></div>
-        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center shadow-[0_10px_30px_-5px_rgba(245,158,11,0.5)] border-4 border-zinc-950 group-hover:rotate-12 transition-all">
-          <Lifebuoy weight="fill" size={24} class="sm:w-[28px] sm:h-[28px] text-zinc-950" />
-          {#if supportTickets.filter(t => t.status === 'open').length > 0}
-            <div class="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 text-white border-2 border-zinc-950 rounded-full flex items-center justify-center text-[8px] sm:text-[10px] font-black">
-              {supportTickets.filter(t => t.status === 'open').length}
-            </div>
-          {/if}
-        </div>
+        <Lifebuoy weight={activeTab === 'tickets' ? 'fill' : 'bold'} size={20} />
+        <span class="text-[8px] font-mono font-black uppercase tracking-widest">Tickets</span>
+        {#if supportTickets.filter(t => t.status === 'open').length > 0}
+          <div class="absolute top-2 right-3 min-w-[16px] h-4 bg-amber-500 text-black flex items-center justify-center text-[8px] font-black px-1 rounded-none">
+            {supportTickets.filter(t => t.status === 'open').length}
+          </div>
+        {/if}
       </button>
 
       {#each [
         { id: 'lobby', icon: ChatTeardropDots, label: 'Hub' },
-        { id: 'system', icon: Gear, label: 'System' }
+        { id: 'system', icon: Gear, label: 'Sys' }
       ] as item}
         {@const Icon = item.icon}
         <button 
           onclick={() => activeTab = item.id}
-          class="flex flex-col items-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 px-4 sm:px-5 rounded-2xl transition-all {activeTab === item.id ? 'text-violet-400' : 'text-zinc-500'}"
+          class="flex-1 flex flex-col items-center gap-1.5 py-4 transition-all {item.id !== 'system' ? 'border-r border-white/5' : ''} {activeTab === item.id ? 'text-primary-400 bg-primary-500/5' : 'text-slate-600 hover:text-white'} rounded-none"
         >
-          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={20} class="sm:w-[22px] sm:h-[22px]" />
-          <span class="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={20} />
+          <span class="text-[8px] font-mono font-black uppercase tracking-widest">{item.label}</span>
         </button>
       {/each}
     </div>
@@ -820,3 +802,4 @@
     user-select: none;
   }
 </style>
+

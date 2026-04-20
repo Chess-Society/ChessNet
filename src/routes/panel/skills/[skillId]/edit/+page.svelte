@@ -33,10 +33,14 @@
     WarningCircle,
     PencilSimple,
     Certificate,
-    Lightbulb
+    Lightbulb,
+    Trophy,
+    ArrowUpRight,
+    ChartBar,
+    UserList
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
-  import { fade, fly, slide } from 'svelte/transition';
+  import { fade, fly, slide, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
 
   let { data } = $props<{ data: PageData }>();
@@ -71,11 +75,11 @@
   let showConfirmDiscard = $state(false);
 
   const difficultyLevels = [
-    { value: 1, label: $t('skills.difficulty.entry'), color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { value: 2, label: $t('skills.difficulty.novice'), color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { value: 3, label: $t('skills.difficulty.intermediate'), color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { value: 4, label: $t('skills.difficulty.advanced'), color: 'text-rose-400', bg: 'bg-rose-400/10' },
-    { value: 5, label: $t('skills.difficulty.master'), color: 'text-rose-400', bg: 'bg-rose-400/10' }
+    { value: 1, label: $t('skills.difficulty.entry'), icon: Sparkle, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { value: 2, label: $t('skills.difficulty.novice'), icon: ArrowUpRight, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { value: 3, label: $t('skills.difficulty.intermediate'), icon: TrendUp, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { value: 4, label: $t('skills.difficulty.advanced'), icon: Target, color: 'text-rose-400', bg: 'bg-rose-400/10' },
+    { value: 5, label: $t('skills.difficulty.master'), icon: Trophy, color: 'text-rose-400', bg: 'bg-rose-400/10' }
   ];
 
   const handleGoBack = () => {
@@ -189,7 +193,7 @@
       <div class="flex items-center gap-4">
         <button 
           onclick={handleGoBack}
-          class="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all"
+          class="w-10 h-10 rounded-none bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all"
         >
           <ArrowLeft weight="bold" class="w-5 h-5" />
         </button>
@@ -200,7 +204,7 @@
               {$t('skills.edit.title')}
             </h1>
             {#if hasChanges}
-              <span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-widest animate-pulse border border-amber-500/20">{$t('skills.ui.unsaved')}</span>
+              <span class="px-2 py-0.5 rounded-none bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-widest animate-pulse border border-amber-500/20">{$t('skills.ui.unsaved')}</span>
             {/if}
           </div>
           <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">{$t('skills.edit.subtitle', { name: skillData.name })}</p>
@@ -211,7 +215,7 @@
         {#if hasChanges}
            <button 
             onclick={() => showConfirmDiscard = true}
-            class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all flex items-center gap-2"
+            class="px-5 py-2.5 rounded-none text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all flex items-center gap-2"
           >
             <ArrowCounterClockwise weight="bold" class="w-4 h-4" />
             {$t('skills.edit.discard_btn')}
@@ -221,10 +225,10 @@
         <button 
           onclick={handleSubmit}
           disabled={isSubmitting || !hasChanges}
-          class="px-8 py-2.5 rounded-xl bg-violet-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:-translate-y-0.5 transition-all text-xs font-black tracking-widest uppercase flex items-center gap-2 disabled:opacity-50"
+          class="px-8 py-2.5 rounded-none bg-violet-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:-translate-y-0.5 transition-all text-xs font-black tracking-widest uppercase flex items-center gap-2 disabled:opacity-50"
         >
           {#if isSubmitting}
-            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-none animate-spin"></div>
           {:else}
             <FloppyDisk weight="bold" class="w-4 h-4" />
           {/if}
@@ -241,13 +245,13 @@
       <div class="lg:col-span-8 space-y-8">
         
         <!-- Main Info Card -->
-        <section class="bg-zinc-900/30 border border-zinc-800/50 rounded-[32px] overflow-hidden backdrop-blur-sm shadow-2xl">
-          <div class="bg-gradient-to-r from-violet-600/10 to-transparent p-8 border-b border-zinc-800/50 flex items-center justify-between">
+        <section class="bento-card">
+          <div class="bg-gradient-to-r from-violet-600/10 to-transparent p-8 border-b border-white/5 flex items-center justify-between">
             <h2 class="text-xl font-black uppercase tracking-widest italic flex items-center gap-3">
-              <span class="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+              <span class="w-1.5 h-6 bg-violet-500 rounded-none"></span>
               {$t('skills.ui.core_config')}
             </h2>
-            <div class="px-4 py-1.5 rounded-full bg-zinc-950/50 border border-zinc-800 text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono italic">
+            <div class="px-4 py-1.5 rounded-none bg-zinc-950/50 border border-white/5 text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono italic">
               ID: {skillData.id}
             </div>
           </div>
@@ -258,7 +262,7 @@
               <div class="space-y-3">
                 <label for="name" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('skills.create.topic_name')}</label>
                 <div class="relative group">
-                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors">
+                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors z-10 pointer-events-none">
                     <Note weight="bold" class="w-5 h-5" />
                   </div>
                   <input
@@ -266,7 +270,7 @@
                     type="text"
                     bind:value={formData.name}
                     placeholder={$t('skills.create.topic_placeholder')}
-                    class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-12 pr-4 py-4 text-white focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 outline-none transition-all placeholder:text-zinc-700 font-bold uppercase tracking-tight"
+                    class="glass-input w-full pl-12"
                   />
                 </div>
                 {#if errors.name}
@@ -278,24 +282,42 @@
 
               <div class="space-y-3">
                 <label for="category_id" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('skills.create.category')}</label>
-                <div class="relative group">
-                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none">
-                    <Tag weight="bold" class="w-5 h-5" />
-                  </div>
-                  <select
-                    id="category_id"
-                    bind:value={formData.category_id}
-                    class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-12 pr-10 py-4 text-white focus:border-violet-500 outline-none transition-all appearance-none cursor-pointer font-bold uppercase tracking-tight"
-                  >
-                    <option value="" disabled>{$t('skills.create.category_placeholder')}</option>
-                    {#each categories as category}
-                      <option value={category.id}>{category.name}</option>
-                    {/each}
-                  </select>
-                  <div class="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none">
-                    <SortAscending class="rotate-180 w-4 h-4" />
-                  </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {#each categories as category}
+                    <button 
+                      type="button"
+                      onclick={() => formData.category_id = category.id}
+                      class="selection-card {formData.category_id === category.id ? 'active' : ''}"
+                    >
+                      <div class="card-icon">
+                        {#if category.id === 'basics'}
+                          <Target weight="duotone" />
+                        {:else if category.id === 'tactics'}
+                          <Sparkle weight="duotone" />
+                        {:else if category.id === 'strategy'}
+                          <ChartBar weight="duotone" />
+                        {:else if category.id === 'endgames'}
+                          <Lightbulb weight="duotone" />
+                        {:else}
+                          <UserList weight="duotone" />
+                        {/if}
+                      </div>
+                      <div class="card-content">
+                        <span class="card-title">{category.name}</span>
+                      </div>
+                      {#if formData.category_id === category.id}
+                        <div class="card-check" in:scale>
+                          <CheckCircle size={20} weight="fill" />
+                        </div>
+                      {/if}
+                    </button>
+                  {/each}
                 </div>
+                {#if errors.category_id}
+                  <p class="text-rose-400 text-[10px] font-bold uppercase flex items-center gap-1.5 ml-1">
+                    <WarningCircle weight="fill" class="w-3.5 h-3.5" /> {errors.category_id}
+                  </p>
+                {/if}
               </div>
             </div>
 
@@ -307,7 +329,7 @@
                 bind:value={formData.description}
                 placeholder={$t('skills.create.description_placeholder')}
                 rows="4"
-                class="w-full bg-zinc-950/50 border border-zinc-800 rounded-[24px] p-6 text-white focus:border-violet-500 outline-none transition-all placeholder:text-zinc-700 italic font-medium leading-relaxed resize-none"
+                class="glass-input w-full resize-none p-6 text-sm italic font-medium leading-relaxed"
               ></textarea>
             </div>
 
@@ -315,17 +337,29 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
               <div class="space-y-4">
                 <span class="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('skills.create.difficulty')}</span>
-                <div class="flex flex-wrap gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
                   {#each difficultyLevels as level}
                     <button 
+                      type="button"
                       onclick={() => formData.difficulty = level.value}
-                      class="px-4 py-3 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 flex-1 min-w-[80px]
-                      {formData.difficulty === level.value 
-                        ? 'bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-600/20 scale-105' 
-                        : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700'}"
+                      class="selection-card {formData.difficulty === level.value ? 'active' : ''}"
                     >
-                      <span>{'⭐'.repeat(level.value)}</span>
-                      {level.label}
+                      <div class="card-icon !p-2">
+                        <level.icon weight="duotone" class="w-5 h-5 {level.color}" />
+                      </div>
+                      <div class="card-content">
+                        <span class="card-title !text-[10px]">{level.label}</span>
+                        <div class="flex gap-0.5 mt-0.5">
+                          {#each Array(level.value) as _}
+                            <div class="w-1.5 h-1.5 rounded-none bg-violet-500"></div>
+                          {/each}
+                        </div>
+                      </div>
+                      {#if formData.difficulty === level.value}
+                        <div class="card-check" in:scale>
+                          <CheckCircle size={16} weight="fill" />
+                        </div>
+                      {/if}
                     </button>
                   {/each}
                 </div>
@@ -333,10 +367,10 @@
 
               <div class="space-y-4">
                 <label for="hours" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('common.duration') || 'Hours'}</label>
-                <div class="bg-zinc-950/50 border border-zinc-800 rounded-[24px] p-6 flex items-center justify-between shadow-inner">
+                <div class="bg-zinc-950/50 border border-white/5 rounded-none p-6 flex items-center justify-between shadow-inner">
                   <button 
                     onclick={() => formData.estimated_hours = Math.max(0.5, formData.estimated_hours - 0.5)}
-                    class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 hover:text-rose-400 transition-all active:scale-90"
+                    class="w-10 h-10 rounded-none bg-zinc-900 border border-white/5 flex items-center justify-center hover:bg-zinc-800 hover:text-rose-400 transition-all active:scale-90"
                   >
                     <SortAscending class="rotate-180" />
                   </button>
@@ -346,7 +380,7 @@
                   </div>
                   <button 
                     onclick={() => formData.estimated_hours += 0.5}
-                    class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 hover:text-emerald-400 transition-all active:scale-90"
+                    class="w-10 h-10 rounded-none bg-zinc-900 border border-white/5 flex items-center justify-center hover:bg-zinc-800 hover:text-emerald-400 transition-all active:scale-90"
                   >
                     <Plus weight="bold" />
                   </button>
@@ -357,19 +391,19 @@
         </section>
 
         <!-- Prerequisites Section -->
-        <section class="bg-zinc-900/30 border border-zinc-800/50 rounded-[32px] p-8 space-y-6 shadow-xl">
+        <section class="bento-card p-8 space-y-6">
            <div class="flex items-center justify-between">
               <h3 class="text-sm font-black uppercase tracking-widest italic flex items-center gap-3">
                 <Target weight="duotone" class="w-5 h-5 text-amber-500" />
                 {$t('skills.ui.chain')}
               </h3>
-              <div class="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[9px] font-black uppercase tracking-widest">
+              <div class="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-none text-[9px] font-black uppercase tracking-widest border border-amber-500/20">
                 {$t('skills.ui.dependencies')}: {formData.prerequisites.length}
               </div>
             </div>
             
             {#if availablePrerequisites.length === 0}
-              <div class="bg-zinc-950/50 border border-zinc-800 border-dashed rounded-2xl p-10 text-center">
+              <div class="bg-zinc-950/50 border border-zinc-800 border-dashed rounded-none p-10 text-center">
                 <p class="text-xs text-zinc-500 italic">{$t('skills.ui.no_prerequisites')}</p>
               </div>
             {:else}
@@ -377,12 +411,12 @@
                 {#each filteredPrerequisites as skill}
                   <button 
                     onclick={() => togglePrerequisite(skill.id)}
-                    class="flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group/req
+                    class="flex items-center gap-4 p-4 rounded-none border transition-all text-left group/req
                     {formData.prerequisites.includes(skill.id) 
                       ? 'bg-violet-600/10 border-violet-500/50 text-white' 
                       : 'bg-zinc-950/30 border-zinc-800/50 text-zinc-500 hover:border-zinc-700'}"
                   >
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all
+                    <div class="w-10 h-10 rounded-none flex items-center justify-center transition-all
                       {formData.prerequisites.includes(skill.id) ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'bg-zinc-900 text-zinc-700 group-hover/req:text-zinc-500'}">
                        {#if formData.prerequisites.includes(skill.id)}
                         <CheckCircle weight="fill" class="w-6 h-6" />
@@ -403,7 +437,7 @@
         <!-- Learning Path Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
            <!-- Objectives -->
-           <section class="bg-zinc-900/30 border border-zinc-800/50 rounded-[32px] p-8 space-y-6 shadow-xl">
+           <section class="bento-card p-8 space-y-6">
               <div class="flex items-center justify-between">
                 <h3 class="text-sm font-black uppercase tracking-widest italic flex items-center gap-3">
                   <Check weight="duotone" class="w-5 h-5 text-violet-400" />
@@ -411,7 +445,7 @@
                 </h3>
                 <button 
                   onclick={() => addItem('learning_objectives')}
-                  class="w-8 h-8 rounded-lg bg-violet-600/10 text-violet-400 hover:bg-violet-600 hover:text-white transition-all flex items-center justify-center shadow-lg"
+                  class="w-8 h-8 rounded-none bg-violet-600/10 text-violet-400 hover:bg-violet-600 hover:text-white transition-all flex items-center justify-center shadow-lg"
                 >
                   <Plus weight="bold" />
                 </button>
@@ -420,7 +454,7 @@
               <div class="space-y-4">
                 {#each formData.learning_objectives as obj, i}
                   <div class="flex gap-4 group" in:slide={{ duration: 250 }}>
-                    <div class="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[11px] font-black text-zinc-600 shrink-0 mt-1 shadow-inner group-hover:text-violet-500 group-hover:border-violet-500/30 transition-all">
+                    <div class="w-10 h-10 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[11px] font-black text-zinc-600 shrink-0 mt-1 shadow-inner group-hover:text-violet-500 group-hover:border-violet-500/30 transition-all">
                       {i + 1}
                     </div>
                     <textarea
@@ -441,7 +475,7 @@
            </section>
 
            <!-- Criteria -->
-           <section class="bg-zinc-900/30 border border-zinc-800/50 rounded-[32px] p-8 space-y-6 shadow-xl">
+           <section class="bento-card p-8 space-y-6">
               <div class="flex items-center justify-between">
                 <h3 class="text-sm font-black uppercase tracking-widest italic flex items-center gap-3">
                   <Certificate weight="duotone" class="w-5 h-5 text-amber-400" />
@@ -449,7 +483,7 @@
                 </h3>
                 <button 
                   onclick={() => addItem('assessment_criteria')}
-                  class="w-8 h-8 rounded-lg bg-amber-600/10 text-amber-400 hover:bg-amber-600 hover:text-white transition-all flex items-center justify-center shadow-lg"
+                  class="w-8 h-8 rounded-none bg-amber-600/10 text-amber-400 hover:bg-amber-600 hover:text-white transition-all flex items-center justify-center shadow-lg"
                 >
                   <Plus weight="bold" />
                 </button>
@@ -458,7 +492,7 @@
               <div class="space-y-4">
                 {#each formData.assessment_criteria as cr, i}
                   <div class="flex gap-4 group" in:slide={{ duration: 250 }}>
-                    <div class="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-600 shrink-0 mt-1 shadow-inner group-hover:text-amber-500 group-hover:border-amber-500/30 transition-all">
+                    <div class="w-10 h-10 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-600 shrink-0 mt-1 shadow-inner group-hover:text-amber-500 group-hover:border-amber-500/30 transition-all">
                       C{i + 1}
                     </div>
                     <textarea
@@ -480,7 +514,7 @@
         </div>
 
         <!-- Resources & Advanced -->
-        <section class="bg-zinc-900/10 border border-zinc-800/20 rounded-[32px] p-8 space-y-6 shadow-inner">
+        <section class="bg-zinc-900/10 border border-zinc-800/20 rounded-none p-8 space-y-6 shadow-inner">
            <div class="flex items-center justify-between">
               <h3 class="text-sm font-black uppercase tracking-widest italic flex items-center gap-3 text-zinc-500">
                 <Books weight="duotone" class="w-5 h-5 text-blue-400" />
@@ -488,7 +522,7 @@
               </h3>
               <button 
                 onclick={() => addItem('resources')}
-                class="px-5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white hover:border-blue-500/30 transition-all flex items-center gap-2"
+                class="px-5 py-2.5 rounded-none bg-zinc-950 border border-zinc-800 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white hover:border-blue-500/30 transition-all flex items-center gap-2"
               >
                 <Plus weight="bold" class="w-3 h-3" /> {$t('skills.create.add_resource') || 'Material'}
               </button>
@@ -504,7 +538,7 @@
                     type="text"
                     bind:value={formData.resources[i]}
                     placeholder={$t('skills.create.resource_placeholder')}
-                    class="w-full bg-zinc-950/40 border border-zinc-800 rounded-2xl pl-12 pr-4 py-4 text-xs text-zinc-400 focus:border-blue-500 outline-none transition-all placeholder:text-zinc-900 font-bold"
+                    class="w-full bg-zinc-950/40 border border-zinc-800 rounded-none pl-12 pr-4 py-4 text-xs text-zinc-400 focus:border-blue-500 outline-none transition-all placeholder:text-zinc-900 font-bold"
                   />
                   <button 
                     onclick={() => removeItem('resources', i)}
@@ -523,15 +557,15 @@
       <aside class="lg:col-span-4 space-y-8 h-fit lg:sticky lg:top-[100px]">
         
         <!-- Icon & Content Sync Card -->
-        <section class="bg-zinc-900/50 border border-zinc-800 rounded-[32px] p-8 space-y-8 shadow-2xl relative overflow-hidden">
-           <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/5 blur-3xl rounded-full"></div>
+        <section class="bg-zinc-900/50 border border-zinc-800 rounded-none p-8 space-y-8 shadow-2xl relative overflow-hidden">
+           <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/5 blur-3xl rounded-none"></div>
            
            <div class="flex flex-col items-center gap-6 relative z-10">
               <div class="relative group">
-                <div class="w-32 h-32 bg-zinc-950 border-4 border-zinc-800 rounded-[40px] flex items-center justify-center text-6xl shadow-2xl group-hover:scale-105 group-hover:rotate-3 transition-all duration-700">
+                <div class="w-32 h-32 bg-zinc-950 border-4 border-white/5 rounded-none flex items-center justify-center text-6xl shadow-2xl group-hover:scale-105 group-hover:rotate-3 transition-all duration-700">
                   {formData.icon || '🎯'}
                 </div>
-                <div class="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 border border-white/20 flex items-center justify-center text-white shadow-xl animate-pulse">
+                <div class="absolute -bottom-2 -right-2 w-10 h-10 rounded-none bg-gradient-to-br from-violet-600 to-indigo-600 border border-white/20 flex items-center justify-center text-white shadow-xl animate-pulse">
                    <Smiley weight="bold" class="w-5 h-5" />
                 </div>
               </div>
@@ -543,7 +577,7 @@
                   type="text"
                   bind:value={formData.icon}
                   placeholder={$t('skills.create.icon_placeholder')}
-                  class="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-4 text-center text-2xl focus:border-violet-500 outline-none transition-all shadow-inner font-bold"
+                  class="glass-input w-full text-center text-2xl"
                 />
               </div>
            </div>
@@ -559,10 +593,10 @@
                 <button 
                   onclick={() => formData.active = !formData.active}
                   aria-label="Toggle active status"
-                  class="w-14 h-7 rounded-full relative transition-all duration-300 shadow-xl
-                  {formData.active ? 'bg-violet-600 shadow-violet-600/20' : 'bg-zinc-800'}"
+                  class="w-14 h-7 rounded-none relative transition-all duration-300 shadow-xl border border-zinc-800
+                  {formData.active ? 'bg-violet-600 shadow-violet-600/20 border-violet-500' : 'bg-zinc-800'}"
                 >
-                  <div class="absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-all transform 
+                  <div class="absolute top-1 left-1 w-5 h-5 rounded-none bg-white transition-all transform 
                   {formData.active ? 'translate-x-7' : 'translate-x-0'} shadow-md"></div>
                 </button>
               </div>
@@ -571,9 +605,9 @@
                  <div class="flex items-center justify-between text-xs">
                   <span class="text-zinc-600 uppercase tracking-tighter">{$t('skills.ui.order')}</span>
                   <div class="flex items-center gap-2">
-                    <button onclick={() => formData.order_index = Math.max(0, formData.order_index - 1)} class="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-600 hover:text-white transition-colors">-</button>
+                    <button onclick={() => formData.order_index = Math.max(0, formData.order_index - 1)} class="w-8 h-8 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-600 hover:text-white transition-colors">-</button>
                     <span class="w-10 text-center font-black text-violet-400 tabular-nums">{formData.order_index}</span>
-                    <button onclick={() => formData.order_index += 1} class="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-600 hover:text-white transition-colors">+</button>
+                    <button onclick={() => formData.order_index += 1} class="w-8 h-8 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-600 hover:text-white transition-colors">+</button>
                   </div>
                 </div>
               </div>
@@ -581,12 +615,12 @@
         </section>
 
         <!-- Dynamic Live Showcase -->
-        <section in:fade class="bg-gradient-to-br from-zinc-900 to-black border border-white/5 rounded-[32px] p-8 text-white space-y-8 shadow-2xl relative overflow-hidden group">
-          <div class="absolute top-0 right-0 w-40 h-40 bg-violet-600/10 blur-[60px] rounded-full transition-all duration-700"></div>
+        <section in:fade class="bg-gradient-to-br from-zinc-900 to-black border border-white/5 rounded-none p-8 text-white space-y-8 shadow-2xl relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-40 h-40 bg-violet-600/10 blur-[60px] rounded-none transition-all duration-700"></div>
           
           <div class="flex items-center justify-between relative z-10">
-            <div class="px-3 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest text-violet-400">{$t('skills.ui.live_preview')}</div>
-            <div class="flex items-center gap-1 bg-black/40 px-3 py-1.5 rounded-full border border-white/5">
+            <div class="px-3 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-none text-[9px] font-black uppercase tracking-widest text-violet-400">{$t('skills.ui.live_preview')}</div>
+            <div class="flex items-center gap-1 bg-black/40 px-3 py-1.5 rounded-none border border-white/5">
               {#each [1,2,3,4,5] as star}
                 <Star weight={formData.difficulty >= star ? 'fill' : 'regular'} size={11} class={formData.difficulty >= star ? 'text-amber-400' : 'text-zinc-800'} />
               {/each}
@@ -594,7 +628,7 @@
           </div>
 
           <div class="relative z-10 space-y-4">
-            <div class="w-16 h-16 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-3xl shadow-xl group-hover:scale-110 transition-transform duration-500">
+            <div class="w-16 h-16 bg-zinc-950 border border-zinc-800 rounded-none flex items-center justify-center text-3xl shadow-xl group-hover:scale-110 transition-transform duration-500">
               {formData.icon || '🎯'}
             </div>
             
@@ -612,15 +646,15 @@
             <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-zinc-300 transition-colors">
               <Clock weight="fill" class="w-4 h-4 text-violet-500" /> {formData.estimated_hours} {$t('common.duration_unit') || 'Hours'}
             </div>
-            <div class="px-3 py-1.5 bg-zinc-950 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-xl">
+            <div class="px-3 py-1.5 bg-zinc-950 border border-white/10 rounded-none text-[9px] font-black uppercase tracking-widest shadow-xl">
               {getDifficultyInfo.label}
             </div>
           </div>
         </section>
 
         <!-- Knowledge Anchor -->
-        <section class="bg-zinc-900 border border-zinc-800 border-dashed rounded-[32px] p-8 space-y-4 flex flex-col items-center text-center">
-          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+        <section class="bento-card p-8 space-y-4 flex flex-col items-center text-center border-dashed">
+          <div class="w-12 h-12 rounded-none bg-amber-500/10 flex items-center justify-center text-amber-500">
             <Lightbulb weight="fill" class="w-6 h-6" />
           </div>
           <div class="space-y-1">
@@ -640,8 +674,8 @@
 {#if showConfirmDiscard}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4" transition:fade>
     <button class="absolute inset-0 bg-zinc-950/90 backdrop-blur-md w-full border-none cursor-default" onclick={() => showConfirmDiscard = false} aria-label="Close modal"></button>
-    <div class="bg-zinc-900 border border-white/10 rounded-[40px] p-10 max-w-md w-full relative z-10 shadow-[0_40px_100px_rgba(0,0,0,1)] text-center" in:fly={{ y: 30 }}>
-      <div class="p-6 bg-rose-500/10 text-rose-500 rounded-3xl w-fit mx-auto mb-8 animate-bounce">
+    <div class="bg-zinc-900 border border-white/10 rounded-none p-10 max-w-md w-full relative z-10 shadow-[0_40px_100px_rgba(0,0,0,1)] text-center" in:fly={{ y: 30 }}>
+      <div class="p-6 bg-rose-500/10 text-rose-500 rounded-none w-fit mx-auto mb-8 animate-bounce">
         <ArrowCounterClockwise size={40} weight="bold" />
       </div>
       <h3 class="text-3xl font-black text-white mb-3 tracking-tight uppercase italic">{$t('skills.edit.discard_title')}</h3>
@@ -651,13 +685,13 @@
       <div class="flex flex-col gap-4">
         <button 
           onclick={resetForm}
-          class="w-full py-5 rounded-2xl bg-rose-600 text-white font-black uppercase tracking-widest hover:bg-rose-500 transition-all shadow-2xl shadow-rose-600/30 active:scale-95"
+          class="w-full py-5 rounded-none bg-rose-600 text-white font-black uppercase tracking-widest hover:bg-rose-500 transition-all shadow-2xl shadow-rose-600/30 active:scale-95"
         >
           {$t('skills.edit.discard_confirm')}
         </button>
         <button 
           onclick={() => showConfirmDiscard = false}
-          class="w-full py-5 rounded-2xl bg-zinc-800 text-white font-black uppercase tracking-widest hover:bg-zinc-700 transition-all active:scale-95"
+          class="w-full py-5 rounded-none bg-zinc-800 text-white font-black uppercase tracking-widest hover:bg-zinc-700 transition-all active:scale-95"
         >
           {$t('skills.edit.discard_cancel')}
         </button>

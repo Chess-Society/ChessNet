@@ -9,23 +9,13 @@ export const GET: RequestHandler = async ({ locals }) => {
   }
 
   try {
-    const isMock = locals.user.uid === 'chessnet-dev-uid';
-    
-    // Si es mock, intentamos llamar a firestore pero si falla devolvemos lista vacía en lugar de 500
-    try {
-      const snapshot = await adminDb.collection("skills")
-        .where("owner_id", "==", locals.user.uid)
-        .orderBy("created_at", "desc")
-        .get();
+    const snapshot = await adminDb.collection("skills")
+      .where("owner_id", "==", locals.user.uid)
+      .orderBy("created_at", "desc")
+      .get();
         
-      const skills = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
-      return json({ skills });
-    } catch (dbError: any) {
-      if (isMock) {
-        return json({ skills: [] });
-      }
-      throw dbError;
-    }
+    const skills = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    return json({ skills });
   } catch (error: any) {
     console.error('❌ Error in GET skills API:', error.message);
     return json({ error: 'Error al obtener las habilidades', details: error.message }, { status: 500 });
@@ -38,7 +28,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   }
 
   try {
-    const isMock = locals.user.uid === 'chessnet-dev-uid';
     const body = await request.json();
     const skillData = {
       ...body,
@@ -47,15 +36,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       updated_at: new Date().toISOString()
     };
 
-    try {
-      const docRef = await adminDb.collection("skills").add(skillData);
-      return json({ success: true, id: docRef.id });
-    } catch (dbError) {
-      if (isMock) {
-        return json({ success: true, id: 'mock-skill-' + Date.now() });
-      }
-      throw dbError;
-    }
+    const docRef = await adminDb.collection("skills").add(skillData);
+    return json({ success: true, id: docRef.id });
   } catch (error: any) {
     console.error('❌ Error in POST skills API:', error.message);
     return json({ error: 'Error al crear la habilidad' }, { status: 500 });
@@ -68,27 +50,18 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
   }
 
   try {
-    const isMock = locals.user.uid === 'chessnet-dev-uid';
     const { id } = await request.json();
     if (!id) return json({ error: 'ID required' }, { status: 400 });
 
-    try {
-      const docRef = adminDb.collection("skills").doc(id);
-      const docSnap = await docRef.get();
+    const docRef = adminDb.collection("skills").doc(id);
+    const docSnap = await docRef.get();
 
-      if (!docSnap.exists || docSnap.data()?.owner_id !== locals.user.uid) {
-        if (isMock) return json({ success: true });
-        return json({ error: 'Unauthorized' }, { status: 403 });
-      }
-
-      await docRef.delete();
-      return json({ success: true });
-    } catch (dbError) {
-      if (isMock) {
-        return json({ success: true });
-      }
-      throw dbError;
+    if (!docSnap.exists || docSnap.data()?.owner_id !== locals.user.uid) {
+      return json({ error: 'Unauthorized' }, { status: 403 });
     }
+
+    await docRef.delete();
+    return json({ success: true });
   } catch (error: any) {
     console.error('❌ Error in DELETE skills API:', error.message);
     return json({ error: 'Error deleting skill' }, { status: 500 });

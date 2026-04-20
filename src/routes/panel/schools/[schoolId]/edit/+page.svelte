@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { goto, invalidateAll } from '$app/navigation';
   import { 
     CaretLeft,
-    FloppyDiskBack,
+    FloppyDisk,
     X,
     Buildings,
     Phone,
@@ -13,10 +13,20 @@
     House,
     CheckCircle,
     PencilLine,
-    CircleNotch
+    CircleNotch,
+    Sparkle,
+    ArrowRight,
+    Lightbulb,
+    Info,
+    WarningCircle,
+    Check,
+    ArrowLeft,
+    IdentificationBadge,
+    NavigationArrow,
+    Browser
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
-  import { fade, fly } from 'svelte/transition';
+  import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import { showToast, showError } from '$lib/stores/toast';
 
@@ -27,7 +37,7 @@
   let formData = $state({
     name: '',
     city: '',
-    country: 'US',
+    country: 'espana',
     address: '',
     phone: '',
     email: '',
@@ -39,7 +49,7 @@
       formData = {
         name: schoolData.name || '',
         city: schoolData.city || '',
-        country: schoolData.country || 'US',
+        country: schoolData.country || 'espana',
         address: schoolData.address || '',
         phone: schoolData.phone || '',
         email: schoolData.email || '',
@@ -54,9 +64,7 @@
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = $t('schools.form.name_required');
-    if (!formData.city.trim()) newErrors.city = $t('schools.form.city_required');
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = $t('schools.form.invalid_email');
-    if (formData.website && !/^https?:\/\/.+/.test(formData.website)) newErrors.website = $t('schools.form.invalid_url');
     
     errors = newErrors;
     return Object.keys(newErrors).length === 0;
@@ -72,53 +80,55 @@
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Update error');
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || 'Update error');
+      }
+
       showToast.success($t('schools.toast_success'));
       await invalidateAll();
       setTimeout(() => {
         goto(`/panel/schools/${schoolData.id}`);
       }, 400);
     } catch (error) {
-      console.error('Error:', error);
-      showError(error as Error, $t('schools.toast_error'));
+      showError(error as Error);
     } finally {
       isSubmitting = false;
     }
   };
+
+  const countries = [
+    { id: 'espana', label: 'countries.espana', icon: MapPin },
+    { id: 'andorra', label: 'countries.andorra', icon: Globe },
+    { id: 'mexico', label: 'countries.mexico', icon: Buildings },
+    { id: 'argentina', label: 'countries.argentina', icon: Buildings }
+  ];
 </script>
 
 <svelte:head>
   <title>{$t('schools.edit_title')} - {schoolData?.name || 'School'}</title>
 </svelte:head>
 
-<div class="max-w-[1200px] mx-auto p-4 md:p-8 space-y-8 pb-24" in:fade={{ duration: 300 }}>
-  <!-- Navigation and Actions -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-    <div class="space-y-2">
+<!-- Premium Sticky Header -->
+<div class="sticky top-0 z-[100] bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12">
+  <div class="max-w-[1400px] mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-6">
       <button 
-        onclick={() => goto(`/panel/schools/${schoolData.id}`)}
-        class="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group text-sm font-medium"
+        onclick={() => goto(`/panel/schools/${schoolData?.id}`)}
+        class="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-zinc-400 hover:text-white hover:border-emerald-500/50 transition-all active:scale-95 group"
       >
-        <CaretLeft weight="bold" class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-        {$t('schools.back')}
+        <ArrowLeft weight="bold" class="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
       </button>
-
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-violet-500/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-500">
-          <PencilLine weight="duotone" class="w-6 h-6" />
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-white tracking-tight">{$t('schools.edit_title')}</h1>
-          <p class="text-zinc-500 text-sm">{$t('schools.edit_subtitle')}</p>
-        </div>
+      <div>
+        <h1 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('schools.edit_title')}</h1>
+        <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{formData.name || '...'}</p>
       </div>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-4">
       <button 
-        onclick={() => goto(`/panel/schools/${schoolData.id}`)}
-        class="px-6 py-2.5 rounded-full border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all text-sm font-semibold flex items-center gap-2"
-        disabled={isSubmitting}
+        onclick={() => goto(`/panel/schools/${schoolData?.id}`)}
+        class="hidden md:flex items-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-none text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
       >
         <X weight="bold" class="w-4 h-4" />
         {$t('common.cancel')}
@@ -126,205 +136,207 @@
       <button 
         onclick={handleSubmit}
         disabled={isSubmitting}
-        class="px-6 py-2.5 rounded-full bg-violet-600 text-white hover:bg-violet-500 transition-all shadow-lg shadow-violet-600/20 flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed group"
+        class="flex items-center gap-3 px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-none text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-600/20 active:scale-95 disabled:opacity-50 group"
       >
         {#if isSubmitting}
           <CircleNotch weight="bold" class="w-4 h-4 animate-spin" />
-          <span>{$t('common.loading')}</span>
         {:else}
-          <FloppyDiskBack weight="duotone" class="w-4 h-4 group-hover:scale-110 transition-transform" />
-          <span>{$t('common.save')}</span>
+          <FloppyDisk weight="bold" class="w-4 h-4 group-hover:scale-110 transition-transform" />
         {/if}
+        {$t('common.save')}
       </button>
     </div>
   </div>
+</div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Main Form Area -->
-    <div class="lg:col-span-2 space-y-6">
-      <!-- Section: Basic Information -->
-      <section class="bg-zinc-900/50 border border-zinc-800 rounded-[24px] p-6 md:p-8 space-y-8">
-        <div class="flex items-center gap-3">
-          <div class="p-2 bg-zinc-800 rounded-xl text-zinc-400">
-            <Buildings weight="duotone" class="w-5 h-5" />
+<div class="max-w-[1400px] mx-auto px-6 md:px-12 py-12" in:fade={{ duration: 300 }}>
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+    
+    <!-- Left: Form Sections (8 Columns) -->
+    <div class="lg:col-span-8 space-y-10">
+      
+      <!-- Section: Identity -->
+      <section class="bento-card !p-10 relative overflow-hidden group">
+        <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/5 to-transparent opacity-100"></div>
+        
+        <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">
+          <div class="w-14 h-14 bg-emerald-600/20 border border-emerald-500/30 rounded-none flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
+            <Buildings weight="duotone" class="w-8 h-8" />
           </div>
-          <h2 class="text-lg font-bold text-white tracking-tight">{$t('landing.features.multischool.title')}</h2>
+          <div>
+            <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('schools.sections.general')}</h3>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('schools.edit_subtitle')}</p>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-6">
-          <div class="space-y-2">
-            <label for="name" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.name_label')}</label>
+        <div class="space-y-10 relative z-10">
+          <div class="space-y-3">
+            <label for="name" class="glass-label">{$t('schools.form.name_label')} <span class="text-emerald-500">*</span></label>
             <div class="relative group">
+              <IdentificationBadge weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
               <input
                 id="name"
                 type="text"
                 bind:value={formData.name}
-                class={`w-full bg-zinc-950/50 border rounded-2xl px-5 py-3.5 text-white font-medium focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all placeholder:text-zinc-700 ${errors.name ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
-                placeholder={$t('schools.form.name_placeholder')}
+                class="glass-input pl-16 pr-8 w-full focus:ring-emerald-500/20 focus:border-emerald-500 bg-zinc-950/50"
               />
-              {#if errors.name}
-                <p class="text-red-500 text-[11px] font-medium mt-1 ml-1">{errors.name}</p>
-              {/if}
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-2">
-              <label for="city" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.city_label')}</label>
-              <input
-                id="city"
-                type="text"
-                bind:value={formData.city}
-                class={`w-full bg-zinc-950/50 border rounded-2xl px-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all ${errors.city ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
-                placeholder={$t('schools.form.city_placeholder')}
-              />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="space-y-3">
+              <label for="city" class="glass-label">{$t('schools.form.city_label')}</label>
+              <div class="relative group">
+                <NavigationArrow weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
+                <input
+                  id="city"
+                  type="text"
+                  bind:value={formData.city}
+                  class="glass-input pl-16 pr-8 w-full focus:ring-emerald-500/20 focus:border-emerald-500 bg-zinc-950/50"
+                />
+              </div>
             </div>
-
-            <div class="space-y-2">
-              <label for="country" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.country_label')}</label>
-              <div class="relative">
-                <select 
-                  bind:value={formData.country} 
-                  class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl px-5 py-3.5 text-white appearance-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all cursor-pointer font-medium"
-                >
-                  <option value="ES">{$t('schools.country_spain')}</option>
-                  <option value="MX">{$t('schools.country_mexico')}</option>
-                  <option value="AR">{$t('schools.country_argentina')}</option>
-                  <option value="CO">{$t('schools.country_colombia')}</option>
-                  <option value="US">{$t('schools.country_usa')}</option>
-                  <option value="OT">{$t('schools.country_others')}</option>
-                </select>
-                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 text-xs">▼</div>
+            <div class="space-y-6">
+              <span class="glass-label">{$t('schools.form.country_label')}</span>
+              <div class="grid grid-cols-2 gap-3">
+                {#each countries as c}
+                  <button
+                    type="button"
+                    onclick={() => formData.country = c.id}
+                    class="selection-card small {formData.country === c.id ? 'active' : ''}"
+                  >
+                    <div class="card-icon">
+                      <c.icon weight={formData.country === c.id ? "fill" : "duotone"} />
+                    </div>
+                    <div class="card-content">
+                      <span class="card-title">{$t(c.label)}</span>
+                    </div>
+                    {#if formData.country === c.id}
+                      <div class="card-check" in:scale>
+                        <Check size={12} weight="bold" />
+                      </div>
+                    {/if}
+                  </button>
+                {/each}
               </div>
             </div>
           </div>
 
-          <div class="space-y-2">
-            <label for="address" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.address_label')}</label>
+          <div class="space-y-3 pt-6 border-t border-white/5">
+            <label for="address" class="glass-label">{$t('schools.form.address_label')}</label>
             <div class="relative group">
-              <MapPin weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-violet-500 transition-colors" />
+              <MapPin weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
               <input
                 id="address"
                 type="text"
                 bind:value={formData.address}
-                class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-12 pr-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all placeholder:text-zinc-700 hover:border-zinc-700"
-                placeholder={$t('schools.form.address_placeholder')}
+                class="glass-input pl-16 pr-8 w-full focus:ring-emerald-500/20 focus:border-emerald-500 bg-zinc-950/50"
               />
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Section: Contact Channels -->
-      <section class="bg-zinc-900/50 border border-zinc-800 rounded-[24px] p-6 md:p-8 space-y-8">
-        <div class="flex items-center gap-3">
-          <div class="p-2 bg-zinc-800 rounded-xl text-zinc-400">
-            <EnvelopeSimple weight="duotone" class="w-5 h-5" />
+      <!-- Section: Contact -->
+      <section class="bento-card !p-10 relative overflow-hidden group">
+        <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">
+          <div class="w-14 h-14 bg-blue-600/20 border border-blue-500/30 rounded-none flex items-center justify-center text-blue-400 shadow-xl shadow-blue-500/10">
+            <EnvelopeSimple weight="duotone" class="w-8 h-8" />
           </div>
-          <h2 class="text-lg font-bold text-white tracking-tight">{$t('actions.messages.title')}</h2>
+          <div>
+            <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('actions.messages.title')}</h3>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('schools.contact_desc')}</p>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="space-y-2">
-            <label for="phone" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.phone_label')}</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
+          <div class="space-y-3">
+            <label for="phone" class="glass-label">{$t('schools.form.phone_label')}</label>
             <div class="relative group">
-              <Phone weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600" />
+              <Phone weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
               <input
                 id="phone"
                 type="tel"
                 bind:value={formData.phone}
-                class="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-12 pr-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all hover:border-zinc-700"
-                placeholder={$t('schools.form.phone_placeholder')}
+                class="glass-input pl-16 pr-8 w-full focus:ring-blue-500/20 focus:border-blue-500 bg-zinc-950/50"
               />
             </div>
           </div>
-
-          <div class="space-y-2">
-            <label for="email" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.email_label')}</label>
+          <div class="space-y-3">
+            <label for="email" class="glass-label">{$t('schools.form.email_label')}</label>
             <div class="relative group">
-              <EnvelopeSimple weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600" />
+              <EnvelopeSimple weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
               <input
                 id="email"
                 type="email"
                 bind:value={formData.email}
-                class={`w-full bg-zinc-950/50 border rounded-2xl pl-12 pr-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all ${errors.email ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
-                placeholder={$t('schools.form.email_placeholder')}
+                class="glass-input pl-16 pr-8 w-full focus:ring-blue-500/20 focus:border-blue-500 bg-zinc-950/50"
               />
             </div>
           </div>
-        </div>
-
-        <div class="space-y-2">
-          <label for="website" class="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">{$t('schools.form.website_label')}</label>
-          <div class="relative group">
-            <Globe weight="duotone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600" />
-            <input
-              id="website"
-              type="url"
-              bind:value={formData.website}
-              class={`w-full bg-zinc-950/50 border rounded-2xl pl-12 pr-5 py-3.5 text-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all ${errors.website ? 'border-red-500/50' : 'border-zinc-800 hover:border-zinc-700'}`}
-              placeholder={$t('schools.form.website_placeholder')}
-            />
+          <div class="md:col-span-2 space-y-3">
+            <label for="website" class="glass-label">{$t('schools.form.website_label')}</label>
+            <div class="relative group">
+              <Browser weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
+              <input
+                id="website"
+                type="url"
+                bind:value={formData.website}
+                class="glass-input pl-16 pr-8 w-full focus:ring-blue-500/20 focus:border-blue-500 bg-zinc-950/50"
+              />
+            </div>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- Info & Help Column -->
-    <div class="space-y-6">
-      <div class="bg-zinc-900/50 border border-zinc-800 rounded-[24px] p-6 space-y-6">
-        <div class="flex items-center gap-3 pb-4 border-b border-zinc-800">
-          <div class="p-2 bg-violet-500/10 rounded-xl text-violet-400">
-            <CheckCircle weight="duotone" class="w-5 h-5" />
-          </div>
-          <h3 class="text-sm font-bold text-white tracking-tight">{$t('schools.status.title')}</h3>
-        </div>
+    <!-- Right: Sticky Sidebar (4 Columns) -->
+    <div class="lg:col-span-4">
+      <div class="sticky top-32 space-y-8">
         
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-zinc-500">{$t('schools.id_label')}</span>
-            <span class="text-[10px] font-bold text-white font-mono bg-zinc-950 px-2 py-1 rounded-lg border border-zinc-800">
-              {schoolData?.id.split('-')[0].toUpperCase()}
-            </span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-zinc-500">{$t('schools.status.last_change')}</span>
-            <span class="text-xs font-bold text-white">{$t('schools.status.just_now')}</span>
-          </div>
-          <div class="pt-2 flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-primary-500"></div>
-            <span class="text-xs font-bold text-primary-500 uppercase tracking-widest">{$t('schools.status.active')}</span>
+        <!-- Status Panel -->
+        <div class="bento-card !p-8 overflow-hidden relative group">
+          <div class="absolute -top-12 -right-12 w-32 h-32 bg-emerald-600/10 rounded-none blur-3xl"></div>
+          
+          <div class="relative z-10">
+            <div class="flex items-center justify-between mb-8">
+              <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-950 px-4 py-2 rounded-none border border-zinc-800 shadow-inner">
+                {$t('schools.status.title')}
+              </span>
+              <div class="w-12 h-12 bg-emerald-600/20 border border-emerald-500/30 rounded-none flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
+                <CheckCircle weight="duotone" class="w-6 h-6" />
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-4 bg-zinc-950/20 border border-zinc-800/40 rounded-none">
+                <span class="text-[10px] font-black text-zinc-500 uppercase">ID</span>
+                <span class="text-[10px] font-bold text-white font-mono">{schoolData?.id.split('-')[0].toUpperCase()}</span>
+              </div>
+              <div class="flex items-center justify-between p-4 bg-zinc-950/20 border border-zinc-800/40 rounded-none">
+                <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('schools.status.last_change')}</span>
+                <span class="text-[10px] font-bold text-emerald-400 uppercase">{$t('schools.status.just_now')}</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="p-6 border border-violet-500/20 rounded-[24px] bg-violet-500/5 space-y-4">
-        <div class="flex items-center gap-3">
-          <House weight="duotone" class="w-5 h-5 text-violet-400" />
-          <h3 class="text-sm font-bold text-violet-400">{$t('schools.letterhead.title')}</h3>
+        <!-- Help Panel -->
+        <div class="bento-card !p-8 relative overflow-hidden bg-emerald-600/5 border-emerald-500/20">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+              <Lightbulb weight="duotone" class="w-5 h-5 text-emerald-400" />
+              <h3 class="text-[10px] font-black text-emerald-200 uppercase tracking-widest">{$t('schools.guide.title')}</h3>
+            </div>
+            <p class="text-[11px] text-zinc-500 leading-relaxed font-bold uppercase tracking-tighter italic">
+              {$t('schools.letterhead.text')}
+            </p>
+          </div>
         </div>
-        <p class="text-sm text-zinc-400 leading-relaxed">
-          {$t('schools.letterhead.text')}
-        </p>
-      </div>
-
-      <!-- Delete Action (Optional/Future) -->
-      <div class="p-6 bg-red-500/5 border border-red-500/10 rounded-[24px] opacity-60">
-        <p class="text-[10px] font-black text-red-500/70 uppercase tracking-widest mb-1">{$t('schools.critical.title')}</p>
-        <p class="text-xs text-zinc-500 font-medium italic">
-          {$t('schools.critical.text')}
-        </p>
       </div>
     </div>
   </div>
 </div>
 
-<style>
-  :global(input:-webkit-autofill),
-  :global(input:-webkit-autofill:hover), 
-  :global(input:-webkit-autofill:focus) {
-    -webkit-text-fill-color: white;
-    -webkit-box-shadow: 0 0 0px 1000px #09090b inset;
-    transition: background-color 5000s ease-in-out 0s;
-  }
-</style>
+
+

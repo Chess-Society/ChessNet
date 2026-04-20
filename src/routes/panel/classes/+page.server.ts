@@ -24,26 +24,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const uid = locals.user.uid;
-    const isMock = uid === 'chessnet-dev-uid';
-
-    if (isMock) {
-        return {
-            user: locals.user,
-            classes: [],
-            stats: {
-                total: 0,
-                active: 0,
-                inactive: 0,
-                levels: { beginner: 0, intermediate: 0, advanced: 0, mixed: 0 },
-                schools: {},
-                totalStudents: 0,
-                totalCapacity: 0,
-                occupancyRate: 0,
-                averageClassSize: 0
-            },
-            schools: []
-        };
-    }
     
     // Obtener clases y centros del usuario desde Firebase usando Admin SDK
     const [classesSnap, schoolsSnap] = await Promise.all([

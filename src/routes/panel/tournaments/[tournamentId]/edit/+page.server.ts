@@ -11,20 +11,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   const uid = locals.user.uid;
-  const isMock = uid === 'chessnet-dev-uid';
-
-  if (isMock) {
-    return {
-      user: locals.user,
-      tournament: {
-        id: tournamentId,
-        name: 'Torneo Mock',
-        owner_id: uid,
-        status: 'draft',
-        location: 'Mock Academy'
-      }
-    };
-  }
 
   try {
     const tournamentSnap = await adminDb.collection('local_tournaments').doc(tournamentId).get();

@@ -42,32 +42,24 @@
 
   const isAdmin = $derived($user?.email && ADMIN_EMAILS.map(e => e.toLowerCase()).includes($user.email.toLowerCase()));
 
+  let isRedirecting = false;
+
   // Guard de Navegación Centralizado (Svelte 5 Runes)
   $effect(() => {
-    if (!$authInitialized || !browser) return;
+    if (!$authInitialized || !browser || $loading || isRedirecting) return;
 
-    const path = $page.url.pathname;
-    const isProtected = path.startsWith('/panel') || path.startsWith('/admin');
-    const isPublicOnly = path === '/' || path === '/login';
+    // Lógica de Redirección Robusta
+    const currentPath = $page.url.pathname as string;
+    const isProtected = currentPath.startsWith('/panel') || currentPath.startsWith('/admin');
+    const isPublicOnly = currentPath === '/login';
 
-    // Evitar procesar si ya estamos en medio de una transición manual
-    // o si el estado de carga es activo para evitar "flicker"
-    if ($loading && isProtected) return;
-
-    // Si hay usuario pero la cookie no está sincronizada, esperamos (mostrando el spinner)
-    // EXCEPTO si estamos en una ruta pública, donde podemos dejar que cargue
-    if ($user && !$cookieSynced && isProtected) {
-      return;
-    }
-
-    // Lógica de Redirección
     if ($user && isPublicOnly) {
-      goto('/panel', { replaceState: true });
+      isRedirecting = true;
+      goto('/panel', { replaceState: true, noScroll: true }).finally(() => isRedirecting = false);
     } else if (!$user && isProtected) {
-      if (path !== '/login') {
-        const redirectParam = path !== '/panel' ? `?redirect=${encodeURIComponent(path)}` : '';
-        goto(`/login${redirectParam}`, { replaceState: true });
-      }
+      isRedirecting = true;
+      const redirectParam = currentPath !== '/panel' ? `?redirect=${encodeURIComponent(currentPath)}` : '';
+      goto(`/login${redirectParam}`, { replaceState: true, noScroll: true }).finally(() => isRedirecting = false);
     }
   });
 </script>
@@ -82,7 +74,7 @@
     <div class="fixed inset-0 flex items-center justify-center bg-bento-bg z-[100]">
       <div class="flex flex-col items-center gap-6">
         <div class="relative">
-          <div class="absolute -inset-4 bg-primary-500/20 rounded-full blur-xl animate-pulse"></div>
+          <div class="absolute -inset-4 bg-primary-500/20 rounded-none blur-xl animate-pulse"></div>
           <LoadingSpinner size="w-16 h-16" color="text-primary-500" />
         </div>
         <p class="text-surface-400 text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">{$t('common.initializing')}</p>
@@ -105,11 +97,11 @@
       <div class="max-w-4xl w-full text-center space-y-12 relative" in:fade={{ duration: 1000 }}>
         <!-- Abstract Visual Core -->
         <div class="relative inline-flex flex-col items-center">
-          <div class="absolute -inset-32 bg-violet-600/20 rounded-full blur-[140px] animate-pulse"></div>
+          <div class="absolute -inset-32 bg-violet-600/20 rounded-none blur-[140px] animate-pulse"></div>
           
           <div class="relative mb-8">
-            <div class="w-32 h-32 md:w-44 md:h-44 bg-white/[0.015] backdrop-blur-3xl border border-white/10 rounded-[3rem] md:rounded-[4.5rem] flex items-center justify-center shadow-[0_40px_100px_-15px_rgba(0,0,0,0.8)] border-b-violet-500/30 relative group overflow-visible">
-               <div class="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-transparent rounded-[3rem] md:rounded-[4.5rem]"></div>
+            <div class="w-32 h-32 md:w-44 md:h-44 bg-white/[0.015] backdrop-blur-3xl border border-white/10 rounded-none flex items-center justify-center shadow-[0_40px_100px_-15px_rgba(0,0,0,0.8)] border-b-violet-500/30 relative group overflow-visible">
+               <div class="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-transparent rounded-none"></div>
                
                <!-- Core Icon -->
                <div class="relative z-10 transition-transform duration-700 group-hover:scale-110">
@@ -117,22 +109,22 @@
                </div>
                
                <!-- Orbital Synchronizer -->
-               <div class="absolute -inset-4 border border-white/5 rounded-[4rem] md:rounded-[6rem] animate-spin-slow opacity-20"></div>
-               <div class="absolute -inset-8 border border-white/[0.02] rounded-[5rem] md:rounded-[8rem] animate-spin-reverse-slow opacity-10"></div>
+               <div class="absolute -inset-4 border border-white/5 rounded-none animate-spin-slow opacity-20"></div>
+               <div class="absolute -inset-8 border border-white/[0.02] rounded-none animate-spin-reverse-slow opacity-10"></div>
                
                <!-- Floating Particles -->
-               <div class="absolute -top-4 -right-4 w-14 h-14 bg-[#0a0a0c] border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl animate-float">
-                  <div class="w-3 h-3 bg-violet-500 rounded-full animate-ping"></div>
+               <div class="absolute -top-4 -right-4 w-14 h-14 bg-[#0a0a0c] border border-white/10 rounded-none flex items-center justify-center shadow-2xl animate-float">
+                  <div class="w-3 h-3 bg-violet-500 rounded-none animate-ping"></div>
                </div>
-               <div class="absolute -bottom-2 -left-6 w-10 h-10 bg-[#0a0a0c] border border-white/5 rounded-xl flex items-center justify-center shadow-2xl animate-float-delayed">
+               <div class="absolute -bottom-2 -left-6 w-10 h-10 bg-[#0a0a0c] border border-white/5 rounded-none flex items-center justify-center shadow-2xl animate-float-delayed">
                   <LoadingSpinner size="w-5 h-5" color="text-indigo-400" />
                </div>
             </div>
           </div>
 
           <div class="space-y-4 md:space-y-8">
-            <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-violet-500/10 border border-violet-500/20 rounded-full mb-2">
-                <span class="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(167,139,250,0.8)]"></span>
+            <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-violet-500/10 border border-violet-500/20 rounded-none mb-2">
+                <span class="w-1.5 h-1.5 bg-violet-400 rounded-none animate-pulse shadow-[0_0_8px_rgba(167,139,250,0.8)]"></span>
                 <span class="text-[10px] font-outfit font-black text-violet-300 uppercase tracking-[0.3em]">Mejoras en curso</span>
             </div>
             <h1 class="text-6xl md:text-9xl font-outfit font-black tracking-tighter text-white uppercase italic leading-[0.85]">
@@ -155,13 +147,13 @@
           ] as indicator}
              {@const Icon = indicator.icon}
              <div 
-               class="p-6 md:p-8 bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] rounded-[2rem] flex flex-col items-center gap-4 hover:bg-white/[0.05] hover:border-violet-500/20 transition-all group relative overflow-hidden"
+               class="p-6 md:p-8 bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] rounded-none flex flex-col items-center gap-4 hover:bg-white/[0.05] hover:border-violet-500/20 transition-all group relative overflow-hidden"
                in:fly={{ y: 20, delay: indicator.delay, duration: 600 }}
              >
                 <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                     <Icon class="w-24 h-24" />
                 </div>
-                <div class="w-12 h-12 bg-black/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 border border-white/5">
+                <div class="w-12 h-12 bg-black/40 rounded-none flex items-center justify-center group-hover:scale-110 transition-transform duration-500 border border-white/5">
                   <Icon class="w-6 h-6 {indicator.color}" />
                 </div>
                 <div class="relative z-10 text-center">
@@ -174,7 +166,7 @@
 
         <!-- Progress Indicator -->
         <div class="max-w-xs mx-auto pt-6 flex flex-col items-center gap-4">
-            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden relative">
+            <div class="w-full h-1 bg-white/5 rounded-none overflow-hidden relative">
                 <div class="absolute inset-0 bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-600 animate-shimmer scale-x-[0.6] origin-left"></div>
             </div>
             <p class="text-[10px] text-slate-600 font-outfit font-bold uppercase tracking-[0.4em] flex items-center gap-2">
@@ -204,3 +196,4 @@
   <Toast />
   <CookieBanner />
 </main>
+

@@ -82,7 +82,7 @@
 <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8" transition:fade>
   
   <div class="flex items-center gap-4 mb-8 sm:mb-12">
-    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-500 shadow-xl shadow-violet-500/5">
+    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-violet-600/10 border border-violet-500/20 rounded-none flex items-center justify-center text-violet-500 shadow-xl shadow-violet-500/5">
       <Gear weight="duotone" class="w-6 h-6 sm:w-8 sm:h-8" />
     </div>
     <div>
@@ -101,15 +101,19 @@
 
           <div class="flex flex-col md:flex-row gap-12 items-start">
               <div class="relative group">
-                  <div class="w-28 h-28 rounded-full bg-zinc-950 border-2 border-white/5 flex items-center justify-center text-slate-700 overflow-hidden relative shadow-2xl transition-transform duration-500 group-hover:scale-105">
+                  <div class="w-32 h-32 rounded-none bg-zinc-950 border border-white/10 flex items-center justify-center text-slate-700 overflow-hidden relative shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-all duration-500 group-hover:border-violet-500/50 group-hover:shadow-[0_0_20px_rgba(139,92,246,0.15)]">
                       {#if config.teacherAvatar}
-                          <img src={config.teacherAvatar} alt="Avatar" class="w-full h-full object-cover" />
+                          <img src={config.teacherAvatar} alt="Avatar" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
                       {:else}
                           <UserIcon weight="duotone" class="w-12 h-12" />
                       {/if}
-                      <div class="absolute inset-0 bg-violet-600/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                          <Camera weight="bold" class="w-8 h-8 text-white" />
+                      <div class="absolute inset-0 bg-violet-600/60 backdrop-blur-[2px] flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 cursor-pointer translate-y-4 group-hover:translate-y-0">
+                          <Camera weight="bold" class="w-8 h-8 text-white mb-2" />
+                          <span class="text-[8px] font-black uppercase tracking-widest text-white">{$t('common.edit') || 'EDITAR'}</span>
                       </div>
+                  </div>
+                  <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-black border border-white/10 flex items-center justify-center text-violet-500">
+                    <Sparkle weight="fill" class="w-4 h-4" />
                   </div>
               </div>
 
@@ -121,7 +125,7 @@
                         type="text" 
                         bind:value={config.teacherName}
                         placeholder={$t('settings.public_name_placeholder')}
-                        class="w-full bg-zinc-950/50 border border-white/5 rounded-2xl px-5 py-4 text-sm text-white focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 shadow-inner"
+                        class="w-full bg-zinc-950/50 border border-white/5 rounded-none px-5 py-4 text-sm text-white focus:border-violet-500/50 outline-none transition-all placeholder:text-slate-700 shadow-inner"
                       />
                   </div>
 
@@ -134,7 +138,7 @@
                           type="email" 
                           bind:value={config.teacherEmail}
                           placeholder={$t('settings.contact_email_placeholder')}
-                          class="w-full bg-zinc-950/30 border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-sm text-slate-400 cursor-not-allowed outline-none transition-all placeholder:text-slate-700"
+                          class="w-full bg-zinc-950/30 border border-white/5 rounded-none pl-12 pr-5 py-4 text-sm text-slate-400 cursor-not-allowed outline-none transition-all placeholder:text-slate-700"
                           disabled
                         />
                       </div>
@@ -154,19 +158,19 @@
               {$t('settings.subscription_title')}
           </h2>
 
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-8 bg-zinc-950/50 border border-white/5 rounded-3xl shadow-inner group">
-              <div class="flex items-center gap-5">
-                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-violet-600/10 rounded-2xl flex items-center justify-center text-violet-500 shrink-0">
-                  <Sparkle weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6" />
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-8 bg-zinc-950/50 border border-white/10 rounded-none shadow-inner group hover:border-violet-500/20 transition-all">
+              <div class="flex items-center gap-6">
+                <div class="w-14 h-14 bg-violet-500/10 border border-violet-500/20 rounded-none flex items-center justify-center text-violet-500 shrink-0">
+                  <Sparkle weight="duotone" class="w-7 h-7" />
                 </div>
                 <div>
-                    <p class="text-[9px] sm:text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-1">{$t('settings.current_level')}</p>
-                    <p class="text-white font-outfit font-black text-lg sm:text-xl uppercase tracking-tight">{$t('settings.plan_prefix')} {$appStore.settings.plan || $t('settings.plan_free')}</p>
+                    <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-[0.2em] mb-1">{$t('settings.current_level')}</p>
+                    <p class="text-white font-outfit font-black text-2xl lg:text-3xl uppercase tracking-tighter">{$t('settings.plan_prefix')} {$appStore.settings.plan || $t('settings.plan_free')}</p>
                 </div>
               </div>
-              <a href="/panel/upgrade" class="btn-pill bg-white text-black py-2.5 sm:py-3 px-6 sm:px-8 text-[10px] sm:text-xs font-outfit font-black uppercase tracking-widest shadow-xl hover:bg-zinc-200 inline-flex items-center justify-center gap-2 group">
+              <a href="/panel/upgrade" class="bg-white text-black h-14 px-10 text-[10px] font-outfit font-black uppercase tracking-[0.2em] shadow-xl hover:bg-violet-100 inline-flex items-center justify-center gap-3 group rounded-none transition-all active:scale-95">
                   {$t('settings.manage_btn')}
-                  <Gear weight="bold" class="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:rotate-90 transition-transform duration-500" />
+                  <CaretRight weight="bold" class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
           </div>
       </div>
@@ -192,21 +196,21 @@
                       <InsigniaBadge {insignia} unlocked={true} size="md" />
                       
                       {#if isFeatured}
-                        <div class="absolute -top-1 -right-1 w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center border-4 border-[#09090b] shadow-xl z-20" transition:scale>
+                        <div class="absolute -top-1 -right-1 w-8 h-8 bg-violet-600 rounded-none flex items-center justify-center border-4 border-[#09090b] shadow-xl z-20" transition:scale>
                           <Check weight="bold" class="w-4 h-4 text-white" />
                         </div>
                       {/if}
 
                       {#if !isFeatured && config.featuredInsignias.length >= 3}
-                        <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-[2rem] z-10"></div>
+                        <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-none z-10"></div>
                       {/if}
                   </button>
               {/each}
           </div>
           
           {#if availableInsignias.length === 0}
-            <div class="p-8 text-center border border-dashed border-white/5 rounded-2xl bg-black/20">
-                <p class="text-xs text-slate-500 italic">{$t('settings.no_insignias')} <a href="/panel/achievements" class="text-violet-400 hover:underline">{$t('settings.insignia_hub_link')}</a></p>
+            <div class="p-8 text-center border border-dashed border-white/5 rounded-none bg-black/20">
+                <p class="text-xs text-slate-500">{$t('settings.no_insignias')} <a href="/panel/achievements" class="text-violet-400 hover:underline">{$t('settings.insignia_hub_link')}</a></p>
             </div>
           {/if}
       </div>
@@ -219,13 +223,13 @@
           </h2>
           
           <div class="space-y-4">
-              <div class="flex items-center justify-between p-6 bg-zinc-950/30 rounded-2xl border border-white/5">
+              <div class="flex items-center justify-between p-6 bg-zinc-950/30 rounded-none border border-white/5 group hover:border-violet-500/30 transition-all">
                   <div class="max-w-md">
                       <p class="text-sm font-outfit font-bold text-white mb-1">{$t('settings.smart_sync')}</p>
                       <p class="text-[11px] text-slate-500 font-plus-jakarta leading-relaxed">{$t('settings.smart_sync_desc')}</p>
                   </div>
-                  <div class="w-12 h-7 bg-violet-600 rounded-full relative shadow-[0_0_15px_rgba(139,92,246,0.25)] border border-violet-400/20">
-                      <div class="absolute right-1 top-1 w-5 h-5 bg-white rounded-full shadow-lg"></div>
+                  <div class="w-12 h-6 bg-violet-600 rounded-none relative shadow-[0_0_15px_rgba(139,92,246,0.2)] border border-violet-400/20">
+                      <div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-none shadow-lg"></div>
                   </div>
               </div>
           </div>
@@ -238,7 +242,7 @@
               {$t('settings.danger_zone_title') || 'Zona de Peligro'}
           </h2>
           
-          <div class="p-6 bg-red-500/5 rounded-2xl border border-red-500/10 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div class="p-6 bg-red-500/5 rounded-none border border-red-500/10 flex flex-col sm:flex-row items-center justify-between gap-6">
               <div class="text-center sm:text-left">
                   <p class="text-sm font-outfit font-bold text-white mb-1">{$t('settings.delete_account_title') || 'Eliminar Mi Cuenta'}</p>
                   <p class="text-[11px] text-slate-500 font-plus-jakarta leading-relaxed max-w-sm">
@@ -266,7 +270,7 @@
                     }
                   }
                 }}
-                class="px-6 py-3 bg-red-500/10 hover:bg-red-50 text-red-500 hover:text-red-600 font-outfit font-black text-[10px] uppercase tracking-widest rounded-xl transition-all border border-red-500/20"
+                class="px-6 py-3 bg-red-500/10 hover:bg-red-50 text-red-500 hover:text-red-600 font-outfit font-black text-[10px] uppercase tracking-widest rounded-none transition-all border border-red-500/20"
               >
                 {$t('settings.delete_account_btn') || 'Borrar Todo'}
               </button>
@@ -277,7 +281,7 @@
       <div class="sticky bottom-4 sm:bottom-8 flex justify-center z-50 pt-10 pointer-events-none pb-[env(safe-area-inset-bottom)]">
           <button 
             onclick={handleSave}
-            class="btn-pill bg-violet-600 hover:bg-violet-500 text-white font-outfit font-black px-8 sm:px-10 py-4 sm:py-5 shadow-violet-flare flex items-center gap-3 transition-all hover:scale-105 active:scale-95 pointer-events-auto text-[10px] sm:text-sm"
+            class="bg-violet-600 hover:bg-violet-500 text-white font-outfit font-black px-8 sm:px-10 py-4 sm:py-5 shadow-violet-flare flex items-center gap-3 transition-all hover:scale-105 active:scale-95 pointer-events-auto text-[10px] sm:text-sm rounded-none"
           >
             {#if saved}
               <Check weight="bold" class="w-5 h-5" />
@@ -290,3 +294,4 @@
       </div>
   </div>
 </div>
+

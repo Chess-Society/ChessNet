@@ -15,16 +15,21 @@
     Users,
     X,
     FileText,
-    Pencil
+    Pencil,
+    WarningCircle,
+    Sparkle,
+    UserCircle,
+    BookOpen
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import { showToast, showError } from '$lib/stores/toast';
+  import { appStore } from '$lib/stores/appStore';
 
   let { data } = $props<{ data: PageData }>();
 
-  let studentData = $derived(data.student);
+  let studentData = $derived($appStore.students?.find(s => s.id === data.student.id) || data.student);
   let schools = $derived(data.schools || []);
   let classes = $derived(data.classes || []);
 
@@ -34,7 +39,8 @@
     last_name: '',
     school_id: '',
     class_id: '',
-    notes: ''
+    notes: '',
+    lichess_username: ''
   });
 
   $effect(() => {
@@ -45,13 +51,34 @@
         last_name: studentData.last_name || '',
         school_id: studentData.school_id || '',
         class_id: studentData.class_id || '',
-        notes: studentData.notes || ''
+        notes: studentData.notes || '',
+        lichess_username: studentData.lichess_username || ''
       };
     }
   });
 
   let isSubmitting = $state(false);
   let errors = $state<Record<string, string>>({});
+
+  let isVerifyingLichess = $state(false);
+  let lichessStatus = $state<'idle' | 'valid' | 'invalid'>('idle');
+
+  async function verifyLichessUser() {
+    const user = formData.lichess_username.trim();
+    if (!user) {
+      lichessStatus = 'idle';
+      return;
+    }
+    isVerifyingLichess = true;
+    try {
+      const res = await fetch(`https://lichess.org/api/user/${user}`);
+      lichessStatus = res.ok ? 'valid' : 'invalid';
+    } catch {
+      lichessStatus = 'invalid';
+    } finally {
+      isVerifyingLichess = false;
+    }
+  }
 
   const validateForm = () => {
     errors = {};
@@ -63,22 +90,18 @@
     if (!validateForm() || isSubmitting) return;
     try {
       isSubmitting = true;
-      const response = await fetch(`/api/students/${studentData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+      
+      await appStore.updateStudent({
+        id: studentData.id,
+        ...formData
       });
 
-      if (response.ok) {
-        const returnTo = $page.url.searchParams.get('return_to');
-        showToast.success($t('students.toast_update_success'));
-        await invalidateAll();
-        setTimeout(() => {
-          goto(returnTo || `/panel/students/${studentData.id}`);
-        }, 400);
-      } else {
-        throw new Error($t('students.save_error'));
-      }
+      const returnTo = $page.url.searchParams.get('return_to');
+      showToast.success($t('students.toast_update_success'));
+      await invalidateAll();
+      setTimeout(() => {
+        goto(returnTo || `/panel/students/${studentData.id}`);
+      }, 400);
     } catch (error) {
       showError(error);
     } finally {
@@ -92,7 +115,8 @@
     formData.last_name !== (studentData?.last_name || '') ||
     formData.school_id !== (studentData?.school_id || '') ||
     formData.class_id !== (studentData?.class_id || '') ||
-    formData.notes !== (studentData?.notes || '')
+    formData.notes !== (studentData?.notes || '') ||
+    formData.lichess_username !== (studentData?.lichess_username || '')
   );
 
   const resetToOriginal = () => {
@@ -102,7 +126,8 @@
       last_name: studentData?.last_name || '',
       school_id: studentData?.school_id || '',
       class_id: studentData?.class_id || '',
-      notes: studentData?.notes || ''
+      notes: studentData?.notes || '',
+      lichess_username: studentData?.lichess_username || ''
     };
     errors = {};
   };
@@ -116,60 +141,67 @@
   <div class="glow-bg"></div>
 
   <!-- Header Section -->
-  <header class="main-header">
-    <div class="title-section">
-      <button 
-        onclick={() => goto(`/panel/students/${studentData.id}`)}
-        class="back-orb"
-        title={$t('students.back_to_list')}
-      >
-        <CaretLeft size={24} weight="bold" />
-      </button>
-      <div class="flex items-center gap-6">
-        <div class="header-icon">
-          <Pencil size={32} weight="bold" />
-        </div>
-        <div class="text-group">
-          <h1 class="gradient-text font-outfit truncate max-w-md">{$t('students.edit_title')}</h1>
-          <p class="subtitle mt-1">{$t('students.edit_subtitle')}</p>
+  <!-- Premium Sticky Header -->
+  <header class="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/50 mb-12">
+    <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <button 
+          onclick={() => goto(`/panel/students/${studentData.id}`)}
+          class="w-10 h-10 rounded-none bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all"
+        >
+          <CaretLeft weight="bold" class="w-5 h-5" />
+        </button>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-black uppercase tracking-widest italic flex items-center gap-2">
+              <Pencil weight="bold" class="w-4 h-4 text-violet-500" />
+              {$t('students.edit_title')}
+            </h1>
+            {#if hasChanges}
+              <span class="px-2 py-0.5 rounded-none bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-widest animate-pulse border border-amber-500/20">{$t('skills.ui.unsaved')}</span>
+            {/if}
+          </div>
+          <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">{$t('students.edit_subtitle')}</p>
         </div>
       </div>
-    </div>
 
-    <div class="action-section">
-      {#if hasChanges}
-        <button 
-          class="glass-btn secondary" 
-          onclick={resetToOriginal}
-          in:scale
-        >
-          <ArrowCounterClockwise size={20} weight="bold" />
-          <span class="font-outfit font-bold">{$t('students.discard')}</span>
-        </button>
-      {/if}
-      <button 
-        class="glass-btn primary" 
-        onclick={handleSubmit}
-        disabled={isSubmitting || !hasChanges}
-      >
-        {#if isSubmitting}
-          <div class="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent"></div>
-        {:else}
-          <FloppyDisk size={20} weight="bold" />
+      <div class="flex items-center gap-3">
+        {#if hasChanges}
+          <button 
+            class="px-5 py-2.5 rounded-none text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all flex items-center gap-2" 
+            onclick={resetToOriginal}
+            in:scale
+          >
+            <ArrowCounterClockwise size={20} weight="bold" />
+            <span class="font-outfit font-bold">{$t('students.discard')}</span>
+          </button>
         {/if}
-        <span class="font-outfit font-bold">{$t('students.save_changes')}</span>
-      </button>
+        <button 
+          class="px-8 py-2.5 rounded-none bg-violet-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:-translate-y-0.5 transition-all text-xs font-black tracking-widest uppercase flex items-center gap-2 disabled:opacity-50" 
+          onclick={handleSubmit}
+          disabled={isSubmitting || !hasChanges}
+        >
+          {#if isSubmitting}
+            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-none animate-spin"></div>
+          {:else}
+            <FloppyDisk size={20} weight="bold" />
+          {/if}
+          <span class="font-outfit font-bold">{$t('students.save_changes')}</span>
+        </button>
+      </div>
     </div>
   </header>
+
+  <div class="max-w-[1400px] mx-auto px-6">
 
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <!-- Left Column: Primary Information -->
     <div class="lg:col-span-8 space-y-8">
       <section class="bento-card !p-10 space-y-10 relative overflow-hidden group">
-        <div class="absolute -right-16 -top-16 w-64 h-64 bg-violet-600/5 blur-3xl rounded-full"></div>
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-violet-600/5 blur-3xl rounded-none"></div>
         
         <div class="flex items-center gap-4 border-b border-white/5 pb-8 relative z-10">
-           <div class="p-3 bg-violet-600/10 rounded-2xl text-violet-400">
+           <div class="p-3 bg-violet-600/10 rounded-none text-violet-400">
               <IdentificationBadge size={24} weight="duotone" />
            </div>
            <h2 class="text-2xl font-outfit font-bold text-white tracking-tight uppercase">{$t('students.personal_data')}</h2>
@@ -221,7 +253,7 @@
 
       <section class="bento-card !p-10 space-y-10">
         <div class="flex items-center gap-4 border-b border-white/5 pb-8">
-           <div class="p-3 bg-violet-600/10 rounded-2xl text-violet-400">
+           <div class="p-3 bg-violet-600/10 rounded-none text-violet-400">
               <Note size={24} weight="duotone" />
            </div>
            <h2 class="text-2xl font-outfit font-bold text-white tracking-tight uppercase">{$t('students.observations')}</h2>
@@ -243,23 +275,103 @@
 
     <!-- Right Column: Institutional & Context -->
     <div class="lg:col-span-4 space-y-8">
+       <!-- Lichess Integration -->
+       <section class="bento-card !p-8 border-t-2 border-sky-500 bg-gradient-to-b from-sky-600/5 to-transparent">
+          <div class="flex items-center gap-4 mb-6">
+             <div class="w-12 h-12 bg-zinc-950 rounded-none flex items-center justify-center text-sky-400 border border-white/5 shadow-inner">
+                <svg width="24" height="24" viewBox="0 0 44 44" class="fill-current"><path d="M12.92,10.6A11.75,11.75,0,0,0,24,20H24V9.66L15.3,1.06A11.75,11.75,0,0,0,1,12.79h0A11.75,11.75,0,0,0,12.79,24.5h.13V24a11.75,11.75,0,0,1-11.75-11.75h0A11.75,11.75,0,0,1,12.92,10.6Zm18.15,22.8A11.75,11.75,0,0,0,20,24H20V34.34L28.7,42.94A11.75,11.75,0,0,0,43,31.21h0A11.75,11.75,0,0,0,31.21,19.5h-.13v.5a11.75,11.75,0,0,1,11.75,11.75h0A11.75,11.75,0,0,1,31.08,33.4Z"></path></svg>
+             </div>
+             <h3 class="text-lg font-outfit font-bold text-white tracking-tight">{$t('students.lichess_integration')}</h3>
+          </div>
+ 
+          <div class="space-y-4">
+            <p class="text-[11px] font-jakarta text-slate-400 leading-relaxed font-medium">
+              {$t('students.lichess_tip')}
+            </p>
+            <div class="input-wrapper relative">
+              <input
+                id="lichess_username"
+                type="text"
+                bind:value={formData.lichess_username}
+                onblur={verifyLichessUser}
+                oninput={() => lichessStatus = 'idle'}
+                placeholder={$t('students.lichess_placeholder')}
+                class="glass-input !bg-sky-500/5 focus:!border-sky-400 focus:!ring-sky-500/20 pr-12 {lichessStatus === 'invalid' ? '!border-red-500/50 focus:!ring-red-500/20' : ''} {lichessStatus === 'valid' ? '!border-emerald-500/50 focus:!ring-emerald-500/20' : ''}"
+              />
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+                {#if isVerifyingLichess}
+                   <div class="w-4 h-4 rounded-none border-2 border-sky-500/20 border-t-sky-500 animate-spin"></div>
+                {:else if lichessStatus === 'valid'}
+                   <CheckCircle weight="fill" class="w-5 h-5 text-emerald-500 drop-shadow-md" />
+                {:else if lichessStatus === 'invalid'}
+                   <WarningCircle weight="fill" class="w-5 h-5 text-red-500 drop-shadow-md" />
+                {/if}
+              </div>
+            </div>
+            {#if lichessStatus === 'valid'}
+              <p class="text-[10px] font-bold text-emerald-400 tracking-wider uppercase pl-2">{$t('students.lichess_valid')}</p>
+            {:else if lichessStatus === 'invalid'}
+              <p class="text-[10px] font-bold text-red-400 tracking-wider uppercase pl-2">{$t('students.lichess_invalid')}</p>
+            {/if}
+          </div>
+       </section>
+
        <section class="bento-card !p-8 border-t-2 border-violet-500 bg-gradient-to-b from-violet-600/5 to-transparent">
           <div class="flex items-center gap-4 mb-8">
-             <div class="w-12 h-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-violet-400 border border-white/5 shadow-inner">
+             <div class="w-12 h-12 bg-zinc-950 rounded-none flex items-center justify-center text-violet-400 border border-white/5 shadow-inner">
                 <Buildings size={24} weight="duotone" />
              </div>
              <h3 class="text-lg font-outfit font-bold text-white tracking-tight">{$t('students.educational_school')}</h3>
           </div>
 
-          <div class="space-y-6">
-             <div class="input-wrapper group">
-                <select bind:value={formData.school_id} class="glass-select uppercase text-xs font-black tracking-widest">
-                  <option value="">{$t('classes.independent')}</option>
-                  {#each schools as school}
-                    <option value={school.id}>{school.name}</option>
-                  {/each}
-                </select>
-                <CaretDown weight="bold" class="select-arrow" />
+          <div class="space-y-4">
+             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button 
+                  type="button"
+                  class="selection-card {!formData.school_id ? 'active' : ''}"
+                  onclick={() => {
+                    formData.school_id = '';
+                    formData.class_id = '';
+                  }}
+                >
+                  <div class="card-icon">
+                    <Sparkle weight="duotone" />
+                  </div>
+                  <div class="card-content">
+                    <span class="card-title">{$t('classes.independent')}</span>
+                  </div>
+                  {#if !formData.school_id}
+                    <div class="card-check" in:scale>
+                      <CheckCircle size={20} weight="fill" />
+                    </div>
+                  {/if}
+                </button>
+
+                {#each schools as school}
+                  <button 
+                    type="button"
+                    class="selection-card {formData.school_id === school.id ? 'active' : ''}"
+                    onclick={() => {
+                      if (formData.school_id !== school.id) {
+                        formData.school_id = school.id;
+                        formData.class_id = '';
+                      }
+                    }}
+                  >
+                    <div class="card-icon">
+                      <Buildings weight="duotone" />
+                    </div>
+                    <div class="card-content">
+                      <span class="card-title">{school.name}</span>
+                      <span class="text-[10px] font-medium text-zinc-500">{school.city || ''}</span>
+                    </div>
+                    {#if formData.school_id === school.id}
+                      <div class="card-check" in:scale>
+                        <CheckCircle size={20} weight="fill" />
+                      </div>
+                    {/if}
+                  </button>
+                {/each}
              </div>
              
              <div class="tip-card">
@@ -270,21 +382,52 @@
 
        <section class="bento-card !p-8">
           <div class="flex items-center gap-4 mb-8">
-             <div class="w-12 h-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-violet-400 border border-white/5 shadow-inner">
+             <div class="w-12 h-12 bg-zinc-950 rounded-none flex items-center justify-center text-violet-400 border border-white/5 shadow-inner">
                 <Users size={24} weight="duotone" />
              </div>
              <h3 class="text-lg font-outfit font-bold text-white tracking-tight">{$t('students.assigned_class')}</h3>
           </div>
   
-          <div class="space-y-6">
-             <div class="input-wrapper group">
-                <select bind:value={formData.class_id} class="glass-select uppercase text-xs font-black tracking-widest">
-                  <option value="">{$t('classes.independent')}</option>
-                  {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as cls}
-                    <option value={cls.id}>{cls.name}</option>
-                  {/each}
-                </select>
-                <CaretDown weight="bold" class="select-arrow" />
+          <div class="space-y-4">
+             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button 
+                  type="button"
+                  class="selection-card {!formData.class_id ? 'active' : ''}"
+                  onclick={() => formData.class_id = ''}
+                >
+                  <div class="card-icon">
+                    <UserCircle weight="duotone" />
+                  </div>
+                  <div class="card-content">
+                    <span class="card-title">{$t('classes.independent')}</span>
+                  </div>
+                  {#if !formData.class_id}
+                    <div class="card-check" in:scale>
+                      <CheckCircle size={20} weight="fill" />
+                    </div>
+                  {/if}
+                </button>
+
+                {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as cls}
+                  <button 
+                    type="button"
+                    class="selection-card {formData.class_id === cls.id ? 'active' : ''}"
+                    onclick={() => formData.class_id = cls.id}
+                  >
+                    <div class="card-icon">
+                      <BookOpen weight="duotone" />
+                    </div>
+                    <div class="card-content">
+                      <span class="card-title">{cls.name}</span>
+                      <span class="text-[10px] font-medium text-zinc-500">{cls.schedule || ''}</span>
+                    </div>
+                    {#if formData.class_id === cls.id}
+                      <div class="card-check" in:scale>
+                        <CheckCircle size={20} weight="fill" />
+                      </div>
+                    {/if}
+                  </button>
+                {/each}
              </div>
              
              <div class="tip-card">
@@ -304,143 +447,18 @@
              <div class="min-w-0">
                 <p class="text-base font-outfit font-bold text-white uppercase tracking-tight truncate">{formData.name || $t('students.unnamed')}</p>
                 <div class="flex items-center gap-2 mt-1">
-                   <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                   <div class="w-1.5 h-1.5 rounded-none bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                    <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest leading-none">{$t('students.status_sync')}</p>
                 </div>
              </div>
           </div>
        </section>
     </div>
+    </div>
   </div>
 </div>
 
 <style lang="postcss">
-  .page-container {
-    position: relative;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2.5rem 2rem;
-    min-height: 100vh;
-    z-index: 1;
-  }
-
-  .glow-bg {
-    position: fixed;
-    top: -10%;
-    right: -10%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
-    filter: blur(80px);
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  .main-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 3.5rem;
-    gap: 2rem;
-  }
-
-  .title-section {
-    display: flex;
-    align-items: center;
-    gap: 1.75rem;
-  }
-
-  .back-orb {
-    width: 54px;
-    height: 54px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .back-orb:hover {
-    background: rgba(255,255,255,0.05);
-    color: #fff;
-    border-color: rgba(139, 92, 246, 0.3);
-    transform: translateX(-5px);
-  }
-
-  .header-icon {
-    width: 64px;
-    height: 64px;
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #a78bfa;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-  }
-
-  .gradient-text {
-    font-size: 3rem;
-    font-weight: 900;
-    margin: 0;
-    line-height: 1;
-    letter-spacing: -2px;
-    background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .subtitle {
-     color: #94a3b8;
-     font-family: 'Jakarta';
-     font-size: 1.1rem;
-     font-weight: 500;
-  }
-
-  .action-section {
-    display: flex;
-    gap: 1.25rem;
-  }
-
-  .glass-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.9rem 1.75rem;
-    border-radius: 16px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .glass-btn.primary {
-    background: #fff;
-    color: #000;
-    box-shadow: 0 10px 25px rgba(255,255,255,0.1);
-  }
-
-  .glass-btn.primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 30px rgba(255,255,255,0.15);
-  }
-
-  .glass-btn.secondary {
-    background: rgba(255,255,255,0.03);
-    color: #fff;
-  }
-
-  .glass-btn.secondary:hover {
-    background: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.15);
-  }
-
   .input-label {
     display: block;
     font-family: 'Outfit';
@@ -457,11 +475,11 @@
     position: relative;
   }
 
-  .glass-input, .glass-select, .glass-textarea {
+  .glass-input, .glass-textarea {
     width: 100%;
     background: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 20px;
+    border-radius: 0;
     padding: 1.15rem 1.5rem;
     color: #fff;
     font-size: 1rem;
@@ -469,37 +487,20 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .glass-input:focus, .glass-select:focus, .glass-textarea:focus {
+  .glass-input:focus, .glass-textarea:focus {
     background: rgba(0,0,0,0.4);
     border-color: rgba(139, 92, 246, 0.4);
     box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 1px 1px rgba(139, 92, 246, 0.2);
     outline: none;
   }
 
-  .glass-input.error { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
 
-  .glass-select {
-    appearance: none;
-    cursor: pointer;
-  }
-
-  .input-wrapper :global(.select-arrow) {
-    position: absolute;
-    right: 1.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    color: #475569;
-    transition: color 0.3s;
-  }
-
-  .input-wrapper:hover :global(.select-arrow) { color: #a78bfa; }
 
   .glass-textarea {
     min-height: 220px;
     resize: none;
     line-height: 1.6;
-    border-radius: 32px;
+    border-radius: 0;
   }
 
   .error-msg {
@@ -514,7 +515,7 @@
     padding: 1.25rem;
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 20px;
+    border-radius: 0;
     font-family: 'Jakarta';
     font-size: 0.75rem;
     color: #64748b;
@@ -530,7 +531,7 @@
      padding: 1.25rem;
      background: rgba(0,0,0,0.25);
      border: 1px solid rgba(255,255,255,0.03);
-     border-radius: 24px;
+     border-radius: 0;
   }
 
   .avatar-sm {
@@ -538,7 +539,7 @@
     height: 52px;
     background: rgba(139, 92, 246, 0.1);
     border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 16px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -549,10 +550,28 @@
     box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
   }
 
+  .selection-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 0;
+    text-align: left;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .selection-card:hover {
+    background: rgba(139, 92, 246, 0.05);
+    border-color: rgba(139, 92, 246, 0.3);
+    transform: translateY(-2px);
+  }
+
+
+
   @media (max-width: 1024px) {
-    .main-header { flex-direction: column; align-items: flex-start; }
-    .gradient-text { font-size: 2.25rem; }
-    .action-section { width: 100%; }
-    .glass-btn { flex: 1; justify-content: center; }
   }
 </style>

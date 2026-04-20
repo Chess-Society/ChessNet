@@ -2,7 +2,21 @@
     import { fade } from 'svelte/transition';
     import { t } from '$lib/i18n';
 
-    let { players = [], pairings = [] } = $props();
+    interface Player {
+        student_id: string;
+        student_name: string;
+    }
+
+    interface Pairing {
+        white_student_id: string;
+        black_student_id: string;
+        result?: string;
+        bye?: boolean;
+        points_white?: number;
+        points_black?: number;
+    }
+
+    let { players = [], pairings = [] }: { players: Player[], pairings: Pairing[] } = $props();
 
     // Helper to get result between two players
     const getResult = (p1Id: string, p2Id: string) => {

@@ -10,11 +10,22 @@
     Pulse, 
     BookOpen, 
     Lightning,
-    FloppyDiskBack,
     IdentificationBadge,
     CaretRight,
     CaretLeft,
-    FloppyDisk
+    FloppyDisk,
+    Warning,
+    UserCircle,
+    Spinner,
+    ArrowsClockwise,
+    Buildings,
+    Sparkle,
+    Lightbulb,
+    Info,
+    ArrowRight,
+    CircleNotch,
+    Check,
+    SelectionBackground
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { appStore } from '$lib/stores/appStore';
@@ -26,14 +37,15 @@
 
   let plan = $derived($appStore.settings.plan || 'free');
   let studentsCount = $derived($appStore.students.length);
-  let isLimitReached = $derived(plan === 'free' && studentsCount >= 12);
+  let isLimitReached = $derived(plan === 'free' && studentsCount >= 10);
 
   let formData = $state({
     first_name: '',
     last_name: '',
     notes: '',
     school_id: '',
-    class_id: ''
+    class_id: '',
+    lichess_username: ''
   });
 
   let isSubmitting = $state(false);
@@ -68,7 +80,7 @@
 
   const handleSubmit = async () => {
     if (isLimitReached) {
-      goto('/pricing');
+      goto('/panel/upgrade');
       return;
     }
     if (!validateForm() || isSubmitting) return;
@@ -81,26 +93,18 @@
         last_name: formData.last_name.trim(),
         notes: formData.notes.trim(),
         school_id: formData.school_id,
-        class_id: formData.class_id
+        class_id: formData.class_id,
+        lichess_username: formData.lichess_username.trim()
       };
       
-      const response = await fetch('/api/students', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(studentData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) throw new Error(result.error || $t('common.error'));
+      const newStudent = await appStore.addStudent(studentData);
       
-      // Auto-enrolar si viene de una clase
-      if (formData.class_id && result.student) {
-        await fetch('/api/class-students', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ class_id: formData.class_id, student_id: result.student.id }),
-        });
+      if (formData.class_id && newStudent) {
+        try {
+          await appStore.enrollStudent(formData.class_id, newStudent.id);
+        } catch (e) {
+          console.warn('Auto-enroll failed', e);
+        }
       }
       
       showToast.success($t('students.toast_create_success'));
@@ -115,547 +119,324 @@
       isSubmitting = false;
     }
   };
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-      handleSubmit();
-    }
-  };
 </script>
 
 <svelte:head>
   <title>{$t('students.new_title')} - ChessNet</title>
 </svelte:head>
 
-<svelte:window on:keydown={handleKeyDown} />
-
-<div class="page-container" in:fade>
-  <div class="glow-bg"></div>
-
-  <!-- Header Section -->
-  <header class="main-header">
-    <div class="title-section">
+<!-- Premium Sticky Header -->
+<div class="sticky top-0 z-[100] bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12">
+  <div class="max-w-[1400px] mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-6">
       <button 
         onclick={handleGoBack}
-        class="back-orb"
-        title={$t('common.back')}
+        class="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-zinc-400 hover:text-white hover:border-violet-500/50 transition-all active:scale-95 group"
       >
-        <CaretLeft size={24} weight="bold" />
+        <ArrowLeft weight="bold" class="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
       </button>
-      <div class="flex items-center gap-6">
-        <div class="header-icon">
-          <Plus size={32} weight="bold" />
-        </div>
-        <div class="text-group">
-          <h1 class="gradient-text font-outfit">{$t('students.new_title')}</h1>
-          <p class="subtitle mt-1">{$t('students.new_subtitle')}</p>
-        </div>
+      <div>
+        <h1 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('students.new_title')}</h1>
+        <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{$t('students.new_subtitle')}</p>
       </div>
     </div>
 
-    <div class="action-section">
+    <div class="flex items-center gap-4">
       <button 
-        class="glass-btn secondary" 
         onclick={handleGoBack}
+        class="hidden md:flex items-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-none text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
       >
-        <X size={20} weight="bold" />
-        <span class="font-outfit font-bold">{$t('common.cancel')}</span>
+        <X weight="bold" class="w-4 h-4" />
+        {$t('common.cancel')}
       </button>
       <button 
-        class="glass-btn primary" 
         onclick={handleSubmit}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isLimitReached}
+        class="flex items-center gap-3 px-8 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-none text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-violet-600/20 active:scale-95 disabled:opacity-50 group"
       >
         {#if isSubmitting}
-          <div class="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent"></div>
+          <CircleNotch weight="bold" class="w-4 h-4 animate-spin" />
         {:else}
-          <FloppyDisk size={20} weight="bold" />
+          <FloppyDisk weight="bold" class="w-4 h-4 group-hover:scale-110 transition-transform" />
         {/if}
-        <span class="font-outfit font-bold">{$t('students.confirm_registration')}</span>
+        {isSubmitting ? $t('common.saving') : $t('students.confirm_registration')}
       </button>
     </div>
-  </header>
+  </div>
+</div>
 
+<div class="max-w-[1400px] mx-auto px-6 md:px-12 py-12" in:fade={{ duration: 300 }}>
   {#if isLimitReached}
-    <div class="limit-warning mb-12" in:fly={{ y: 20 }}>
-      <div class="absolute inset-0 bg-gradient-to-r from-violet-600/20 to-transparent"></div>
-      <div class="warning-icon">
-        <Lightning size={32} weight="duotone" />
+    <div class="mb-12 p-8 bg-amber-500/5 border border-amber-500/20 rounded-none flex items-center justify-between gap-8 relative overflow-hidden shadow-2xl" in:fly={{ y: 20 }}>
+      <div class="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent"></div>
+      <div class="flex items-center gap-8 relative z-10">
+        <div class="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-none flex items-center justify-center text-amber-500 shadow-xl shadow-amber-500/10">
+          <Lightning size={36} weight="duotone" />
+        </div>
+        <div>
+          <h3 class="text-3xl font-outfit font-black text-white italic uppercase tracking-tighter mb-1">{$t('panel.limits.students')}</h3>
+          <p class="text-zinc-500 font-bold uppercase text-[11px] tracking-widest">{$t('pricing.premium.desc')}</p>
+        </div>
       </div>
-      <div class="warning-text">
-        <h3>{$t('panel.limits.students')}</h3>
-        <p>{$t('pricing.premium.desc')}</p>
-      </div>
-      <a href="/panel/upgrade" class="upgrade-btn">
+      <a href="/panel/upgrade" class="relative z-10 px-10 py-5 bg-white text-black hover:bg-zinc-200 transition-all rounded-none font-outfit font-black uppercase tracking-widest text-[11px] shadow-2xl shadow-white/10 active:scale-95">
         {$t('panel.upgrade')}
       </a>
     </div>
   {/if}
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <div class="lg:col-span-2 space-y-8">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+    
+    <!-- Left: Form Sections (8 Columns) -->
+    <div class="lg:col-span-8 space-y-10">
       {#if isFromClass}
-        <div class="enrollment-tip" in:fade>
-          <div class="tip-icon">
-            <CheckCircle size={24} weight="duotone" />
+        <div class="bento-card !p-6 bg-emerald-500/5 border-emerald-500/20 flex items-center gap-4 group" in:fly={{ x: -20 }}>
+          <div class="w-12 h-12 bg-emerald-500/10 rounded-none flex items-center justify-center text-emerald-500 shadow-lg shadow-emerald-500/10 transition-transform group-hover:scale-110">
+            <CheckCircle weight="duotone" class="w-6 h-6" />
           </div>
           <div>
-            <p class="tip-label">{$t('classes.enroll')}</p>
-            <p class="tip-desc">{$t('students.new_subtitle')}</p>
+            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">{$t('classes.enroll')}</p>
+            <p class="text-[11px] font-bold text-zinc-500 uppercase tracking-tight">{$t('students.auto_enroll_active')}</p>
           </div>
         </div>
       {/if}
 
-      <!-- Form Section -->
-      <section class="bento-card !p-10 space-y-12">
-        <div class="flex items-center gap-4 border-b border-white/5 pb-8">
-          <IdentificationBadge size={24} weight="duotone" class="text-violet-400" />
-          <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">{$t('students.personal_data')}</h2>
+      <!-- Section: Identity -->
+      <section class="bento-card !p-10 relative overflow-hidden group">
+        <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-transparent opacity-100"></div>
+        
+        <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">
+          <div class="w-14 h-14 bg-violet-600/20 border border-violet-500/30 rounded-none flex items-center justify-center text-violet-400 shadow-xl shadow-violet-500/10">
+            <IdentificationBadge weight="duotone" class="w-8 h-8" />
+          </div>
+          <div>
+            <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('students.personal_data')}</h3>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('students.identity_desc')}</p>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div class="space-y-4">
-            <label for="first_name" class="input-label">{$t('students.first_name')} <span class="text-violet-500">*</span></label>
-            <div class="input-wrapper">
-              <input
-                id="first_name"
-                type="text"
-                bind:value={formData.first_name}
-                placeholder={$t('students.first_name_placeholder')}
-                class="glass-input {errors.first_name ? 'error' : ''}"
-              />
+        <div class="space-y-10 relative z-10">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="space-y-3">
+              <label for="first_name" class="glass-label">{$t('students.first_name')} <span class="text-violet-500">*</span></label>
+              <div class="relative group">
+                <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
+                <input
+                  id="first_name"
+                  type="text"
+                  bind:value={formData.first_name}
+                  placeholder={$t('students.first_name_placeholder')}
+                  class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
+                  required
+                />
+              </div>
+              {#if errors.first_name}<p class="text-red-500 text-[10px] font-bold uppercase mt-1">{errors.first_name}</p>{/if}
             </div>
-            {#if errors.first_name}
-              <p class="error-msg">{errors.first_name}</p>
-            {/if}
+
+            <div class="space-y-3">
+              <label for="last_name" class="glass-label">{$t('students.last_name')}</label>
+              <div class="relative group">
+                <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
+                <input
+                  id="last_name"
+                  type="text"
+                  bind:value={formData.last_name}
+                  placeholder={$t('students.last_name_placeholder')}
+                  class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <label for="lichess_username" class="glass-label">Usuario de Lichess</label>
+              <div class="relative group">
+                <Sparkle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-sky-500 transition-colors pointer-events-none" />
+                <input
+                  id="lichess_username"
+                  type="text"
+                  bind:value={formData.lichess_username}
+                  placeholder="Ej: drnykterstein"
+                  class="glass-input pl-16 pr-8 w-full focus:ring-sky-500/20 focus:border-sky-500 bg-zinc-950/50 italic"
+                />
+              </div>
+            </div>
           </div>
 
-          <div class="space-y-4">
-            <label for="last_name" class="input-label">{$t('students.last_name')}</label>
-            <div class="input-wrapper">
-              <input
-                id="last_name"
-                type="text"
-                bind:value={formData.last_name}
-                placeholder={$t('students.last_name_placeholder')}
-                class="glass-input"
-              />
+          <div class="space-y-6 pt-6 border-t border-white/5">
+            <span class="glass-label mb-2 block">{$t('students.educational_school')}</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button
+                type="button"
+                onclick={() => { formData.school_id = ''; formData.class_id = ''; }}
+                class="selection-card small {formData.school_id === '' ? 'active' : ''}"
+              >
+                <div class="card-icon">
+                  <Sparkle weight={formData.school_id === '' ? "fill" : "duotone"} />
+                </div>
+                <div class="card-content">
+                  <span class="card-title">{$t('students.independent_student')}</span>
+                </div>
+                {#if formData.school_id === ''}
+                  <div class="card-check" in:scale>
+                    <Check size={12} weight="bold" />
+                  </div>
+                {/if}
+              </button>
+
+              {#each schools as school}
+                <button
+                  type="button"
+                  onclick={() => { formData.school_id = school.id; formData.class_id = ''; }}
+                  class="selection-card small {formData.school_id === school.id ? 'active' : ''}"
+                >
+                  <div class="card-icon">
+                    <Buildings weight={formData.school_id === school.id ? "fill" : "duotone"} />
+                  </div>
+                  <div class="card-content">
+                    <span class="card-title">{school.name}</span>
+                  </div>
+                  {#if formData.school_id === school.id}
+                    <div class="card-check" in:scale>
+                      <Check size={12} weight="bold" />
+                    </div>
+                  {/if}
+                </button>
+              {/each}
             </div>
           </div>
 
-          <div class="space-y-4">
-            <label for="school" class="input-label">{$t('students.educational_school')} ({$t('common.optional')})</label>
-            <div class="input-wrapper group">
-              <select id="school" bind:value={formData.school_id} class="glass-select">
-                <option value="">{$t('students.independent_student')}</option>
-                {#each schools as school}
-                  <option value={school.id}>{school.name}</option>
-                {/each}
-              </select>
-              <CaretRight weight="bold" class="select-arrow rotate-90" />
-            </div>
-          </div>
+          <div class="space-y-6 pt-6 border-t border-white/5">
+            <span class="glass-label mb-2 block">{$t('students.group_label')}</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button
+                type="button"
+                onclick={() => formData.class_id = ''}
+                class="selection-card small {formData.class_id === '' ? 'active' : ''}"
+              >
+                <div class="card-icon">
+                  <IdentificationBadge weight={formData.class_id === '' ? "fill" : "duotone"} />
+                </div>
+                <div class="card-content">
+                  <span class="card-title">{$t('students.individual_class')}</span>
+                </div>
+                {#if formData.class_id === ''}
+                  <div class="card-check" in:scale>
+                    <Check size={12} weight="bold" />
+                  </div>
+                {/if}
+              </button>
 
-          <div class="space-y-4">
-            <label for="class" class="input-label">{$t('students.group_label')} ({$t('common.optional')})</label>
-            <div class="input-wrapper group">
-              <select id="class" bind:value={formData.class_id} class="glass-select">
-                <option value="">{$t('students.individual_class')}</option>
-                {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as c}
-                  <option value={c.id}>{c.name}</option>
-                {/each}
-              </select>
-              <CaretRight weight="bold" class="select-arrow rotate-90" />
+              {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as c}
+                <button
+                  type="button"
+                  onclick={() => formData.class_id = c.id}
+                  class="selection-card small {formData.class_id === c.id ? 'active' : ''}"
+                >
+                  <div class="card-icon">
+                    <BookOpen weight={formData.class_id === c.id ? "fill" : "duotone"} />
+                  </div>
+                  <div class="card-content">
+                    <span class="card-title">{c.name}</span>
+                  </div>
+                  {#if formData.class_id === c.id}
+                    <div class="card-check" in:scale>
+                      <Check size={12} weight="bold" />
+                    </div>
+                  {/if}
+                </button>
+              {/each}
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Observations -->
-      <section class="bento-card !p-10 space-y-10">
-        <div class="flex items-center gap-4 border-b border-white/5 pb-8">
-          <FileText size={24} weight="duotone" class="text-violet-400" />
-          <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">{$t('students.observations')}</h2>
+      <!-- Section: Observations -->
+      <section class="bento-card !p-10 relative overflow-hidden group">
+        <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">
+          <div class="w-14 h-14 bg-amber-600/20 border border-amber-500/30 rounded-none flex items-center justify-center text-amber-400 shadow-xl shadow-amber-500/10">
+            <FileText weight="duotone" class="w-8 h-8" />
+          </div>
+          <div>
+            <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('students.observations')}</h3>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('students.notes_desc')}</p>
+          </div>
         </div>
 
-        <div class="space-y-4">
-          <label for="notes" class="input-label">{$t('students.notes_label')}</label>
+        <div class="space-y-6 relative z-10">
+          <label for="notes" class="glass-label">{$t('students.notes_label')}</label>
           <textarea
             id="notes"
             bind:value={formData.notes}
             placeholder={$t('students.notes_placeholder')}
-            class="glass-textarea"
+            rows="5"
+            class="glass-input w-full px-6 py-5 resize-none bg-zinc-950/50"
           ></textarea>
         </div>
       </section>
     </div>
 
-    <!-- Sidebar -->
-    <div class="space-y-8">
-      <section class="bento-card !p-8 space-y-8 relative overflow-hidden group">
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/5 blur-3xl rounded-full"></div>
+    <!-- Right: Sticky Sidebar (4 Columns) -->
+    <div class="lg:col-span-4">
+      <div class="sticky top-32 space-y-8">
         
-        <div class="flex items-center gap-3 mb-6 relative z-10">
-           <BookOpen size={22} weight="duotone" class="text-violet-400" />
-           <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">{$t('students.guidance_title')}</h3>
-        </div>
-
-        <div class="space-y-6 relative z-10">
-           {#each [1, 2, 3] as i}
-           <div class="flex gap-4 group/item">
-              <div class="guidance-step">0{i}</div>
-              <p class="text-xs font-jakarta font-medium text-slate-400 leading-relaxed group-hover/item:text-slate-300 transition-colors">
-                 {@html $t(`students.guidance_${i}`)}
-              </p>
-           </div>
-           {/each}
-        </div>
-      </section>
-
-      <!-- Preview -->
-      <section class="bento-card !p-8 space-y-6">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-widest">{$t('students.preview_label')}</h3>
-          <div class="w-1.5 h-1.5 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]"></div>
-        </div>
-        
-        <div class="preview-box">
-           <div class="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent"></div>
-           <div class="flex items-center gap-5 relative z-10">
-              <div class="preview-avatar">
-                 {formData.first_name ? formData.first_name.charAt(0).toUpperCase() : '?'}
+        <!-- Premium Preview Card -->
+        <div class="bento-card !p-8 overflow-hidden relative group">
+          <div class="absolute -top-12 -right-12 w-32 h-32 bg-violet-600/10 rounded-none blur-3xl"></div>
+          
+          <div class="relative z-10 text-center space-y-8">
+            <div class="flex flex-col items-center">
+              <div class="w-24 h-24 bg-violet-600/20 border border-violet-500/30 rounded-none flex items-center justify-center text-violet-400 shadow-2xl shadow-violet-500/20 transition-transform group-hover:scale-110 duration-700">
+                <span class="text-4xl font-outfit font-black uppercase">
+                  {formData.first_name ? formData.first_name.charAt(0) : '?'}
+                </span>
               </div>
-              <div class="min-w-0">
-                <p class="text-base font-outfit font-bold text-white truncate group-hover:text-violet-400 transition-colors">
-                  {formData.first_name || $t('common.new')} {formData.last_name || $t('students.student_label')}
-                </p>
-                <div class="flex items-center gap-2 mt-1 Opacity-60">
-                  <div class="w-2 h-2 rounded-full bg-slate-500"></div>
-                  <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-widest leading-none">{$t('students.technical_tag')}</p>
+              <h4 class="text-2xl font-outfit font-black text-white mt-6 uppercase italic tracking-tighter truncate w-full px-4">
+                {formData.first_name || $t('common.new')} {formData.last_name || ''}
+              </h4>
+              <span class="px-4 py-1.5 bg-zinc-950/50 border border-zinc-800 rounded-none text-[9px] font-black uppercase tracking-widest text-zinc-500 mt-2 shadow-inner">
+                {$t('students.preview_label')}
+              </span>
+            </div>
+
+            <div class="space-y-4 pt-8 border-t border-white/5">
+              {#each [1, 2, 3] as i}
+                <div class="flex gap-4 items-start text-left">
+                  <div class="w-6 h-6 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-black text-violet-500 shrink-0 shadow-inner">0{i}</div>
+                  <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-relaxed pt-0.5">
+                    {@html $t(`students.guidance_${i}`)}
+                  </p>
                 </div>
-              </div>
-           </div>
+              {/each}
+            </div>
+          </div>
         </div>
-      </section>
+
+        <!-- Help Card -->
+        <div class="bento-card !p-8 relative overflow-hidden bg-amber-600/5 border-amber-500/20">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+              <Lightbulb weight="duotone" class="w-5 h-5 text-amber-400" />
+              <h3 class="text-[10px] font-black text-amber-200 uppercase tracking-widest">{$t('common.tip')}</h3>
+            </div>
+            <p class="text-[11px] text-zinc-500 leading-relaxed font-bold italic uppercase tracking-tighter">
+              {$t('students.guidance_title')}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<style lang="postcss">
-  .page-container {
-    position: relative;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2.5rem 2rem;
-    min-height: 100vh;
-    z-index: 1;
+<style>
+  textarea::-webkit-scrollbar {
+    width: 6px;
   }
-
-  .glow-bg {
-    position: fixed;
-    top: -10%;
-    right: -10%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
-    filter: blur(80px);
-    z-index: -1;
-    pointer-events: none;
+  textarea::-webkit-scrollbar-track {
+    background: transparent;
   }
-
-  .main-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 3.5rem;
-    gap: 2rem;
-  }
-
-  .title-section {
-    display: flex;
-    align-items: center;
-    gap: 1.75rem;
-  }
-
-  .back-orb {
-    width: 54px;
-    height: 54px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .back-orb:hover {
-    background: rgba(255,255,255,0.05);
-    color: #fff;
-    border-color: rgba(139, 92, 246, 0.3);
-    transform: translateX(-5px);
-  }
-
-  .header-icon {
-    width: 64px;
-    height: 64px;
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #a78bfa;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-  }
-
-  .gradient-text {
-    font-size: 3rem;
-    font-weight: 900;
-    margin: 0;
-    line-height: 1;
-    letter-spacing: -2px;
-    background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .subtitle {
-     color: #94a3b8;
-     font-family: 'Jakarta';
-     font-size: 1.1rem;
-     font-weight: 500;
-  }
-
-  .action-section {
-    display: flex;
-    gap: 1.25rem;
-  }
-
-  .glass-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.9rem 1.75rem;
-    border-radius: 16px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .glass-btn.primary {
-    background: #fff;
-    color: #000;
-    box-shadow: 0 10px 25px rgba(255,255,255,0.1);
-  }
-
-  .glass-btn.primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 30px rgba(255,255,255,0.15);
-  }
-
-  .glass-btn.secondary {
-    background: rgba(255,255,255,0.03);
-    color: #fff;
-  }
-
-  .glass-btn.secondary:hover {
-    background: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.15);
-  }
-
-  .limit-warning {
-    position: relative;
-    background: rgba(139, 92, 246, 0.05);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 28px;
-    padding: 2.5rem;
-    display: flex;
-    align-items: center;
-    gap: 2.5rem;
-    overflow: hidden;
-  }
-
-  .warning-icon {
-    width: 64px;
-    height: 64px;
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #a78bfa;
-    z-index: 10;
-  }
-
-  .warning-text {
-    flex-grow: 1;
-    z-index: 10;
-  }
-
-  .warning-text h3 {
-    font-family: 'Outfit';
-    font-weight: 800;
-    font-size: 1.5rem;
-    color: #fff;
-    margin-bottom: 0.25rem;
-  }
-
-  .warning-text p {
-    color: #94a3b8;
-    font-family: 'Jakarta';
-    font-weight: 500;
-  }
-
-  .upgrade-btn {
-    padding: 0.9rem 2.5rem;
-    background: #fff;
-    color: #000;
-    border-radius: 50px;
-    font-family: 'Outfit';
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.85rem;
-    z-index: 10;
-    box-shadow: 0 10px 20px rgba(255,255,255,0.1);
-  }
-
-  .enrollment-tip {
-    background: rgba(139, 92, 246, 0.05);
-    border-left: 4px solid #7c3aed;
-    padding: 1.5rem;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    margin-bottom: 2rem;
-  }
-
-  .tip-icon { color: #8b5cf6; }
-  .tip-label { font-family: 'Outfit'; font-weight: 900; font-size: 0.7rem; color: #a78bfa; text-transform: uppercase; letter-spacing: 1px; }
-  .tip-desc { font-family: 'Jakarta'; font-weight: 500; font-size: 0.9rem; color: #64748b; }
-
-  .input-label {
-    display: block;
-    font-family: 'Outfit';
-    font-weight: 900;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #475569;
-    margin-bottom: 0.5rem;
-    padding-left: 0.5rem;
-  }
-
-  .input-wrapper {
-    position: relative;
-  }
-
-  .glass-input, .glass-select, .glass-textarea {
-    width: 100%;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 20px;
-    padding: 1.15rem 1.5rem;
-    color: #fff;
-    font-size: 1rem;
-    font-family: 'Jakarta';
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .glass-input:focus, .glass-select:focus, .glass-textarea:focus {
-    background: rgba(0,0,0,0.4);
-    border-color: rgba(139, 92, 246, 0.4);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 1px 1px rgba(139, 92, 246, 0.2);
-    outline: none;
-  }
-
-  .glass-input.error { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
-
-  .glass-select {
-    appearance: none;
-    cursor: pointer;
-    font-weight: 500;
-  }
-
-  .input-wrapper :global(.select-arrow) {
-    position: absolute;
-    right: 1.5rem;
-    top: 50%;
-    transform: translateY(-50%) rotate(90deg);
-    pointer-events: none;
-    color: #475569;
-    transition: color 0.3s;
-  }
-
-  .input-wrapper:hover :global(.select-arrow) { color: #a78bfa; }
-
-  .glass-textarea {
-    min-height: 180px;
-    resize: none;
-    line-height: 1.6;
-  }
-
-  .error-msg {
-    color: #f87171;
-    font-size: 0.75rem;
-    font-weight: 700;
-    margin-top: 0.5rem;
-    padding-left: 0.75rem;
-  }
-
-  .guidance-step {
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Outfit';
-    font-weight: 900;
-    font-size: 0.75rem;
-    color: #7c3aed;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-  }
-
-  .preview-box {
-    position: relative;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(255,255,255,0.03);
-    border-radius: 24px;
-    padding: 1.5rem;
-    overflow: hidden;
-    transition: all 0.3s;
-  }
-
-  .preview-avatar {
-    width: 60px;
-    height: 60px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #a78bfa;
-    font-family: 'Outfit';
-    font-weight: 900;
-    font-size: 1.5rem;
-  }
-
-  @media (max-width: 1024px) {
-    .main-header { flex-direction: column; align-items: flex-start; }
-    .gradient-text { font-size: 2.25rem; }
-    .action-section { width: 100%; }
-    .glass-btn { flex: 1; justify-content: center; }
+  textarea::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 0px;
   }
 </style>
+

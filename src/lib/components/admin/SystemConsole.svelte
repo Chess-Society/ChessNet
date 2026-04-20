@@ -34,7 +34,7 @@
     switch (status) {
       case 'error': return 'text-red-400 bg-red-500/10 border-red-500/20';
       case 'warning': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-      case 'success': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+      case 'success': return 'text-violet-400 bg-violet-500/10 border-violet-500/20';
       default: return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
     }
   }
@@ -43,7 +43,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
   <!-- System Health Card -->
   <div class="lg:col-span-1 space-y-6">
-    <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+    <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-none shadow-2xl relative overflow-hidden group">
       <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
         <Shield weight="duotone" class="w-24 h-24" />
       </div>
@@ -54,26 +54,26 @@
       </h3>
 
       <div class="space-y-6">
-        <div class="flex items-center justify-between p-4 bg-black/20 rounded-2xl border border-white/5">
+        <div class="flex items-center justify-between p-4 bg-black/20 rounded-none border border-white/5">
           <div>
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.system.maintenance_label')}</p>
-            <p class="text-xs font-bold {maintenanceMode ? 'text-red-400' : 'text-emerald-400'} uppercase">
+            <p class="text-xs font-bold {maintenanceMode ? 'text-red-400' : 'text-violet-400'} uppercase">
               {maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}
             </p>
           </div>
           <button 
             onclick={onToggleMaintenance}
-            class="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all {maintenanceMode ? 'bg-red-500 text-white' : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'}"
+            class="px-4 py-2 rounded-none text-[9px] font-black uppercase tracking-widest transition-all {maintenanceMode ? 'bg-red-500 text-white' : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'}"
           >
             {maintenanceMode ? $t('admin.system.turn_off') : $t('admin.system.turn_on')}
           </button>
         </div>
 
-        <div class="p-4 bg-black/20 rounded-2xl border border-white/5 space-y-3">
+        <div class="p-4 bg-black/20 rounded-none border border-white/5 space-y-3">
           <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.system.data_optimization')}</p>
           <button 
             onclick={onRepairData}
-            class="w-full py-4 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all flex items-center justify-center gap-2"
+            class="w-full py-4 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all flex items-center justify-center gap-2"
           >
             <Database weight="fill" class="w-4 h-4" />
             {$t('admin.system.sync_indices')}
@@ -83,9 +83,9 @@
     </div>
 
     <!-- Quick Status -->
-    <div class="bg-gradient-to-br from-primary-500/20 to-violet-500/20 backdrop-blur-xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl">
+    <div class="bg-gradient-to-br from-primary-500/20 to-violet-500/20 backdrop-blur-xl border border-white/10 p-8 rounded-none shadow-2xl">
       <div class="flex items-center gap-4 mb-4">
-        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center">
           <Pulse class="w-5 h-5 text-white animate-pulse" />
         </div>
         <h4 class="font-black uppercase italic tracking-widest text-sm text-white">{$t('admin.system.server_status')}</h4>
@@ -97,20 +97,20 @@
         </div>
         <div class="space-y-1">
           <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.system.uptime')}</p>
-          <p class="text-xl font-bold font-display italic text-emerald-400">99.9%</p>
+          <p class="text-xl font-bold font-display italic text-violet-400">99.9%</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Real-time Console Log -->
-  <div class="lg:col-span-2 bg-[#0f172a] border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col">
+  <div class="lg:col-span-2 bg-[#0f172a] border border-white/5 rounded-none shadow-2xl overflow-hidden flex flex-col">
     <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-black/40">
       <div class="flex items-center gap-3">
-        <Terminal weight="bold" class="w-5 h-5 text-emerald-400" />
+        <Terminal weight="bold" class="w-5 h-5 text-primary-500" />
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
           {$t('admin.system.console_title')}
-          <span class="inline-flex w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="inline-flex w-2 h-2 rounded-none bg-primary-500 animate-pulse"></span>
         </h3>
       </div>
       <div class="flex items-center gap-2">
@@ -128,7 +128,7 @@
       {#each logs as log (log.id)}
         <div class="flex gap-4 group hover:bg-white/[0.02] p-1 rounded transition-colors" in:slide>
           <span class="text-slate-600 shrink-0 select-none">[{formatTime(log.timestamp)}]</span>
-          <span class="px-2 h-4 flex items-center rounded-sm shrink-0 border {getStatusColor(log.status)} font-black uppercase text-[8px] tracking-tighter">
+          <span class="px-2 h-4 flex items-center rounded-none shrink-0 border {getStatusColor(log.status)} font-black uppercase text-[8px] tracking-tighter">
             {log.status || 'INFO'}
           </span>
           <div class="flex-1">
@@ -164,7 +164,7 @@
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    border-radius: 0;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.1);

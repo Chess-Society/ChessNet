@@ -65,14 +65,14 @@
     const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
 </script>
 
-<div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl overflow-hidden relative">
+<div class="bg-slate-900 border border-slate-800 rounded-none p-8 shadow-2xl overflow-hidden relative">
     <div class="absolute top-0 right-0 p-8 opacity-5">
         <CreditCard class="w-32 h-32 text-indigo-500" />
     </div>
 
     <div class="relative z-10">
         <div class="flex items-center gap-3 mb-8">
-            <div class="p-3 bg-indigo-500/10 rounded-2xl text-indigo-500">
+            <div class="p-3 bg-indigo-500/10 rounded-none text-indigo-500">
                 <Globe class="w-6 h-6" />
             </div>
             <div>
@@ -84,7 +84,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Controles -->
             <div class="space-y-6">
-                <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
+                <div class="bg-slate-800/50 p-6 rounded-none border border-slate-700/50">
                     <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">{$t('simulator.env_config')}</h3>
                     
                     <div class="space-y-4">
@@ -126,7 +126,7 @@
                 <button 
                     onclick={simulate}
                     disabled={isSimulating}
-                    class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-3 cursor-pointer"
+                    class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-none transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-3 cursor-pointer"
                 >
                     {#if isSimulating}
                         <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -139,7 +139,7 @@
             </div>
 
             <!-- Visualización -->
-            <div class="bg-black/40 rounded-3xl border border-slate-800 p-6 font-mono text-[11px] h-[300px] flex flex-col">
+            <div class="bg-black/40 rounded-none border border-slate-800 p-6 font-mono text-[11px] h-[300px] flex flex-col">
                 <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
                     <span class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">{$t('simulator.console')}</span>
                     <div class="flex gap-1">
@@ -173,19 +173,19 @@
                 <div class="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
                     <div class="flex gap-4">
                         <div class="flex flex-col items-center gap-1">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'stripe' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
+                            <div class="w-8 h-8 rounded-none flex items-center justify-center {currentPhase === 'stripe' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
                                 <Globe class="w-4 h-4" />
                             </div>
                             <span class="text-[8px] uppercase font-bold {currentPhase === 'stripe' ? 'text-indigo-400' : 'text-slate-600'}">Stripe</span>
                         </div>
                         <div class="flex flex-col items-center gap-1">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'server' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
+                            <div class="w-8 h-8 rounded-none flex items-center justify-center {currentPhase === 'server' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
                                 <Server class="w-4 h-4" />
                             </div>
                             <span class="text-[8px] uppercase font-bold {currentPhase === 'server' ? 'text-indigo-400' : 'text-slate-600'}">Netlify</span>
                         </div>
                         <div class="flex flex-col items-center gap-1">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center {currentPhase === 'firestore' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
+                            <div class="w-8 h-8 rounded-none flex items-center justify-center {currentPhase === 'firestore' ? 'bg-indigo-500 text-white animate-bounce' : 'bg-slate-800 text-slate-600'} transition-all">
                                 <Database class="w-4 h-4" />
                             </div>
                             <span class="text-[8px] uppercase font-bold {currentPhase === 'firestore' ? 'text-indigo-400' : 'text-slate-600'}">Firestore</span>

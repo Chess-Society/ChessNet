@@ -10,22 +10,13 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 
   try {
-    let sessionCookie: string;
     const isDev = process.env.NODE_ENV === 'development';
-
-    if (token === 'mock-chessnet-token') {
-      // Mock session SOLO en desarrollo — rechazado en producción
-      if (!isDev) {
-        return json({ error: 'Token inválido' }, { status: 401 });
-      }
-      sessionCookie = 'mock-session-chessnet';
-    } else {
-      // Definimos el tiempo de expiración (5 días)
-      const expiresIn = 60 * 60 * 24 * 5 * 1000;
-      
-      // Creamos la cookie de sesión de Firebase
-      sessionCookie = await adminAuth.createSessionCookie(token, { expiresIn });
-    }
+    
+    // Definimos el tiempo de expiración (5 días)
+    const expiresIn = 60 * 60 * 24 * 5 * 1000;
+    
+    // Creamos la cookie de sesión de Firebase
+    const sessionCookie = await adminAuth.createSessionCookie(token, { expiresIn });
 
     // La guardamos en la cookie __session (estándar de Firebase Hosting/CDN)
     cookies.set('__session', sessionCookie, {

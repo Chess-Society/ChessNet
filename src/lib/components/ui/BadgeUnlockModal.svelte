@@ -35,22 +35,22 @@
 
     <!-- Modal Content -->
     <div 
-      class="relative w-full max-w-lg bg-gradient-to-br from-slate-900 to-black border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]"
+      class="relative w-full max-w-lg bg-gradient-to-br from-slate-900 to-black border border-white/10 rounded-none overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]"
       in:scale={{ duration: 500, start: 0.9, opacity: 0 }}
     >
       <!-- Glow Effect -->
       <div 
-        class="absolute -top-24 -left-24 w-64 h-64 blur-[100px] opacity-30 rounded-full"
+        class="absolute -top-24 -left-24 w-64 h-64 blur-[100px] opacity-30 rounded-none"
         style="background: {insignia.glowColor};"
       ></div>
       <div 
-        class="absolute -bottom-24 -right-24 w-64 h-64 blur-[100px] opacity-20 rounded-full"
+        class="absolute -bottom-24 -right-24 w-64 h-64 blur-[100px] opacity-20 rounded-none"
         style="background: {insignia.glowColor};"
       ></div>
 
       <!-- Close Button -->
       <button 
-        class="absolute top-8 right-8 p-3 rounded-2xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all z-20"
+        class="absolute top-8 right-8 p-3 rounded-none bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all z-20"
         onclick={onClose}
       >
         <X size={20} />
@@ -89,7 +89,7 @@
         <div class="flex flex-col w-full gap-3 pt-4">
             {#if ($appStore.pendingAchievementIds || []).length > 1}
               <button 
-                  class="w-full flex items-center justify-center gap-3 py-5 px-8 rounded-[2rem] font-black text-[10px] uppercase tracking-widest transition-all shadow-xl hover:scale-[1.02] active:scale-95"
+                  class="w-full flex items-center justify-center gap-3 py-5 px-8 rounded-none font-black text-[10px] uppercase tracking-widest transition-all shadow-xl hover:scale-[1.02] active:scale-95"
                   style="background: {insignia.color}; color: white; box-shadow: 0 15px 35px {insignia.color}55"
                   onclick={onClose}
               >
@@ -98,7 +98,7 @@
               </button>
             {:else}
               <button 
-                  class="w-full py-5 px-8 rounded-[2rem] bg-white/5 border border-white/10 font-black text-[10px] text-white uppercase tracking-widest hover:bg-white/10 transition-all"
+                  class="w-full py-5 px-8 rounded-none bg-white/5 border border-white/10 font-black text-[10px] text-white uppercase tracking-widest hover:bg-white/10 transition-all"
                   style="background: {insignia.color}22; border-color: {insignia.color}44;"
                   onclick={onClose}
               >

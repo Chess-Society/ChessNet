@@ -70,7 +70,7 @@
 
   const getAttendanceTheme = (status: string) => {
     switch (status) {
-      case 'P': return 'emerald';
+      case 'P': return 'violet';
       case 'T': return 'amber';
       case 'A': return 'rose';
       default: return 'slate';
@@ -181,7 +181,7 @@
             </div>
             <div class="meta-divider"></div>
             <div class="meta-item">
-              <CalendarBlank weight="duotone" class="text-emerald-400" />
+              <CalendarBlank weight="duotone" class="text-violet-400" />
               <span>{calculateAge(student.date_of_birth)} {$t('reports.years')}</span>
             </div>
             <div class="meta-divider"></div>
@@ -216,7 +216,7 @@
       </div>
 
       <div 
-        class="metric-card emerald"
+        class="metric-card violet"
         class:active={hoveredKpi === 'rating'}
         onmouseenter={() => hoveredKpi = 'rating'}
         onmouseleave={() => hoveredKpi = null}
@@ -264,7 +264,7 @@
       </div>
 
       <div 
-        class="metric-card {progress.overdue_payments > 0 ? 'rose' : 'indigo'}"
+        class="metric-card violet"
         class:active={hoveredKpi === 'balance'}
         onmouseenter={() => hoveredKpi = 'balance'}
         onmouseleave={() => hoveredKpi = null}
@@ -564,7 +564,7 @@
               <span class="val">{progress.total_payments}</span>
               <span class="label">{$t('reports.payments.issued')}</span>
             </div>
-            <div class="stat-pill emerald">
+            <div class="stat-pill violet">
               <span class="val">{progress.paid_payments}</span>
               <span class="label">{$t('reports.payments.settled')}</span>
             </div>
@@ -627,7 +627,7 @@
                      <span class="val">{progress.tournaments_participated}</span>
                      <span class="label">{$t('reports.tournaments.played')}</span>
                   </div>
-                  <div class="stat-pill emerald">
+                  <div class="stat-pill violet">
                      <span class="val">{progress.tournament_wins}</span>
                      <span class="label">{$t('reports.tournaments.wins')}</span>
                   </div>
@@ -759,7 +759,7 @@
     height: 44px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 14px;
+    border-radius: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -783,7 +783,7 @@
     height: 44px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 14px;
+    border-radius: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -798,11 +798,11 @@
   }
 
   .primary-btn {
-    background: #a855f7;
+    background: #a78bfa;
     color: black;
     padding: 0 1.5rem;
     height: 44px;
-    border-radius: 14px;
+    border-radius: 0px;
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -811,13 +811,13 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+    box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3);
   }
 
   .primary-btn:hover {
-    background: #c084fc;
+    background: #c4b5fd;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+    box-shadow: 0 6px 20px rgba(167, 139, 250, 0.4);
   }
 
   /* Header Section */
@@ -838,9 +838,9 @@
   .avatar-orb {
     width: 110px;
     height: 110px;
-    background: rgba(168, 85, 247, 0.1);
-    border: 2px solid rgba(168, 85, 247, 0.2);
-    border-radius: 36px;
+    background: rgba(167, 139, 250, 0.1);
+    border: 2px solid rgba(167, 139, 250, 0.2);
+    border-radius: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -852,13 +852,13 @@
     font-family: 'Outfit', sans-serif;
     font-size: 3rem;
     font-weight: 900;
-    color: #c084fc;
+    color: #a78bfa;
   }
 
   .orb-glow {
     position: absolute;
     inset: -15px;
-    background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.3) 0%, transparent 70%);
     filter: blur(20px);
     z-index: -1;
   }
@@ -870,12 +870,12 @@
     width: 24px;
     height: 24px;
     border: 4px solid #020617;
-    border-radius: 50%;
+    border-radius: 0px;
   }
 
   .status-indicator.active {
-    background: #10b981;
-    box-shadow: 0 0 10px #10b981;
+    background: #a78bfa;
+    box-shadow: 0 0 10px #a78bfa;
   }
 
   .profile-info h1 {
@@ -899,11 +899,11 @@
   }
 
   .verified-badge {
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    color: #10b981;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
     padding: 0.4rem 0.8rem;
-    border-radius: 10px;
+    border-radius: 0px;
     font-size: 0.65rem;
     font-weight: 800;
     display: flex;
@@ -932,7 +932,7 @@
     width: 6px;
     height: 6px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
+    border-radius: 0px;
   }
 
   /* KPI Grid */
@@ -947,7 +947,7 @@
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 28px;
+    border-radius: 0px;
     padding: 1.75rem;
     position: relative;
     overflow: hidden;
@@ -960,11 +960,10 @@
     border-color: rgba(255, 255, 255, 0.1);
   }
 
-  .metric-card.violet { border-left: 4px solid #a855f7; }
-  .metric-card.emerald { border-left: 4px solid #10b981; }
+  .metric-card.violet { border-left: 4px solid #a78bfa; }
   .metric-card.amber { border-left: 4px solid #f59e0b; }
   .metric-card.rose { border-left: 4px solid #f43f5e; }
-  .metric-card.indigo { border-left: 4px solid #6366f1; }
+  .metric-card.indigo { border-left: 4px solid #a78bfa; }
 
   .card-label {
     display: block;
@@ -992,7 +991,7 @@
     width: 48px;
     height: 48px;
     background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
+    border-radius: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1000,8 +999,7 @@
     color: #64748b;
   }
 
-  .metric-card.violet .card-icon { color: #a855f7; background: rgba(168, 85, 247, 0.1); }
-  .metric-card.emerald .card-icon { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+  .metric-card.violet .card-icon { color: #a78bfa; background: rgba(167, 139, 250, 0.1); }
   .metric-card.amber .card-icon { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
   .metric-card.rose .card-icon { color: #f43f5e; background: rgba(244, 63, 94, 0.1); }
 
@@ -1013,7 +1011,7 @@
 
   .trend {
     padding: 0.2rem 0.5rem;
-    border-radius: 6px;
+    border-radius: 0px;
     font-size: 0.7rem;
     font-weight: 800;
     display: flex;
@@ -1021,7 +1019,7 @@
     gap: 0.25rem;
   }
 
-  .trend.up { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .trend.up { background: rgba(139, 92, 246, 0.1); color: #a78bfa; }
   .trend.down { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
 
   /* Tabs Section */
@@ -1029,7 +1027,7 @@
     background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 24px;
+    border-radius: 0px;
     padding: 0.5rem;
     margin-bottom: 3rem;
   }
@@ -1049,7 +1047,7 @@
     justify-content: center;
     gap: 0.75rem;
     padding: 1rem 1.5rem;
-    border-radius: 18px;
+    border-radius: 0px;
     font-size: 0.75rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -1064,9 +1062,9 @@
   }
 
   .tab-btn.active {
-    background: #a855f7;
+    background: #a78bfa;
     color: black;
-    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+    box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3);
   }
 
   /* Bento Layouts */
@@ -1086,7 +1084,7 @@
     background: rgba(30, 41, 59, 0.3);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 32px;
+    border-radius: 0px;
     overflow: hidden;
   }
 
@@ -1134,7 +1132,7 @@
   .info-val {
     background: rgba(15, 23, 42, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    border-radius: 0px;
     padding: 0.75rem 1rem;
     display: flex;
     align-items: center;
@@ -1144,7 +1142,7 @@
   }
 
   .info-val :global(svg) {
-    color: #a855f7;
+    color: #a78bfa;
     font-size: 1.1rem;
   }
 
@@ -1153,7 +1151,7 @@
     position: relative;
     background: rgba(245, 158, 11, 0.05);
     border: 1px solid rgba(245, 158, 11, 0.1);
-    border-radius: 20px;
+    border-radius: 0px;
     padding: 1.5rem 2rem;
     margin: 0;
   }
@@ -1186,7 +1184,7 @@
   .group-item {
     background: rgba(15, 23, 42, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
+    border-radius: 0px;
     padding: 1.25rem;
     transition: all 0.3s;
   }
@@ -1279,7 +1277,7 @@
     font-weight: 800;
   }
 
-  .change.pos { color: #10b981; }
+  .change.pos { color: #a78bfa; }
   .change.neg { color: #f43f5e; }
 
   /* Syllabus Progress */
@@ -1306,17 +1304,17 @@
   .progress-track {
     height: 8px;
     background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
+    border-radius: 0px;
     overflow: hidden;
   }
 
   .progress-fill {
     height: 100%;
-    border-radius: 10px;
+    border-radius: 0px;
     transition: width 1s ease-out;
   }
 
-  .mastered .progress-fill { background: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+  .mastered .progress-fill { background: #a78bfa; box-shadow: 0 0 10px rgba(167, 139, 250, 0.4); }
   .study .progress-fill { background: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
   .pending .progress-fill { background: #334155; }
 
@@ -1331,7 +1329,7 @@
   .stat-pill {
     background: rgba(30, 41, 59, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
+    border-radius: 0px;
     padding: 1.5rem;
     text-align: center;
   }
@@ -1354,7 +1352,7 @@
 
   .stat-pill.amber .val { color: #f59e0b; }
   .stat-pill.rose .val { color: #f43f5e; }
-  .stat-pill.violet .val { color: #a855f7; }
+  .stat-pill.violet .val { color: #a78bfa; }
 
   .attendance-log {
     display: flex;
@@ -1383,14 +1381,14 @@
   .status-box {
     width: 44px;
     height: 44px;
-    border-radius: 12px;
+    border-radius: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.25rem;
   }
 
-  .log-item.emerald .status-box { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .log-item.violet .status-box { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
   .log-item.amber .status-box { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
   .log-item.rose .status-box { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
 
@@ -1417,7 +1415,7 @@
   .log-note {
     background: rgba(15, 23, 42, 0.5);
     padding: 0.75rem 1.25rem;
-    border-radius: 12px;
+    border-radius: 0px;
     font-size: 0.85rem;
     color: #94a3b8;
     font-style: italic;
@@ -1435,7 +1433,7 @@
   .category-card {
     background: rgba(30, 41, 59, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 28px;
+    border-radius: 0px;
     padding: 2rem;
   }
 
@@ -1466,6 +1464,7 @@
     position: relative;
     width: 80px;
     height: 80px;
+    border-radius: 0px;
   }
 
   .progress-circle svg {
@@ -1479,8 +1478,8 @@
 
   .progress-circle .track { stroke: rgba(255, 255, 255, 0.05); }
   .progress-circle .fill { 
-    stroke: #a855f7; 
-    stroke-linecap: round;
+    stroke: #a78bfa; 
+    stroke-linecap: square;
     transition: stroke-dasharray 1s ease-out;
   }
 
@@ -1503,14 +1502,14 @@
   .skill-entry {
     background: rgba(30, 41, 59, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 24px;
+    border-radius: 0px;
     padding: 1.75rem 2rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
   }
 
-  .skill-entry.completed { border-left: 6px solid #a855f7; }
+  .skill-entry.completed { border-left: 6px solid #a78bfa; }
   .skill-entry.in_progress { border-left: 6px solid #3b82f6; }
 
   .skill-header {
@@ -1533,7 +1532,7 @@
     color: #475569;
     border: 1px solid rgba(255, 255, 255, 0.05);
     padding: 0.2rem 0.5rem;
-    border-radius: 6px;
+    border-radius: 0px;
   }
 
   .status-pill {
@@ -1542,10 +1541,10 @@
     text-transform: uppercase;
     background: rgba(255, 255, 255, 0.03);
     padding: 0.5rem 1rem;
-    border-radius: 12px;
+    border-radius: 0px;
   }
 
-  .completed .status-pill { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+  .completed .status-pill { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
 
   .skill-note {
     font-style: italic;
@@ -1617,13 +1616,13 @@
   .status-badge {
     display: inline-block;
     padding: 0.4rem 0.8rem;
-    border-radius: 10px;
+    border-radius: 0px;
     font-size: 0.65rem;
     font-weight: 800;
     text-transform: uppercase;
   }
 
-  .status-badge.paid { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .status-badge.paid { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
   .status-badge.overdue { background: rgba(244, 63, 94, 0.1); color: #f43f5e; box-shadow: 0 0 15px rgba(244, 63, 94, 0.1); }
   .status-badge.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 
@@ -1641,7 +1640,7 @@
   .tournament-panel {
     background: rgba(30, 41, 59, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 32px;
+    border-radius: 0px;
     overflow: hidden;
   }
 
@@ -1675,7 +1674,7 @@
 
   .tmnt-result { text-align: right; }
   .tmnt-result .pos { font-size: 1.5rem; font-weight: 600; }
-  .tmnt-result .pos b { color: #a855f7; font-size: 2rem; font-family: 'Outfit'; }
+  .tmnt-result .pos b { color: #a78bfa; font-size: 2rem; font-family: 'Outfit'; }
   .tmnt-result .pts { font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-top: 0.25rem; }
 
   .games-grid {
@@ -1688,7 +1687,7 @@
   .game-card {
     background: rgba(15, 23, 42, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
+    border-radius: 0px;
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -1702,13 +1701,13 @@
   .game-header .round { 
     background: #020617; 
     padding: 0.3rem 0.6rem; 
-    border-radius: 6px; 
+    border-radius: 0px; 
     font-size: 0.65rem; 
     font-weight: 800; 
   }
 
-  .result-badge { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 6px; }
-  .win .result-badge { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .result-badge { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 0px; }
+  .win .result-badge { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
   .loss .result-badge { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
   .draw .result-badge { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 
@@ -1731,14 +1730,14 @@
   .event-entry { position: relative; padding-left: 4.5rem; margin-bottom: 4rem; }
   .event-marker { position: absolute; left: 1rem; top: 0.5rem; }
   .marker-dot { 
-    width: 1rem; height: 1rem; border-radius: 50%; 
+    width: 1rem; height: 1rem; border-radius: 0px; 
     background: #1e293b; border: 3px solid #334155; 
     transition: all 0.3s;
   }
 
   .event-entry:hover .marker-dot { transform: scale(1.4); }
 
-  .event-entry.positive .marker-dot { background: #10b981; box-shadow: 0 0 10px #10b981; }
+  .event-entry.positive .marker-dot { background: #a78bfa; box-shadow: 0 0 10px #a78bfa; }
   .event-entry.negative .marker-dot { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
   .event-entry.neutral .marker-dot { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
 
@@ -1746,7 +1745,7 @@
     background: rgba(30, 41, 59, 0.2);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 28px;
+    border-radius: 0px;
     padding: 2rem;
     transition: all 0.3s;
   }
@@ -1756,7 +1755,7 @@
   .event-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
   .event-title { display: flex; align-items: center; gap: 1rem; }
   .icon-wrap { 
-    width: 36px; height: 36px; border-radius: 10px; 
+    width: 36px; height: 36px; border-radius: 0px; 
     background: rgba(255, 255, 255, 0.03); 
     display: flex; align-items: center; justify-content: center; 
     color: #64748b;
@@ -1777,7 +1776,7 @@
   .error-glass { 
     background: rgba(30, 41, 59, 0.4); 
     backdrop-filter: blur(20px); 
-    padding: 4rem; border-radius: 40px; 
+    padding: 4rem; border-radius: 0px; 
     text-align: center; border: 1px solid rgba(255, 255, 255, 0.05);
     max-width: 500px;
   }
@@ -1786,7 +1785,7 @@
   .error-text p { color: #64748b; margin-bottom: 3rem; }
   .back-btn { 
     width: 100%; height: 60px; background: #020617; 
-    border: 1px solid #1e293b; border-radius: 18px; 
+    border: 1px solid #1e293b; border-radius: 0px; 
     font-weight: 800; text-transform: uppercase; 
     display: flex; align-items: center; justify-content: center; gap: 1rem; 
   }

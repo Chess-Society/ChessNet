@@ -13,18 +13,20 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display text-white tracking-tight leading-tight;
+    @apply font-display text-white tracking-tight leading-tight font-bold uppercase;
   }
 }
 
 @layer components {
   /* Bento Box Components */
   .bento-card {
-    @apply bg-bento-card border border-white/5 shadow-soft-elevation rounded-24 transition-all duration-500 overflow-hidden relative;
+    @apply bg-bento-card border border-white/5 shadow-soft-elevation transition-all duration-500 overflow-hidden relative rounded-none;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
   }
 
   .bento-card:hover {
     @apply border-white/10 -translate-y-1 shadow-violet-flare;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
   }
 
   .bento-card-inner {
@@ -33,7 +35,7 @@
 
   /* Buttons - Pill Style */
   .btn-pill {
-    @apply rounded-full font-semibold transition-all duration-300 flex items-center justify-center gap-2 px-8 py-3;
+    @apply rounded-none font-semibold transition-all duration-300 flex items-center justify-center gap-2 px-8 py-3;
   }
 
   .btn-primary {
@@ -49,7 +51,7 @@
   }
 
   .btn-ghost {
-    @apply hover:bg-white/5 text-surface-400 hover:text-white font-medium py-2 px-4 rounded-full transition-all duration-200 flex items-center gap-2;
+    @apply hover:bg-white/5 text-surface-400 hover:text-white font-medium py-2 px-4 rounded-none transition-all duration-200 flex items-center gap-2;
   }
 
   /* Navigation */
@@ -58,7 +60,7 @@
   }
 
   .nav-link {
-    @apply text-surface-400 hover:text-white transition-all duration-300 flex items-center gap-2 py-2 px-4 rounded-full hover:bg-white/5 font-medium;
+    @apply text-surface-400 hover:text-white transition-all duration-300 flex items-center gap-2 py-2 px-4 rounded-none hover:bg-white/5 font-medium;
   }
 
   .nav-link-active {
@@ -67,12 +69,12 @@
 
   /* Inputs */
   .input-field {
-    @apply bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white placeholder:text-surface-600 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all duration-300 w-full;
+    @apply bg-white/5 border border-white/10 rounded-none px-5 py-3 text-white placeholder:text-surface-600 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all duration-300 w-full;
   }
 
   /* Badges */
   .badge {
-    @apply px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border;
+    @apply px-3 py-1 rounded-none text-[11px] font-bold uppercase tracking-wider border;
   }
 
   .badge-primary { @apply bg-primary-500/10 text-primary-400 border-primary-500/20; }
@@ -81,6 +83,157 @@
   /* Grid Layouts */
   .bento-grid {
     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6;
+  }
+
+  /* Glassmorphism System */
+  .glass-card {
+    @apply bg-zinc-900/40 backdrop-blur-md border border-white/5 shadow-soft-elevation relative overflow-hidden rounded-none;
+  }
+
+  .glass-input {
+    @apply bg-zinc-950/40 border border-white/5 rounded-none px-6 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-4 transition-all duration-500 font-display w-full shadow-inner;
+    min-height: 4rem;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+  }
+
+  .glass-input:hover {
+    @apply border-white/10 bg-zinc-950/60;
+  }
+
+  .glass-input:focus {
+    @apply border-primary-500/50 ring-primary-500/10 bg-zinc-950/80;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 0 20px rgba(139, 92, 246, 0.1);
+  }
+
+  /* Interactive Elements */
+  .glass-btn {
+    @apply flex items-center gap-3 px-6 py-4 rounded-none font-display font-black text-[11px] uppercase tracking-widest transition-all duration-300 active:scale-95 border;
+  }
+
+  .glass-btn.primary {
+    @apply bg-primary-500 text-white border-primary-400 shadow-xl shadow-primary-500/20 hover:bg-primary-400;
+  }
+
+  .glass-btn.secondary {
+    @apply bg-zinc-900/50 text-zinc-400 border-white/5 hover:bg-zinc-800 hover:text-white hover:border-white/10;
+  }
+
+  .glass-btn.danger {
+    @apply bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40;
+  }
+
+  .glass-label {
+    @apply block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-4 ml-1;
+  }
+
+  /* Selection Cards */
+  .selection-card {
+    @apply flex items-center gap-5 p-5 bg-zinc-950/40 border border-white/5 transition-all duration-500 cursor-pointer overflow-hidden relative rounded-none;
+  }
+
+  .selection-card:hover {
+    @apply bg-primary-500/5 border-primary-500/20 -translate-y-1 shadow-violet-flare;
+  }
+
+  .selection-card.active {
+    @apply bg-primary-500/10 border-primary-500 shadow-violet-flare;
+  }
+
+  .selection-card .card-icon {
+    @apply w-12 h-12 rounded-none bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 transition-all duration-500 flex-shrink-0;
+  }
+
+  .selection-card:hover .card-icon {
+    @apply scale-110;
+  }
+
+  .selection-card.active .card-icon {
+    @apply bg-primary-500 text-white border-transparent scale-110 shadow-lg shadow-primary-500/20;
+  }
+
+  .selection-card .card-title {
+    @apply block font-display font-black text-[11px] uppercase tracking-widest text-zinc-400 transition-colors;
+  }
+
+  .selection-card:hover .card-title {
+    @apply text-zinc-200;
+  }
+
+  .selection-card.active .card-title {
+    @apply text-white;
+  }
+
+  .selection-card .card-check {
+    @apply absolute top-4 right-4 text-primary-500 opacity-0 scale-50 transition-all duration-500;
+  }
+
+  .selection-card.active .card-check {
+    @apply opacity-100 scale-100;
+  }
+
+  .selection-card.small {
+    @apply p-4 gap-3 rounded-none;
+  }
+
+  .selection-card.small .card-icon {
+    @apply w-8 h-8 rounded-none;
+  }
+
+  .selection-card.small .card-icon :global(svg) {
+    @apply w-4 h-4;
+  }
+
+  .selection-card.small .card-title {
+    @apply text-[9px] tracking-[0.15em];
+  }
+
+  .selection-card.small .card-check {
+    @apply top-2 right-2 scale-75;
+  }
+
+  /* Tip Cards */
+  .tip-card {
+    @apply p-6 bg-zinc-900/30 border border-white/5 text-[10px] text-zinc-500 font-sans leading-relaxed text-center rounded-none;
+  }
+
+  /* --- PRO DESIGN SYSTEM --- */
+  
+  .pro-card {
+    @apply bg-[#080808] border border-white/10 relative overflow-hidden;
+    border-radius: 0;
+  }
+
+  .pro-card-header {
+    @apply border-b border-white/10 px-6 py-3 flex items-center justify-between bg-white/[0.02];
+  }
+
+  .pro-label {
+    @apply text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-zinc-500 mb-2;
+  }
+
+  .pro-input {
+    @apply bg-transparent border border-white/10 px-4 py-3 text-white font-mono placeholder:text-zinc-700 focus:outline-none focus:border-violet-500/50 transition-all w-full;
+    border-radius: 0;
+  }
+
+  .pro-button {
+    @apply px-6 py-3 font-mono font-bold text-[11px] uppercase tracking-widest transition-all duration-200 active:scale-95 flex items-center justify-center gap-2;
+    border-radius: 0;
+  }
+
+  .pro-button-primary {
+    @apply pro-button bg-violet-600 text-white hover:bg-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.3)];
+  }
+
+  .pro-button-secondary {
+    @apply pro-button bg-transparent border border-white/10 text-zinc-400 hover:text-white hover:border-white/20;
+  }
+
+  .pro-grid-bg {
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 }
 
@@ -94,7 +247,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full hover:bg-white/20;
+  @apply bg-white/10 rounded-none hover:bg-white/20;
 }
 
 /* Animations */

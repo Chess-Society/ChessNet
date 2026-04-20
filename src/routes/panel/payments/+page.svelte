@@ -392,7 +392,7 @@
                         disabled={isDeleting === p.id}
                       >
                         {#if isDeleting === p.id}
-                          <div class="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin"></div>
+                          <div class="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-none animate-spin"></div>
                         {:else}
                           <Trash size={18} />
                         {/if}
@@ -501,7 +501,7 @@
             {#if editMode}
               <button 
                 type="button" 
-                class="flex-1 p-4 bg-red-500/10 text-red-500 rounded-2xl font-bold uppercase text-xs tracking-widest hover:bg-red-500/20 transition-colors"
+                class="flex-1 p-4 bg-red-500/10 text-red-500 rounded-none font-bold uppercase text-xs tracking-widest hover:bg-red-500/20 transition-colors"
                 onclick={() => {
                   if (formState.id) {
                     deletePayment(formState.id);
@@ -573,7 +573,7 @@
   :global(:root) {
     --gold: #f59e0b;
     --silver: #94a3b8;
-    --success: #10b981;
+    --success: #a78bfa;
     --pending: #f59e0b;
     --overdue: #ef4444;
     --card-bg: rgba(20, 20, 20, 0.4);
@@ -595,7 +595,7 @@
     transform: translate(-50%, -50%);
     width: 80vw;
     height: 80vh;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.05) 0%, transparent 70%);
     pointer-events: none;
     z-index: -1;
   }
@@ -617,35 +617,35 @@
   .icon-orb {
     width: 64px;
     height: 64px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.1));
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(99, 102, 241, 0.1));
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    border-radius: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #a78bfa;
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 30px rgba(167, 139, 250, 0.1);
   }
 
   .gradient-text {
-    font-size: 2.75rem;
-    font-weight: 800;
-    letter-spacing: -2px;
-    background: linear-gradient(to bottom, #fff, #94a3b8);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-family: 'Outfit', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 900;
     margin: 0;
-    padding: 0.2rem 0;
+    letter-spacing: -2px;
+    background: linear-gradient(to right, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
-  .subtitle { font-size: 1rem; color: #64748b; font-weight: 500; }
+  .subtitle { color: #64748b; font-size: 0.9rem; font-weight: 700; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 1px; }
 
   .action-section { display: flex; gap: 1rem; }
 
   .glass-btn {
     padding: 0.85rem 1.75rem;
-    border-radius: 16px;
+    border-radius: 0px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -683,7 +683,7 @@
   .metric-card {
     background: var(--card-bg);
     border: 1px solid var(--border-soft);
-    border-radius: 32px;
+    border-radius: 0px;
     padding: 2.5rem;
     position: relative;
     overflow: hidden;
@@ -721,7 +721,7 @@
   .value-row .symbol {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #7c3aed;
+    color: #a78bfa;
   }
 
   .footer-stats {
@@ -736,14 +736,14 @@
   .efficiency-bar {
     height: 6px;
     background: rgba(255,255,255,0.05);
-    border-radius: 10px;
+    border-radius: 0px;
     overflow: hidden;
   }
 
   .efficiency-bar .fill {
     height: 100%;
-    background: linear-gradient(90deg, #7c3aed, #10b981);
-    border-radius: 10px;
+    background: linear-gradient(90deg, #7c3aed, #a78bfa);
+    border-radius: 0px;
   }
 
   .icon-visual {
@@ -759,7 +759,7 @@
   .ledger-wrapper {
     background: var(--card-bg);
     border: 1px solid var(--border-soft);
-    border-radius: 40px;
+    border-radius: 0px;
     overflow: hidden;
     backdrop-filter: blur(30px);
   }
@@ -779,7 +779,7 @@
     gap: 1rem;
     background: rgba(255,255,255,0.03);
     padding: 0 1.5rem;
-    border-radius: 20px;
+    border-radius: 0px;
     border: 1px solid var(--border-soft);
     width: 400px;
     color: #475569;
@@ -800,12 +800,12 @@
     gap: 0.5rem;
     background: rgba(0,0,0,0.2);
     padding: 0.4rem;
-    border-radius: 18px;
+    border-radius: 0px;
   }
 
   .tab {
     padding: 0.6rem 1.5rem;
-    border-radius: 14px;
+    border-radius: 0px;
     border: none;
     background: none;
     color: #64748b;
@@ -861,7 +861,7 @@
   .icon-type {
     width: 44px;
     height: 44px;
-    border-radius: 14px;
+    border-radius: 0px;
     background: rgba(139, 92, 246, 0.1);
     color: #a78bfa;
     display: flex;
@@ -878,7 +878,7 @@
   .concept-tag {
     background: rgba(255,255,255,0.03);
     padding: 0.4rem 0.8rem;
-    border-radius: 8px;
+    border-radius: 0px;
     font-size: 0.75rem;
     font-weight: 600;
     color: #94a3b8;
@@ -892,7 +892,7 @@
 
   .pill {
     padding: 0.35rem 0.8rem;
-    border-radius: 8px;
+    border-radius: 0px;
     font-size: 0.65rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -900,7 +900,7 @@
     border: 1px solid transparent;
   }
 
-  .pill.paid { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+  .pill.paid { background: rgba(167, 139, 250, 0.1); color: #a78bfa; border-color: rgba(167, 139, 250, 0.2); }
   .pill.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); }
   .pill.overdue { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
 
@@ -922,7 +922,7 @@
     height: 36px;
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--border-soft);
-    border-radius: 10px;
+    border-radius: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -950,7 +950,7 @@
   .modal-card {
     background: #0a0a0a;
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 40px;
+    border-radius: 0px;
     width: 100%;
     max-width: 600px;
     padding: 3rem;
@@ -967,15 +967,15 @@
   .icon-bg {
     width: 56px;
     height: 56px;
-    background: #7c3aed;
-    color: white;
-    border-radius: 18px;
+    background: #a78bfa;
+    color: black;
+    border-radius: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  .card-header h2 { font-size: 1.75rem; margin: 0; letter-spacing: -1px; }
+  .card-header h2 { font-family: 'Outfit'; font-size: 1.75rem; margin: 0; letter-spacing: -1px; }
   .card-header p { font-size: 0.85rem; color: #475569; margin: 0.25rem 0 0 0; }
 
   .close-x { background: none; border: none; color: #475569; cursor: pointer; margin-left: auto; }
@@ -996,14 +996,14 @@
     display: flex;
     background: #111;
     padding: 0.4rem;
-    border-radius: 16px;
+    border-radius: 0px;
     gap: 0.35rem;
   }
 
   .toggle-group button {
     flex: 1;
     padding: 0.85rem;
-    border-radius: 12px;
+    border-radius: 0px;
     border: none;
     background: none;
     color: #475569;
@@ -1022,7 +1022,7 @@
     width: 100%;
     background: #111;
     border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 16px;
+    border-radius: 0px;
     padding: 1rem 1.25rem;
     color: white;
     outline: none;
@@ -1036,7 +1036,7 @@
   .method-pills button {
     flex: 1;
     padding: 0.75rem;
-    border-radius: 12px;
+    border-radius: 0px;
     background: #111;
     border: 1px solid rgba(255,255,255,0.05);
     color: #475569;
@@ -1044,14 +1044,14 @@
     font-size: 0.75rem;
     cursor: pointer;
   }
-  .method-pills button.selected { border-color: #7c3aed; color: #a78bfa; background: rgba(124, 58, 237, 0.05); }
+  .method-pills button.selected { border-color: #a78bfa; color: #a78bfa; background: rgba(167, 139, 250, 0.05); }
 
   .submit-btn {
     width: 100%;
     padding: 1.25rem;
-    background: white;
+    background: #a78bfa;
     color: black;
-    border-radius: 18px;
+    border-radius: 0px;
     border: none;
     font-weight: 800;
     text-transform: uppercase;
@@ -1068,7 +1068,7 @@
     color: black;
     padding: 3rem;
     position: relative;
-    border-radius: 4px;
+    border-radius: 0px;
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
   }
 
@@ -1093,7 +1093,7 @@
   .ledger-line .sub { font-size: 0.7rem; font-weight: 700; color: #64748b; margin-top: 0.4rem; }
   .ledger-line .price { font-size: 1.25rem; font-weight: 900; }
 
-  .total-row { display: flex; justify-content: space-between; background: #f8fafc; padding: 1.25rem; border-radius: 12px; }
+  .total-row { display: flex; justify-content: space-between; background: #f8fafc; padding: 1.25rem; border-radius: 0px; }
   .total-row .label { font-size: 0.65rem; font-weight: 950; }
   .total-row .val { font-size: 1.25rem; font-weight: 950; }
 
@@ -1106,7 +1106,7 @@
     padding: 1rem;
     background: black;
     color: white;
-    border-radius: 12px;
+    border-radius: 0px;
     font-weight: 700;
     cursor: pointer;
   }
@@ -1126,3 +1126,4 @@
     .receipt-card { box-shadow: none; width: 100%; max-width: none; }
   }
 </style>
+

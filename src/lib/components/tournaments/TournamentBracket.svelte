@@ -74,7 +74,7 @@
                     {#each round.pairs as pairing, pIndex}
                         <div class="relative group">
                             <!-- Match Card -->
-                            <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] group-hover:border-violet-500/50 group-hover:shadow-violet-500/10 transition-all duration-500 hover:-translate-y-1 relative z-20">
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-none overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] group-hover:border-violet-500/50 group-hover:shadow-violet-500/10 transition-all duration-500 hover:-translate-y-1 relative z-20">
                                 <!-- Board Badge -->
                                 <div class="absolute top-0 right-0 px-3 py-1 bg-zinc-950/80 border-l border-b border-zinc-800 rounded-bl-xl text-[8px] font-black text-zinc-600">
                                     BOARD {pairing.board}
@@ -83,7 +83,7 @@
                                 <!-- Player 1 -->
                                 <div class="flex items-center justify-between p-4 border-b border-zinc-800/50 transition-colors {pairing.result === '1-0' ? 'bg-violet-600/5' : ''}">
                                     <div class="flex items-center gap-3 overflow-hidden">
-                                        <div class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xs font-black {pairing.result === '1-0' ? 'text-violet-400 border-violet-500/30' : 'text-zinc-600'}">
+                                        <div class="w-8 h-8 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xs font-black {pairing.result === '1-0' ? 'text-violet-400 border-violet-500/30' : 'text-zinc-600'}">
                                             {pairing.white_name?.[0] || '?'}
                                         </div>
                                         <span class="text-xs font-bold transition-all truncate {pairing.result === '1-0' ? 'text-white' : pairing.result === '0-1' ? 'text-zinc-600 line-through' : 'text-zinc-400'}">
@@ -99,12 +99,12 @@
                                 <div class="flex items-center justify-between p-4 transition-colors {pairing.result === '0-1' ? 'bg-violet-600/5' : ''}">
                                     <div class="flex items-center gap-3 overflow-hidden">
                                         {#if pairing.bye}
-                                            <div class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xs text-zinc-800 font-black">
+                                            <div class="w-8 h-8 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xs text-zinc-800 font-black">
                                                 -
                                             </div>
                                             <span class="text-xs font-black text-zinc-700 uppercase tracking-widest italic">BYE / VACANTE</span>
                                         {:else}
-                                            <div class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xs font-black {pairing.result === '0-1' ? 'text-violet-400 border-violet-500/30' : 'text-zinc-600'}">
+                                            <div class="w-8 h-8 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xs font-black {pairing.result === '0-1' ? 'text-violet-400 border-violet-500/30' : 'text-zinc-600'}">
                                                 {pairing.black_name?.[0] || '?'}
                                             </div>
                                             <span class="text-xs font-bold transition-all truncate {pairing.result === '0-1' ? 'text-white' : pairing.result === '1-0' ? 'text-zinc-600 line-through' : 'text-zinc-400'}">
@@ -154,7 +154,7 @@
                     </div>
                     
                     <!-- Floating Medals -->
-                    <div class="absolute -top-4 -right-4 w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-amber-500 shadow-xl z-20 animate-bounce">
+                    <div class="absolute -top-4 -right-4 w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-amber-500 shadow-xl z-20 animate-bounce">
                         <Medal weight="bold" class="w-6 h-6" />
                     </div>
                 </div>

@@ -65,6 +65,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
     const docRef = await adminDb.collection("class_students").add(enrollmentData);
     
+    // Sincronizar hacia el registro de estudiante
+    await adminDb.collection("students").doc(student_id).update({
+      class_id: class_id,
+      updated_at: new Date().toISOString()
+    });
+    
     return json({ class_student: { id: docRef.id, ...enrollmentData } });
 
   } catch (error: any) {
@@ -98,6 +104,17 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
 
     const batch = adminDb.batch();
     snapshot.docs.forEach((doc: any) => batch.delete(doc.ref));
+    
+    // Sincronizar hacia el registro de estudiante (quitar class_id si coincide con esta clase)
+    const studentRef = adminDb.collection("students").doc(studentId);
+    const studentSnap = await studentRef.get();
+    if (studentSnap.exists && studentSnap.data()?.class_id === classId) {
+      batch.update(studentRef, { 
+        class_id: null,
+        updated_at: new Date().toISOString()
+      });
+    }
+
     await batch.commit();
 
     return json({ success: true, message: 'Estudiante desinscrito correctamente' });

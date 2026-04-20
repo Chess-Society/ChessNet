@@ -10,52 +10,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   const uid = locals.user.uid;
-  const isMock = uid === 'chessnet-dev-uid';
-
-  if (isMock) {
-    // Keep existing mock logic but let's make it cleaner
-    const { mockStudents, mockSchools, mockClasses, mockPayments } = await import('$lib/utils/mockData');
-    const student = mockStudents.find(s => s.id === studentId);
-
-    if (!student) throw error(404, 'Student not found');
-
-    const school = mockSchools.find(s => s.id === student.school_id);
-    const studentClasses = mockClasses.filter(c => c.school_id === school?.id).slice(0, 2);
-    const studentPayments = mockPayments.filter(p => p.student_id === student.id);
-
-    return {
-      user: locals.user,
-      studentId,
-      report: {
-        student: { ...student, date_of_birth: student.date_of_birth || '2015-01-01' },
-        school: { id: school?.id || 'unknown', name: school?.name || 'Independent', city: school?.city || '' },
-        classes: studentClasses,
-        progress_summary: {
-            enrollment_date: student.created_at.split('T')[0],
-            days_enrolled: Math.floor((Date.now() - new Date(student.created_at).getTime()) / (1000 * 60 * 60 * 24)),
-            total_sessions: 20,
-            attended_sessions: 15,
-            late_sessions: 2,
-            absent_sessions: 3,
-            attendance_rate: 75,
-            punctuality_rate: 90,
-            skills_mastered: 4,
-            skills_in_progress: 3,
-            total_skills_assigned: 10,
-            skill_completion_rate: 40,
-            total_payments: studentPayments.length,
-            paid_payments: studentPayments.filter(p => p.status === 'paid').length,
-            payment_compliance: 100
-        },
-        attendance_history: [],
-        skills_progress: [],
-        payment_history: studentPayments,
-        tournament_history: [],
-        rating_history: [],
-        activity_timeline: []
-      }
-    };
-  }
 
   try {
     // 1. Fetch Student

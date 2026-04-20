@@ -11,120 +11,92 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   const uid = locals.user.uid;
-  const isMock = uid === 'chessnet-dev-uid';
+
 
   try {
     // 1. Obtener datos del torneo
     let tournament: any = null;
-    if (isMock) {
-      tournament = {
-        id: tournamentId,
-        name: 'Torneo Escolar de Primavera',
-        description: 'Torneo anual para todos los niveles.',
-        format: 'swiss',
-        time_control: '10+5',
-        status: 'in_progress',
-        currentRound: 2,
-        owner_id: uid
-      };
-    } else {
-      const tourneySnap = await adminDb.collection("local_tournaments").doc(tournamentId).get();
-      if (!tourneySnap.exists) {
-        throw error(404, 'Tournament not found');
-      }
-      tournament = { id: tourneySnap.id, ...tourneySnap.data() };
-      
-      if (tournament.owner_id !== uid) {
-        throw error(403, 'No tienes permiso para ver este torneo');
-      }
+    const tourneySnap = await adminDb.collection("local_tournaments").doc(tournamentId).get();
+    if (!tourneySnap.exists) {
+      throw error(404, 'Tournament not found');
+    }
+    tournament = { id: tourneySnap.id, ...tourneySnap.data() };
+    
+    if (tournament.owner_id !== uid) {
+      throw error(403, 'No tienes permiso para ver este torneo');
     }
 
     // 2. Obtener participantes y sus datos de alumno
     let participants: any[] = [];
-    if (isMock) {
-      participants = [
-        { id: 'p1', student_id: 'mock-s1', score: 2, tiebreak_score: 4, rating: 1250, students: { name: 'Marc Ramos' } },
-        { id: 'p2', student_id: 'mock-s2', score: 1.5, tiebreak_score: 3, rating: 1180, students: { name: 'Lucía Sanz' } }
-      ];
-    } else {
-      const partSnap = await adminDb.collection("local_tournament_players")
-        .where("tournament_id", "==", tournamentId)
-        .where("owner_id", "==", uid)
-        .get();
-        
-      participants = await Promise.all(partSnap.docs.map(async (doc: any) => {
-        const p = { id: doc.id, ...doc.data() };
-        if (p.student_id) {
-          const sSnap = await adminDb.collection("students").doc(p.student_id).get();
-          if (sSnap.exists) {
-            const sData = sSnap.data() || {};
-            p.students = {
-              ...sData,
-              name: sData.name || `${sData.first_name || ''} ${sData.last_name || ''}`.trim() || 'Unknown student'
-            };
-          }
+    const partSnap = await adminDb.collection("local_tournament_players")
+      .where("tournament_id", "==", tournamentId)
+      .where("owner_id", "==", uid)
+      .get();
+      
+    participants = await Promise.all(partSnap.docs.map(async (doc: any) => {
+      const p = { id: doc.id, ...doc.data() };
+      if (p.student_id) {
+        const sSnap = await adminDb.collection("students").doc(p.student_id).get();
+        if (sSnap.exists) {
+          const sData = sSnap.data() || {};
+          p.students = {
+            ...sData,
+            name: sData.name || `${sData.first_name || ''} ${sData.last_name || ''}`.trim() || 'Unknown student'
+          };
         }
-        return p;
-      }));
-    }
+      }
+      return p;
+    }));
 
     // 3. Obtener emparejamientos
     let pairings: any[] = [];
-    if (isMock) {
-      pairings = [
-        { id: 'm1', round: 1, board_number: 1, player1_id: 'mock-s1', player2_id: 'mock-s2', result: '1-0', player1: { name: 'Marc Ramos' }, player2: { name: 'Lucía Sanz' } }
-      ];
-    } else {
-      const matchSnap = await adminDb.collection("local_tournament_pairings")
-        .where("tournament_id", "==", tournamentId)
-        .where("owner_id", "==", uid)
-        .get();
-        
-      pairings = await Promise.all(matchSnap.docs.map(async (doc: any) => {
-        const m = { id: doc.id, ...doc.data() };
-        // Mapear campos consistentes con localTournamentsApi
-        const p1Id = m.white_student_id || m.player1_id;
-        const p2Id = m.black_student_id || m.player2_id;
-        
-        if (p1Id) {
-          const s1Snap = await adminDb.collection("students").doc(p1Id).get();
-          if (s1Snap.exists) {
-            const s1Data = s1Snap.data() || {};
-            m.player1 = {
-              ...s1Data,
-              name: s1Data.name || `${s1Data.first_name || ''} ${s1Data.last_name || ''}`.trim() || 'White'
-            };
-          }
+    const matchSnap = await adminDb.collection("local_tournament_pairings")
+      .where("tournament_id", "==", tournamentId)
+      .where("owner_id", "==", uid)
+      .get();
+      
+    pairings = await Promise.all(matchSnap.docs.map(async (doc: any) => {
+      const m = { id: doc.id, ...doc.data() };
+      // Mapear campos consistentes con localTournamentsApi
+      const p1Id = m.white_student_id || m.player1_id;
+      const p2Id = m.black_student_id || m.player2_id;
+      
+      if (p1Id) {
+        const s1Snap = await adminDb.collection("students").doc(p1Id).get();
+        if (s1Snap.exists) {
+          const s1Data = s1Snap.data() || {};
+          m.player1 = {
+            ...s1Data,
+            name: s1Data.name || `${s1Data.first_name || ''} ${s1Data.last_name || ''}`.trim() || 'White'
+          };
         }
-        if (p2Id) {
-          const s2Snap = await adminDb.collection("students").doc(p2Id).get();
-          if (s2Snap.exists) {
-            const s2Data = s2Snap.data() || {};
-            m.player2 = {
-              ...s2Data,
-              name: s2Data.name || `${s2Data.first_name || ''} ${s2Data.last_name || ''}`.trim() || 'Black'
-            };
-          }
+      }
+      if (p2Id) {
+        const s2Snap = await adminDb.collection("students").doc(p2Id).get();
+        if (s2Snap.exists) {
+          const s2Data = s2Snap.data() || {};
+          m.player2 = {
+            ...s2Data,
+            name: s2Data.name || `${s2Data.first_name || ''} ${s2Data.last_name || ''}`.trim() || 'Black'
+          };
         }
-        return m;
-      }));
-    }
+      }
+      return m;
+    }));
 
     // 4. Obtener todos los alumnos del profesor para el buscador de registro
     let allStudents: any[] = [];
-    if (!isMock) {
-      const allStudentsSnap = await adminDb.collection("students")
-        .where("owner_id", "==", uid)
-        .get();
-      allStudents = allStudentsSnap.docs.map((doc: any) => {
-        const sData = doc.data() || {};
-        return { 
-          id: doc.id, 
-          ...sData,
-          name: sData.name || `${sData.first_name || ''} ${sData.last_name || ''}`.trim() || 'Unknown' 
-        };
-      });
-    }
+    const allStudentsSnap = await adminDb.collection("students")
+      .where("owner_id", "==", uid)
+      .get();
+    allStudents = allStudentsSnap.docs.map((doc: any) => {
+      const sData = doc.data() || {};
+      return { 
+        id: doc.id, 
+        ...sData,
+        name: sData.name || `${sData.first_name || ''} ${sData.last_name || ''}`.trim() || 'Unknown' 
+      };
+    });
 
     // Format logical blocks for UI
     const registeredPlayers = participants.map(p => {

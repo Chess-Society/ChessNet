@@ -1,4 +1,6 @@
 export const es = {
+    'attendance.save_success': 'Asistencia guardada correctamente',
+
     'attendance.title': 'Resumen de Asistencia',
     'attendance.subtitle': 'Monitoriza la participación y puntualidad de los alumnos en todas las clases.',
     'attendance.select_class': 'Seleccionar Clase',

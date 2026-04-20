@@ -196,7 +196,6 @@
     const parts = currentRoute.replace('/panel', '').split('/').filter(e => e);
     if (parts.length === 0) return [{ name: $t('nav.dashboard'), href: '/panel' }];
     
-    // Mapeo de rutas raíz a claves de traducción
     const rootMappings: Record<string, string> = {
       'students': 'nav.students',
       'tournaments': 'nav.tournaments',
@@ -211,42 +210,64 @@
       'leads': 'nav.leads',
       'planner': 'planner.title',
       'lobby': 'nav.lobby',
-      'materials': 'nav.materials'
+      'inventory': 'nav.inventory',
+      'materials': 'nav.materials',
+      'support': 'support.title'
     };
-    
-    const base = parts[0];
-    const baseName = rootMappings[base] ? $t(rootMappings[base]) : base;
-    
-    let items = [{ name: baseName, href: `/panel/${base}` }];
 
-    if (parts.length === 1) return items;
+    let items = [];
+    let currentPath = '/panel';
 
-    const id = parts[1];
-    let entityName = '';
-
-    if (base === 'schools') {
-      entityName = $appStore?.schools?.find(s => s.id === id)?.name || '';
-    } else if (base === 'classes') {
-      entityName = $appStore?.classes?.find(c => c.id === id)?.name || '';
-    } else if (base === 'students') {
-      entityName = $appStore?.students?.find(s => s.id === id)?.name || '';
-    } else if (base === 'tournaments') {
-      entityName = $appStore?.localTournaments?.find(t => t.id === id)?.name || '';
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        currentPath += `/${part}`;
+        
+        let name = part;
+        const prevPart = i > 0 ? parts[i-1] : 'panel';
+        
+        // Root mapping
+        if (i === 0 && rootMappings[part]) {
+            name = $t(rootMappings[part]);
+        } 
+        // Logic for parts after the root (IDs, special actions like create/edit/attendance)
+        else {
+            if (part === 'create' || part === 'new') {
+                const createMappings: Record<string, string> = {
+                    'students': 'students.new_title',
+                    'classes': 'classes.new_title',
+                    'tournaments': 'tournaments.create_new',
+                    'schools': 'schools.new_title'
+                };
+                name = createMappings[prevPart] ? $t(createMappings[prevPart]) : $t('common.new');
+            } else if (part === 'edit') {
+                name = $t('common.edit');
+            } else if (part === 'attendance') {
+                name = $t('nav.attendance');
+            } else {
+                // Try to resolve as an ID using the previous part as context
+                let entity = null;
+                if (prevPart === 'schools') entity = $appStore?.schools?.find(s => s.id === part);
+                else if (prevPart === 'classes') entity = $appStore?.classes?.find(c => c.id === part);
+                else if (prevPart === 'students') entity = $appStore?.students?.find(s => s.id === part);
+                else if (prevPart === 'tournaments') entity = $appStore?.localTournaments?.find(t => t.id === part) || $appStore?.tournaments?.find(t => t.id === part);
+                else if (prevPart === 'leads') entity = $appStore?.leads?.find(l => l.id === part);
+                else if (prevPart === 'achievements' || prevPart === 'badges') entity = $appStore?.badges?.find(b => b.id === part);
+                
+                if (entity) {
+                    const e = entity as any;
+                    name = e.name || e.title || e.label || part;
+                } else if (rootMappings[part]) {
+                    // Handle cases like /panel/schools/id/classes where 'classes' is a sub-route
+                    name = $t(rootMappings[part]);
+                } else if (part.length >= 15 || /^[0-9a-fA-F-]{36}$/.test(part)) { // Likely a Firestore ID (20 chars) or UUID
+                    name = $t('common.details');
+                }
+            }
+        }
+        
+        items.push({ name, href: currentPath });
     }
-
-    if (entityName) {
-      items.push({ name: entityName, href: `/panel/${base}/${id}` });
-      if (parts[2] === 'edit') items.push({ name: $t('classes.edit_title') || 'Editar', href: `/panel/${base}/${id}/edit` });
-      if (parts[2] === 'attendance') items.push({ name: $t('nav.attendance') || 'Asistencia', href: `/panel/${base}/${id}/attendance` });
-      return items;
-    }
-
-    if (id === 'create' || id === 'new') {
-      items.push({ name: $t('common.create') || 'Nuevo', href: `/panel/${base}/${id}` });
-      return items;
-    }
     
-    items.push({ name: $t('common.details') || 'Detalles', href: `/panel/${base}/${id}` });
     return items;
   });
 
@@ -277,7 +298,7 @@
     <div class="fixed top-0 inset-x-0 h-10 bg-red-600 z-[100] flex items-center justify-center gap-3 px-4 shadow-lg border-b border-white/10">
       <Warning weight="duotone" class="w-4 h-4 text-white" />
       <span class="text-[10px] font-outfit font-black text-white uppercase tracking-widest">{$t('admin.impersonation_active') || 'Impersonation Mode Active'}</span>
-      <button onclick={stopImpersonating} class="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-[9px] font-bold text-white transition-all uppercase tracking-widest border border-white/10">
+      <button onclick={stopImpersonating} class="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-none text-[9px] font-bold text-white transition-all uppercase tracking-widest border border-white/10">
         {$t('admin.back_to_admin') || 'Back to Admin'}
       </button>
     </div>
@@ -288,13 +309,13 @@
     <!-- Logo: min 44x44px para área táctil Apple HIG -->
     <button onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto min-w-[44px] min-h-[44px] -ml-2 pl-2">
       <Logo className="h-7 w-7 shadow-violet-flare/20" />
-      <span class="text-lg font-outfit font-black text-white tracking-tighter uppercase italic">ChessNet</span>
+      <span class="text-lg font-outfit font-black text-white tracking-tighter uppercase">ChessNet</span>
     </button>
     
     <div class="flex items-center gap-4 pointer-events-auto">
        <button 
          onclick={() => showMobileMenu = true}
-         class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-[10px] ring-2 ring-white/10 overflow-hidden"
+         class="w-8 h-8 rounded-none bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-[10px] ring-2 ring-white/10 overflow-hidden"
        >
          {#if teacherAvatar}
            <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover" />
@@ -321,9 +342,9 @@
         transition:fly={{ x: 280, duration: 300 }}
       >
         <div class="p-8 flex flex-col items-center text-center border-b border-white/5">
-          <div class="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-2xl mb-4 shadow-xl shadow-violet-500/10">
+          <div class="w-20 h-20 rounded-none bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-2xl mb-4 shadow-xl shadow-violet-500/10">
             {#if teacherAvatar}
-              <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover rounded-[2rem]" />
+              <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover rounded-none" />
             {:else}
               {initials}
             {/if}
@@ -331,7 +352,7 @@
           <h3 class="text-lg font-bold text-white font-outfit leading-tight">{teacherName}</h3>
           <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{email}</p>
           
-          <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+          <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-none border border-white/5">
             {#if plan === 'premium'}
               <Crown weight="fill" size={10} class="text-amber-500" />
               <span class="text-[8px] font-black text-white uppercase tracking-widest">PREMIUM COACH</span>
@@ -344,7 +365,7 @@
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
           <a href="/panel/settings" 
              onclick={() => showMobileMenu = false}
-             class="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold hover:bg-violet-500/10 hover:text-violet-400 transition-all font-outfit {currentRoute.includes('/settings') ? 'bg-violet-500/10 text-violet-400' : ''}">
+             class="flex items-center gap-4 px-6 py-4 rounded-none text-slate-400 font-bold hover:bg-violet-500/10 hover:text-violet-400 transition-all font-outfit {currentRoute.includes('/settings') ? 'bg-violet-500/10 text-violet-400' : ''}">
             <GearSix weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.settings')}</span>
           </a>
@@ -352,7 +373,7 @@
           {#if data.isAdmin}
             <a href="/admin" 
                onclick={() => showMobileMenu = false}
-               class="flex items-center gap-4 px-6 py-4 rounded-2xl text-amber-500 font-black bg-amber-500/5 border border-amber-500/10 transition-all font-outfit">
+               class="flex items-center gap-4 px-6 py-4 rounded-none text-amber-500 font-black bg-amber-500/5 border border-amber-500/10 transition-all font-outfit">
               <Key weight="duotone" size={20} />
               <span class="text-xs uppercase tracking-widest">ADMINISTRATION</span>
             </a>
@@ -361,19 +382,19 @@
           <div class="h-px bg-white/5 my-2 mx-4"></div>
           <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.management') || 'Gestión'}</p>
 
-          <a href="/panel/schools" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+          <a href="/panel/schools" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <Buildings weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.schools')}</span>
           </a>
-          <a href="/panel/classes" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+          <a href="/panel/classes" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <Chalkboard weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.classes')}</span>
           </a>
-          <a href="/panel/students" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+          <a href="/panel/students" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <Users weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.students')}</span>
           </a>
-          <a href="/panel/attendance" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+          <a href="/panel/attendance" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <ListChecks weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.attendance')}</span>
           </a>
@@ -381,25 +402,25 @@
           <div class="h-px bg-white/5 my-2 mx-4"></div>
           <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.premium_features') || 'Avanzado'}</p>
 
-          <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+          <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <div class="flex items-center gap-4">
               <Wallet weight="duotone" size={20} />
               <span class="text-xs uppercase tracking-widest">{$t('nav.payments')}</span>
             </div>
             {#if plan !== 'premium'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
           </a>
-          <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+          <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <div class="flex items-center gap-4">
               <Trophy weight="duotone" size={20} />
               <span class="text-xs uppercase tracking-widest">{$t('nav.tournaments')}</span>
             </div>
             {#if plan !== 'premium'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
           </a>
-          <a href="/panel/skills" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/skills') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+          <a href="/panel/skills" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/skills') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <BookOpen weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.skills') || 'Temario'}</span>
           </a>
-          <a href="/panel/achievements" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-2xl font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/achievements') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+          <a href="/panel/achievements" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/achievements') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
             <Medal weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.achievements')}</span>
           </a>
@@ -408,7 +429,7 @@
         <div class="p-6 border-t border-white/5">
           <button 
             onclick={handleLogout}
-            class="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-red-500/10 text-red-500 font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+            class="w-full flex items-center justify-center gap-3 py-4 rounded-none bg-red-500/10 text-red-500 font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
           >
             <SignOut weight="bold" size={18} />
             {$t('nav.logout')}
@@ -447,30 +468,30 @@
         </nav>
 
         <!-- Quick Module Switcher (Teachers only) -->
-        <div class="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/5 flex-shrink-0">
+        <div class="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-none border border-white/5 flex-shrink-0">
           <a href="/panel/schools" 
-             class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
              title={$t('nav.schools')}>
             <Buildings size={20} weight={currentRoute.includes('/schools') ? 'fill' : 'duotone'} />
           </a>
           <a href="/panel/classes" 
-             class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
              title={$t('nav.classes')}>
             <Chalkboard size={20} weight={currentRoute.includes('/classes') ? 'fill' : 'duotone'} />
           </a>
           <a href="/panel/students" 
-             class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
              title={$t('nav.students')}>
             <Users size={20} weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} />
           </a>
           <div class="w-px h-6 bg-white/5 mx-1"></div>
           <a href="/panel/attendance" 
-             class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
              title={$t('nav.attendance')}>
             <ListChecks size={20} weight={currentRoute.includes('/attendance') ? 'fill' : 'duotone'} />
           </a>
           <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} 
-             class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
              title={$t('nav.payments')}>
             <Wallet size={20} weight={currentRoute.includes('/payments') ? 'fill' : 'duotone'} />
             {#if plan !== 'premium'}
@@ -480,7 +501,7 @@
             {/if}
           </a>
           <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} 
-             class="p-2.5 rounded-xl hover:bg-violet-500/10 transition-all {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
              title={$t('nav.tournaments')}>
             <Trophy size={20} weight={currentRoute.includes('/tournaments') ? 'fill' : 'duotone'} />
             {#if plan !== 'premium'}
@@ -497,19 +518,19 @@
 
         
         <!-- Subscription Badge -->
-        <div class="hidden md:flex items-center gap-2.5 bg-white/5 rounded-full py-2 px-4 border border-white/5 group hover:border-violet-500/20 transition-all flex-shrink-0">
+        <div class="hidden md:flex items-center gap-2.5 bg-white/5 rounded-none py-2 px-4 border border-white/5 group hover:border-violet-500/20 transition-all flex-shrink-0">
           {#if plan === 'premium'}
             <Crown weight="duotone" size={16} class="text-violet-400 group-hover:scale-110 transition-transform" />
             <span class="text-[10px] font-outfit font-bold text-white uppercase tracking-widest">{$t('panel.premiumCoach')}</span>
           {:else}
-            <div class="w-2 h-2 rounded-full bg-slate-600"></div>
+            <div class="w-2 h-2 rounded-none bg-slate-600"></div>
             <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">{$t('panel.freePlan')}</span>
           {/if}
         </div>
         
         <div class="relative group">
-          <button class="flex items-center gap-3 hover:bg-white/5 p-1 rounded-2xl transition-all border border-transparent hover:border-white/10">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-sm ring-4 ring-violet-500/10 shadow-xl overflow-hidden relative shadow-violet-flare/10">
+          <button class="flex items-center gap-3 hover:bg-white/5 p-1 rounded-none transition-all border border-transparent hover:border-white/10">
+            <div class="w-10 h-10 rounded-none bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-sm ring-4 ring-violet-500/10 shadow-xl overflow-hidden relative shadow-violet-flare/10">
               {#if teacherAvatar}
                 <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover" />
               {:else}
@@ -539,7 +560,7 @@
           </button>
           
           <!-- Dropdown -->
-          <div class="absolute right-0 top-full mt-3 w-64 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-[100] translate-y-2 group-hover:translate-y-0">
+          <div class="absolute right-0 top-full mt-3 w-64 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-none shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-[100] translate-y-2 group-hover:translate-y-0">
             <div class="px-5 py-4 border-b border-white/5 bg-white/[0.02] mb-1">
               <div class="flex items-center gap-2 mb-0.5">
                 <p class="text-sm font-outfit font-bold text-white truncate">{teacherName}</p>
@@ -559,14 +580,14 @@
             </div>
             
             <div class="p-2 space-y-1">
-              <a href="/panel/settings" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-xl transition-all group/item">
+              <a href="/panel/settings" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-none transition-all group/item">
                 <GearSix weight="duotone" size={18} class="group-hover/item:rotate-90 transition-transform duration-500" /> 
                 {$t('nav.settings') || 'SETTINGS'}
               </a>
 
               <!-- Support Link (Everyone) -->
               <a href="/panel/support" 
-                 class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-xl transition-all group/item"
+                 class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-none transition-all group/item"
                  onclick={() => {
                    supportPulse = false;
                    localStorage.setItem('last_viewed_support', Date.now().toString());
@@ -577,17 +598,17 @@
                   {$t('support.title') || 'SOPORTE CHESSNET'}
                 </div>
                 {#if supportPulse}
-                  <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
+                  <div class="w-2 h-2 bg-amber-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
                 {/if}
               </a>
               {#if data.isAdmin}
-                <a href="/admin" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-primary-400 hover:bg-primary-500/10 rounded-xl transition-all group/admin">
+                <a href="/admin" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-primary-400 hover:bg-primary-500/10 rounded-none transition-all group/admin">
                   <div class="flex items-center gap-3">
                     <Key weight="duotone" size={18} /> 
                     ADMINISTRATION
                   </div>
                   {#if supportPulse}
-                    <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
+                    <div class="w-2 h-2 bg-amber-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
                   {/if}
                 </a>
               {/if}
@@ -602,14 +623,14 @@
                 }}
               >
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-violet-600/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
+                  <div class="w-8 h-8 rounded-none bg-violet-600/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
                     <ChatCircleDots weight="duotone" size={18} />
                   </div>
                   <span class="text-xs font-bold text-white group-hover:text-primary-400 transition-colors uppercase tracking-tight">{$t('nav.lobby')}</span>
                 </div>
                 
                 {#if plan !== 'premium' && !data.isAdmin}
-                  <div class="flex items-center gap-1.5 px-2 py-1 bg-violet-500/10 rounded-lg border border-violet-500/20">
+                  <div class="flex items-center gap-1.5 px-2 py-1 bg-violet-500/10 rounded-none border border-violet-500/20">
                     <Crown weight="fill" size={10} class="text-violet-400" />
                     <span class="text-[8px] text-violet-400 font-black">PRO</span>
                   </div>
@@ -618,7 +639,7 @@
             </div>
             
             <div class="mx-2 mt-1 border-t border-white/5 pt-1">
-              <button onclick={handleLogout} class="w-full flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-red-400/70 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all">
+              <button onclick={handleLogout} class="w-full flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-red-400/70 hover:bg-red-500/10 hover:text-red-400 rounded-none transition-all">
                 <SignOut weight="duotone" size={18} /> 
                 {$t('nav.logout')}
               </button>
@@ -634,7 +655,7 @@
         {#if $authLoading}
             <div class="flex flex-col items-center justify-center min-h-[60vh] gap-6" in:fade>
                 <div class="relative">
-                  <div class="w-12 h-12 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
+                  <div class="w-12 h-12 border-4 border-violet-500/20 border-t-violet-500 rounded-none animate-spin"></div>
                   <div class="absolute inset-x-0 -bottom-12 flex justify-center">
                     <p class="text-slate-500 font-outfit font-black uppercase tracking-[0.3em] text-[10px] whitespace-nowrap">{$t('common.loading')}</p>
                   </div>
@@ -653,9 +674,9 @@
     <div class="fixed inset-0 z-[200] flex items-center justify-center bg-zinc-950/80 backdrop-blur-md" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
       <div class="flex flex-col items-center gap-6">
         <div class="relative w-20 h-20">
-          <div class="absolute inset-0 border-4 border-violet-500/20 rounded-full"></div>
-          <div class="absolute inset-0 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
-          <div class="absolute inset-4 bg-violet-500/10 rounded-full flex items-center justify-center">
+          <div class="absolute inset-0 border-4 border-violet-500/20 rounded-none"></div>
+          <div class="absolute inset-0 border-4 border-violet-500 border-t-transparent rounded-none animate-spin"></div>
+          <div class="absolute inset-4 bg-violet-500/10 rounded-none flex items-center justify-center">
             <Logo className="w-8 h-8 opacity-50" />
           </div>
         </div>
@@ -670,7 +691,7 @@
   <!-- Mobile Bottom Tab Bar (Premium App Style) -->
   <div 
     id="mobile-nav-bar"
-    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-75 opacity-30 blur-[2px] pointer-events-auto'}"
+    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-none shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-75 opacity-30 blur-[2px] pointer-events-auto'}"
     role="button"
     tabindex="0"
     onclick={() => isNavVisible = true}
@@ -688,14 +709,14 @@
           <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={22} />
           <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.lobby').split(' ')[1] || $t('nav.lobby')}</span>
           {#if lobbyPulse && plan === 'premium'}
-            <div class="absolute top-0 right-1 w-2 h-2 bg-violet-500 rounded-full animate-pulse ring-2 ring-zinc-900"></div>
+            <div class="absolute top-0 right-1 w-2 h-2 bg-violet-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
           {/if}
         </a>
  
         <!-- Center Yellow Support Button -->
         <div class="relative -top-6 px-1">
           <a href="/panel/support" 
-             class="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_8px_20px_rgba(245,158,11,0.4)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
+             class="flex items-center justify-center w-14 h-14 rounded-none bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_8px_20px_rgba(245,158,11,0.4)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
              title={$t('nav.support')}
              onclick={() => {
                supportPulse = false;
@@ -705,7 +726,7 @@
             <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Lifebuoy weight="bold" size={24} class="text-zinc-950" />
             {#if supportPulse}
-              <div class="absolute top-2 right-2 w-3 h-3 bg-white rounded-full animate-pulse shadow-lg ring-2 ring-amber-600"></div>
+              <div class="absolute top-2 right-2 w-3 h-3 bg-white rounded-none animate-pulse shadow-lg ring-2 ring-amber-600"></div>
             {/if}
           </a>
           <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
@@ -763,20 +784,21 @@
 
   /* Bento specific global improvements */
   :global(.bento-card) {
-    @apply bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-24 transition-all duration-300;
+    @apply bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-none transition-all duration-300;
   }
 
   @media (max-width: 1023px) {
     :global(.bento-card) {
-      @apply rounded-[20px] bg-zinc-900/80 border-white/[0.03];
+      @apply rounded-none bg-zinc-900/80 border-white/[0.03];
     }
   }
 
   :global(.btn-pill) {
-    @apply rounded-full transition-all duration-300 active:scale-95 flex items-center justify-center;
+    @apply rounded-none transition-all duration-300 active:scale-95 flex items-center justify-center;
   }
 
   :global(.shadow-violet-flare) {
     box-shadow: 0 0 30px -5px rgba(139, 92, 246, 0.25);
   }
 </style>
+

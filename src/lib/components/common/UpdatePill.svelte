@@ -56,12 +56,12 @@
   >
     <div class="relative group">
       <!-- Glow effect -->
-      <div class="absolute -inset-1 bg-gradient-to-r {getAnnouncementColor(latestAnnouncement)} rounded-[2rem] opacity-30 group-hover:opacity-100 transition-opacity blur-xl"></div>
+      <div class="absolute -inset-1 bg-gradient-to-r {getAnnouncementColor(latestAnnouncement)} rounded-none opacity-30 group-hover:opacity-100 transition-opacity blur-xl"></div>
       
-      <div class="relative bg-zinc-900/90 backdrop-blur-3xl p-2 rounded-[2.2rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] flex items-center gap-4 overflow-hidden">
+      <div class="relative bg-zinc-900/90 backdrop-blur-3xl p-2 rounded-none border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] flex items-center gap-4 overflow-hidden">
         
         <!-- Icon section -->
-        <div class="w-14 h-14 bg-gradient-to-br {getAnnouncementColor(latestAnnouncement)} rounded-[1.6rem] flex items-center justify-center text-white shadow-2xl flex-shrink-0">
+        <div class="w-14 h-14 bg-gradient-to-br {getAnnouncementColor(latestAnnouncement)} rounded-none flex items-center justify-center text-white shadow-2xl flex-shrink-0">
           <Icon weight="fill" size={24} />
         </div>
 
@@ -84,7 +84,7 @@
         <!-- Close button -->
         <button 
           onclick={dismiss}
-          class="p-4 mr-1 hover:bg-white/5 text-zinc-600 hover:text-white rounded-2xl transition-all group/close"
+          class="p-4 mr-1 hover:bg-white/5 text-zinc-600 hover:text-white rounded-none transition-all group/close"
           aria-label={$t('lobby.dismiss')}
         >
           <X weight="bold" size={18} class="group-hover:rotate-90 transition-transform duration-300" />

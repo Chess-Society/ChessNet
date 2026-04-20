@@ -16,11 +16,11 @@
   const isSecret = $derived(insignia.secret && !unlocked);
 
   const sizeMap = {
-    xs: { base: 'w-10 h-10', icon: 16, gap: 'gap-0', title: 'hidden', desc: 'hidden', blur: '4px', rounded: 'rounded-lg', padding: 'p-1.5' },
-    sm: { base: 'w-[84px] h-[84px]', icon: 28, gap: 'gap-1', title: 'text-[8px]', desc: 'hidden', blur: '8px', rounded: 'rounded-[18px]', padding: 'p-2.5' },
-    md: { base: 'w-[104px] h-[104px]', icon: 34, gap: 'gap-1.5', title: 'text-[9px]', desc: 'hidden', blur: '10px', rounded: 'rounded-[22px]', padding: 'p-3.5' },
-    lg: { base: 'w-[124px] h-[124px]', icon: 40, gap: 'gap-2', title: 'text-[10px]', desc: 'text-[8px]', blur: '12px', rounded: 'rounded-[26px]', padding: 'p-4.5' },
-    xl: { base: 'w-[150px] h-[150px]', icon: 48, gap: 'gap-3', title: 'text-[11px]', desc: 'text-[9px]', blur: '14px', rounded: 'rounded-[30px]', padding: 'p-6' }
+    xs: { base: 'w-10 h-10', icon: 16, gap: 'gap-0', title: 'hidden', desc: 'hidden', blur: '4px', rounded: 'rounded-none', padding: 'p-1.5' },
+    sm: { base: 'w-[84px] h-[84px]', icon: 28, gap: 'gap-1', title: 'text-[8px]', desc: 'hidden', blur: '8px', rounded: 'rounded-none', padding: 'p-2.5' },
+    md: { base: 'w-[104px] h-[104px]', icon: 34, gap: 'gap-1.5', title: 'text-[9px]', desc: 'hidden', blur: '10px', rounded: 'rounded-none', padding: 'p-3.5' },
+    lg: { base: 'w-[124px] h-[124px]', icon: 40, gap: 'gap-2', title: 'text-[10px]', desc: 'text-[8px]', blur: '12px', rounded: 'rounded-none', padding: 'p-4.5' },
+    xl: { base: 'w-[150px] h-[150px]', icon: 48, gap: 'gap-3', title: 'text-[11px]', desc: 'text-[9px]', blur: '14px', rounded: 'rounded-none', padding: 'p-6' }
   };
 
   const config = $derived(sizeMap[size] || sizeMap.md);
@@ -80,9 +80,9 @@
     {#if unlocked}
       <!-- Tier Badge Tag -->
       <div 
-        class="absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md z-20"
+        class="absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-none bg-black/60 border border-white/10 backdrop-blur-md z-20"
       >
-        <div class="w-1 h-1 rounded-full {isLegendary ? 'animate-ping' : ''}" style="background: {insignia.color}"></div>
+        <div class="w-1 h-1 rounded-none {isLegendary ? 'animate-ping' : ''}" style="background: {insignia.color}"></div>
         <span class="text-[5px] font-black tracking-[0.2em] text-white/50 uppercase">{tierLabels[insignia.tier]}</span>
       </div>
     {/if}
@@ -91,7 +91,7 @@
     <div class="relative z-10 flex flex-col items-center gap-2.5">
         <!-- Icon Shell -->
         <div 
-          class="icon-shell p-2 rounded-2xl transition-all duration-700 group-hover:scale-110"
+          class="icon-shell p-2 rounded-none transition-all duration-700 group-hover:scale-110"
           style="
             background: {unlocked ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)'}; 
             border: 1px solid {unlocked ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'};
@@ -145,7 +145,7 @@
   <!-- Status Overlay (Premium Shadow) -->
   {#if !unlocked}
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-        <div class="bg-black/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/5 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 scale-90 group-hover:scale-100">
+        <div class="bg-black/90 backdrop-blur-md px-3 py-1.5 rounded-none border border-white/5 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 scale-90 group-hover:scale-100">
             <span class="text-[8px] font-black text-white/40 uppercase tracking-[0.2em]">
                 {isSecret ? $t('common.mystery') : $t('common.locked')}
             </span>

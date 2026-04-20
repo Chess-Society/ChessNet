@@ -65,7 +65,7 @@
 {#if showBanner}
   <div class="fixed inset-0 z-50 flex items-end justify-center p-4 pointer-events-none">
     <div 
-      class="bg-slate-800 border border-slate-600 rounded-lg shadow-2xl max-w-2xl w-full pointer-events-auto transform transition-all duration-300 {isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}"
+      class="bg-slate-800 border border-slate-600 rounded-none shadow-2xl max-w-2xl w-full pointer-events-auto transform transition-all duration-300 {isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}"
     >
       <!-- Header -->
       <div class="flex items-center justify-between p-4 border-b border-slate-600">
@@ -122,13 +122,13 @@
         <div class="flex flex-col sm:flex-row gap-3">
           <button
             on:click={acceptAll}
-            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-4 rounded-none transition-colors"
           >
             {$t('cookies.accept_all')}
           </button>
           <button
             on:click={acceptNecessary}
-            class="flex-1 bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            class="flex-1 bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 px-4 rounded-none transition-colors"
           >
             {$t('cookies.accept_essential')}
           </button>

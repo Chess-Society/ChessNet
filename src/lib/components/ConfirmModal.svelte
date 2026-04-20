@@ -55,21 +55,21 @@
       {@const styles = getTypeStyles(dialog.type)}
       {@const Icon = getIcon(dialog.type)}
       <div 
-        class="relative w-full max-w-md overflow-hidden bg-[#121214]/90 backdrop-blur-2xl border border-white/[0.08] rounded-[2.5rem] shadow-[0_32px_128px_-16px_rgba(0,0,0,0.8)]"
+        class="relative w-full max-w-md overflow-hidden bg-[#121214]/90 backdrop-blur-2xl border border-white/[0.08] rounded-none shadow-[0_32px_128px_-16px_rgba(0,0,0,0.8)]"
         transition:scale={{ duration: 450, start: 0.92, easing: quintOut }}
       >
         <!-- Glossy Rim -->
-        <div class="absolute inset-0 rounded-[2.5rem] border border-white/5 pointer-events-none"></div>
-        <div class="absolute inset-[1px] rounded-[2.4rem] border border-white/[0.03] pointer-events-none"></div>
+        <div class="absolute inset-0 rounded-none border border-white/5 pointer-events-none"></div>
+        <div class="absolute inset-[1px] rounded-none border border-white/[0.03] pointer-events-none"></div>
 
         <!-- Premium background decor -->
-        <div class="absolute -top-32 -right-32 w-64 h-64 {styles.accent} blur-[100px] rounded-full pointer-events-none opacity-40"></div>
-        <div class="absolute -bottom-32 -left-32 w-64 h-64 bg-violet-500/10 blur-[100px] rounded-full pointer-events-none opacity-20"></div>
+        <div class="absolute -top-32 -right-32 w-64 h-64 {styles.accent} blur-[100px] rounded-none pointer-events-none opacity-40"></div>
+        <div class="absolute -bottom-32 -left-32 w-64 h-64 bg-violet-500/10 blur-[100px] rounded-none pointer-events-none opacity-20"></div>
         
         <!-- Header / Close button -->
         <div class="flex justify-end p-6 absolute top-0 right-0 z-10">
           <button 
-            class="p-2 text-neutral-500 hover:text-white transition-all hover:bg-white/5 rounded-xl"
+            class="p-2 text-neutral-500 hover:text-white transition-all hover:bg-white/5 rounded-none"
             onclick={() => uiStore.closeConfirm()}
           >
             <X size={20} weight="bold" />
@@ -78,7 +78,7 @@
 
         <div class="p-10 pt-12">
           <div class="flex flex-col items-center text-center gap-8">
-            <div class="flex-shrink-0 p-6 rounded-[2rem] border-2 {styles.iconBg} animate-float shadow-2xl relative">
+            <div class="flex-shrink-0 p-6 rounded-none border-2 {styles.iconBg} animate-float shadow-2xl relative">
               <div class="absolute inset-0 blur-xl {styles.accent} opacity-50"></div>
               <Icon weight="duotone" size={44} class="relative z-10" />
             </div>
@@ -96,7 +96,7 @@
           <div class="mt-12 flex flex-col gap-3">
             <button
               type="button"
-              class="group relative overflow-hidden inline-flex items-center justify-center gap-3 px-8 py-5 rounded-2xl text-[10px] font-black text-white shadow-2xl transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-[0.2em] {styles.button}"
+              class="group relative overflow-hidden inline-flex items-center justify-center gap-3 px-8 py-5 rounded-none text-[10px] font-black text-white shadow-2xl transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-[0.2em] {styles.button}"
               onclick={() => dialog.onConfirm()}
             >
               <div class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
@@ -106,7 +106,7 @@
             
             <button
               type="button"
-              class="inline-flex items-center justify-center px-8 py-5 rounded-2xl text-[10px] font-black text-slate-500 bg-white/[0.02] border border-white/5 hover:bg-white/[0.08] hover:text-white transition-all active:scale-95 uppercase tracking-[0.2em]"
+              class="inline-flex items-center justify-center px-8 py-5 rounded-none text-[10px] font-black text-slate-500 bg-white/[0.02] border border-white/5 hover:bg-white/[0.08] hover:text-white transition-all active:scale-95 uppercase tracking-[0.2em]"
               onclick={() => {
                 if (dialog.onCancel) {
                   dialog.onCancel();

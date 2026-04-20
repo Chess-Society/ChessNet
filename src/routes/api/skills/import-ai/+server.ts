@@ -97,8 +97,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         return json({ error: 'AI generated malformed JSON' }, { status: 500 });
     }
 
+    interface AISkill {
+        name: string;
+        description: string;
+        category: string;
+        level: string;
+        difficulty: number;
+        learning_objectives: string[];
+        order_index: number;
+        resources: string[];
+    }
+
     // Add required metadata for our app
-    const processedSkills = extractedSkills.map((s: any, index: number) => ({
+    const processedSkills = (extractedSkills as AISkill[]).map((s, index) => ({
         ...s,
         id: `ai-${Date.now()}-${index}`,
         owner_id: locals.user.uid,

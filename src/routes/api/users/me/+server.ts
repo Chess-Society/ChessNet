@@ -13,11 +13,6 @@ export const DELETE: RequestHandler = async (event) => {
   const { user } = await authenticate(event);
   if (!user) return json({ error: 'No autorizado' }, { status: 401 });
 
-  // Bloquear borrado del usuario de desarrollo mock
-  if (user.uid === 'chessnet-dev-uid') {
-    return json({ error: 'No permitido en modo desarrollo' }, { status: 403 });
-  }
-
   const uid = user.uid;
 
   try {
@@ -63,7 +58,7 @@ export const DELETE: RequestHandler = async (event) => {
           if (snapshot.empty) { hasMore = false; break; }
 
           const batch = adminDb.batch();
-          snapshot.docs.forEach(doc => batch.delete(doc.ref));
+          snapshot.docs.forEach((doc: any) => batch.delete(doc.ref));
           await batch.commit();
 
           if (snapshot.docs.length < 400) hasMore = false;

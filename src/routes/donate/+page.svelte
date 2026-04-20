@@ -16,15 +16,15 @@
   
   <!-- Premium Background Effects -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/15 rounded-full blur-[140px] animate-pulse"></div>
-    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]"></div>
+    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/15 rounded-none blur-[140px] animate-pulse"></div>
+    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/10 rounded-none blur-[120px]"></div>
   </div>
 
   <!-- Nav -->
   <nav class="relative z-10 p-8 flex justify-between items-center max-w-7xl mx-auto">
     <a href="/" class="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group">
       <div class="relative">
-        <div class="absolute -inset-2 bg-primary-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+        <div class="absolute -inset-2 bg-primary-500/20 rounded-none blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
         <Logo size="w-10 h-10" iconSize="w-6 h-6" />
       </div>
       <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
@@ -42,11 +42,11 @@
   <!-- Content -->
   <main class="relative z-10 max-w-3xl mx-auto px-6 py-24 text-center" in:fade={{ duration: 1000 }}>
     <div class="mb-12">
-      <div class="inline-flex items-center justify-center p-4 rounded-[24px] bg-red-500/10 text-red-500 mb-8 border border-red-500/20 shadow-xl shadow-red-500/10 animate-pulse">
+      <div class="inline-flex items-center justify-center p-4 rounded-none bg-red-500/10 text-red-500 mb-8 border border-red-500/20 shadow-xl shadow-red-500/10 animate-pulse">
         <Heart class="w-10 h-10 fill-current" />
       </div>
       
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-6">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-none bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-6">
         <Sparkles class="w-3.5 h-3.5" />
         <span>{$t('donate.badge')}</span>
       </div>
@@ -87,3 +87,4 @@
     </div>
   </main>
 </div>
+

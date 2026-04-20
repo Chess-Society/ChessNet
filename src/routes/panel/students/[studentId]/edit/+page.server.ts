@@ -12,7 +12,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   }
 
   try {
-    // Get student data and user's schools and classes from Firebase API
     const [student, schools, classes] = await Promise.all([
       studentsApi.getStudent(studentId),
       schoolsApi.getMySchools(),

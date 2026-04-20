@@ -17,16 +17,71 @@
   import { fade, fly } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import type { PageData } from './$types';
+  import { appStore } from '$lib/stores/appStore';
 
   let { data } = $props<{ data: PageData }>();
-  let student = $derived(data.student);
-  let school = $derived(data.school);
+  let student = $derived($appStore.students?.find(s => s.id === data.student.id) || data.student);
+  let school = $derived($appStore.schools?.find(s => s.id === student?.school_id) || data.school);
+  // Classes requires a filter based on `class_students` mock logic if it was fully implemented.
+  // For now we'll leave enrolledClasses from `data` since it's hardcoded for mock anyway, or could use data.enrolledClasses.
   let enrolledClasses = $derived(data.enrolledClasses || []);
   let attendanceRate = $derived(data.attendanceRate);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
+
+  let lichessData: any = $state(null);
+  let lichessHistory: any = $state(null);
+  let isFetchingLichess = $state(false);
+
+  $effect(() => {
+    if (student?.lichess_username) {
+      fetchLichessData(student.lichess_username);
+    }
+  });
+
+  async function fetchLichessData(username: string) {
+    if (lichessData) return; // Ya se cargó
+    try {
+      isFetchingLichess = true;
+      const [res, historyRes] = await Promise.all([
+        fetch(`https://lichess.org/api/user/${username}`),
+        fetch(`https://lichess.org/api/user/${username}/rating-history`)
+      ]);
+      if (res.ok) {
+        lichessData = await res.json();
+      }
+      if (historyRes.ok) {
+        lichessHistory = await historyRes.json();
+      }
+    } catch (e) {
+      console.error('Error fetching Lichess data:', e);
+    } finally {
+      isFetchingLichess = false;
+    }
+  }
+
+  function generateSparkline(points: any[]) {
+    const recent = points.slice(-30);
+    if (recent.length < 2) return '';
+    const ratings = recent.map(p => p[3]);
+    const min = Math.min(...ratings);
+    const max = Math.max(...ratings);
+    const range = max - min || 1;
+    const w = 100;
+    const h = 20; // smaller height
+    
+    const svgPoints = recent.map((p, i) => {
+       const x = (i / (recent.length - 1)) * w;
+       const y = h - ((p[3] - min) / range * h);
+       return `${x},${y}`;
+    }).join(' ');
+    
+    return `<svg viewBox="-2 -2 104 24" class="w-full h-8 overflow-visible" preserveAspectRatio="none">
+      <polyline points="${svgPoints}" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />
+    </svg>`;
+  }
 </script>
 
 <svelte:head>
@@ -107,7 +162,7 @@
             <div class="flex flex-wrap gap-2">
               {#if enrolledClasses.length > 0}
                 {#each enrolledClasses as cls}
-                  <span class="px-3 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-lg text-[10px] font-outfit font-black text-violet-400 uppercase tracking-widest">
+                  <span class="px-3 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-none text-[10px] font-outfit font-black text-violet-400 uppercase tracking-widest">
                     {cls.name}
                   </span>
                 {/each}
@@ -127,13 +182,13 @@
         </div>
         
         <div class="notes-container">
-          <div class="absolute -top-24 -right-24 w-48 h-48 bg-violet-600/5 blur-3xl rounded-full pointer-events-none"></div>
+          <div class="absolute -top-24 -right-24 w-48 h-48 bg-violet-600/5 blur-3xl rounded-none pointer-events-none"></div>
           
           {#if student.notes}
             <p class="text-slate-400 font-jakarta text-lg leading-relaxed whitespace-pre-wrap relative z-10">{student.notes}</p>
           {:else}
             <div class="empty-notes">
-               <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 mb-4 opacity-30">
+               <div class="w-16 h-16 bg-white/5 rounded-none flex items-center justify-center border border-white/10 mb-4 opacity-30">
                   <FileText size={32} />
                </div>
                <p class="text-xs font-outfit font-black uppercase tracking-widest text-slate-600">{$t('students.no_notes')}</p>
@@ -145,11 +200,123 @@
 
     <!-- Stats & Achievements (Right) -->
     <div class="space-y-8">
+       <!-- Lichess Live Stats -->
+       <section class="bento-card !p-8 border-t-4 border-t-sky-500 bg-gradient-to-b from-sky-600/5 to-transparent relative overflow-hidden group">
+          <div class="absolute -top-10 -right-10 w-32 h-32 bg-sky-600/5 blur-3xl rounded-none"></div>
+          
+          <div class="flex items-center justify-between mb-8 relative z-10">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-zinc-950 rounded-none flex items-center justify-center text-sky-400 border border-white/5 shadow-inner">
+                <svg width="20" height="20" viewBox="0 0 44 44" class="fill-current"><path d="M12.92,10.6A11.75,11.75,0,0,0,24,20H24V9.66L15.3,1.06A11.75,11.75,0,0,0,1,12.79h0A11.75,11.75,0,0,0,12.79,24.5h.13V24a11.75,11.75,0,0,1-11.75-11.75h0A11.75,11.75,0,0,1,12.92,10.6Zm18.15,22.8A11.75,11.75,0,0,0,20,24H20V34.34L28.7,42.94A11.75,11.75,0,0,0,43,31.21h0A11.75,11.75,0,0,0,31.21,19.5h-.13v.5a11.75,11.75,0,0,1,11.75,11.75h0A11.75,11.75,0,0,1,31.08,33.4Z"></path></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">Lichess ELO</h3>
+                {#if student?.lichess_username}
+                  <a href="https://lichess.org/@/{student.lichess_username}" target="_blank" class="text-[10px] font-bold text-sky-400 hover:text-sky-300 transition-colors uppercase tracking-widest block mt-0.5">
+                    @{student.lichess_username} ↗
+                  </a>
+                {/if}
+              </div>
+            </div>
+            
+            {#if isFetchingLichess}
+              <div class="flex gap-1">
+                <div class="w-1.5 h-1.5 rounded-none bg-sky-500 animate-ping"></div>
+              </div>
+            {/if}
+          </div>
+
+          <div class="space-y-6 relative z-10">
+            {#if !student?.lichess_username}
+              <div class="text-center p-6 bg-zinc-900/50 rounded-none border border-white/5">
+                <p class="text-xs font-jakarta text-slate-400 mb-3">No hay cuenta vinculada todavía.</p>
+                <button onclick={() => goto(`/panel/students/${student.id}/edit`)} class="px-4 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-[10px] font-black uppercase tracking-widest rounded-none transition-colors border border-sky-500/20">
+                  Vincular Lichess
+                </button>
+              </div>
+            {:else if lichessData}
+              <div class="grid grid-cols-2 gap-4">
+                <!-- Blitz ELO -->
+                <div class="p-4 bg-zinc-900/40 rounded-none border border-white/5 flex flex-col items-center justify-center text-center group/elo hover:bg-zinc-900/60 transition-colors relative overflow-hidden">
+                  <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-[0.2em] mb-1 relative z-10">Blitz</p>
+                  <p class="text-2xl font-outfit font-black text-white tracking-tighter relative z-10">
+                    {lichessData.perfs?.blitz?.rating || 'Unr.'}
+                  </p>
+                  {#if lichessData.perfs?.blitz?.prog}
+                    <p class="text-[10px] font-bold mt-1 {lichessData.perfs.blitz.prog >= 0 ? 'text-violet-400' : 'text-rose-400'} relative z-10">
+                      {lichessData.perfs.blitz.prog >= 0 ? '+' : ''}{lichessData.perfs.blitz.prog}
+                    </p>
+                  {/if}
+                  {#if lichessHistory}
+                     {@const blitzHistory = lichessHistory.find((h: any) => h.name === 'Blitz')?.points}
+                     {#if blitzHistory}
+                        <div class="w-full text-amber-500 mt-3 opacity-40 group-hover/elo:opacity-100 transition-opacity">
+                          {@html generateSparkline(blitzHistory)}
+                        </div>
+                     {/if}
+                  {/if}
+                </div>
+                <!-- Rapid ELO -->
+                <div class="p-4 bg-zinc-900/40 rounded-none border border-white/5 flex flex-col items-center justify-center text-center group/elo hover:bg-zinc-900/60 transition-colors relative overflow-hidden">
+                  <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-[0.2em] mb-1 relative z-10">Rapid</p>
+                  <p class="text-2xl font-outfit font-black text-white tracking-tighter relative z-10">
+                    {lichessData.perfs?.rapid?.rating || 'Unr.'}
+                  </p>
+                  {#if lichessData.perfs?.rapid?.prog}
+                    <p class="text-[10px] font-bold mt-1 {lichessData.perfs.rapid.prog >= 0 ? 'text-violet-400' : 'text-rose-400'} relative z-10">
+                      {lichessData.perfs.rapid.prog >= 0 ? '+' : ''}{lichessData.perfs.rapid.prog}
+                    </p>
+                  {/if}
+                  {#if lichessHistory}
+                     {@const rapidHistory = lichessHistory.find((h: any) => h.name === 'Rapid')?.points}
+                     {#if rapidHistory}
+                        <div class="w-full text-blue-500 mt-3 opacity-40 group-hover/elo:opacity-100 transition-opacity">
+                          {@html generateSparkline(rapidHistory)}
+                        </div>
+                     {/if}
+                  {/if}
+                </div>
+                <!-- Puzzles ELO -->
+                <div class="col-span-2 p-4 bg-zinc-900/40 rounded-none border border-white/5 flex flex-col justify-between group/elo hover:bg-zinc-900/60 transition-colors relative overflow-hidden">
+                  <div class="flex items-center justify-between w-full relative z-10">
+                     <div>
+                       <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-[0.2em] mb-0.5">Puzzles</p>
+                       <p class="text-[10px] font-bold text-slate-400 mt-1">{lichessData.count?.puzzle || 0} resueltos</p>
+                     </div>
+                     <div class="text-right">
+                       <p class="text-xl font-outfit font-black text-white tracking-tighter">
+                         {lichessData.perfs?.puzzle?.rating || 'Unr.'}
+                       </p>
+                       {#if lichessData.perfs?.puzzle?.prog}
+                          <p class="text-[10px] font-bold {lichessData.perfs.puzzle.prog >= 0 ? 'text-violet-400' : 'text-rose-400'}">
+                            {lichessData.perfs.puzzle.prog >= 0 ? '+' : ''}{lichessData.perfs.puzzle.prog}
+                          </p>
+                       {/if}
+                     </div>
+                  </div>
+                  {#if lichessHistory}
+                     {@const puzzleHistory = lichessHistory.find((h: any) => h.name === 'Puzzles')?.points}
+                     {#if puzzleHistory}
+                        <div class="w-full text-violet-500 mt-3 opacity-40 group-hover/elo:opacity-100 transition-opacity">
+                          {@html generateSparkline(puzzleHistory)}
+                        </div>
+                     {/if}
+                  {/if}
+                </div>
+              </div>
+            {:else if !isFetchingLichess}
+              <div class="text-center p-6 bg-zinc-900/50 rounded-none border border-white/5">
+                <p class="text-[11px] font-jakarta text-slate-400 mb-2">No pudimos encontrar el perfil público en Lichess.</p>
+                <p class="text-[10px] text-zinc-500">Asegúrate de que el usuario `{student.lichess_username}` es correcto.</p>
+              </div>
+            {/if}
+          </div>
+       </section>
        <section class="bento-card !p-8 border-t-4 border-t-violet-500 bg-gradient-to-b from-violet-600/5 to-transparent relative overflow-hidden group">
-          <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/5 blur-3xl rounded-full"></div>
+          <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/5 blur-3xl rounded-none"></div>
           
           <div class="flex items-center gap-4 mb-8">
-             <div class="p-2.5 bg-violet-600/10 rounded-xl border border-violet-500/20">
+             <div class="p-2.5 bg-violet-600/10 rounded-none border border-violet-500/20">
                 <TrendUp size={20} weight="duotone" class="text-violet-400" />
              </div>
              <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">{$t('students.performance')}</h3>
@@ -179,10 +346,10 @@
        </section>
 
        <section class="bento-card !p-8 relative overflow-hidden group">
-          <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-amber-500/5 blur-3xl rounded-full"></div>
+          <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-amber-500/5 blur-3xl rounded-none"></div>
           
           <div class="flex items-center gap-4 mb-8 relative z-10">
-             <div class="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20">
+             <div class="p-2.5 bg-amber-500/10 rounded-none border border-amber-500/20">
                 <Medal size={20} weight="duotone" class="text-amber-400" />
              </div>
              <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">{$t('students.achievements')}</h3>
@@ -257,7 +424,7 @@
     height: 54px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 50%;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -278,7 +445,7 @@
     height: 80px;
     background: rgba(139, 92, 246, 0.1);
     border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 28px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -310,7 +477,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.85rem 1.75rem;
-    border-radius: 16px;
+    border-radius: 0;
     font-size: 0.95rem;
     font-weight: 700;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -331,7 +498,7 @@
 
   .pill-badge {
     padding: 0.4rem 1rem;
-    border-radius: 10px;
+    border-radius: 0;
     font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -342,21 +509,21 @@
     border: 1px solid transparent;
   }
 
-  .pill-badge.active { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+  .pill-badge.active { background: rgba(139, 92, 246, 0.1); color: #a78bfa; border-color: rgba(139, 92, 246, 0.2); }
   .pill-badge.secondary { background: rgba(255, 255, 255, 0.05); color: #94a3b8; border-color: rgba(255, 255, 255, 0.1); }
 
   .info-block {
     padding: 1.5rem;
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 24px;
+    border-radius: 0;
     box-shadow: inset 0 0 40px rgba(255,255,255,0.01);
   }
 
   .notes-container {
     background: rgba(0,0,0,0.2);
     border: 1px solid rgba(255,255,255,0.03);
-    border-radius: 28px;
+    border-radius: 0;
     padding: 2.5rem;
     min-height: 250px;
     position: relative;
@@ -380,14 +547,14 @@
     width: 100%;
     height: 10px;
     background: #000;
-    border-radius: 50px;
+    border-radius: 0;
     border: 1px solid rgba(255,255,255,0.03);
     overflow: hidden;
   }
 
   .progress-fill {
     height: 100%;
-    border-radius: 50px;
+    border-radius: 0;
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -401,7 +568,7 @@
     padding: 1.25rem;
     background: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.03);
-    border-radius: 24px;
+    border-radius: 0;
     transition: all 0.3s;
   }
 
@@ -412,7 +579,7 @@
     height: 48px;
     background: rgba(245, 158, 11, 0.1);
     color: #f59e0b;
-    border-radius: 15px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -432,7 +599,7 @@
     height: 90px;
     border: 3px solid rgba(139, 92, 246, 0.1);
     border-top-color: #7c3aed;
-    border-radius: 50%;
+    border-radius: 0;
     animation: spin 1s linear infinite;
   }
 

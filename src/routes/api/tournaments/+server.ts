@@ -18,10 +18,9 @@ export const GET: RequestHandler = async (event) => {
     const tournaments = querySnapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
     
     return json({ items: tournaments });
-  } catch (error) {
-    console.error('❌ Error in GET /api/tournaments:', error);
-    // En desarrollo local sin adminDb inicializado, devolvemos vacío
-    return json({ items: [] });
+  } catch (error: any) {
+    console.error('❌ Error in GET /api/tournaments:', error.message);
+    return json({ error: 'Error al obtener los torneos', details: error.message }, { status: 500 });
   }
 };
 
@@ -67,21 +66,11 @@ export const POST: RequestHandler = async (event) => {
       updated_at: new Date().toISOString()
     };
 
-    try {
-      const docRef = await adminDb.collection("local_tournaments").add(tournamentData);
-      return json({ 
-        success: true, 
-        data: serializeRecord({ id: docRef.id, ...tournamentData })
-      });
-    } catch (dbError) {
-      if (uid === 'chessnet-dev-uid') {
-        return json({ 
-          success: true, 
-          data: { id: 'mock-lt-' + Date.now(), ...tournamentData }
-        });
-      }
-      throw dbError;
-    }
+    const docRef = await adminDb.collection("local_tournaments").add(tournamentData);
+    return json({ 
+      success: true, 
+      data: serializeRecord({ id: docRef.id, ...tournamentData })
+    });
   } catch (error: any) {
     console.error('❌ Error in POST /api/tournaments:', error);
     return json({ error: error.message || 'Error al crear el torneo' }, { status: 500 });

@@ -51,8 +51,8 @@
   
   <!-- Decorative Background Glows -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/15 rounded-full blur-[140px] animate-pulse"></div>
-    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]"></div>
+    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/15 rounded-none blur-[140px] animate-pulse"></div>
+    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/10 rounded-none blur-[120px]"></div>
   </div>
 
   <!-- Navbar -->
@@ -61,7 +61,7 @@
       <div class="flex lg:flex-1">
         <a href="/" class="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95">
           <div class="relative">
-            <div class="absolute -inset-2 bg-primary-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+            <div class="absolute -inset-2 bg-primary-500/20 rounded-none blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
             <Logo size="w-10 h-10" iconSize="w-6 h-6" />
           </div>
           <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
@@ -72,7 +72,7 @@
 
 
         {#if isAuthLoading}
-          <div class="w-32 h-10 bg-white/5 animate-pulse rounded-full"></div>
+          <div class="w-32 h-10 bg-white/5 animate-pulse rounded-none"></div>
         {:else if currentUser}
           <a href="/panel" class="btn-primary py-2 px-6 text-sm">
             {$t('nav.goPanel')}
@@ -88,7 +88,7 @@
   <main class="relative z-10 pt-32 pb-24">
     <!-- Hero -->
     <div class="max-w-5xl mx-auto px-6 text-center mb-12 sm:mb-20 animate-fade-in">
-      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-6 sm:mb-8">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-none bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-widest mb-6 sm:mb-8">
         <Sparkle class="w-3.5 h-3.5" />
         <span>{$t('pricing.recommended')}</span>
       </div>
@@ -101,7 +101,7 @@
     <!-- Pricing Cards -->
     <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 mb-32">
        <!-- Free Plan -->
-        <div class="bento-card !rounded-[32px] sm:!rounded-[40px] flex flex-col group hover:border-surface-700 transition-all duration-500">
+        <div class="bento-card flex flex-col group hover:border-surface-700 transition-all duration-500">
           <div class="p-8 sm:p-12 flex-1">
              <h3 class="text-xl sm:text-2xl font-bold text-white mb-2">{$t('pricing.free.title')}</h3>
              <p class="text-surface-500 text-xs sm:text-sm mb-6 sm:mb-8">{$t('pricing.free.desc')}</p>
@@ -134,8 +134,8 @@
         </div>
 
        <!-- Premium Plan -->
-       <div class="bento-card !rounded-[32px] sm:!rounded-[40px] border-primary-500/40 bg-primary-500/[0.02] flex flex-col shadow-2xl shadow-primary-500/10 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 px-6 sm:px-8 py-2 sm:py-3 bg-primary-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-bl-2xl sm:rounded-bl-3xl">{$t('pricing.recommended')}</div>
+       <div class="bento-card border-primary-500/40 bg-primary-500/[0.02] flex flex-col shadow-2xl shadow-primary-500/10 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 px-6 sm:px-8 py-2 sm:py-3 bg-primary-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-none">{$t('pricing.recommended')}</div>
           <div class="p-8 sm:p-12 flex-1">
             <h3 class="text-xl sm:text-2xl font-bold text-primary-400 mb-2">{$t('pricing.premium.title')}</h3>
             <p class="text-surface-400/80 text-xs sm:text-sm mb-6 sm:mb-8">{$t('pricing.premium.desc')}</p>
@@ -267,3 +267,4 @@
     to { opacity: 1; transform: translateY(0); }
   }
 </style>
+

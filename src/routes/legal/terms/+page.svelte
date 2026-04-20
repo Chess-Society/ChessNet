@@ -12,22 +12,22 @@
   
   <!-- Premium Background Effects -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 rounded-full blur-[140px] "></div>
-    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[100px]"></div>
+    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 rounded-none blur-[140px] "></div>
+    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-none blur-[100px]"></div>
   </div>
 
   <!-- Header -->
   <header class="relative z-10 p-8 flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-6 sm:gap-8">
     <a href="/" class="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group">
       <div class="relative">
-        <div class="absolute -inset-2 bg-primary-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+        <div class="absolute -inset-2 bg-primary-500/20 rounded-none blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
         <Logo size="w-10 h-10" iconSize="w-6 h-6" />
       </div>
       <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
     </a>
     
     <div class="flex items-center gap-6">
-      <div class="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10">
+      <div class="flex items-center gap-3 px-4 py-2 rounded-none bg-white/5 border border-white/10">
         <FileText class="w-4 h-4 text-primary-400" />
         <span class="text-xs font-bold text-white uppercase tracking-widest">{$t('legal_terms')}</span>
       </div>
@@ -43,13 +43,13 @@
     <div class="bento-card border-yellow-500/20 bg-yellow-500/5 p-6 mb-16 shadow-2xl relative overflow-hidden group">
       <div class="absolute top-0 inset-x-0 h-0.5 bg-yellow-500/30"></div>
       <div class="flex items-start gap-5">
-        <div class="p-3 rounded-2xl bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 group-hover:scale-110 transition-transform">
+        <div class="p-3 rounded-none bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 group-hover:scale-110 transition-transform">
           <AlertTriangle class="w-6 h-6" />
         </div>
         <div>
           <h3 class="text-lg font-bold text-yellow-300 mb-2 flex items-center gap-2">
             {$t('legal.terms.beta_notice.title')}
-            <span class="text-[10px] bg-yellow-500/20 px-2 py-0.5 rounded-full">{$t('legal.terms.beta_notice.tag')}</span>
+            <span class="text-[10px] bg-yellow-500/20 px-2 py-0.5 rounded-none">{$t('legal.terms.beta_notice.tag')}</span>
           </h3>
           <p class="text-yellow-200/80 text-sm leading-relaxed">
             {@html $t('legal.terms.beta_notice.desc').replace('ChessNet', '<strong class="text-white">ChessNet</strong>')}
@@ -80,8 +80,8 @@
           </p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose">
             {#each [1, 2, 3, 4, 5, 6] as item}
-              <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-bold text-white shadow-sm">
-                <div class="w-1.5 h-1.5 rounded-full bg-primary-500"></div>
+              <div class="flex items-center gap-3 px-4 py-3 rounded-none bg-white/5 border border-white/10 text-sm font-bold text-white shadow-sm">
+                <div class="w-1.5 h-1.5 rounded-none bg-primary-500"></div>
                 {$t(`legal.terms.features.${item}`)}
               </div>
             {/each}
@@ -106,7 +106,7 @@
           <div class="text-center">
             <h3 class="text-xl font-bold text-white mb-6">{$t('legal.terms.support.title')}</h3>
             <p class="text-surface-400 mb-8 font-medium">{$t('legal.terms.support.desc')}</p>
-            <a href="mailto:chessnetappweb@gmail.com" class="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all group">
+            <a href="mailto:chessnetappweb@gmail.com" class="inline-flex items-center gap-3 px-6 py-3 rounded-none bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all group">
               {$t('legal.terms.support.button')}
               <ArrowLeft class="w-4 h-4 rotate-180 group-hover:translate-x-1 transition-transform" />
             </a>
@@ -120,3 +120,4 @@
     &copy; {new Date().getFullYear()} {$t('legal.terms.footer')}
   </footer>
 </div>
+

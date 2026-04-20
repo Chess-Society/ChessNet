@@ -84,21 +84,18 @@
     <div class="space-y-6">
       <div class="flex items-center gap-6">
         <div class="relative">
-          <div class="absolute inset-0 bg-violet-500/30 blur-2xl rounded-full"></div>
-          <div class="w-16 h-16 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/40 rounded-[1.5rem] flex items-center justify-center text-violet-400 backdrop-blur-xl relative z-10 shadow-xl">
+          <div class="absolute inset-0 bg-violet-500/30 blur-2xl rounded-none"></div>
+          <div class="w-16 h-16 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/40 rounded-none flex items-center justify-center text-violet-400 backdrop-blur-xl relative z-10 shadow-xl">
             <Buildings size={36} weight="duotone" />
           </div>
         </div>
         <div>
-          <div class="flex items-center gap-3 mb-1">
-            <h1 class="text-4xl md:text-5xl font-outfit font-black text-white tracking-tight leading-none bg-gradient-to-r from-white via-white to-white/50 bg-clip-text text-transparent">
-              {$t('schools.title')}
+          <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-none">
+              <span class="gradient-text">{$t('schools.title')}</span>
             </h1>
-            <span class="px-3 py-1 bg-violet-500/10 border border-violet-500/30 rounded-full text-[10px] font-outfit font-bold text-violet-400 uppercase tracking-widest mt-1">
-              PRO
-            </span>
           </div>
-          <p class="text-slate-400 font-jakarta text-sm md:text-base max-w-lg">
+          <p class="text-zinc-500 font-medium text-lg mt-3 font-jakarta">
             {$t('schools.subtitle')}
           </p>
         </div>
@@ -107,9 +104,9 @@
 
     <button 
       onclick={() => goto('/panel/schools/create')}
-      class="btn-pill px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-violet-flare flex items-center gap-3 group ring-1 ring-white/20"
+      class="rounded-none px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-violet-flare flex items-center gap-3 group ring-1 ring-white/20 uppercase text-xs tracking-widest"
     >
-      <div class="p-1 bg-white/20 rounded-lg group-hover:rotate-90 transition-transform">
+      <div class="p-1 bg-white/20 rounded-none group-hover:rotate-90 transition-transform">
         <Plus size={18} weight="bold" />
       </div>
       {$t('schools.add_btn')}
@@ -118,51 +115,42 @@
 
   <!-- Stats Bento Grid -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-    <div class="bento-card p-6 border border-white/5 flex flex-col gap-4 group hover:border-violet-500/30 transition-all">
+    <div class="bento-card p-8 flex flex-col gap-6 relative overflow-hidden group">
       <div class="flex items-center justify-between">
-        <div class="w-12 h-12 bg-violet-500/10 rounded-2xl flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
+        <div class="w-12 h-12 bg-violet-500/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
           <Buildings size={24} weight="duotone" />
         </div>
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('schools.active_centers')}</span>
+        <div class="opacity-0 group-hover:opacity-100 transition-opacity bg-violet-500/20 blur-xl w-8 h-8 absolute top-0 right-0"></div>
       </div>
       <div>
-        <div class="text-3xl font-outfit font-bold text-white mb-1">{totalSchools}</div>
-        <div class="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
-          <ArrowUpRight size={14} />
-          <span>{$t('schools.full_capacity')}</span>
-        </div>
+        <p class="text-[10px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-1">{$t('schools.active_centers')}</p>
+        <div class="text-4xl font-outfit font-black text-white">{totalSchools}</div>
       </div>
     </div>
 
-    <div class="bento-card p-6 border border-white/5 flex flex-col gap-4 group hover:border-fuchsia-500/30 transition-all">
+    <div class="bento-card p-8 flex flex-col gap-6 relative overflow-hidden group">
       <div class="flex items-center justify-between">
-        <div class="w-12 h-12 bg-fuchsia-500/10 rounded-2xl flex items-center justify-center text-fuchsia-400 group-hover:scale-110 transition-transform">
+        <div class="w-12 h-12 bg-violet-500/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
           <Users size={24} weight="duotone" />
         </div>
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('common.total_students')}</span>
+        <div class="opacity-0 group-hover:opacity-100 transition-opacity bg-violet-500/20 blur-xl w-8 h-8 absolute top-0 right-0"></div>
       </div>
       <div>
-        <div class="text-3xl font-outfit font-bold text-white mb-1">{totalStudents}</div>
-        <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-          <CheckCircle size={14} class="text-emerald-400" />
-          <span>{$t('schools.verified_enrollment')}</span>
-        </div>
+        <p class="text-[10px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-1">{$t('common.total_students')}</p>
+        <div class="text-4xl font-outfit font-black text-white">{totalStudents}</div>
       </div>
     </div>
 
-    <div class="bento-card p-6 border border-white/5 flex flex-col gap-4 group hover:border-amber-500/30 transition-all">
+    <div class="bento-card p-8 flex flex-col gap-6 relative overflow-hidden group">
       <div class="flex items-center justify-between">
-        <div class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+        <div class="w-12 h-12 bg-violet-500/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
           <GraduationCap size={24} weight="duotone" />
         </div>
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('schools.avg_groups')}</span>
+        <div class="opacity-0 group-hover:opacity-100 transition-opacity bg-violet-500/20 blur-xl w-8 h-8 absolute top-0 right-0"></div>
       </div>
       <div>
-        <div class="text-3xl font-outfit font-bold text-white mb-1">{avgStudentsPerSchool}</div>
-        <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-          <Info size={14} />
-          <span>{$t('schools.growth_metric')}</span>
-        </div>
+        <p class="text-[10px] font-outfit font-black text-zinc-500 uppercase tracking-widest mb-1">{$t('schools.avg_groups')}</p>
+        <div class="text-4xl font-outfit font-black text-white">{avgStudentsPerSchool}</div>
       </div>
     </div>
   </div>
@@ -175,7 +163,7 @@
       type="text"
       placeholder={$t('schools.search_placeholder')}
       bind:value={searchQuery}
-      class="w-full bg-bento-card border border-white/5 rounded-2xl pl-16 pr-6 py-5 text-base text-white focus:border-violet-500/50 outline-none transition-all backdrop-blur-2xl font-jakarta relative z-10 shadow-2xl"
+      class="w-full bg-bento-card border border-white/5 rounded-none pl-16 pr-6 py-5 text-base text-white focus:border-violet-500/50 outline-none transition-all backdrop-blur-2xl font-jakarta relative z-10 shadow-2xl"
     />
   </div>
 
@@ -187,22 +175,22 @@
       <div class="absolute inset-0 bg-gradient-to-b from-violet-500/5 to-transparent pointer-events-none"></div>
       
       <div class="relative inline-block scale-110">
-        <div class="w-32 h-32 bg-violet-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-violet-500/20 text-violet-400 animate-pulse-slow shadow-violet-flare relative z-10">
+        <div class="w-32 h-32 bg-violet-500/10 rounded-none flex items-center justify-center mx-auto border border-violet-500/20 text-violet-400 animate-pulse-slow shadow-violet-flare relative z-10">
           <Buildings size={64} weight="duotone" />
         </div>
-        <div class="absolute -bottom-2 -right-2 bg-bento-bg border border-white/10 p-3 rounded-2xl shadow-2xl z-20 text-violet-400">
+        <div class="absolute -bottom-2 -right-2 bg-bento-bg border border-white/10 p-3 rounded-none shadow-2xl z-20 text-violet-400">
              <Plus size={24} weight="bold" />
         </div>
       </div>
       
       <div class="max-w-md mx-auto space-y-4 relative z-10">
-        <h2 class="text-3xl md:text-4xl font-outfit font-bold text-white tracking-tight">{$t('schools.empty_title')}</h2>
+        <h2 class="text-3xl md:text-4xl font-outfit font-black text-white tracking-tight uppercase">{$t('schools.empty_title')}</h2>
         <p class="text-slate-500 font-jakarta text-lg leading-relaxed">{$t('schools.empty_subtitle')}</p>
       </div>
 
       <button 
         onclick={() => goto('/panel/schools/create')}
-        class="btn-pill bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:scale-105 active:scale-95 text-white px-10 py-5 font-bold transition-all shadow-violet-flare flex items-center gap-3 mx-auto group ring-8 ring-violet-500/5 text-lg relative z-10"
+        class="rounded-none bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:scale-105 active:scale-95 text-white px-10 py-5 font-black transition-all shadow-violet-flare flex items-center gap-3 mx-auto group ring-8 ring-violet-500/5 text-lg relative z-10 uppercase tracking-widest"
       >
         <Plus size={24} weight="bold" class="transition-transform group-hover:rotate-90" />
         {$t('schools.empty_btn')}
@@ -217,18 +205,18 @@
           in:fly={{ y: 20, delay: i * 80 }}
         >
           <!-- Background Glow Effect -->
-          <div class="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-3xl rounded-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
           
           <div class="flex items-start justify-between mb-8 relative z-10">
             <div class="flex items-center gap-5">
-              <div class="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-violet-400 font-outfit font-black text-2xl group-hover:scale-110 group-hover:rotate-3 transition-all shadow-2xl relative overflow-hidden">
+              <div class="w-16 h-16 bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-none flex items-center justify-center text-violet-400 font-outfit font-black text-2xl group-hover:scale-110 group-hover:rotate-3 transition-all shadow-2xl relative overflow-hidden">
                 <div class="absolute inset-0 bg-violet-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 {school.name[0].toUpperCase()}
               </div>
               <div class="space-y-1">
                 <h3 class="text-white font-outfit font-bold text-xl leading-snug group-hover:text-violet-400 transition-colors line-clamp-1">{school.name}</h3>
-                <div class="flex items-center gap-2 text-slate-500 font-jakarta text-[11px] uppercase tracking-[0.15em] font-semibold">
-                    <MapPin size={14} weight="fill" class="text-violet-500/50" />
+                <div class="flex items-center gap-2 text-zinc-500 font-jakarta text-[10px] uppercase tracking-widest font-black">
+                    <MapPin size={14} weight="fill" class="text-violet-500" />
                     <span class="line-clamp-1">{school.city || $t('schools.location_not_defined')}</span>
                 </div>
               </div>
@@ -237,17 +225,17 @@
             <div class="flex flex-col gap-2 translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                 <button 
                   onclick={() => goto(`/panel/schools/${school.id}/edit`)}
-                  class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-violet-600/30 hover:border-violet-500/50 transition-all hover:scale-110 active:scale-90 shadow-lg backdrop-blur-md"
+                  class="p-2 bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-violet-600/30 hover:border-violet-500/50 transition-all"
                   aria-label={$t('common.edit')}
                 >
-                  <PencilSimple size={18} weight="bold" />
+                  <PencilSimple size={16} weight="bold" />
                 </button>
                 <button 
                   onclick={() => deleteSchool(school.id)}
-                  class="p-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/20 hover:border-red-500/30 transition-all hover:scale-110 active:scale-90 shadow-lg backdrop-blur-md"
+                  class="p-2 bg-white/5 border border-white/10 text-slate-400 hover:text-red-400 hover:bg-red-500/20 hover:border-red-500/30 transition-all"
                   aria-label={$t('common.delete')}
                 >
-                  <Trash size={18} weight="bold" />
+                  <Trash size={16} weight="bold" />
                 </button>
             </div>
           </div>
@@ -262,9 +250,9 @@
                 </div>
                 <span class="text-white">{getStudentCount(school.id)}</span>
               </div>
-              <div class="h-1.5 w-full bg-slate-800/50 rounded-full overflow-hidden border border-white/5 shadow-inner">
+              <div class="h-1.5 w-full bg-slate-800/50 rounded-none overflow-hidden border border-white/5 shadow-inner">
                 <div 
-                  class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all duration-1000 ease-out relative"
+                  class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-none transition-all duration-1000 ease-out relative"
                   style="width: {Math.min((getStudentCount(school.id) / 30) * 100, 100)}%"
                 >
                    <div class="absolute inset-0 bg-[linear-gradient(90deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shimmer_2s_infinite]"></div>
@@ -275,12 +263,12 @@
             <div class="flex items-center justify-between pt-6 border-t border-white/5">
               <div class="flex -space-x-3 overflow-hidden">
                 {#each Array(Math.min(getStudentCount(school.id), 4)) as _, j}
-                  <div class="h-8 w-8 rounded-full ring-2 ring-bento-bg bg-white/10 border border-white/10 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                  <div class="h-8 w-8 rounded-none ring-2 ring-bento-bg bg-white/10 border border-white/10 flex items-center justify-center text-[10px] font-bold text-slate-400">
                     S{j+1}
                   </div>
                 {/each}
                 {#if getStudentCount(school.id) > 4}
-                  <div class="h-8 w-8 rounded-full ring-2 ring-bento-bg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-[10px] font-bold text-violet-400 backdrop-blur-sm">
+                  <div class="h-8 w-8 rounded-none ring-2 ring-bento-bg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-[10px] font-bold text-violet-400 backdrop-blur-sm">
                     +{getStudentCount(school.id) - 4}
                   </div>
                 {/if}
@@ -288,7 +276,7 @@
 
               <button 
                 onclick={() => goto(`/panel/schools/${school.id}`)}
-                class="flex items-center gap-2 px-5 py-2.5 bg-violet-500/10 border border-violet-500/20 rounded-xl text-[12px] font-outfit font-bold text-violet-400 uppercase tracking-[0.1em] hover:bg-violet-600 hover:text-white hover:shadow-violet-flare transition-all group/btn active:scale-95"
+                class="flex items-center gap-3 px-5 py-2.5 bg-zinc-950 hover:bg-violet-600 border border-zinc-800 hover:border-violet-500 text-zinc-500 hover:text-white text-[11px] font-outfit font-black uppercase tracking-widest transition-all group/btn active:scale-95"
               >
                 {$t('schools.manage_btn')}
                 <CaretRight size={14} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />
@@ -326,4 +314,5 @@
     50% { opacity: 0.8; transform: scale(0.98); }
   }
 </style>
+
 

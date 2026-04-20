@@ -1,5 +1,13 @@
 export const es = {
-    'settings.title': 'Ajustes de Cuenta',
+    'settings.danger_zone_title': 'Zona de Peligro',
+    'settings.delete_account_title': 'Eliminar Cuenta',
+    'settings.delete_account_desc': 'La cuenta será borrada permanentemente',
+    'settings.delete_account_confirm_title': '¿Confirmar Eliminación?',
+    'settings.delete_account_confirm_msg': '¿Seguro que quieres perder acceso?',
+    'settings.delete_login_required': 'Se requiere validación de contraseña',
+    'settings.delete_account_btn': 'Eliminar Ahora',
+
+    'settings.title': 'AJUSTES',
     'settings.subtitle': 'Actualiza tu perfil y preferencias de la aplicación.',
     'settings.profile_title': 'Perfil',
     'settings.profile_desc': 'Gestiona tu información personal y cómo te ven los demás.',

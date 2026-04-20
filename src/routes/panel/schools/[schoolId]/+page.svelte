@@ -106,7 +106,7 @@
         onclick={() => goto('/panel/schools')}
         class="flex items-center gap-2 text-slate-500 hover:text-violet-400 transition-all group text-[11px] font-bold uppercase tracking-[0.2em]"
       >
-        <div class="p-1.5 bg-white/5 border border-white/10 rounded-lg group-hover:bg-violet-500/10 group-hover:border-violet-500/30 transition-all">
+        <div class="p-1.5 bg-white/5 border border-white/10 rounded-none group-hover:bg-violet-500/10 group-hover:border-violet-500/30 transition-all">
           <CaretLeft size={16} weight="bold" class="transition-transform group-hover:-translate-x-1" />
         </div>
         {$t('back')}
@@ -114,27 +114,27 @@
 
       <div class="flex items-center gap-8">
         <div class="relative">
-          <div class="absolute inset-0 bg-violet-500/20 blur-2xl rounded-full"></div>
-          <div class="w-24 h-24 bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-violet-500/40 rounded-[2.5rem] flex items-center justify-center text-violet-400 shadow-2xl backdrop-blur-xl relative z-10 rotate-3 hover:rotate-0 transition-all duration-500 group">
+          <div class="absolute inset-0 bg-violet-500/20 blur-2xl rounded-none"></div>
+          <div class="w-24 h-24 bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-violet-500/40 rounded-none flex items-center justify-center text-violet-400 shadow-2xl backdrop-blur-xl relative z-10 rotate-3 hover:rotate-0 transition-all duration-500 group">
             <Buildings size={48} weight="duotone" class="group-hover:scale-110 transition-transform" />
           </div>
         </div>
         <div>
           <div class="flex items-center gap-3 mb-2">
             <h1 class="text-4xl md:text-5xl font-outfit font-black text-white tracking-tighter uppercase line-clamp-1">{school?.name}</h1>
-            <div class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center gap-2">
-              <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+            <div class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-none flex items-center gap-2">
+              <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none animate-pulse"></div>
               <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">{$t('common.active')}</span>
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-4">
             {#if school?.city}
-              <span class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/5 px-4 py-2 rounded-xl border border-white/5 backdrop-blur-md">
+              <span class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/5 px-4 py-2 rounded-none border border-white/5 backdrop-blur-md">
                 <MapPin size={14} weight="fill" class="text-violet-500" />
                 {school.city}
               </span>
             {/if}
-            <span class="flex items-center gap-2 text-[10px] font-bold text-violet-400 uppercase tracking-widest bg-violet-500/5 px-4 py-2 rounded-xl border border-violet-500/10 backdrop-blur-md">
+            <span class="flex items-center gap-2 text-[10px] font-bold text-violet-400 uppercase tracking-widest bg-violet-500/5 px-4 py-2 rounded-none border border-violet-500/10 backdrop-blur-md">
               <Users size={14} weight="bold" />
               {stats.totalStudents} {$t('common.students')}
             </span>
@@ -143,17 +143,17 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/5 backdrop-blur-xl shadow-2xl">
+    <div class="flex items-center gap-4 bg-white/5 p-2 rounded-none border border-white/5 backdrop-blur-xl shadow-2xl">
       <button 
         onclick={() => school?.id && goto(`/panel/schools/${school.id}/edit`)}
-        class="flex items-center gap-2 px-6 py-4 text-[11px] font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 rounded-xl transition-all shadow-lg active:scale-95"
+        class="flex items-center gap-2 px-6 py-4 text-[11px] font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 rounded-none transition-all shadow-lg active:scale-95"
       >
         <PencilSimple size={18} weight="bold" />
         {$t('common.edit')}
       </button>
       <button 
         onclick={() => school?.id && goto(`/panel/classes/create?schoolId=${school.id}`)}
-        class="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-violet-flare flex items-center gap-3 group ring-1 ring-white/20"
+        class="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-none text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-violet-flare flex items-center gap-3 group ring-1 ring-white/20"
       >
         <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform" />
         {$t('schools.details.add_class')}
@@ -164,9 +164,9 @@
   <!-- Stats Bento Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
     <div class="bento-card p-8 border border-white/5 group hover:border-violet-500/40 transition-all relative overflow-hidden">
-      <div class="absolute -right-4 -top-4 w-24 h-24 bg-violet-500/5 blur-3xl rounded-full"></div>
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-violet-500/5 blur-3xl rounded-none"></div>
       <div class="flex items-start justify-between mb-6">
-        <div class="p-3 bg-violet-500/10 rounded-2xl text-violet-400 border border-violet-500/20 group-hover:scale-110 transition-transform">
+        <div class="p-3 bg-violet-500/10 rounded-none text-violet-400 border border-violet-500/20 group-hover:scale-110 transition-transform">
           <GraduationCap size={24} weight="duotone" />
         </div>
         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{$t('schools.details.groups')}</span>
@@ -178,9 +178,9 @@
     </div>
     
     <div class="bento-card p-8 border border-white/5 group hover:border-blue-500/40 transition-all relative overflow-hidden">
-      <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/5 blur-3xl rounded-full"></div>
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/5 blur-3xl rounded-none"></div>
       <div class="flex items-start justify-between mb-6">
-        <div class="p-3 bg-blue-500/10 rounded-2xl text-blue-400 border border-blue-500/20 group-hover:scale-110 transition-transform">
+        <div class="p-3 bg-blue-500/10 rounded-none text-blue-400 border border-blue-500/20 group-hover:scale-110 transition-transform">
           <Users size={24} weight="duotone" />
         </div>
         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{$t('common.students')}</span>
@@ -192,9 +192,9 @@
     </div>
 
     <div class="bento-card p-8 border border-white/5 group hover:border-fuchsia-500/40 transition-all relative overflow-hidden">
-      <div class="absolute -right-4 -top-4 w-24 h-24 bg-fuchsia-500/5 blur-3xl rounded-full"></div>
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-fuchsia-500/5 blur-3xl rounded-none"></div>
       <div class="flex items-start justify-between mb-6">
-        <div class="p-3 bg-fuchsia-500/10 rounded-2xl text-fuchsia-400 border border-fuchsia-500/20 group-hover:scale-110 transition-transform">
+        <div class="p-3 bg-fuchsia-500/10 rounded-none text-fuchsia-400 border border-fuchsia-500/20 group-hover:scale-110 transition-transform">
           <Target size={24} weight="duotone" />
         </div>
         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{$t('schools.details.occupancy')}</span>
@@ -208,9 +208,9 @@
     </div>
 
     <div class="bento-card p-8 border border-white/5 group hover:border-amber-500/40 transition-all relative overflow-hidden">
-      <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/5 blur-3xl rounded-full"></div>
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/5 blur-3xl rounded-none"></div>
       <div class="flex items-start justify-between mb-6">
-        <div class="p-3 bg-amber-500/10 rounded-2xl text-amber-400 border border-amber-500/20 group-hover:scale-110 transition-transform">
+        <div class="p-3 bg-amber-500/10 rounded-none text-amber-400 border border-amber-500/20 group-hover:scale-110 transition-transform">
           <TrendUp size={24} weight="duotone" />
         </div>
         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{$t('schools.details.performance')}</span>
@@ -226,7 +226,7 @@
   <div class="space-y-8">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-white/5 pb-8">
       <div class="flex items-center gap-4">
-        <div class="p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl">
+        <div class="p-3 bg-white/5 rounded-none border border-white/10 shadow-xl">
           <BookOpen size={28} weight="duotone" class="text-violet-400" />
         </div>
         <div>
@@ -238,11 +238,11 @@
       </div>
       
       <div class="flex items-center gap-6">
-        <div class="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md shadow-inner">
+        <div class="flex bg-black/40 p-1.5 rounded-none border border-white/5 backdrop-blur-md shadow-inner">
           {#each ['active', 'all'] as status}
             <button 
               onclick={() => selectedStatus = status}
-              class={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedStatus === status ? 'bg-white/10 text-white shadow-xl ring-1 ring-white/10' : 'text-slate-500 hover:text-slate-300'}`}
+              class={`px-6 py-2.5 rounded-none text-[10px] font-black uppercase tracking-widest transition-all ${selectedStatus === status ? 'bg-white/10 text-white shadow-xl ring-1 ring-white/10' : 'text-slate-500 hover:text-slate-300'}`}
             >
               {status === 'active' ? $t('common.active') : $t('schools.details.history')}
             </button>
@@ -250,7 +250,7 @@
         </div>
         
         <div class="relative group">
-          <select bind:value={selectedLevel} class="appearance-none bg-black/40 border border-white/5 rounded-2xl pl-6 pr-14 py-3.5 text-[10px] font-black text-white uppercase tracking-widest outline-none cursor-pointer hover:border-white/20 transition-all shadow-inner backdrop-blur-md">
+          <select bind:value={selectedLevel} class="appearance-none bg-black/40 border border-white/5 rounded-none pl-6 pr-14 py-3.5 text-[10px] font-black text-white uppercase tracking-widest outline-none cursor-pointer hover:border-white/20 transition-all shadow-inner backdrop-blur-md">
             <option value="">{$t('common.all')}</option>
             <option value="beginner">{$t('common.levels.beginner')}</option>
             <option value="intermediate">{$t('common.levels.intermediate')}</option>
@@ -264,7 +264,7 @@
     {#if filteredClasses.length === 0}
       <div class="bento-card border-dashed border-white/10 p-24 text-center space-y-10" in:fade>
         <div class="relative inline-block">
-          <div class="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center border border-white/10 mx-auto text-slate-700">
+          <div class="w-24 h-24 bg-white/5 rounded-none flex items-center justify-center border border-white/10 mx-auto text-slate-700">
             <Star size={48} weight="duotone" class="opacity-20 animate-pulse" />
           </div>
         </div>
@@ -274,7 +274,7 @@
         </div>
         <button 
           onclick={handleCreateClass}
-          class="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-10 py-5 rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-violet-flare ring-8 ring-violet-500/5"
+          class="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-10 py-5 rounded-none text-[11px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-violet-flare ring-8 ring-violet-500/5"
         >
           {$t('schools.create_class')}
         </button>
@@ -294,7 +294,7 @@
             <div class="relative z-10">
               <div class="flex items-start justify-between mb-8">
                 <div class="space-y-4">
-                  <span class={`text-[9px] font-bold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-xl border shadow-lg backdrop-blur-md ${
+                  <span class={`text-[9px] font-bold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-none border shadow-lg backdrop-blur-md ${
                     item.level === 'beginner' ? 'bg-violet-500/10 border-violet-500/20 text-violet-400' :
                     item.level === 'intermediate' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
                     'bg-amber-500/10 border-amber-500/20 text-amber-400'
@@ -307,13 +307,13 @@
                 <div class="flex flex-col gap-2 translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                   <button 
                     onclick={(e) => { e.stopPropagation(); handleEditClass(item.id); }} 
-                    class="p-3 bg-white/5 text-slate-400 hover:text-white hover:bg-violet-600/30 rounded-xl transition-all border border-white/10 shadow-2xl backdrop-blur-md"
+                    class="p-3 bg-white/5 text-slate-400 hover:text-white hover:bg-violet-600/30 rounded-none transition-all border border-white/10 shadow-2xl backdrop-blur-md"
                   >
                     <PencilSimple size={18} weight="bold" />
                   </button>
                   <button 
                     onclick={(e) => { e.stopPropagation(); deleteClass(item.id); }} 
-                    class="p-3 bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded-xl transition-all border border-white/10 shadow-2xl backdrop-blur-md"
+                    class="p-3 bg-white/5 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded-none transition-all border border-white/10 shadow-2xl backdrop-blur-md"
                   >
                     <Trash size={18} weight="bold" />
                   </button>
@@ -329,9 +329,9 @@
                     {item.max_students || '15'}
                   </span>
                 </div>
-                <div class="h-2 w-full bg-slate-800/50 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                <div class="h-2 w-full bg-slate-800/50 rounded-none overflow-hidden border border-white/5 shadow-inner">
                   <div 
-                    class="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full transition-all duration-1000 ease-out" 
+                    class="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-none transition-all duration-1000 ease-out" 
                     style={`width: ${Math.min(((item.students_count || 0) / (item.max_students || 15)) * 100, 100)}%`}
                   ></div>
                 </div>
@@ -340,7 +340,7 @@
             
             <button 
               onclick={() => handleViewClass(item.id)}
-              class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white hover:border-violet-500/50 hover:bg-violet-600/20 transition-all flex items-center justify-center gap-3 group/btn relative z-10 shadow-2xl backdrop-blur-md active:scale-95"
+              class="w-full py-4 bg-white/5 border border-white/10 rounded-none text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white hover:border-violet-500/50 hover:bg-violet-600/20 transition-all flex items-center justify-center gap-3 group/btn relative z-10 shadow-2xl backdrop-blur-md active:scale-95"
             >
               {$t('schools.details.class_panel')}
               <CaretRight size={16} weight="bold" class="transition-transform group-hover/btn:translate-x-1" />

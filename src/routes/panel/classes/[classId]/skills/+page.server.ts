@@ -16,17 +16,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
   const uid = locals.user.uid;
   const classId = params.classId;
-  const isMock = uid === 'chessnet-dev-uid';
-
-  if (isMock) {
-    return {
-      user: locals.user,
-      class: { id: classId, name: 'Clase Mock', level: 'beginner', owner_id: uid },
-      assignedSkills: [],
-      availableSkillsByCategory: {},
-      stats: { total_assigned: 0, total_available: 0, categories_count: 0 }
-    };
-  }
 
   try {
     const [classSnap, skillsSnap] = await Promise.all([

@@ -12,22 +12,22 @@
   
   <!-- Premium Background Effects -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 rounded-full blur-[140px] "></div>
-    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[100px]"></div>
+    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 rounded-none blur-[140px] "></div>
+    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-none blur-[100px]"></div>
   </div>
 
   <!-- Header -->
   <header class="relative z-10 p-8 flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-6 sm:gap-8">
     <a href="/" class="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group">
       <div class="relative">
-        <div class="absolute -inset-2 bg-violet-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+        <div class="absolute -inset-2 bg-violet-500/20 rounded-none blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
         <Logo size="w-10 h-10" iconSize="w-6 h-6" />
       </div>
       <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
     </a>
     
     <div class="flex items-center gap-6">
-      <div class="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10">
+      <div class="flex items-center gap-3 px-4 py-2 rounded-none bg-white/5 border border-white/10">
         <Shield class="w-4 h-4 text-violet-400" />
         <span class="text-xs font-bold text-white uppercase tracking-widest">{$t('privacy_data')}</span>
       </div>
@@ -53,7 +53,7 @@
           </p>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 not-prose">
-            <div class="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all group">
+            <div class="p-6 rounded-none bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all group">
               <Database class="w-8 h-8 text-violet-400 mb-4 group-hover:scale-110 transition-transform" />
               <h4 class="text-white font-bold mb-3">{$t('legal.privacy.cards.identity.title')}</h4>
               <ul class="text-xs text-surface-500 space-y-2 font-medium">
@@ -62,7 +62,7 @@
                 <li>• {$t('legal.privacy.cards.identity.item3')}</li>
               </ul>
             </div>
-            <div class="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all group">
+            <div class="p-6 rounded-none bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all group">
               <Eye class="w-8 h-8 text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
               <h4 class="text-white font-bold mb-3">{$t('legal.privacy.cards.usage.title')}</h4>
               <ul class="text-xs text-surface-500 space-y-2 font-medium">
@@ -71,7 +71,7 @@
                 <li>• {$t('legal.privacy.cards.usage.item3')}</li>
               </ul>
             </div>
-            <div class="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all group">
+            <div class="p-6 rounded-none bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all group">
               <Lock class="w-8 h-8 text-purple-400 mb-4 group-hover:scale-110 transition-transform" />
               <h4 class="text-white font-bold mb-3">{$t('legal.privacy.cards.technical.title')}</h4>
               <ul class="text-xs text-surface-500 space-y-2 font-medium">
@@ -108,7 +108,7 @@
           <p class="text-surface-400 font-medium leading-relaxed mb-8">{$t('legal.privacy.section4.desc')}</p>
           <div class="flex flex-wrap gap-2 not-prose">
             {#each [1, 2, 3, 4, 5] as item}
-              <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase text-white tracking-wider">
+              <span class="px-3 py-1.5 rounded-none bg-white/5 border border-white/10 text-[10px] font-black uppercase text-white tracking-wider">
                 {$t(`legal.privacy.rights.item${item}`)}
               </span>
             {/each}
@@ -131,3 +131,4 @@
     {$t('legal.privacy.footer')}
   </footer>
 </div>
+

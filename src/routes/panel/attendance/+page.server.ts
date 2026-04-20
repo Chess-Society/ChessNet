@@ -17,24 +17,6 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   const uid = locals.user.uid;
-  const isMock = uid === 'chessnet-dev-uid';
-
-  if (isMock) {
-    return {
-      user: locals.user,
-      attendanceData: {
-        todayStats: { totalClasses: 1, classesWithAttendance: 0, totalStudents: 2, presentStudents: 0, absentStudents: 0, attendanceRate: 0 },
-        centersWithClasses: [{
-          id: 'mock-school-1', name: 'Mock Academy', city: 'Localhost',
-          totalClasses: 1, classesToday: 0, totalStudents: 2, attendanceRate: 0, nextClass: null,
-          classes: [{ id: 'mock-class-1', name: 'Grupo Principiantes', time: 'Lunes 17:00', students: 2, present: 0, absent: 0, attendanceRate: 0, attendanceTaken: false, lastAttendance: null }]
-        }],
-        recentAttendance: [],
-        upcomingClasses: []
-      }
-    };
-  }
-
   try {
     const [schoolsSnap, studentsSnap] = await Promise.all([
       adminDb.collection('schools').where('owner_id', '==', uid).get(),

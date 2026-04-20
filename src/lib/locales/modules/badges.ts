@@ -1,4 +1,11 @@
 export const es = {
+    'badges.tier_gold': 'Nivel Oro',
+    'badges.tier_platinum': 'Nivel Platino',
+    'badges.tier_legendary': 'Nivel Legendario',
+    'badges.new_unlocked': 'Nueva Insignia Desbloqueada',
+    'badges.tier_bronze': 'Tier Bronze',
+    'badges.tier_silver': 'Tier Silver',
+
     'badges.title': 'Logros e Insignias',
     'badges.subtitle': 'Gamifica la experiencia de aprendizaje con recompensas únicas.',
     'badges.unlocked': 'Desbloqueado',

@@ -215,7 +215,7 @@
 <div class="chess-board-container" style="width: {size}px; height: {size}px;">
   <div 
     bind:this={boardElement}
-    class="chess-board relative border-2 border-slate-600 rounded-lg overflow-hidden"
+    class="chess-board relative border-2 border-slate-600 rounded-none overflow-hidden"
     style="width: 100%; height: 100%;"
   >
     {#each squares as { square, file, rank, piece, isSelected, isPossibleMove }}

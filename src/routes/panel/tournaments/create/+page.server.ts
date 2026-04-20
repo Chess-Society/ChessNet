@@ -13,15 +13,6 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   const uid = locals.user.uid;
-  const isMock = uid === 'chessnet-dev-uid';
-
-  if (isMock) {
-    return {
-      user: locals.user,
-      availableStudents: [{ id: 'mock-student-1', name: 'Alumno Mock', rating: 1200, school_name: 'Mock Academy', email: '' }],
-      schools: [{ id: 'mock-school-1', name: 'Mock Academy', city: 'Madrid' }]
-    };
-  }
 
   try {
     const [studentsSnap, schoolsSnap] = await Promise.all([

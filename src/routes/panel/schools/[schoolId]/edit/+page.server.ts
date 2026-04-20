@@ -11,7 +11,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   }
 
   const uid = locals.user.uid;
-  const isMock = uid === 'chessnet-dev-uid';
 
   const countries = [
     { code: 'ES', name: 'España' },
@@ -25,24 +24,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     'Allianz Seguros',
     'AXA Seguros'
   ];
-
-    if (isMock) {
-      const schoolData = {
-        id: schoolId,
-        name: "Centro de Prueba (MOCK)",
-        city: "Ciudad Real",
-        owner_id: uid,
-        created_at: new Date().toISOString()
-      };
-
-      return { 
-        user: locals.user, 
-        school: serializeRecord(schoolData), 
-        countries, 
-        insuranceCompanies 
-      };
-    }
-
     try {
       // Obtener centro usando Admin SDK
       const schoolSnap = await adminDb.collection("schools").doc(schoolId).get();
@@ -50,17 +31,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     let schoolData: any;
 
     if (!schoolSnap.exists) {
-      if (isMock) {
-        schoolData = {
-          id: schoolId,
-          name: "Centro de Prueba (MOCK)",
-          city: "Ciudad Real",
-          owner_id: uid,
-          created_at: new Date().toISOString()
-        };
-      } else {
         throw error(404, 'Centro no encontrado');
-      }
     } else {
       schoolData = { id: schoolSnap.id, ...schoolSnap.data() };
       

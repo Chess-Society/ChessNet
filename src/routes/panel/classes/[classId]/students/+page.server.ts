@@ -1,66 +1,52 @@
 import type { PageServerLoad } from './$types';
-import { db } from '$lib/firebase';
-import { 
-  doc, 
-  getDoc, 
-  collection, 
-  query, 
-  where, 
-  getDocs,
-  documentId
-} from "firebase/firestore";
+import { adminDb } from '$lib/firebase-admin';
+import { error } from '@sveltejs/kit';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   const classId = params.classId;
 
   if (!locals.user) {
-    return {
-      user: null,
-      class: null,
-      enrolledStudents: [],
-      availableStudents: [],
-      stats: { enrolled: 0, available: 0, capacity: 0, occupancyRate: 0 }
-    };
+    throw error(401, 'Usuario no autenticado');
   }
 
   try {
-    const classRef = doc(db, "classes", classId);
-    const classSnap = await getDoc(classRef);
+    // Fetch class details with proper authorization check
+    const classSnap = await adminDb.collection("classes").doc(classId).get();
 
-    if (!classSnap.exists() || classSnap.data().user_id !== locals.user.id) {
-       return { user: locals.user, class: null, enrolledStudents: [], availableStudents: [], stats: { enrolled: 0, available: 0, capacity: 0, occupancyRate: 0 } };
+    if (!classSnap.exists || classSnap.data()?.owner_id !== locals.user.uid) {
+       console.warn(`[ClassStudents] Unauthorized access attempt for class ${classId} by user ${locals.user.uid}`);
+       throw error(404, 'Clase no encontrada');
     }
 
     const classData = { id: classSnap.id, ...classSnap.data() };
 
     // Fetch all enrollments for this class
-    const qEnrollments = query(
-      collection(db, "class_students"),
-      where("class_id", "==", classId)
-    );
-    const enrollmentsSnap = await getDocs(qEnrollments);
+    const enrollmentsSnap = await adminDb.collection("class_students")
+      .where("class_id", "==", classId)
+      .where("owner_id", "==", locals.user.uid)
+      .get();
+      
     const enrolledIds = enrollmentsSnap.docs.map(doc => doc.data().student_id);
     
     // Fetch enrolled students details
     let enrolledStudents: any[] = [];
     if (enrolledIds.length > 0) {
+      // Chunked fetch to avoid Firestore IN limit (10 items in JS SDK, 30 in Admin SDK usually, but 10 is safest)
       for (let i = 0; i < enrolledIds.length; i += 10) {
         const chunk = enrolledIds.slice(i, i + 10);
-        const qStudents = query(
-          collection(db, "students"),
-          where(documentId(), "in", chunk)
-        );
-        const studentsSnap = await getDocs(qStudents);
+        const studentsSnap = await adminDb.collection("students")
+          .where("__name__", "in", chunk)
+          .get();
         enrolledStudents = [...enrolledStudents, ...studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))];
       }
     }
 
-    // Fetch all student details for the user to find available ones
-    const qAllStudents = query(
-      collection(db, "students"),
-      where("user_id", "==", locals.user.id)
-    );
-    const allStudentsSnap = await getDocs(qAllStudents);
+    // Fetch all students belonging to this owner to identify available ones
+    const allStudentsSnap = await adminDb.collection("students")
+      .where("owner_id", "==", locals.user.uid)
+      .get();
+      
     const allStudents = allStudentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
     // Available students are those NOT in enrolledIds
@@ -69,20 +55,20 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const stats = {
       enrolled: enrolledStudents.length,
       available: availableStudents.length,
-      capacity: (classData as any).max_students || 0,
+      capacity: (classData as any).max_students || 10, // Default to 10 if not set
       occupancyRate: (classData as any).max_students ? Math.round((enrolledStudents.length / (classData as any).max_students) * 100) : 0
     };
 
-    return {
-      user: locals.user,
+    return serializeRecord({
       class: classData,
       enrolledStudents,
       availableStudents,
       stats
-    };
+    });
 
   } catch (err: any) {
+    if (err.status) throw err;
     console.error('❌ Error in class students page load:', err);
-    return { user: locals.user, class: null, enrolledStudents: [], availableStudents: [], stats: { enrolled: 0, available: 0, capacity: 0, occupancyRate: 0 } };
+    throw error(500, 'Error al cargar la gestión de alumnos');
   }
 };

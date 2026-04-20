@@ -1,5 +1,5 @@
 import { adminAuth } from '$lib/firebase-admin';
-import { redirect, error, type RequestEvent } from '@sveltejs/kit';
+import { redirect, type RequestEvent } from '@sveltejs/kit';
 import { ADMIN_EMAILS } from '$lib/constants';
 
 export async function authenticate(event: RequestEvent) {
@@ -15,19 +15,6 @@ export async function authenticate(event: RequestEvent) {
     }
 
     try {
-        // Bypass SOLO para desarrollo local — bloqueado en producción
-        const isDev = process.env.NODE_ENV === 'development';
-        if (isDev && sessionCookie === 'mock-session-chessnet') {
-            event.locals.user = {
-                uid: 'chessnet-dev-uid',
-                email: 'admin@chessnet.pro',
-                name: 'ChessNet Developer',
-                picture: 'https://ui-avatars.com/api/?name=Chess+Net&background=7C3AED&color=fff'
-            };
-            event.locals.isAdmin = true;
-            return event.locals;
-        }
-
         const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
         event.locals.user = {
             uid: decodedClaims.uid,

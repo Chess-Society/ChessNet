@@ -39,6 +39,7 @@
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
+  import { appStore } from '$lib/stores/appStore';
 
   let { data } = $props<{ data: PageData }>();
 
@@ -78,6 +79,47 @@
     mixed: $t('common.levels.mixed')
   };
 
+  let quickName = $state('');
+  let quickLichess = $state('');
+  let isAdding = $state(false);
+  let showQuickAdd = $state(false);
+
+  async function handleQuickAdd() {
+    if (!quickName) return;
+    isAdding = true;
+    try {
+      const nameParts = quickName.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ') || 'Alumno';
+
+      const studentData = {
+        first_name: firstName,
+        last_name: lastName,
+        email: `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/\s+/g, '')}@chessnet.fake`,
+        lichess_username: quickLichess || '',
+        active: true,
+        school_id: classData.school_id,
+        level: 'beginner',
+        date_of_birth: '2015-01-01'
+      };
+      
+      const newStudent = await appStore.addStudent(studentData);
+      if (newStudent?.id) {
+        await appStore.enrollStudent(classData.id, newStudent.id);
+        quickName = '';
+        quickLichess = '';
+        showQuickAdd = false;
+        
+        // Refresh local state or reload
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      isAdding = false;
+    }
+  }
+
   const handleGoBack = () => {
     const fromSchool = $page.url.searchParams.get('from_school');
     const fromClass = $page.url.searchParams.get('from_class');
@@ -116,13 +158,19 @@
     try {
       isEnrolling = true;
       
+      const classId = classData?.id;
+      if (!classId) {
+        showError($t('common.error_occurred'));
+        return;
+      }
+
       const response = await fetch('/api/class-students', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          class_id: classData.id,
+          class_id: classId,
           student_id: studentId
         })
       });
@@ -169,7 +217,13 @@
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/api/class-students?class_id=${classData.id}&student_id=${studentId}`, {
+      const classId = classData?.id;
+      if (!classId) {
+        showError($t('common.error_occurred'));
+        return;
+      }
+
+      const response = await fetch(`/api/class-students?class_id=${classId}&student_id=${studentId}`, {
         method: 'DELETE'
       });
 
@@ -201,64 +255,111 @@
 </svelte:head>
 
 <div class="max-w-[1400px] mx-auto px-6 pb-24" in:fade>
-  <!-- Header Section -->
-  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-12 mb-16 pt-16">
-    <div class="space-y-8">
-      <button 
-        onclick={handleGoBack}
-        class="flex items-center gap-3 text-slate-500 hover:text-violet-400 transition-all group text-[10px] font-black uppercase tracking-[0.4em] font-outfit"
-      >
-        <CaretLeft weight="bold" class="transition-transform group-hover:-translate-x-2" />
-        {$t('common.back')}
-      </button>
-
-      <div class="flex items-center gap-10">
-        <div class="relative group">
-          <div class="absolute -inset-4 bg-violet-600/20 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 scale-95 group-hover:scale-100"></div>
-          <div class="w-20 h-20 bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-[2rem] flex items-center justify-center text-violet-400 shadow-2xl relative z-10 overflow-hidden group/icon hover:border-violet-500/50 transition-colors">
-            <div class="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-transparent to-transparent"></div>
-            <Users weight="duotone" size={40} class="relative z-10 group-hover/icon:scale-110 transition-transform duration-500" />
-          </div>
-        </div>
+  <!-- Unified Header -->
+  <div class="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-white/5 -mx-6 px-6 mb-12">
+    <div class="max-w-[1400px] mx-auto py-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-4">
+        <button 
+          onclick={handleGoBack}
+          class="p-3 hover:bg-white/5 rounded-none transition-all text-slate-500 hover:text-white"
+        >
+          <CaretLeft size={24} weight="bold" />
+        </button>
         <div>
-          <h1 class="text-4xl md:text-5xl font-outfit font-black text-white tracking-tighter uppercase leading-none mb-4">
-            {classData?.name}
+          <h1 class="text-2xl font-black text-white px-2 tracking-tighter uppercase font-outfit">
+            {$t('classes.students')}
           </h1>
-          <div class="flex items-center gap-3">
-             <span class="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit">
-               {$t('classes.capacity_management')}
-             </span>
-             <div class="w-1 h-1 rounded-full bg-slate-700"></div>
-             <span class="text-[10px] font-black text-violet-400 uppercase tracking-widest font-outfit">
-                {enrolledStudents.length} / {stats.capacity} {$t('classes.students_short')}
-             </span>
+          <div class="flex items-center gap-2 px-2">
+            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">
+              {classData?.name} • Gestionar Inscripciones
+            </span>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="flex items-center gap-4 bg-zinc-900/50 p-2.5 rounded-[2rem] border border-white/5 backdrop-blur-2xl shadow-2xl">
-      <button 
-        onclick={() => goto(`/panel/classes/${classData?.id}`)}
-        class="px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] text-white hover:bg-white/5 transition-all flex items-center gap-3 border border-transparent hover:border-white/10 font-outfit group"
-      >
-        <Eye weight="duotone" size={20} class="text-violet-400 group-hover:scale-110 transition-transform" />
-        Dashboard
-      </button>
-      <button 
-        onclick={() => goto(`/panel/students/create?classId=${classData?.id}&schoolId=${classData?.school_id}&returnTo=/panel/classes/${classData?.id}/students`)}
-        class="bg-white text-black px-10 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-violet-600 hover:text-white transition-all shadow-xl flex items-center gap-3 active:scale-95 font-outfit group"
-      >
-        <UserPlus weight="bold" size={20} class="group-hover:rotate-6 transition-transform" />
-        {$t('students.enroll_btn')}
-      </button>
+      <div class="flex items-center gap-3">
+        <button 
+          onclick={() => showQuickAdd = !showQuickAdd}
+          class={`px-8 py-3 rounded-none text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-3 font-outfit active:scale-95 border ${showQuickAdd ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-white text-black border-transparent hover:bg-violet-600 hover:text-white shadow-xl'}`}
+        >
+          {#if showQuickAdd}
+            <Plus weight="bold" size={18} class="rotate-45" />
+            {$t('common.cancel')}
+          {:else}
+            <UserPlus weight="duotone" size={18} />
+            {$t('students.quick_add') || 'Alta Rápida'}
+          {/if}
+        </button>
+
+        <div class="w-[1px] h-8 bg-white/10 mx-2"></div>
+
+        <button 
+          onclick={() => goto(`/panel/classes/${classData?.id}`)}
+          class="p-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-none transition-all"
+          title="Dashboard"
+        >
+          <Eye weight="duotone" size={24} />
+        </button>
+      </div>
     </div>
   </div>
 
+  {#if showQuickAdd}
+    <div 
+      class="bg-zinc-900/60 border border-white/5 rounded-none p-10 mb-16 shadow-2xl relative overflow-hidden group/quick"
+      transition:fly={{ y: -20, duration: 500, easing: cubicOut }}
+    >
+      <div class="absolute -right-32 -top-32 w-64 h-64 bg-violet-600/10 rounded-none blur-[100px] pointer-events-none group-hover/quick:bg-violet-600/20 transition-all duration-1000"></div>
+      
+      <div class="relative z-10 flex flex-col md:flex-row items-end gap-8">
+        <div class="flex-1 space-y-4 w-full">
+          <label for="quick-name" class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-4">{$t('students.name')}</label>
+          <div class="relative group/input">
+            <input 
+              id="quick-name"
+              type="text" 
+              bind:value={quickName}
+              placeholder="Ej: Juan Pérez"
+              class="w-full bg-zinc-950/80 border border-white/10 rounded-none px-6 py-5 text-white font-bold font-jakarta focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition-all outline-none"
+            />
+          </div>
+        </div>
+        <div class="flex-1 space-y-4 w-full">
+          <label for="quick-lichess" class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-4">Lichess Username (Opcional)</label>
+          <div class="relative group/input">
+            <div class="absolute left-6 top-1/2 -translate-y-1/2 text-sky-500">
+              <Sparkle weight="duotone" size={18} />
+            </div>
+            <input 
+              id="quick-lichess"
+              type="text" 
+              bind:value={quickLichess}
+              placeholder="p.e. drnykterstein"
+              class="w-full bg-zinc-950/80 border border-white/10 rounded-none pl-12 pr-6 py-5 text-white font-bold font-jakarta focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 transition-all outline-none"
+            />
+          </div>
+        </div>
+        <button 
+          onclick={handleQuickAdd}
+          disabled={!quickName || isAdding}
+          class="bg-violet-600 text-white h-[66px] px-12 rounded-none text-[11px] font-black uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all shadow-glow-violet active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center gap-4"
+        >
+          {#if isAdding}
+            <div class="w-4 h-4 border-2 border-white/20 border-t-white rounded-none animate-spin"></div>
+            {$t('common.processing')}
+          {:else}
+            <UserPlus weight="bold" size={20} />
+            {$t('common.create') || 'Crear'}
+          {/if}
+        </button>
+      </div>
+    </div>
+  {/if}
+
   <!-- Interactive Metrics Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-    <div class="bento-card p-8 bg-zinc-900/40 border border-white/5 rounded-3xl flex items-center gap-6 shadow-2xl group/stat">
-      <div class="w-14 h-14 bg-violet-500/10 rounded-2xl border border-violet-500/20 flex items-center justify-center text-violet-400 shadow-glow-violet-mini group-hover/stat:scale-110 transition-transform">
+    <div class="bento-card p-8 bg-zinc-900/40 border border-white/5 rounded-none flex items-center gap-6 shadow-2xl group/stat">
+      <div class="w-14 h-14 bg-violet-500/10 rounded-none border border-violet-500/20 flex items-center justify-center text-violet-400 shadow-glow-violet-mini group-hover/stat:scale-110 transition-transform">
         <UserCheck weight="duotone" size={28} />
       </div>
       <div>
@@ -267,8 +368,8 @@
       </div>
     </div>
 
-    <div class="bento-card p-8 bg-zinc-900/40 border border-white/5 rounded-3xl flex items-center gap-6 shadow-2xl group/stat">
-      <div class="w-14 h-14 bg-blue-500/10 rounded-2xl border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-glow-blue-mini group-hover/stat:scale-110 transition-transform">
+    <div class="bento-card p-8 bg-zinc-900/40 border border-white/5 rounded-none flex items-center gap-6 shadow-2xl group/stat">
+      <div class="w-14 h-14 bg-blue-500/10 rounded-none border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-glow-blue-mini group-hover/stat:scale-110 transition-transform">
         <Users weight="duotone" size={28} />
       </div>
       <div>
@@ -277,8 +378,8 @@
       </div>
     </div>
 
-    <div class="bento-card p-8 bg-zinc-900/40 border border-white/5 rounded-3xl flex items-center gap-6 shadow-2xl group/stat">
-      <div class="w-14 h-14 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-glow-emerald-mini group-hover/stat:scale-110 transition-transform">
+    <div class="bento-card p-8 bg-zinc-900/40 border border-white/5 rounded-none flex items-center gap-6 shadow-2xl group/stat">
+      <div class="w-14 h-14 bg-emerald-500/10 rounded-none border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-glow-emerald-mini group-hover/stat:scale-110 transition-transform">
         <ChartBar weight="duotone" size={28} />
       </div>
       <div>
@@ -287,9 +388,9 @@
       </div>
     </div>
 
-    <div class="bento-card p-8 bg-zinc-900/40 border border-white/5 rounded-3xl flex items-center gap-6 shadow-2xl group/stat overflow-hidden relative">
+    <div class="bento-card p-8 bg-zinc-900/40 border border-white/5 rounded-none flex items-center gap-6 shadow-2xl group/stat overflow-hidden relative">
       <div class="absolute inset-0 bg-gradient-to-r from-violet-600/10 to-transparent opacity-0 group-hover/stat:opacity-100 transition-opacity"></div>
-      <div class="w-14 h-14 bg-amber-500/10 rounded-2xl border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-glow-amber-mini group-hover/stat:scale-110 transition-transform relative z-10">
+      <div class="w-14 h-14 bg-amber-500/10 rounded-none border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-glow-amber-mini group-hover/stat:scale-110 transition-transform relative z-10">
         <ChartPie weight="duotone" size={28} />
       </div>
       <div class="relative z-10">
@@ -308,46 +409,67 @@
              <UserCheck weight="duotone" size={32} class="text-violet-500" />
              {$t('classes.class_list')}
            </h2>
-           <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-12 italic">Verified Personnel Registry</p>
+           <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-4 md:ml-12 italic">{$t('classes.enrolled_students_desc') || 'Listado de alumnos inscritos en esta clase'}</p>
         </div>
-        <div class="flex items-center gap-3 text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 py-2 bg-zinc-950 rounded-xl border border-white/5">
-           <span class="text-white bg-violet-600/20 px-2 py-0.5 rounded border border-violet-500/30 font-outfit">{enrolledStudents.length}</span>
+        <div class="flex items-center gap-3 text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 py-2 bg-zinc-950 rounded-none border border-white/5">
+           <span class="text-white bg-violet-600/20 px-2 py-0.5 rounded-none border border-violet-500/30 font-outfit">{enrolledStudents.length}</span>
            {$t('classes.students_short')}
         </div>
       </div>
-
       {#if enrolledStudents.length === 0}
-        <div class="bento-card py-32 px-12 text-center space-y-8 bg-zinc-900/30 border-2 border-dashed border-white/5 rounded-[3rem] group/empty shadow-inner">
-          <div class="w-24 h-24 bg-zinc-950 rounded-[1.75rem] border border-white/5 flex items-center justify-center mx-auto text-slate-800 shadow-[inset_0_4px_15px_rgba(0,0,0,0.8)] group-hover/empty:border-violet-500/20 transition-all duration-1000">
+        <div class="bento-card py-32 px-12 text-center space-y-8 bg-zinc-900/30 border-2 border-dashed border-white/5 rounded-none group/empty shadow-inner">
+          <div class="w-24 h-24 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center mx-auto text-slate-800 shadow-[inset_0_4px_15px_rgba(0,0,0,0.8)] group-hover/empty:border-violet-500/20 transition-all duration-1000">
              <Users weight="duotone" size={48} />
           </div>
           <div class="space-y-3">
             <h3 class="text-white font-black uppercase text-lg tracking-tighter font-outfit">{$t('classes.no_enrolled')}</h3>
             <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] font-jakarta max-w-[240px] mx-auto leading-relaxed">{$t('classes.start_enrolling_desc') || 'Initialize your educational roster by allocating students from the candidate pool.'}</p>
           </div>
+          
+          {#if import.meta.env.DEV}
+            <button 
+              onclick={async () => {
+                const mocks = [
+                  { first_name: 'Magnus', last_name: 'Carlsen', email: 'magnus@lichess.org', lichess_username: 'drnykterstein', level: 'advanced', active: true, school_id: classData.school_id, date_of_birth: '2010-11-30' },
+                  { first_name: 'Hikaru', last_name: 'Nakamura', email: 'hikaru@lichess.org', lichess_username: 'GMHikaru', level: 'advanced', active: true, school_id: classData.school_id, date_of_birth: '2012-12-09' }
+                ];
+                for (const mock of mocks) {
+                  const student = await appStore.addStudent(mock);
+                  if (student?.id) {
+                    await appStore.enrollStudent(classData.id, student.id);
+                  }
+                }
+                window.location.reload();
+              }}
+              class="bg-zinc-950 text-amber-500 mx-auto px-10 py-5 rounded-none text-[10px] font-black uppercase tracking-[0.4em] border border-amber-500/20 hover:bg-amber-500 hover:text-black transition-all flex items-center gap-4 active:scale-95 font-outfit"
+            >
+              <Sparkle weight="bold" size={20} />
+              AUTO-FILL DEMO (MAGNUS/HIKARU)
+            </button>
+          {/if}
         </div>
       {:else}
         <div class="space-y-4">
           {#each enrolledStudents as student, i}
              <div 
-               class="bento-card p-6 bg-zinc-900/40 border border-white/5 hover:border-violet-500/30 hover:bg-zinc-900/60 transition-all group rounded-3xl flex items-center justify-between shadow-2xl relative overflow-hidden"
+               class="bento-card p-6 bg-zinc-900/40 border border-white/5 hover:border-violet-500/30 hover:bg-zinc-900/60 transition-all group rounded-none flex items-center justify-between shadow-2xl relative overflow-hidden"
                in:fly={{ x: -20, delay: i * 50, duration: 600, easing: cubicOut }}
              >
                 <div class="absolute inset-0 bg-gradient-to-r from-violet-600/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
                 <div class="flex items-center gap-6 relative z-10">
-                  <div class="w-16 h-16 bg-zinc-950 rounded-2xl border border-white/5 flex items-center justify-center text-violet-400 font-black font-outfit text-xl group-hover:scale-110 group-hover:border-violet-500/50 transition-all duration-700 shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)] relative overflow-hidden">
+                  <div class="w-16 h-16 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center text-violet-400 font-black font-outfit text-xl group-hover:scale-110 group-hover:border-violet-500/50 transition-all duration-700 shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)] relative overflow-hidden">
                      <div class="absolute inset-0 bg-gradient-to-br from-violet-600/10 to-transparent"></div>
                      <span class="relative z-10">{student.first_name.charAt(0)}{student.last_name.charAt(0)}</span>
                   </div>
                   <div>
                     <h4 class="text-white font-black uppercase text-sm mb-1.5 font-outfit tracking-tight group-hover:text-violet-400 transition-colors">{student.first_name} {student.last_name}</h4>
                     <div class="flex items-center gap-3">
-                       <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 border border-white/5 rounded text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                       <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 border border-white/5 rounded-none text-[9px] font-black text-slate-500 uppercase tracking-widest">
                           <IdentificationBadge size={12} class="text-slate-600" />
                           {calculateAge(student.date_of_birth)} {$t('students.years_short')}
                        </div>
-                       <div class={`px-2 py-0.5 rounded border text-[9px] font-black uppercase tracking-widest ${levelColors[student.chess_level] || 'bg-slate-500/10 text-slate-400 border-slate-500/10'}`}>
+                       <div class={`px-2 py-0.5 rounded-none border text-[9px] font-black uppercase tracking-widest ${levelColors[student.chess_level] || 'bg-slate-500/10 text-slate-400 border-slate-500/10'}`}>
                          {levelLabels[student.chess_level] || 'MIXED'}
                        </div>
                     </div>
@@ -357,14 +479,14 @@
                 <div class="flex items-center gap-3 relative z-10">
                   <button 
                     onclick={() => handleEditStudent(student.id)}
-                    class="w-12 h-12 bg-zinc-950 rounded-2xl border border-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-violet-600 hover:border-violet-400 transition-all shadow-inner group/action active:scale-90"
+                    class="w-12 h-12 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-violet-600 hover:border-violet-400 transition-all shadow-inner group/action active:scale-90"
                     title="Edit"
                   >
                     <PencilSimple weight="duotone" size={20} class="group-hover/action:rotate-12 transition-transform" />
                   </button>
                   <button 
                     onclick={() => handleUnenrollStudent(student.id)}
-                    class="w-12 h-12 bg-zinc-950 rounded-2xl border border-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-red-600 hover:border-red-400 transition-all shadow-inner group/action active:scale-90"
+                    class="w-12 h-12 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-red-600 hover:border-red-400 transition-all shadow-inner group/action active:scale-90"
                     title="Unenroll"
                   >
                     <UserMinus weight="duotone" size={20} class="group-hover/action:scale-110 transition-transform" />
@@ -384,28 +506,28 @@
               <Plus weight="bold" size={32} class="text-blue-500" />
               {$t('classes.available_students')}
             </h2>
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-12 italic">Unallocated Personnel Assets</p>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-4 md:ml-12 italic">{$t('classes.available_students_desc') || 'Alumnos del centro que pueden ser inscritos'}</p>
          </div>
 
          <!-- Enhanced Command Search -->
          <div class="relative group font-outfit">
-           <div class="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-violet-600/20 to-blue-600/20 rounded-[1.75rem] blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-700"></div>
+           <div class="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-violet-600/20 to-blue-600/20 rounded-none blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-700"></div>
            <div class="relative">
-             <MagnifyingGlass weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 size={20} text-slate-600 group-focus-within:text-blue-400 transition-colors" />
+             <MagnifyingGlass weight="bold" size={20} class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-blue-400 transition-colors" />
              <input
                type="text"
-               placeholder="IDENTIFY CANDIDATE BY NAME OR EMAIL..."
+               placeholder={$t('classes.search_placeholder') || 'BUSCAR POR NOMBRE O EMAIL...'}
                bind:value={searchQuery}
-               class="w-full bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-[1.5rem] py-5 pl-16 pr-8 text-[11px] text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/50 transition-all font-black uppercase tracking-[0.2em] shadow-2xl"
+               class="w-full bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-none py-5 pl-16 pr-8 text-[11px] text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/50 transition-all font-black uppercase tracking-[0.2em] shadow-2xl"
              />
            </div>
          </div>
       </div>
 
       {#if stats.available <= 0}
-        <div class="bento-card p-12 bg-zinc-900/60 border border-violet-500/30 rounded-[3rem] text-center space-y-6 relative overflow-hidden group/max shadow-2xl">
+        <div class="bento-card p-12 bg-zinc-900/60 border border-violet-500/30 rounded-none text-center space-y-6 relative overflow-hidden group/max shadow-2xl">
            <div class="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-transparent to-transparent"></div>
-           <div class="w-24 h-24 bg-zinc-950 rounded-[2rem] flex items-center justify-center mx-auto text-violet-400 shadow-glow-violet-mini mb-4 animate-pulse-slow">
+           <div class="w-24 h-24 bg-zinc-950 rounded-none flex items-center justify-center mx-auto text-violet-400 shadow-glow-violet-mini mb-4 animate-pulse-slow">
               <WarningCircle weight="duotone" size={52} />
            </div>
            <div class="space-y-3 relative z-10">
@@ -414,24 +536,24 @@
            </div>
         </div>
       {:else if filteredAvailableStudents.length === 0}
-        <div class="bento-card py-32 px-12 text-center space-y-8 bg-zinc-900/30 border-2 border-dashed border-white/5 rounded-[3rem] group/empty shadow-inner">
-          <div class="w-24 h-24 bg-zinc-950 rounded-[1.75rem] border border-white/5 flex items-center justify-center mx-auto text-slate-800 shadow-[inset_0_4px_15px_rgba(0,0,0,0.8)] group-hover/empty:border-blue-500/20 transition-all duration-1000">
+        <div class="bento-card py-32 px-12 text-center space-y-8 bg-zinc-900/30 border-2 border-dashed border-white/5 rounded-none group/empty shadow-inner">
+          <div class="w-24 h-24 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center mx-auto text-slate-800 shadow-[inset_0_4px_15px_rgba(0,0,0,0.8)] group-hover/empty:border-blue-500/20 transition-all duration-1000">
              <MagnifyingGlass weight="duotone" size={48} />
           </div>
           <div class="space-y-3">
             <h3 class="text-white font-black uppercase text-lg tracking-tighter font-outfit">{$t('classes.no_matches')}</h3>
-            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] font-jakarta max-w-[240px] mx-auto leading-relaxed">{$t('classes.no_matches_desc') || 'No personnel assets matching the specified identifiers were found in the candidate pool.'}</p>
+            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] font-jakarta max-w-[240px] mx-auto leading-relaxed">{$t('classes.no_matches_desc') || 'No se han encontrado alumnos que coincidan con la búsqueda.'}</p>
           </div>
         </div>
       {:else}
         <div class="space-y-4">
           {#each filteredAvailableStudents as student, i}
              <div 
-               class="bento-card p-6 bg-zinc-900/30 border border-white/5 hover:border-blue-500/30 hover:bg-zinc-900/50 transition-all group rounded-3xl flex items-center justify-between shadow-2xl relative overflow-hidden"
+               class="bento-card p-6 bg-zinc-900/30 border border-white/5 hover:border-blue-500/30 hover:bg-zinc-900/50 transition-all group rounded-none flex items-center justify-between shadow-2xl relative overflow-hidden"
                in:fly={{ x: 20, delay: i * 50, duration: 600, easing: cubicOut }}
              >
                 <div class="flex items-center gap-6">
-                  <div class="w-16 h-16 bg-zinc-950 rounded-2xl border border-white/5 flex items-center justify-center text-slate-600 font-black font-outfit text-xl group-hover:scale-110 group-hover:border-blue-500/50 group-hover:text-blue-400 transition-all duration-700 shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)]">
+                  <div class="w-16 h-16 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center text-slate-600 font-black font-outfit text-xl group-hover:scale-110 group-hover:border-blue-500/50 group-hover:text-blue-400 transition-all duration-700 shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)]">
                      {student.first_name.charAt(0)}{student.last_name.charAt(0)}
                   </div>
                   <div>
@@ -443,11 +565,11 @@
                 <button 
                   onclick={() => handleEnrollStudent(student.id)}
                   disabled={isEnrolling}
-                  class="w-14 h-14 bg-zinc-950 text-slate-500 hover:text-black hover:bg-white rounded-2xl border border-white/5 flex items-center justify-center transition-all shadow-xl active:scale-90 group/link disabled:opacity-50"
+                  class="w-14 h-14 bg-zinc-950 text-slate-500 hover:text-black hover:bg-white rounded-none border border-white/5 flex items-center justify-center transition-all shadow-xl active:scale-90 group/link disabled:opacity-50"
                   title="Enroll"
                 >
                   {#if isEnrolling}
-                    <div class="w-6 h-6 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-6 h-6 border-4 border-violet-500 border-t-transparent rounded-none animate-spin"></div>
                   {:else}
                     <Plus weight="bold" size={24} class="group-hover/link:rotate-90 transition-transform duration-500" />
                   {/if}

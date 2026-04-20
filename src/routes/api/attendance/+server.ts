@@ -146,7 +146,7 @@ export const PUT: RequestHandler = async (event) => {
     
     // 2. Crear un mapa de student_id -> doc_id para búsqueda rápida
     const existingMap = new Map();
-    existingSnapshot.docs.forEach(doc => {
+    existingSnapshot.docs.forEach((doc: any) => {
       existingMap.set(doc.data().student_id, doc.id);
     });
 

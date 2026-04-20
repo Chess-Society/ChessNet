@@ -2,7 +2,7 @@
   let { size = "w-11 h-11", iconSize = "w-6 h-6", className = "" } = $props();
 </script>
 
-<div class={`${size} rounded-2xl bg-[#09090B] border border-white/5 flex items-center justify-center shadow-lg shadow-violet-500/10 transition-all duration-300 hover:shadow-violet-500/30 hover:-translate-y-0.5 ${className}`}>
+<div class={`${size} rounded-none bg-[#09090B] border border-white/5 flex items-center justify-center shadow-lg shadow-violet-500/10 transition-all duration-300 hover:shadow-violet-500/30 hover:-translate-y-0.5 ${className}`}>
   <!-- Custom Shield SVG -->
   <svg 
     class={`${iconSize} text-violet-500`}

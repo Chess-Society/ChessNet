@@ -11,33 +11,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   }
 
   const uid = locals.user.uid;
-  const isMock = uid === 'chessnet-dev-uid';
 
-  if (isMock) {
-    const schoolData = {
-      id: schoolId,
-      name: "Centro de Prueba (MOCK)",
-      city: "Ciudad Real",
-      owner_id: uid,
-      created_at: new Date().toISOString()
-    };
-    
-    return { 
-      user: locals.user, 
-      school: serializeRecord(schoolData), 
-      classes: [], 
-      stats: {
-        totalClasses: 0,
-        activeClasses: 0,
-        inactiveClasses: 0,
-        totalStudents: 0,
-        totalCapacity: 0,
-        occupancyRate: 0,
-        levels: { beginner: 0, intermediate: 0, advanced: 0, mixed: 0 },
-        averageClassSize: 0
-      }
-    };
-  }
+
+
 
   try {
     // Intentar obtener el centro usando Admin SDK con reintentos
@@ -47,7 +23,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     // Necesario porque el cliente puede navegar antes de que Firestore propague la escritura
     let attempts = 0;
     const delays = [300, 500, 700, 1000, 1000, 1000, 1000, 1000, 1000, 1000]; // 10 intentos
-    while (!schoolSnap.exists && attempts < 10 && !isMock) {
+    while (!schoolSnap.exists && attempts < 10) {
       console.log(`🔄 School ${schoolId} not found, retrying attempt ${attempts + 1}/10...`);
       await new Promise(resolve => setTimeout(resolve, delays[attempts] || 1000));
       schoolSnap = await adminDb.collection("schools").doc(schoolId).get();
@@ -57,18 +33,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     let schoolData: any;
 
     if (!schoolSnap.exists) {
-      if (isMock) {
-        // Mock fallback para desarrollo
-        schoolData = {
-          id: schoolId,
-          name: "Centro de Prueba (MOCK)",
-          city: "Ciudad Real",
-          owner_id: uid,
-          created_at: new Date().toISOString()
-        };
-      } else {
         throw error(404, 'Centro no encontrado');
-      }
     } else {
       schoolData = { id: schoolSnap.id, ...schoolSnap.data() };
       

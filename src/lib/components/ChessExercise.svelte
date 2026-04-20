@@ -115,7 +115,7 @@
   }
 </script>
 
-<div class="chess-exercise bg-slate-800 rounded-xl p-6">
+<div class="chess-exercise bg-slate-800 rounded-none p-6">
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center space-x-3">
@@ -135,7 +135,7 @@
     <div class="flex items-center space-x-2">
       <button
         onclick={resetExercise}
-        class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors"
+        class="p-2 rounded-none bg-slate-700 hover:bg-slate-600 transition-colors"
         title={$t('simulator.exercise.reset')}
       >
         <RotateCcw class="w-4 h-4" />
@@ -148,7 +148,7 @@
     <p class="text-slate-300 mb-4">{exercise.description}</p>
     
     {#if exercise.explanation && isCompleted}
-      <div class="bg-slate-700 rounded-lg p-4">
+      <div class="bg-slate-700 rounded-none p-4">
         <h4 class="font-semibold text-slate-200 mb-2">{$t('simulator.exercise.explanation')}</h4>
         <p class="text-slate-300">{exercise.explanation}</p>
       </div>
@@ -195,7 +195,7 @@
       </div>
       
       {#if showHint && currentHintIndex > 0 && exercise.hints}
-        <div class="bg-slate-700 rounded-lg p-3">
+        <div class="bg-slate-700 rounded-none p-3">
           <p class="text-slate-300 text-sm">
             {exercise.hints[currentHintIndex - 1]}
           </p>
@@ -241,7 +241,7 @@
       <h4 class="font-semibold text-slate-200 mb-3">{$t('simulator.exercise.solution')}</h4>
       <div class="flex flex-wrap gap-2">
         {#each exercise.solution || [] as move, index}
-          <span class="px-3 py-1 bg-slate-700 rounded-lg text-sm font-mono">
+          <span class="px-3 py-1 bg-slate-700 rounded-none text-sm font-mono">
             {index + 1}. {move}
           </span>
         {/each}

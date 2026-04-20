@@ -16,7 +16,7 @@ export const GET: RequestHandler = async (event) => {
       .orderBy('unlockedAt', 'desc')
       .get();
 
-    const achievements = snapshot.docs.map(doc =>
+    const achievements = snapshot.docs.map((doc: any) =>
       serializeRecord({ id: doc.id, ...doc.data() })
     );
 
@@ -32,11 +32,6 @@ export const GET: RequestHandler = async (event) => {
 export const POST: RequestHandler = async (event) => {
   const { user } = await authenticate(event);
   if (!user) return json({ error: 'No autorizado' }, { status: 401 });
-
-  // Bloquear modo dev-uid en producción
-  if (user.uid === 'chessnet-dev-uid' && process.env.NODE_ENV !== 'development') {
-    return json({ error: 'No permitido' }, { status: 403 });
-  }
 
   try {
     const body = await event.request.json();
@@ -98,7 +93,7 @@ export const PATCH: RequestHandler = async (event) => {
     }
 
     const batch = adminDb.batch();
-    snapshot.docs.forEach(doc => {
+    snapshot.docs.forEach((doc: any) => {
       batch.update(doc.ref, { notified: true });
     });
     await batch.commit();

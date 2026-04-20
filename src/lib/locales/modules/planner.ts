@@ -8,7 +8,7 @@ export const es = {
     'planner.mark_done': 'Marcar como completado',
     'planner.explore_analytics': 'Explorar Analíticas',
     'planner.next_event_tag': 'Próximo',
-    'planner.students_count': '{count} Alumnos',
+    'planner.students_count': '{count} Estudiantes',
     'planner.location_open': 'Abierto',
     'planner.view_details': 'Ver detalles',
     'planner.today': 'HOY',
@@ -42,6 +42,6 @@ export const es = {
     'planner.classes': 'CLASES',
     'planner.tournaments': 'TORNEOS',
     'planner.tip_title': 'Rendimiento Profundo',
-    'planner.tip_desc': 'Controla el progreso de los alumnos en clases y torneos para optimizar tus planes de entrenamiento.',
+    'planner.tip_desc': 'Controla el progreso de los estudiantes en clases y torneos para optimizar tus planes de entrenamiento.',
 };
 

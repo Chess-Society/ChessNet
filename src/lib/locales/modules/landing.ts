@@ -1,4 +1,6 @@
 export const es = {
+    'landing.features.multischool.title': 'Gestión Multi-Escuela',
+
     'landing.hero.tag': 'El Futuro de la Educación de Ajedrez',
     'landing.hero.title1': 'Potencia Tu',
     'landing.hero.title2': 'Academia de Ajedrez',

@@ -43,8 +43,8 @@
   <!-- Search and Actions Bar -->
   <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
     <div class="relative w-full md:w-96 group">
-      <div class="absolute inset-0 bg-primary-500/10 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-      <div class="relative flex items-center bg-black/40 border border-white/5 rounded-2xl px-6 py-4 focus-within:border-primary-500/50 transition-all">
+      <div class="absolute inset-0 bg-primary-500/10 rounded-none blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+      <div class="relative flex items-center bg-black/40 border border-white/5 rounded-none px-6 py-4 focus-within:border-primary-500/50 transition-all">
         <MagnifyingGlass class="w-5 h-5 text-slate-500 mr-3" />
         <input 
           type="text" 
@@ -57,7 +57,7 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <button class="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2">
+      <button class="px-6 py-4 bg-white/5 border border-white/10 rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2">
         <UserPlus class="w-4 h-4" />
         {$t('admin.users.export_csv')}
       </button>
@@ -65,7 +65,7 @@
   </div>
 
   <!-- Users Grid (Mobile) / Table (Desktop) -->
-  <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden">
+  <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-none shadow-2xl overflow-hidden">
     <!-- Desktop Table View -->
     <div class="hidden lg:block overflow-x-auto">
       <table class="w-full text-left">
@@ -83,9 +83,9 @@
             <tr class="hover:bg-white/[0.02] transition-colors group">
               <td class="px-8 py-6">
                 <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform">
+                  <div class="w-12 h-12 rounded-none bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform">
                     {#if user.photoURL}
-                      <img src={user.photoURL} alt="" class="w-full h-full object-cover rounded-2xl" />
+                      <img src={user.photoURL} alt="" class="w-full h-full object-cover rounded-none" />
                     {:else}
                       <UserCircle class="w-6 h-6" />
                     {/if}
@@ -99,7 +99,7 @@
               <td class="px-8 py-6">
                 {#if user.badgesCount > 0}
                   <div class="flex items-center gap-2">
-                    <div class="p-2 bg-violet-500/10 rounded-lg border border-violet-500/20">
+                    <div class="p-2 bg-violet-500/10 rounded-none border border-violet-500/20">
                       <Medal weight="fill" class="w-3.5 h-3.5 text-violet-400" />
                     </div>
                     <span class="text-xs font-black text-violet-300 italic">{user.badgesCount}</span>
@@ -110,12 +110,12 @@
               </td>
               <td class="px-8 py-6">
                 {#if getPlanStatus(user) === 'pro'}
-                  <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/20 text-[9px] font-black uppercase tracking-widest">
+                  <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 text-amber-500 rounded-none border border-amber-500/20 text-[9px] font-black uppercase tracking-widest">
                     <Crown weight="fill" class="w-3 h-3" />
                     {$t('admin.users.plan.premium')}
                   </div>
                 {:else}
-                  <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 text-slate-500 rounded-xl border border-white/5 text-[9px] font-black uppercase tracking-widest">
+                  <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 text-slate-500 rounded-none border border-white/5 text-[9px] font-black uppercase tracking-widest">
                     {$t('admin.users.plan.free')}
                   </div>
                 {/if}
@@ -130,14 +130,14 @@
                 <div class="flex items-center gap-2">
                    <button 
                     onclick={() => onEdit(user)}
-                    class="p-3 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/30 transition-all pointer-interactions"
+                    class="p-3 bg-white/5 border border-white/10 rounded-none text-slate-400 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/30 transition-all pointer-interactions"
                     title={$t('admin.users.actions.manage')}
                    >
                     <IdentificationBadge weight="bold" class="w-4 h-4" />
                    </button>
                    <button 
                     onclick={() => onImpersonate(user)}
-                    class="p-3 bg-white/5 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-primary-500/20 hover:border-primary-500/30 transition-all pointer-interactions"
+                    class="p-3 bg-white/5 border border-white/10 rounded-none text-slate-400 hover:text-white hover:bg-primary-500/20 hover:border-primary-500/30 transition-all pointer-interactions"
                     title={$t('admin.users.actions.impersonate')}
                    >
                     <Eye weight="bold" class="w-4 h-4" />
@@ -156,7 +156,7 @@
         <div class="p-6 space-y-4 hover:bg-white/[0.01] transition-colors">
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/5 overflow-hidden">
+              <div class="w-10 h-10 rounded-none bg-slate-800 border border-white/5 overflow-hidden">
                 {#if user.photoURL}
                   <img src={user.photoURL} alt="" class="w-full h-full object-cover" />
                 {:else}
@@ -184,14 +184,14 @@
             <div class="flex items-center gap-2">
               <button 
                 onclick={() => onEdit(user)}
-                class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-400 hover:text-white transition-all"
+                class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-none text-slate-400 hover:text-white transition-all"
               >
                 <IdentificationBadge weight="bold" class="w-3.5 h-3.5" />
                 <span class="text-[9px] font-black uppercase tracking-widest">{$t('admin.users.actions.manage')}</span>
               </button>
               <button 
                 onclick={() => onImpersonate(user)}
-                class="p-2.5 bg-white/5 border border-white/10 rounded-lg text-slate-400"
+                class="p-2.5 bg-white/5 border border-white/10 rounded-none text-slate-400"
               >
                 <Eye weight="bold" class="w-3.5 h-3.5" />
               </button>
@@ -203,7 +203,7 @@
 
     {#if users.length === 0}
       <div class="p-20 text-center space-y-4">
-        <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto text-slate-700">
+        <div class="w-16 h-16 bg-white/5 rounded-none flex items-center justify-center mx-auto text-slate-700">
           <MagnifyingGlass class="w-8 h-8" />
         </div>
         <p class="text-slate-500 italic text-sm">{$t('admin.users.no_results')}</p>

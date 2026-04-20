@@ -12,29 +12,13 @@ export const GET: RequestHandler = async (event) => {
   }
 
   try {
-    const isMock = user.uid === 'chessnet-dev-uid';
-    try {
-      const snapshot = await adminDb.collection("students")
-        .where("owner_id", "==", user.uid)
-        .orderBy("created_at", "desc")
-        .get();
+    const snapshot = await adminDb.collection("students")
+      .where("owner_id", "==", user.uid)
+      .orderBy("created_at", "desc")
+      .get();
         
-      const students = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
-      return json({ students });
-    } catch (dbError) {
-      if (isMock) {
-        return json({ 
-          students: [
-            { id: 'mock-s1', name: 'Magnus Carlsen', rating: 2850, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() },
-            { id: 'mock-s2', name: 'Hikaru Nakamura', rating: 2800, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() },
-            { id: 'mock-s3', name: 'Fabiano Caruana', rating: 2790, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() },
-            { id: 'mock-s4', name: 'Alireza Firouzja', rating: 2770, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() },
-            { id: 'mock-s5', name: 'Anish Giri', rating: 2760, owner_id: 'chessnet-dev-uid', createdAt: new Date().toISOString() }
-          ] 
-        });
-      }
-      throw dbError;
-    }
+    const students = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    return json({ students });
   } catch (error: any) {
     console.error('❌ Error in GET students API:', error.message);
     return json({ error: 'Error al obtener los alumnos' }, { status: 500 });
@@ -48,18 +32,14 @@ export const POST: RequestHandler = async (event) => {
   }
 
   try {
-    const isMock = user.uid === 'chessnet-dev-uid';
-    
     // 1. Verificar plan y límites usando el helper centralizado
-    if (!isMock) {
-      const canAddStudent = await checkStudentLimit(user.uid);
-      if (!canAddStudent) {
-        return json({ 
-          error: 'Límite alcanzado', 
-          message: 'Has alcanzado el límite de 10 alumnos del plan gratuito. ¡Pásate a Premium para gestionar alumnos ilimitados!',
-          code: 'LIMIT_REACHED'
-        }, { status: 403 });
-      }
+    const canAddStudent = await checkStudentLimit(user.uid);
+    if (!canAddStudent) {
+      return json({ 
+        error: 'Límite alcanzado', 
+        message: 'Has alcanzado el límite de 10 alumnos del plan gratuito. ¡Pásate a Premium para gestionar alumnos ilimitados!',
+        code: 'LIMIT_REACHED'
+      }, { status: 403 });
     }
 
     const { request } = event;
@@ -71,15 +51,21 @@ export const POST: RequestHandler = async (event) => {
       updated_at: new Date().toISOString()
     };
 
-    try {
-      const docRef = await adminDb.collection("students").add(studentData);
-      return json({ success: true, student: { id: docRef.id, ...studentData } });
-    } catch (dbError) {
-      if (isMock) {
-        return json({ success: true, student: { id: 'mock-student-' + Date.now(), ...studentData } });
-      }
-      throw dbError;
+    const docRef = await adminDb.collection("students").add(studentData);
+    const studentId = docRef.id;
+
+    // Sincronizar con class_students si se proporcionó una clase
+    if (body.class_id) {
+      const enrollmentData = {
+        class_id: body.class_id,
+        student_id: studentId,
+        owner_id: user.uid,
+        enrolled_at: new Date().toISOString()
+      };
+      await adminDb.collection("class_students").add(enrollmentData);
     }
+
+    return json({ success: true, student: { id: studentId, ...studentData } });
   } catch (error: any) {
     console.error('❌ Error in POST students API:', error.message);
     return json({ error: 'Error al crear el alumno' }, { status: 500 });
@@ -106,6 +92,9 @@ export const PUT: RequestHandler = async (event) => {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
+    const oldData = docSnap.data();
+    const oldClassId = oldData?.class_id;
+
     const updateData = {
       ...body,
       updated_at: new Date().toISOString()
@@ -115,7 +104,31 @@ export const PUT: RequestHandler = async (event) => {
     delete updateData.created_at;
 
     await docRef.update(updateData);
-    return json({ success: true, student: { id, ...docSnap.data(), ...updateData } });
+
+    // Sincronizar con class_students si la clase cambió
+    if (updateData.class_id !== undefined && updateData.class_id !== oldClassId) {
+      // 1. Eliminar inscripciones anteriores (debería haber solo una, pero usamos batch por seguridad)
+      const enrollmentsq = await adminDb.collection("class_students")
+        .where("student_id", "==", id)
+        .where("owner_id", "==", user.uid)
+        .get();
+      
+      const batch = adminDb.batch();
+      enrollmentsq.docs.forEach((doc: any) => batch.delete(doc.ref));
+      await batch.commit();
+
+      // 2. Crear nueva inscripción si hay un nuevo class_id
+      if (updateData.class_id) {
+        await adminDb.collection("class_students").add({
+          class_id: updateData.class_id,
+          student_id: id,
+          owner_id: user.uid,
+          enrolled_at: new Date().toISOString()
+        });
+      }
+    }
+
+    return json({ success: true, student: { id, ...oldData, ...updateData } });
   } catch (error: any) {
     console.error('❌ Error in PUT students API:', error.message);
     return json({ error: 'Error al actualizar el alumno' }, { status: 500 });
@@ -140,7 +153,17 @@ export const DELETE: RequestHandler = async (event) => {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    await docRef.delete();
+    // Eliminar también registros de inscripción
+    const enrollmentsq = await adminDb.collection("class_students")
+      .where("student_id", "==", id)
+      .where("owner_id", "==", user.uid)
+      .get();
+    
+    const batch = adminDb.batch();
+    enrollmentsq.docs.forEach((doc: any) => batch.delete(doc.ref));
+    batch.delete(docRef);
+    await batch.commit();
+
     return json({ success: true });
   } catch (error: any) {
     console.error('❌ Error in DELETE students API:', error.message);

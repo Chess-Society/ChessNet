@@ -194,11 +194,11 @@
 
 {#if isOpen}
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div class="bg-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="bg-slate-800 rounded-none max-w-4xl w-full max-h-[90vh] overflow-y-auto">
       <!-- Header -->
       <div class="flex items-center justify-between p-6 border-b border-slate-700">
         <div class="flex items-center space-x-3">
-          <div class="p-2 bg-yellow-500/20 rounded-lg">
+          <div class="p-2 bg-yellow-500/20 rounded-none">
             <Trophy class="w-6 h-6 text-yellow-500" />
           </div>
           <div>
@@ -208,7 +208,7 @@
             </p>
           </div>
         </div>
-        <button onclick={close} class="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+        <button onclick={close} class="p-2 hover:bg-slate-700 rounded-none transition-colors">
           <X class="w-5 h-5 text-slate-400" />
         </button>
       </div>
@@ -233,7 +233,7 @@
       <!-- Content -->
       <div class="p-6">
         {#if error}
-          <div class="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center space-x-3">
+          <div class="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded-none flex items-center space-x-3">
             <AlertCircle class="w-5 h-5 text-red-400 flex-shrink-0" />
             <p class="text-red-300">{error}</p>
           </div>
@@ -251,7 +251,7 @@
                 type="text"
                 bind:value={formData.name}
                 placeholder={$t('tournaments.form.name_placeholder')}
-                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
+                class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 required
               />
             </div>
@@ -261,7 +261,7 @@
                 <label for="tournament-format" class="block text-sm font-medium text-slate-300 mb-2">
                   {$t('tournaments.form.format')}
                 </label>
-                <select id="tournament-format" bind:value={formData.format} class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
+                <select id="tournament-format" bind:value={formData.format} class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
                   <option value="swiss">{$t('tournaments.type_swiss')}</option>
                   <option value="round_robin">{$t('tournaments.type_round_robin')}</option>
                   <option value="knockout">{$t('tournaments.type_knockout')}</option>
@@ -272,7 +272,7 @@
                 <label for="tournament-school" class="block text-sm font-medium text-slate-300 mb-2">
                   {$t('tournaments.form.school')}
                 </label>
-                <select id="tournament-school" bind:value={formData.school_id} class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
+                <select id="tournament-school" bind:value={formData.school_id} class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
                   <option value="">{$t('tournaments.form.no_school')}</option>
                   {#each schools as school}
                     <option value={school.id}>{school.name}</option>
@@ -291,7 +291,7 @@
                   type="text"
                   bind:value={formData.time_control}
                   placeholder={$t('tournaments.form.time_control_placeholder')}
-                  class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
+                  class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 />
               </div>
 
@@ -303,7 +303,7 @@
                   id="tournament-start"
                   type="datetime-local"
                   bind:value={formData.startAt}
-                  class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
+                  class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 />
               </div>
 
@@ -315,7 +315,7 @@
                   id="tournament-end"
                   type="datetime-local"
                   bind:value={formData.endAt}
-                  class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
+                  class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 />
               </div>
             </div>
@@ -329,7 +329,7 @@
                 bind:value={formData.notes}
                 placeholder={$t('tournaments.form.notes_placeholder')}
                 rows="3"
-                class="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
+                class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
               ></textarea>
             </div>
           </div>
@@ -357,23 +357,23 @@
                     type="text"
                     bind:value={searchTerm}
                     placeholder={$t('tournaments.players.search_placeholder')}
-                    class="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
+                    class="flex-1 bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                   />
                   <button
                     onclick={selectAllStudents}
-                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs transition-colors"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-none text-xs transition-colors"
                   >
                     {$t('common.all')}
                   </button>
                   <button
                     onclick={deselectAllStudents}
-                    class="px-4 py-2 hover:bg-slate-700 text-slate-400 rounded-lg text-xs transition-colors"
+                    class="px-4 py-2 hover:bg-slate-700 text-slate-400 rounded-none text-xs transition-colors"
                   >
                     {$t('common.none')}
                   </button>
                 </div>
 
-                <div class="max-h-64 overflow-y-auto border border-slate-700 rounded-lg">
+                <div class="max-h-64 overflow-y-auto border border-slate-700 rounded-none">
                   {#each filteredStudents as student}
                     <label class="flex items-center p-3 hover:bg-slate-700/50 cursor-pointer border-b border-slate-700 last:border-b-0">
                       <input
@@ -395,7 +395,7 @@
                 </div>
 
                 {#if formData.selected_students.length < 2}
-                  <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg flex items-center space-x-3">
+                  <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-none flex items-center space-x-3">
                     <Info class="w-5 h-5 text-yellow-400 flex-shrink-0" />
                     <p class="text-yellow-300 text-sm">
                       {$t('tournaments.players.min_required')}
@@ -411,7 +411,7 @@
           <div class="space-y-6">
             <h3 class="text-lg font-medium text-white">{$t('tournaments.confirm.title')}</h3>
 
-            <div class="bg-slate-700/50 rounded-lg p-4 space-y-3">
+            <div class="bg-slate-700/50 rounded-none p-4 space-y-3">
               <div class="flex justify-between">
                 <span class="text-slate-400">{$t('common.name')}:</span>
                 <span class="text-white font-medium">{formData.name}</span>
@@ -441,7 +441,7 @@
 
             <div>
               <h4 class="text-sm font-medium text-slate-300 mb-2">{$t('tournaments.confirm.registered_players')}</h4>
-              <div class="bg-slate-700/50 rounded-lg p-4 max-h-40 overflow-y-auto">
+              <div class="bg-slate-700/50 rounded-none p-4 max-h-40 overflow-y-auto">
                 {#each formData.selected_students as studentId}
                   {@const student = students.find(s => s.id === studentId)}
                   {#if student}
@@ -461,14 +461,14 @@
       <div class="flex items-center justify-between p-6 border-t border-slate-700">
         <div class="flex items-center space-x-4">
           {#if step > 1}
-            <button onclick={prevStep} class="px-6 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">
+            <button onclick={prevStep} class="px-6 py-2 hover:bg-slate-700 text-slate-300 rounded-none transition-colors">
               {$t('common.previous')}
             </button>
           {/if}
         </div>
 
         <div class="flex items-center space-x-4">
-          <button onclick={close} class="px-6 py-2 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors">
+          <button onclick={close} class="px-6 py-2 hover:bg-slate-700 text-slate-300 rounded-none transition-colors">
             {$t('common.cancel')}
           </button>
           
@@ -476,7 +476,7 @@
             <button 
               onclick={nextStep}
               disabled={(step === 1 && !formData.name.trim()) || (step === 2 && formData.selected_students.length < 2)}
-              class="px-6 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors font-semibold"
+              class="px-6 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-none transition-colors font-semibold"
             >
               {$t('common.next')}
             </button>
@@ -484,7 +484,7 @@
             <button 
               onclick={createTournament}
               disabled={!isFormValid || isLoading}
-              class="px-6 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors font-semibold flex items-center"
+              class="px-6 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-none transition-colors font-semibold flex items-center"
             >
               {#if isLoading}
                 <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>

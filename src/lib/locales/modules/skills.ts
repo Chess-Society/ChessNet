@@ -1,4 +1,18 @@
 export const es = {
+    'skills.delete_error': 'Error al eliminar la habilidad',
+    'skills.import_error': 'Error al importar banco de ejercicios',
+    'skills.process_error': 'Ocurrió un error en el procesado',
+    'skills.reorder_error': 'Error ordenando',
+    'skills.save_error': 'No se pudo guardar',
+    'skills.ui.unsaved': 'Cambios sin guardar',
+    'skills.edit.discard_btn': 'Descartar',
+    'skills.edit.save_btn': 'Guardar Cambios',
+    'skills.edit.tips_spec_desc': 'Configuración técnica para los ejercicios',
+    'skills.edit.discard_title': 'Descartar Cambios',
+    'skills.edit.discard_msg': '¿Estás seguro de que quieres desechar el trabajo actual?',
+    'skills.edit.discard_confirm': 'Sí, descartar',
+    'skills.edit.discard_cancel': 'No, seguir editando',
+
     'skills.title': 'Gestor Académico',
     'skills.subtitle': 'Curricula, Temarios y Seguimiento de Habilidades',
     'skills.category_fundamentals': 'Fundamentos',

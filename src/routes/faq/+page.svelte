@@ -99,7 +99,7 @@
           Todo lo que necesitas saber para dominar la gestión de tu academia de ajedrez con ChessNet.
         </p>
       </div>
-      <div class="w-24 h-24 bg-violet-600/10 rounded-[2.5rem] flex items-center justify-center text-violet-500 border border-violet-500/20 shadow-2xl shadow-violet-500/10">
+      <div class="w-24 h-24 bg-violet-600/10 rounded-none flex items-center justify-center text-violet-500 border border-violet-500/20 shadow-2xl shadow-violet-500/10">
         <Lifebuoy size={48} weight="duotone" />
       </div>
     </div>
@@ -111,7 +111,7 @@
         {#each faqs as category}
           <button 
             onclick={() => activeCategory = category.id}
-            class="w-full flex items-center gap-3 px-6 py-4 rounded-2xl transition-all border font-outfit font-bold uppercase tracking-widest text-[10px] {activeCategory === category.id ? 'bg-white text-zinc-950 border-white shadow-xl scale-105' : 'bg-white/5 border-white/5 text-slate-500 hover:bg-white/10'}"
+            class="w-full flex items-center gap-3 px-6 py-4 rounded-none transition-all border font-outfit font-bold uppercase tracking-widest text-[10px] {activeCategory === category.id ? 'bg-white text-zinc-950 border-white shadow-xl scale-105' : 'bg-white/5 border-white/5 text-slate-500 hover:bg-white/10'}"
           >
             <category.icon weight={activeCategory === category.id ? 'bold' : 'duotone'} size={18} />
             {category.title}
@@ -123,11 +123,11 @@
       <div class="md:col-span-3 space-y-4">
         {#each faqs.find(c => c.id === activeCategory)?.items || [] as item}
           <div 
-            class="bg-zinc-900/50 border border-white/5 p-8 rounded-[2.5rem] backdrop-blur-xl hover:bg-white/[0.02] transition-colors group"
+            class="bg-zinc-900/50 border border-white/5 p-8 rounded-none backdrop-blur-xl hover:bg-white/[0.02] transition-colors group"
             in:fly={{ y: 20, duration: 400 }}
           >
             <div class="flex items-start gap-4">
-              <div class="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-400 shrink-0 group-hover:scale-110 transition-transform">
+              <div class="w-8 h-8 rounded-none bg-violet-600/10 flex items-center justify-center text-violet-400 shrink-0 group-hover:scale-110 transition-transform">
                 <Question weight="bold" size={16} />
               </div>
               <div class="space-y-4">
@@ -140,9 +140,9 @@
           </div>
         {/each}
         
-        <div class="p-10 bg-gradient-to-br from-violet-600/20 to-indigo-900/20 border border-violet-500/20 rounded-[3rem] text-center space-y-6">
+        <div class="p-10 bg-gradient-to-br from-violet-600/20 to-indigo-900/20 border border-violet-500/20 rounded-none text-center space-y-6">
           <p class="text-white font-outfit font-bold">¿No encuentras lo que buscas?</p>
-          <a href="/panel/support" class="inline-flex h-12 px-8 bg-violet-600 hover:bg-violet-500 text-white rounded-full items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all">
+          <a href="/panel/support" class="inline-flex h-12 px-8 bg-violet-600 hover:bg-violet-500 text-white rounded-none items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all">
             Hablar con Soporte
           </a>
         </div>
@@ -150,3 +150,4 @@
     </div>
   </div>
 </div>
+

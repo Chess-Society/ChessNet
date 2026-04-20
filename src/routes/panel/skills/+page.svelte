@@ -239,7 +239,7 @@
 
   const getDifficultyColor = (diff: any) => {
     const d = Number(diff) || (diff === 'beginner' ? 1 : diff === 'intermediate' ? 3 : 5);
-    if (d <= 2) return 'from-emerald-500/20 to-emerald-500/5 text-emerald-400 border-emerald-500/20';
+    if (d <= 2) return 'from-violet-500/20 to-violet-500/5 text-violet-400 border-violet-500/20';
     if (d <= 4) return 'from-orange-500/20 to-orange-500/5 text-orange-400 border-orange-500/20';
     return 'from-rose-500/20 to-rose-500/5 text-rose-400 border-rose-500/20';
   };
@@ -396,23 +396,23 @@
   <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
     <div class="space-y-6">
       <div class="flex items-center gap-3">
-        <div class="px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-[10px] font-black text-violet-400 uppercase tracking-widest">
+        <div class="px-3 py-1 rounded-none bg-violet-500/10 border border-violet-500/20 text-[10px] font-black text-violet-400 uppercase tracking-widest font-outfit">
           {$t('skills.ui.academic_manager')}
         </div>
-        <div class="w-1 h-1 rounded-full bg-zinc-800"></div>
+        <div class="w-1 h-1 rounded-none bg-zinc-800"></div>
         <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{$t('skills.ui.slogan')}</div>
       </div>
       
       <div class="flex items-center gap-6">
-        <div class="w-20 h-20 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-[28px] flex items-center justify-center text-white shadow-2xl shadow-violet-600/20 relative group overflow-hidden">
+        <div class="w-20 h-20 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-none flex items-center justify-center text-white shadow-2xl shadow-violet-600/20 relative group overflow-hidden">
           <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <Path weight="duotone" class="w-10 h-10 group-hover:scale-110 transition-transform duration-500" />
         </div>
         <div>
-          <h1 class="text-5xl font-black text-white tracking-tight uppercase italic drop-shadow-2xl">
+          <h1 class="text-5xl font-black text-white tracking-tight uppercase italic drop-shadow-2xl font-outfit">
             {$t('skills.title')}
           </h1>
-          <p class="text-zinc-500 text-lg font-medium flex items-center gap-3 mt-1">
+          <p class="text-zinc-500 text-lg font-bold flex items-center gap-3 mt-1 font-outfit">
             <Lightning weight="fill" class="w-5 h-5 text-amber-500" />
             {$t('skills.ui.slogan')}
           </p>
@@ -423,7 +423,7 @@
     <div class="flex flex-wrap items-center gap-4">
         <button 
         onclick={() => goto('/panel/skills/create')}
-        class="px-10 py-5 rounded-2xl bg-white text-black shadow-2xl hover:shadow-white/10 hover:-translate-y-1 transition-all flex items-center gap-3 text-xs font-black tracking-widest uppercase group active:scale-95"
+        class="px-10 py-5 rounded-none bg-white text-black shadow-2xl hover:shadow-white/10 hover:-translate-y-1 transition-all flex items-center gap-3 text-xs font-black tracking-widest uppercase group active:scale-95"
       >
         <Plus weight="bold" class="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
         <span>{$t('skills.create_title')}</span>
@@ -433,58 +433,58 @@
 
   <!-- Stats Bento -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div class="group bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 hover:bg-zinc-900/60 transition-all duration-500 shadow-2xl overflow-hidden relative">
-      <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/10 rounded-full blur-3xl group-hover:bg-violet-600/20 transition-all duration-700"></div>
+    <div class="group bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-none p-8 hover:bg-zinc-900/60 transition-all duration-500 shadow-2xl overflow-hidden relative">
+      <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-600/10 blur-3xl group-hover:bg-violet-600/20 transition-all duration-700"></div>
       <div class="flex items-center justify-between mb-8">
-        <div class="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform duration-500">
+        <div class="w-12 h-12 rounded-none bg-violet-500/10 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform duration-500">
           <SquaresFour weight="duotone" class="w-6 h-6" />
         </div>
-        <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-wider">
+        <div class="flex items-center gap-1.5 px-3 py-1 rounded-none bg-violet-500/10 text-violet-400 text-[9px] font-black uppercase tracking-wider">
           <TrendUp weight="bold" class="w-3 h-3" />
           {$t('skills.ui.active_tag')}
         </div>
       </div>
       <div class="space-y-1">
-        <span class="text-4xl font-black text-white block tabular-nums leading-none">{stats.total}</span>
-        <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest">{$t('skills.ui.global_topics')}</span>
+        <span class="text-4xl font-black text-white block tabular-nums leading-none font-outfit">{stats.total}</span>
+        <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest font-jakarta">{$t('skills.ui.global_topics')}</span>
       </div>
     </div>
 
-    <div class="group bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 hover:bg-zinc-900/60 transition-all duration-500 shadow-2xl relative">
-      <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-600/10 rounded-full blur-3xl group-hover:bg-amber-600/20 transition-all duration-700"></div>
+    <div class="group bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-none p-8 hover:bg-zinc-900/60 transition-all duration-500 shadow-2xl relative">
+      <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-600/10 blur-3xl group-hover:bg-amber-600/20 transition-all duration-700"></div>
       <div class="flex items-center justify-between mb-8">
-        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform duration-500">
+        <div class="w-12 h-12 rounded-none bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform duration-500">
           <Star weight="duotone" class="w-6 h-6" />
         </div>
-        <div class="text-[9px] font-black text-amber-400 uppercase tracking-widest border border-amber-500/20 px-3 py-1 rounded-full">{$t('skills.ui.level_avg')}</div>
+        <div class="text-[9px] font-black text-amber-400 uppercase tracking-widest border border-amber-500/20 px-3 py-1 rounded-none">{$t('skills.ui.level_avg')}</div>
       </div>
       <div class="space-y-1">
-        <span class="text-4xl font-black text-white block tabular-nums leading-none">{stats.advanced}</span>
-        <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest">{$t('skills.ui.advanced_mastery')}</span>
+        <span class="text-4xl font-black text-white block tabular-nums leading-none font-outfit">{stats.advanced}</span>
+        <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest font-jakarta">{$t('skills.ui.advanced_mastery')}</span>
       </div>
     </div>
 
-    <div class="group bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 hover:bg-zinc-900/60 transition-all duration-500 shadow-2xl relative">
-      <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-600/20 transition-all duration-700"></div>
+    <div class="group bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-none p-8 hover:bg-zinc-900/60 transition-all duration-500 shadow-2xl relative">
+      <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-600/10 blur-3xl group-hover:bg-blue-600/20 transition-all duration-700"></div>
       <div class="flex items-center justify-between mb-8">
-        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-500">
+        <div class="w-12 h-12 rounded-none bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-500">
           <Clock weight="duotone" class="w-6 h-6" />
         </div>
-        <div class="text-[9px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full">{$t('skills.ui.estimates')}</div>
+        <div class="text-[9px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-none font-outfit">{$t('skills.ui.estimates')}</div>
       </div>
       <div class="space-y-1">
-        <span class="text-4xl font-black text-white block tabular-nums leading-none">{stats.hours}<span class="text-xl text-zinc-500 ml-1">h</span></span>
-        <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest">{$t('skills.ui.course_duration')}</span>
+        <span class="text-4xl font-black text-white block tabular-nums leading-none font-outfit">{stats.hours}<span class="text-xl text-zinc-500 ml-1">h</span></span>
+        <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest font-jakarta">{$t('skills.ui.course_duration')}</span>
       </div>
     </div>
 
-    <div class="group bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[32px] p-8 shadow-2xl shadow-indigo-600/20 relative overflow-hidden flex flex-col justify-between">
+    <div class="group bg-gradient-to-br from-violet-600 to-indigo-700 rounded-none p-8 shadow-2xl shadow-indigo-600/20 relative overflow-hidden flex flex-col justify-between">
       <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
       <div class="relative z-10 flex justify-between items-start">
-        <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white">
+        <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center text-white">
           <Trophy weight="fill" class="w-6 h-6" />
         </div>
-        <div class="text-[10px] font-black text-white/80 uppercase tracking-[0.2em] bg-black/20 px-3 py-1 rounded-full">{$t('skills.ui.premium_path')}</div>
+        <div class="text-[10px] font-black text-white/80 uppercase tracking-[0.2em] bg-black/20 px-3 py-1 rounded-none font-outfit">{$t('skills.ui.premium_path')}</div>
       </div>
       <div class="relative z-10 space-y-4">
         <div>
@@ -496,14 +496,14 @@
   </div>
 
   <!-- AI PDF Card -->
-  <div class="relative group overflow-hidden bg-zinc-900/60 backdrop-blur-xl border border-white/5 rounded-[40px] p-1 shadow-2xl">
+  <div class="relative group overflow-hidden bg-zinc-900/60 backdrop-blur-xl border border-white/5 rounded-none p-1 shadow-2xl">
     <div class="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-transparent to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-    <div class="relative bg-zinc-950/80 rounded-[38px] p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-10">
+    <div class="relative bg-zinc-950/80 rounded-none p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-10">
       <div class="flex flex-col md:flex-row items-center gap-8 text-center md:text-left flex-1">
-        <div class="w-24 h-24 bg-violet-600/10 rounded-[32px] border border-violet-500/20 flex items-center justify-center text-violet-500 relative group-hover:scale-110 transition-all duration-700">
+        <div class="w-24 h-24 bg-violet-600/10 rounded-none border border-violet-500/20 flex items-center justify-center text-violet-500 relative group-hover:scale-110 transition-all duration-700">
           <div class="absolute inset-0 bg-violet-500/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <FilePdf weight="duotone" class="w-12 h-12 relative z-10" />
-          <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center text-white shadow-xl">
+          <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-none bg-violet-600 flex items-center justify-center text-white shadow-xl">
             <Sparkle weight="bold" class="w-4 h-4" />
           </div>
         </div>
@@ -516,7 +516,7 @@
       <div class="flex flex-col items-center gap-4 w-full lg:w-fit">
         <input type="file" accept=".pdf" class="hidden" bind:this={fileInput} onchange={handlePDFUpload} />
         {#if !isExtractingAI}
-          <button onclick={() => fileInput.click()} class="w-full lg:w-auto px-12 py-5 rounded-2xl bg-white text-black font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 hover:bg-violet-500 hover:text-white transition-all shadow-2xl active:scale-95 group/btn">
+          <button onclick={() => fileInput.click()} class="w-full lg:w-auto px-12 py-5 rounded-none bg-white text-black font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 hover:bg-violet-500 hover:text-white transition-all shadow-2xl active:scale-95 group/btn">
             <FileArrowUp weight="bold" class="w-5 h-5 group-hover/btn:-translate-y-1 transition-transform" />
             {$t('skills.ui.extract_ai')}
           </button>
@@ -529,8 +529,8 @@
               </span>
               <span class="text-zinc-500">{Math.round(extractionProgress)}%</span>
             </div>
-            <div class="h-3 bg-zinc-900 rounded-full border border-white/5 overflow-hidden p-0.5">
-              <div class="h-full bg-gradient-to-r from-violet-600 to-blue-500 rounded-full transition-all duration-300" style="width: {extractionProgress}%"></div>
+            <div class="h-3 bg-zinc-900 rounded-none border border-white/5 overflow-hidden p-0.5">
+              <div class="h-full bg-gradient-to-r from-violet-600 to-blue-500 rounded-none transition-all duration-300" style="width: {extractionProgress}%"></div>
             </div>
           </div>
         {/if}
@@ -540,7 +540,7 @@
 
   <!-- Search & Toggles -->
   <div class="sticky top-6 z-40">
-    <div class="bg-zinc-900/60 backdrop-blur-2xl border border-white/10 p-3 rounded-[32px] shadow-2xl flex flex-col lg:flex-row gap-3">
+    <div class="bg-zinc-900/60 backdrop-blur-2xl border border-white/10 p-3 rounded-none shadow-2xl flex flex-col lg:flex-row gap-3">
       <div class="flex-1 relative group">
         <label for="skill-search" class="sr-only">{$t('skills.ui.search_placeholder')}</label>
         <MagnifyingGlass class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-violet-400 transition-colors" />
@@ -549,7 +549,7 @@
           type="text" 
           bind:value={searchQuery} 
           placeholder={$t('skills.ui.search_placeholder')} 
-          class="w-full bg-zinc-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all font-medium" 
+          class="w-full bg-zinc-950/50 border border-white/5 rounded-none py-4 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all font-medium" 
         />
       </div>
       <div class="flex flex-wrap items-center gap-2">
@@ -557,7 +557,7 @@
         <select 
           id="skill-category-filter"
           bind:value={selectedCategory} 
-          class="bg-zinc-950/50 border border-white/5 rounded-2xl p-4 text-white font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all min-w-[180px]"
+          class="bg-zinc-950/50 border border-white/5 rounded-none p-4 text-white font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all min-w-[180px]"
         >
           <option value="all">{$t('skills.category_all')}</option>
           {#each categories.filter(c => c.id !== 'all') as category}
@@ -570,20 +570,20 @@
             if (!isSelectionMode) selectedIds = [];
             else if (selectedIds.length === 0) toast(`${$t('common.info')}: ${$t('skills.ui.esc_to_exit')}`);
           }} 
-          class="h-[60px] px-6 rounded-2xl border border-white/5 flex items-center gap-2 font-bold uppercase tracking-widest text-[10px] transition-all {isSelectionMode ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30' : 'bg-zinc-950/50 text-zinc-400 hover:text-white'}"
+          class="h-[60px] px-6 rounded-none border border-white/5 flex items-center gap-2 font-bold uppercase tracking-widest text-[10px] transition-all {isSelectionMode ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30' : 'bg-zinc-950/50 text-zinc-400 hover:text-white'}"
           aria-pressed={isSelectionMode}
           aria-label={$t('skills.ui.select_skills')}
         >
           <CheckCircle weight={isSelectionMode ? 'fill' : 'bold'} class="w-4 h-4" />
           {$t('skills.ui.select_skills')}
         </button>
-        <button onclick={() => isGrouped = !isGrouped} class="h-[60px] px-6 rounded-2xl border border-white/5 flex items-center gap-2 font-bold uppercase tracking-widest text-[10px] transition-all {isGrouped ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-zinc-950/50 text-zinc-400 hover:text-white'}">
+        <button onclick={() => isGrouped = !isGrouped} class="h-[60px] px-6 rounded-none border border-white/5 flex items-center gap-2 font-bold uppercase tracking-widest text-[10px] transition-all {isGrouped ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-zinc-950/50 text-zinc-400 hover:text-white'}">
           <Path weight="bold" class="w-4 h-4" />
           {$t('skills.ui.group_by_category')}
         </button>
-        <button onclick={handleImportSyllabus} disabled={isImporting} class="h-[60px] px-8 rounded-2xl bg-zinc-950/50 border border-white/5 text-white hover:bg-zinc-900 transition-all flex items-center gap-2 group/btn relative overflow-hidden">
+        <button onclick={handleImportSyllabus} disabled={isImporting} class="h-[60px] px-8 rounded-none bg-zinc-950/50 border border-white/5 text-white hover:bg-zinc-900 transition-all flex items-center gap-2 group/btn relative overflow-hidden">
           {#if isImporting}
-            <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-none animate-spin"></div>
           {:else}
             <Lightning weight="fill" class="w-5 h-5 text-yellow-400" />
           {/if}
@@ -599,7 +599,7 @@
       {#each skillsByCategory as module}
         <section class="space-y-8" in:fade>
           <div class="flex items-center gap-4 border-b border-white/5 pb-4">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+            <div class="w-12 h-12 rounded-none bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
               <SquaresFour weight="fill" class="w-6 h-6" />
             </div>
             <div>
@@ -613,7 +613,7 @@
               items: module.items, 
               dragDisabled: isSelectionMode || searchQuery !== '', 
               flipDurationMs: dragDuration,
-              dropTargetStyle: { outline: '2px dashed rgba(139, 92, 246, 0.5)', borderRadius: '32px' }
+              dropTargetStyle: { outline: '2px dashed rgba(139, 92, 246, 0.5)', borderRadius: '0px' }
             }}
             onconsider={(e) => handleDndConsider(module.id, e)}
             onfinalize={(e) => handleDndFinalize(module.id, e)}
@@ -634,7 +634,7 @@
         items: filteredSkills, 
         dragDisabled: isSelectionMode || searchQuery !== '' || isGrouped, 
         flipDurationMs: dragDuration,
-        dropTargetStyle: { outline: '2px dashed rgba(139, 92, 246, 0.5)', borderRadius: '32px' }
+        dropTargetStyle: { outline: '2px dashed rgba(139, 92, 246, 0.5)', borderRadius: '0px' }
       }}
       onconsider={(e) => handleDndConsider('all', e)}
       onfinalize={(e) => handleDndFinalize('all', e)}
@@ -653,9 +653,9 @@
       class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-4xl px-6"
       transition:fly={{ y: 100, duration: 600, easing: cubicOut }}
     >
-      <div class="bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-[32px] p-4 shadow-[0_40px_100px_rgba(0,0,0,0.8)] flex items-center justify-between gap-6">
+      <div class="bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-none p-4 shadow-[0_40px_100px_rgba(0,0,0,0.8)] flex items-center justify-between gap-6">
         <div class="flex items-center gap-4 pl-4">
-          <div class="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-500">
+          <div class="w-12 h-12 rounded-none bg-amber-500/20 flex items-center justify-center text-amber-500">
             <Stack weight="fill" class="w-6 h-6" />
           </div>
           <div>
@@ -674,14 +674,14 @@
         <div class="flex items-center gap-3">
           <button 
             onclick={selectAllFiltered}
-            class="px-6 py-4 rounded-2xl bg-white/5 border border-white/5 text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest"
+            class="px-6 py-4 rounded-none bg-white/5 border border-white/5 text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest"
           >
             {$t('common.select_all')}
           </button>
           
           <button 
             onclick={deleteAll}
-            class="px-6 py-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2 group/danger"
+            class="px-6 py-4 rounded-none bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2 group/danger"
           >
             <Trash weight="fill" class="w-4 h-4 group-hover/danger:animate-bounce" />
             {$t('skills.ui.delete_all')}
@@ -690,7 +690,7 @@
           <button 
             onclick={deleteSelected}
             disabled={selectedIds.length === 0}
-            class="px-8 py-4 rounded-2xl bg-white text-black hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl"
+            class="px-8 py-4 rounded-none bg-white text-black hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl"
           >
             <Trash weight="bold" class="w-4 h-4" />
             {$t('skills.ui.delete_selected', { count: selectedIds.length })}
@@ -707,7 +707,7 @@
   {@const isSelected = selectedIds.includes(skill.id)}
   
   <div 
-    class="group relative bg-zinc-900/40 backdrop-blur-xl border {isSelected ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5'} rounded-[32px] p-6 hover:bg-zinc-800/60 transition-all duration-500 hover:-translate-y-2 flex flex-col h-full overflow-hidden cursor-pointer"
+    class="group relative bg-zinc-900/40 backdrop-blur-xl border {isSelected ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/5'} rounded-none p-6 hover:bg-zinc-800/60 transition-all duration-500 hover:-translate-y-2 flex flex-col h-full overflow-hidden cursor-pointer"
     onclick={() => isSelectionMode && toggleSkillSelection(skill.id)}
     onkeydown={(e) => isSelectionMode && (e.key === 'Enter' || e.key === ' ') && toggleSkillSelection(skill.id)}
     role="button"
@@ -721,7 +721,7 @@
       <div class="flex items-center gap-3">
         {#if isSelectionMode}
           <div 
-            class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all {isSelected ? 'bg-amber-500 border-amber-500 text-black' : 'border-white/10 bg-black/40'}"
+            class="w-6 h-6 rounded-none border-2 flex items-center justify-center transition-all {isSelected ? 'bg-amber-500 border-amber-500 text-black' : 'border-white/10 bg-black/40'}"
             transition:scale
           >
             {#if isSelected}
@@ -731,13 +731,13 @@
         {:else}
           <button 
             type="button"
-            class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-zinc-600 group-hover:text-violet-400 transition-colors cursor-grab active:cursor-grabbing"
+            class="w-8 h-8 rounded-none bg-white/5 flex items-center justify-center text-zinc-600 group-hover:text-violet-400 transition-colors cursor-grab active:cursor-grabbing"
             aria-label={$t('common.reorder') || 'Reorder lesson'}
           >
             <DotsThreeVertical weight="bold" class="w-5 h-5" />
           </button>
         {/if}
-        <div class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border {getDifficultyColor(skill.difficulty)} bg-black/20">
+        <div class="px-3 py-1 rounded-none text-[9px] font-black uppercase tracking-widest border {getDifficultyColor(skill.difficulty)} bg-black/20 font-outfit">
           {skill.level || $t('skills.status_mastered')}
         </div>
       </div>
@@ -746,7 +746,7 @@
         <button 
           disabled={isSelectionMode}
           onclick={(e) => { e.stopPropagation(); goto(`/panel/skills/${skill.id}/edit`); }} 
-          class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all disabled:opacity-0"
+          class="w-8 h-8 rounded-none bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all disabled:opacity-0"
           aria-label={$t('skills.edit.title')}
         >
           <PencilLine weight="bold" class="w-4 h-4" />
@@ -754,7 +754,7 @@
         <button 
           disabled={isSelectionMode}
           onclick={(e) => { e.stopPropagation(); deleteSkill(skill.id, skill.name); }} 
-          class="w-8 h-8 rounded-lg bg-white/5 hover:bg-rose-500/10 flex items-center justify-center text-zinc-600 hover:text-rose-500 transition-all disabled:opacity-0"
+          class="w-8 h-8 rounded-none bg-white/5 hover:bg-rose-500/10 flex items-center justify-center text-zinc-600 hover:text-rose-500 transition-all disabled:opacity-0"
           aria-label={$t('common.delete')}
         >
           <Trash weight="bold" class="w-4 h-4" />
@@ -770,7 +770,7 @@
           {#each skill.resources.slice(0, 3) as res}
             {@const type = getResourceType(res)}
             {@const Icon = getResourceIcon(type)}
-            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950/50 border border-white/5 text-[9px] font-bold text-zinc-400">
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-none bg-zinc-950/50 border border-white/5 text-[9px] font-bold text-zinc-400">
               <Icon weight="bold" class="w-3 h-3" />
               {getResourceLabel(type)}
             </div>
@@ -790,8 +790,8 @@
           <span>{Math.round(masteryProgress)}% {$t('skills.mastered') || 'MASTERED'}</span>
         </div>
       </div>
-      <div class="h-1 bg-zinc-950 rounded-full overflow-hidden">
-        <div class="h-full bg-gradient-to-r from-violet-600 to-emerald-500 transition-all duration-1000" style="width: {masteryProgress}%"></div>
+      <div class="h-1 bg-zinc-950 rounded-none overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-violet-600 to-indigo-500 transition-all duration-1000" style="width: {masteryProgress}%"></div>
       </div>
     </div>
   </div>
@@ -800,3 +800,4 @@
 <style>
   :global(.no-scrollbar::-webkit-scrollbar) { display: none; }
 </style>
+

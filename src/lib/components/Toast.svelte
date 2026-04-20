@@ -77,7 +77,7 @@
       class="group pointer-events-auto relative min-w-[360px] max-w-[440px]"
     >
       <!-- Premium Glass Card -->
-      <div class="relative overflow-hidden rounded-[2rem] border {theme.border} bg-neutral-950/85 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.7)] transition-all duration-500 hover:shadow-amber-500/20 hover:-translate-y-1">
+      <div class="relative overflow-hidden rounded-none border {theme.border} bg-neutral-950/85 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.7)] transition-all duration-500 hover:shadow-amber-500/20 hover:-translate-y-1">
         
         <!-- Achievement Extra Flare -->
         {#if toast.type === 'insignia'}
@@ -103,12 +103,12 @@
             {@const insignia = INSIGNIAS.find(i => i.id === toast.insigniaId)}
             {#if insignia}
                 <div class="flex-shrink-0 animate-float translate-y-1 relative">
-                    <div class="absolute inset-0 bg-amber-400/20 blur-xl rounded-full animate-pulse"></div>
+                    <div class="absolute inset-0 bg-amber-400/20 blur-xl rounded-none animate-pulse"></div>
                     <InsigniaBadge {insignia} unlocked={true} size="xs" />
                 </div>
             {/if}
           {:else}
-            <div class="flex-shrink-0 w-12 h-12 rounded-2xl {theme.bg} border {theme.border} flex items-center justify-center {theme.icon} shadow-inner bg-opacity-20 animate-float">
+            <div class="flex-shrink-0 w-12 h-12 rounded-none {theme.bg} border {theme.border} flex items-center justify-center {theme.icon} shadow-inner bg-opacity-20 animate-float">
                 <Icon 
                 weight="duotone"
                 size={26} 
@@ -137,7 +137,7 @@
                     </p>
                     <div class="flex items-center gap-2">
                         <span 
-                          class="px-2 py-0.5 rounded-md text-[8px] font-black text-white uppercase tracking-widest shadow-lg"
+                          class="px-2 py-0.5 rounded-none text-[8px] font-black text-white uppercase tracking-widest shadow-lg"
                           style="background: {insignia?.color || '#333'}"
                         >
                             {insignia?.tier}
@@ -158,7 +158,7 @@
           <!-- Close Button -->
           <button
             onclick={() => removeToast(toast.id)}
-            class="flex-shrink-0 -mt-1 -mr-1 p-2.5 rounded-xl text-white/20 hover:text-white hover:bg-white/10 transition-all group/close"
+            class="flex-shrink-0 -mt-1 -mr-1 p-2.5 rounded-none text-white/20 hover:text-white hover:bg-white/10 transition-all group/close"
             aria-label="Close"
           >
             <X size={16} weight="bold" class="transition-transform group-hover/close:rotate-90 group-hover/close:scale-110" />
@@ -166,11 +166,11 @@
         </div>
 
         <!-- Inner Light Rim -->
-        <div class="absolute inset-0 rounded-[2rem] border border-white/5 pointer-events-none"></div>
+        <div class="absolute inset-0 rounded-none border border-white/5 pointer-events-none"></div>
       </div>
 
       <!-- Accent Flare -->
-      <div class="absolute -left-1 top-4 bottom-4 w-[4px] rounded-full {theme.accent} filter blur-[2px] opacity-40"></div>
+      <div class="absolute -left-1 top-4 bottom-4 w-[4px] rounded-none {theme.accent} filter blur-[2px] opacity-40"></div>
     </div>
   {/each}
 </div>
@@ -191,7 +191,7 @@
     width: 4px;
     height: 4px;
     background: white;
-    border-radius: 50%;
+    border-radius: 0%;
     filter: blur(1px);
     opacity: 0;
   }

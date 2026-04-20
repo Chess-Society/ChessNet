@@ -12,36 +12,6 @@ export const load: PageServerLoad = async (event) => {
 
   const uid = user.uid;
 
-  const isMock = uid === 'chessnet-dev-uid';
-  
-  if (isMock) {
-    return serializeRecord({
-      user,
-      dashboardStats: {
-        totalCenters: 1,
-        totalStudents: 2,
-        totalClasses: 1,
-        activeStudents: 2,
-        monthlyRevenue: 0,
-        upcomingSessions: 1
-      },
-      centersWithStats: [{
-        id: 'mock-school-1',
-        name: 'Mock Academy',
-        city: 'Localhost',
-        totalClasses: 1,
-        totalStudents: 2,
-        occupancyRate: 50,
-        attendanceRate: 90,
-        monthlyRevenue: 0,
-        lastActivity: new Date().toISOString()
-      }],
-      featuredClasses: [],
-      recentActivity: [],
-      upcomingSessionsToday: []
-    });
-  }
-
   try {
     const [schoolsSnap, studentsSnap, classesSnap, paymentsSnap, attendanceSnap] = await Promise.all([
       adminDb.collection("schools").where("owner_id", "==", uid).get(),

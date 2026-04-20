@@ -1,4 +1,7 @@
 export const es = {
+    'admin.msg.impersonate_warning': 'Estás personificando a un usuario',
+
+
     'admin.title': 'Control Center',
     'admin.subtitle': 'Gestión Global del Sistema',
     'admin.dashboard': 'Dashboard',
@@ -8,12 +11,12 @@ export const es = {
     'admin.stats.total_teachers': 'Profesores Totales',
     'admin.stats.teachers': 'Profesores',
     'admin.stats.teachers_sub': '+{count} nuevos',
-    'admin.stats.students': 'Alumnos',
+    'admin.stats.students': 'Estudiantes',
     'admin.stats.students_sub': 'Base académica',
     'admin.stats.insignias': 'Insignias',
     'admin.stats.insignias_sub': 'Logros desbloqueados',
     'admin.stats.schools': 'Escuelas',
-    'admin.stats.schools_sub': 'Centros adheridos',
+    'admin.stats.schools_sub': 'Escuelas adheridas',
     'admin.stats.classes': 'Clases',
     'admin.stats.classes_sub': 'Sesiones activas',
     'admin.stats.total_revenue': 'Ingresos Totales',

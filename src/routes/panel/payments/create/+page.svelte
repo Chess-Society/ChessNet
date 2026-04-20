@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { t } from '$lib/i18n';
   import { goto } from '$app/navigation';
   import { 
     ArrowLeft,
@@ -22,7 +23,10 @@
     User as UserIcon,
     Student,
     Info,
-    Layout
+    Layout,
+    Trophy,
+    BookOpen,
+    DotsThreeOutline
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import type { PaymentType, PaymentConcept, CreatePaymentData } from '$lib/types';
@@ -51,6 +55,13 @@
   });
 
   // UI state
+  const paymentMethods = [
+    { id: 'transfer', icon: Bank, label: 'payments.methods.transfer' },
+    { id: 'cash', icon: CurrencyEur, label: 'payments.methods.cash' },
+    { id: 'card', icon: CreditCard, label: 'payments.methods.card' },
+    { id: 'receipt', icon: Receipt, label: 'payments.methods.receipt' }
+  ];
+
   let isSubmitting = $state(false);
   let errors: Record<string, string> = $state({});
 
@@ -84,14 +95,14 @@
 
   // Auto-generate description
   $effect(() => {
-    if (formData.concept && (selectedStudent || selectedSchool)) {
+     if (formData.concept && (selectedStudent || selectedSchool)) {
       const conceptLabels: Record<string, string> = {
-        monthly_fee: 'Monthly Fee',
-        registration: 'Registration',
-        tournament: 'Tournament',
-        material: 'Educational Material',
-        private_lesson: 'Private Lesson',
-        other: 'Other Services'
+        monthly_fee: $t('payments.monthly_fee'),
+        registration: $t('payments.registration'),
+        tournament: $t('payments.tournament'),
+        material: $t('payments.material'),
+        private_lesson: $t('payments.private_lesson'),
+        other: $t('payments.other')
       };
       
       const entityName = selectedStudent?.name || selectedSchool?.name || '';
@@ -130,24 +141,24 @@
     errors = {};
 
     if (!formData.payment_type) {
-      errors.payment_type = 'Select payment type';
+      errors.payment_type = $t('payments.error.select_type');
     }
 
     if (formData.payment_type === 'student' && !formData.student_id) {
-      errors.student_id = 'Select a student';
+      errors.student_id = $t('payments.error.select_student');
     }
 
     if (formData.payment_type === 'school' && !formData.school_id) {
-      errors.school_id = 'Select a school';
+      errors.school_id = $t('payments.error.select_school');
     }
 
     if (formData.amount !== null && formData.amount <= 0) {
-      errors.amount = 'Amount must be greater than 0';
+      errors.amount = $t('payments.error.amount_positive');
     }
 
     if (formData.period_start && formData.period_end) {
       if (new Date(formData.period_start) >= new Date(formData.period_end)) {
-        errors.period_start = 'Start date must be before end date';
+        errors.period_start = $t('payments.error.date_sequence');
       }
     }
 
@@ -162,26 +173,16 @@
     isSubmitting = true;
 
     try {
-      const response = await fetch('/api/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...formData,
-          amount: Number(formData.amount) || 0,
-          student_id: formData.payment_type === 'student' ? formData.student_id : undefined,
-          school_id: formData.payment_type === 'school' ? formData.school_id : undefined
-        })
-      });
+      const payload = {
+        ...formData,
+        amount: Number(formData.amount) || 0,
+        student_id: formData.payment_type === 'student' ? formData.student_id : undefined,
+        school_id: formData.payment_type === 'school' ? formData.school_id : undefined
+      };
 
-      const result = await response.json();
+      await appStore.addPayment(payload);
 
-      if (result.success) {
-        goto('/panel/payments?created=true');
-      } else {
-        throw new Error(result.error || 'Error creating payment');
-      }
+      goto('/panel/payments?created=true');
     } catch (error) {
       console.error('Error creating payment:', error);
       errors.submit = error instanceof Error ? error.message : 'Unknown error';
@@ -190,87 +191,84 @@
     }
   };
 
-  function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('en-US', {
+   function formatCurrency(amount: number) {
+    return new Intl.NumberFormat('es-ES', {
       style: 'currency',
       currency: 'EUR'
     }).format(amount);
   }
 
-  function formatDate(dateStr: string) {
+   function formatDate(dateStr: string) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  const getConceptLabel = (concept: string) => {
-    const labels: Record<string, string> = {
-      monthly_fee: 'Monthly Fee',
-      registration: 'Registration',
-      tournament: 'Tournament',
-      material: 'Educational Material',
-      private_lesson: 'Private Lesson',
-      other: 'Other'
-    };
-    return labels[concept] || concept;
-  };
-
-  const paymentMethods = [
-    { id: 'transfer', label: 'Transfer', icon: Bank },
-    { id: 'cash', label: 'Cash', icon: Bank },
-    { id: 'card', label: 'Card', icon: CreditCard },
-    { id: 'direct_debit', label: 'Direct Debit', icon: Receipt }
+   const paymentConcepts = [
+    { id: 'monthly_fee', label: 'payments.monthly_fee', icon: Tag },
+    { id: 'registration', label: 'payments.registration', icon: IdentificationBadge },
+    { id: 'tournament', label: 'payments.tournament', icon: Trophy },
+    { id: 'material', label: 'payments.material', icon: BookOpen },
+    { id: 'private_lesson', label: 'payments.private_lesson', icon: UserIcon },
+    { id: 'other', label: 'payments.other', icon: DotsThreeOutline }
   ];
+ 
+  const getConceptLabel = (c: string) => {
+    const key = paymentConcepts.find(pc => pc.id === c)?.label;
+    return key ? $t(key) : c;
+  };
 
   let activeSection = $state('entity');
 </script>
 
-<svelte:head>
-  <title>Create Payment - ChessNet</title>
+ <svelte:head>
+  <title>{$t('payments.issue_receipt')} - ChessNet</title>
 </svelte:head>
 
 <div class="min-h-screen bg-[#09090b] p-4 lg:p-8 font-outfit">
   <div class="max-w-[1400px] mx-auto">
     
-    <!-- Header Refactor -->
-    <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-      <div class="flex items-center gap-6">
-        <button 
-          onclick={handleGoBack}
-          class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center hover:bg-zinc-800 transition-all group"
-        >
-          <ArrowLeft class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
-        </button>
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="px-2 py-0.5 bg-violet-500/10 text-violet-400 text-[10px] font-bold uppercase tracking-wider rounded border border-violet-500/20">
-              Payments & Finance
-            </span>
+    <!-- Premium Top Bar -->
+    <header class="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 -mx-4 lg:-mx-8 px-4 lg:px-8 py-4 mb-12">
+      <div class="max-w-[1400px] mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button 
+            onclick={handleGoBack}
+            class="w-10 h-10 rounded-none bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition-all shadow-lg"
+          >
+            <ArrowLeft weight="bold" class="w-5 h-5" />
+          </button>
+          <div>
+            <div class="flex items-center gap-2 mb-0.5">
+              <h1 class="text-lg font-black uppercase tracking-widest italic flex items-center gap-2">
+                 <Receipt weight="bold" class="w-4 h-4 text-violet-500" />
+                {$t('payments.issue_receipt')}
+              </h1>
+            </div>
+            <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">{$t('payments.payments_finance')}</p>
           </div>
-          <h1 class="text-4xl font-black text-white tracking-tight">Issue Receipt</h1>
         </div>
-      </div>
 
-      <div class="flex items-center gap-3">
-        <button 
-          onclick={handleGoBack}
-          class="px-5 py-2.5 rounded-xl bg-zinc-900 text-zinc-400 font-bold text-sm border border-white/5 hover:bg-zinc-800 transition-all"
-        >
-          Discard
-        </button>
-        <button 
-          onclick={handleSubmit}
-          disabled={isSubmitting}
-          class="px-8 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-bold text-sm shadow-lg shadow-violet-900/20 transition-all flex items-center gap-2"
-        >
-          {#if isSubmitting}
-            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            Processing...
-          {:else}
-            <CheckCircle weight="bold" class="w-4 h-4" />
-            Finish Issuance
-          {/if}
-        </button>
+        <div class="flex items-center gap-3">
+          <button 
+            onclick={handleGoBack}
+            class="px-5 py-2.5 rounded-none text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all"
+          >
+             {$t('payments.discard')}
+          </button>
+          <button 
+            onclick={handleSubmit}
+            disabled={isSubmitting}
+            class="px-8 py-2.5 rounded-none bg-violet-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:-translate-y-0.5 transition-all text-xs font-black tracking-widest uppercase flex items-center gap-2 disabled:opacity-50"
+          >
+            {#if isSubmitting}
+              <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-none animate-spin"></div>
+            {:else}
+              <CheckCircle weight="bold" class="w-4 h-4" />
+            {/if}
+            {isSubmitting ? $t('payments.processing') : $t('payments.finish_issuance')}
+          </button>
+        </div>
       </div>
     </header>
 
@@ -282,64 +280,92 @@
         <!-- Section 1: Entity -->
         <div class="bento-card p-8">
           <div class="flex items-center gap-4 mb-8">
-            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-none bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
               <UserIcon weight="duotone" class="w-5 h-5 text-blue-400" />
             </div>
-            <div>
-              <h3 class="text-white font-bold">Recipient</h3>
-              <p class="text-xs text-zinc-500">Who is this receipt for?</p>
+             <div>
+              <h3 class="text-sm font-black uppercase tracking-widest italic text-white">{$t('payments.recipient')}</h3>
+              <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">{$t('payments.recipient_desc')}</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4 mb-8">
+          <div class="grid grid-cols-2 gap-4 mb-10">
             <button 
               onclick={() => { formData.payment_type = 'student'; handlePaymentTypeChange(); }}
-              class="flex flex-col items-center gap-3 p-6 rounded-2xl border transition-all {formData.payment_type === 'student' ? 'bg-violet-500/5 border-violet-500/30 ring-1 ring-violet-500/30' : 'bg-zinc-900/50 border-white/5 hover:border-white/10'}"
+              class="selection-card {formData.payment_type === 'student' ? 'active' : ''}"
             >
-              <Users weight={formData.payment_type === 'student' ? 'fill' : 'duotone'} class="w-8 h-8 {formData.payment_type === 'student' ? 'text-violet-400' : 'text-zinc-500'}" />
-              <span class="text-sm font-bold {formData.payment_type === 'student' ? 'text-white' : 'text-zinc-400'}">Student</span>
+              <div class="selection-card-content flex flex-col items-center py-6">
+                 <Users weight={formData.payment_type === 'student' ? 'fill' : 'duotone'} class="w-10 h-10 mb-4 {formData.payment_type === 'student' ? 'text-violet-400' : 'text-zinc-500'}" />
+                <span class="text-xs font-black uppercase tracking-widest">{$t('payments.student')}</span>
+                {#if formData.payment_type === 'student'}
+                  <div class="selection-card-check">
+                    <CheckCircle weight="bold" class="w-4 h-4" />
+                  </div>
+                {/if}
+              </div>
             </button>
             <button 
               onclick={() => { formData.payment_type = 'school'; handlePaymentTypeChange(); }}
-              class="flex flex-col items-center gap-3 p-6 rounded-2xl border transition-all {formData.payment_type === 'school' ? 'bg-violet-500/5 border-violet-500/30 ring-1 ring-violet-500/30' : 'bg-zinc-900/50 border-white/5 hover:border-white/10'}"
+              class="selection-card {formData.payment_type === 'school' ? 'active' : ''}"
             >
-              <Buildings weight={formData.payment_type === 'school' ? 'fill' : 'duotone'} class="w-8 h-8 {formData.payment_type === 'school' ? 'text-violet-400' : 'text-zinc-500'}" />
-              <span class="text-sm font-bold {formData.payment_type === 'school' ? 'text-white' : 'text-zinc-400'}">School</span>
+              <div class="selection-card-content flex flex-col items-center py-6">
+                 <Buildings weight={formData.payment_type === 'school' ? 'fill' : 'duotone'} class="w-10 h-10 mb-4 {formData.payment_type === 'school' ? 'text-violet-400' : 'text-zinc-500'}" />
+                <span class="text-xs font-black uppercase tracking-widest">{$t('payments.school')}</span>
+                {#if formData.payment_type === 'school'}
+                  <div class="selection-card-check">
+                    <CheckCircle weight="bold" class="w-4 h-4" />
+                  </div>
+                {/if}
+              </div>
             </button>
           </div>
 
           {#if formData.payment_type === 'student'}
-            <div class="space-y-2">
-              <label for="student_id_select" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Selected Student</label>
-              <select 
-                id="student_id_select"
-                bind:value={formData.student_id}
-                class="bento-input h-14"
-              >
-                <option value="">Select student...</option>
-                {#each students as student}
-                  <option value={student.id}>{student.name}</option>
-                {/each}
-              </select>
+             <div class="space-y-4">
+              <label for="student_id_select" class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{$t('payments.search_select_student')}</label>
+              <div class="relative group">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none z-10">
+                  <Student weight="bold" class="w-5 h-5" />
+                </div>
+                <select 
+                  id="student_id_select"
+                  bind:value={formData.student_id}
+                  class="glass-input pl-12 h-14"
+                >
+                   <option value="">{$t('payments.select_student_placeholder')}</option>
+                  {#each students as student}
+                    <option value={student.id}>{student.name}</option>
+                  {/each}
+                </select>
+              </div>
               {#if errors.student_id}
-                <p class="text-red-400 text-[10px] font-bold mt-1 ml-1">{errors.student_id}</p>
+                <p class="text-rose-400 text-[10px] font-bold uppercase flex items-center gap-1.5 ml-1">
+                  <WarningCircle weight="fill" class="w-3.5 h-3.5" /> {errors.student_id}
+                </p>
               {/if}
             </div>
           {:else}
-            <div class="space-y-2">
-              <label for="school_id_select" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Selected School</label>
-              <select 
-                id="school_id_select"
-                bind:value={formData.school_id}
-                class="bento-input h-14"
-              >
-                <option value="">Select school...</option>
-                {#each schools as school}
-                  <option value={school.id}>{school.name}</option>
-                {/each}
-              </select>
+             <div class="space-y-4">
+              <label for="school_id_select" class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{$t('payments.search_select_school')}</label>
+              <div class="relative group">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none z-10">
+                  <Buildings weight="bold" class="w-5 h-5" />
+                </div>
+                <select 
+                  id="school_id_select"
+                  bind:value={formData.school_id}
+                  class="glass-input pl-12 h-14"
+                >
+                   <option value="">{$t('payments.select_school_placeholder')}</option>
+                  {#each schools as school}
+                    <option value={school.id}>{school.name}</option>
+                  {/each}
+                </select>
+              </div>
               {#if errors.school_id}
-                <p class="text-red-400 text-[10px] font-bold mt-1 ml-1">{errors.school_id}</p>
+                <p class="text-rose-400 text-[10px] font-bold uppercase flex items-center gap-1.5 ml-1">
+                  <WarningCircle weight="fill" class="w-3.5 h-3.5" /> {errors.school_id}
+                </p>
               {/if}
             </div>
           {/if}
@@ -348,98 +374,172 @@
         <!-- Section 2: Payment Configuration -->
         <div class="bento-card p-8 group">
           <div class="flex items-center gap-4 mb-8">
-            <div class="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-none bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
               <Tag weight="duotone" class="w-5 h-5 text-violet-400" />
             </div>
-            <div>
-              <h3 class="text-white font-bold">Concept & Amount</h3>
-              <p class="text-xs text-zinc-500">Define what is being charged and how much</p>
+             <div>
+              <h3 class="text-sm font-black uppercase tracking-widest italic text-white">{$t('payments.concept_amount')}</h3>
+              <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">{$t('payments.concept_amount_desc')}</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-2">
-              <label for="concept" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Main Concept</label>
-              <select id="concept" bind:value={formData.concept} class="bento-input h-14">
-                <option value="monthly_fee">Monthly Fee</option>
-                <option value="registration">Registration</option>
-                <option value="tournament">Tournament</option>
-                <option value="material">Material</option>
-                <option value="private_lesson">Private Lesson</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div class="space-y-2">
-              <label for="amount" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Payment Amount</label>
-              <div class="relative">
-                <CurrencyEur class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
-                <input 
-                  id="amount"
-                  type="number" 
-                  bind:value={formData.amount}
-                  placeholder="0.00"
-                  class="bento-input h-14 pl-12 pr-4"
-                />
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <label for="class_id" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Associated Class (Optional)</label>
-              <select id="class_id" bind:value={formData.class_id} class="bento-input h-14">
-                <option value="">None</option>
-                {#each filteredClasses as cls}
-                  <option value={cls.id}>{cls.name}</option>
+          <div class="space-y-8">
+            <!-- Concept Selection Grid -->
+             <div class="space-y-4">
+              <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{$t('payments.main_concept')}</span>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {#each paymentConcepts as concept}
+                  <button 
+                    onclick={() => formData.concept = concept.id as PaymentConcept}
+                    class="selection-card small {formData.concept === concept.id ? 'active' : ''}"
+                  >
+                    <div class="selection-card-content flex items-center gap-3 p-3">
+                       <concept.icon weight={formData.concept === concept.id ? 'fill' : 'duotone'} class="w-5 h-5 {formData.concept === concept.id ? 'text-violet-400' : 'text-zinc-500'}" />
+                      <span class="text-[10px] font-black uppercase tracking-wider">{$t(concept.label)}</span>
+                      {#if formData.concept === concept.id}
+                        <div class="selection-card-check">
+                          <CheckCircle weight="bold" class="w-3 h-3" />
+                        </div>
+                      {/if}
+                    </div>
+                  </button>
                 {/each}
-              </select>
-            </div>
-
-            <div class="space-y-2">
-              <label for="due_date" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Due Date</label>
-              <div class="relative">
-                <Clock class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
-                <input 
-                  id="due_date"
-                  type="date" 
-                  bind:value={formData.due_date}
-                  class="bento-input h-14 pl-12 pr-4 w-full"
-                />
               </div>
             </div>
-          </div>
 
-          <div class="mt-8 space-y-2">
-            <label for="description" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Receipt Description</label>
-            <textarea 
-              id="description"
-              bind:value={formData.description}
-              rows="2"
-              class="bento-input h-auto min-h-[80px] py-4 resize-none"
-              placeholder="Ex: January Monthly Fee - Alberto Gómez..."
-            ></textarea>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div class="space-y-2">
+                <label for="amount" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.payment_amount')}</label>
+                <div class="relative group">
+                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none z-10">
+                    <CurrencyEur weight="bold" class="w-5 h-5" />
+                  </div>
+                  <input 
+                    id="amount"
+                    type="number" 
+                    bind:value={formData.amount}
+                    placeholder="0.00"
+                    class="glass-input pl-12 h-14"
+                  />
+                  {#if errors.amount}
+                    <p class="text-rose-400 text-[10px] font-bold uppercase flex items-center gap-1.5 mt-2 ml-1">
+                      <WarningCircle weight="fill" class="w-3.5 h-3.5" /> {errors.amount}
+                    </p>
+                  {/if}
+                </div>
+              </div>
+
+               <div class="space-y-2">
+                <label for="due_date" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.due_date')}</label>
+                <div class="relative group">
+                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none z-10">
+                    <Clock weight="bold" class="w-5 h-5" />
+                  </div>
+                  <input 
+                    id="due_date"
+                    type="date" 
+                    bind:value={formData.due_date}
+                    class="glass-input pl-12 h-14 w-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Class Selection (Optional) -->
+             <div class="space-y-4">
+              <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{$t('payments.associated_class')}</span>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button 
+                  onclick={() => formData.class_id = ''}
+                  class="selection-card small {formData.class_id === '' ? 'active' : ''}"
+                >
+                  <div class="selection-card-content flex items-center gap-3 p-3">
+                     <Info weight={formData.class_id === '' ? 'fill' : 'duotone'} class="w-5 h-5 {formData.class_id === '' ? 'text-violet-400' : 'text-zinc-500'}" />
+                    <span class="text-[10px] font-black uppercase tracking-wider">{$t('payments.no_class_associated')}</span>
+                    {#if formData.class_id === ''}
+                      <div class="selection-card-check">
+                        <CheckCircle weight="bold" class="w-3 h-3" />
+                      </div>
+                    {/if}
+                  </div>
+                </button>
+                {#each filteredClasses.slice(0, 5) as cls}
+                  <button 
+                    onclick={() => formData.class_id = cls.id}
+                    class="selection-card small {formData.class_id === cls.id ? 'active' : ''}"
+                  >
+                    <div class="selection-card-content flex items-center gap-3 p-3">
+                      <IdentificationBadge weight={formData.class_id === cls.id ? 'fill' : 'duotone'} class="w-5 h-5 {formData.class_id === cls.id ? 'text-violet-400' : 'text-zinc-500'}" />
+                      <span class="text-[10px] font-black uppercase tracking-wider truncate">{cls.name}</span>
+                      {#if formData.class_id === cls.id}
+                        <div class="selection-card-check">
+                          <CheckCircle weight="bold" class="w-3 h-3" />
+                        </div>
+                      {/if}
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            </div>
+
+             <div class="space-y-2">
+              <label for="description" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.receipt_description')}</label>
+              <textarea 
+                id="description"
+                bind:value={formData.description}
+                rows="2"
+                class="glass-input h-auto min-h-[100px] py-4 resize-none"
+                placeholder={$t('payments.description_placeholder')}
+              ></textarea>
+            </div>
           </div>
         </div>
 
-        <!-- Section 3: Period -->
+        <!-- Section 3: Period & Method -->
         <div class="bento-card p-8">
            <div class="flex items-center gap-4 mb-8">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-none bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
               <CalendarBlank weight="duotone" class="w-5 h-5 text-amber-400" />
             </div>
-            <div>
-              <h3 class="text-white font-bold">Billing Period</h3>
-              <p class="text-xs text-zinc-500">What time frame does this payment cover?</p>
+             <div>
+              <h3 class="text-sm font-black uppercase tracking-widest italic text-white">{$t('payments.period_method')}</h3>
+              <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">{$t('payments.period_method_desc')}</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <label for="period_start" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">From</label>
-              <input id="period_start" type="date" bind:value={formData.period_start} class="bento-input h-14" />
+          <div class="space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+               <div class="space-y-2">
+                <label for="period_start" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.from')}</label>
+                <input id="period_start" type="date" bind:value={formData.period_start} class="glass-input h-14" />
+              </div>
+               <div class="space-y-2">
+                <label for="period_end" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.to')}</label>
+                <input id="period_end" type="date" bind:value={formData.period_end} class="glass-input h-14" />
+              </div>
             </div>
-            <div class="space-y-2">
-              <label for="period_end" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">To</label>
-              <input id="period_end" type="date" bind:value={formData.period_end} class="bento-input h-14" />
+
+            <!-- Payment Method Selection -->
+             <div class="space-y-4">
+              <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{$t('payments.payment_method')}</span>
+              <div class="grid grid-cols-2 gap-3">
+                {#each paymentMethods as method}
+                  <button 
+                    onclick={() => formData.payment_method = method.id}
+                    class="selection-card small {formData.payment_method === method.id ? 'active' : ''}"
+                  >
+                    <div class="selection-card-content flex items-center gap-3 p-3">
+                       <method.icon weight={formData.payment_method === method.id ? 'fill' : 'duotone'} class="w-5 h-5 {formData.payment_method === method.id ? 'text-violet-400' : 'text-zinc-500'}" />
+                      <span class="text-[10px] font-black uppercase tracking-wider">{$t(method.label)}</span>
+                      {#if formData.payment_method === method.id}
+                        <div class="selection-card-check">
+                          <CheckCircle weight="bold" class="w-3 h-3" />
+                        </div>
+                      {/if}
+                    </div>
+                  </button>
+                {/each}
+              </div>
             </div>
           </div>
         </div>
@@ -449,16 +549,16 @@
       <div class="lg:col-span-5 relative">
         <div class="sticky top-8 space-y-6">
           
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-black text-zinc-500 uppercase tracking-widest">Receipt Preview</h3>
+           <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-black text-zinc-500 uppercase tracking-widest">{$t('payments.receipt_preview')}</h3>
             <div class="flex gap-1">
-              <div class="w-2 h-2 rounded-full bg-violet-500 pulse"></div>
-              <span class="text-[10px] text-zinc-400 uppercase font-bold tracking-tighter">Live</span>
+              <div class="w-2 h-2 rounded-none bg-violet-500 pulse"></div>
+              <span class="text-[10px] text-zinc-400 uppercase font-bold tracking-tighter">{$t('payments.live')}</span>
             </div>
           </div>
 
           <!-- The Receipt Card -->
-          <div class="bg-white rounded-3xl p-8 shadow-2xl shadow-black/80 text-zinc-900 overflow-hidden relative group">
+          <div class="bg-white rounded-none p-8 shadow-2xl shadow-black/80 text-zinc-900 overflow-hidden relative group">
             <!-- Security Pattern Overlay -->
             <div class="absolute inset-0 opacity-[0.03] pointer-events-none select-none overflow-hidden">
               <div class="grid grid-cols-12 gap-1 w-[200%] h-[200%] rotate-45 -translate-x-1/2 -translate-y-1/2">
@@ -475,18 +575,18 @@
                   <h2 class="text-2xl font-black tracking-tighter text-black">ChessNet</h2>
                   <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Chess Academy</p>
                 </div>
-                <div class="text-right">
-                  <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Total to Pay</div>
+                 <div class="text-right">
+                  <div class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">{$t('payments.total_to_pay')}</div>
                   <div class="text-3xl font-black tracking-tight">{formatCurrency(formData.amount)}</div>
                 </div>
               </div>
 
               <!-- Main Info Grid -->
               <div class="grid grid-cols-2 gap-8 mb-12">
-                <div>
-                  <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">Issued to</div>
+                 <div>
+                  <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">{$t('payments.issued_to')}</div>
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-none bg-zinc-100 flex items-center justify-center">
                       {#if formData.payment_type === 'student'}
                         <UserIcon weight="fill" class="w-5 h-5 text-zinc-400" />
                       {:else}
@@ -495,43 +595,43 @@
                     </div>
                     <div>
                       <p class="text-sm font-black text-black leading-tight italic">
-                        {selectedStudent?.name || selectedSchool?.name || 'Undefined client'}
+                        {selectedStudent?.name || selectedSchool?.name || $t('payments.undefined_client')}
                       </p>
-                      <p class="text-[10px] font-bold text-zinc-500 uppercase italic">
-                        {formData.payment_type === 'student' ? 'Student' : 'Entity'}
+                       <p class="text-[10px] font-bold text-zinc-500 uppercase italic">
+                        {formData.payment_type === 'student' ? $t('payments.student') : $t('payments.entity')}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div class="text-right">
-                  <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">Issue Date</div>
+                 <div class="text-right">
+                  <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">{$t('payments.issue_date')}</div>
                   <p class="text-sm font-black text-black italic">
-                    {new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
               </div>
 
               <!-- Line Items -->
-              <div class="space-y-4 mb-12">
-                <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Receipt Concepts</div>
-                <div class="bg-zinc-50 rounded-2xl p-6 border border-zinc-100">
+               <div class="space-y-4 mb-12">
+                <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{$t('payments.receipt_concepts')}</div>
+                <div class="bg-zinc-50 rounded-none p-6 border border-zinc-100">
                   <div class="flex justify-between items-start">
                     <div>
                       <p class="text-sm font-black text-black italic uppercase">{getConceptLabel(formData.concept)}</p>
                       <p class="text-[10px] font-bold text-zinc-500 mt-1 max-w-[200px]">
-                        {formData.description || 'No description linked to this transaction.'}
+                        {formData.description || $t('payments.no_description')}
                       </p>
                       {#if selectedClass}
                          <div class="mt-3 flex items-center gap-1.5">
                             <IdentificationBadge class="w-3.5 h-3.5 text-violet-500" />
-                            <span class="text-[10px] font-black text-violet-600 uppercase italic">Class: {selectedClass.name}</span>
+                            <span class="text-[10px] font-black text-violet-600 uppercase italic">{$t('common.class')}: {selectedClass.name}</span>
                          </div>
                       {/if}
                     </div>
                     <div class="text-right">
                       <p class="text-sm font-black text-black italic">{formatCurrency(formData.amount)}</p>
-                      <p class="text-[9px] font-bold text-zinc-400 uppercase mt-1">INC. VAT</p>
+                        <p class="text-[9px] font-bold text-zinc-400 uppercase mt-1">{$t('payments.inc_vat')}</p>
                     </div>
                   </div>
                 </div>
@@ -539,14 +639,14 @@
 
               <!-- Footer Details -->
               <div class="grid grid-cols-2 gap-4 pt-8 border-t-2 border-dashed border-zinc-200">
-                <div>
-                  <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">Due Date</div>
+                 <div>
+                  <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">{$t('payments.due_date')}</div>
                   <p class="text-xs font-black text-black italic">
-                    {formData.due_date ? formatDate(formData.due_date) : 'Upon receipt'}
+                    {formData.due_date ? formatDate(formData.due_date) : $t('payments.upon_receipt')}
                   </p>
                 </div>
-                <div class="text-right">
-                    <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">Reference No.</div>
+                 <div class="text-right">
+                    <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">{$t('payments.reference_no')}</div>
                     <p class="text-xs font-black text-black italic">TEMP-{Math.floor(Math.random() * 90000) + 10000}</p>
                 </div>
               </div>
@@ -554,7 +654,7 @@
               <!-- Bottom Bar -->
               <div class="mt-8 flex justify-center">
                 <div class="flex flex-col items-center">
-                   <div class="w-32 h-1 bg-zinc-900/5 rounded-full mb-4"></div>
+                   <div class="w-32 h-1 bg-zinc-900/5 rounded-none mb-4"></div>
                    <p class="text-[8px] font-black text-zinc-300 uppercase tracking-[0.3em]">ChessNet International Systems</p>
                 </div>
               </div>
@@ -567,12 +667,12 @@
           <!-- Receipt Stats Extra -->
           <div class="bento-card p-6 border-zinc-900">
              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center">
+                <div class="w-12 h-12 rounded-none bg-zinc-900 flex items-center justify-center">
                    <Calculator weight="duotone" class="w-6 h-6 text-zinc-400" />
                 </div>
-                <div>
-                   <h4 class="text-white text-sm font-bold">Monthly Projection</h4>
-                   <p class="text-[10px] text-zinc-500">This charge will increase the school\'s cash flow by 2.4%.</p>
+                 <div>
+                   <h4 class="text-white text-sm font-bold">{$t('payments.monthly_projection')}</h4>
+                   <p class="text-[10px] text-zinc-500">{$t('payments.projection_desc')}</p>
                 </div>
              </div>
           </div>
@@ -592,9 +692,6 @@
     100% { transform: scale(1); opacity: 1; }
   }
 
-  .bento-input {
-    @apply w-full bg-zinc-900 border border-white/5 rounded-2xl px-4 text-white font-bold text-sm outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 transition-all;
-  }
 
   select {
     appearance: none;
@@ -604,3 +701,4 @@
     background-size: 1.5rem;
   }
 </style>
+

@@ -92,7 +92,7 @@
     <!-- Calendar Header -->
     <div class="px-8 py-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
         <div class="flex items-center gap-4">
-            <div class="w-10 h-10 bg-violet-600/10 rounded-xl flex items-center justify-center text-violet-400 border border-violet-500/20">
+            <div class="w-10 h-10 bg-violet-600/10 rounded-none flex items-center justify-center text-violet-400 border border-violet-500/20">
                 <CalendarBlank weight="duotone" class="w-5 h-5" />
             </div>
             <div>
@@ -108,19 +108,19 @@
         <div class="flex items-center gap-2">
             <button 
                 onclick={prevMonth}
-                class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                class="w-10 h-10 rounded-none bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
             >
                 <CaretLeft weight="bold" class="w-4 h-4" />
             </button>
             <button 
                 onclick={() => currentMonth = new Date()}
-                class="px-4 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-400 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest"
+                class="px-4 h-10 rounded-none bg-white/5 border border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-400 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest"
             >
                 {$t('attendance.calendar.today')}
             </button>
             <button 
                 onclick={nextMonth}
-                class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                class="w-10 h-10 rounded-none bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
             >
                 <CaretRight weight="bold" class="w-4 h-4" />
             </button>
@@ -129,7 +129,7 @@
 
     <!-- Calendar Grid -->
     <div class="p-6">
-        <div class="grid grid-cols-7 gap-px bg-white/5 border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="grid grid-cols-7 gap-px bg-white/5 border border-white/5 rounded-none overflow-hidden shadow-2xl">
             <!-- Days of Week -->
             {#each Array(7).fill(0) as _, i}
                 <div class="bg-zinc-900/80 py-3 text-center">
@@ -159,15 +159,15 @@
                                 </span>
                                 
                                 {#if isToday(date)}
-                                    <div class="w-1.5 h-1.5 rounded-full bg-violet-500 shadow-lg shadow-violet-500/50 pulse"></div>
+                                    <div class="w-1.5 h-1.5 rounded-none bg-violet-500 shadow-lg shadow-violet-500/50 pulse"></div>
                                 {/if}
                             </div>
 
                             {#if stats}
                                 <div class="w-full space-y-1.5" in:fade>
-                                    <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-1 w-full bg-white/5 rounded-none overflow-hidden">
                                         <div 
-                                            class="h-full rounded-full transition-all duration-1000
+                                            class="h-full rounded-none transition-all duration-1000
                                             {stats.percent > 80 ? 'bg-primary-500' : stats.percent > 50 ? 'bg-amber-500' : 'bg-red-500'}"
                                             style="width: {stats.percent}%"
                                         ></div>
@@ -199,15 +199,15 @@
         <!-- Legend -->
         <div class="mt-6 flex items-center justify-center gap-8 border-t border-white/5 pt-6">
             <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-primary-500"></div>
+                <div class="w-2 h-2 rounded-none bg-primary-500"></div>
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.legend.excellent')} (>80%)</span>
             </div>
             <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                <div class="w-2 h-2 rounded-none bg-amber-500"></div>
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.legend.regular')} (50%-80%)</span>
             </div>
             <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                <div class="w-2 h-2 rounded-none bg-red-500"></div>
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{$t('attendance.legend.critical')} (&lt;50%)</span>
             </div>
         </div>

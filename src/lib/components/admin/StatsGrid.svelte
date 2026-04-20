@@ -32,7 +32,7 @@
       label: $t('admin.stats.total_revenue'),
       value: `${stats.totalRevenue.toLocaleString()}€`,
       icon: TrendUp,
-      color: 'from-emerald-400 to-cyan-500',
+      color: 'from-violet-400 to-indigo-500',
       description: $t('admin.stats.total_revenue_desc')
     },
     {
@@ -89,15 +89,15 @@
     {#each primaryCards as card, i}
       {@const Icon = card.icon}
       <div class="relative group" in:fade={{ delay: i * 150 }}>
-        <div class="absolute -inset-1 bg-gradient-to-r {card.color} rounded-[2rem] md:rounded-[3rem] opacity-10 group-hover:opacity-20 transition duration-500 blur-xl"></div>
-        <div class="relative bg-black/40 backdrop-blur-3xl border border-white/10 p-6 md:p-10 rounded-[1.8rem] md:rounded-[2.5rem] overflow-hidden">
+        <div class="absolute -inset-1 bg-gradient-to-r {card.color} rounded-none opacity-10 group-hover:opacity-20 transition duration-500 blur-xl"></div>
+        <div class="relative bg-black/40 backdrop-blur-3xl border border-white/10 p-6 md:p-10 rounded-none overflow-hidden">
           <div class="flex items-center justify-between mb-4 md:mb-8">
-            <div class="p-3 md:p-4 bg-white/5 rounded-2xl border border-white/10">
+            <div class="p-3 md:p-4 bg-white/5 rounded-none border border-white/10">
               <Icon weight="duotone" class="w-6 h-6 md:w-8 md:h-8 text-white" />
             </div>
-            <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span class="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Live</span>
+            <div class="flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-none">
+              <span class="w-1.5 h-1.5 rounded-none bg-violet-500 animate-pulse"></span>
+              <span class="text-[8px] font-black text-violet-400 uppercase tracking-widest">Live</span>
             </div>
           </div>
           
@@ -118,9 +118,9 @@
     {#each secondaryCards as card, i}
       {@const Icon = card.icon}
       <div class="relative group" in:fade={{ delay: 300 + (i * 100) }}>
-        <div class="bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 p-8 rounded-[2rem] transition-all duration-300">
+        <div class="bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 p-8 rounded-none transition-all duration-300">
           <div class="flex items-center gap-4 mb-6">
-            <div class="p-2.5 bg-white/5 rounded-xl border border-white/10 group-hover:scale-110 transition-transform">
+            <div class="p-2.5 bg-white/5 rounded-none border border-white/10 group-hover:scale-110 transition-transform">
               <Icon weight="duotone" class="w-5 h-5 text-white/70" />
             </div>
             <div>

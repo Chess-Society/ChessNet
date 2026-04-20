@@ -11,22 +11,22 @@
   
   <!-- Premium Background Effects -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 rounded-full blur-[140px] "></div>
-    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[100px]"></div>
+    <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 rounded-none blur-[140px] "></div>
+    <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-none blur-[100px]"></div>
   </div>
 
   <!-- Header -->
   <header class="relative z-10 p-8 flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-6 sm:gap-8">
     <a href="/" class="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group">
       <div class="relative">
-        <div class="absolute -inset-2 bg-violet-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
+        <div class="absolute -inset-2 bg-violet-500/20 rounded-none blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
         <Logo size="w-10 h-10" iconSize="w-6 h-6" />
       </div>
       <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
     </a>
     
     <div class="flex items-center gap-6">
-      <div class="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10">
+      <div class="flex items-center gap-3 px-4 py-2 rounded-none bg-white/5 border border-white/10">
         <Cookie class="w-4 h-4 text-violet-400" />
         <span class="text-xs font-bold text-white uppercase tracking-widest">Cookie Management</span>
       </div>
@@ -53,12 +53,12 @@
           
           <div class="space-y-6 not-prose">
             <!-- Essential -->
-            <div class="p-6 md:p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-violet-500/30 transition-all group relative overflow-hidden">
+            <div class="p-6 md:p-8 rounded-none bg-white/5 border border-white/10 hover:border-violet-500/30 transition-all group relative overflow-hidden">
                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                  <Shield class="w-24 h-24" />
                </div>
                <div class="flex items-center gap-4 mb-6">
-                 <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400">
+                 <div class="p-3 rounded-none bg-emerald-500/10 text-emerald-400">
                    <Shield class="w-6 h-6" />
                  </div>
                  <h3 class="text-xl font-bold text-white tracking-tight">Infrastructure Cookies</h3>
@@ -72,12 +72,12 @@
             </div>
 
             <!-- Analytics -->
-            <div class="p-6 md:p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-blue-500/30 transition-all group relative overflow-hidden">
+            <div class="p-6 md:p-8 rounded-none bg-white/5 border border-white/10 hover:border-blue-500/30 transition-all group relative overflow-hidden">
                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                  <BarChart class="w-24 h-24" />
                </div>
                <div class="flex items-center gap-4 mb-6">
-                 <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-400">
+                 <div class="p-3 rounded-none bg-blue-500/10 text-blue-400">
                    <BarChart class="w-6 h-6" />
                  </div>
                  <h3 class="text-xl font-bold text-white tracking-tight">Strategic Metrics</h3>
@@ -91,12 +91,12 @@
             </div>
 
             <!-- Preferences -->
-            <div class="p-6 md:p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-purple-500/30 transition-all group relative overflow-hidden">
+            <div class="p-6 md:p-8 rounded-none bg-white/5 border border-white/10 hover:border-purple-500/30 transition-all group relative overflow-hidden">
                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                  <Settings class="w-24 h-24" />
                </div>
                <div class="flex items-center gap-4 mb-6">
-                 <div class="p-3 rounded-2xl bg-purple-500/10 text-purple-400">
+                 <div class="p-3 rounded-none bg-purple-500/10 text-purple-400">
                    <Settings class="w-6 h-6" />
                  </div>
                  <h3 class="text-xl font-bold text-white tracking-tight">Interface Personalization</h3>
@@ -152,7 +152,7 @@
 
         <section class="mt-20 pt-12 border-t border-white/10">
           <div class="flex flex-col items-center text-center">
-            <div class="p-4 rounded-full bg-white/5 mb-6">
+            <div class="p-4 rounded-none bg-white/5 mb-6">
               <Cookie class="w-12 h-12 text-violet-500 animate-bounce" />
             </div>
             <h3 class="text-xl font-bold text-white mb-4">Technological Integrity</h3>
@@ -170,3 +170,4 @@
     Transparency Guarantee • ChessNet Analytics Engine
   </footer>
 </div>
+

@@ -85,9 +85,9 @@
   
   <!-- Hero Section -->
   <div class="text-center space-y-6 pt-10 pb-16 relative overflow-hidden">
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-violet-600/5 blur-[120px] rounded-full -z-10"></div>
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-violet-600/5 blur-[120px] rounded-none -z-10"></div>
     
-    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-full text-violet-400 text-[10px] font-outfit font-black uppercase tracking-[0.2em] mb-4">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-600/10 border border-violet-500/20 rounded-none text-violet-400 text-[10px] font-outfit font-black uppercase tracking-[0.2em] mb-4">
       <Sparkle weight="fill" class="w-3.5 h-3.5" />
       Power up your academy
     </div>
@@ -108,7 +108,7 @@
 
       <div class="relative z-10 space-y-10">
         <div class="flex items-center gap-4">
-          <div class="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center text-violet-500 shadow-xl shadow-violet-500/5">
+          <div class="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-none flex items-center justify-center text-violet-500 shadow-xl shadow-violet-500/5">
             <HardDrive weight="duotone" class="w-8 h-8" />
           </div>
           <div>
@@ -140,9 +140,9 @@
                 <span class="text-2xl font-outfit font-black text-white">{stat.current}</span>
                 <span class="text-slate-600 text-[10px] font-bold">/ {stat.max === -1 ? '∞' : stat.max}</span>
               </div>
-              <div class="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+              <div class="h-1.5 bg-zinc-900 rounded-none overflow-hidden">
                 <div 
-                  class="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.25)]" 
+                  class="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-none transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.25)]" 
                   style={`width: ${stat.max === -1 ? 100 : getUsagePercentage(stat.current, stat.max)}%`}
                 ></div>
               </div>
@@ -162,15 +162,15 @@
           class="bento-card p-1 relative flex flex-col group transition-all duration-500 {isPopular ? 'border-violet-500/50 shadow-[0_40px_80px_-20px_rgba(139,92,246,0.15)]' : 'hover:border-violet-500/20 shadow-xl shadow-zinc-950 opacity-80'}"
           in:fly={{ y: 40, delay: i * 100 }}
         >
-          <div class="bg-zinc-900/40 rounded-[28px] p-10 flex flex-col h-full">
+          <div class="bg-zinc-900/40 rounded-none p-10 flex flex-col h-full">
             {#if isPopular}
-              <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[10px] font-outfit font-black px-6 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg shadow-violet-600/30">
+              <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[10px] font-outfit font-black px-6 py-2 rounded-none uppercase tracking-[0.2em] shadow-lg shadow-violet-600/30">
                 Recommended
               </div>
             {/if}
 
             <div class="mb-10 text-center">
-              <div class={`w-20 h-20 mx-auto mb-8 rounded-[32px] flex items-center justify-center border transition-all duration-500 ${isPopular ? 'bg-violet-600 shadow-[0_0_40px_-10px_rgba(139,92,246,0.6)] border-white/20' : 'bg-zinc-950 border-white/5'}`}>
+              <div class={`w-20 h-20 mx-auto mb-8 rounded-none flex items-center justify-center border transition-all duration-500 ${isPopular ? 'bg-violet-600 shadow-[0_0_40px_-10px_rgba(139,92,246,0.6)] border-white/20' : 'bg-zinc-950 border-white/5'}`}>
                 <PlanIcon weight="duotone" class={`w-10 h-10 ${isPopular ? 'text-white' : 'text-violet-500'}`} />
               </div>
               <h3 class="text-2xl font-outfit font-black text-white tracking-tight mb-2">{plan.display_name}</h3>
@@ -184,7 +184,7 @@
             <div class="space-y-4 mb-12 flex-grow">
               {#each plan.features as feature}
                 <div class="flex items-start gap-3">
-                  <div class="w-5 h-5 rounded-full bg-violet-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div class="w-5 h-5 rounded-none bg-violet-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Check weight="bold" class="w-2.5 h-2.5 text-violet-400" />
                   </div>
                   <span class="text-[13px] text-slate-400 font-plus-jakarta font-medium">{feature}</span>
@@ -195,16 +195,16 @@
             <button 
               disabled={isCurrent || isUpgrading || plan.name === 'free'}
               onclick={() => handleUpgrade(plan.name)}
-              class="btn-pill py-4 px-6 w-full font-outfit font-black uppercase tracking-[0.15em] text-xs transition-all flex items-center justify-center gap-3 active:scale-95 disabled:hover:translate-y-0 disabled:active:scale-100 {
+              class="w-full py-4 px-6 font-outfit font-black uppercase tracking-[0.15em] text-xs transition-all flex items-center justify-center gap-3 active:scale-95 disabled:hover:translate-y-0 disabled:active:scale-100 rounded-none {
                 isCurrent 
                   ? 'bg-zinc-950/80 border border-white/5 text-slate-600 cursor-not-allowed' 
                   : isPopular
                     ? 'bg-violet-600 text-white shadow-violet-flare hover:bg-violet-500'
-                    : 'bg-white text-black hover:bg-zinc-200'
+                    : 'bg-white text-black hover:bg-zinc-200 shadow-[0_15px_30px_rgba(255,255,255,0.1)]'
               }"
             >
               {#if isUpgrading && selectedPlan === plan.name}
-                <div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+                <div class="animate-spin rounded-none h-4 w-4 border-2 border-current border-t-transparent"></div>
                 <span>Processing</span>
               {:else if isCurrent}
                 <Check weight="bold" class="w-4 h-4" />
@@ -225,7 +225,7 @@
     <!-- FAQ & Trust -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto pt-16 border-t border-white/5">
       <div class="flex gap-6">
-        <div class="w-12 h-12 rounded-full bg-violet-600/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
+        <div class="w-12 h-12 rounded-none bg-violet-600/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
           <Sparkle weight="duotone" class="w-6 h-6 text-violet-400" />
         </div>
         <div class="space-y-2">
@@ -234,7 +234,7 @@
         </div>
       </div>
       <div class="flex gap-6">
-        <div class="w-12 h-12 rounded-full bg-violet-600/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
+        <div class="w-12 h-12 rounded-none bg-violet-600/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
           <Shield weight="duotone" class="w-6 h-6 text-violet-400" />
         </div>
         <div class="space-y-2">
@@ -249,3 +249,4 @@
 <style lang="postcss">
   /* Upgrade specific styles */
 </style>
+

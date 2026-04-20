@@ -15,17 +15,6 @@ export const load: PageServerLoad = async (event) => {
   }
 
   try {
-    const isMock = locals.user.uid === 'chessnet-dev-uid';
-    
-    if (isMock) {
-        return {
-          user: locals.user,
-          skills: [],
-          categories: [],
-          stats: { total: 0, beginner: 0, intermediate: 0, advanced: 0 }
-        };
-    }
-
     let skillsSnap = await adminDb.collection("skills")
         .where("owner_id", "==", locals.user.uid)
         .get();

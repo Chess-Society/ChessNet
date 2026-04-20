@@ -11,7 +11,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
   const uid = locals.user.uid;
   const classId = params.classId;
-  const isMock = uid === 'chessnet-dev-uid';
 
   const suggestedSchedules = {
     beginner: [
@@ -46,23 +45,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     advanced: { min: 4, max: 10, recommended: 8 },
     mixed: { min: 8, max: 20, recommended: 15 }
   };
-
-  if (isMock) {
-    return {
-      user: locals.user,
-      class: {
-        id: classId,
-        name: 'Clase de Ejemplo (MOCK)',
-        school_id: 'mock-school-1',
-        level: 'beginner',
-        max_students: 12,
-        owner_id: uid
-      },
-      schools: [{ id: 'mock-school-1', name: 'Mock Academy', city: 'Localhost' }],
-      suggestedSchedules,
-      suggestedCapacities
-    };
-  }
 
   try {
     const [classSnap, schoolsSnap] = await Promise.all([

@@ -2,40 +2,23 @@ import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { adminDb } from '$lib/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+
+interface ClassData {
+    id?: string;
+    name: string;
+    owner_id: string;
+    max_students?: number;
+    level?: string;
+    school_id?: string;
+    [key: string]: any;
+}
 
 export const load: PageServerLoad = async ({ locals, params }) => {
   const classId = params.classId;
 
   if (!locals.user) {
     throw error(401, 'User not authenticated');
-  }
-
-  const isMock = locals.user.uid === 'chessnet-dev-uid';
-
-  if (isMock) {
-    return {
-      user: locals.user,
-      classData: serializeRecord({
-        id: classId,
-        name: "Clase de Prueba (MOCK)",
-        level: "beginner",
-        schedule: "Lunes 17:00",
-        active: true,
-        max_students: 15,
-        studentCount: 2
-      }),
-      students: [],
-      stats: {
-        totalStudents: 2,
-        capacity: 15,
-        occupancyRate: 13,
-        attendanceAverage: 100,
-        skillProgress: 0,
-        activeStudents: 2
-      },
-      skills: [],
-      attendance: []
-    };
   }
 
   try {
@@ -45,7 +28,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       throw error(404, 'Class not found');
     }
 
-    const classData = { id: classSnap.id, ...classSnap.data() };
+    const classData = { ...(classSnap.data() as ClassData), id: classSnap.id };
 
     // Enrolled students
     const enrollmentsSnap = await adminDb.collection("class_students")
@@ -53,9 +36,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       .where("class_id", "==", classId)
       .get();
       
-    const studentIds = enrollmentsSnap.docs.map((doc: any) => doc.data().student_id);
+    const studentIds = enrollmentsSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data().student_id);
     
-    let students: any[] = [];
+    let students: (ClassData & { id: string })[] = [];
     if (studentIds.length > 0) {
       // Fetch students in chunks of 30
       for (let i = 0; i < studentIds.length; i += 30) {
@@ -63,7 +46,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         const studentsSnap = await adminDb.collection("students")
           .where("__name__", "in", chunk)
           .get();
-        students = [...students, ...studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))];
+        students = [...students, ...studentsSnap.docs.map((doc: QueryDocumentSnapshot) => ({ id: doc.id, ...doc.data() as any }))];
       }
     }
     
@@ -73,7 +56,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       .where("class_id", "==", classId)
       .get();
       
-    const skillIds = classSkillsSnap.docs.map((doc: any) => doc.data().skill_id);
+    const skillIds = classSkillsSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data().skill_id);
     
     let skillsMap = new Map();
     if (skillIds.length > 0) {
@@ -82,13 +65,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         const detailsSnap = await adminDb.collection("skills")
           .where("__name__", "in", chunk)
           .get();
-        detailsSnap.docs.forEach((doc: any) => {
-          skillsMap.set(doc.id, { id: doc.id, ...doc.data() });
+        detailsSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
+          skillsMap.set(doc.id, { id: doc.id, ...doc.data() as any });
         });
       }
     }
 
-    const classSkills = classSkillsSnap.docs.map((doc: any) => {
+    const classSkills = classSkillsSnap.docs.map((doc: QueryDocumentSnapshot) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -104,8 +87,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       .get();
 
     // Attendance stats calculation
-    const attendanceRecords = attendanceSnap.docs.map((doc: any) => doc.data());
-    const sessionsByDate = attendanceRecords.reduce((acc: any, record: any) => {
+    const attendanceRecords = attendanceSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data());
+    const sessionsByDate = attendanceRecords.reduce((acc: Record<string, any>, record: any) => {
       const date = record.date;
       if (!acc[date]) acc[date] = { total: 0, present: 0, late: 0 };
       acc[date].total++;
@@ -159,8 +142,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         active_students: students.filter(s => s.active).length,
         inactive_students: students.filter(s => !s.active).length,
         total_skills: classSkills.length, 
-        occupancy_rate: (classData as any).max_students ? Math.round((students.length / (classData as any).max_students) * 100) : 0,
-        skills_by_category: classSkills.reduce((acc: any, cs: any) => {
+        occupancy_rate: classData.max_students ? Math.round((students.length / classData.max_students) * 100) : 0,
+        skills_by_category: classSkills.reduce((acc: Record<string, number>, cs: any) => {
           const cat = cs.skill?.category || 'Uncategorized';
           acc[cat] = (acc[cat] || 0) + 1;
           return acc;

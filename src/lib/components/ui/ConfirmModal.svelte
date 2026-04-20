@@ -60,11 +60,11 @@
     },
     success: {
       icon: CheckCircle,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-400/10',
-      glow: 'shadow-emerald-900/20',
-      btn: 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white',
-      border: 'border-emerald-500/20'
+      color: 'text-indigo-400',
+      bg: 'bg-indigo-400/10',
+      glow: 'shadow-indigo-900/20',
+      btn: 'bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white',
+      border: 'border-indigo-500/20'
     }
   };
 
@@ -84,7 +84,7 @@
 
     <!-- Modal Card -->
     <div 
-      class="relative w-full max-w-md bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden ring-1 ring-white/10"
+      class="relative w-full max-w-md bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-none shadow-2xl overflow-hidden ring-1 ring-white/10"
       transition:scale={{ duration: 300, start: 0.95, easing: (t) => t * (2 - t) }}
     >
       <!-- Premium Glow Detail -->
@@ -92,7 +92,7 @@
       
       <div class="p-10 relative">
         <div class="flex flex-col items-center text-center gap-6">
-          <div class="w-20 h-20 rounded-3xl {config.bg} {config.color} {config.border} border flex items-center justify-center shadow-2xl {config.glow}">
+          <div class="w-20 h-20 rounded-none {config.bg} {config.color} {config.border} border flex items-center justify-center shadow-2xl {config.glow}">
             <config.icon size={40} weight="duotone" />
           </div>
           
@@ -107,14 +107,14 @@
         <div class="flex flex-col gap-3 mt-10">
           <button 
             onclick={handleConfirm}
-            class="w-full py-4 px-6 rounded-2xl {config.btn} font-outfit font-bold text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 uppercase tracking-widest"
+            class="w-full py-4 px-6 rounded-none {config.btn} font-outfit font-bold text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 uppercase tracking-widest"
           >
             {confirmText || $t('common.confirm') || 'Confirm'}
           </button>
           
           <button 
             onclick={handleCancel}
-            class="w-full py-4 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 font-outfit font-bold text-sm transition-all border border-white/5 active:scale-95 uppercase tracking-widest"
+            class="w-full py-4 px-6 rounded-none bg-white/5 hover:bg-white/10 text-slate-400 font-outfit font-bold text-sm transition-all border border-white/5 active:scale-95 uppercase tracking-widest"
           >
             {cancelText || $t('common.cancel') || 'Cancel'}
           </button>
@@ -124,7 +124,7 @@
       <!-- Close button top right -->
       <button 
         onclick={handleCancel}
-        class="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full"
+        class="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-none"
       >
         <X size={20} />
       </button>

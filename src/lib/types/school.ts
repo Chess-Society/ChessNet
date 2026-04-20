@@ -60,6 +60,8 @@ export interface Student {
   rating?: number;
   active?: boolean;
   settings?: Record<string, any>;
+  lichess_username?: string;
+  lichess_access_token?: string;
   created_at: string;
   updated_at: string;
 }

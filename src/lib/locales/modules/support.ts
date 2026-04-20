@@ -47,5 +47,6 @@ export const es = {
     'donate.amount_small': 'Café',
     'donate.amount_medium': 'Pizza',
     'donate.amount_large': 'Mes de Servidor',
-    'donate.thanks': '¡Gracias por tu apoyo!',
+    'support.thanks': '¡Gracias por tu apoyo!',
+    'support.faq': 'Preguntas Frecuentes',
 };

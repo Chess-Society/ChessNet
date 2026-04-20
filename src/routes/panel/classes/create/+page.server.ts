@@ -12,14 +12,6 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
   
   const uid = locals.user.uid;
-  const isMock = uid === 'chessnet-dev-uid';
-
-  if (isMock) {
-    return {
-      user: locals.user,
-      schools: [{ id: 'mock-school-1', name: 'Mock Academy', city: 'Localhost' }]
-    };
-  }
 
   try {
     const snapshot = await adminDb.collection('schools')

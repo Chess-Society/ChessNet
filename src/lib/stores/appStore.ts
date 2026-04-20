@@ -124,17 +124,13 @@ function createAppStore() {
     unsubscribes.forEach(unsub => unsub());
     unsubscribes = [];
 
-    if (user) {
-      const isMock = user.uid === 'chessnet-dev-uid';
-
-      if (!isMock) {
+      if (user) {
         const userRef = doc(db, 'users', user.uid);
         onSnapshot(userRef, 
           async (snap) => {
             const userEmail = (user.email || '').toLowerCase();
             
             if (!snap.exists()) {
-
               await setDoc(userRef, {
                 email: userEmail,
                 createdAt: new Date().toISOString(),
@@ -173,110 +169,82 @@ function createAppStore() {
           },
           (error) => console.error('❌ [AppStore] Settings error:', error)
         );
-      } else {
-        update(currentState => ({
-          ...currentState,
-          settings: { ...currentState.settings, plan: 'premium', teacherName: 'ChessNet Admin' }
-        }));
-      }
 
       const collectionsMap = [
-        { key: 'schools', path: 'schools', api: '/api/schools' },
-        { key: 'students', path: 'students', api: '/api/students' },
-        { key: 'classes', path: 'classes', api: '/api/classes' },
-        { key: 'skills', path: 'skills', api: '/api/skills' },
-        { key: 'attendance', path: 'attendance', api: '/api/attendance' },
-        { key: 'localTournaments', path: 'local_tournaments', api: '/api/local_tournaments' },
-        { key: 'localTournamentPlayers', path: 'local_tournament_players', api: '/api/local_tournament_players' },
-        { key: 'localTournamentRounds', path: 'local_tournament_rounds', api: '/api/local_tournament_rounds' },
-        { key: 'localTournamentPairings', path: 'local_tournament_pairings', api: '/api/local_tournament_pairings' },
-        { key: 'payments', path: 'payments', api: '/api/payments' },
-        { key: 'unlockedAchievements', path: 'achievements', api: '/api/achievements' },
-        { key: 'lobbySuggestions', path: 'lobby_suggestions', api: '/api/lobby_suggestions' }
+        { key: 'schools', path: 'schools' },
+        { key: 'students', path: 'students' },
+        { key: 'classes', path: 'classes' },
+        { key: 'skills', path: 'skills' },
+        { key: 'attendance', path: 'attendance' },
+        { key: 'localTournaments', path: 'local_tournaments' },
+        { key: 'localTournamentPlayers', path: 'local_tournament_players' },
+        { key: 'localTournamentRounds', path: 'local_tournament_rounds' },
+        { key: 'localTournamentPairings', path: 'local_tournament_pairings' },
+        { key: 'payments', path: 'payments' },
+        { key: 'unlockedAchievements', path: 'achievements' }
       ];
 
-      collectionsMap.forEach(({ key, path, api }) => {
-        if (!isMock) {
-          const collRef = collection(db, path);
-          const q = query(collRef, where("owner_id", "==", user.uid));
-          
-          unsubscribes.push(onSnapshot(q, 
-            (snap) => {
-              const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-              
-              if (key === 'unlockedAchievements' && initializedCollections.has(key)) {
-                 const currentState = get(store);
-                 const currentIds = currentState.unlockedAchievements.map((a: any) => a.id);
-                 
-                 // Detect newly added achievements that are NOT notified
-                 const newAvailable = docs.filter((d: any) => 
-                    !d.notified && !currentIds.includes(d.id)
-                 );
-                 
-                 if (newAvailable.length > 0) {
-                    update(s => ({ 
-                      ...s, 
-                      pendingAchievementIds: [
-                        ...s.pendingAchievementIds, 
-                        ...newAvailable.map((a: any) => a.id)
-                      ]
-                    }));
-                 }
-              }
-
-              // Mark collection as initialized after the first snapshot
-              if (!initializedCollections.has(key)) {
-                initializedCollections.add(key);
-              }
-
-              update(currentState => {
-                const newState = { ...currentState, [key]: docs };
+      collectionsMap.forEach(({ key, path }) => {
+        const collRef = collection(db, path);
+        const q = query(collRef, where("owner_id", "==", user.uid));
+        
+        unsubscribes.push(onSnapshot(q, 
+          (snap) => {
+            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            if (key === 'unlockedAchievements' && initializedCollections.has(key)) {
+                const currentState = get(store);
+                const currentIds = currentState.unlockedAchievements.map((a: any) => a.id);
                 
-                // Achievement Checker (Automated Delivery)
-                if (isLoaded) {
-                   import('$lib/constants/insignias').then(({ INSIGNIAS }) => {
-                      const stats = {
-                        classesCount: newState.classes.length,
-                        studentsCount: newState.students.length,
-                        schoolsCount: newState.schools.length,
-                        lessonsCreatedCount: newState.skills.length,
-                        completedTournamentsCount: newState.localTournaments.filter(t => t.status === 'completed').length,
-                        lobbyContributionsCount: newState.lobbySuggestions.filter(s => s.authorId === user.uid).length
-                      };
-
-                     INSIGNIAS.forEach(insignia => {
-                       if (insignia.type === 'automatic' && insignia.condition?.(stats)) {
-                         appStore.unlockAchievement(insignia.id);
-                       }
-                     });
-                   });
+                // Detect newly added achievements that are NOT notified
+                const newAvailable = docs.filter((d: any) => 
+                  !d.notified && !currentIds.includes(d.id)
+                );
+                
+                if (newAvailable.length > 0) {
+                  update(s => ({ 
+                    ...s, 
+                    pendingAchievementIds: [
+                      ...s.pendingAchievementIds, 
+                      ...newAvailable.map((a: any) => a.id)
+                    ]
+                  }));
                 }
-
-                return newState;
-              });
-            },
-            (error) => console.error(`❌ [AppStore] Error en ${path}:`, error)
-          ));
-        } else {
-          const saved = localStorage.getItem(`chessnet_mock_${key}`);
-          if (saved) {
-            try {
-              const items = JSON.parse(saved);
-              update(currentState => ({ ...currentState, [key]: items }));
-            } catch (e) {
-              console.error(`❌ [AppStore] Error parsing mock data for ${key}:`, e);
             }
-          } else {
-            fetch(api)
-              .then(res => res.json())
-              .then(data => {
-                const items = data[key] || data.items || [];
-                update(currentState => ({ ...currentState, [key]: items }));
-                localStorage.setItem(`chessnet_mock_${key}`, JSON.stringify(items));
-              })
-              .catch(() => {});
-          }
-        }
+
+            // Mark collection as initialized after the first snapshot
+            if (!initializedCollections.has(key)) {
+              initializedCollections.add(key);
+            }
+
+            update(currentState => {
+              const newState = { ...currentState, [key]: docs };
+              
+              // Achievement Checker (Automated Delivery)
+              if (isLoaded) {
+                  import('$lib/constants/insignias').then(({ INSIGNIAS }) => {
+                    const stats = {
+                      classesCount: newState.classes.length,
+                      studentsCount: newState.students.length,
+                      schoolsCount: newState.schools.length,
+                      lessonsCreatedCount: newState.skills.length,
+                      completedTournamentsCount: newState.localTournaments.filter(t => t.status === 'completed').length,
+                      lobbyContributionsCount: newState.lobbySuggestions.filter(s => s.authorId === user.uid).length
+                    };
+
+                    INSIGNIAS.forEach(insignia => {
+                      if (insignia.type === 'automatic' && insignia.condition?.(stats)) {
+                        appStore.unlockAchievement(insignia.id);
+                      }
+                    });
+                  });
+              }
+
+              return newState;
+            });
+          },
+          (error) => console.error(`❌ [AppStore] Error en ${path}:`, error)
+        ));
       });
 
       isLoaded = true;
@@ -299,12 +267,6 @@ function createAppStore() {
         throw new Error('Limit reached');
       }
 
-      if (user?.uid === 'chessnet-dev-uid') {
-        const newSchool = { id: 'mock-school-' + Date.now(), ...school, owner_id: user.uid };
-        update(s => ({ ...s, schools: [...s.schools, newSchool] }));
-        localStorage.setItem('chessnet_mock_schools', JSON.stringify(get(store).schools));
-        return newSchool;
-      }
       try {
         const response = await fetch('/api/schools', {
           method: 'POST',
@@ -320,13 +282,33 @@ function createAppStore() {
       }
     },
     removeSchool: async (id: string) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, schools: s.schools.filter(school => school.id !== id) }));
-        localStorage.setItem('chessnet_mock_schools', JSON.stringify(get(store).schools));
-        return;
+      try {
+        const response = await fetch('/api/schools', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error removing school');
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error removing school:', error);
+        throw error;
       }
-      await deleteDoc(doc(db, 'schools', id));
+    },
+    updateSchool: async (school: any) => {
+      try {
+        const response = await fetch('/api/schools', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(school)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error updating school');
+        return result.school;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error updating school:', error);
+        throw error;
+      }
     },
     
     addStudent: async (student: any) => {
@@ -339,12 +321,6 @@ function createAppStore() {
         throw new Error('Limit reached');
       }
 
-      if (user?.uid === 'chessnet-dev-uid') {
-        const newStudent = { id: 'mock-student-' + Date.now(), ...student, owner_id: user.uid };
-        update(s => ({ ...s, students: [...s.students, newStudent] }));
-        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(store).students));
-        return newStudent;
-      }
       try {
         const response = await fetch('/api/students', {
           method: 'POST',
@@ -360,24 +336,33 @@ function createAppStore() {
       }
     },
     updateStudent: async (student: any) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, students: s.students.map(std => std.id === student.id ? { ...std, ...student } : std) }));
-        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(store).students));
-        return;
+      try {
+        const response = await fetch('/api/students', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(student)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error updating student');
+        return result.student;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error updating student:', error);
+        throw error;
       }
-      const { id, ...data } = student;
-      const docRef = doc(db, 'students', id);
-      await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removeStudent: async (id: string) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, students: s.students.filter(std => std.id !== id) }));
-        localStorage.setItem('chessnet_mock_students', JSON.stringify(get(store).students));
-        return;
+      try {
+        const response = await fetch('/api/students', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error removing student');
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error removing student:', error);
+        throw error;
       }
-      await deleteDoc(doc(db, 'students', id));
     },
     
     addClass: async (cls: any) => {
@@ -390,12 +375,6 @@ function createAppStore() {
         throw new Error('Limit reached');
       }
 
-      if (user?.uid === 'chessnet-dev-uid') {
-        const newClass = { id: 'mock-class-' + Date.now(), ...cls, owner_id: user.uid };
-        update(s => ({ ...s, classes: [...s.classes, newClass] }));
-        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(store).classes));
-        return newClass;
-      }
       try {
         const response = await fetch('/api/classes', {
           method: 'POST',
@@ -411,23 +390,65 @@ function createAppStore() {
       }
     },
     updateClass: async (cls: any) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, classes: s.classes.map(c => c.id === cls.id ? { ...c, ...cls } : c) }));
-        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(store).classes));
-        return;
+      try {
+        const response = await fetch('/api/classes', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cls)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error updating class');
+        return result.class;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error updating class:', error);
+        throw error;
       }
-      const { id, ...data } = cls;
-      await setDoc(doc(db, 'classes', id), { ...data, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removeClass: async (id: string) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, classes: s.classes.filter(c => c.id !== id) }));
-        localStorage.setItem('chessnet_mock_classes', JSON.stringify(get(store).classes));
-        return;
+      try {
+        const response = await fetch('/api/classes', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error removing class');
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error removing class:', error);
+        throw error;
       }
-      await deleteDoc(doc(db, 'classes', id));
+    },
+    
+    enrollStudent: async (classId: string, studentId: string) => {
+      try {
+        const response = await fetch('/api/class-students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ class_id: classId, student_id: studentId })
+        });
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'Error enrolling student');
+        }
+      } catch (error) {
+        console.error('❌ [AppStore] Error enrolling student:', error);
+        throw error;
+      }
+    },
+
+    unenrollStudent: async (classId: string, studentId: string) => {
+      try {
+        const response = await fetch(`/api/class-students?class_id=${classId}&student_id=${studentId}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'Error unenrolling student');
+        }
+      } catch (error) {
+        console.error('❌ [AppStore] Error unenrolling student:', error);
+        throw error;
+      }
     },
     
     addTournament: async (tournament: any) => {
@@ -452,20 +473,6 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       
-      if (user.uid === 'chessnet-dev-uid') {
-        const newTournament = { 
-          id: 'mock-lt-' + Date.now(), 
-          ...tournament, 
-          owner_id: user.uid,
-          status: tournament.status || 'upcoming',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        update(s => ({ ...s, localTournaments: [...s.localTournaments, newTournament] }));
-        localStorage.setItem('chessnet_mock_localTournaments', JSON.stringify(get(store).localTournaments));
-        return newTournament.id;
-      }
-
       const collRef = collection(db, 'local_tournaments');
       const docRef = await addDoc(collRef, { 
         ...tournament, 
@@ -476,25 +483,10 @@ function createAppStore() {
       return docRef.id;
     },
     updateLocalTournament: async (id: string, updates: any) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ 
-          ...s, 
-          localTournaments: s.localTournaments.map(t => t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t) 
-        }));
-        localStorage.setItem('chessnet_mock_localTournaments', JSON.stringify(get(store).localTournaments));
-        return;
-      }
       const docRef = doc(db, 'local_tournaments', id);
       await setDoc(docRef, { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removeLocalTournament: async (id: string) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, localTournaments: s.localTournaments.filter(t => t.id !== id) }));
-        localStorage.setItem('chessnet_mock_localTournaments', JSON.stringify(get(store).localTournaments));
-        return;
-      }
       await deleteDoc(doc(db, 'local_tournaments', id));
     },
 
@@ -502,13 +494,6 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       
-      if (user.uid === 'chessnet-dev-uid') {
-          const newPlayer = { ...player, id: `${player.tournament_id}_${player.student_id}`, owner_id: user.uid, createdAt: new Date().toISOString() };
-          update(s => ({ ...s, localTournamentPlayers: [...s.localTournamentPlayers, newPlayer] }));
-          localStorage.setItem('chessnet_mock_localTournamentPlayers', JSON.stringify(get(store).localTournamentPlayers));
-          return;
-      }
-
       const docId = `${player.tournament_id}_${player.student_id}`;
       const docRef = doc(db, 'local_tournament_players', docId);
       await setDoc(docRef, { 
@@ -518,27 +503,10 @@ function createAppStore() {
       }, { merge: true });
     },
     removeLocalTournamentPlayer: async (tournamentId: string, studentId: string) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-          const docId = `${tournamentId}_${studentId}`;
-          update(s => ({ ...s, localTournamentPlayers: s.localTournamentPlayers.filter(p => p.id !== docId) }));
-          localStorage.setItem('chessnet_mock_localTournamentPlayers', JSON.stringify(get(store).localTournamentPlayers));
-          return;
-      }
       await deleteDoc(doc(db, 'local_tournament_players', `${tournamentId}_${studentId}`));
     },
 
     updateLocalTournamentPlayer: async (tournamentId: string, studentId: string, updates: any) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-          const docId = `${tournamentId}_${studentId}`;
-          update(s => ({ 
-            ...s, 
-            localTournamentPlayers: s.localTournamentPlayers.map(p => p.id === docId ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p) 
-          }));
-          localStorage.setItem('chessnet_mock_localTournamentPlayers', JSON.stringify(get(store).localTournamentPlayers));
-          return;
-      }
       const docId = `${tournamentId}_${studentId}`;
       const docRef = doc(db, 'local_tournament_players', docId);
       await setDoc(docRef, { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
@@ -548,18 +516,6 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       
-      if (user.uid === 'chessnet-dev-uid') {
-          const newPairing = { 
-            ...pairing, 
-            id: 'mock-pair-' + Math.random().toString(36).substr(2, 9), 
-            owner_id: user.uid, 
-            createdAt: new Date().toISOString() 
-          };
-          update(s => ({ ...s, localTournamentPairings: [...s.localTournamentPairings, newPairing] }));
-          localStorage.setItem('chessnet_mock_localTournamentPairings', JSON.stringify(get(store).localTournamentPairings));
-          return;
-      }
-
       const collRef = collection(db, 'local_tournament_pairings');
       await addDoc(collRef, { 
         ...pairing, 
@@ -568,15 +524,6 @@ function createAppStore() {
       });
     },
     updateLocalTournamentPairing: async (id: string, updates: any) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-          update(s => ({ 
-            ...s, 
-            localTournamentPairings: s.localTournamentPairings.map(p => p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p) 
-          }));
-          localStorage.setItem('chessnet_mock_localTournamentPairings', JSON.stringify(get(store).localTournamentPairings));
-          return;
-      }
       const docRef = doc(db, 'local_tournament_pairings', id);
       await setDoc(docRef, { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
     },
@@ -585,13 +532,6 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       
-      if (user.uid === 'chessnet-dev-uid') {
-          const newRound = { ...round, id: `${round.tournament_id}_${round.round_no}`, owner_id: user.uid, createdAt: new Date().toISOString() };
-          update(s => ({ ...s, localTournamentRounds: [...s.localTournamentRounds, newRound] }));
-          localStorage.setItem('chessnet_mock_localTournamentRounds', JSON.stringify(get(store).localTournamentRounds));
-          return;
-      }
-
       const docId = `${round.tournament_id}_${round.round_no}`;
       const docRef = doc(db, 'local_tournament_rounds', docId);
       await setDoc(docRef, { 
@@ -601,45 +541,13 @@ function createAppStore() {
       }, { merge: true });
     },
     updateLocalTournamentRound: async (id: string, updates: any) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-          update(s => ({ 
-            ...s, 
-            localTournamentRounds: s.localTournamentRounds.map(r => r.id === id ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r) 
-          }));
-          localStorage.setItem('chessnet_mock_localTournamentRounds', JSON.stringify(get(store).localTournamentRounds));
-          return;
-      }
       const docRef = doc(db, 'local_tournament_rounds', id);
       await setDoc(docRef, { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removeLocalTournamentRound: async (tournamentId: string, roundNo: number) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-          const docId = `${tournamentId}_${roundNo}`;
-          update(s => ({ 
-            ...s, 
-            localTournamentRounds: s.localTournamentRounds.filter(r => r.id !== docId) 
-          }));
-          localStorage.setItem('chessnet_mock_localTournamentRounds', JSON.stringify(get(store).localTournamentRounds));
-          return;
-      }
       await deleteDoc(doc(db, 'local_tournament_rounds', `${tournamentId}_${roundNo}`));
     },
     removeLocalTournamentPairings: async (tournamentId: string, roundNo?: number) => {
-      const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-          update(s => ({ 
-            ...s, 
-            localTournamentPairings: s.localTournamentPairings.filter(p => {
-              const matchT = p.tournament_id === tournamentId;
-              const matchR = roundNo ? p.round_no === roundNo : true;
-              return !(matchT && matchR);
-            }) 
-          }));
-          localStorage.setItem('chessnet_mock_localTournamentPairings', JSON.stringify(get(store).localTournamentPairings));
-          return;
-      }
       // Note: Full firestore removal should be handled via batch/query in the API
     },
     
@@ -647,21 +555,6 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       
-      if (user.uid === 'chessnet-dev-uid') {
-          const attendanceId = record.id || `${record.student_id}_${record.class_id}_${record.date}`;
-          const newRecord = { ...record, id: attendanceId, owner_id: user.uid, createdAt: new Date().toISOString() };
-          
-          update(s => {
-              const exists = s.attendance.find(a => a.id === attendanceId);
-              const newAttendance = exists 
-                ? s.attendance.map(a => a.id === attendanceId ? newRecord : a)
-                : [...s.attendance, newRecord];
-              return { ...s, attendance: newAttendance };
-          });
-          localStorage.setItem('chessnet_mock_attendance', JSON.stringify(get(store).attendance));
-          return;
-      }
-
       if (record.id) {
         const { id, ...data } = record;
         await setDoc(doc(db, 'attendance', id), data, { merge: true });
@@ -679,17 +572,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
 
-      if (user.uid === 'chessnet-dev-uid') {
-        const newPayment = { 
-          id: 'mock-pay-' + Date.now(), 
-          ...payment, 
-          owner_id: user.uid,
-          createdAt: new Date().toISOString() 
-        };
-        update(s => ({ ...s, payments: [...s.payments, newPayment] }));
-        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(store).payments));
-        return newPayment;
-      }
+
 
       // Usar API para bypassear las Firestore Rules (el cliente no puede escribir en /payments)
       const response = await fetch('/api/payments', {
@@ -705,14 +588,7 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
 
-      if (user.uid === 'chessnet-dev-uid') {
-        update(s => ({ 
-          ...s, 
-          payments: s.payments.map(p => p.id === payment.id ? { ...p, ...payment, updatedAt: new Date().toISOString() } : p) 
-        }));
-        localStorage.setItem('chessnet_mock_payments', JSON.stringify(get(store).payments));
-        return;
-      }
+
 
       const { id, ...data } = payment;
       const docRef = doc(db, 'payments', id);
@@ -720,14 +596,7 @@ function createAppStore() {
     },
     removePayment: async (id: string) => {
       const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => {
-          const newState = { ...s, payments: s.payments.filter(p => p.id !== id) };
-          localStorage.setItem('chessnet_mock_payments', JSON.stringify(newState.payments));
-          return newState;
-        });
-        return;
-      }
+
       
       // Optimistic update para mejor UX
       update(s => ({ ...s, payments: s.payments.filter(p => p.id !== id) }));
@@ -748,12 +617,7 @@ function createAppStore() {
 
     addSkill: async (skill: any) => {
       const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        const newSkill = { id: 'mock-skill-' + Date.now(), ...skill, owner_id: user.uid };
-        update(s => ({ ...s, skills: [...s.skills, newSkill] }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
-        return newSkill;
-      }
+
       try {
         const response = await fetch('/api/skills', {
           method: 'POST',
@@ -770,31 +634,41 @@ function createAppStore() {
     },
     updateSkill: async (skill: any) => {
       const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, skills: s.skills.map(sk => sk.id === skill.id ? { ...sk, ...skill } : sk) }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
-        return;
+
+      try {
+        const response = await fetch('/api/skills', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(skill)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error updating skill');
+        return result.skill;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error updating skill:', error);
+        throw error;
       }
-      const { id, ...data } = skill;
-      await setDoc(doc(db, 'skills', id), { ...data, updatedAt: new Date().toISOString() }, { merge: true });
     },
     removeSkill: async (id: string) => {
       const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, skills: s.skills.filter(sk => sk.id !== id) }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
-        return;
+
+      try {
+        const response = await fetch('/api/skills', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error removing skill');
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error removing skill:', error);
+        throw error;
       }
-      await deleteDoc(doc(db, 'skills', id));
     },
 
     removeMultipleSkills: async (ids: string[]) => {
       const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, skills: s.skills.filter(sk => !ids.includes(sk.id)) }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
-        return;
-      }
+
       
       const batch = writeBatch(db);
       ids.forEach(id => {
@@ -805,11 +679,7 @@ function createAppStore() {
 
     clearSyllabus: async () => {
       const user = get(authStoreUser);
-      if (user?.uid === 'chessnet-dev-uid') {
-        update(s => ({ ...s, skills: [] }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify([]));
-        return;
-      }
+
       const skills = get(store).skills;
       if (skills.length === 0) return;
       
@@ -821,21 +691,6 @@ function createAppStore() {
     },
 
     reorderSkills: async (reorderings: { id: string, order: number }[]) => {
-      const user = get(authStoreUser);
-      const isMock = user?.uid === 'chessnet-dev-uid';
-
-      if (isMock) {
-        update(s => ({
-          ...s,
-          skills: s.skills.map(sk => {
-            const update = reorderings.find(r => r.id === sk.id);
-            return update ? { ...sk, order: update.order } : sk;
-          })
-        }));
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
-        return;
-      }
-
       const batch = writeBatch(db);
       reorderings.forEach(({ id, order }) => {
         batch.update(doc(db, 'skills', id), { 
@@ -849,41 +704,23 @@ function createAppStore() {
     importCurriculum: async (skills: CreateSkillForm[]) => {
       const user = get(authStoreUser);
       if (!user) return;
-      const isMock = user.uid === 'chessnet-dev-uid';
       
       for (const skill of skills) {
-        if (isMock) {
-          const newSkill = { 
-            id: 'mock-skill-' + Math.random().toString(36).substr(2, 9), 
-            ...skill, 
-            owner_id: user.uid, 
-            active: true, 
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          update(s => ({ ...s, skills: [...s.skills, newSkill] }));
-        } else {
-          try {
-            await fetch('/api/skills', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ...skill, active: true })
-            });
-          } catch (error) {
-            console.error('Error importing skill:', error);
-          }
+        try {
+          await fetch('/api/skills', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...skill, active: true })
+          });
+        } catch (error) {
+          console.error('Error importing skill:', error);
         }
-      }
-      
-      if (isMock) {
-        localStorage.setItem('chessnet_mock_skills', JSON.stringify(get(store).skills));
       }
     },
 
     importTournamentTemplates: async (templates: any[]) => {
       const user = get(authStoreUser);
       if (!user) return;
-      const isMock = user.uid === 'chessnet-dev-uid';
 
       for (const template of templates) {
         const tournamentData = {
@@ -893,28 +730,15 @@ function createAppStore() {
           updatedAt: new Date().toISOString()
         };
 
-        if (isMock) {
-          const newT = {
-            id: 'mock-lt-' + Math.random().toString(36).substr(2, 9),
-            ...tournamentData,
+        try {
+          const collRef = collection(db, 'local_tournaments');
+          await addDoc(collRef, { 
+            ...tournamentData, 
             owner_id: user.uid
-          };
-          update(s => ({ ...s, localTournaments: [...s.localTournaments, newT] }));
-        } else {
-          try {
-            const collRef = collection(db, 'local_tournaments');
-            await addDoc(collRef, { 
-              ...tournamentData, 
-              owner_id: user.uid
-            });
-          } catch (error) {
-            console.error('Error importing template:', error);
-          }
+          });
+        } catch (error) {
+          console.error('Error importing template:', error);
         }
-      }
-
-      if (isMock) {
-        localStorage.setItem('chessnet_mock_localTournaments', JSON.stringify(get(store).localTournaments));
       }
     },
 
@@ -938,7 +762,7 @@ function createAppStore() {
 
     unlockAchievement: async (achievementId: string) => {
       const user = get(authStoreUser);
-      if (!user || user.uid === 'chessnet-dev-uid') return;
+      if (!user) return;
 
       const current = get(store).unlockedAchievements;
       if (current.find((a: any) => a.id === achievementId)) return;
@@ -967,15 +791,6 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) return;
 
-      // Actualizar estado local primero
-      update(s => ({
-        ...s,
-        pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId),
-        unlockedAchievements: s.unlockedAchievements.map(a => a.id === achievementId ? { ...a, notified: true } : a)
-      }));
-
-      if (user.uid === 'chessnet-dev-uid') return;
-
       // Usar API para bypassear las Firestore Rules al marcar como notificado
       try {
         await fetch('/api/achievements', {
@@ -992,16 +807,17 @@ function createAppStore() {
       update(s => ({ ...s, lastUnlockedAchievement: null }));
     },
 
+    syncAll: async () => {
+      // Data is reactive via onSnapshot, but we provide this to satisfy the UI
+      // and optionally trigger a re-fetch of non-reactive endpoints
+      return new Promise(resolve => setTimeout(resolve, 500));
+    },
+
     deleteAccount: async () => {
       const currentUser = get(authStoreUser);
       if (!currentUser) throw new Error("No authenticated user");
 
-      if (currentUser.uid === 'chessnet-dev-uid') {
-        // Mock deletion local
-        localStorage.clear();
-        sessionStorage.clear();
-        return;
-      }
+
 
       // Llamar al endpoint que borra TODOS los datos en batch y la cuenta de Auth
       const response = await fetch('/api/users/me', { method: 'DELETE' });
