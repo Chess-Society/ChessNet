@@ -117,12 +117,15 @@ function createAppStore() {
   let initializedCollections = new Set<string>();
   let unsubscribes: (() => void)[] = [];
 
-  // Suscribirse al store de autenticación
-  authStoreUser.subscribe(async (user) => {
-    if (!browser) return;
-    
-    unsubscribes.forEach(unsub => unsub());
-    unsubscribes = [];
+
+  // Subscription robusta al Auth
+  derived([authStoreUser, authStoreInit], ([$u, $initialized]) => ({ user: $u, initialized: $initialized }))
+    .subscribe(({ user, initialized }) => {
+      if (!browser || !initialized) return;
+
+      // Limpiar listeners previos siempre que cambie el estado
+      unsubscribes.forEach(unsub => typeof unsub === 'function' && unsub());
+      unsubscribes = [];
 
       if (user) {
         const userRef = doc(db, 'users', user.uid);

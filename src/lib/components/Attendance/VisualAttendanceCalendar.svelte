@@ -24,7 +24,7 @@
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
-  let monthDays = $derived(() => {
+  let monthDays = $derived.by(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
     const totalDays = daysInMonth(year, month);
@@ -140,7 +140,7 @@
             {/each}
 
             <!-- Date Cells -->
-            {#each monthDays() as { day, date }}
+            {#each monthDays as { day, date }}
                 {@const stats = getStats(date)}
                 <div class="bg-zinc-900/40 aspect-[4/3] relative group transition-all
                     {day ? 'hover:bg-violet-600/5' : 'bg-zinc-950/20'}

@@ -12,7 +12,9 @@ service cloud.firestore {
           "admin@chessnet.app", 
           "admin@chessnet.pro", 
           "escuelatopchess@gmail.com",
-          "tomihersan@gmail.com"
+          "tomihersan@gmail.com",
+          "tomih98@gmail.com",
+          "tomihh98@gmail.com"
         ];
     }
     
@@ -40,8 +42,8 @@ service cloud.firestore {
     // Configuración del sistema y Logs (Solo Admin)
     // Configuración del sistema y Logs
     match /system/config {
-      // Requiere autenticación para proteger información del sistema
-      allow read: if isAuthenticated();
+      // Público para modo mantenimiento
+      allow read: if true;
       allow write: if isSuperAdmin();
     }
     
@@ -54,7 +56,7 @@ service cloud.firestore {
     }
     
     match /announcements/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Global announcements public
       allow write: if isSuperAdmin();
     }
     

@@ -29,6 +29,7 @@
     Sparkle
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
+  import { toast } from '$lib/stores/toast';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
