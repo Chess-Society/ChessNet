@@ -41,30 +41,32 @@ export const POST: RequestHandler = async (event) => {
       return json({ error: 'achievementId requerido' }, { status: 400 });
     }
 
-    // Verificar si ya existe para evitar duplicados
-    const existing = await adminDb
-      .collection('achievements')
-      .where('owner_id', '==', user.uid)
-      .where('id', '==', achievementId)
-      .limit(1)
-      .get();
-
-    if (!existing.empty) {
+    // Usar ID determinista: uid_achievementId para evitar duplicados y facilitar la búsqueda sin índices complejos
+    const docId = `${user.uid}_${achievementId}`;
+    const docRef = adminDb.collection('achievements').doc(docId);
+    
+    const existing = await docRef.get();
+    if (existing.exists) {
       return json({ success: true, alreadyUnlocked: true });
     }
 
-    // Escribir con adminDb (bypassa las rules de Firestore)
-    const docRef = await adminDb.collection('achievements').add({
+    const data = {
       id: achievementId,
       owner_id: user.uid,
       unlockedAt: new Date().toISOString(),
       notified: false
-    });
+    };
 
-    return json({ success: true, id: docRef.id }, { status: 201 });
+    await docRef.set(data);
+
+    return json({ success: true, id: docId, data }, { status: 201 });
   } catch (error: any) {
-    console.error('❌ [API /achievements POST]', error);
-    return json({ error: 'Error al desbloquear logro' }, { status: 500 });
+    console.error('❌ [API /achievements POST] Error detallado:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    return json({ error: 'Error al desbloquear logro', details: error.message }, { status: 500 });
   }
 };
 

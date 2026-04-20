@@ -228,26 +228,6 @@ function createAppStore() {
                 newState.pendingAchievementIds = nextPending;
               }
 
-              // Achievement Checker (Automated Delivery)
-              if (isLoaded) {
-                  import('$lib/constants/insignias').then(({ INSIGNIAS }) => {
-                    const stats = {
-                      classesCount: newState.classes.length,
-                      studentsCount: newState.students.length,
-                      schoolsCount: newState.schools.length,
-                      lessonsCreatedCount: newState.skills.length,
-                      completedTournamentsCount: (newState.localTournaments || []).filter((t: any) => t.status === 'completed').length,
-                      lobbyContributionsCount: (newState.lobbySuggestions || []).filter((s: any) => s.authorId === user.uid).length
-                    };
-
-                    INSIGNIAS.forEach(insignia => {
-                      if (insignia.type === 'automatic' && insignia.condition?.(stats)) {
-                        appStore.unlockAchievement(insignia.id);
-                      }
-                    });
-                  });
-              }
-
               return newState;
             });
           },
@@ -876,3 +856,37 @@ function createAppStore() {
 }
 
 export const appStore = createAppStore();
+
+// --- Automated Achievement Checker Task ---
+// Runs independently of the data syncing loop to prevent recursive updates and race conditions
+if (browser) {
+  let timer: any;
+  appStore.subscribe(state => {
+    // Only check if everything is loaded and user is authenticated
+    if (!state.settings || state.students.length === 0 && state.classes.length === 0) return;
+
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      const user = get(authStoreUser);
+      if (!user) return;
+
+      const { INSIGNIAS } = await import('$lib/constants/insignias');
+      
+      const stats = {
+        classesCount: state.classes.length,
+        studentsCount: state.students.length,
+        schoolsCount: state.schools.length,
+        lessonsCreatedCount: state.skills.length,
+        completedTournamentsCount: (state.localTournaments || []).filter((t: any) => t.status === 'completed').length,
+        lobbyContributionsCount: (state.lobbySuggestions || []).filter((s: any) => s.authorId === user.uid).length
+      };
+
+      INSIGNIAS.forEach(insignia => {
+        if (insignia.type === 'automatic' && insignia.condition?.(stats)) {
+          // unlockAchievement check handled internally if already unlocked
+          appStore.unlockAchievement(insignia.id);
+        }
+      });
+    }, 2000); // Debounce check by 2 seconds to let data settle
+  });
+}
