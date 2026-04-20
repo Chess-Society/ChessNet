@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       .where("owner_id", "==", locals.user.uid)
       .get();
       
-    const enrolledIds = enrollmentsSnap.docs.map(doc => doc.data().student_id);
+    const enrolledIds = enrollmentsSnap.docs.map((doc: any) => doc.data().student_id);
     
     // Fetch enrolled students details
     let enrolledStudents: any[] = [];
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         const studentsSnap = await adminDb.collection("students")
           .where("__name__", "in", chunk)
           .get();
-        enrolledStudents = [...enrolledStudents, ...studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))];
+        enrolledStudents = [...enrolledStudents, ...studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))];
       }
     }
 
@@ -47,10 +47,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       .where("owner_id", "==", locals.user.uid)
       .get();
       
-    const allStudents = allStudentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const allStudents = allStudentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
     
     // Available students are those NOT in enrolledIds
-    const availableStudents = allStudents.filter(s => !enrolledIds.includes(s.id));
+    const availableStudents = allStudents.filter((s: any) => !enrolledIds.includes(s.id));
 
     const stats = {
       enrolled: enrolledStudents.length,

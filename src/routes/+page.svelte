@@ -101,12 +101,11 @@
         </div>
         
         <h1 class="text-[clamp(2rem,6vw,5rem)] font-display font-bold tracking-[-0.03em] text-white mb-10 leading-[0.9] animate-slide-up uppercase">
-          La herramienta para profesores<br />
-          <span class="text-slate-500">y clubes de ajedrez.</span>
+          {@html $t('landing.hero.title').replace('y clubes', '<br /><span class="text-slate-500">y clubes</span>')}
         </h1>
         
         <p class="max-w-2xl text-base md:text-xl text-slate-500 leading-relaxed mb-16 animate-slide-up font-medium" style="animation-delay: 100ms">
-          Organiza tus alumnos, sigue su progreso y gestiona tus torneos en un solo lugar. Menos administración, más clases.
+          {$t('landing.hero.subtitle')}
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-px animate-slide-up bg-white/5 border border-white/10 p-px" style="animation-delay: 200ms">

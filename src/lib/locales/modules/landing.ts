@@ -2,8 +2,8 @@ export const es = {
     'landing.features.multischool.title': 'Gestión Multi-Escuela',
 
     'landing.hero.tag': 'El Futuro de la Educación de Ajedrez',
-    'landing.hero.title1': 'Potencia Tu',
-    'landing.hero.title2': 'Academia de Ajedrez',
+    'landing.hero.title': 'La herramienta para profesores y clubes de ajedrez.',
+    'landing.hero.subtitle': 'Organiza tus alumnos, sigue su progreso y gestiona tus torneos en un solo lugar. Menos administración, más clases.',
     'landing.hero.desc': 'El ecosistema integral para escuelas de ajedrez que permite gestionar alumnos, seguir progresos y organizar torneos profesionales en tiempo real.',
     'landing.hero.cta.free': 'Empezar Gratis',
     'landing.hero.cta.features': 'Ver Funciones',

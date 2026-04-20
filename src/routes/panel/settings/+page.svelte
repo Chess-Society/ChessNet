@@ -3,6 +3,7 @@
   import { fade, scale } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';
   import { 
+    CaretRight,
     Gear, 
     User as UserIcon, 
     Bell, 

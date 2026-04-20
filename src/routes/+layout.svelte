@@ -125,7 +125,7 @@
           <div class="space-y-4 md:space-y-8">
             <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-violet-500/10 border border-violet-500/20 rounded-none mb-2">
                 <span class="w-1.5 h-1.5 bg-violet-400 rounded-none animate-pulse shadow-[0_0_8px_rgba(167,139,250,0.8)]"></span>
-                <span class="text-[10px] font-outfit font-black text-violet-300 uppercase tracking-[0.3em]">Mejoras en curso</span>
+                <span class="text-[10px] font-outfit font-black text-violet-300 uppercase tracking-[0.3em]">{$t('maintenance.subtitle')}</span>
             </div>
             <h1 class="text-6xl md:text-9xl font-outfit font-black tracking-tighter text-white uppercase italic leading-[0.85]">
               <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-300 to-violet-500">ChessNet</span><br/>
@@ -135,15 +135,15 @@
         </div>
 
         <p class="text-slate-400 text-lg md:text-2xl font-outfit font-light max-w-2xl mx-auto leading-relaxed px-6">
-          Estamos desplegando una <span class="text-white font-medium italic">evolución sistemática</span> para elevar tu experiencia de gestión educativa.
+          {$t('maintenance.description')}
         </p>
 
         <!-- Premium Status Bento Tiles -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto pt-4 px-6">
           {#each [
-            { label: 'Sistema', value: 'Sincronizando', icon: Crown, delay: 0, color: 'text-violet-400' },
-            { label: 'Torneos', value: 'Optimizando', icon: Trophy, delay: 150, color: 'text-indigo-400' },
-            { label: 'Servidor', value: 'Estable', icon: Settings, delay: 300, color: 'text-emerald-400' }
+            { label: $t('maintenance.status.system'), value: $t('maintenance.status.syncing'), icon: Crown, delay: 0, color: 'text-violet-400' },
+            { label: $t('maintenance.status.tournaments'), value: $t('maintenance.status.optimizing'), icon: Trophy, delay: 150, color: 'text-indigo-400' },
+            { label: $t('maintenance.status.server'), value: $t('maintenance.status.stable'), icon: Settings, delay: 300, color: 'text-emerald-400' }
           ] as indicator}
              {@const Icon = indicator.icon}
              <div 

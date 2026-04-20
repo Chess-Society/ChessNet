@@ -301,4 +301,12 @@ export const es = {
     'common.error_form': 'Por favor, revisa los campos del formulario',
     'common.class': 'Clase',
     'common.anonymous': 'Anónimo',
+    'maintenance.subtitle': 'Mejoras en curso',
+    'maintenance.description': 'Estamos desplegando una evolución sistemática para elevar tu experiencia de gestión educativa.',
+    'maintenance.status.system': 'Sistema',
+    'maintenance.status.syncing': 'Sincronizando',
+    'maintenance.status.tournaments': 'Torneos',
+    'maintenance.status.optimizing': 'Optimizando',
+    'maintenance.status.server': 'Servidor',
+    'maintenance.status.stable': 'Estable',
 };
