@@ -39,6 +39,7 @@
 
   import { user as authUser, loading as authLoading, authInitialized } from '$lib/stores/auth';
   import { uiStore } from '$lib/stores/uiStore';
+  import { globalAnnouncements } from '$lib/stores/configStore';
   import type { LayoutData } from './$types';
   
   let { data, children } = $props<{ data: LayoutData, children: any }>();
@@ -140,24 +141,18 @@
         }
       ));
 
-      // 2. Monitor for Global System Announcements
-      const qGlobal = query(collection(db, 'announcements'), where('is_global', '==', true), orderBy('created_at', 'desc'), limit(1));
-      unsubs.push(onSnapshot(qGlobal, 
-          (snap) => {
-              if (!snap.empty) {
-                  const lastActivity = (snap.docs[0].data() as any).created_at;
-                  const lastViewed = localStorage.getItem('last_viewed_announcements_global');
-                  
-                  if (lastActivity) {
-                      const activityTime = new Date(lastActivity).getTime();
-                      if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
-                  }
+      // 2. Monitor for Global System Announcements (Via Store)
+      const unsubAnnouncements = globalAnnouncements.subscribe(list => {
+          if (list.length > 0) {
+              const lastActivity = list[0].created_at;
+              const lastViewed = localStorage.getItem('last_viewed_announcements_global');
+              if (lastActivity) {
+                  const activityTime = new Date(lastActivity).getTime();
+                  if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
               }
-          },
-          (error) => {
-             // Silently handle announcements permission errors unless critical
           }
-      ));
+      });
+      unsubs.push(unsubAnnouncements);
 
       // 3. Monitor for Support Tickets (User or Admin)
       const qTickets = data.isAdmin 

@@ -45,8 +45,17 @@ if (!admin.apps.length) {
 // Exportamos getters que lanzan un error claro si se usan sin estar inicializados
 export const adminDb = initialized ? getFirestore() : new Proxy({} as any, {
     get(target, prop) {
-        throw new Error('❌ [FirebaseAdmin] Error: adminDb se intentó usar pero el SDK no se inicializó correctamente. ' + 
-            'Asegúrate de configurar FB_CLIENT_EMAIL y FB_PRIVATE_KEY en tu entorno de producción.');
+        const msg = '❌ [FirebaseAdmin] Error: adminDb se intentó usar pero el SDK no se inicializó correctamente. ' + 
+            'Asegúrate de configurar FB_CLIENT_EMAIL y FB_PRIVATE_KEY en tu entorno de producción.';
+        
+        if (publicEnv.PUBLIC_FIREBASE_PROJECT_ID && !initialized) {
+            console.warn('⚠️ [FirebaseAdmin] SDK no inicializado. Usando modo degradado.');
+        }
+
+        return (...args: any[]) => {
+            console.error(msg);
+            throw new Error(msg);
+        };
     }
 });
 

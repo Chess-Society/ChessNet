@@ -33,10 +33,8 @@ import type {
   Attendance,
   CreateSkillForm
 } from '$lib/types';
-import { 
-  user as authStoreUser, 
-  authInitialized as authStoreInit 
-} from './auth';
+import { user as authStoreUser, authInitialized as authStoreInitialized } from './auth';
+import { uiStore } from './uiStore';
 import { toast } from './toast';
 
 import { CHESS_SYLLABUS_PRESETS } from '$lib/constants/chess-presets';
@@ -116,131 +114,137 @@ function createAppStore() {
   let isLoaded = false;
   let initializedCollections = new Set<string>();
   let unsubscribes: (() => void)[] = [];
+  let lastUid: string | null = null;
 
+  // Centralized subscription to handle user changes and synchronization
+  let authUnsub: any = null;
+  
+  if (browser) {
+    authUnsub = derived([authStoreUser, authStoreInitialized], ([$u, $ai]) => ({ user: $u, initialized: $ai }))
+      .subscribe(async ({ user, initialized }) => {
+        if (!initialized) return;
 
-  // Subscription robusta al Auth
-  derived([authStoreUser, authStoreInit], ([$u, $initialized]) => ({ user: $u, initialized: $initialized }))
-    .subscribe(({ user, initialized }) => {
-      if (!browser || !initialized) return;
+        if (user && lastUid !== user.uid) {
+          lastUid = user.uid;
+          // Limpiar listeners previos siempre que cambie el estado
+          unsubscribes.forEach(unsub => typeof unsub === 'function' && unsub());
+          unsubscribes = [];
 
-      // Limpiar listeners previos siempre que cambie el estado
-      unsubscribes.forEach(unsub => typeof unsub === 'function' && unsub());
-      unsubscribes = [];
-
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        onSnapshot(userRef, 
-          async (snap) => {
-            const userEmail = (user.email || '').toLowerCase();
-            
-            if (!snap.exists()) {
-              await setDoc(userRef, {
-                email: userEmail,
-                createdAt: new Date().toISOString(),
-                settings: {
-                  plan: 'free',
-                  teacherName: user.displayName || '',
-                  teacherAvatar: user.photoURL || '',
-                  teacherEmail: userEmail
-                }
-              });
-              return;
-            }
-
-            const data = snap.data();
-            
-            // Backfill createdAt if missing
-            if (!data.createdAt) {
-              await updateDoc(userRef, { createdAt: new Date().toISOString() });
-            }
-
-            update(currentState => {
-              const settings = { 
-                ...currentState.settings, 
-                ...(data.settings || {}),
-                teacherEmail: userEmail, // Ensure email is in state
-                featuredInsignias: data.settings?.featuredInsignias || []
-              };
+          const userRef = doc(db, 'users', user.uid);
+          onSnapshot(userRef, 
+            async (snap) => {
+              const userEmail = (user.email || '').toLowerCase();
               
-              if (ADMIN_EMAILS.includes(userEmail)) settings.plan = 'premium';
-              return { 
-                ...currentState, 
-                settings, 
-                dashboardLayout: data.dashboardLayout || [] 
-              };
-            });
-          },
-          (error) => console.error('❌ [AppStore] Settings error:', error)
-        );
-
-      const collectionsMap = [
-        { key: 'schools', path: 'schools' },
-        { key: 'students', path: 'students' },
-        { key: 'classes', path: 'classes' },
-        { key: 'skills', path: 'skills' },
-        { key: 'attendance', path: 'attendance' },
-        { key: 'localTournaments', path: 'local_tournaments' },
-        { key: 'localTournamentPlayers', path: 'local_tournament_players' },
-        { key: 'localTournamentRounds', path: 'local_tournament_rounds' },
-        { key: 'localTournamentPairings', path: 'local_tournament_pairings' },
-        { key: 'payments', path: 'payments' },
-        { key: 'unlockedAchievements', path: 'achievements' }
-      ];
-
-      collectionsMap.forEach(({ key, path }) => {
-        const collRef = collection(db, path);
-        const q = query(collRef, where("owner_id", "==", user.uid));
-        
-        unsubscribes.push(onSnapshot(q, 
-          (snap) => {
-            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            
-            // Mark collection as initialized after the first snapshot
-            const isFirstLoad = !initializedCollections.has(key);
-            if (isFirstLoad) {
-              initializedCollections.add(key);
-            }
-
-            update(s => {
-              const newState = { ...s } as any;
-              newState[key] = docs;
-              
-              // Handle achievement notifications logic
-              if (key === 'unlockedAchievements') {
-                const notifiedIds = docs.filter((d: any) => d.notified).map((d: any) => d.id);
-                
-                // 1. Clear established notifications that are now marked as notified on server
-                const filteredPending = s.pendingAchievementIds.filter(id => !notifiedIds.includes(id));
-                
-                let nextPending = filteredPending;
-                
-                // 2. Add new available ones only if NOT the first load of this collection
-                if (!isFirstLoad) {
-                   const previouslyUnlocked = s.unlockedAchievements.map(a => a.id);
-                   const newlyAdded = docs.filter((d: any) => !d.notified && !previouslyUnlocked.includes(d.id));
-                   
-                   if (newlyAdded.length > 0) {
-                     const freshIds = newlyAdded.map((a: any) => a.id).filter(id => !filteredPending.includes(id));
-                     nextPending = [...filteredPending, ...freshIds];
-                   }
-                }
-                
-                newState.pendingAchievementIds = nextPending;
+              if (!snap.exists()) {
+                await setDoc(userRef, {
+                  email: userEmail,
+                  createdAt: new Date().toISOString(),
+                  settings: {
+                    plan: 'free',
+                    teacherName: user.displayName || '',
+                    teacherAvatar: user.photoURL || '',
+                    teacherEmail: userEmail
+                  }
+                });
+                return;
               }
 
-              return newState;
-            });
-          },
-          (error) => console.error(`❌ [AppStore] Error en ${path}:`, error)
-        ));
-      });
+              const data = snap.data();
+              
+              // Backfill createdAt if missing
+              if (!data.createdAt) {
+                await updateDoc(userRef, { createdAt: new Date().toISOString() });
+              }
 
-      isLoaded = true;
-    } else {
-      set(initialState);
-      isLoaded = false;
-    }
-  });
+              update(currentState => {
+                const settings = { 
+                  ...currentState.settings, 
+                  ...(data.settings || {}),
+                  teacherEmail: userEmail, // Ensure email is in state
+                  featuredInsignias: data.settings?.featuredInsignias || []
+                };
+                
+                if (ADMIN_EMAILS.includes(userEmail)) settings.plan = 'premium';
+                return { 
+                  ...currentState, 
+                  settings, 
+                  dashboardLayout: data.dashboardLayout || [] 
+                };
+              });
+            },
+            (error) => console.error('❌ [AppStore] Settings error:', error)
+          );
+
+          const collectionsMap = [
+            { key: 'schools', path: 'schools' },
+            { key: 'students', path: 'students' },
+            { key: 'classes', path: 'classes' },
+            { key: 'skills', path: 'skills' },
+            { key: 'attendance', path: 'attendance' },
+            { key: 'localTournaments', path: 'local_tournaments' },
+            { key: 'localTournamentPlayers', path: 'local_tournament_players' },
+            { key: 'localTournamentRounds', path: 'local_tournament_rounds' },
+            { key: 'localTournamentPairings', path: 'local_tournament_pairings' },
+            { key: 'payments', path: 'payments' },
+            { key: 'unlockedAchievements', path: 'achievements' }
+          ];
+
+          collectionsMap.forEach(({ key, path }) => {
+            const collRef = collection(db, path);
+            const q = query(collRef, where("owner_id", "==", user.uid));
+            
+            unsubscribes.push(onSnapshot(q, 
+              (snap) => {
+                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                // Mark collection as initialized after the first snapshot
+                const isFirstLoad = !initializedCollections.has(key);
+                if (isFirstLoad) {
+                  initializedCollections.add(key);
+                }
+
+                update(s => {
+                  const newState = { ...s } as any;
+                  newState[key] = docs;
+                  
+                  // Handle achievement notifications logic
+                  if (key === 'unlockedAchievements') {
+                    const notifiedIds = docs.filter((d: any) => d.notified).map((d: any) => d.id);
+                    
+                    // 1. Clear established notifications that are now marked as notified on server
+                    const filteredPending = s.pendingAchievementIds.filter(id => !notifiedIds.includes(id));
+                    
+                    let nextPending = filteredPending;
+                    
+                    // 2. Add new available ones only if NOT the first load of this collection
+                    if (!isFirstLoad) {
+                       const previouslyUnlocked = s.unlockedAchievements.map(a => a.id);
+                       const newlyAdded = docs.filter((d: any) => !d.notified && !previouslyUnlocked.includes(d.id));
+                       
+                       if (newlyAdded.length > 0) {
+                         const freshIds = newlyAdded.map((a: any) => a.id).filter(id => !filteredPending.includes(id));
+                         nextPending = [...filteredPending, ...freshIds];
+                       }
+                    }
+                    
+                    newState.pendingAchievementIds = nextPending;
+                  }
+
+                  return newState;
+                });
+              },
+              (error) => console.error(`❌ [AppStore] Error en ${path}:`, error)
+            ));
+          });
+
+          isLoaded = true;
+        } else if (!user) {
+          set(initialState);
+          isLoaded = false;
+          lastUid = null;
+        }
+      });
+  }
 
   return {
     subscribe,
@@ -862,8 +866,11 @@ export const appStore = createAppStore();
 if (browser) {
   let timer: any;
   appStore.subscribe(state => {
-    // Only check if everything is loaded and user is authenticated
-    if (!state.settings || state.students.length === 0 && state.classes.length === 0) return;
+    const user = get(authStoreUser);
+    const initialized = get(authStoreInitialized);
+    
+    // Only check if authenticated, initialized, and we have minimum data
+    if (!initialized || !user || !state.settings || (state.students.length === 0 && state.classes.length === 0)) return;
 
     clearTimeout(timer);
     timer = setTimeout(async () => {

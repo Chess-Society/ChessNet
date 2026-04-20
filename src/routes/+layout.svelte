@@ -17,27 +17,16 @@
   import { Settings, Crown, Trophy, ChevronRight } from 'lucide-svelte';
   import { t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
+  import { systemConfig, initGlobalConfig } from '$lib/stores/configStore';
   import { INSIGNIAS } from '$lib/constants/insignias';
   import BadgeUnlockModal from '$lib/components/ui/BadgeUnlockModal.svelte';
 
   let { children } = $props();
-  let maintenanceMode = $state(false);
-
+  let maintenanceMode = $derived($systemConfig.maintenanceMode);
 
   if (browser) {
     initAuth();
-
-    // Monitorizar Modo Mantenimiento
-    onSnapshot(doc(db, 'system', 'config'), 
-      (snap) => {
-        if (snap.exists()) {
-          maintenanceMode = snap.data().maintenanceMode || false;
-        }
-      },
-      (error) => {
-        console.warn('⚠️ [Layout] No se pudo leer la configuración del sistema (posible falta de permisos en local):', error.message);
-      }
-    );
+    initGlobalConfig();
   }
 
   const isAdmin = $derived($user?.email && ADMIN_EMAILS.map(e => e.toLowerCase()).includes($user.email.toLowerCase()));
