@@ -105,8 +105,15 @@
   // ---------------------------------------------------------
   $effect(() => {
     if (!browser || !$authUser || !$authInitialized) return;
+
+    // Use a unique key based on UID and Admin status to prevent re-runs on navigation
+    const listenerKey = `${$authUser.uid}_${data.isAdmin}`;
     
-    // Clear previous unsubs if any (safety)
+    // Safety check to avoid re-initializing if it's the same session
+    if ((window as any).__last_listener_key === listenerKey) return;
+    (window as any).__last_listener_key = listenerKey;
+
+    // Clear previous unsubs if any
     unsubs.forEach(u => u());
     unsubs = [];
 
@@ -183,6 +190,7 @@
     return () => {
       unsubs.forEach(u => u());
       unsubs = [];
+      delete (window as any).__last_listener_key;
     };
   });
 
