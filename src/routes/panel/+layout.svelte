@@ -36,7 +36,7 @@
   import { db } from '$lib/firebase';
   import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
 
-  import { user as authUser, loading as authLoading } from '$lib/stores/auth';
+  import { user as authUser, loading as authLoading, authInitialized } from '$lib/stores/auth';
   import { uiStore } from '$lib/stores/uiStore';
   import type { LayoutData } from './$types';
   
