@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { checkPlanGating } from '$lib/server/plans';
+import { adminDb } from '$lib/firebase-admin';
 
 export const load: PageServerLoad = async (event) => {
   const { locals, url } = event;
@@ -13,7 +14,7 @@ export const load: PageServerLoad = async (event) => {
       .limit(10)
       .get();
 
-    const studentsReports = studentsSnap.docs.map(doc => {
+    const studentsReports = studentsSnap.docs.map((doc: any) => {
       const data = doc.data();
       return {
         student: {

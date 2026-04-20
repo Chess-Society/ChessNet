@@ -99,7 +99,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       .limit(10)
       .get();
       
-    const achievements = achievementsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const achievements = achievementsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
 
 
     return {

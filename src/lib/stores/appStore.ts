@@ -202,11 +202,12 @@ function createAppStore() {
             }
 
             update(s => {
-              const newState = { ...s, [key]: docs };
+              const newState = { ...s } as any;
+              newState[key] = docs;
               
               // Handle achievement notifications logic
               if (key === 'unlockedAchievements') {
-                const notifiedIds = docs.filter(d => d.notified).map(d => d.id);
+                const notifiedIds = docs.filter((d: any) => d.notified).map((d: any) => d.id);
                 
                 // 1. Clear established notifications that are now marked as notified on server
                 const filteredPending = s.pendingAchievementIds.filter(id => !notifiedIds.includes(id));
@@ -216,24 +217,17 @@ function createAppStore() {
                 // 2. Add new available ones only if NOT the first load of this collection
                 if (!isFirstLoad) {
                    const previouslyUnlocked = s.unlockedAchievements.map(a => a.id);
-                   const newlyAdded = docs.filter(d => !d.notified && !previouslyUnlocked.includes(d.id));
+                   const newlyAdded = docs.filter((d: any) => !d.notified && !previouslyUnlocked.includes(d.id));
                    
                    if (newlyAdded.length > 0) {
-                     const freshIds = newlyAdded.map(a => a.id).filter(id => !filteredPending.includes(id));
+                     const freshIds = newlyAdded.map((a: any) => a.id).filter(id => !filteredPending.includes(id));
                      nextPending = [...filteredPending, ...freshIds];
                    }
                 }
                 
-                return { ...newState, pendingAchievementIds: nextPending };
+                newState.pendingAchievementIds = nextPending;
               }
-              
-              return newState;
-            });
 
-            update(currentState => {
-              const newState = { ...currentState }; // Already handled above for achievements
-              if (key !== 'unlockedAchievements') newState[key] = docs;
-              
               // Achievement Checker (Automated Delivery)
               if (isLoaded) {
                   import('$lib/constants/insignias').then(({ INSIGNIAS }) => {
@@ -242,8 +236,8 @@ function createAppStore() {
                       studentsCount: newState.students.length,
                       schoolsCount: newState.schools.length,
                       lessonsCreatedCount: newState.skills.length,
-                      completedTournamentsCount: newState.localTournaments.filter(t => t.status === 'completed').length,
-                      lobbyContributionsCount: newState.lobbySuggestions.filter(s => s.authorId === user.uid).length
+                      completedTournamentsCount: (newState.localTournaments || []).filter((t: any) => t.status === 'completed').length,
+                      lobbyContributionsCount: (newState.lobbySuggestions || []).filter((s: any) => s.authorId === user.uid).length
                     };
 
                     INSIGNIAS.forEach(insignia => {
