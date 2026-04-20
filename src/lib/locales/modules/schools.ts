@@ -89,4 +89,7 @@ export const es = {
     'schools.details.no_classes_desc': 'Comienza creando tu primer grupo de entrenamiento para esta escuela.',
     'schools.details.enrollment': 'Matrícula',
     'schools.details.class_panel': 'Panel de Clase',
+    'schools.delete_all_confirm': '¿Eliminar todos los centros?',
+    'schools.delete_all_warning': 'Esta acción eliminará todos los centros y sus datos asociados de forma permanente. No se puede deshacer.',
+    'schools.toast_all_deleted': 'Todos los centros han sido eliminados correctamente.',
 };

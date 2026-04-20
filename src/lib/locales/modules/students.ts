@@ -10,7 +10,7 @@ export const es = {
     'students.unenroll_confirm': '¿Seguro que deseas desinscribir a este estudiante?',
     'students.unenroll_success': 'Estudiante desinscrito correctamente',
     'students.years_short': 'años',
-    'students.first_name_placeholder': 'Ej: Carlos',
+    'students.first_name_placeholder': 'Ej: Nombre',
     'students.no_notes': 'Aún no hay notas sobre el estudiante.',
 
     'students.title': 'Estudiantes',
@@ -25,7 +25,7 @@ export const es = {
     'students.first_name': 'Nombre',
     'students.last_name': 'Apellidos',
     'students.full_name': 'Nombre Completo',
-    'students.full_name_placeholder': 'Ej. Juan Pérez',
+    'students.full_name_placeholder': 'Ej. Nombre del Alumno',
     'students.guidance_title': 'Ayuda Académica',
     'students.guidance_1': 'Esta información es <span class="text-white">estrictamente para uso del profesor</span>.',
     'students.guidance_2': 'Puedes registrar estudiantes <span class="text-white">sin asignar escuela</span> para clases particulares.',
@@ -105,4 +105,7 @@ export const es = {
     'students.lichess_placeholder': 'ej: magnuscarlsen',
     'students.lichess_valid': 'Válido: Usuario encontrado',
     'students.lichess_invalid': 'Error: No se encontró este perfil público en Lichess',
+    'students.delete_all_confirm': '¿Eliminar todos los alumnos?',
+    'students.delete_all_warning': 'Esta acción eliminará todos los alumnos y sus inscripciones de forma permanente. No se puede deshacer.',
+    'students.toast_all_deleted': 'Todos los alumnos han sido eliminados correctamente.',
 };

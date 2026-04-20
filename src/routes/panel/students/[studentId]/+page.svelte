@@ -356,15 +356,27 @@
           </div>
           
           <div class="space-y-4 relative z-10">
-             <div class="achievement-card">
-                <div class="badge-orb">
-                   <Medal size={24} weight="duotone" />
-                </div>
-                <div class="min-w-0">
-                   <p class="text-xs font-outfit font-black text-white uppercase tracking-tight truncate">{$t('students.first_tournament')}</p>
-                   <p class="text-[10px] font-jakarta font-bold text-slate-500 uppercase tracking-widest mt-0.5 truncate">{$t('students.special_mention')}</p>
-                </div>
-             </div>
+             {#if (data.achievements || []).length > 0}
+               {#each (data.achievements || []) as achievement}
+                 <div class="achievement-card">
+                    <div class="badge-orb">
+                       <Medal size={24} weight="duotone" />
+                    </div>
+                    <div class="min-w-0">
+                       <p class="text-xs font-outfit font-black text-white uppercase tracking-tight truncate">
+                         {$t(`achievements.${achievement.type}.title`) || achievement.type}
+                       </p>
+                       <p class="text-[10px] font-jakarta font-bold text-slate-500 uppercase tracking-widest mt-0.5 truncate">
+                         {new Date(achievement.timestamp).toLocaleDateString()}
+                       </p>
+                    </div>
+                 </div>
+               {/each}
+             {:else}
+               <div class="text-center p-6 bg-zinc-900/50 rounded-none border border-white/5 opacity-50">
+                 <p class="text-[10px] font-outfit font-black uppercase tracking-widest text-slate-600">{$t('students.no_achievements') || 'SIN LOGROS'}</p>
+               </div>
+             {/if}
           </div>
        </section>
     </div>

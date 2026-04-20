@@ -175,6 +175,8 @@ export const es = {
     'classes.data_preservation_desc': 'Los cambios en la asociación escolar preservarán todas las inscripciones y registros históricos.',
     'classes.discard_changes': 'Descartar Cambios',
     'classes.exit_without_save': 'Regresar sin guardar',
-
+    'classes.delete_all_confirm': '¿Eliminar todas las clases?',
+    'classes.delete_all_warning': 'Esta acción eliminará todas las clases, horarios e inscripciones de forma permanente. No se puede deshacer.',
+    'classes.toast_all_deleted': 'Todas las clases han sido eliminadas correctamente.',
 };
 

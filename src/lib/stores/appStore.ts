@@ -192,33 +192,44 @@ function createAppStore() {
           (snap) => {
             const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            if (key === 'unlockedAchievements' && initializedCollections.has(key)) {
-                const currentState = get(store);
-                const currentIds = currentState.unlockedAchievements.map((a: any) => a.id);
-                
-                // Detect newly added achievements that are NOT notified
-                const newAvailable = docs.filter((d: any) => 
-                  !d.notified && !currentIds.includes(d.id)
-                );
-                
-                if (newAvailable.length > 0) {
-                  update(s => ({ 
-                    ...s, 
-                    pendingAchievementIds: [
-                      ...s.pendingAchievementIds, 
-                      ...newAvailable.map((a: any) => a.id)
-                    ]
-                  }));
-                }
-            }
-
             // Mark collection as initialized after the first snapshot
-            if (!initializedCollections.has(key)) {
+            const isFirstLoad = !initializedCollections.has(key);
+            if (isFirstLoad) {
               initializedCollections.add(key);
             }
 
+            update(s => {
+              const newState = { ...s, [key]: docs };
+              
+              // Handle achievement notifications logic
+              if (key === 'unlockedAchievements') {
+                const notifiedIds = docs.filter(d => d.notified).map(d => d.id);
+                
+                // 1. Clear established notifications that are now marked as notified on server
+                const filteredPending = s.pendingAchievementIds.filter(id => !notifiedIds.includes(id));
+                
+                let nextPending = filteredPending;
+                
+                // 2. Add new available ones only if NOT the first load of this collection
+                if (!isFirstLoad) {
+                   const previouslyUnlocked = s.unlockedAchievements.map(a => a.id);
+                   const newlyAdded = docs.filter(d => !d.notified && !previouslyUnlocked.includes(d.id));
+                   
+                   if (newlyAdded.length > 0) {
+                     const freshIds = newlyAdded.map(a => a.id).filter(id => !filteredPending.includes(id));
+                     nextPending = [...filteredPending, ...freshIds];
+                   }
+                }
+                
+                return { ...newState, pendingAchievementIds: nextPending };
+              }
+              
+              return newState;
+            });
+
             update(currentState => {
-              const newState = { ...currentState, [key]: docs };
+              const newState = { ...currentState }; // Already handled above for achievements
+              if (key !== 'unlockedAchievements') newState[key] = docs;
               
               // Achievement Checker (Automated Delivery)
               if (isLoaded) {
@@ -555,16 +566,18 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       
-      if (record.id) {
-        const { id, ...data } = record;
+      const { id, ...data } = record;
+
+      if (id) {
         await setDoc(doc(db, 'attendance', id), data, { merge: true });
       } else {
         const attendanceId = `${record.student_id}_${record.class_id}_${record.date}`;
         await setDoc(doc(db, 'attendance', attendanceId), { 
-          ...record, 
+          ...data,
+          id: attendanceId,
           owner_id: user.uid,
           createdAt: new Date().toISOString() 
-        });
+        }, { merge: true });
       }
     },
     
@@ -791,6 +804,12 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) return;
 
+      // Optimistically clear locally
+      update(s => ({
+        ...s,
+        pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId)
+      }));
+
       // Usar API para bypassear las Firestore Rules al marcar como notificado
       try {
         await fetch('/api/achievements', {
@@ -813,11 +832,41 @@ function createAppStore() {
       return new Promise(resolve => setTimeout(resolve, 500));
     },
 
+    removeAllStudents: async () => {
+      const state = get(store);
+      const studentIds = state.students.map(s => s.id);
+      if (studentIds.length === 0) return;
+      
+      // We use parallel calls because the API handles side effects for each student
+      const promises = studentIds.map(id => appStore.removeStudent(id));
+      await Promise.all(promises);
+      toast.success(get(t)('students.all_deleted_success') || 'Todos los alumnos han sido eliminados');
+    },
+
+    removeAllClasses: async () => {
+      const state = get(store);
+      const classIds = state.classes.map(c => c.id);
+      if (classIds.length === 0) return;
+
+      // We use parallel calls because the API handles side effects for each class
+      const promises = classIds.map(id => appStore.removeClass(id));
+      await Promise.all(promises);
+      toast.success(get(t)('classes.all_deleted_success') || 'Todas las clases han sido eliminadas');
+    },
+
+    removeAllSchools: async () => {
+      const state = get(store);
+      const schoolIds = state.schools.map(s => s.id);
+      if (schoolIds.length === 0) return;
+
+      const promises = schoolIds.map(id => appStore.removeSchool(id));
+      await Promise.all(promises);
+      toast.success(get(t)('schools.all_deleted_success') || 'Todos los centros han sido eliminados');
+    },
+
     deleteAccount: async () => {
       const currentUser = get(authStoreUser);
       if (!currentUser) throw new Error("No authenticated user");
-
-
 
       // Llamar al endpoint que borra TODOS los datos en batch y la cuenta de Auth
       const response = await fetch('/api/users/me', { method: 'DELETE' });

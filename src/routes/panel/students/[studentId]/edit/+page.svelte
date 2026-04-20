@@ -43,8 +43,9 @@
     lichess_username: ''
   });
 
+  let isInitialized = $state(false);
   $effect(() => {
-    if (studentData) {
+    if (studentData && !isInitialized) {
       formData = {
         name: studentData.name || '',
         first_name: studentData.first_name || '',
@@ -54,6 +55,7 @@
         notes: studentData.notes || '',
         lichess_username: studentData.lichess_username || ''
       };
+      isInitialized = true;
     }
   });
 

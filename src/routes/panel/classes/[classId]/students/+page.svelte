@@ -95,7 +95,7 @@
       const studentData = {
         first_name: firstName,
         last_name: lastName,
-        email: `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/\s+/g, '')}@chessnet.fake`,
+        email: `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/\s+/g, '')}@chessnet.app`,
         lichess_username: quickLichess || '',
         active: true,
         school_id: classData.school_id,
@@ -319,7 +319,7 @@
               id="quick-name"
               type="text" 
               bind:value={quickName}
-              placeholder="Ej: Juan Pérez"
+              placeholder={$t('students.full_name_placeholder') || 'Ej: Nombre del Alumno'}
               class="w-full bg-zinc-950/80 border border-white/10 rounded-none px-6 py-5 text-white font-bold font-jakarta focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition-all outline-none"
             />
           </div>
@@ -426,27 +426,6 @@
             <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] font-jakarta max-w-[240px] mx-auto leading-relaxed">{$t('classes.start_enrolling_desc') || 'Initialize your educational roster by allocating students from the candidate pool.'}</p>
           </div>
           
-          {#if import.meta.env.DEV}
-            <button 
-              onclick={async () => {
-                const mocks = [
-                  { first_name: 'Magnus', last_name: 'Carlsen', email: 'magnus@lichess.org', lichess_username: 'drnykterstein', level: 'advanced', active: true, school_id: classData.school_id, date_of_birth: '2010-11-30' },
-                  { first_name: 'Hikaru', last_name: 'Nakamura', email: 'hikaru@lichess.org', lichess_username: 'GMHikaru', level: 'advanced', active: true, school_id: classData.school_id, date_of_birth: '2012-12-09' }
-                ];
-                for (const mock of mocks) {
-                  const student = await appStore.addStudent(mock);
-                  if (student?.id) {
-                    await appStore.enrollStudent(classData.id, student.id);
-                  }
-                }
-                window.location.reload();
-              }}
-              class="bg-zinc-950 text-amber-500 mx-auto px-10 py-5 rounded-none text-[10px] font-black uppercase tracking-[0.4em] border border-amber-500/20 hover:bg-amber-500 hover:text-black transition-all flex items-center gap-4 active:scale-95 font-outfit"
-            >
-              <Sparkle weight="bold" size={20} />
-              AUTO-FILL DEMO (MAGNUS/HIKARU)
-            </button>
-          {/if}
         </div>
       {:else}
         <div class="space-y-4">

@@ -84,6 +84,19 @@
       classToDelete = null;
     }
   };
+
+  let showDeleteAllModal = $state(false);
+
+  const confirmDeleteAll = async () => {
+    try {
+      await appStore.removeAllClasses();
+      toast.success($t('classes.toast_all_deleted') || 'Todas las clases han sido eliminadas');
+    } catch (err) {
+      toast.error($t('common.error_occurred') || 'Ha ocurrido un error');
+    } finally {
+      showDeleteAllModal = false;
+    }
+  };
 </script>
 
 <svelte:head>
@@ -150,6 +163,16 @@
         <Plus weight="bold" size={22} class="relative z-10 transition-transform group-hover:rotate-90" />
         <span class="relative z-10">{$t('classes.add_btn')}</span>
       </button>
+
+      {#if classes.length > 0}
+        <button 
+          onclick={() => showDeleteAllModal = true}
+          class="h-[60px] w-[60px] rounded-none bg-red-900/20 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center active:scale-95"
+          title={$t('classes.delete_btn')}
+        >
+          <Trash weight="bold" class="w-6 h-6" />
+        </button>
+      {/if}
     </div>
   </div>
 
@@ -499,6 +522,16 @@
   confirmText={$t('common.delete')}
   cancelText={$t('common.cancel')}
   onConfirm={confirmDelete}
+  type="danger"
+/>
+
+<ConfirmModal
+  bind:show={showDeleteAllModal}
+  title={$t('classes.delete_btn')}
+  message={$t('classes.delete_all_warning') || '¿Estás seguro de que quieres eliminar todas las clases? Esta acción no se puede deshacer.'}
+  confirmText={$t('common.delete')}
+  cancelText={$t('common.cancel')}
+  onConfirm={confirmDeleteAll}
   type="danger"
 />
 

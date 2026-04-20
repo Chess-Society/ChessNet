@@ -34,6 +34,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
   import { db } from '$lib/firebase';
+  import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
 
   import { user as authUser, loading as authLoading } from '$lib/stores/auth';
   import { uiStore } from '$lib/stores/uiStore';
@@ -686,6 +687,20 @@
         </div>
       </div>
     </div>
+  {/if}
+
+  <!-- Global Confirmation Modal -->
+  {#if $uiStore.confirmDialog}
+    <ConfirmModal
+      show={!!$uiStore.confirmDialog}
+      title={$uiStore.confirmDialog.title}
+      message={$uiStore.confirmDialog.message}
+      confirmText={$uiStore.confirmDialog.confirmText}
+      cancelText={$uiStore.confirmDialog.cancelText}
+      type={$uiStore.confirmDialog.type}
+      onConfirm={$uiStore.confirmDialog.onConfirm}
+      onCancel={$uiStore.confirmDialog.onCancel}
+    />
   {/if}
 
   <!-- Mobile Bottom Tab Bar (Premium App Style) -->

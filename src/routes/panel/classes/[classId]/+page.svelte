@@ -51,36 +51,9 @@
   let { data } = $props<{ data: PageData }>();
 
   const classData = $derived(data.class as any);
-  const students = $derived.by(() => {
-    const baseStudents = (data.students || []) as any[];
-    // Supplement with mock enrollments if in dev mode
-    if (typeof window !== 'undefined' && data.user?.uid === 'chessnet-dev-uid') {
-      const _ = $appStore; // Force dependency for reactivity
-      const mockEnrollments = JSON.parse(localStorage.getItem('chessnet_mock_enrollments') || '[]');
-      const enrolledIds = mockEnrollments
-        .filter((e: any) => e.class_id === classData?.id)
-        .map((e: any) => e.student_id);
-      
-      const storeStudents = $appStore.students.filter(s => 
-        enrolledIds.includes(s.id) && !baseStudents.find(bs => bs.id === s.id)
-      );
-      return [...baseStudents, ...storeStudents];
-    }
-    return baseStudents;
-  });
+  const students = $derived((data.students || []) as any[]);
   const classSkills = $derived((data.classSkills || []) as any[]);
-  const classStats = $derived.by(() => {
-    const baseStats = data.classStats || {};
-    if (data.user?.uid === 'chessnet-dev-uid') {
-      return {
-        ...baseStats,
-        total_students: students.length,
-        active_students: students.filter(s => s.active !== false).length,
-        occupancy_rate: classData?.max_students ? Math.round((students.length / classData.max_students) * 100) : 0
-      };
-    }
-    return baseStats;
-  });
+  const classStats = $derived(data.classStats || {});
   const attendanceStats = $derived(data.attendanceStats as any);
 
   let currentView = $state<'overview' | 'students' | 'skills' | 'lichess'>('overview');
@@ -136,17 +109,7 @@
     }
   }
 
-  async function seedMocks() {
-    const mocks = [
-      { first_name: 'Magnus', last_name: 'Carlsen', email: 'magnus@lichess.org', lichess_username: 'drnykterstein', level: 'advanced', active: true, school_id: classData.school_id, date_of_birth: '2010-11-30' },
-      { first_name: 'Hikaru', last_name: 'Nakamura', email: 'hikaru@lichess.org', lichess_username: 'GMHikaru', level: 'advanced', active: true, school_id: classData.school_id, date_of_birth: '2012-12-09' }
-    ];
-    for (const mock of mocks) {
-      const student = await appStore.addStudent(mock);
-      if (student?.id) await appStore.enrollStudent(classData.id, student.id);
-    }
-    window.location.reload();
-  }
+
 
   $effect(() => {
     if (currentView === 'lichess' || (currentView === 'overview' && students.length > 0)) {
@@ -433,15 +396,7 @@
             </div>
             
             <div class="flex items-center gap-3">
-                {#if import.meta.env.DEV}
-                  <button 
-                    onclick={seedMocks}
-                    class="bg-amber-600/10 hover:bg-amber-600/20 text-amber-500 border border-amber-500/20 px-8 py-3 rounded-none text-[9px] font-black uppercase tracking-widest transition-all font-outfit shadow-glow-amber-mini flex items-center gap-3"
-                  >
-                    <Sparkle size={14} weight="fill" class="animate-pulse" />
-                    Llenar con Datos de Ejemplo
-                  </button>
-                {/if}
+
                 <button 
                   onclick={() => goto(`/panel/classes/${classData?.id}/students`)}
                   class="bg-white/5 hover:bg-white hover:text-black px-8 py-3 border border-white/5 rounded-none transition-all text-[9px] font-black uppercase tracking-[0.2em] font-outfit"

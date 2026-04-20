@@ -202,15 +202,28 @@
       </h1>
       <p class="text-zinc-500 text-lg font-medium tracking-tight font-jakarta">{$t('dashboard.overview')}</p>
     </div>
-    
-    <div class="hidden lg:flex items-center gap-4 bento-card p-4">
-      <div class="w-12 h-12 bg-violet-500/10 flex items-center justify-center text-violet-400">
-        <Clock weight="duotone" size={24} />
+    <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+      <div class="flex items-center gap-4 bento-card p-4 flex-1 lg:flex-none justify-between lg:justify-start">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-violet-500/10 flex items-center justify-center text-violet-400">
+            <Clock weight="duotone" size={20} />
+          </div>
+          <div>
+            <p class="text-[9px] text-zinc-500 uppercase font-black tracking-widest leading-none mb-1">{$t('dashboard.today_is')}</p>
+            <p class="text-sm font-outfit font-black text-white capitalize">{todayFormat}</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest leading-none mb-1">{$t('dashboard.today_is')}</p>
-        <p class="text-lg font-outfit font-black text-white capitalize">{todayFormat}</p>
-      </div>
+
+      <button 
+        onclick={toggleEditMode}
+        class="h-18 px-6 border transition-all flex flex-col items-center justify-center gap-1 group {editMode ? 'bg-amber-500 border-amber-600 text-black' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-violet-500/50 hover:text-white'}"
+      >
+        <PencilSimple weight="bold" size={20} class={editMode ? 'animate-pulse' : 'group-hover:rotate-12 transition-transform'} />
+        <span class="text-[8px] font-black uppercase tracking-widest leading-none">
+          {editMode ? 'Guardar' : 'Editar'}
+        </span>
+      </button>
     </div>
   </div>
 
@@ -278,23 +291,24 @@
     <div class="lg:col-span-2 space-y-8">
       
 
-      {#if !isFullyBoarded}
-        <div class="bento-card mb-8 overflow-hidden group" in:fly={{y: 20}}>
+      <!-- Always show roadmap for quick access as requested -->
+      <div class="bento-card mb-8 overflow-hidden group" in:fly={{y: 20}}>
             <!-- Background Glow -->
             <div class="absolute -top-24 -right-24 w-64 h-64 bg-violet-500/10 blur-[100px] group-hover:bg-violet-500/20 transition-all duration-700"></div>
             
-            <div class="relative z-10 p-10 flex flex-col md:flex-row gap-10 items-center">
-                <div class="flex-1 space-y-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-violet-500/10 flex items-center justify-center text-violet-400">
-                            <Crown weight="fill" size={24} />
+            <div class="relative z-10 p-6 md:p-10 flex flex-col xl:flex-row gap-6 md:gap-10 items-center">
+                <div class="flex-1 space-y-2 md:space-y-4 text-center md:text-left">
+                    <div class="flex items-center gap-4 justify-center md:justify-start">
+                        <div class="w-10 h-10 md:w-12 md:h-12 bg-violet-500/10 flex items-center justify-center text-violet-400">
+                            <Crown weight="fill" size={20} class="md:hidden" />
+                            <Crown weight="fill" size={24} class="hidden md:block" />
                         </div>
-                        <h3 class="text-3xl font-outfit font-black text-white tracking-tighter uppercase leading-none">{$t('dashboard.quick_start')}</h3>
+                        <h3 class="text-xl md:text-3xl font-outfit font-black text-white tracking-tighter uppercase leading-none">{$t('dashboard.quick_start')}</h3>
                     </div>
-                    <p class="text-zinc-500 text-lg font-medium max-w-sm font-jakarta">{$t('dashboard.steps_desc')}</p>
+                    <p class="text-zinc-500 text-sm md:text-lg font-medium max-w-sm font-jakarta mx-auto md:ml-0">{$t('dashboard.steps_desc')}</p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 w-full xl:w-auto">
                     <!-- Step 1: Centers -->
                     <button 
                       onclick={() => goto('/panel/schools')}
@@ -351,7 +365,6 @@
                 </div>
             </div>
         </div>
-      {/if}
 
       <!-- Stats Cards Row -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">

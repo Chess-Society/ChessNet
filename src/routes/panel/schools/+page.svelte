@@ -17,6 +17,7 @@
     CheckCircle
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
+  import { toast } from '$lib/stores/toast';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
@@ -54,23 +55,27 @@
   const confirmDelete = async () => {
     if (schoolToDelete) {
       try {
-        const response = await fetch('/api/schools', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: schoolToDelete.id })
-        });
-        if (!response.ok) {
-          const data = await response.json();
-          console.error('Error deleting school:', data.error);
-        }
+        await appStore.removeSchool(schoolToDelete.id);
       } catch (e) {
-        console.error('Delete school request failed:', e);
+        console.error('Delete school failed:', e);
       }
       showDeleteModal = false;
       schoolToDelete = null;
     }
   };
 
+  let showDeleteAllModal = $state(false);
+
+  const confirmDeleteAll = async () => {
+    try {
+      await appStore.removeAllSchools();
+      toast.success($t('schools.toast_all_deleted') || 'Todos los centros han sido eliminados');
+    } catch (err) {
+      toast.error($t('common.error_occurred') || 'Ha ocurrido un error');
+    } finally {
+      showDeleteAllModal = false;
+    }
+  };
 </script>
 
 <svelte:head>
@@ -111,6 +116,16 @@
       </div>
       {$t('schools.add_btn')}
     </button>
+
+    {#if schools.length > 0}
+      <button 
+        onclick={() => showDeleteAllModal = true}
+        class="h-[60px] w-[60px] rounded-none bg-red-900/20 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center active:scale-95 mb-1"
+        title={$t('schools.delete_btn')}
+      >
+        <Trash weight="bold" class="w-6 h-6" />
+      </button>
+    {/if}
   </div>
 
   <!-- Stats Bento Grid -->
@@ -296,6 +311,16 @@
   confirmText={$t('common.delete')}
   cancelText={$t('common.cancel')}
   onConfirm={confirmDelete}
+  type="danger"
+/>
+
+<ConfirmModal
+  bind:show={showDeleteAllModal}
+  title={$t('schools.delete_btn')}
+  message={$t('schools.delete_all_warning') || '¿Estás seguro de que quieres eliminar todos los centros? Esta acción no se puede deshacer.'}
+  confirmText={$t('common.delete')}
+  cancelText={$t('common.cancel')}
+  onConfirm={confirmDeleteAll}
   type="danger"
 />
 

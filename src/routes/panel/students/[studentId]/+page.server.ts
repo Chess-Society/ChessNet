@@ -72,8 +72,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     const totalSessions = attendanceSnap.size;
     const attendanceDocs = attendanceSnap.docs.map((doc: any) => doc.data());
     if (totalSessions > 0) {
-      // En la base de datos guardamos 'P' para Presente
-      const presentSessions = attendanceDocs.filter((d: any) => d.status === 'P' || d.status === 'present').length;
+      // En la base de datos guardamos 'P' para Presente, 'T' para Tarde
+      const presentSessions = attendanceDocs.filter((d: any) => 
+        ['P', 'present', 'T', 'late'].includes(d.status)
+      ).length;
       attendanceRate = Math.round((presentSessions / totalSessions) * 100);
     } else {
       attendanceRate = 100;
@@ -89,6 +91,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     // Asumimos un máximo de 20 habilidades base para el cálculo de porcentaje
     estimatedProgress = Math.min(100, Math.round((masteredSkills / 20) * 100));
 
+    // 3. Cargar logros (achievements)
+    const achievementsSnap = await adminDb.collection("achievements")
+      .where("owner_id", "==", uid)
+      .where("student_id", "==", studentId)
+      .orderBy("timestamp", "desc")
+      .limit(10)
+      .get();
+      
+    const achievements = achievementsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
 
     return {
       user: locals.user,
@@ -96,7 +108,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       school: serializeRecord(school),
       enrolledClasses: serializeRecord(enrolledClasses),
       attendanceRate,
-      estimatedProgress: estimatedProgress || 0
+      estimatedProgress: estimatedProgress || 0,
+      achievements: serializeRecord(achievements)
     };
 
   } catch (err: any) {

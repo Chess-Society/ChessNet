@@ -91,6 +91,27 @@
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
+
+  const handleDeleteAll = async () => {
+    if (students.length === 0) return;
+    
+    const confirmed = await uiStore.confirm({
+      title: $t('students.delete_all_confirm'),
+      message: $t('students.delete_all_warning'),
+      type: 'danger',
+      confirmText: $t('common.delete'),
+      cancelText: $t('common.cancel')
+    });
+
+    if (confirmed) {
+      try {
+        await appStore.removeAllStudents();
+        toast.success($t('students.toast_all_deleted'));
+      } catch (err) {
+        toast.error($t('common.error_occurred'));
+      }
+    }
+  };
 </script>
 
 <svelte:head>
@@ -131,6 +152,16 @@
         <Plus weight="bold" class="w-5 h-5" />
         {$t('students.new_student_btn')}
       </button>
+
+      {#if students.length > 0}
+        <button 
+          onclick={handleDeleteAll}
+          class="h-14 w-14 rounded-none bg-red-900/20 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center active:scale-95"
+          title={$t('common.delete')}
+        >
+          <Trash weight="bold" class="w-6 h-6" />
+        </button>
+      {/if}
     </div>
   </div>
 

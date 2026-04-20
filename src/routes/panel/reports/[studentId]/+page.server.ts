@@ -55,9 +55,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     
     const attendanceRecords = attendanceSnap.docs.map((doc: any) => doc.data());
     const totalSessions = attendanceRecords.length;
-    const attended = attendanceRecords.filter((r: any) => r.status === 'present' || r.status === 'late').length;
-    const late = attendanceRecords.filter((r: any) => r.status === 'late').length;
-    const absent = attendanceRecords.filter((r: any) => r.status === 'absent').length;
+    const attended = attendanceRecords.filter((r: any) => 
+      ['present', 'late', 'P', 'T'].includes(r.status)
+    ).length;
+    const late = attendanceRecords.filter((r: any) => 
+      ['late', 'T'].includes(r.status)
+    ).length;
+    const absent = attendanceRecords.filter((r: any) => 
+      ['absent', 'A'].includes(r.status)
+    ).length;
 
     // 5. Fetch Payments
     const paymentsSnap = await adminDb.collection("payments")
