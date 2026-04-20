@@ -693,13 +693,13 @@
   {#if $uiStore.confirmDialog}
     <ConfirmModal
       show={!!$uiStore.confirmDialog}
-      title={$uiStore.confirmDialog.title}
-      message={$uiStore.confirmDialog.message}
-      confirmText={$uiStore.confirmDialog.confirmText}
-      cancelText={$uiStore.confirmDialog.cancelText}
-      type={$uiStore.confirmDialog.type}
+      title={$uiStore.confirmDialog.title || ''}
+      message={$uiStore.confirmDialog.message || ''}
+      confirmText={$uiStore.confirmDialog.confirmText || ''}
+      cancelText={$uiStore.confirmDialog.cancelText || ''}
+      type={$uiStore.confirmDialog.type || 'info'}
       onConfirm={$uiStore.confirmDialog.onConfirm}
-      onCancel={$uiStore.confirmDialog.onCancel}
+      onCancel={$uiStore.confirmDialog.onCancel || (() => {})}
     />
   {/if}
 

@@ -26,7 +26,8 @@
     Student,
     CreditCard,
     ChatCircleDots,
-    Crown
+    Crown,
+    PencilSimple
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { toast } from '$lib/stores/toast';
@@ -221,7 +222,7 @@
       >
         <PencilSimple weight="bold" size={20} class={editMode ? 'animate-pulse' : 'group-hover:rotate-12 transition-transform'} />
         <span class="text-[8px] font-black uppercase tracking-widest leading-none">
-          {editMode ? 'Guardar' : 'Editar'}
+          {editMode ? $t('dashboard.save') : $t('common.edit')}
         </span>
       </button>
     </div>
