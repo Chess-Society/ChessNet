@@ -1,5 +1,5 @@
 import { auth, db } from "$lib/firebase";
-import { query, collection, where } from "firebase/firestore";
+import { query, collection, where, or } from "firebase/firestore";
 import { ADMIN_EMAILS } from "$lib/constants";
 
 export const getOwnerId = () => {
@@ -21,5 +21,8 @@ export const getOwnerId = () => {
 export const getOwnedQuery = (collectionName: string) => {
   const uid = getOwnerId();
   if (!uid) throw new Error("No hay usuario autenticado");
-  return query(collection(db, collectionName), where("owner_id", "==", uid));
+  return query(
+    collection(db, collectionName), 
+    or(where("ownerId", "==", uid), where("owner_id", "==", uid))
+  );
 };

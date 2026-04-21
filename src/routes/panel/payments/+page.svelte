@@ -27,8 +27,6 @@
     Hourglass,
     Warning
   } from 'phosphor-svelte';
-  import { db, auth } from '$lib/firebase';
-  import { collection, query, where, onSnapshot } from 'firebase/firestore';
   import { appStore } from '$lib/stores/appStore';
   import { user as authUser } from '$lib/stores/auth';
   import { ADMIN_EMAILS } from '$lib/constants';
@@ -38,38 +36,23 @@
   import { fade, fly, scale } from 'svelte/transition';
 
   // Auth & Access Control
-  const plan = $derived($appStore?.settings?.plan || 'free');
-  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
-  
-  let localPayments = $state<any[]>([]);
+  // Data derived from AppStore
+  let payments = $derived($appStore.payments || []);
 
   onMount(() => {
     if (plan === 'free' && !isAdmin) {
       goto('/pricing');
       return;
     }
-
-    let unsubscribe: () => void;
-    const unsubAuth = auth.onAuthStateChanged(user => {
-      if (unsubscribe) unsubscribe();
-      if (user) {
-        const q = query(collection(db, 'payments'), where('owner_id', '==', user.uid));
-        unsubscribe = onSnapshot(q, (snap) => {
-          localPayments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        });
-      }
-    });
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-      unsubAuth();
-    };
   });
 
   let searchQuery = $state('');
   
-  // Reactive data using Runes
-  let payments = $derived(localPayments);
+  // Auth & Access Control
+  const plan = $derived($appStore?.settings?.plan || 'free');
+  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+  
+  // Related data
   let students = $derived($appStore.students || []);
   let schools = $derived($appStore.schools || []);
 
@@ -111,17 +94,17 @@
   const filteredPayments = $derived(
     payments
       .filter(p => {
-        const studentName = getEntityName(p.student_id || '', p.payment_type || 'student').toLowerCase();
+        const studentName = getEntityName(p.studentId || '', p.paymentType || 'student').toLowerCase();
         const concept = (p.concept || '').toLowerCase();
         const query = searchQuery.toLowerCase();
         
         const matchesSearch = studentName.includes(query) || concept.includes(query);
         const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-        const matchesType = typeFilter === 'all' || p.payment_type === typeFilter;
+        const matchesType = typeFilter === 'all' || p.paymentType === typeFilter;
         
         return matchesSearch && matchesStatus && matchesType;
       })
-      .sort((a,b) => (b.paid_date || b.created_at || '').localeCompare(a.paid_date || a.created_at || ''))
+      .sort((a,b) => (b.paidDate || b.createdAt || '').localeCompare(a.paidDate || a.createdAt || ''))
   );
 
   // Modal & Actions state
@@ -131,31 +114,31 @@
 
   let formState = $state({
     id: '',
-    student_id: '',
+    studentId: '',
     amount: 0,
-    paid_date: new Date().toISOString().split('T')[0],
+    paidDate: new Date().toISOString().split('T')[0],
     concept: 'monthly_fee' as any,
     status: 'paid' as any,
-    payment_type: 'student' as 'student' | 'school',
-    payment_method: 'transfer' as any
+    paymentType: 'student' as 'student' | 'school',
+    paymentMethod: 'transfer' as any
   });
 
   const resetForm = () => {
     formState = { 
-      id: '',
-      student_id: '', 
-      amount: 0, 
-      paid_date: new Date().toISOString().split('T')[0], 
-      concept: 'monthly_fee' as any, 
-      status: 'paid' as any,
-      payment_type: 'student',
-      payment_method: 'transfer'
+    id: '',
+    studentId: '', 
+    amount: 0, 
+    paidDate: new Date().toISOString().split('T')[0], 
+    concept: 'monthly_fee' as any, 
+    status: 'paid' as any,
+    paymentType: 'student',
+    paymentMethod: 'transfer'
     };
     editMode = false;
   };
 
   const addPayment = async () => {
-    if (!formState.student_id || formState.amount <= 0) return;
+    if (!formState.studentId || formState.amount <= 0) return;
     
     try {
       if (editMode && formState.id) {
@@ -212,9 +195,9 @@
       $t('common.status')
     ];
     const rows = filteredPayments.map(p => [
-      getEntityName(p.student_id || '', p.payment_type),
+      getEntityName(p.studentId || '', p.paymentType),
       $t(`payments.concepts.${p.concept}`) || p.concept,
-      p.paid_date || p.created_at,
+      p.paidDate || p.createdAt,
       p.amount,
       p.status
     ]);
@@ -370,16 +353,16 @@
               <tr class="table-row group" in:fly={{ y: 8, duration: 300 }}>
                 <td class="pl-8">
                   <div class="entity-info">
-                    <div class="icon-type" class:school={p.payment_type === 'school'}>
-                      {#if p.payment_type === 'school'}
+                    <div class="icon-type" class:school={p.paymentType === 'school'}>
+                      {#if p.paymentType === 'school'}
                         <Buildings size={20} weight="duotone" />
                       {:else}
                         <User size={20} weight="duotone" />
                       {/if}
                     </div>
                     <div class="details">
-                      <span class="name">{getEntityName(p.student_id || '', p.payment_type || 'student')}</span>
-                      <span class="type">{$t(`payments.type_${p.payment_type}`)}</span>
+                      <span class="name">{getEntityName(p.studentId || '', p.paymentType || 'student')}</span>
+                      <span class="type">{$t(`payments.type_${p.paymentType}`)}</span>
                     </div>
                   </div>
                 </td>
@@ -388,12 +371,12 @@
                 </td>
                 <td>
                   <span class="date-text">
-                    {new Date(p.paid_date || p.created_at || '').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                    {new Date(p.paidDate || p.createdAt || '').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                   </span>
                 </td>
                 <td>
                   <div class="method-cell">
-                    <span class="method">{$t(`payments.method_${p.payment_method || 'transfer'}`)}</span>
+                    <span class="method">{$t(`payments.method_${p.paymentMethod || 'transfer'}`)}</span>
                   </div>
                 </td>
                 <td class="text-right">
@@ -448,21 +431,21 @@
           <div class="form-section">
             <span class="label">{$t('payments.entity_category')}</span>
             <div class="toggle-group">
-              <button type="button" class:active={formState.payment_type === 'student'} onclick={() => formState.payment_type = 'student'}>
+              <button type="button" class:active={formState.paymentType === 'student'} onclick={() => formState.paymentType = 'student'}>
                 <User size={18} /> {$t('common.student')}
               </button>
-              <button type="button" class:active={formState.payment_type === 'school'} onclick={() => formState.payment_type = 'school'}>
+              <button type="button" class:active={formState.paymentType === 'school'} onclick={() => formState.paymentType = 'school'}>
                 <Buildings size={18} /> {$t('common.school')}
               </button>
             </div>
           </div>
 
           <div class="field-group">
-            <label for="entity-select">{$t('payments.select_entity', { type: formState.payment_type === 'school' ? $t('common.school') : $t('common.student') })}</label>
+            <label for="entity-select">{$t('payments.select_entity', { type: formState.paymentType === 'school' ? $t('common.school') : $t('common.student') })}</label>
             <div class="select-input">
-              <select id="entity-select" bind:value={formState.student_id} required>
+              <select id="entity-select" bind:value={formState.studentId} required>
                 <option value="" disabled selected>{$t('common.select_option')}...</option>
-                {#if formState.payment_type === 'school'}
+                {#if formState.paymentType === 'school'}
                   {#each schools as school}
                     <option value={school.id}>{school.name}</option>
                   {/each}
@@ -482,7 +465,7 @@
             </div>
             <div class="field-group">
               <label for="date-input">{$t('payments.operation_date')}</label>
-              <input id="date-input" type="date" bind:value={formState.paid_date} required />
+              <input id="date-input" type="date" bind:value={formState.paidDate} required />
             </div>
           </div>
 
@@ -511,7 +494,7 @@
              <span class="label">{$t('payments.payment_method')}</span>
              <div class="method-pills">
                {#each ['transfer', 'cash', 'card'] as m}
-                 <button type="button" class:selected={formState.payment_method === m} onclick={() => formState.payment_method = m}>
+                 <button type="button" class:selected={formState.paymentMethod === m} onclick={() => formState.paymentMethod = m}>
                    {$t(`payments.method_${m}`)}
                  </button>
                {/each}
@@ -554,18 +537,18 @@
              <div class="main-stats">
                <div class="item">
                  <span class="label">{$t('payments.receipt.issued_to')}</span>
-                 <span>{getEntityName(selectedPayment.student_id || '', selectedPayment.payment_type || 'student')}</span>
+                 <span>{getEntityName(selectedPayment.studentId || '', selectedPayment.paymentType || 'student')}</span>
                </div>
                <div class="item text-right">
                  <span class="label">{$t('payments.receipt.issue_date')}</span>
-                 <span>{new Date(selectedPayment.paid_date || selectedPayment.created_at || '').toLocaleDateString()}</span>
+                 <span>{new Date(selectedPayment.paidDate || selectedPayment.createdAt || '').toLocaleDateString()}</span>
                </div>
              </div>
 
              <div class="ledger-line">
                <div class="desc">
                  <p class="con">{$t(`payments.concepts.${selectedPayment.concept}`)}</p>
-                 <p class="sub">{$t(`payments.method_${selectedPayment.payment_method || 'transfer'}`)}</p>
+                 <p class="sub">{$t(`payments.method_${selectedPayment.paymentMethod || 'transfer'}`)}</p>
                </div>
                <div class="price">
                  {formatCurrency(selectedPayment.amount)}

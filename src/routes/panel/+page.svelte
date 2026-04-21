@@ -74,7 +74,7 @@
   let stats = $derived({
     totalStudents: $appStore.students.length,
     monthlyRevenue: $appStore.payments.filter(p => {
-      const dateStr = (p as any).date || p.paid_date || p.due_date;
+      const dateStr = (p as any).date || p.paidDate || p.dueDate;
       if (!dateStr) return false;
       const date = new Date(dateStr);
       const now = new Date();
@@ -87,7 +87,7 @@
     })()
   });
 
-  let nextTournament = $derived($appStore.tournaments.filter(t => t.status === 'upcoming').sort((a,b) => (a.start_date || '').localeCompare(b.start_date || ''))[0]);
+  let nextTournament = $derived($appStore.tournaments.filter(t => t.status === 'upcoming').sort((a,b) => (a.startDate || '').localeCompare(b.startDate || ''))[0]);
 
   // Onboarding flags
   const hasSchools = $derived($appStore.schools.length > 0);
@@ -105,18 +105,18 @@
         time: $t('dashboard.activity.recent'), 
         icon: UsersFour, 
         color: 'text-violet-400',
-        timestamp: parseDate(s.created_at).getTime()
+        timestamp: parseDate(s.createdAt).getTime()
       });
     });
 
     $appStore.payments.slice(-3).reverse().forEach(p => {
-      const student = $appStore.students.find(s => s.id === (p as any).studentId || s.id === p.student_id);
+      const student = $appStore.students.find(s => s.id === p.studentId);
       activities.push({ 
         message: `${$t('dashboard.activity.payment')}: ${p.amount}${$t('common.currency')} - ${student?.name || $t('common.unknown')}`, 
         time: $t('dashboard.activity.recent'), 
         icon: CurrencyEur, 
         color: 'text-primary-400',
-        timestamp: parseDate(p.paid_date || p.due_date || p.created_at).getTime()
+        timestamp: parseDate(p.paidDate || p.dueDate || p.createdAt).getTime()
       });
     });
 
@@ -173,7 +173,7 @@
       const year = d.getFullYear();
       return $appStore.payments
         .filter(p => {
-          const dateStr = (p as any).date || p.paid_date || p.due_date;
+          const dateStr = (p as any).date || p.paidDate || p.dueDate;
           if (!dateStr) return false;
           const pd = new Date(dateStr);
           return pd.getMonth() === month && pd.getFullYear() === year;

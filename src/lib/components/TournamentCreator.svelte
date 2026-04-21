@@ -384,7 +384,7 @@
                       />
                       <div class="flex-1">
                         <div class="font-medium text-white">{student.name}</div>
-                        {#if student.first_name || student.last_name}
+                        {#if student.firstName || student.lastName}
                           <div class="text-sm text-slate-400">
                             {student.firstName} {student.lastName}
                           </div>

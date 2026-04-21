@@ -34,8 +34,7 @@
     Handshake
   } from 'phosphor-svelte';
   import { uiStore } from '$lib/stores/uiStore';
-  import { db, auth } from '$lib/firebase';
-  import { doc, collection, query, where, onSnapshot } from 'firebase/firestore';
+  import { auth } from '$lib/firebase';
   import { appStore } from '$lib/stores/appStore';
   import { user as authUser } from '$lib/stores/auth';
   import { ADMIN_EMAILS } from '$lib/constants';
@@ -48,91 +47,43 @@
 
   const tournamentId = page.params.tournamentId;
 
-  let localTournament = $state<any>(null);
-  let localPlayers = $state<any[]>([]);
-  let localPairings = $state<any[]>([]);
-  let localRounds = $state<any[]>([]);
+  // Reactivity with Svelte 5 runes - Derived from AppStore
+  let localTournament = $derived($appStore.localTournaments?.find(t => t.id === tournamentId));
+  let localPlayers = $derived($appStore.localTournamentPlayers?.filter(p => p.tournamentId === tournamentId) || []);
+  let localPairings = $derived($appStore.localTournamentPairings?.filter(p => p.tournamentId === tournamentId) || []);
+  let localRounds = $derived($appStore.localTournamentRounds?.filter(r => r.tournamentId === tournamentId) || []);
 
-  onMount(() => {
-    let unsubT: any, unsubP: any, unsubPair: any, unsubR: any;
-
-    const unsubAuth = auth.onAuthStateChanged(user => {
-      [unsubT, unsubP, unsubPair, unsubR].forEach(u => u?.());
-
-      if (user && tournamentId) {
-        // Tournament Doc
-        unsubT = onSnapshot(doc(db, 'local_tournaments', tournamentId), (s) => {
-          if (s.exists()) {
-            const data = s.data();
-            localTournament = { 
-                id: s.id, 
-                ...data,
-                ownerId: data.ownerId || data.owner_id,
-                schoolId: data.schoolId || data.school_id,
-                timeControl: data.timeControl || data.time_control,
-                maxPlayers: data.maxPlayers || data.max_players,
-                prizePool: data.prizePool || data.prize_pool,
-                createdAt: data.createdAt || data.created_at,
-                updatedAt: data.updatedAt || data.updated_at
-            };
-          }
-        });
-
-        // Related Collections
-        const qP = query(collection(db, 'local_tournament_players'), where('tournamentId', '==', tournamentId));
-        unsubP = onSnapshot(qP, s => localPlayers = s.docs.map(d => {
-            const data = d.data();
-            return { 
-                id: d.id, 
-                ...data,
-                tournamentId: data.tournamentId || data.tournament_id,
-                studentId: data.studentId || data.student_id,
-                createdAt: data.createdAt || data.created_at
-            };
-        }));
-
-        const qPair = query(collection(db, 'local_tournament_pairings'), where('tournamentId', '==', tournamentId));
-        unsubPair = onSnapshot(qPair, s => localPairings = s.docs.map(d => {
-            const data = d.data();
-            return { 
-                id: d.id, 
-                ...data,
-                tournamentId: data.tournamentId || data.tournament_id,
-                roundNo: data.roundNo || data.round_no,
-                whiteStudentId: data.whiteStudentId || data.white_student_id,
-                blackStudentId: data.blackStudentId || data.black_student_id,
-                pointsWhite: data.pointsWhite || data.points_white,
-                pointsBlack: data.pointsBlack || data.points_black,
-                updatedAt: data.updatedAt || data.updated_at
-            };
-        }));
-
-        const qR = query(collection(db, 'local_tournament_rounds'), where('tournamentId', '==', tournamentId));
-        unsubR = onSnapshot(qR, s => localRounds = s.docs.map(d => {
-            const data = d.data();
-            return { 
-                id: d.id, 
-                ...data,
-                tournamentId: data.tournamentId || data.tournament_id,
-                roundNo: data.roundNo || data.round_no,
-                startedAt: data.startedAt || data.started_at,
-                finishedAt: data.finishedAt || data.finished_at
-            };
-        }));
-      }
-    });
-
-    return () => {
-      [unsubT, unsubP, unsubPair, unsubR, unsubAuth].forEach(u => u?.());
-    };
-  });
-  
-  // Reactivity with Svelte 5 runes
   let tournament = $derived(localTournament);
   let students = $derived($appStore.students || []);
   let players = $derived(localPlayers);
   let pairings = $derived(localPairings);
   let rounds = $derived(localRounds);
+
+  onMount(() => {
+    // Initial data load already handled by appStore synchronization
+  });
+  
+  // Reactivity with Svelte 5 runes
+  // Legacy property mapping is now handled globally by appStore's toData helper
+  let playersWithNames = $derived(localPlayers.map(p => {
+    const student = students.find(s => s.id === p.studentId);
+    return {
+      ...p,
+      studentName: student ? `${student.firstName} ${student.lastName}` : (p.studentName || 'Manual Player'),
+      rating: student?.rating || p.rating || 1200
+    };
+  }));
+
+  // Derive pairings with names
+  let pairingsWithNames = $derived(localPairings.map(p => {
+    const whiteStudent = students.find(s => s.id === p.whiteStudentId);
+    const blackStudent = students.find(s => s.id === p.blackStudentId);
+    return {
+      ...p,
+      whiteName: whiteStudent ? `${whiteStudent.firstName} ${whiteStudent.lastName}` : (p.whiteName || 'White'),
+      blackName: blackStudent ? `${blackStudent.firstName} ${blackStudent.lastName}` : (p.blackName || (p.bye ? 'BYE' : 'Black'))
+    };
+  }));
 
   let activeTab = $state('overview');
   let showRegModal = $state(false);
@@ -222,8 +173,8 @@
   );
 
   const sortedStandings = $derived.by(() => {
-    const computed = players.map(p => {
-        const playerPairings = pairings.filter(pair => pair.whiteStudentId === p.studentId || pair.blackStudentId === p.studentId);
+    const computed = playersWithNames.map(p => {
+        const playerPairings = pairingsWithNames.filter(pair => pair.whiteStudentId === p.studentId || pair.blackStudentId === p.studentId);
         let pts = 0; let buchholz = 0; let sb = 0;
         playerPairings.forEach(pair => {
             if (!pair.result && !pair.bye) return;
@@ -232,7 +183,7 @@
             pts += pPts;
             const oppId = isWhite ? pair.blackStudentId : pair.whiteStudentId;
             if (oppId) {
-                const oppResults = pairings.filter(p2 => (p2.whiteStudentId === oppId || p2.blackStudentId === oppId) && (p2.result || p2.bye));
+                const oppResults = pairingsWithNames.filter(p2 => (p2.whiteStudentId === oppId || p2.blackStudentId === oppId) && (p2.result || p2.bye));
                 let oppTotalPts = 0;
                 oppResults.forEach(r => {
                     if (r.whiteStudentId === oppId) oppTotalPts += r.pointsWhite || 0;
@@ -380,10 +331,10 @@
   const calculateTournamentProgress = () => {
     if (!tournament || !tournament.roundsPlanned) return 0;
     if (tournament.status === 'completed') return 100;
-    const totalPairings = pairings.length;
-    const completedPairings = pairings.filter(p => p.result !== undefined || p.bye).length;
+    const totalPairings = pairingsWithNames.length;
+    const completedPairings = pairingsWithNames.filter(p => p.result !== undefined || p.bye).length;
     if (totalPairings === 0) return 0;
-    return Math.floor((completedPairings / (players.length * (tournament.roundsPlanned || 1) / 2)) * 100);
+    return Math.floor((completedPairings / (playersWithNames.length * (tournament.roundsPlanned || 1) / 2)) * 100);
   };
 
 </script>
@@ -605,7 +556,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-zinc-800">
-                                {#each [...players].sort((a,b) => (b.rating || 1200) - (a.rating || 1200)) as player, idx}
+                                {#each [...playersWithNames].sort((a,b) => (b.rating || 1200) - (a.rating || 1200)) as player, idx}
                                     <tr class="hover:bg-zinc-800/30 transition-colors group {player.status === 'withdrawn' ? 'opacity-40 grayscale' : ''}">
                                         <td class="px-8 py-5">
                                             <div class="text-xs font-black text-zinc-700">#{idx + 1}</div>
@@ -703,7 +654,7 @@
                                  <div>
                                      <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.round')} {tournament.currentRound || 1}</h3>
                                      <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                                         {pairings.filter(p => p.roundNo === (tournament.currentRound || 1) && (p.result !== undefined || p.bye)).length} / {pairings.filter(p => p.roundNo === (tournament.currentRound || 1)).length} {$t('tournaments.games_completed')}
+                                         {pairingsWithNames.filter(p => p.roundNo === (tournament.currentRound || 1) && (p.result !== undefined || p.bye)).length} / {pairingsWithNames.filter(p => p.roundNo === (tournament.currentRound || 1)).length} {$t('tournaments.games_completed')}
                                      </p>
                                  </div>
                              </div>
@@ -754,9 +705,9 @@
                                         <span class="px-3 py-1 bg-zinc-800 text-zinc-500 border border-zinc-700 rounded-none text-[10px] font-black uppercase tracking-widest">{$t('tournaments.status_closed')}</span>
                                     {/if}
                                 </div>
-                                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-900">
-                                    {#each pairings.filter(p => p.roundNo === round.roundNo).sort((a,b) => a.board - b.board) as p}
-                                        <div class="flex flex-col bg-zinc-950/40 border border-zinc-800 rounded-none group/match hover:border-violet-500/30 transition-all hover:bg-zinc-950/60 shadow-lg relative overflow-hidden">
+                                 <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-900">
+                                     {#each pairingsWithNames.filter(p => p.roundNo === round.roundNo).sort((a,b) => a.board - b.board) as p}
+                                         <div class="flex flex-col bg-zinc-950/40 border border-zinc-800 rounded-none group/match hover:border-violet-500/30 transition-all hover:bg-zinc-950/60 shadow-lg relative overflow-hidden">
                                             <!-- Board Number -->
                                             <div class="absolute top-0 right-0 p-3 opacity-10 group-hover/match:opacity-20 transition-opacity">
                                                 <span class="text-4xl font-black italic">#{p.board}</span>

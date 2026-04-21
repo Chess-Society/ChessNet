@@ -35,12 +35,12 @@
 
   let formData = $state({
     name: '',
-    first_name: '',
-    last_name: '',
-    school_id: '',
-    class_id: '',
+    firstName: '',
+    lastName: '',
+    schoolId: '',
+    classId: '',
     notes: '',
-    lichess_username: ''
+    lichessUsername: ''
   });
 
   let isInitialized = $state(false);
@@ -48,12 +48,12 @@
     if (studentData && !isInitialized) {
       formData = {
         name: studentData.name || '',
-        first_name: studentData.first_name || '',
-        last_name: studentData.last_name || '',
-        school_id: studentData.school_id || '',
-        class_id: studentData.class_id || '',
+        firstName: studentData.firstName || '',
+        lastName: studentData.lastName || '',
+        schoolId: studentData.schoolId || '',
+        classId: studentData.classId || '',
         notes: studentData.notes || '',
-        lichess_username: studentData.lichess_username || ''
+        lichessUsername: studentData.lichessUsername || ''
       };
       isInitialized = true;
     }
@@ -66,7 +66,7 @@
   let lichessStatus = $state<'idle' | 'valid' | 'invalid'>('idle');
 
   async function verifyLichessUser() {
-    const user = formData.lichess_username.trim();
+    const user = formData.lichessUsername.trim();
     if (!user) {
       lichessStatus = 'idle';
       return;
@@ -113,23 +113,23 @@
 
   const hasChanges = $derived(
     formData.name !== (studentData?.name || '') ||
-    formData.first_name !== (studentData?.first_name || '') ||
-    formData.last_name !== (studentData?.last_name || '') ||
-    formData.school_id !== (studentData?.school_id || '') ||
-    formData.class_id !== (studentData?.class_id || '') ||
+    formData.firstName !== (studentData?.firstName || '') ||
+    formData.lastName !== (studentData?.lastName || '') ||
+    formData.schoolId !== (studentData?.schoolId || '') ||
+    formData.classId !== (studentData?.classId || '') ||
     formData.notes !== (studentData?.notes || '') ||
-    formData.lichess_username !== (studentData?.lichess_username || '')
+    formData.lichessUsername !== (studentData?.lichessUsername || '')
   );
 
   const resetToOriginal = () => {
     formData = {
       name: studentData?.name || '',
-      first_name: studentData?.first_name || '',
-      last_name: studentData?.last_name || '',
-      school_id: studentData?.school_id || '',
-      class_id: studentData?.class_id || '',
+      firstName: studentData?.firstName || '',
+      lastName: studentData?.lastName || '',
+      schoolId: studentData?.schoolId || '',
+      classId: studentData?.classId || '',
       notes: studentData?.notes || '',
-      lichess_username: studentData?.lichess_username || ''
+      lichessUsername: studentData?.lichessUsername || ''
     };
     errors = {};
   };
@@ -228,23 +228,23 @@
 
            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div class="space-y-4">
-                 <label for="first_name" class="input-label">{$t('students.first_name')}</label>
+                 <label for="firstName" class="input-label">{$t('students.first_name')}</label>
                  <div class="input-wrapper">
                     <input
-                      id="first_name"
+                      id="firstName"
                       type="text"
-                      bind:value={formData.first_name}
+                      bind:value={formData.firstName}
                       class="glass-input"
                     />
                  </div>
               </div>
               <div class="space-y-4">
-                 <label for="last_name" class="input-label">{$t('students.last_name')}</label>
+                 <label for="lastName" class="input-label">{$t('students.last_name')}</label>
                  <div class="input-wrapper">
                     <input
-                      id="last_name"
+                      id="lastName"
                       type="text"
-                      bind:value={formData.last_name}
+                      bind:value={formData.lastName}
                       class="glass-input"
                     />
                  </div>
@@ -292,9 +292,9 @@
             </p>
             <div class="input-wrapper relative">
               <input
-                id="lichess_username"
+                id="lichessUsername"
                 type="text"
-                bind:value={formData.lichess_username}
+                bind:value={formData.lichessUsername}
                 onblur={verifyLichessUser}
                 oninput={() => lichessStatus = 'idle'}
                 placeholder={$t('students.lichess_placeholder')}
@@ -330,10 +330,10 @@
              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button 
                   type="button"
-                  class="selection-card {!formData.school_id ? 'active' : ''}"
+                  class="selection-card {!formData.schoolId ? 'active' : ''}"
                   onclick={() => {
-                    formData.school_id = '';
-                    formData.class_id = '';
+                    formData.schoolId = '';
+                    formData.classId = '';
                   }}
                 >
                   <div class="card-icon">
@@ -342,7 +342,7 @@
                   <div class="card-content">
                     <span class="card-title">{$t('classes.independent')}</span>
                   </div>
-                  {#if !formData.school_id}
+                  {#if !formData.schoolId}
                     <div class="card-check" in:scale>
                       <CheckCircle size={20} weight="fill" />
                     </div>
@@ -352,11 +352,11 @@
                 {#each schools as school}
                   <button 
                     type="button"
-                    class="selection-card {formData.school_id === school.id ? 'active' : ''}"
+                    class="selection-card {formData.schoolId === school.id ? 'active' : ''}"
                     onclick={() => {
-                      if (formData.school_id !== school.id) {
-                        formData.school_id = school.id;
-                        formData.class_id = '';
+                      if (formData.schoolId !== school.id) {
+                        formData.schoolId = school.id;
+                        formData.classId = '';
                       }
                     }}
                   >
@@ -367,7 +367,7 @@
                       <span class="card-title">{school.name}</span>
                       <span class="text-[10px] font-medium text-zinc-500">{school.city || ''}</span>
                     </div>
-                    {#if formData.school_id === school.id}
+                    {#if formData.schoolId === school.id}
                       <div class="card-check" in:scale>
                         <CheckCircle size={20} weight="fill" />
                       </div>
@@ -392,10 +392,10 @@
   
           <div class="space-y-4">
              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button 
+                 <button 
                   type="button"
-                  class="selection-card {!formData.class_id ? 'active' : ''}"
-                  onclick={() => formData.class_id = ''}
+                  class="selection-card {!formData.classId ? 'active' : ''}"
+                  onclick={() => formData.classId = ''}
                 >
                   <div class="card-icon">
                     <UserCircle weight="duotone" />
@@ -403,18 +403,18 @@
                   <div class="card-content">
                     <span class="card-title">{$t('classes.independent')}</span>
                   </div>
-                  {#if !formData.class_id}
+                  {#if !formData.classId}
                     <div class="card-check" in:scale>
                       <CheckCircle size={20} weight="fill" />
                     </div>
                   {/if}
                 </button>
 
-                {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as cls}
+                {#each classes.filter((c: any) => !formData.schoolId || c.schoolId === formData.schoolId) as cls}
                   <button 
                     type="button"
-                    class="selection-card {formData.class_id === cls.id ? 'active' : ''}"
-                    onclick={() => formData.class_id = cls.id}
+                    class="selection-card {formData.classId === cls.id ? 'active' : ''}"
+                    onclick={() => formData.classId = cls.id}
                   >
                     <div class="card-icon">
                       <BookOpen weight="duotone" />
@@ -423,7 +423,7 @@
                       <span class="card-title">{cls.name}</span>
                       <span class="text-[10px] font-medium text-zinc-500">{cls.schedule || ''}</span>
                     </div>
-                    {#if formData.class_id === cls.id}
+                    {#if formData.classId === cls.id}
                       <div class="card-check" in:scale>
                         <CheckCircle size={20} weight="fill" />
                       </div>

@@ -38,23 +38,25 @@
   import { uiStore } from '$lib/stores/uiStore';
   import { parseDate, formatDate } from '$lib/utils/date';
   import UpdatePill from '$lib/components/common/UpdatePill.svelte';
+  import { globalAnnouncements as globalAnnouncementsStore } from '$lib/stores/configStore';
 
   // State
   let showCreateModal = $state(false);
   let isSubmitting = $state(false);
   
-  let communityAnnouncements = $state<any[]>([]);
-  let globalAnnouncements = $state<any[]>([]);
-  let announcements = $derived([...globalAnnouncements, ...communityAnnouncements].sort((a,b) => {
+  // Community Chat State
+  let groups = $derived($appStore.communityGroups || []);
+  let lobbyAnnouncements = $derived($appStore.lobbyAnnouncements || []);
+  let globalAnnouncements = $derived($globalAnnouncementsStore || []);
+  
+  let announcements = $derived([...globalAnnouncements, ...lobbyAnnouncements].sort((a,b) => {
     const dateA = new Date(a.createdAt || a.created_at || 0).getTime();
     const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
     return dateB - dateA;
   }));
   
-  // Community Chat State
-  let groups = $state<any[]>([]);
   let selectedGroupId = $state<string | null>(null);
-  let selectedGroupName = $state('');
+  let selectedGroupName = $derived(groups.find(g => g.id === selectedGroupId)?.name || '');
   let messages = $state<any[]>([]);
   let newMessage = $state('');
   let showCreateGroupModal = $state(false);
@@ -75,42 +77,18 @@
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
 
   onMount(() => {
-    // Plan Guardrail: Only premium users or admins can access the lobby
+    // Plan Guardrail
     if (plan === 'free' && !isAdmin) {
       goto('/pricing');
       return;
     }
+  });
 
-
-
-    // Listen for community announcements
-    const qA = query(collection(db, 'lobby_announcements'), orderBy('createdAt', 'desc'));
-    const unsubA = onSnapshot(qA, (snap) => {
-      communityAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    }, (err) => console.error("Error announcements listener:", err));
-
-    // Listen for global system announcements
-    const qGlobal = query(collection(db, 'announcements'), where('is_global', '==', true), orderBy('created_at', 'desc'), limit(10));
-    const unsubGlobal = onSnapshot(qGlobal, (snap) => {
-      globalAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data(), isGlobal: true }));
-    }, (err) => console.error("Error global announcements listener:", err));
-
-    // Listen for groups
-    const qG = query(collection(db, 'community_groups'), orderBy('name', 'asc'));
-    const unsubG = onSnapshot(qG, (snap) => {
-      groups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // If no group is selected, select the first one by default if exists
-      if (!selectedGroupId && groups.length > 0) {
-        selectedGroupId = groups[0].id;
-        selectedGroupName = groups[0].name;
-      }
-    }, (err) => console.error("Error groups listener:", err));
-
-    return () => {
-      unsubA();
-      unsubGlobal();
-      unsubG();
-    };
+  // Default group selection
+  $effect(() => {
+    if (!selectedGroupId && groups.length > 0) {
+      selectedGroupId = groups[0].id;
+    }
   });
 
   // Watch selectedGroupId to fetch messages

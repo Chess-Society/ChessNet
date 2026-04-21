@@ -12,11 +12,25 @@ export const GET: RequestHandler = async (event) => {
   }
 
   try {
-    const querySnapshot = await adminDb.collection('local_tournaments')
+    // Try querying by ownerId first (new standard)
+    const newQuerySnapshot = await adminDb.collection('local_tournaments')
+      .where('ownerId', '==', user.uid)
+      .get();
+    
+    // Also check owner_id (legacy)
+    const legacyQuerySnapshot = await adminDb.collection('local_tournaments')
       .where('owner_id', '==', user.uid)
       .get();
     
-    const tournaments = querySnapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    const allDocs = [...newQuerySnapshot.docs];
+    // Add legacy docs if they aren't already there (shouldn't be, but to be safe)
+    legacyQuerySnapshot.docs.forEach(doc => {
+      if (!allDocs.find(d => d.id === doc.id)) {
+        allDocs.push(doc);
+      }
+    });
+
+    const tournaments = allDocs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
     
     return json({ items: tournaments });
   } catch (error: any) {
@@ -43,7 +57,7 @@ export const POST: RequestHandler = async (event) => {
     }
     
     const tournamentData = {
-      owner_id: uid,
+      ownerId: uid,
       schoolId: body.schoolId || null,
       name: body.name || 'Torneo sin nombre',
       description: body.description || null,
@@ -100,7 +114,7 @@ export const PUT: RequestHandler = async (event) => {
       return json({ error: 'Torneo no encontrado' }, { status: 404 });
     }
 
-    if (snap.data()?.owner_id !== uid) {
+    if (snap.data()?.ownerId !== uid && snap.data()?.owner_id !== uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -149,7 +163,7 @@ export const DELETE: RequestHandler = async (event) => {
       return json({ success: true, message: 'Torneo ya eliminado' });
     }
 
-    if (snap.data()?.owner_id !== uid) {
+    if (snap.data()?.ownerId !== uid && snap.data()?.owner_id !== uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 

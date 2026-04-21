@@ -48,12 +48,12 @@
 
   const getAttendanceForDate = (date: string | null) => {
     if (!date) return null;
-    const records = attendance.filter(a => a.date === date && a.class_id === selectedClassId);
+    const records = attendance.filter(a => a.date === date && a.classId === selectedClassId);
     if (records.length === 0) return null;
     
     const present = records.filter(r => r.status === 'P').length;
     // Agrupamos por estudiante para evitar duplicados si los hubiera (aunque no debería)
-    const uniqueStudents = new Set(records.map(r => r.student_id));
+    const uniqueStudents = new Set(records.map(r => r.studentId));
     
     return {
         present,
@@ -65,7 +65,7 @@
   // Corrección: records.length es mejor ya que records ya esta filtrado por date y class
   const getStats = (date: string | null) => {
     if (!date) return null;
-    const records = attendance.filter(a => a.date === date && a.class_id === selectedClassId);
+    const records = attendance.filter(a => a.date === date && a.classId === selectedClassId);
     if (records.length === 0) return null;
     const present = records.filter(r => r.status === 'P').length;
     return { present, total: records.length, percent: Math.round((present / records.length) * 100) };

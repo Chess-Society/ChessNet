@@ -414,6 +414,16 @@
       </div>
       
       <div class="flex items-center gap-6">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2">
+            <Users weight="bold" class="w-4 h-4 text-violet-400" />
+            <span class="text-xs font-black text-white">{s.studentsMastered || 0}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <Clock weight="bold" class="w-4 h-4 text-zinc-500" />
+            <span class="text-xs font-black text-zinc-400">{s.estimatedHours || 0}h</span>
+          </div>
+        </div>
         <div class="w-20 h-20 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-none flex items-center justify-center text-white shadow-2xl shadow-violet-600/20 relative group overflow-hidden">
           <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <Path weight="duotone" class="w-10 h-10 group-hover:scale-110 transition-transform duration-500" />
@@ -559,11 +569,12 @@
           <div class="w-16 h-16 bg-violet-600/20 rounded-none flex items-center justify-center text-violet-500">
             <Brain weight="fill" class="w-8 h-8 animate-pulse" />
           </div>
-          <div class="space-y-1">
-            <h3 class="text-xl font-black text-white uppercase italic tracking-tight">{$t('skills.ui.extracting')}</h3>
-            <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest">{$t('skills.ui.import_pdf_subtitle')}</p>
-          </div>
-        </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('skills.category')}</span>
+                  <div class="px-2 py-0.5 bg-zinc-950 border border-zinc-800 rounded-none text-[9px] font-bold text-zinc-400">
+                    {s.categoryId || 'General'}
+                  </div>
+                </div>
         <div class="w-full md:w-80 space-y-3">
           <div class="flex justify-between text-[10px] font-black text-violet-400 uppercase tracking-widest">
             <span>{Math.round(extractionProgress)}%</span>

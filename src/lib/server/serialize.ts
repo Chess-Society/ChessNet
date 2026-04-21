@@ -39,7 +39,19 @@ export function serializeRecord<T>(data: any): T {
     const serialized: any = {};
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
-        serialized[key] = serializeRecord(data[key]);
+        let newKey = key;
+        
+        // Auto-mapping legacy snake_case keys to camelCase
+        if (key === 'owner_id') newKey = 'ownerId';
+        else if (key === 'student_id') newKey = 'studentId';
+        else if (key === 'round_no') newKey = 'roundNo';
+        else if (key === 'tournament_id') newKey = 'tournamentId';
+        else if (key === 'school_id') newKey = 'schoolId';
+        else if (key === 'class_id') newKey = 'classId';
+        else if (key === 'first_name') newKey = 'firstName';
+        else if (key === 'last_name') newKey = 'lastName';
+
+        serialized[newKey] = serializeRecord(data[key]);
       }
     }
     return serialized as T;

@@ -30,6 +30,7 @@ export interface LocalTournament {
 
 export interface LocalTournamentPlayer {
   id: string;
+  ownerId: string;
   tournamentId: string;
   studentId: string;
   studentName?: string; // Denormalized for convenience
@@ -41,6 +42,7 @@ export interface LocalTournamentPlayer {
 
 export interface LocalTournamentRound {
   id: string;
+  ownerId: string;
   tournamentId: string;
   roundNo: number;
   startedAt?: string;
@@ -50,6 +52,7 @@ export interface LocalTournamentRound {
 
 export interface LocalTournamentPairing {
   id: string;
+  ownerId: string;
   tournamentId: string;
   roundNo: number;
   board: number;

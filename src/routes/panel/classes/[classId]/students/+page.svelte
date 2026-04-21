@@ -60,7 +60,7 @@
   // Filter available students by search query
   let filteredAvailableStudents = $derived(
     availableStudents.filter(student =>
-      (student.first_name + ' ' + student.last_name).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (student.firstName + ' ' + student.lastName).toLowerCase().includes(searchQuery.toLowerCase()) ||
       (student.email || '').toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
@@ -93,14 +93,14 @@
       const lastName = nameParts.slice(1).join(' ') || 'Alumno';
 
       const studentData = {
-        first_name: firstName,
-        last_name: lastName,
+        firstName: firstName,
+        lastName: lastName,
         email: `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/\s+/g, '')}@chessnet.app`,
-        lichess_username: quickLichess || '',
+        lichessUsername: quickLichess || '',
         active: true,
-        school_id: classData.school_id,
+        schoolId: classData.schoolId,
         level: 'beginner',
-        date_of_birth: '2015-01-01'
+        dateOfBirth: '2015-01-01'
       };
       
       const newStudent = await appStore.addStudent(studentData);
@@ -128,8 +128,8 @@
       goto(`/panel/schools/${fromSchool}`);
     } else if (fromClass) {
       goto(`/panel/classes/${fromClass}`);
-    } else if (classData?.school_id) {
-      goto(`/panel/schools/${classData.school_id}`);
+    } else if (classData?.schoolId) {
+      goto(`/panel/schools/${classData.schoolId}`);
     } else {
       goto(`/panel/classes/${classData.id}`);
     }
@@ -170,15 +170,15 @@
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          class_id: classId,
-          student_id: studentId
+          classId: classId,
+          studentId: studentId
         })
       });
 
       if (response.ok) {
         const student = availableStudents.find(s => s.id === studentId);
         if (student) {
-          enrolledStudents = [...enrolledStudents, { ...student, enrolled_at: new Date().toISOString() }];
+          enrolledStudents = [...enrolledStudents, { ...student, enrolledAt: new Date().toISOString() }];
           availableStudents = availableStudents.filter(s => s.id !== studentId);
           
           stats.enrolled += 1;
@@ -186,7 +186,7 @@
           stats.occupancyRate = Math.round((stats.enrolled / stats.capacity) * 100);
         }
         
-        showToast.success($t('students.enroll_success', { name: `${student?.first_name} ${student?.last_name}` }));
+        showToast.success($t('students.enroll_success', { name: `${student?.firstName} ${student?.lastName}` }));
       } else {
         const error = await response.json();
         showError(error.error || $t('common.error_occurred'));
@@ -200,7 +200,7 @@
   };
 
   const handleEditStudent = (studentId: string) => {
-    const schoolId = classData?.school_id;
+    const schoolId = classData?.schoolId;
     const queryParam = schoolId ? `?schoolId=${schoolId}` : '';
     goto(`/panel/students/${studentId}/edit${queryParam}`);
   };
@@ -209,7 +209,7 @@
     const student = enrolledStudents.find(s => s.id === studentId);
     const confirmed = await uiStore.confirm({
       title: $t('students.unenroll_title'),
-      message: $t('students.unenroll_confirm', { name: `${student?.first_name} ${student?.last_name}` }),
+      message: $t('students.unenroll_confirm', { name: `${student?.firstName} ${student?.lastName}` }),
       confirmText: $t('common.unenroll'),
       cancelText: $t('common.cancel')
     });
@@ -223,13 +223,13 @@
         return;
       }
 
-      const response = await fetch(`/api/class-students?class_id=${classId}&student_id=${studentId}`, {
+      const response = await fetch(`/api/class-students?classId=${classId}&studentId=${studentId}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
         if (student) {
-          const { enrolled_at, ...studentData } = student;
+          const { enrolledAt, ...studentData } = student;
           availableStudents = [...availableStudents, studentData];
           enrolledStudents = enrolledStudents.filter(s => s.id !== studentId);
           
@@ -238,7 +238,7 @@
           stats.occupancyRate = Math.round((stats.enrolled / stats.capacity) * 100);
         }
         
-        showToast.success($t('students.unenroll_success', { name: `${student?.first_name} ${student?.last_name}` }));
+        showToast.success($t('students.unenroll_success', { name: `${student?.firstName} ${student?.lastName}` }));
       } else {
         const error = await response.json();
         showError(error.error || $t('common.error_occurred'));
@@ -439,17 +439,17 @@
                 <div class="flex items-center gap-6 relative z-10">
                   <div class="w-16 h-16 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center text-violet-400 font-black font-outfit text-xl group-hover:scale-110 group-hover:border-violet-500/50 transition-all duration-700 shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)] relative overflow-hidden">
                      <div class="absolute inset-0 bg-gradient-to-br from-violet-600/10 to-transparent"></div>
-                     <span class="relative z-10">{student.first_name.charAt(0)}{student.last_name.charAt(0)}</span>
+                     <span class="relative z-10">{student.firstName.charAt(0)}{student.lastName.charAt(0)}</span>
                   </div>
                   <div>
-                    <h4 class="text-white font-black uppercase text-sm mb-1.5 font-outfit tracking-tight group-hover:text-violet-400 transition-colors">{student.first_name} {student.last_name}</h4>
+                    <h4 class="text-white font-black uppercase text-sm mb-1.5 font-outfit tracking-tight group-hover:text-violet-400 transition-colors">{student.firstName} {student.lastName}</h4>
                     <div class="flex items-center gap-3">
                        <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 border border-white/5 rounded-none text-[9px] font-black text-slate-500 uppercase tracking-widest">
                           <IdentificationBadge size={12} class="text-slate-600" />
-                          {calculateAge(student.date_of_birth)} {$t('students.years_short')}
+                          {calculateAge(student.dateOfBirth)} {$t('students.years_short')}
                        </div>
-                       <div class={`px-2 py-0.5 rounded-none border text-[9px] font-black uppercase tracking-widest ${levelColors[student.chess_level] || 'bg-slate-500/10 text-slate-400 border-slate-500/10'}`}>
-                         {levelLabels[student.chess_level] || 'MIXED'}
+                       <div class={`px-2 py-0.5 rounded-none border text-[9px] font-black uppercase tracking-widest ${levelColors[student.chessLevel] || 'bg-slate-500/10 text-slate-400 border-slate-500/10'}`}>
+                         {levelLabels[student.chessLevel] || 'MIXED'}
                        </div>
                     </div>
                   </div>
@@ -533,10 +533,10 @@
              >
                 <div class="flex items-center gap-6">
                   <div class="w-16 h-16 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center text-slate-600 font-black font-outfit text-xl group-hover:scale-110 group-hover:border-blue-500/50 group-hover:text-blue-400 transition-all duration-700 shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)]">
-                     {student.first_name.charAt(0)}{student.last_name.charAt(0)}
+                     {student.firstName.charAt(0)}{student.lastName.charAt(0)}
                   </div>
                   <div>
-                    <h4 class="text-white font-black uppercase text-sm mb-1 font-outfit tracking-tight group-hover:text-blue-400 transition-colors">{student.first_name} {student.last_name}</h4>
+                    <h4 class="text-white font-black uppercase text-sm mb-1 font-outfit tracking-tight group-hover:text-blue-400 transition-colors">{student.firstName} {student.lastName}</h4>
                     <p class="text-slate-600 font-black text-[10px] uppercase tracking-widest font-jakarta transition-colors group-hover:text-slate-400 truncate max-w-[200px]">{student.email || 'NO_IDENTIFIER'}</p>
                   </div>
                 </div>

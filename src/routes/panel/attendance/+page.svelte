@@ -37,8 +37,7 @@
   import { cubicOut } from 'svelte/easing';
   import { showToast, showError } from '$lib/stores/toast';
 
-  import { db, auth } from '$lib/firebase';
-  import { collection, query, where, onSnapshot } from 'firebase/firestore';
+  import { auth } from '$lib/firebase';
 
   let selectedClassId = $state($page.url.searchParams.get('classId') || '');
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
@@ -46,27 +45,7 @@
   let isProcessing = $state(false);
   let searchQuery = $state('');
   
-  // Local real-time attendance data
-  let localAttendance = $state<any[]>([]);
-
-  onMount(() => {
-    let unsubscribe: () => void;
-
-    const unsubAuth = auth.onAuthStateChanged(user => {
-      if (unsubscribe) unsubscribe();
-      if (user) {
-        const q = query(collection(db, 'attendance'), where('owner_id', '==', user.uid));
-        unsubscribe = onSnapshot(q, (snap) => {
-          localAttendance = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        });
-      }
-    });
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-      unsubAuth();
-    };
-  });
+  // El appStore maneja la sincronización global de asistencia
   
   // Datos reactivos
   let classes = $derived($appStore.classes || []);
@@ -77,11 +56,11 @@
   let classStudents = $derived.by(() => {
     let filtered;
     if (selectedClassId === 'independent') {
-      filtered = students.filter(s => !s.class_id);
+      filtered = students.filter(s => !s.classId);
     } else {
       if (!selectedClass) return [];
       filtered = students.filter(s => 
-        s.class_id === selectedClassId || 
+        s.classId === selectedClassId || 
         selectedClass.studentIds?.includes(s.id)
       );
     }
@@ -95,7 +74,7 @@
 
   // Registro de asistencia actual
   let currentAttendance = $derived(
-    localAttendance.filter(a => a.class_id === selectedClassId && a.date === selectedDate)
+    ($appStore.attendance || []).filter(a => a.classId === selectedClassId && a.date === selectedDate)
   );
 
   const setStatus = async (studentId: string, status: string) => {
@@ -108,8 +87,8 @@
       isProcessing = true;
       await appStore.saveAttendance({
         id: record?.id,
-        student_id: studentId,
-        class_id: selectedClassId,
+        studentId: studentId,
+        classId: selectedClassId,
         date: selectedDate,
         status: status
       });
@@ -122,7 +101,7 @@
   };
 
   const getStatus = (studentId: string) => {
-    const record = currentAttendance.find(r => r.student_id === studentId);
+    const record = currentAttendance.find(r => r.studentId === studentId);
     if (!record) return 'unmarked';
     return record.status === 'P' ? 'present' : 'absent';
   };
@@ -133,12 +112,12 @@
       isProcessing = true;
       const targetStudents = classStudents;
       for (const student of targetStudents) {
-        const record = currentAttendance.find(r => r.student_id === student.id);
+        const record = currentAttendance.find(r => r.studentId === student.id);
         if (record?.status !== 'P') {
           await appStore.saveAttendance({
             id: record?.id,
-            student_id: student.id,
-            class_id: selectedClassId,
+            studentId: student.id,
+            classId: selectedClassId,
             date: selectedDate,
             status: 'P'
           });
@@ -512,7 +491,7 @@
 
              <VisualAttendanceCalendar 
                {selectedClassId} 
-               attendance={localAttendance} 
+               attendance={$appStore.attendance || []} 
                onDateSelect={(date: string) => {
                  selectedDate = date;
                  viewMode = 'list';

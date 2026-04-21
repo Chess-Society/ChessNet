@@ -69,6 +69,37 @@ export const getCurrentUser = () => {
 
 // Helper for data conversion
 export const toData = <T>(doc: any): T => {
-  return { id: doc.id, ...doc.data() } as T;
+  const data = doc.data();
+  const id = doc.id;
+  
+  // Normalize legacy snake_case fields to camelCase
+  const normalized: any = { id };
+  for (const key in data) {
+    let newKey = key;
+    if (key === 'owner_id') newKey = 'ownerId';
+    else if (key === 'student_id') newKey = 'studentId';
+    else if (key === 'round_no') newKey = 'roundNo';
+    else if (key === 'tournament_id') newKey = 'tournamentId';
+    else if (key === 'school_id') newKey = 'schoolId';
+    else if (key === 'class_id') newKey = 'classId';
+    else if (key === 'first_name') newKey = 'firstName';
+    else if (key === 'last_name') newKey = 'lastName';
+    else if (key === 'time_control') newKey = 'timeControl';
+    else if (key === 'max_players') newKey = 'maxPlayers';
+    else if (key === 'prize_pool') newKey = 'prizePool';
+    else if (key === 'points_white') newKey = 'pointsWhite';
+    else if (key === 'points_black') newKey = 'pointsBlack';
+    else if (key === 'white_student_id') newKey = 'whiteStudentId';
+    else if (key === 'black_student_id') newKey = 'blackStudentId';
+    else if (key === 'round_no') newKey = 'roundNo';
+    else if (key === 'started_at') newKey = 'startedAt';
+    else if (key === 'finished_at') newKey = 'finishedAt';
+    else if (key === 'created_at') newKey = 'createdAt';
+    else if (key === 'updated_at') newKey = 'updatedAt';
+    
+    normalized[newKey] = data[key];
+  }
+  
+  return normalized as T;
 };
 

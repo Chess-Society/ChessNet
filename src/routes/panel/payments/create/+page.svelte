@@ -35,22 +35,22 @@
 
   // Form data
   let formData: CreatePaymentData = $state({
-    payment_type: 'student',
-    student_id: '',
-    school_id: '',
-    class_id: '',
+    paymentType: 'student',
+    studentId: '',
+    schoolId: '',
+    classId: '',
     amount: 0,
     currency: 'EUR',
     concept: 'monthly_fee',
     description: '',
-    period_start: '',
-    period_end: '',
+    periodStart: '',
+    periodEnd: '',
     status: 'pending',
-    due_date: '',
-    payment_method: '',
-    payment_reference: '',
-    invoice_number: '',
-    invoice_date: '',
+    dueDate: '',
+    paymentMethod: '',
+    paymentReference: '',
+    invoiceNumber: '',
+    invoiceDate: '',
     notes: ''
   });
 
@@ -72,19 +72,19 @@
 
   // Reactive variables
   let filteredClasses = $derived(classes.filter((cls: any) => {
-    if (formData.payment_type === 'student' && formData.student_id) {
-      const student = students.find((s: any) => s.id === formData.student_id);
-      return student && cls.school_id === student.school_id;
+    if (formData.paymentType === 'student' && formData.studentId) {
+      const student = students.find((s: any) => s.id === formData.studentId);
+      return student && cls.schoolId === student.schoolId;
     }
-    if (formData.payment_type === 'school' && formData.school_id) {
-      return cls.school_id === formData.school_id;
+    if (formData.paymentType === 'school' && formData.schoolId) {
+      return cls.schoolId === formData.schoolId;
     }
     return true;
   }));
 
-  let selectedStudent = $derived(students.find((s: any) => s.id === formData.student_id));
-  let selectedSchool = $derived(schools.find((s: any) => s.id === formData.school_id));
-  let selectedClass = $derived(classes.find((c: any) => c.id === formData.class_id));
+  let selectedStudent = $derived(students.find((s: any) => s.id === formData.studentId));
+  let selectedSchool = $derived(schools.find((s: any) => s.id === formData.schoolId));
+  let selectedClass = $derived(classes.find((c: any) => c.id === formData.classId));
 
   // Auto-fill amount when class is selected
   $effect(() => {
@@ -107,8 +107,8 @@
       
       const entityName = selectedStudent?.name || selectedSchool?.name || '';
       const className = selectedClass ? ` - ${selectedClass.name}` : '';
-      const periodText = formData.period_start && formData.period_end 
-        ? ` (${formatDate(formData.period_start)} - ${formatDate(formData.period_end)})`
+      const periodText = formData.periodStart && formData.periodEnd 
+        ? ` (${formatDate(formData.periodStart)} - ${formatDate(formData.periodEnd)})`
         : '';
       
       formData.description = `${conceptLabels[formData.concept] || ''} ${entityName}${className}${periodText}`.trim();
@@ -120,14 +120,14 @@
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
     nextMonth.setDate(5);
-    formData.due_date = nextMonth.toISOString().split('T')[0];
+    formData.dueDate = nextMonth.toISOString().split('T')[0];
   });
 
   const handlePaymentTypeChange = () => {
     // Reset related fields when payment type changes
-    formData.student_id = '';
-    formData.school_id = '';
-    formData.class_id = '';
+    formData.studentId = '';
+    formData.schoolId = '';
+    formData.classId = '';
     formData.amount = 0;
     formData.description = '';
     errors = {};
@@ -140,25 +140,25 @@
   const validateForm = (): boolean => {
     errors = {};
 
-    if (!formData.payment_type) {
-      errors.payment_type = $t('payments.error.select_type');
+    if (!formData.paymentType) {
+      errors.paymentType = $t('payments.error.select_type');
     }
 
-    if (formData.payment_type === 'student' && !formData.student_id) {
-      errors.student_id = $t('payments.error.select_student');
+    if (formData.paymentType === 'student' && !formData.studentId) {
+      errors.studentId = $t('payments.error.select_student');
     }
 
-    if (formData.payment_type === 'school' && !formData.school_id) {
-      errors.school_id = $t('payments.error.select_school');
+    if (formData.paymentType === 'school' && !formData.schoolId) {
+      errors.schoolId = $t('payments.error.select_school');
     }
 
     if (formData.amount !== null && formData.amount <= 0) {
       errors.amount = $t('payments.error.amount_positive');
     }
 
-    if (formData.period_start && formData.period_end) {
-      if (new Date(formData.period_start) >= new Date(formData.period_end)) {
-        errors.period_start = $t('payments.error.date_sequence');
+    if (formData.periodStart && formData.periodEnd) {
+      if (new Date(formData.periodStart) >= new Date(formData.periodEnd)) {
+        errors.periodStart = $t('payments.error.date_sequence');
       }
     }
 
@@ -176,8 +176,8 @@
       const payload = {
         ...formData,
         amount: Number(formData.amount) || 0,
-        student_id: formData.payment_type === 'student' ? formData.student_id : undefined,
-        school_id: formData.payment_type === 'school' ? formData.school_id : undefined
+        studentId: formData.paymentType === 'student' ? formData.studentId : undefined,
+        schoolId: formData.paymentType === 'school' ? formData.schoolId : undefined
       };
 
       await appStore.addPayment(payload);
@@ -291,13 +291,13 @@
 
           <div class="grid grid-cols-2 gap-4 mb-10">
             <button 
-              onclick={() => { formData.payment_type = 'student'; handlePaymentTypeChange(); }}
-              class="selection-card {formData.payment_type === 'student' ? 'active' : ''}"
+              onclick={() => { formData.paymentType = 'student'; handlePaymentTypeChange(); }}
+              class="selection-card {formData.paymentType === 'student' ? 'active' : ''}"
             >
               <div class="selection-card-content flex flex-col items-center py-6">
-                 <Users weight={formData.payment_type === 'student' ? 'fill' : 'duotone'} class="w-10 h-10 mb-4 {formData.payment_type === 'student' ? 'text-violet-400' : 'text-zinc-500'}" />
+                 <Users weight={formData.paymentType === 'student' ? 'fill' : 'duotone'} class="w-10 h-10 mb-4 {formData.paymentType === 'student' ? 'text-violet-400' : 'text-zinc-500'}" />
                 <span class="text-xs font-black uppercase tracking-widest">{$t('payments.student')}</span>
-                {#if formData.payment_type === 'student'}
+                {#if formData.paymentType === 'student'}
                   <div class="selection-card-check">
                     <CheckCircle weight="bold" class="w-4 h-4" />
                   </div>
@@ -305,13 +305,13 @@
               </div>
             </button>
             <button 
-              onclick={() => { formData.payment_type = 'school'; handlePaymentTypeChange(); }}
-              class="selection-card {formData.payment_type === 'school' ? 'active' : ''}"
+              onclick={() => { formData.paymentType = 'school'; handlePaymentTypeChange(); }}
+              class="selection-card {formData.paymentType === 'school' ? 'active' : ''}"
             >
               <div class="selection-card-content flex flex-col items-center py-6">
-                 <Buildings weight={formData.payment_type === 'school' ? 'fill' : 'duotone'} class="w-10 h-10 mb-4 {formData.payment_type === 'school' ? 'text-violet-400' : 'text-zinc-500'}" />
+                 <Buildings weight={formData.paymentType === 'school' ? 'fill' : 'duotone'} class="w-10 h-10 mb-4 {formData.paymentType === 'school' ? 'text-violet-400' : 'text-zinc-500'}" />
                 <span class="text-xs font-black uppercase tracking-widest">{$t('payments.school')}</span>
-                {#if formData.payment_type === 'school'}
+                {#if formData.paymentType === 'school'}
                   <div class="selection-card-check">
                     <CheckCircle weight="bold" class="w-4 h-4" />
                   </div>
@@ -320,7 +320,7 @@
             </button>
           </div>
 
-          {#if formData.payment_type === 'student'}
+          {#if formData.paymentType === 'student'}
              <div class="space-y-4">
               <label for="student_id_select" class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{$t('payments.search_select_student')}</label>
               <div class="relative group">
@@ -329,7 +329,7 @@
                 </div>
                 <select 
                   id="student_id_select"
-                  bind:value={formData.student_id}
+                  bind:value={formData.studentId}
                   class="glass-input pl-12 h-14"
                 >
                    <option value="">{$t('payments.select_student_placeholder')}</option>
@@ -338,9 +338,9 @@
                   {/each}
                 </select>
               </div>
-              {#if errors.student_id}
+              {#if errors.studentId}
                 <p class="text-rose-400 text-[10px] font-bold uppercase flex items-center gap-1.5 ml-1">
-                  <WarningCircle weight="fill" class="w-3.5 h-3.5" /> {errors.student_id}
+                  <WarningCircle weight="fill" class="w-3.5 h-3.5" /> {errors.studentId}
                 </p>
               {/if}
             </div>
@@ -353,7 +353,7 @@
                 </div>
                 <select 
                   id="school_id_select"
-                  bind:value={formData.school_id}
+                  bind:value={formData.schoolId}
                   class="glass-input pl-12 h-14"
                 >
                    <option value="">{$t('payments.select_school_placeholder')}</option>
@@ -362,9 +362,9 @@
                   {/each}
                 </select>
               </div>
-              {#if errors.school_id}
+              {#if errors.schoolId}
                 <p class="text-rose-400 text-[10px] font-bold uppercase flex items-center gap-1.5 ml-1">
-                  <WarningCircle weight="fill" class="w-3.5 h-3.5" /> {errors.school_id}
+                  <WarningCircle weight="fill" class="w-3.5 h-3.5" /> {errors.schoolId}
                 </p>
               {/if}
             </div>
@@ -438,7 +438,7 @@
                   <input 
                     id="due_date"
                     type="date" 
-                    bind:value={formData.due_date}
+                    bind:value={formData.dueDate}
                     class="glass-input pl-12 h-14 w-full"
                   />
                 </div>
@@ -450,13 +450,13 @@
               <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">{$t('payments.associated_class')}</span>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <button 
-                  onclick={() => formData.class_id = ''}
-                  class="selection-card small {formData.class_id === '' ? 'active' : ''}"
+                  onclick={() => formData.classId = ''}
+                  class="selection-card small {formData.classId === '' ? 'active' : ''}"
                 >
                   <div class="selection-card-content flex items-center gap-3 p-3">
-                     <Info weight={formData.class_id === '' ? 'fill' : 'duotone'} class="w-5 h-5 {formData.class_id === '' ? 'text-violet-400' : 'text-zinc-500'}" />
+                     <Info weight={formData.classId === '' ? 'fill' : 'duotone'} class="w-5 h-5 {formData.classId === '' ? 'text-violet-400' : 'text-zinc-500'}" />
                     <span class="text-[10px] font-black uppercase tracking-wider">{$t('payments.no_class_associated')}</span>
-                    {#if formData.class_id === ''}
+                    {#if formData.classId === ''}
                       <div class="selection-card-check">
                         <CheckCircle weight="bold" class="w-3 h-3" />
                       </div>
@@ -465,13 +465,13 @@
                 </button>
                 {#each filteredClasses.slice(0, 5) as cls}
                   <button 
-                    onclick={() => formData.class_id = cls.id}
-                    class="selection-card small {formData.class_id === cls.id ? 'active' : ''}"
+                    onclick={() => formData.classId = cls.id}
+                    class="selection-card small {formData.classId === cls.id ? 'active' : ''}"
                   >
                     <div class="selection-card-content flex items-center gap-3 p-3">
-                      <IdentificationBadge weight={formData.class_id === cls.id ? 'fill' : 'duotone'} class="w-5 h-5 {formData.class_id === cls.id ? 'text-violet-400' : 'text-zinc-500'}" />
+                      <IdentificationBadge weight={formData.classId === cls.id ? 'fill' : 'duotone'} class="w-5 h-5 {formData.classId === cls.id ? 'text-violet-400' : 'text-zinc-500'}" />
                       <span class="text-[10px] font-black uppercase tracking-wider truncate">{cls.name}</span>
-                      {#if formData.class_id === cls.id}
+                      {#if formData.classId === cls.id}
                         <div class="selection-card-check">
                           <CheckCircle weight="bold" class="w-3 h-3" />
                         </div>
@@ -511,11 +511,11 @@
             <div class="grid grid-cols-2 gap-4">
                <div class="space-y-2">
                 <label for="period_start" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.from')}</label>
-                <input id="period_start" type="date" bind:value={formData.period_start} class="glass-input h-14" />
+                <input id="period_start" type="date" bind:value={formData.periodStart} class="glass-input h-14" />
               </div>
                <div class="space-y-2">
                 <label for="period_end" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.to')}</label>
-                <input id="period_end" type="date" bind:value={formData.period_end} class="glass-input h-14" />
+                <input id="period_end" type="date" bind:value={formData.periodEnd} class="glass-input h-14" />
               </div>
             </div>
 
@@ -525,13 +525,13 @@
               <div class="grid grid-cols-2 gap-3">
                 {#each paymentMethods as method}
                   <button 
-                    onclick={() => formData.payment_method = method.id}
-                    class="selection-card small {formData.payment_method === method.id ? 'active' : ''}"
+                    onclick={() => formData.paymentMethod = method.id}
+                    class="selection-card small {formData.paymentMethod === method.id ? 'active' : ''}"
                   >
                     <div class="selection-card-content flex items-center gap-3 p-3">
-                       <method.icon weight={formData.payment_method === method.id ? 'fill' : 'duotone'} class="w-5 h-5 {formData.payment_method === method.id ? 'text-violet-400' : 'text-zinc-500'}" />
+                       <method.icon weight={formData.paymentMethod === method.id ? 'fill' : 'duotone'} class="w-5 h-5 {formData.paymentMethod === method.id ? 'text-violet-400' : 'text-zinc-500'}" />
                       <span class="text-[10px] font-black uppercase tracking-wider">{$t(method.label)}</span>
-                      {#if formData.payment_method === method.id}
+                      {#if formData.paymentMethod === method.id}
                         <div class="selection-card-check">
                           <CheckCircle weight="bold" class="w-3 h-3" />
                         </div>
@@ -598,7 +598,7 @@
                         {selectedStudent?.name || selectedSchool?.name || $t('payments.undefined_client')}
                       </p>
                        <p class="text-[10px] font-bold text-zinc-500 uppercase italic">
-                        {formData.payment_type === 'student' ? $t('payments.student') : $t('payments.entity')}
+                        {formData.paymentType === 'student' ? $t('payments.student') : $t('payments.entity')}
                       </p>
                     </div>
                   </div>
@@ -642,7 +642,7 @@
                  <div>
                   <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">{$t('payments.due_date')}</div>
                   <p class="text-xs font-black text-black italic">
-                    {formData.due_date ? formatDate(formData.due_date) : $t('payments.upon_receipt')}
+                    {formData.dueDate ? formatDate(formData.dueDate) : $t('payments.upon_receipt')}
                   </p>
                 </div>
                  <div class="text-right">

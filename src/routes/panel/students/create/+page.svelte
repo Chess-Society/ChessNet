@@ -40,12 +40,12 @@
   let isLimitReached = $derived(plan === 'free' && studentsCount >= 10);
 
   let formData = $state({
-    first_name: '',
-    last_name: '',
+    firstName: '',
+    lastName: '',
     notes: '',
-    school_id: '',
-    class_id: '',
-    lichess_username: ''
+    schoolId: '',
+    classId: '',
+    lichessUsername: ''
   });
 
   let isSubmitting = $state(false);
@@ -62,8 +62,8 @@
   const isFromClass = $derived(!!classIdFromUrl);
 
   $effect(() => {
-    if (schoolIdFromUrl) formData.school_id = schoolIdFromUrl;
-    if (classIdFromUrl) formData.class_id = classIdFromUrl;
+    if (schoolIdFromUrl) formData.schoolId = schoolIdFromUrl;
+    if (classIdFromUrl) formData.classId = classIdFromUrl;
   });
 
   const handleGoBack = () => {
@@ -74,7 +74,7 @@
 
   const validateForm = () => {
     errors = {};
-    if (!formData.first_name.trim()) errors.first_name = $t('students.full_name_required');
+    if (!formData.firstName.trim()) errors.firstName = $t('students.full_name_required');
     return Object.keys(errors).length === 0;
   };
 
@@ -88,20 +88,20 @@
     try {
       isSubmitting = true;
       const studentData = {
-        name: `${formData.first_name.trim()} ${formData.last_name.trim()}`.trim(),
-        first_name: formData.first_name.trim(),
-        last_name: formData.last_name.trim(),
+        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         notes: formData.notes.trim(),
-        school_id: formData.school_id,
-        class_id: formData.class_id,
-        lichess_username: formData.lichess_username.trim()
+        schoolId: formData.schoolId,
+        classId: formData.classId,
+        lichessUsername: formData.lichessUsername.trim()
       };
       
       const newStudent = await appStore.addStudent(studentData);
       
-      if (formData.class_id && newStudent) {
+      if (formData.classId && newStudent) {
         try {
-          await appStore.enrollStudent(formData.class_id, newStudent.id);
+          await appStore.enrollStudent(formData.classId, newStudent.id);
         } catch (e) {
           console.warn('Auto-enroll failed', e);
         }
@@ -217,29 +217,29 @@
         <div class="space-y-10 relative z-10">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div class="space-y-3">
-              <label for="first_name" class="glass-label">{$t('students.first_name')} <span class="text-violet-500">*</span></label>
+              <label for="firstName" class="glass-label">{$t('students.first_name')} <span class="text-violet-500">*</span></label>
               <div class="relative group">
                 <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
                 <input
-                  id="first_name"
+                  id="firstName"
                   type="text"
-                  bind:value={formData.first_name}
+                  bind:value={formData.firstName}
                   placeholder={$t('students.first_name_placeholder')}
                   class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
                   required
                 />
               </div>
-              {#if errors.first_name}<p class="text-red-500 text-[10px] font-bold uppercase mt-1">{errors.first_name}</p>{/if}
+              {#if errors.firstName}<p class="text-red-500 text-[10px] font-bold uppercase mt-1">{errors.firstName}</p>{/if}
             </div>
 
             <div class="space-y-3">
-              <label for="last_name" class="glass-label">{$t('students.last_name')}</label>
+              <label for="lastName" class="glass-label">{$t('students.last_name')}</label>
               <div class="relative group">
                 <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
                 <input
-                  id="last_name"
+                  id="lastName"
                   type="text"
-                  bind:value={formData.last_name}
+                  bind:value={formData.lastName}
                   placeholder={$t('students.last_name_placeholder')}
                   class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
                 />
@@ -247,13 +247,13 @@
             </div>
 
             <div class="space-y-3">
-              <label for="lichess_username" class="glass-label">Usuario de Lichess</label>
+              <label for="lichessUsername" class="glass-label">Usuario de Lichess</label>
               <div class="relative group">
                 <Sparkle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-sky-500 transition-colors pointer-events-none" />
                 <input
-                  id="lichess_username"
+                  id="lichessUsername"
                   type="text"
-                  bind:value={formData.lichess_username}
+                  bind:value={formData.lichessUsername}
                   placeholder="Ej: drnykterstein"
                   class="glass-input pl-16 pr-8 w-full focus:ring-sky-500/20 focus:border-sky-500 bg-zinc-950/50 italic"
                 />
@@ -266,16 +266,16 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 type="button"
-                onclick={() => { formData.school_id = ''; formData.class_id = ''; }}
-                class="selection-card small {formData.school_id === '' ? 'active' : ''}"
+                onclick={() => { formData.schoolId = ''; formData.classId = ''; }}
+                class="selection-card small {formData.schoolId === '' ? 'active' : ''}"
               >
                 <div class="card-icon">
-                  <Sparkle weight={formData.school_id === '' ? "fill" : "duotone"} />
+                  <Sparkle weight={formData.schoolId === '' ? "fill" : "duotone"} />
                 </div>
                 <div class="card-content">
                   <span class="card-title">{$t('students.independent_student')}</span>
                 </div>
-                {#if formData.school_id === ''}
+                {#if formData.schoolId === ''}
                   <div class="card-check" in:scale>
                     <Check size={12} weight="bold" />
                   </div>
@@ -285,16 +285,16 @@
               {#each schools as school}
                 <button
                   type="button"
-                  onclick={() => { formData.school_id = school.id; formData.class_id = ''; }}
-                  class="selection-card small {formData.school_id === school.id ? 'active' : ''}"
+                  onclick={() => { formData.schoolId = school.id; formData.classId = ''; }}
+                  class="selection-card small {formData.schoolId === school.id ? 'active' : ''}"
                 >
                   <div class="card-icon">
-                    <Buildings weight={formData.school_id === school.id ? "fill" : "duotone"} />
+                    <Buildings weight={formData.schoolId === school.id ? "fill" : "duotone"} />
                   </div>
                   <div class="card-content">
                     <span class="card-title">{school.name}</span>
                   </div>
-                  {#if formData.school_id === school.id}
+                  {#if formData.schoolId === school.id}
                     <div class="card-check" in:scale>
                       <Check size={12} weight="bold" />
                     </div>
@@ -309,35 +309,35 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 type="button"
-                onclick={() => formData.class_id = ''}
-                class="selection-card small {formData.class_id === '' ? 'active' : ''}"
+                onclick={() => formData.classId = ''}
+                class="selection-card small {formData.classId === '' ? 'active' : ''}"
               >
                 <div class="card-icon">
-                  <IdentificationBadge weight={formData.class_id === '' ? "fill" : "duotone"} />
+                  <IdentificationBadge weight={formData.classId === '' ? "fill" : "duotone"} />
                 </div>
                 <div class="card-content">
                   <span class="card-title">{$t('students.individual_class')}</span>
                 </div>
-                {#if formData.class_id === ''}
+                {#if formData.classId === ''}
                   <div class="card-check" in:scale>
                     <Check size={12} weight="bold" />
                   </div>
                 {/if}
               </button>
 
-              {#each classes.filter((c: any) => !formData.school_id || c.school_id === formData.school_id) as c}
+              {#each classes.filter((c: any) => !formData.schoolId || c.schoolId === formData.schoolId) as c}
                 <button
                   type="button"
-                  onclick={() => formData.class_id = c.id}
-                  class="selection-card small {formData.class_id === c.id ? 'active' : ''}"
+                  onclick={() => formData.classId = c.id}
+                  class="selection-card small {formData.classId === c.id ? 'active' : ''}"
                 >
                   <div class="card-icon">
-                    <BookOpen weight={formData.class_id === c.id ? "fill" : "duotone"} />
+                    <BookOpen weight={formData.classId === c.id ? "fill" : "duotone"} />
                   </div>
                   <div class="card-content">
                     <span class="card-title">{c.name}</span>
                   </div>
-                  {#if formData.class_id === c.id}
+                  {#if formData.classId === c.id}
                     <div class="card-check" in:scale>
                       <Check size={12} weight="bold" />
                     </div>
@@ -386,11 +386,11 @@
             <div class="flex flex-col items-center">
               <div class="w-24 h-24 bg-violet-600/20 border border-violet-500/30 rounded-none flex items-center justify-center text-violet-400 shadow-2xl shadow-violet-500/20 transition-transform group-hover:scale-110 duration-700">
                 <span class="text-4xl font-outfit font-black uppercase">
-                  {formData.first_name ? formData.first_name.charAt(0) : '?'}
+                  {formData.firstName ? formData.firstName.charAt(0) : '?'}
                 </span>
               </div>
               <h4 class="text-2xl font-outfit font-black text-white mt-6 uppercase italic tracking-tighter truncate w-full px-4">
-                {formData.first_name || $t('common.new')} {formData.last_name || ''}
+                {formData.firstName || $t('common.new')} {formData.lastName || ''}
               </h4>
               <span class="px-4 py-1.5 bg-zinc-950/50 border border-zinc-800 rounded-none text-[9px] font-black uppercase tracking-widest text-zinc-500 mt-2 shadow-inner">
                 {$t('students.preview_label')}

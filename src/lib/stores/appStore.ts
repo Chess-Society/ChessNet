@@ -11,13 +11,12 @@ import {
   deleteDoc, 
   query, 
   orderBy,
-  updateDoc,
-  where,
-  writeBatch,
-  getDocs
+  getDocs,
+  or
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { browser } from '$app/environment';
+import { toData } from '$lib/firebase';
 import type { 
   School, 
   Student, 
@@ -71,6 +70,8 @@ export interface AppState {
   studentStats: any[];
   reports: any[];
   lobbySuggestions: any[];
+  lobbyAnnouncements: any[];
+  communityGroups: any[];
   unlockedAchievements: any[];
   pendingAchievementIds: string[]; // Queue for sequential display
   settings: AppSettings;
@@ -97,6 +98,8 @@ const initialState: AppState = {
   studentStats: [],
   reports: [],
   lobbySuggestions: [],
+  lobbyAnnouncements: [],
+  communityGroups: [],
   unlockedAchievements: [],
   pendingAchievementIds: [],
   settings: { 
@@ -123,10 +126,22 @@ function createAppStore() {
   if (browser) {
     authUnsub = derived([authStoreUser, authStoreInitialized], ([$u, $ai]) => ({ user: $u, initialized: $ai }))
       .subscribe(async ({ user, initialized }) => {
-        if (!initialized) return;
+        // Handle logout or user change
+        if (!user) {
+          if (lastUid) {
+            console.log(`👋 [AppStore] User logged out, cleaning up listeners for: ${lastUid}`);
+            unsubscribes.forEach(unsub => typeof unsub === 'function' && unsub());
+            unsubscribes = [];
+            initializedCollections.clear();
+            dataCache = {};
+            lastUid = null;
+            set(initialState);
+          }
+          return;
+        }
 
         // Strict UID check to prevent redundant listener initializations
-        if (user && lastUid !== user.uid) {
+        if (lastUid !== user.uid) {
           lastUid = user.uid;
           console.log(`🚀 [AppStore] Initializing listeners for user: ${user.email}`);
 
@@ -198,35 +213,27 @@ function createAppStore() {
           );
           unsubscribes.push(unsubSettings);
 
-          const collectionsMap = [
             { key: 'schools', path: 'schools' },
             { key: 'students', path: 'students' },
             { key: 'classes', path: 'classes' },
             { key: 'skills', path: 'skills' },
-            { key: 'unlockedAchievements', path: 'achievements' }
+            { key: 'unlockedAchievements', path: 'achievements' },
+            { key: 'localTournaments', path: 'local_tournaments' },
+            { key: 'localTournamentPlayers', path: 'local_tournament_players' },
+            { key: 'localTournamentRounds', path: 'local_tournament_rounds' },
+            { key: 'localTournamentPairings', path: 'local_tournament_pairings' },
+            { key: 'attendance', path: 'attendance' },
+            { key: 'payments', path: 'payments' },
+            { key: 'leads', path: 'leads' }
           ];
 
           collectionsMap.forEach(({ key, path }) => {
             const collRef = collection(db, path);
-            const q = query(collRef, where("owner_id", "==", user.uid));
+            const q = query(collRef, or(where("owner_id", "==", user.uid), where("ownerId", "==", user.uid)));
             
             unsubscribes.push(onSnapshot(q, 
               (snap) => {
-                const docs = snap.docs.map(d => {
-                  const data = d.data();
-                  return {
-                    id: d.id,
-                    ...data,
-                    // Normalize legacy field names to camelCase
-                    ownerId: data.ownerId || data.owner_id,
-                    schoolId: data.schoolId || data.school_id,
-                    classId: data.classId || data.class_id,
-                    studentId: data.studentId || data.student_id,
-                    tournamentId: data.tournamentId || data.tournament_id,
-                    createdAt: data.createdAt || data.created_at,
-                    updatedAt: data.updatedAt || data.updated_at
-                  };
-                });
+                const docs = snap.docs.map(d => toData<any>(d));
                 
                 // PERFORMANCE: Only update if the data has actually changed
                 // This prevents redundant re-renders of the entire appStore
@@ -278,6 +285,42 @@ function createAppStore() {
               }
             ));
           });
+
+          // --- COMMUNITY SYNC (Lobby, Announcements, Groups) ---
+          const communityCollections = [
+            { key: 'lobbyAnnouncements', path: 'lobby_announcements' },
+            { key: 'lobbySuggestions', path: 'lobby_suggestions' },
+            { key: 'communityGroups', path: 'community_groups' }
+          ];
+
+          communityCollections.forEach(({ key, path }) => {
+            const collRef = collection(db, path);
+            // Shared data - everyone sees the same
+            const q = query(collRef, orderBy('createdAt', 'desc'), limit(100));
+            
+            unsubscribes.push(onSnapshot(q, (snap) => {
+              const docs = snap.docs.map(d => toData<any>(d));
+              update(s => {
+                const newState = { ...s } as any;
+                newState[key] = docs;
+                return newState;
+              });
+            }));
+          });
+
+          // --- SUPPORT TICKETS SYNC (Personalized for User, Global for Admin) ---
+          const userEmail = user.email?.toLowerCase() || '';
+          const isAdmin = ADMIN_EMAILS.includes(userEmail);
+          
+          const reportsRef = collection(db, 'lobby_reports');
+          const qReports = isAdmin 
+            ? query(reportsRef, orderBy('createdAt', 'desc'))
+            : query(reportsRef, where('authorId', '==', user.uid), orderBy('createdAt', 'desc'));
+
+          unsubscribes.push(onSnapshot(qReports, (snap) => {
+            const docs = snap.docs.map(d => toData<any>(d));
+            update(s => ({ ...s, reports: docs }));
+          }));
 
           isLoaded = true;
         } else if (!user) {
@@ -458,7 +501,7 @@ function createAppStore() {
         const response = await fetch('/api/class-students', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ class_id: classId, student_id: studentId })
+          body: JSON.stringify({ classId, studentId })
         });
         if (!response.ok) {
           const err = await response.json();
@@ -491,7 +534,7 @@ function createAppStore() {
       const collRef = collection(db, 'tournaments');
       await addDoc(collRef, { 
         ...tournament, 
-        owner_id: user.uid,
+        ownerId: user.uid,
         createdAt: new Date().toISOString() 
       });
     },
@@ -510,8 +553,8 @@ function createAppStore() {
       const collRef = collection(db, 'local_tournaments');
       const docRef = await addDoc(collRef, { 
         ...tournament, 
-        owner_id: user.uid,
-        school_id: tournament.school_id,
+        ownerId: user.uid,
+        schoolId: tournament.schoolId,
         createdAt: new Date().toISOString() 
       });
       return docRef.id;
@@ -528,11 +571,11 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       
-      const docId = `${player.tournament_id}_${player.student_id}`;
+      const docId = `${player.tournamentId}_${player.studentId}`;
       const docRef = doc(db, 'local_tournament_players', docId);
       await setDoc(docRef, { 
         ...player, 
-        owner_id: user.uid,
+        ownerId: user.uid,
         createdAt: new Date().toISOString() 
       }, { merge: true });
     },
@@ -553,7 +596,7 @@ function createAppStore() {
       const collRef = collection(db, 'local_tournament_pairings');
       await addDoc(collRef, { 
         ...pairing, 
-        owner_id: user.uid,
+        ownerId: user.uid,
         createdAt: new Date().toISOString() 
       });
     },
@@ -566,11 +609,11 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       
-      const docId = `${round.tournament_id}_${round.round_no}`;
+      const docId = `${round.tournamentId}_${round.roundNo}`;
       const docRef = doc(db, 'local_tournament_rounds', docId);
       await setDoc(docRef, { 
         ...round, 
-        owner_id: user.uid,
+        ownerId: user.uid,
         createdAt: new Date().toISOString() 
       }, { merge: true });
     },
@@ -594,11 +637,11 @@ function createAppStore() {
       if (id) {
         await setDoc(doc(db, 'attendance', id), data, { merge: true });
       } else {
-        const attendanceId = `${record.student_id}_${record.class_id}_${record.date}`;
+        const attendanceId = `${record.studentId}_${record.classId}_${record.date}`;
         await setDoc(doc(db, 'attendance', attendanceId), { 
           ...data,
           id: attendanceId,
-          owner_id: user.uid,
+          ownerId: user.uid,
           createdAt: new Date().toISOString() 
         }, { merge: true });
       }
@@ -788,7 +831,7 @@ function createAppStore() {
           const collRef = collection(db, 'local_tournaments');
           await addDoc(collRef, { 
             ...tournamentData, 
-            owner_id: user.uid
+            ownerId: user.uid
           });
         } catch (error) {
           console.error('Error importing template:', error);
@@ -926,32 +969,41 @@ export const appStore = createAppStore();
 if (browser) {
   let timer: any;
   appStore.subscribe(state => {
+    // Only run if we have a valid browser environment
+    if (!browser) return;
+
     const user = get(authStoreUser);
     const initialized = get(authStoreInitialized);
     
     // Only check if authenticated, initialized, and we have minimum data
-    if (!initialized || !user || !state.settings || (state.students.length === 0 && state.classes.length === 0)) return;
+    if (!initialized || !user || !state.settings || (state.students.length === 0 && state.classes.length === 0)) {
+      clearTimeout(timer);
+      return;
+    }
 
     clearTimeout(timer);
     timer = setTimeout(async () => {
-      const { INSIGNIAS } = await import('$lib/constants/insignias');
-      const currentUnlocked = state.unlockedAchievements.map(a => a.id);
-      
-      const stats = {
-        classesCount: state.classes.length,
-        studentsCount: state.students.length,
-        schoolsCount: state.schools.length,
-        lessonsCreatedCount: (state.skills || []).length,
-        completedTournamentsCount: (state.localTournaments || []).filter((t: any) => t.status === 'completed').length,
-        lobbyContributionsCount: (state.lobbySuggestions || []).filter((s: any) => s.authorId === user.uid).length
-      };
+      try {
+        const { INSIGNIAS } = await import('$lib/constants/insignias');
+        const currentUnlocked = state.unlockedAchievements.map(a => a.id);
+        
+        const stats = {
+          classesCount: state.classes.length,
+          studentsCount: state.students.length,
+          schoolsCount: state.schools.length,
+          lessonsCreatedCount: (state.skills || []).length,
+          completedTournamentsCount: (state.localTournaments || []).filter((t: any) => t.status === 'completed').length,
+          lobbyContributionsCount: (state.lobbySuggestions || []).filter((s: any) => s.authorId === user.uid).length
+        };
 
-      INSIGNIAS.forEach(insignia => {
-        // Redundancy check: only call unlock if NOT already in state
-        if (insignia.type === 'automatic' && !currentUnlocked.includes(insignia.id) && insignia.condition?.(stats)) {
-          appStore.unlockAchievement(insignia.id);
-        }
-      });
+        INSIGNIAS.forEach(insignia => {
+          if (insignia.type === 'automatic' && !currentUnlocked.includes(insignia.id) && insignia.condition?.(stats)) {
+            appStore.unlockAchievement(insignia.id);
+          }
+        });
+      } catch (err) {
+        // Silent error for dynamic import if failing during transition
+      }
     }, 3000); // 3 seconds to let snapshots settle
   });
 }

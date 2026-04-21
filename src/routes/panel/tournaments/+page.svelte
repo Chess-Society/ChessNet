@@ -20,8 +20,6 @@
     Sparkle
   } from 'phosphor-svelte';
   import { t, locale } from '$lib/i18n';
-  import { db, auth } from '$lib/firebase';
-  import { collection, query, where, onSnapshot } from 'firebase/firestore';
   import { appStore } from '$lib/stores/appStore';
   import { user as authUser } from '$lib/stores/auth';
   import { ADMIN_EMAILS } from '$lib/constants';
@@ -33,70 +31,18 @@
   const plan = $derived($appStore?.settings?.plan || 'free');
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
 
-  let localTournaments = $state<any[]>([]);
-  let localPlayers = $state<any[]>([]);
+  const tournaments = $derived($appStore?.localTournaments || []);
+  const players = $derived($appStore?.localTournamentPlayers || []);
 
   onMount(() => {
     if (plan === 'free' && !isAdmin) {
       goto('/pricing');
       return;
     }
-
-    let unsubTournaments: () => void;
-    let unsubPlayers: () => void;
-
-    const unsubAuth = auth.onAuthStateChanged(user => {
-      if (unsubTournaments) unsubTournaments();
-      if (unsubPlayers) unsubPlayers();
-
-      if (user) {
-        // Listen to tournaments
-        const qT = query(collection(db, 'local_tournaments'), where('owner_id', '==', user.uid));
-        unsubTournaments = onSnapshot(qT, (snap) => {
-          localTournaments = snap.docs.map(d => {
-            const data = d.data();
-            return { 
-                id: d.id, 
-                ...data,
-                ownerId: data.ownerId || data.owner_id,
-                schoolId: data.schoolId || data.school_id,
-                timeControl: data.timeControl || data.time_control,
-                createdAt: data.createdAt || data.created_at,
-                updatedAt: data.updatedAt || data.updated_at
-            };
-          });
-        });
-
-        // Listen to players
-        const qP = query(collection(db, 'local_tournament_players'), where('owner_id', '==', user.uid));
-        unsubPlayers = onSnapshot(qP, (snap) => {
-          localPlayers = snap.docs.map(d => {
-            const data = d.data();
-            return { 
-                id: d.id, 
-                ...data,
-                tournamentId: data.tournamentId || data.tournament_id,
-                studentId: data.studentId || data.student_id,
-                createdAt: data.createdAt || data.created_at
-            };
-          });
-        });
-      }
-    });
-
-    return () => {
-      if (unsubTournaments) unsubTournaments();
-      if (unsubPlayers) unsubPlayers();
-      unsubAuth();
-    };
   });
 
   let searchQuery = $state('');
   let isImporting = $state(false);
-
-  // Svelte 5 Runes for expanded reactive state
-  let tournaments = $derived(localTournaments);
-  let players = $derived(localPlayers);
   
   let stats = $derived({
     total: tournaments.length,

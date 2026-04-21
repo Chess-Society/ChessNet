@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
     tournament = { id: tourneySnap.id, ...tourneySnap.data() };
     
-    if (tournament.owner_id !== uid) {
+    if (tournament.ownerId !== uid && tournament.owner_id !== uid) {
       throw error(403, 'No tienes permiso para ver este torneo');
     }
 
@@ -35,13 +35,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       
     participants = await Promise.all(partSnap.docs.map(async (doc: any) => {
       const p = { id: doc.id, ...doc.data() };
-      if (p.student_id) {
-        const sSnap = await adminDb.collection("students").doc(p.student_id).get();
+      const studentId = p.studentId || p.student_id;
+      if (studentId) {
+        const sSnap = await adminDb.collection("students").doc(studentId).get();
         if (sSnap.exists) {
           const sData = sSnap.data() || {};
-          p.students = {
+          p.student = {
             ...sData,
-            name: sData.name || `${sData.first_name || ''} ${sData.last_name || ''}`.trim() || 'Unknown student'
+            firstName: sData.firstName || sData.first_name || '',
+            lastName: sData.lastName || sData.last_name || '',
+            name: sData.name || `${sData.firstName || sData.first_name || ''} ${sData.lastName || sData.last_name || ''}`.trim() || 'Unknown student'
           };
         }
       }
@@ -57,9 +60,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       
     pairings = await Promise.all(matchSnap.docs.map(async (doc: any) => {
       const m = { id: doc.id, ...doc.data() };
-      // Mapear campos consistentes con localTournamentsApi
-      const p1Id = m.white_student_id;
-      const p2Id = m.black_student_id;
+      const p1Id = m.whiteStudentId || m.white_student_id;
+      const p2Id = m.blackStudentId || m.black_student_id;
       
       if (p1Id) {
         const s1Snap = await adminDb.collection("students").doc(p1Id).get();
@@ -67,7 +69,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
           const s1Data = s1Snap.data() || {};
           m.player1 = {
             ...s1Data,
-            name: s1Data.name || `${s1Data.first_name || ''} ${s1Data.last_name || ''}`.trim() || 'White'
+            name: s1Data.name || `${s1Data.firstName || s1Data.first_name || ''} ${s1Data.lastName || s1Data.last_name || ''}`.trim() || 'White'
           };
         }
       }
@@ -77,7 +79,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
           const s2Data = s2Snap.data() || {};
           m.player2 = {
             ...s2Data,
-            name: s2Data.name || `${s2Data.first_name || ''} ${s2Data.last_name || ''}`.trim() || 'Black'
+            name: s2Data.name || `${s2Data.firstName || s2Data.first_name || ''} ${s2Data.lastName || s2Data.last_name || ''}`.trim() || 'Black'
           };
         }
       }
@@ -91,30 +93,33 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       .get();
     allStudents = allStudentsSnap.docs.map((doc: any) => {
       const sData = doc.data() || {};
+      const firstName = sData.firstName || sData.first_name || '';
+      const lastName = sData.lastName || sData.last_name || '';
       return { 
         id: doc.id, 
         ...sData,
-        name: sData.name || `${sData.first_name || ''} ${sData.last_name || ''}`.trim() || 'Unknown' 
+        firstName,
+        lastName,
+        name: sData.name || `${firstName} ${lastName}`.trim() || 'Unknown' 
       };
     });
 
     // Format logical blocks for UI
     const registeredPlayers = participants.map(p => {
-      // Robust date parsing for created_at
       let regDate = new Date().toISOString();
-      if (p.createdAt) {
+      if (p.createdAt || p.created_at) {
         try {
-          regDate = new Date(p.createdAt).toISOString();
+          regDate = new Date(p.createdAt || p.created_at).toISOString();
         } catch (e) {}
       }
 
       return {
         id: p.id,
-        tournament_id: tournamentId,
-        student_id: p.student_id,
-        student_name: p.students?.name || 'Unknown',
-        student_rating: p.rating || 1200,
-        registration_date: regDate,
+        tournamentId: tournamentId,
+        studentId: p.studentId || p.student_id,
+        studentName: p.student?.name || 'Unknown',
+        studentRating: p.rating || 1200,
+        registrationDate: regDate,
         status: 'confirmed'
       };
     });
@@ -129,35 +134,40 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     const formattedPairings = pairings.map(p => ({
       id: p.id,
-      round_no: p.round_no,
+      roundNo: p.roundNo || p.round_no,
       board: p.board,
-      white_student_id: p.white_student_id,
-      black_student_id: p.black_student_id,
+      whiteStudentId: p.whiteStudentId || p.white_student_id,
+      blackStudentId: p.blackStudentId || p.black_student_id,
       result: p.result || '*',
-      white_name: p.white_name || p.player1?.name || 'White',
-      black_name: p.black_name || p.player2?.name || 'Black'
+      whiteName: p.whiteName || p.white_name || p.player1?.name || 'White',
+      blackName: p.blackName || p.black_name || p.player2?.name || 'Black'
     }));
 
     const standings = participants
-      .sort((a, b) => (b.score || 0) - (a.score || 0) || (b.tiebreak_score || 0) - (a.tiebreak_score || 0))
+      .sort((a, b) => (b.score || 0) - (a.score || 0) || (b.tiebreakScore || b.tiebreak_score || 0) - (a.tiebreakScore || a.tiebreak_score || 0))
       .map((p, index) => ({
         position: index + 1,
-        student_id: p.student_id,
-        student_name: p.students?.name || 'Unknown',
+        studentId: p.studentId || p.student_id,
+        studentName: p.student?.name || 'Unknown',
         rating: p.rating || 1200,
         points: p.score || 0,
-        games_played: pairings.filter(m => (m.white_student_id === p.student_id || m.black_student_id === p.student_id) && m.result && m.result !== '*').length,
-        buchholz: p.tiebreak_score || 0
+        gamesPlayed: pairings.filter(m => {
+          const wId = m.whiteStudentId || m.white_student_id;
+          const bId = m.blackStudentId || m.black_student_id;
+          const pId = p.studentId || p.student_id;
+          return (wId === pId || bId === pId) && m.result && m.result !== '*';
+        }).length,
+        buchholz: p.tiebreakScore || p.tiebreak_score || 0
       }));
 
-    const registeredStudentIds = participants.map(p => p.student_id);
+    const registeredStudentIds = participants.map(p => p.studentId || p.student_id);
     const availableStudents = allStudents
       .filter(s => !registeredStudentIds.includes(s.id))
       .map(s => ({
         id: s.id,
         name: s.name,
         rating: 1200,
-        school_name: s.school_name || 'No school'
+        schoolName: s.schoolName || s.school_name || 'No school'
       }));
 
     return serializeRecord({

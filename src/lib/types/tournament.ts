@@ -23,14 +23,14 @@ export interface Tournament {
   currentRound?: number;
   totalRounds?: number;
   playersRegistered?: number;
-  owner_id: string;
+  ownerId: string;
   createdAt: string;
   updatedAt?: string;
 }
 
 export interface TournamentParticipant {
   id: string;
-  owner_id: string;
+  ownerId: string;
   tournamentId: string;
   studentId: string;
   rating: number;
@@ -42,7 +42,7 @@ export interface TournamentParticipant {
 
 export interface TournamentMatch {
   id: string;
-  owner_id: string;
+  ownerId: string;
   tournamentId: string;
   round: number;
   boardNumber: number;

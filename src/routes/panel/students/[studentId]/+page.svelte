@@ -21,7 +21,7 @@
 
   let { data } = $props<{ data: PageData }>();
   let student = $derived($appStore.students?.find(s => s.id === data.student.id) || data.student);
-  let school = $derived($appStore.schools?.find(s => s.id === student?.school_id) || data.school);
+  let school = $derived($appStore.schools?.find(s => s.id === student?.schoolId) || data.school);
   // Classes requires a filter based on `class_students` mock logic if it was fully implemented.
   // For now we'll leave enrolledClasses from `data` since it's hardcoded for mock anyway, or could use data.enrolledClasses.
   let enrolledClasses = $derived(data.enrolledClasses || []);
@@ -36,8 +36,8 @@
   let isFetchingLichess = $state(false);
 
   $effect(() => {
-    if (student?.lichess_username) {
-      fetchLichessData(student.lichess_username);
+    if (student?.lichessUsername) {
+      fetchLichessData(student.lichessUsername);
     }
   });
 
@@ -85,7 +85,7 @@
 </script>
 
 <svelte:head>
-  <title>{student?.name || $t('common.unknown')} - {$t('students.records')} - ChessNet</title>
+  <title>{student?.firstName} {student?.lastName} - {$t('students.records')} - ChessNet</title>
 </svelte:head>
 
 <div class="page-container" in:fade>
@@ -105,10 +105,10 @@
       </button>
       <div class="flex items-center gap-6">
         <div class="profile-avatar">
-          {getInitials(student.name)}
+          {student.firstName?.charAt(0)}{student.lastName?.charAt(0)}
         </div>
         <div class="text-group">
-          <h1 class="gradient-text font-outfit">{student.name}</h1>
+          <h1 class="gradient-text font-outfit">{student.firstName} {student.lastName}</h1>
           <div class="flex items-center gap-3 mt-2">
             <span class="pill-badge active">
               <CheckCircle size={14} weight="bold" />
@@ -211,9 +211,9 @@
               </div>
               <div>
                 <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">Lichess ELO</h3>
-                {#if student?.lichess_username}
-                  <a href="https://lichess.org/@/{student.lichess_username}" target="_blank" class="text-[10px] font-bold text-sky-400 hover:text-sky-300 transition-colors uppercase tracking-widest block mt-0.5">
-                    @{student.lichess_username} ↗
+                {#if student?.lichessUsername}
+                  <a href="https://lichess.org/@/{student.lichessUsername}" target="_blank" class="text-[10px] font-bold text-sky-400 hover:text-sky-300 transition-colors uppercase tracking-widest block mt-0.5">
+                    @{student.lichessUsername} ↗
                   </a>
                 {/if}
               </div>
@@ -227,7 +227,7 @@
           </div>
 
           <div class="space-y-6 relative z-10">
-            {#if !student?.lichess_username}
+            {#if !student?.lichessUsername}
               <div class="text-center p-6 bg-zinc-900/50 rounded-none border border-white/5">
                 <p class="text-xs font-jakarta text-slate-400 mb-3">No hay cuenta vinculada todavía.</p>
                 <button onclick={() => goto(`/panel/students/${student.id}/edit`)} class="px-4 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-[10px] font-black uppercase tracking-widest rounded-none transition-colors border border-sky-500/20">
@@ -307,7 +307,7 @@
             {:else if !isFetchingLichess}
               <div class="text-center p-6 bg-zinc-900/50 rounded-none border border-white/5">
                 <p class="text-[11px] font-jakarta text-slate-400 mb-2">No pudimos encontrar el perfil público en Lichess.</p>
-                <p class="text-[10px] text-zinc-500">Asegúrate de que el usuario `{student.lichess_username}` es correcto.</p>
+                <p class="text-[10px] text-zinc-500">Asegúrate de que el usuario `{student.lichessUsername}` es correcto.</p>
               </div>
             {/if}
           </div>

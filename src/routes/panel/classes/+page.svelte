@@ -49,7 +49,7 @@
     total: classes.length,
     activeStudents: classes.reduce((acc, c) => acc + (c.studentIds?.length || 0), 0),
     avgOccupancy: classes.length > 0 
-      ? Math.round(classes.reduce((acc, c) => acc + ((c.studentIds?.length || 0) / (c.max_students || 10) * 100), 0) / classes.length)
+      ? Math.round(classes.reduce((acc, c) => acc + ((c.studentIds?.length || 0) / (c.maxStudents || 10) * 100), 0) / classes.length)
       : 0,
     potentialRevenue: classes.reduce((acc, c) => acc + ((c.studentIds?.length || 0) * (c.price || 0)), 0)
   });
@@ -57,7 +57,7 @@
   const filteredClasses = $derived(
     classes.filter(c => {
       const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           getSchoolName(c.school_id).toLowerCase().includes(searchQuery.toLowerCase());
+                           getSchoolName(c.schoolId).toLowerCase().includes(searchQuery.toLowerCase());
       
       if (currentTab === 'all') return matchesSearch;
       if (currentTab === 'active') return matchesSearch && (c.studentIds?.length || 0) > 0;
@@ -367,7 +367,7 @@
                         <h3 class="text-2xl font-outfit font-black text-white group-hover/row:text-primary-400 transition-colors duration-500 tracking-tighter uppercase leading-none">{cls.name}</h3>
                         <div class="flex items-center gap-4 mt-5">
                           <span class="px-3 py-1 bg-white/5 border border-white/5 rounded-none text-[10px] font-black text-slate-400 uppercase tracking-widest">{cls.level || $t('classes.level.mixed')}</span>
-                          {#if (cls.studentIds?.length || 0) >= (cls.max_students || 10)}
+                          {#if (cls.studentIds?.length || 0) >= (cls.maxStudents || 10)}
                             <span class="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-none text-[10px] font-black text-red-400 uppercase tracking-widest animate-pulse">{$t('classes.metrics.full_capacity')}</span>
                           {/if}
                         </div>
@@ -379,7 +379,7 @@
                         <div class="p-3 bg-blue-500/10 rounded-none border border-blue-500/20 text-blue-400 group-hover/row:scale-110 transition-transform">
                           <Buildings weight="duotone" size={20} />
                         </div>
-                        <span class="text-sm font-black text-slate-300 uppercase tracking-tight">{getSchoolName(cls.school_id)}</span>
+                        <span class="text-sm font-black text-slate-300 uppercase tracking-tight">{getSchoolName(cls.schoolId)}</span>
                      </div>
                   </td>
                   <td class="px-12 py-12">
@@ -395,14 +395,14 @@
                        <div class="flex items-center justify-between text-[11px] font-black uppercase tracking-widest font-outfit">
                           <div class="flex items-center gap-3">
                              <UsersThree size={16} class="text-primary-500" />
-                             <span class="text-slate-200">{cls.studentIds?.length || 0} <span class="text-slate-600">/</span> {cls.max_students || 10}</span>
+                             <span class="text-slate-200">{cls.studentIds?.length || 0} <span class="text-slate-600">/</span> {cls.maxStudents || 10}</span>
                           </div>
-                          <span class="text-primary-400">{Math.round(((cls.studentIds?.length || 0) / (cls.max_students || 10)) * 100)}%</span>
+                          <span class="text-primary-400">{Math.round(((cls.studentIds?.length || 0) / (cls.maxStudents || 10)) * 100)}%</span>
                        </div>
                        <div class="h-2.5 bg-black/40 rounded-none border border-white/5 p-0.5 overflow-hidden">
                           <div 
                             class="h-full bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 rounded-none transition-all duration-1500 ease-out shadow-glow-primary/20"
-                            style="width: {Math.min(100, (cls.studentIds?.length || 0) / (cls.max_students || 10) * 100)}%"
+                            style="width: {Math.min(100, (cls.studentIds?.length || 0) / (cls.maxStudents || 10) * 100)}%"
                           ></div>
                        </div>
                     </div>
@@ -470,7 +470,7 @@
                     <h3 class="text-4xl font-outfit font-black text-white group-hover:text-primary-400 transition-colors tracking-tighter uppercase leading-none">{cls.name}</h3>
                     <div class="flex items-center gap-4 text-slate-400 font-jakarta font-bold text-sm uppercase tracking-tight">
                        <Buildings weight="duotone" size={18} class="text-blue-500" />
-                       {getSchoolName(cls.school_id)}
+                       {getSchoolName(cls.schoolId)}
                     </div>
                  </div>
 
@@ -478,9 +478,9 @@
                     <div class="space-y-3">
                        <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">{$t('classes.occupancy')}</p>
                        <div class="flex items-center gap-3">
-                          <span class="text-2xl font-outfit font-black text-white tracking-tighter">{cls.studentIds?.length || 0}<span class="text-sm text-slate-500 ml-1">/{cls.max_students || 10}</span></span>
+                          <span class="text-2xl font-outfit font-black text-white tracking-tighter">{cls.studentIds?.length || 0}<span class="text-sm text-slate-500 ml-1">/{cls.maxStudents || 10}</span></span>
                           <div class="flex-1 h-2 bg-black/40 rounded-none overflow-hidden">
-                             <div class="h-full bg-primary-500 rounded-none" style="width: {Math.min(100, (cls.studentIds?.length || 0) / (cls.max_students || 10) * 100)}%"></div>
+                             <div class="h-full bg-primary-500 rounded-none" style="width: {Math.min(100, (cls.studentIds?.length || 0) / (cls.maxStudents || 10) * 100)}%"></div>
                           </div>
                        </div>
                     </div>

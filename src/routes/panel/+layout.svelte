@@ -33,13 +33,13 @@
   import { t, locale } from '$lib/i18n';
   import { auth, signOut } from '$lib/firebase';
   import { onMount, onDestroy } from 'svelte';
-  import { collection, query, orderBy, limit, onSnapshot, where } from 'firebase/firestore';
   import { db } from '$lib/firebase';
   import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
 
   import { user as authUser, loading as authLoading, authInitialized } from '$lib/stores/auth';
   import { uiStore } from '$lib/stores/uiStore';
-  import { globalAnnouncements } from '$lib/stores/configStore';
+  import { globalAnnouncements as globalAnnouncementsStore } from '$lib/stores/configStore';
+  import { ADMIN_EMAILS } from '$lib/constants';
   import type { LayoutData } from './$types';
   
   let { data, children } = $props<{ data: LayoutData, children: any }>();
@@ -101,95 +101,54 @@
   });
 
   // ---------------------------------------------------------
-  // REACTIVE LISTENERS (REPLACES onMount)
+  // INDICATORS (Effect based on global stores)
   // ---------------------------------------------------------
+  
+  // 1. Monitor for New Announcements (Red Dot) - Effect based on configStore
   $effect(() => {
-    if (!browser || !$authUser || !$authInitialized) return;
-
-    // Use a unique key based on UID and Admin status to prevent re-runs on navigation
-    const listenerKey = `${$authUser.uid}_${data.isAdmin}`;
-    
-    // Safety check to avoid re-initializing if it's the same session
-    if ((window as any).__last_listener_key === listenerKey) return;
-    (window as any).__last_listener_key = listenerKey;
-
-    // Clear previous unsubs if any
-    unsubs.forEach(u => u());
-    unsubs = [];
-
-
-
-    const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
-    
-    try {
-      // 1. Monitor Lobby Notifications
-      const qLobby = query(collection(db, colName), orderBy('createdAt', 'desc'), limit(1));
-      unsubs.push(onSnapshot(qLobby, 
-        (snap) => {
-          if (!snap.empty) {
-            const lastActivity = (snap.docs[0].data() as any).createdAt;
-            const lastViewed = localStorage.getItem(`last_viewed_${colName}`);
-            
-            if (lastActivity) {
-              const activityDate = typeof lastActivity.toDate === 'function' ? lastActivity.toDate() : new Date(lastActivity);
-              const activityTime = activityDate.getTime();
-              if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
-            }
-          }
-        },
-        (error) => {
-          if (error.code !== 'permission-denied') {
-            console.warn(`⚠️ [Panel Layout] No se pudo leer ${colName}:`, error.message);
-          }
+    const list = $globalAnnouncementsStore;
+    if (list && list.length > 0) {
+      const lastActivity = list[0].created_at;
+      const lastViewed = localStorage.getItem('last_viewed_announcements_global');
+      if (lastActivity) {
+        const activityTime = new Date(lastActivity).getTime();
+        if (!lastViewed || activityTime > parseInt(lastViewed)) {
+          lobbyPulse = true;
         }
-      ));
-
-      // 2. Monitor for Global System Announcements (Via Store)
-      const unsubAnnouncements = globalAnnouncements.subscribe(list => {
-          if (list.length > 0) {
-              const lastActivity = list[0].created_at;
-              const lastViewed = localStorage.getItem('last_viewed_announcements_global');
-              if (lastActivity) {
-                  const activityTime = new Date(lastActivity).getTime();
-                  if (!lastViewed || activityTime > parseInt(lastViewed)) lobbyPulse = true;
-              }
-          }
-      });
-      unsubs.push(unsubAnnouncements);
-
-      // 3. Monitor for Support Tickets (User or Admin)
-      const qTickets = data.isAdmin 
-        ? query(collection(db, 'lobby_reports'), where('status', '==', 'open'), orderBy('createdAt', 'desc'), limit(1))
-        : query(collection(db, 'lobby_reports'), where('authorId', '==', $authUser.uid), orderBy('updatedAt', 'desc'), limit(1));
-
-      unsubs.push(onSnapshot(qTickets, 
-        (snap) => {
-          if (!snap.empty) {
-            const lastUpdate = (snap.docs[0].data() as any).updatedAt || (snap.docs[0].data() as any).createdAt;
-            const lastViewed = localStorage.getItem(`last_viewed_support_${data.isAdmin ? 'admin' : 'user'}`);
-            
-            if (lastUpdate) {
-              const updateTime = typeof lastUpdate.toDate === 'function' ? lastUpdate.toDate().getTime() : new Date(lastUpdate).getTime();
-              if (!lastViewed || updateTime > parseInt(lastViewed)) supportPulse = true;
-            }
-          }
-        },
-        (error) => {
-          // Permisos insuficientes en local dev o similar
-        }
-      ));
-
-    } catch (e) {
-      console.error("❌ [Panel Layout] Error initializing sub-listeners:", e);
+      }
     }
+  });
 
-    return () => {
-      // We DON'T delete the key here anymore, so it persists across navigations 
-      // within the SAME layout instance. The key is UID-based, so it will still 
-      // re-init if the user logs out and logs in as someone else.
-      unsubs.forEach(u => u());
-      unsubs = [];
-    };
+  // 2. Monitor for Support Tickets (User or Admin) - Effect based on appStore
+  $effect(() => {
+    const list = $appStore.reports || [];
+    if (list.length > 0) {
+      const isAdmin = $authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase());
+      
+      // Admin sees red dot if any "open" ticket exists
+      if (isAdmin) {
+        const openTickets = list.filter(r => r.status === 'open');
+        if (openTickets.length > 0) {
+          const lastUpdate = openTickets[0].updatedAt || openTickets[0].createdAt;
+          const lastViewed = localStorage.getItem('last_viewed_support_admin');
+          if (lastUpdate) {
+            const updateTime = typeof lastUpdate.toDate === 'function' ? lastUpdate.toDate().getTime() : new Date(lastUpdate).getTime();
+            if (!lastViewed || updateTime > parseInt(lastViewed)) supportPulse = true;
+          }
+        }
+      } else {
+        // User sees red dot if their last ticket was updated by admin (status != resolved)
+        const activeTickets = list.filter(r => r.status !== 'resolved');
+        if (activeTickets.length > 0) {
+          const lastUpdate = activeTickets[0].updatedAt || activeTickets[0].createdAt;
+          const lastViewed = localStorage.getItem('last_viewed_support_user');
+          if (lastUpdate) {
+            const updateTime = typeof lastUpdate.toDate === 'function' ? lastUpdate.toDate().getTime() : new Date(lastUpdate).getTime();
+            if (!lastViewed || updateTime > parseInt(lastViewed)) supportPulse = true;
+          }
+        }
+      }
+    }
   });
 
   onMount(() => {

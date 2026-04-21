@@ -91,7 +91,7 @@
       
       const newAttendance: Record<string, { status: AttendanceStatus; notes: string }> = {};
       students.forEach(student => {
-        const existingRecord = todayAttendance?.records.find((r: any) => r.student_id === student.id);
+        const existingRecord = todayAttendance?.records.find((r: any) => r.studentId === student.id);
         newAttendance[student.id] = {
           status: (existingRecord?.status as AttendanceStatus) || 'P',
           notes: existingRecord?.notes || ''
@@ -106,8 +106,8 @@
     try {
       isSubmitting = true;
       const records: AttendanceRecord[] = students.map(student => ({
-        student_id: student.id,
-        student_name: student.name,
+        studentId: student.id,
+        studentName: student.name,
         status: currentAttendance[student.id]?.status || 'P',
         notes: currentAttendance[student.id]?.notes || ''
       }));
@@ -115,7 +115,7 @@
       const response = await fetch('/api/attendance', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ class_id: classData.id, date: selectedDate, records })
+        body: JSON.stringify({ classId: classData.id, date: selectedDate, records })
       });
 
       if (!response.ok) throw new Error('Error saving attendance');
@@ -415,7 +415,7 @@
                  <div class="mt-8 pt-8 border-t border-zinc-800/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3" transition:fade>
                     {#each session.records as rec}
                       <div class="flex flex-col p-4 bg-zinc-950 border border-zinc-800 rounded-none shadow-inner group/item">
-                         <span class="text-[10px] font-black text-zinc-300 uppercase truncate mb-3 leading-none">{rec.student_name}</span>
+                         <span class="text-[10px] font-black text-zinc-300 uppercase truncate mb-3 leading-none">{rec.studentName}</span>
                          <span class={`w-fit text-[8px] font-black px-2.5 py-1 rounded-none uppercase border ${statusThemes[rec.status as keyof typeof statusThemes].bg} ${statusThemes[rec.status as keyof typeof statusThemes].color} ${statusThemes[rec.status as keyof typeof statusThemes].border}`}>
                            {statusThemes[rec.status as keyof typeof statusThemes].label}
                          </span>
@@ -437,13 +437,13 @@
            
            <div class="flex items-center gap-4 relative z-10">
               <div class="w-16 h-16 bg-zinc-950 rounded-none border border-zinc-800 flex items-center justify-center text-primary-400 font-black text-2xl shadow-inner">
-                 {stats.student_name?.charAt(0)}
+                 {stats.studentName?.charAt(0)}
               </div>
               <div>
-                 <h4 class="text-white font-black uppercase text-base leading-tight truncate max-w-[160px] tracking-tight">{stats.student_name}</h4>
+                 <h4 class="text-white font-black uppercase text-base leading-tight truncate max-w-[160px] tracking-tight">{stats.studentName}</h4>
                  <div class="flex items-center gap-2 mt-1.5">
                    <Lightning weight="fill" class="w-3 h-3 text-primary-500" />
-                   <p class="text-[9px] font-black text-primary-400 uppercase tracking-widest">({stats.attendance_rate}%) {$t('attendance.stats.performance')}</p>
+                   <p class="text-[9px] font-black text-primary-400 uppercase tracking-widest">({stats.attendanceRate}%) {$t('attendance.stats.performance')}</p>
                  </div>
               </div>
            </div>
@@ -451,25 +451,25 @@
            <div class="grid grid-cols-3 gap-2 relative z-10">
               <div class="text-center p-4 bg-zinc-950 border border-zinc-800 rounded-none shadow-inner group-hover:border-primary-500/20 transition-colors">
                  <p class="text-[8px] font-black text-primary-400 uppercase mb-2">OK</p>
-                 <p class="text-2xl font-black text-white tracking-tighter">{stats.present_count}</p>
+                 <p class="text-2xl font-black text-white tracking-tighter">{stats.presentCount}</p>
               </div>
               <div class="text-center p-4 bg-zinc-950 border border-zinc-800 rounded-none shadow-inner group-hover:border-yellow-500/20 transition-colors">
                  <p class="text-[8px] font-black text-yellow-400 uppercase mb-2">LATE</p>
-                 <p class="text-2xl font-black text-white tracking-tighter">{stats.late_count}</p>
+                 <p class="text-2xl font-black text-white tracking-tighter">{stats.lateCount}</p>
               </div>
               <div class="text-center p-4 bg-zinc-950 border border-zinc-800 rounded-none shadow-inner group-hover:border-red-500/20 transition-colors">
                  <p class="text-[8px] font-black text-red-500 uppercase mb-2">ABS</p>
-                 <p class="text-2xl font-black text-white tracking-tighter">{stats.absent_count}</p>
+                 <p class="text-2xl font-black text-white tracking-tighter">{stats.absentCount}</p>
               </div>
            </div>
 
            <div class="space-y-4 relative z-10">
               <div class="flex items-baseline justify-between">
                  <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none">{$t('attendance.stats.punctuality')}</span>
-                 <span class="text-sm font-black text-white tracking-tighter">{stats.punctuality_rate}%</span>
+                 <span class="text-sm font-black text-white tracking-tighter">{stats.punctualityRate}%</span>
               </div>
               <div class="h-2 bg-zinc-950 rounded-none border border-zinc-800 overflow-hidden p-0.5">
-                 <div class="h-full bg-primary-500 rounded-none shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all duration-1000" style="width: {stats.punctuality_rate}%"></div>
+                 <div class="h-full bg-primary-500 rounded-none shadow-[0_0_15px_rgba(139,92,246,0.5)] transition-all duration-1000" style="width: {stats.punctualityRate}%"></div>
               </div>
            </div>
         </div>

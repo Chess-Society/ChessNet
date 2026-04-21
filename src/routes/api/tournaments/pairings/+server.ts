@@ -23,7 +23,7 @@ export const PUT: RequestHandler = async (event) => {
     const pairingRef = adminDb.collection('local_tournament_pairings').doc(pairingId);
     const snap = await pairingRef.get();
 
-    if (!snap.exists || snap.data()?.owner_id !== uid) {
+    if (!snap.exists || (snap.data()?.ownerId !== uid && snap.data()?.owner_id !== uid)) {
       return json({ error: 'Unauthorized or not found' }, { status: 403 });
     }
 
@@ -60,7 +60,7 @@ export const POST: RequestHandler = async (event) => {
 
     // Verify tournament ownership
     const tournamentSnap = await adminDb.collection('local_tournaments').doc(tournamentId).get();
-    if (!tournamentSnap.exists || tournamentSnap.data()?.owner_id !== uid) {
+    if (!tournamentSnap.exists || (tournamentSnap.data()?.ownerId !== uid && tournamentSnap.data()?.owner_id !== uid)) {
       return json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -70,7 +70,7 @@ export const POST: RequestHandler = async (event) => {
       const docRef = adminDb.collection('local_tournament_pairings').doc();
       batch.set(docRef, {
         ...p,
-        owner_id: uid,
+        ownerId: uid,
         createdAt: new Date().toISOString()
       });
     }

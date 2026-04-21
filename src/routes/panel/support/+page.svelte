@@ -15,7 +15,7 @@
     PaperPlane
   } from 'phosphor-svelte';
   import { db } from '$lib/firebase';
-  import { collection, addDoc, query, orderBy, onSnapshot, where, deleteDoc, doc } from 'firebase/firestore';
+  import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
   import { user as authUser } from '$lib/stores/auth';
   import { appStore } from '$lib/stores/appStore';
   import { t } from '$lib/i18n';
@@ -27,7 +27,7 @@
   import { formatDate } from '$lib/utils/date';
 
   // State
-  let reports = $state<any[]>([]);
+  let reports = $derived($appStore.reports || []);
   let isSubmitting = $state(false);
   let showCreateModal = $state(false);
 
@@ -38,22 +38,9 @@
   });
 
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
-
+  
   onMount(() => {
-    let unsubR = () => {};
-    if ($authUser) {
-      const qR = isAdmin 
-        ? query(collection(db, 'lobby_reports'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'lobby_reports'), where('authorId', '==', $authUser.uid), orderBy('createdAt', 'desc'));
-      
-      unsubR = onSnapshot(qR, (snap) => {
-        reports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      }, (err) => {
-        console.error("Error reports listener:", err);
-        toast.error($t('support.toast_loading_error'));
-      });
-    }
-    return () => unsubR();
+    // Initial check for plan/auth if needed
   });
 
   async function handleSubmitReport() {

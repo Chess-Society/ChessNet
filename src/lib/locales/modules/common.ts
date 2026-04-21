@@ -161,6 +161,8 @@ export const es = {
     'common.time': 'Hora',
     'common.name': 'Nombre',
     'common.email': 'Email',
+    'common.activate': 'Activar',
+    'common.deactivate': 'Desactivar',
     'common.description': 'Descripción',
     'common.type': 'Tipo',
     'common.category': 'Categoría',

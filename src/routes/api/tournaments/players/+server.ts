@@ -22,7 +22,7 @@ export const POST: RequestHandler = async (event) => {
 
     // Verificar propiedad del torneo
     const tournamentSnap = await adminDb.collection('local_tournaments').doc(tournamentId).get();
-    if (!tournamentSnap.exists || tournamentSnap.data()?.owner_id !== uid) {
+    if (!tournamentSnap.exists || (tournamentSnap.data()?.ownerId !== uid && tournamentSnap.data()?.owner_id !== uid)) {
       return json({ error: 'No autorizado o torneo no encontrado' }, { status: 403 });
     }
 
@@ -31,7 +31,7 @@ export const POST: RequestHandler = async (event) => {
       tournamentId,
       studentId,
       studentName,
-      owner_id: uid,
+      ownerId: uid,
       status: status || 'active',
       createdAt: new Date().toISOString()
     };
@@ -68,7 +68,7 @@ export const DELETE: RequestHandler = async (event) => {
     const docRef = adminDb.collection('local_tournament_players').doc(docId);
     const snap = await docRef.get();
 
-    if (snap.exists && snap.data()?.owner_id !== uid) {
+    if (snap.exists && snap.data()?.ownerId !== uid && snap.data()?.owner_id !== uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
