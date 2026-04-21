@@ -20,29 +20,63 @@
     Sparkle
   } from 'phosphor-svelte';
   import { t, locale } from '$lib/i18n';
+  import { db, auth } from '$lib/firebase';
+  import { collection, query, where, onSnapshot } from 'firebase/firestore';
   import { appStore } from '$lib/stores/appStore';
-  import { uiStore } from '$lib/stores/uiStore';
   import { user as authUser } from '$lib/stores/auth';
   import { ADMIN_EMAILS } from '$lib/constants';
+  import { uiStore } from '$lib/stores/uiStore';
+  import { showToast, showError, toast } from '$lib/stores/toast';
+  import { fade, fly } from 'svelte/transition';
   import { TOURNAMENT_TEMPLATES } from '$lib/constants/chess-presets';
-  import { fade, fly, scale } from 'svelte/transition';
-  import { showToast, showError } from '$lib/stores/toast';
 
   const plan = $derived($appStore?.settings?.plan || 'free');
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
 
+  let localTournaments = $state<any[]>([]);
+  let localPlayers = $state<any[]>([]);
+
   onMount(() => {
     if (plan === 'free' && !isAdmin) {
       goto('/pricing');
+      return;
     }
+
+    let unsubTournaments: () => void;
+    let unsubPlayers: () => void;
+
+    const unsubAuth = auth.onAuthStateChanged(user => {
+      if (unsubTournaments) unsubTournaments();
+      if (unsubPlayers) unsubPlayers();
+
+      if (user) {
+        // Listen to tournaments
+        const qT = query(collection(db, 'local_tournaments'), where('owner_id', '==', user.uid));
+        unsubTournaments = onSnapshot(qT, (snap) => {
+          localTournaments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        });
+
+        // Listen to players
+        const qP = query(collection(db, 'local_tournament_players'), where('owner_id', '==', user.uid));
+        unsubPlayers = onSnapshot(qP, (snap) => {
+          localPlayers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        });
+      }
+    });
+
+    return () => {
+      if (unsubTournaments) unsubTournaments();
+      if (unsubPlayers) unsubPlayers();
+      unsubAuth();
+    };
   });
 
   let searchQuery = $state('');
   let isImporting = $state(false);
 
   // Svelte 5 Runes for expanded reactive state
-  let tournaments = $derived($appStore.localTournaments || []);
-  let players = $derived($appStore.localTournamentPlayers || []);
+  let tournaments = $derived(localTournaments);
+  let players = $derived(localPlayers);
   
   let stats = $derived({
     total: tournaments.length,
@@ -315,7 +349,7 @@
                       <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{$t('tournaments.participants')}</span>
                   </div>
                   <span class="text-[10px] font-bold text-zinc-300">
-                    {$appStore.localTournamentPlayers.filter(p => p.tournament_id === tournament.id).length} {$t('tournaments.registered_label')}
+                    {players.filter(p => p.tournament_id === tournament.id).length} {$t('tournaments.registered_label')}
                   </span>
                 </div>
 

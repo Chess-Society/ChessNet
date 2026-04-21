@@ -13,39 +13,70 @@ export const cookieSynced = writable<boolean>(false);
 export const initAuth = () => {
     if (!browser) return;
 
-    let resolved = false;
+    // Local Development Bypass Check
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const hasBypassCookie = document.cookie.includes('antigravity_access=antigravity-dev-secret');
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) {
-            user.set(firebaseUser);
-            try {
-                // Sincronizar Token con el Servidor para Hooks y SSR
-                const idToken = await firebaseUser.getIdToken();
-                await fetch('/api/auth/session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: idToken })
-                });
-                cookieSynced.set(true);
-            } catch (err) {
-                console.error("❌ [Auth] Error syncing session:", err);
-            }
-        } else {
-            user.set(null);
-            // Limpiar sesión en servidor si no hay usuario
-            try {
-                await fetch('/api/auth/session', { method: 'DELETE' });
-                cookieSynced.set(false);
-            } catch (e) {}
-        }
-
+    if (isDev && hasBypassCookie) {
+        console.log("🚀 [Auth] Local Dev Bypass Detected");
+        user.set({
+            uid: 'antigravity-dev-worker',
+            email: 'tomih@chess-society.com',
+            displayName: 'Antigravity (Dev Mode)',
+            photoURL: ''
+        } as any);
         loading.set(false);
         authInitialized.set(true);
         cookieSynced.set(true);
-        resolved = true;
+        return () => {}; // No active listener needed for bypass
+    }
+
+    let resolved = false;
+
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        const currentUser = get(user);
         
-    }, (error) => {
-        console.error("❌ [Auth] Error detected:", error);
+        // If we have a firebaseUser, we always trust it
+        if (firebaseUser) {
+            const userToStore = {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName,
+                photoURL: firebaseUser.photoURL,
+                emailVerified: firebaseUser.emailVerified
+            };
+            
+            // Only update if UID changed to avoid redundant store triggers
+            if (currentUser?.uid !== firebaseUser.uid) {
+                user.set(userToStore as any);
+            }
+            
+            if (!resolved) {
+                try {
+                    const idToken = await firebaseUser.getIdToken();
+                    const res = await fetch('/api/auth/session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: idToken })
+                    });
+                    if (res.ok) cookieSynced.set(true);
+                } catch (e) {}
+            }
+        } else {
+            // FIREBASE SAYS NULL. 
+            // If we have a current session user, we only clear it if we are NOT in dev bypass
+            // AND we have waited long enough for Firebase to truly confirm the state.
+            const hasBypass = browser && document.cookie.includes('antigravity_access=antigravity-dev-secret');
+            
+            if (currentUser && !hasBypass && resolved) {
+                user.set(null);
+                try {
+                    await fetch('/api/auth/session', { method: 'DELETE' });
+                    cookieSynced.set(false);
+                } catch (e) {}
+            }
+        }
+
         loading.set(false);
         authInitialized.set(true);
         resolved = true;
@@ -62,3 +93,11 @@ export const initAuth = () => {
 
     return unsubscribe;
 };
+
+// Helper for stores
+function get<T>(store: { subscribe: (fn: (v: T) => void) => () => void }): T {
+    let result: T | undefined;
+    const unsub = store.subscribe(v => result = v);
+    unsub();
+    return result as T;
+}

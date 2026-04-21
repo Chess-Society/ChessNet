@@ -21,6 +21,7 @@
   import { t } from '$lib/i18n';
   import { toast } from '$lib/stores/toast';
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import { ADMIN_EMAILS } from '$lib/constants';
   import { uiStore } from '$lib/stores/uiStore';
   import { formatDate } from '$lib/utils/date';
@@ -113,6 +114,19 @@
 
 <div class="max-w-7xl mx-auto px-6 py-10 space-y-12" in:fade>
   
+  <!-- Back Action -->
+  <div class="flex">
+    <button 
+      onclick={() => goto('/panel')}
+      class="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-all group"
+    >
+      <div class="w-8 h-8 rounded-none border border-white/10 flex items-center justify-center group-hover:border-amber-500/50 group-hover:text-amber-500 transition-all">
+        <ArrowRight weight="bold" class="w-3 h-3 rotate-180" />
+      </div>
+      {$t('common.back_to_dashboard') || 'VOLVER AL PANEL'}
+    </button>
+  </div>
+
   <!-- Header Section -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
     <div class="space-y-4 lg:space-y-4">

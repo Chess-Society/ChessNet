@@ -42,31 +42,36 @@ export const localTournamentsApi = {
       format: formData.format,
       school_id: formData.school_id || (formData as any).school_id, 
       time_control: formData.time_control,
-      startAt: formData.startAt,
-      endAt: formData.endAt,
-      owner_id: ownerId,
-      roundsPlanned: formData.roundsPlanned || calculateDefaultRounds(formData.selected_students.length, formData.format),
+      start_date: formData.startAt, // API expects start_date
+      end_date: formData.endAt, // API expects end_date
       notes: formData.notes,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'upcoming' as const,
-      currentRound: 0
+      roundsPlanned: formData.roundsPlanned || calculateDefaultRounds(formData.selected_students.length, formData.format)
     };
 
     if (ownerId === 'chessnet-dev-uid') {
-        const id = await appStore.addLocalTournament(tournamentData);
+        const id = await appStore.addLocalTournament({ ...tournamentData, owner_id: ownerId, createdAt: new Date().toISOString(), status: 'planned', currentRound: 0 } as any);
         for (const studentId of formData.selected_students) {
             await this.addPlayer(id, studentId);
         }
-        return { ...tournamentData, id };
+        return { ...tournamentData, id } as any;
     }
 
-    const docRef = await addDoc(collection(db, 'local_tournaments'), tournamentData);
-    const tournament = { ...tournamentData, id: docRef.id } as LocalTournament;
+    const response = await fetch('/api/tournaments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tournamentData)
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al crear el torneo');
+    }
+
+    const { data: tournament } = await response.json();
 
     // Add selected students as players
     for (const studentId of formData.selected_students) {
-      await this.addPlayer(docRef.id, studentId);
+      await this.addPlayer(tournament.id, studentId);
     }
 
     return tournament;
@@ -88,56 +93,44 @@ export const localTournamentsApi = {
         await appStore.updateLocalTournament(id, updates);
         return;
     }
-    const docRef = doc(db, 'local_tournaments', id);
-    await updateDoc(docRef, { ...updates, updatedAt: new Date().toISOString() });
+    
+    const response = await fetch(`/api/tournaments?id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al actualizar el torneo');
+    }
   },
 
   async deleteTournament(id: string): Promise<void> {
     const ownerId = await getOwnerId();
     
     if (ownerId === 'chessnet-dev-uid') {
-        const batch = {
-            delete: (coll: string, id: string) => {
-                // Mock deletion is handled by appStore if we add a multi-delete, 
-                // but let's just call the individual ones or add a helper to appStore.
-            }
-        };
-        // Use appStore directly for better sync
         await appStore.removeLocalTournament(id);
         await appStore.removeLocalTournamentPairings(id);
-        // We need round removal too
         const tournamentRounds = get(appStore).localTournamentRounds.filter(r => r.tournament_id === id);
         for (const r of tournamentRounds) {
             await appStore.removeLocalTournamentRound(id, r.round_no);
         }
-        const tournamentPlayers = get(appStore).localTournamentPlayers.filter(p => p.tournament_id === id);
+        const tournamentPlayers = get(appStore).localTournamentPlayers.filter(p => p.student_id && p.tournament_id === id);
         for (const p of tournamentPlayers) {
             await appStore.removeLocalTournamentPlayer(id, p.student_id);
         }
         return;
     }
 
-    const batch = writeBatch(db);
-    
-    // 1. Delete players
-    const playersQuery = query(collection(db, 'local_tournament_players'), where('tournament_id', '==', id));
-    const playersSnap = await getDocs(playersQuery);
-    playersSnap.docs.forEach(doc => batch.delete(doc.ref));
+    const response = await fetch(`/api/tournaments?id=${id}`, {
+      method: 'DELETE'
+    });
 
-    // 2. Delete pairings
-    const pairingsQuery = query(collection(db, 'local_tournament_pairings'), where('tournament_id', '==', id));
-    const pairingsSnap = await getDocs(pairingsQuery);
-    pairingsSnap.docs.forEach(doc => batch.delete(doc.ref));
-
-    // 3. Delete rounds
-    const roundsQuery = query(collection(db, 'local_tournament_rounds'), where('tournament_id', '==', id));
-    const roundsSnap = await getDocs(roundsQuery);
-    roundsSnap.docs.forEach(doc => batch.delete(doc.ref));
-
-    // 4. Delete tournament document
-    batch.delete(doc(db, 'local_tournaments', id));
-
-    await batch.commit();
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al eliminar el torneo');
+    }
   },
 
 
@@ -243,14 +236,21 @@ export const localTournamentsApi = {
         return;
     }
 
-    await setDoc(doc(db, 'local_tournament_players', docId), {
-      tournament_id: tournamentId,
-      student_id: studentId,
-      student_name: studentName,
-      owner_id: ownerId,
-      status: 'active',
-      createdAt: new Date().toISOString()
+    const response = await fetch('/api/tournaments/players', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tournament_id: tournamentId,
+        student_id: studentId,
+        student_name: studentName,
+        status: 'active'
+      })
     });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al añadir el jugador');
+    }
   },
 
   async addManualPlayer(tournamentId: string, name: string): Promise<void> {
@@ -264,7 +264,15 @@ export const localTournamentsApi = {
         await appStore.removeLocalTournamentPlayer(tournamentId, studentId);
         return;
     }
-    await deleteDoc(doc(db, 'local_tournament_players', `${tournamentId}_${studentId}`));
+    
+    const response = await fetch(`/api/tournaments/players?tournament_id=${tournamentId}&student_id=${studentId}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al eliminar el jugador');
+    }
   },
 
   async withdrawPlayer(tournamentId: string, studentId: string): Promise<void> {
@@ -273,9 +281,21 @@ export const localTournamentsApi = {
         await appStore.updateLocalTournamentPlayer(tournamentId, studentId, { status: 'withdrawn' });
         return;
     }
-    await updateDoc(doc(db, 'local_tournament_players', `${tournamentId}_${studentId}`), {
-      status: 'withdrawn'
+    
+    const response = await fetch('/api/tournaments/players', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tournament_id: tournamentId,
+        student_id: studentId,
+        status: 'withdrawn'
+      })
     });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al retirar el jugador');
+    }
   },
 
   async reactivatePlayer(tournamentId: string, studentId: string): Promise<void> {
@@ -284,9 +304,21 @@ export const localTournamentsApi = {
         await appStore.updateLocalTournamentPlayer(tournamentId, studentId, { status: 'active' });
         return;
     }
-    await updateDoc(doc(db, 'local_tournament_players', `${tournamentId}_${studentId}`), {
-      status: 'active'
+    
+    const response = await fetch('/api/tournaments/players', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tournament_id: tournamentId,
+        student_id: studentId,
+        status: 'active'
+      })
     });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al reactivar el jugador');
+    }
   },
 
   async getTournamentPlayers(tournamentId: string): Promise<LocalTournamentPlayer[]> {
@@ -305,7 +337,6 @@ export const localTournamentsApi = {
   // Round and pairing management
   async createRound(tournamentId: string, roundNo: number): Promise<void> {
     const ownerId = await getOwnerId();
-    const docId = `${tournamentId}_${roundNo}`;
     if (ownerId === 'chessnet-dev-uid') {
         await appStore.addLocalTournamentRound({
           tournament_id: tournamentId,
@@ -314,12 +345,20 @@ export const localTournamentsApi = {
         });
         return;
     }
-    await setDoc(doc(db, 'local_tournament_rounds', docId), {
-      tournament_id: tournamentId,
-      round_no: roundNo,
-      owner_id: ownerId,
-      startedAt: new Date().toISOString()
+
+    const response = await fetch('/api/tournaments/rounds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tournament_id: tournamentId,
+        round_no: roundNo
+      })
     });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al crear la ronda');
+    }
   },
 
   async generatePairings(tournamentId: string, roundNo: number): Promise<void> {
@@ -359,16 +398,25 @@ export const localTournamentsApi = {
         throw new Error(`Unsupported tournament format: ${tournament.format}`);
     }
 
-    // Save pairings
-    for (const pairing of pairings) {
-      if (ownerId === 'chessnet-dev-uid') {
-          await appStore.addLocalTournamentPairing(pairing);
-      } else {
-          await addDoc(collection(db, 'local_tournament_pairings'), {
-            ...pairing,
-            owner_id: ownerId,
-            createdAt: new Date().toISOString()
-          });
+    // Save pairings via API
+    if (ownerId === 'chessnet-dev-uid') {
+      for (const pairing of pairings) {
+        await appStore.addLocalTournamentPairing(pairing);
+      }
+    } else {
+      const response = await fetch('/api/tournaments/pairings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tournament_id: tournamentId,
+          round_no: roundNo,
+          pairings
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Error al guardar los emparejamientos');
       }
     }
   },
@@ -395,12 +443,22 @@ export const localTournamentsApi = {
           });
           return;
       }
-      await updateDoc(doc(db, "local_tournament_pairings", pairing.id), {
-        result,
-        points_white,
-        points_black,
-        updatedAt: new Date().toISOString()
+      
+      const response = await fetch('/api/tournaments/pairings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pairing_id: pairing.id,
+          result,
+          points_white,
+          points_black
+        })
       });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Error al actualizar el resultado');
+      }
     }
   },
 
@@ -415,17 +473,20 @@ export const localTournamentsApi = {
         return;
     }
 
-    const pairings = await this.getRoundPairings(tournamentId, roundNo);
-    const batch = writeBatch(db);
-    pairings.forEach(p => batch.delete(doc(db, 'local_tournament_pairings', p.id)));
-    batch.delete(doc(db, 'local_tournament_rounds', `${tournamentId}_${roundNo}`));
-    
-    // Also update tournament current round
-    batch.update(doc(db, 'local_tournaments', tournamentId), {
-      currentRound: Math.max(1, roundNo - 1)
+    const response = await fetch('/api/tournaments/rounds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tournament_id: tournamentId,
+        round_no: roundNo,
+        action: 'reset'
+      })
     });
 
-    await batch.commit();
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al reiniciar la ronda');
+    }
   },
 
   async getRoundPairings(tournamentId: string, roundNo: number): Promise<LocalTournamentPairing[]> {

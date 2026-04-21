@@ -65,9 +65,8 @@
 
   // Function to fetch all class students' data from Lichess in bulk
   async function loadLichessLeaderboards() {
-    if (hasFetchedLeaderboards) return;
+    if (hasFetchedLeaderboards && !isFetchingLeaderboards) return;
     
-    // Ensure we have a valid list of students with usernames
     const validStudents = students.filter(s => s.lichess_username && s.lichess_username.trim().length > 0);
     
     if (validStudents.length === 0) {
@@ -87,9 +86,7 @@
       
       if (res.ok) {
         const lichessDataArray = await res.json();
-        // Merge with student names
         leaderboards = validStudents.map(student => {
-           // Lichess IDs are usually lowercase usernames
            const lData = lichessDataArray.find((d: any) => d.id.toLowerCase() === student.lichess_username.toLowerCase().trim());
            return {
              ...student,
@@ -97,7 +94,6 @@
            };
         });
       } else {
-        console.warn("Lichess API returned non-ok status", res.status);
         leaderboards = validStudents.map(s => ({ ...s, lichessData: null }));
       }
     } catch (e) {
@@ -108,6 +104,25 @@
       hasFetchedLeaderboards = true;
     }
   }
+
+  // Lichess Master Insights Achievements
+  const lichessAchievements = $derived.by(() => {
+    if (!leaderboards.length || leaderboards.every(l => !l.lichessData)) return null;
+    
+    const hasData = leaderboards.filter(l => l.lichessData);
+    if (!hasData.length) return null;
+
+    return {
+      tacticalKing: [...hasData].sort((a,b) => (b.lichessData?.perfs?.puzzle?.rating || 0) - (a.lichessData?.perfs?.puzzle?.rating || 0))[0],
+      risingStar: [...hasData].sort((a,b) => {
+        const progA = (a.lichessData?.perfs?.blitz?.prog || 0) + (a.lichessData?.perfs?.rapid?.prog || 0);
+        const progB = (b.lichessData?.perfs?.blitz?.prog || 0) + (b.lichessData?.perfs?.rapid?.prog || 0);
+        return progB - progA;
+      })[0],
+      mostActive: [...hasData].sort((a,b) => (b.lichessData?.count?.all || 0) - (a.lichessData?.count?.all || 0))[0],
+      speedDemon: [...hasData].sort((a,b) => (b.lichessData?.perfs?.bullet?.rating || 0) - (a.lichessData?.perfs?.bullet?.rating || 0))[0]
+    };
+  });
 
 
 
@@ -547,9 +562,9 @@
          <div class="space-y-3">
             <div class="flex items-center gap-3">
                <div class="w-8 h-1.5 bg-sky-500 rounded-none shadow-[0_0_15px_rgba(14,165,233,0.5)]"></div>
-               <h2 class="text-5xl font-black text-white uppercase tracking-tighter font-outfit">Lichess Leaderboard</h2>
+               <h2 class="text-5xl font-black text-white uppercase tracking-tighter font-outfit">Lichess Master Insights</h2>
             </div>
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-11 italic">Clasificación en Tiempo Real</p>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-11 italic">Inteligencia y Rendimiento en Tiempo Real</p>
          </div>
          <button 
            onclick={() => { hasFetchedLeaderboards = false; loadLichessLeaderboards(); }}
@@ -560,87 +575,172 @@
          </button>
       </div>
 
-      {#if isFetchingLeaderboards}
+      {#if isFetchingLeaderboards && !leaderboards.length}
          <div class="flex flex-col items-center justify-center py-40">
             <div class="w-12 h-12 rounded-none border-4 border-sky-500/20 border-t-sky-500 animate-spin mb-6"></div>
-            <p class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] font-outfit animate-pulse">Consultando servidores de Lichess...</p>
+            <p class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] font-outfit animate-pulse">Analizando ecosistema Lichess...</p>
          </div>
       {:else if leaderboards.length > 0}
-          <!-- Leaderboard Tables -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <!-- Blitz Leaderboard -->
-            <div class="bento-card !p-0 overflow-hidden rounded-none bg-gradient-to-b from-sky-600/5 to-transparent border border-sky-500/20 shadow-[0_20px_50px_-20px_rgba(14,165,233,0.15)] flex flex-col h-full">
-               <div class="p-8 border-b border-white/5 bg-zinc-900/40 relative">
-                  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(14,165,233,0.1),transparent_50%)] pointer-events-none"></div>
-                  <h3 class="text-2xl font-black text-white uppercase tracking-tighter font-outfit relative z-10 flex items-center gap-3">
-                     <span class="text-sky-500 text-3xl">⚡</span> Top Blitz
-                  </h3>
+          <!-- Master Achievements -->
+          {#if lichessAchievements}
+            {@const ach = lichessAchievements}
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+               <!-- Tactical King -->
+               <div class="pro-card !bg-zinc-900/40 border-violet-500/30 p-6 relative group/ach overflow-hidden">
+                  <div class="absolute -right-4 -bottom-4 text-violet-500/10 group-hover/ach:scale-110 transition-transform duration-700">
+                     <Target size={80} weight="fill" />
+                  </div>
+                  <p class="text-[8px] font-black text-violet-400 uppercase tracking-widest mb-3">REPRO DE LA TÁCTICA</p>
+                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.tacticalKing.first_name || ach.tacticalKing.username}</h4>
+                  <p class="text-2xl font-black text-violet-500 mt-2 font-outfit tracking-tighter">{ach.tacticalKing.lichessData?.perfs?.puzzle?.rating || 0} <span class="text-[10px] text-slate-600 font-bold ml-1">ELO PUZZLE</span></p>
                </div>
-               <div class="divide-y divide-white/5 overflow-y-auto max-h-[600px] custom-scrollbar">
-                  {#each [...leaderboards].sort((a,b) => (b.lichessData?.perfs?.blitz?.rating || 0) - (a.lichessData?.perfs?.blitz?.rating || 0)) as student, idx}
-                     <div class="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-colors group">
-                        <div class="flex items-center gap-5">
-                           <div class="w-10 text-center text-lg font-black uppercase tracking-tighter font-outfit {idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-700' : 'text-slate-600'}">
-                              #{idx + 1}
-                           </div>
-                           <div class="space-y-1">
-                              <p class="text-white font-bold font-jakarta text-sm uppercase tracking-tight truncate max-w-[150px]">
-                                {student.first_name || ''} {student.last_name || student.name || ''}
-                              </p>
-                              <a href="https://lichess.org/@/{student.lichess_username}" target="_blank" class="text-[9px] text-sky-400 hover:text-sky-300 transition-colors uppercase tracking-widest font-black">
-                                 @{student.lichess_username}
-                              </a>
-                           </div>
-                        </div>
-                        <div class="text-right">
-                           <p class="text-2xl font-black text-white font-outfit tracking-tighter leading-none">{student.lichessData?.perfs?.blitz?.rating || 'Unr.'}</p>
-                           {#if student.lichessData?.perfs?.blitz?.prog}
-                              <p class="text-[9px] font-bold mt-1 {student.lichessData.perfs.blitz.prog >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                                 {student.lichessData.perfs.blitz.prog >= 0 ? '+' : ''}{student.lichessData.perfs.blitz.prog}
-                              </p>
-                           {/if}
-                        </div>
-                     </div>
-                  {/each}
-               </div>
-            </div>
 
-            <!-- Rapid Leaderboard -->
-            <div class="bento-card !p-0 overflow-hidden rounded-none bg-gradient-to-b from-indigo-600/5 to-transparent border border-indigo-500/20 shadow-[0_20px_50px_-20px_rgba(99,102,241,0.15)] flex flex-col h-full">
-               <div class="p-8 border-b border-white/5 bg-zinc-900/40 relative">
-                  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.1),transparent_50%)] pointer-events-none"></div>
-                  <h3 class="text-2xl font-black text-white uppercase tracking-tighter font-outfit relative z-10 flex items-center gap-3">
-                     <span class="text-indigo-400 text-3xl">🐢</span> Top Rapid
-                  </h3>
+               <!-- Rising Star -->
+               <div class="pro-card !bg-zinc-900/40 border-emerald-500/30 p-6 relative group/ach overflow-hidden">
+                  <div class="absolute -right-4 -bottom-4 text-emerald-500/10 group-hover/ach:scale-110 transition-transform duration-700">
+                     <TrendUp size={80} weight="fill" />
+                  </div>
+                  <p class="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-3">ESTRELLA EMERGENTE</p>
+                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.risingStar.first_name || ach.risingStar.username}</h4>
+                  <p class="text-2xl font-black text-emerald-500 mt-2 font-outfit tracking-tighter">
+                    +{(ach.risingStar.lichessData?.perfs?.blitz?.prog || 0) + (ach.risingStar.lichessData?.perfs?.rapid?.prog || 0)}
+                    <span class="text-[10px] text-slate-600 font-bold ml-1">PROGRESO COMB.</span>
+                  </p>
                </div>
-               <div class="divide-y divide-white/5 overflow-y-auto max-h-[600px] custom-scrollbar">
-                  {#each [...leaderboards].sort((a,b) => (b.lichessData?.perfs?.rapid?.rating || 0) - (a.lichessData?.perfs?.rapid?.rating || 0)) as student, idx}
-                     <div class="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-colors group">
-                        <div class="flex items-center gap-5">
-                           <div class="w-10 text-center text-lg font-black uppercase tracking-tighter font-outfit {idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-700' : 'text-slate-600'}">
-                              #{idx + 1}
-                           </div>
-                           <div class="space-y-1">
-                              <p class="text-white font-bold font-jakarta text-sm uppercase tracking-tight truncate max-w-[150px]">
-                                {student.first_name || ''} {student.last_name || student.name || ''}
-                              </p>
-                              <a href="https://lichess.org/@/{student.lichess_username}" target="_blank" class="text-[9px] text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-widest font-black">
-                                 @{student.lichess_username}
-                              </a>
-                           </div>
-                        </div>
-                        <div class="text-right">
-                           <p class="text-2xl font-black text-white font-outfit tracking-tighter leading-none">{student.lichessData?.perfs?.rapid?.rating || 'Unr.'}</p>
-                           {#if student.lichessData?.perfs?.rapid?.prog}
-                              <p class="text-[9px] font-bold mt-1 {student.lichessData.perfs.rapid.prog >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                                 {student.lichessData.perfs.rapid.prog >= 0 ? '+' : ''}{student.lichessData.perfs.rapid.prog}
-                              </p>
-                           {/if}
-                        </div>
-                     </div>
-                  {/each}
+
+               <!-- Most Active -->
+               <div class="pro-card !bg-zinc-900/40 border-amber-500/30 p-6 relative group/ach overflow-hidden">
+                  <div class="absolute -right-4 -bottom-4 text-amber-500/10 group-hover/ach:scale-110 transition-transform duration-700">
+                     <Selection size={80} weight="fill" />
+                  </div>
+                  <p class="text-[8px] font-black text-amber-400 uppercase tracking-widest mb-3">MÁXIMO ESFUERZO</p>
+                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.mostActive.first_name || ach.mostActive.username}</h4>
+                  <p class="text-2xl font-black text-amber-500 mt-2 font-outfit tracking-tighter">{ach.mostActive.lichessData?.count?.all || 0} <span class="text-[10px] text-slate-600 font-bold ml-1">PARTIDAS JUGADAS</span></p>
+               </div>
+
+               <!-- Speed Demon -->
+               <div class="pro-card !bg-zinc-900/40 border-sky-500/30 p-6 relative group/ach overflow-hidden">
+                  <div class="absolute -right-4 -bottom-4 text-sky-500/10 group-hover/ach:scale-110 transition-transform duration-700">
+                     <Sparkle size={80} weight="fill" />
+                  </div>
+                  <p class="text-[8px] font-black text-sky-400 uppercase tracking-widest mb-3">MAESTRO DE LA VELOCIDAD</p>
+                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.speedDemon.first_name || ach.speedDemon.username}</h4>
+                  <p class="text-2xl font-black text-sky-500 mt-2 font-outfit tracking-tighter">{ach.speedDemon.lichessData?.perfs?.bullet?.rating || 0} <span class="text-[10px] text-slate-600 font-bold ml-1">ELO BULLET</span></p>
                </div>
             </div>
+          {/if}
+
+          <!-- Unified Leaderboard Table -->
+          <div class="pro-card overflow-hidden !bg-black/40 border border-white/5 relative">
+             <div class="pro-card-header !bg-zinc-900/60 flex justify-between items-center px-10 py-6">
+                <div class="flex items-center gap-3">
+                   <ChartBar weight="bold" class="text-sky-500" size={18} />
+                   <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] font-outfit">Análisis Comparativo de Alumnos</h3>
+                </div>
+                <div class="flex gap-10">
+                   <div class="flex items-center gap-2">
+                      <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                      <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">En Línea</span>
+                   </div>
+                   <div class="flex items-center gap-2">
+                      <div class="w-1.5 h-1.5 bg-slate-700 rounded-full"></div>
+                      <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Desconocido</span>
+                   </div>
+                </div>
+             </div>
+
+             <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                   <thead>
+                      <tr class="border-b border-white/5">
+                         <th class="px-10 py-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Alumno</th>
+                         <th class="px-6 py-6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Blitz</th>
+                         <th class="px-6 py-6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Rapid</th>
+                         <th class="px-6 py-6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Bullet</th>
+                         <th class="px-6 py-6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Puzzles</th>
+                         <th class="px-6 py-6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Partidas</th>
+                         <th class="px-10 py-6 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Acción</th>
+                      </tr>
+                   </thead>
+                   <tbody class="divide-y divide-white/5">
+                      {#each [...leaderboards].sort((a,b) => (b.lichessData?.perfs?.rapid?.rating || 0) - (a.lichessData?.perfs?.rapid?.rating || 0)) as student}
+                         <tr class="hover:bg-white/[0.02] transition-colors group">
+                            <td class="px-10 py-6">
+                               <div class="flex items-center gap-4">
+                                  <div class="relative">
+                                     <div class="w-10 h-10 bg-zinc-900 border border-white/5 rounded-none flex items-center justify-center text-white font-black text-xs uppercase font-outfit">
+                                        {student.first_name?.charAt(0) || student.username?.charAt(0)}
+                                     </div>
+                                     <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-zinc-950 rounded-none flex items-center justify-center border border-white/10">
+                                        <div class="w-1.5 h-1.5 {student.lichessData?.online ? 'bg-emerald-500 shadow-glow-emerald' : 'bg-slate-700'}"></div>
+                                     </div>
+                                  </div>
+                                  <div>
+                                     <p class="text-white font-black text-sm uppercase tracking-tight font-outfit leading-none mb-1.5">{student.first_name || ''} {student.last_name || student.name || ''}</p>
+                                     <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">@{student.lichess_username}</p>
+                                  </div>
+                               </div>
+                            </td>
+                            
+                            <!-- Blitz -->
+                            <td class="px-6 py-6 text-center">
+                               <p class="text-base font-black text-white font-outfit tracking-tighter">{student.lichessData?.perfs?.blitz?.rating || '---'}</p>
+                               {#if student.lichessData?.perfs?.blitz?.prog}
+                                 <p class="text-[8px] font-bold {student.lichessData.perfs.blitz.prog >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                                   {student.lichessData.perfs.blitz.prog >= 0 ? '+' : ''}{student.lichessData.perfs.blitz.prog}
+                                 </p>
+                               {/if}
+                            </td>
+
+                            <!-- Rapid -->
+                            <td class="px-6 py-6 text-center">
+                               <p class="text-base font-black text-white font-outfit tracking-tighter">{student.lichessData?.perfs?.rapid?.rating || '---'}</p>
+                               {#if student.lichessData?.perfs?.rapid?.prog}
+                                 <p class="text-[8px] font-bold {student.lichessData.perfs.rapid.prog >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                                   {student.lichessData.perfs.rapid.prog >= 0 ? '+' : ''}{student.lichessData.perfs.rapid.prog}
+                                 </p>
+                               {/if}
+                            </td>
+
+                            <!-- Bullet -->
+                            <td class="px-6 py-6 text-center">
+                               <p class="text-base font-black text-slate-400 font-outfit tracking-tighter">{student.lichessData?.perfs?.bullet?.rating || '---'}</p>
+                            </td>
+
+                            <!-- Puzzles -->
+                            <td class="px-6 py-6 text-center">
+                               <p class="text-base font-black text-violet-400 font-outfit tracking-tighter">{student.lichessData?.perfs?.puzzle?.rating || '---'}</p>
+                               <p class="text-[8px] text-slate-600 font-bold uppercase tracking-widest">{student.lichessData?.count?.puzzle || 0} res.</p>
+                            </td>
+
+                            <!-- Total Games -->
+                            <td class="px-6 py-6 text-center">
+                               <p class="text-base font-black text-slate-500 font-outfit tracking-tighter">{student.lichessData?.count?.all || 0}</p>
+                               <p class="text-[8px] text-slate-700 font-bold uppercase tracking-widest">Juegos</p>
+                            </td>
+
+                            <td class="px-10 py-6 text-right">
+                               <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                  <a 
+                                    href="https://lichess.org/@/{student.lichess_username}" 
+                                    target="_blank"
+                                    class="p-2.5 bg-sky-500/10 border border-sky-500/20 text-sky-400 hover:bg-sky-500 hover:text-white transition-all shadow-glow-blue-mini"
+                                  >
+                                    <Eye size={16} weight="bold" />
+                                  </a>
+                                  <button 
+                                    onclick={() => goto(`/panel/students/${student.id}`)}
+                                    class="p-2.5 bg-white/5 border border-white/10 text-white hover:bg-white hover:text-black transition-all"
+                                  >
+                                    <ArrowRight size={16} weight="bold" />
+                                  </button>
+                               </div>
+                            </td>
+                         </tr>
+                      {/each}
+                   </tbody>
+                </table>
+             </div>
           </div>
        {:else}
           <div class="bento-card py-40 text-center space-y-8 bg-zinc-900/20 border-2 border-dashed border-white/5 rounded-none">
@@ -648,8 +748,8 @@
                 <ChartLineUp size={40} weight="duotone" />
              </div>
              <div class="space-y-3">
-                <h4 class="text-xl font-black text-white uppercase font-outfit">Sin datos de Lichess</h4>
-                <p class="text-[10px] text-slate-600 uppercase tracking-widest max-w-sm mx-auto">Tus alumnos necesitan tener un nombre de usuario de Lichess válido en sus perfiles para aparecer aquí.</p>
+                <h4 class="text-xl font-black text-white uppercase font-outfit">Sin ecosistema Lichess detectado</h4>
+                <p class="text-[10px] text-slate-600 uppercase tracking-widest max-w-sm mx-auto">Vincule nombres de usuario de Lichess en los perfiles de sus alumnos para activar este panel de inteligencia.</p>
              </div>
           </div>
        {/if}

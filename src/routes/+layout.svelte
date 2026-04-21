@@ -29,7 +29,17 @@
     initGlobalConfig();
   }
 
-  const isAdmin = $derived($user?.email && ADMIN_EMAILS.map(e => e.toLowerCase()).includes($user.email.toLowerCase()));
+  import { dev } from '$app/environment';
+
+  // Admin access logic with local bypass for Antigravity/Development
+  const isAdmin = $derived(
+    (dev && $user) || // Full access in local dev if logged in
+    ($user?.email && ADMIN_EMAILS.map(e => e.toLowerCase()).includes($user.email.toLowerCase()))
+  );
+  const isMaintenanceExempt = $derived(
+    ['/admin', '/login', '/maintenance', '/api/auth', '/api/stripe'].some(path => $page.url.pathname.startsWith(path)) || 
+    ['/', '/pricing', '/legal'].includes($page.url.pathname)
+  );
 
   let isRedirecting = false;
 
@@ -40,7 +50,7 @@
     // Lógica de Redirección Robusta
     const currentPath = $page.url.pathname as string;
     const isProtected = currentPath.startsWith('/panel') || currentPath.startsWith('/admin');
-    const isPublicOnly = currentPath === '/login';
+    const isPublicOnly = currentPath === '/login' || currentPath === '/';
 
     if ($user && isPublicOnly) {
       isRedirecting = true;
@@ -69,7 +79,7 @@
         <p class="text-surface-400 text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">{$t('common.initializing')}</p>
       </div>
     </div>
-  {:else if maintenanceMode && !isAdmin}
+  {:else if maintenanceMode && !isAdmin && !isMaintenanceExempt}
     <div class="fixed inset-0 flex items-center justify-center bg-[#070709] z-[100] p-4 md:p-10 overflow-hidden">
       <!-- Premium Background Architecture -->
       <div class="absolute inset-0 -z-10">

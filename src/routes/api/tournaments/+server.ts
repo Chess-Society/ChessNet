@@ -3,6 +3,7 @@ import { adminDb } from '$lib/firebase-admin';
 import type { RequestHandler } from './$types';
 import { authenticate } from '$lib/server/auth';
 import { serializeRecord } from '$lib/server/serialize';
+import type { DocumentSnapshot } from 'firebase-admin/firestore';
 
 export const GET: RequestHandler = async (event) => {
   const { user } = await authenticate(event);
@@ -74,5 +75,108 @@ export const POST: RequestHandler = async (event) => {
   } catch (error: any) {
     console.error('❌ Error in POST /api/tournaments:', error);
     return json({ error: error.message || 'Error al crear el torneo' }, { status: 500 });
+  }
+};
+
+export const PUT: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  const { request, url } = event;
+  const uid = user.uid;
+  const id = url.searchParams.get('id');
+
+  if (!id) {
+    return json({ error: 'ID de torneo requerido' }, { status: 400 });
+  }
+
+  try {
+    const docRef = adminDb.collection('local_tournaments').doc(id);
+    const snap = await docRef.get();
+
+    if (!snap.exists) {
+      return json({ error: 'Torneo no encontrado' }, { status: 404 });
+    }
+
+    if (snap.data()?.owner_id !== uid) {
+      return json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const updates = await request.json();
+    const cleanUpdates = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+
+    delete cleanUpdates.id;
+    delete cleanUpdates.owner_id;
+    delete cleanUpdates.created_at;
+
+    await docRef.update(cleanUpdates);
+
+    return json({ 
+      success: true, 
+      data: { id, ...snap.data(), ...cleanUpdates } 
+    });
+  } catch (error: any) {
+    console.error('❌ Error in PUT /api/tournaments:', error);
+    return json({ error: error.message || 'Error al actualizar el torneo' }, { status: 500 });
+  }
+};
+
+export const DELETE: RequestHandler = async (event) => {
+  const { user } = await authenticate(event);
+  if (!user) {
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
+  }
+
+  const { url } = event;
+  const uid = user.uid;
+  const id = url.searchParams.get('id');
+
+  if (!id) {
+    return json({ error: 'ID de torneo requerido' }, { status: 400 });
+  }
+
+  try {
+    const docRef = adminDb.collection('local_tournaments').doc(id);
+    const snap = await docRef.get();
+
+    if (!snap.exists) {
+      // Éxito silencioso si ya no existe
+      return json({ success: true, message: 'Torneo ya eliminado' });
+    }
+
+    if (snap.data()?.owner_id !== uid) {
+      return json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    // El borrado en cascada (jugadores, rondas, pairings) es mejor manejarlo aquí 
+    // para asegurar integridad sin depender del cliente.
+    const batch = adminDb.batch();
+
+    // 1. Borrar jugadores
+    const players = await adminDb.collection('local_tournament_players').where('tournament_id', '==', id).get();
+    players.docs.forEach((doc: any) => batch.delete(doc.ref));
+
+    // 2. Borrar rondas
+    const rounds = await adminDb.collection('local_tournament_rounds').where('tournament_id', '==', id).get();
+    rounds.docs.forEach((doc: any) => batch.delete(doc.ref));
+
+    // 3. Borrar pairings
+    const pairings = await adminDb.collection('local_tournament_pairings').where('tournament_id', '==', id).get();
+    pairings.docs.forEach((doc: any) => batch.delete(doc.ref));
+
+    // 4. Borrar el torneo
+    batch.delete(docRef);
+
+    await batch.commit();
+
+    return json({ success: true, message: 'Torneo y datos relacionados eliminados correctamente' });
+  } catch (error: any) {
+    console.error('❌ Error in DELETE /api/tournaments:', error);
+    return json({ error: error.message || 'Error al eliminar el torneo' }, { status: 500 });
   }
 };

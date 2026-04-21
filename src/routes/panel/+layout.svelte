@@ -188,9 +188,11 @@
     }
 
     return () => {
+      // We DON'T delete the key here anymore, so it persists across navigations 
+      // within the SAME layout instance. The key is UID-based, so it will still 
+      // re-init if the user logs out and logs in as someone else.
       unsubs.forEach(u => u());
       unsubs = [];
-      delete (window as any).__last_listener_key;
     };
   });
 

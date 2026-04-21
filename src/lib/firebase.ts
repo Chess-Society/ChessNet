@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, signInAnonymously } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { browser } from "$app/environment";
@@ -39,7 +39,7 @@ if (browser) {
   });
 }
 
-export { app, auth, db, analytics };
+export { app, auth, db, analytics, signInAnonymously };
 
 // Auth helpers
 export const signInWithGoogle = async () => {

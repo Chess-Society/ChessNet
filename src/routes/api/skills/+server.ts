@@ -29,6 +29,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
+    
+    // Handle array of skills (Batch Import)
+    if (Array.isArray(body)) {
+      const batch = adminDb.batch();
+      const results: string[] = [];
+      
+      body.forEach(skill => {
+        const skillRef = adminDb.collection("skills").doc();
+        const skillData = {
+          ...skill,
+          owner_id: locals.user.uid,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        batch.set(skillRef, skillData);
+        results.push(skillRef.id);
+      });
+      
+      await batch.commit();
+      return json({ success: true, ids: results });
+    }
+
+    // Handle single skill
     const skillData = {
       ...body,
       owner_id: locals.user.uid,
@@ -40,7 +63,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     return json({ success: true, id: docRef.id });
   } catch (error: any) {
     console.error('❌ Error in POST skills API:', error.message);
-    return json({ error: 'Error al crear la habilidad' }, { status: 500 });
+    return json({ error: 'Error al procesar la habilidad' }, { status: 500 });
   }
 };
 

@@ -28,19 +28,25 @@ if (!admin.apps.length) {
                 }),
             });
             initialized = true;
+            console.log('✅ [FirebaseAdmin] Initialized successfully with Service Account');
         } else if (projectId) {
-            // Intentar inicialización por defecto (útil en local con ADC o en entornos con permisos de IAM heredados)
-            admin.initializeApp({
-                projectId
-            });
-            initialized = true;
+            // En local, intentar usar ADC o simplemente avisar
+            try {
+                admin.initializeApp({ projectId });
+                initialized = true;
+                console.warn('⚠️ [FirebaseAdmin] Initialized with Default Credentials. This might fail if GOOGLE_APPLICATION_CREDENTIALS is not set.');
+            } catch (abc) {
+                console.error('❌ [FirebaseAdmin] Basic initialization failed. Requires FB_CLIENT_EMAIL and FB_PRIVATE_KEY in .env');
+            }
         }
     } catch (error) {
-        console.error('❌ [FirebaseAdmin] Error inicializando SDK:', error);
+        console.error('❌ [FirebaseAdmin] Fatal error initializing SDK:', error);
     }
 } else {
     initialized = true;
 }
+
+export const isFirebaseAdminInitialized = initialized;
 
 // Exportamos getters que lanzan un error claro si se usan sin estar inicializados
 export const adminDb = initialized ? getFirestore() : new Proxy({} as any, {
@@ -49,7 +55,7 @@ export const adminDb = initialized ? getFirestore() : new Proxy({} as any, {
             'Asegúrate de configurar FB_CLIENT_EMAIL y FB_PRIVATE_KEY en tu entorno de producción.';
         
         if (publicEnv.PUBLIC_FIREBASE_PROJECT_ID && !initialized) {
-            console.warn('⚠️ [FirebaseAdmin] SDK no inicializado. Usando modo degradado.');
+            // console.warn('⚠️ [FirebaseAdmin] SDK no inicializado. Usando modo degradado.');
         }
 
         return (...args: any[]) => {
@@ -61,7 +67,12 @@ export const adminDb = initialized ? getFirestore() : new Proxy({} as any, {
 
 export const adminAuth = initialized ? getAuth() : new Proxy({} as any, {
     get(target, prop) {
-        throw new Error('❌ [FirebaseAdmin] Error: adminAuth se intentó usar pero el SDK no se inicializó correctamente. ' +
-            'Asegúrate de configurar FB_CLIENT_EMAIL y FB_PRIVATE_KEY en tu entorno de producción.');
+        const msg = '❌ [FirebaseAdmin] Error: adminAuth se intentó usar pero el SDK no se inicializó correctamente. ' +
+            'Asegúrate de configurar FB_CLIENT_EMAIL y FB_PRIVATE_KEY en tu entorno de producción.';
+            
+        return (...args: any[]) => {
+            console.error(msg);
+            throw new Error(msg);
+        };
     }
 });

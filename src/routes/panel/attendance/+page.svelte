@@ -37,11 +37,36 @@
   import { cubicOut } from 'svelte/easing';
   import { showToast, showError } from '$lib/stores/toast';
 
+  import { db, auth } from '$lib/firebase';
+  import { collection, query, where, onSnapshot } from 'firebase/firestore';
+
   let selectedClassId = $state($page.url.searchParams.get('classId') || '');
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
   let viewMode = $state('list'); // 'list' | 'calendar'
   let isProcessing = $state(false);
   let searchQuery = $state('');
+  
+  // Local real-time attendance data
+  let localAttendance = $state<any[]>([]);
+
+  onMount(() => {
+    let unsubscribe: () => void;
+
+    const unsubAuth = auth.onAuthStateChanged(user => {
+      if (unsubscribe) unsubscribe();
+      if (user) {
+        const q = query(collection(db, 'attendance'), where('owner_id', '==', user.uid));
+        unsubscribe = onSnapshot(q, (snap) => {
+          localAttendance = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        });
+      }
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+      unsubAuth();
+    };
+  });
   
   // Datos reactivos
   let classes = $derived($appStore.classes || []);
@@ -70,7 +95,7 @@
 
   // Registro de asistencia actual
   let currentAttendance = $derived(
-    $appStore.attendance.filter(a => a.class_id === selectedClassId && a.date === selectedDate)
+    localAttendance.filter(a => a.class_id === selectedClassId && a.date === selectedDate)
   );
 
   const setStatus = async (studentId: string, status: string) => {
@@ -487,7 +512,7 @@
 
              <VisualAttendanceCalendar 
                {selectedClassId} 
-               attendance={$appStore.attendance} 
+               attendance={localAttendance} 
                onDateSelect={(date: string) => {
                  selectedDate = date;
                  viewMode = 'list';

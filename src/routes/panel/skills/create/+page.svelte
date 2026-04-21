@@ -33,7 +33,8 @@
     Certificate,
     ArrowUpRight,
     Trophy,
-    Shuffle
+    Shuffle,
+    Brain
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, slide, scale } from 'svelte/transition';
@@ -196,6 +197,37 @@
       <!-- Left Content Area (8 cols) -->
       <div class="lg:col-span-8 space-y-8">
         
+        <!-- AI Import Quick Action -->
+        {#if !isSubmitting}
+          <section 
+            class="relative group overflow-hidden bg-zinc-900/40 border border-violet-500/30 rounded-none p-8 mb-8 shadow-2xl transition-all hover:bg-zinc-900/60"
+            in:fly={{ y: -20, duration: 600 }}
+          >
+            <div class="absolute top-0 right-0 w-64 h-64 bg-violet-600/5 blur-[80px] rounded-none transition-all group-hover:bg-violet-600/10"></div>
+            <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+              <div class="flex items-center gap-6">
+                <div class="w-16 h-16 bg-violet-600/10 text-violet-400 flex items-center justify-center rounded-none border border-violet-500/20 group-hover:scale-110 transition-transform duration-500">
+                  <Brain weight="fill" class="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 class="text-xl font-black text-white uppercase italic tracking-tight flex items-center gap-2">
+                    {$t('skills.ui.import_pdf') || 'Importar con IA'}
+                    <span class="px-1.5 py-0.5 bg-violet-600 text-white text-[8px] font-black not-italic tracking-normal">BETA</span>
+                  </h3>
+                  <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">{$t('skills.ui.import_pdf_subtitle') || 'Sube un PDF y ahorra tiempo creando lecciones'}</p>
+                </div>
+              </div>
+              <button 
+                onclick={() => goto('/panel/skills?import=ai')}
+                class="px-8 py-4 bg-zinc-950 border border-violet-500/50 text-white font-black uppercase tracking-widest text-[10px] hover:bg-violet-600 hover:border-violet-400 transition-all shadow-xl flex items-center gap-3 group/ai"
+              >
+                <Sparkle weight="fill" class="w-4 h-4 group-hover/ai:rotate-12 transition-transform" />
+                {$t('skills.ui.extract_ai') || 'ANALIZAR PDF'}
+              </button>
+            </div>
+          </section>
+        {/if}
+
         <!-- Main Info Card -->
         <section class="bg-zinc-900/30 border border-zinc-800/50 rounded-none overflow-hidden backdrop-blur-sm shadow-2xl">
           <div class="bg-gradient-to-r from-violet-600/10 to-transparent p-8 border-b border-zinc-800/50">
@@ -209,10 +241,10 @@
             <!-- Topic Name & Category Row -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div class="space-y-3">
-                <label for="name" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('skills.create.topic_name')}</label>
+                <label for="skill_name" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('skills.create.topic_name')}</label>
                 <div class="input-wrapper">
                   <input
-                    id="name"
+                    id="skill_name"
                     type="text"
                     bind:value={formData.name}
                     placeholder={$t('skills.create.topic_placeholder')}
@@ -227,13 +259,15 @@
               </div>
 
               <div class="space-y-6 md:col-span-2">
-                <span class="glass-label">{$t('skills.create.category')}</span>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {#each categories as category}
+                <span class="glass-label" id="category_label">{$t('skills.create.category')}</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" role="group" aria-labelledby="category_label">
+                  {#each categories as category, i}
                     <button
                       type="button"
+                      id="cat_btn_{i}"
                       onclick={() => formData.category_id = category.id}
                       class="selection-card small {formData.category_id === category.id ? 'active' : ''}"
+                      aria-pressed={formData.category_id === category.id}
                     >
                       <div class="card-icon">
                         <Tag weight={formData.category_id === category.id ? "fill" : "duotone"} />
@@ -254,10 +288,10 @@
 
             <!-- Description -->
             <div class="space-y-4">
-              <label for="description" class="glass-label">{$t('skills.create.description')}</label>
+              <label for="skill_description" class="glass-label">{$t('skills.create.description')}</label>
               <div class="input-wrapper">
                 <textarea
-                  id="description"
+                  id="skill_description"
                   bind:value={formData.description}
                   placeholder={$t('skills.create.description_placeholder')}
                   rows="4"
@@ -295,7 +329,7 @@
               </div>
 
               <div class="space-y-4">
-                <label for="hours" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('common.duration') || 'Hours'}</label>
+                <span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('common.duration') || 'Hours'}</span>
                 <div class="bg-zinc-950/50 border border-zinc-800 rounded-none p-6 flex items-center justify-between shadow-inner">
                   <button 
                     onclick={() => formData.estimated_hours = Math.max(0.5, formData.estimated_hours - 0.5)}

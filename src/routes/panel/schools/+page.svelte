@@ -40,8 +40,17 @@
     schools.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  // Optimización: Precalcular el conteo de alumnos por centro para evitar filtrados repetitivos en el render
+  const studentsCountMap = $derived(
+    students.reduce((acc, s) => {
+      const schoolId = s.school_id;
+      if (schoolId) acc[schoolId] = (acc[schoolId] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  );
+
   const getStudentCount = (school_id: string) => {
-    return students.filter(s => s.school_id === school_id).length;
+    return studentsCountMap[school_id] || 0;
   };
 
   const deleteSchool = (id: string) => {

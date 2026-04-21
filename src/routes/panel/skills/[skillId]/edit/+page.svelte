@@ -281,7 +281,7 @@
               </div>
 
               <div class="space-y-3">
-                <label for="category_id" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('skills.create.category')}</label>
+                <span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('skills.create.category')}</span>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {#each categories as category}
                     <button 
@@ -366,7 +366,7 @@
               </div>
 
               <div class="space-y-4">
-                <label for="hours" class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('common.duration') || 'Hours'}</label>
+                <span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">{$t('common.duration') || 'Hours'}</span>
                 <div class="bg-zinc-950/50 border border-white/5 rounded-none p-6 flex items-center justify-between shadow-inner">
                   <button 
                     onclick={() => formData.estimated_hours = Math.max(0.5, formData.estimated_hours - 0.5)}
@@ -457,7 +457,9 @@
                     <div class="w-10 h-10 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[11px] font-black text-zinc-600 shrink-0 mt-1 shadow-inner group-hover:text-violet-500 group-hover:border-violet-500/30 transition-all">
                       {i + 1}
                     </div>
+                    <label for="objective-{i}" class="sr-only">{$t('skills.create.objectives')} {i + 1}</label>
                     <textarea
+                      id="objective-{i}"
                       bind:value={formData.learning_objectives[i]}
                       placeholder={$t('skills.ui.objective_placeholder')}
                       rows="2"
@@ -495,7 +497,9 @@
                     <div class="w-10 h-10 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-600 shrink-0 mt-1 shadow-inner group-hover:text-amber-500 group-hover:border-amber-500/30 transition-all">
                       C{i + 1}
                     </div>
+                    <label for="criteria-{i}" class="sr-only">{$t('skills.ui.validation')} {i + 1}</label>
                     <textarea
+                      id="criteria-{i}"
                       bind:value={formData.assessment_criteria[i]}
                       placeholder={$t('skills.ui.criteria_placeholder')}
                       rows="2"
@@ -534,7 +538,9 @@
                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700 group-focus-within:text-blue-500 transition-colors pointer-events-none">
                     <Link weight="bold" class="w-4 h-4" />
                   </div>
+                  <label for="resource-{i}" class="sr-only">{$t('skills.ui.materials')} {i + 1}</label>
                   <input
+                    id="resource-{i}"
                     type="text"
                     bind:value={formData.resources[i]}
                     placeholder={$t('skills.create.resource_placeholder')}

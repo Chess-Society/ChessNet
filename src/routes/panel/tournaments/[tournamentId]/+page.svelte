@@ -33,23 +33,61 @@
     Flag,
     Handshake
   } from 'phosphor-svelte';
+  import { uiStore } from '$lib/stores/uiStore';
+  import { db, auth } from '$lib/firebase';
+  import { doc, collection, query, where, onSnapshot } from 'firebase/firestore';
   import { appStore } from '$lib/stores/appStore';
+  import { user as authUser } from '$lib/stores/auth';
+  import { ADMIN_EMAILS } from '$lib/constants';
+  import { showToast, showError } from '$lib/stores/toast';
+  import { t } from '$lib/i18n';
   import { getLocalTournamentsApi } from '$lib/api/local-tournaments';
   import { fade, fly, scale } from 'svelte/transition';
-  import { t } from '$lib/i18n';
-  import { showToast, showError } from '$lib/stores/toast';
   import TournamentBracket from '$lib/components/tournaments/TournamentBracket.svelte';
   import TournamentCrosstable from '$lib/components/tournaments/TournamentCrosstable.svelte';
-  import { uiStore } from '$lib/stores/uiStore';
 
   const tournamentId = page.params.tournamentId;
+
+  let localTournament = $state<any>(null);
+  let localPlayers = $state<any[]>([]);
+  let localPairings = $state<any[]>([]);
+  let localRounds = $state<any[]>([]);
+
+  onMount(() => {
+    let unsubT: any, unsubP: any, unsubPair: any, unsubR: any;
+
+    const unsubAuth = auth.onAuthStateChanged(user => {
+      [unsubT, unsubP, unsubPair, unsubR].forEach(u => u?.());
+
+      if (user && tournamentId) {
+        // Tournament Doc
+        unsubT = onSnapshot(doc(db, 'local_tournaments', tournamentId), (s) => {
+          if (s.exists()) localTournament = { id: s.id, ...s.data() };
+        });
+
+        // Related Collections
+        const qP = query(collection(db, 'local_tournament_players'), where('tournament_id', '==', tournamentId));
+        unsubP = onSnapshot(qP, s => localPlayers = s.docs.map(d => ({ id: d.id, ...d.data() })));
+
+        const qPair = query(collection(db, 'local_tournament_pairings'), where('tournament_id', '==', tournamentId));
+        unsubPair = onSnapshot(qPair, s => localPairings = s.docs.map(d => ({ id: d.id, ...d.data() })));
+
+        const qR = query(collection(db, 'local_tournament_rounds'), where('tournament_id', '==', tournamentId));
+        unsubR = onSnapshot(qR, s => localRounds = s.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+    });
+
+    return () => {
+      [unsubT, unsubP, unsubPair, unsubR, unsubAuth].forEach(u => u?.());
+    };
+  });
   
   // Reactivity with Svelte 5 runes
-  let tournament = $derived($appStore.localTournaments.find(t => t.id === tournamentId));
+  let tournament = $derived(localTournament);
   let students = $derived($appStore.students || []);
-  let players = $derived($appStore.localTournamentPlayers.filter(p => p.tournament_id === tournamentId));
-  let pairings = $derived($appStore.localTournamentPairings.filter(p => p.tournament_id === tournamentId));
-  let rounds = $derived($appStore.localTournamentRounds.filter(r => r.tournament_id === tournamentId));
+  let players = $derived(localPlayers);
+  let pairings = $derived(localPairings);
+  let rounds = $derived(localRounds);
 
   let activeTab = $state('overview');
   let showRegModal = $state(false);

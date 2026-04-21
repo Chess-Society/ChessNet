@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { signInWithGoogle } from '$lib/firebase';
+  import { auth, signInWithGoogle, signInAnonymously } from '$lib/firebase';
   import Logo from '$lib/components/Logo.svelte';
   import { ArrowLeft, Sparkles, CheckCircle2 } from 'lucide-svelte';
   import { fade } from 'svelte/transition';
   import { t } from '$lib/i18n';
+  import { dev } from '$app/environment';
 
   let isLoggingIn = $state(false);
   let errorMessage = $state('');
@@ -45,6 +46,23 @@
       }
     } catch (err) {
       errorMessage = $t('auth.error.unexpected');
+      isLoggingIn = false;
+    }
+  };
+
+  const handleDevLogin = async () => {
+    isLoggingIn = true;
+    try {
+      // Direct cookie-based bypass for local development
+      // This matches the 'antigravity_access' check in src/lib/server/auth.ts
+      document.cookie = "antigravity_access=antigravity-dev-secret; path=/; max-age=432000"; // 5 days
+      
+      successMessage = true;
+      setTimeout(() => {
+        goto('/panel');
+      }, 800);
+    } catch (e: any) {
+      errorMessage = e.message;
       isLoggingIn = false;
     }
   };
@@ -132,6 +150,24 @@
               <span>{$t('auth.google_button')}</span>
             </div>
           </button>
+
+          {#if dev || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))}
+            <div class="pt-6">
+              <div class="flex items-center gap-4 mb-3">
+                <div class="flex-1 h-px bg-white/5"></div>
+                <span class="text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em]">Developer Access</span>
+                <div class="flex-1 h-px bg-white/5"></div>
+              </div>
+              <button 
+                onclick={handleDevLogin}
+                class="w-full py-5 bg-zinc-900 hover:bg-violet-600 text-white text-[10px] font-black uppercase tracking-[0.3em] transition-all border border-white/5 flex items-center justify-center gap-3 active:scale-95 shadow-xl"
+              >
+                <div class="w-2 h-2 bg-violet-400"></div>
+                <span>Antigravity Dev Login</span>
+                <div class="w-2 h-2 bg-violet-400"></div>
+              </button>
+            </div>
+          {/if}
         </div>
 
         <div class="mt-10 pt-8 border-t border-white/5">

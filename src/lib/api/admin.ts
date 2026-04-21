@@ -41,7 +41,7 @@ export const adminApi = {
         getCountFromServer(query(collection(db, "users"), where("settings.plan", "==", "premium"))),
         getCountFromServer(query(collection(db, "users"), where("createdAt", ">=", sevenDaysAgo.toISOString()))),
         getCountFromServer(collection(db, "achievements")),
-        getDocs(collection(db, "payments"))
+        getDocs(query(collection(db, "payments"), limit(500))) // Limit to prevent crash/slowdown
       ]);
 
       const totalRevenue = paymentsSnap.docs.reduce((acc, d) => acc + (d.data().amount || 0), 0);

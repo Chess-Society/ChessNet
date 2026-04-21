@@ -176,9 +176,9 @@
           <div class="space-y-6">
              <div class="flex items-center gap-3">
                 <Buildings weight="duotone" class="w-5 h-5 text-zinc-400" />
-                <label for="school" class="glass-label !ml-0">
+                <span class="glass-label !ml-0">
                   {$t('classes.school_label')}
-                </label>
+                </span>
              </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

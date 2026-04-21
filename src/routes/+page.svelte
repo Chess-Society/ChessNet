@@ -369,9 +369,10 @@
          <div class="space-y-8">
            <h4 class="text-[10px] font-black text-white uppercase tracking-[0.3em] font-mono italic">Governance</h4>
            <div class="flex flex-col gap-5 text-[10px] font-black text-slate-600 uppercase tracking-widest">
-             <a href="/faq" class="hover:text-white transition-colors">FAQ_SYS</a>
-             <a href="/legal/terms" class="hover:text-white transition-colors">{$t('nav.terms')}</a>
-             <a href="/legal/privacy" class="hover:text-white transition-colors">{$t('nav.privacy')}</a>
+              <a href="/faq" class="hover:text-white transition-colors">FAQ_SYS</a>
+              <a href="/panel/support" class="hover:text-white transition-colors">{$t('support.title') || 'Support'}</a>
+              <a href="/legal/terms" class="hover:text-white transition-colors">{$t('nav.terms')}</a>
+              <a href="/legal/privacy" class="hover:text-white transition-colors">{$t('nav.privacy')}</a>
            </div>
          </div>
       </div>

@@ -27,28 +27,49 @@
     Hourglass,
     Warning
   } from 'phosphor-svelte';
+  import { db, auth } from '$lib/firebase';
+  import { collection, query, where, onSnapshot } from 'firebase/firestore';
   import { appStore } from '$lib/stores/appStore';
   import { user as authUser } from '$lib/stores/auth';
   import { ADMIN_EMAILS } from '$lib/constants';
-  import { toast, showError } from '$lib/stores/toast';
-  import { uiStore } from '$lib/stores/uiStore';
   import { goto } from '$app/navigation';
+  import { uiStore } from '$lib/stores/uiStore';
+  import { showError, toast } from '$lib/stores/toast';
   import { fade, fly, scale } from 'svelte/transition';
 
   // Auth & Access Control
   const plan = $derived($appStore?.settings?.plan || 'free');
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+  
+  let localPayments = $state<any[]>([]);
 
   onMount(() => {
     if (plan === 'free' && !isAdmin) {
       goto('/pricing');
+      return;
     }
+
+    let unsubscribe: () => void;
+    const unsubAuth = auth.onAuthStateChanged(user => {
+      if (unsubscribe) unsubscribe();
+      if (user) {
+        const q = query(collection(db, 'payments'), where('owner_id', '==', user.uid));
+        unsubscribe = onSnapshot(q, (snap) => {
+          localPayments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        });
+      }
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+      unsubAuth();
+    };
   });
 
   let searchQuery = $state('');
   
   // Reactive data using Runes
-  let payments = $derived($appStore.payments || []);
+  let payments = $derived(localPayments);
   let students = $derived($appStore.students || []);
   let schools = $derived($appStore.schools || []);
 

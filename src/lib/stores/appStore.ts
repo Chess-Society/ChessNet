@@ -115,6 +115,7 @@ function createAppStore() {
   let initializedCollections = new Set<string>();
   let unsubscribes: (() => void)[] = [];
   let lastUid: string | null = null;
+  let dataCache: Record<string, string> = {};
 
   // Centralized subscription to handle user changes and synchronization
   let authUnsub: any = null;
@@ -124,30 +125,43 @@ function createAppStore() {
       .subscribe(async ({ user, initialized }) => {
         if (!initialized) return;
 
+        // Strict UID check to prevent redundant listener initializations
         if (user && lastUid !== user.uid) {
           lastUid = user.uid;
-          // Limpiar listeners previos siempre que cambie el estado
+          console.log(`🚀 [AppStore] Initializing listeners for user: ${user.email}`);
+
+          // Clear previous unsubs
           unsubscribes.forEach(unsub => typeof unsub === 'function' && unsub());
           unsubscribes = [];
+          initializedCollections.clear();
+          dataCache = {}; // Clear cache on user change
 
           const userRef = doc(db, 'users', user.uid);
-          onSnapshot(userRef, 
+          
+          // Use a variable to track if we're already syncing
+          let isSyncingSettings = false;
+
+          const unsubSettings = onSnapshot(userRef, 
             async (snap) => {
-              const userEmail = (user.email || '').toLowerCase();
-              
-              if (!snap.exists()) {
-                await setDoc(userRef, {
-                  email: userEmail,
-                  createdAt: new Date().toISOString(),
-                  settings: {
-                    plan: 'free',
-                    teacherName: user.displayName || '',
-                    teacherAvatar: user.photoURL || '',
-                    teacherEmail: userEmail
-                  }
-                });
-                return;
-              }
+              if (isSyncingSettings) return;
+              isSyncingSettings = true;
+
+              try {
+                const userEmail = (user.email || '').toLowerCase();
+                
+                if (!snap.exists()) {
+                  await setDoc(userRef, {
+                    email: userEmail,
+                    createdAt: new Date().toISOString(),
+                    settings: {
+                      plan: 'free',
+                      teacherName: user.displayName || '',
+                      teacherAvatar: user.photoURL || '',
+                      teacherEmail: userEmail
+                    }
+                  });
+                  return;
+                }
 
               const data = snap.data();
               
@@ -171,21 +185,24 @@ function createAppStore() {
                   dashboardLayout: data.dashboardLayout || [] 
                 };
               });
+            } catch (err) {
+              console.error('❌ [AppStore] Error processing settings:', err);
+            } finally {
+              isSyncingSettings = false;
+            }
             },
-            (error) => console.error('❌ [AppStore] Settings error:', error)
+            (error) => {
+              isSyncingSettings = false;
+              console.error('❌ [AppStore] Settings error:', error);
+            }
           );
+          unsubscribes.push(unsubSettings);
 
           const collectionsMap = [
             { key: 'schools', path: 'schools' },
             { key: 'students', path: 'students' },
             { key: 'classes', path: 'classes' },
             { key: 'skills', path: 'skills' },
-            { key: 'attendance', path: 'attendance' },
-            { key: 'localTournaments', path: 'local_tournaments' },
-            { key: 'localTournamentPlayers', path: 'local_tournament_players' },
-            { key: 'localTournamentRounds', path: 'local_tournament_rounds' },
-            { key: 'localTournamentPairings', path: 'local_tournament_pairings' },
-            { key: 'payments', path: 'payments' },
             { key: 'unlockedAchievements', path: 'achievements' }
           ];
 
@@ -197,6 +214,14 @@ function createAppStore() {
               (snap) => {
                 const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 
+                // PERFORMANCE: Only update if the data has actually changed
+                // This prevents redundant re-renders of the entire appStore
+                const currentDataAsString = JSON.stringify(docs);
+                
+                // Using a local cache to avoid redundant JSON operations
+                if (dataCache[key] === currentDataAsString) return;
+                dataCache[key] = currentDataAsString;
+
                 // Mark collection as initialized after the first snapshot
                 const isFirstLoad = !initializedCollections.has(key);
                 if (isFirstLoad) {
@@ -233,7 +258,10 @@ function createAppStore() {
                   return newState;
                 });
               },
-              (error) => console.error(`❌ [AppStore] Error en ${path}:`, error)
+              (error) => {
+                if (error.code === 'permission-denied') return;
+                console.error(`❌ [AppStore] Error in ${key}:`, error);
+              }
             ));
           });
 
@@ -584,9 +612,20 @@ function createAppStore() {
 
 
 
-      const { id, ...data } = payment;
-      const docRef = doc(db, 'payments', id);
-      await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
+      // Usar API para bypassear las Firestore Rules (el cliente no puede editar en /payments)
+      try {
+        const response = await fetch(`/api/payments?id=${encodeURIComponent(payment.id)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payment)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error al actualizar pago');
+        return result.data;
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error updating payment via API:', error);
+        throw error;
+      }
     },
     removePayment: async (id: string) => {
       const user = get(authStoreUser);
@@ -699,16 +738,23 @@ function createAppStore() {
       const user = get(authStoreUser);
       if (!user) return;
       
-      for (const skill of skills) {
-        try {
-          await fetch('/api/skills', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...skill, active: true })
-          });
-        } catch (error) {
-          console.error('Error importing skill:', error);
+      try {
+        const response = await fetch('/api/skills', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(skills.map(s => ({ ...s, active: true })))
+        });
+        
+        if (!response.ok) {
+          const result = await response.json();
+          throw new Error(result.error || 'Error importing curriculum');
         }
+        
+        toast.success(get(t)('skills.import_success') || 'Curriculum importado con éxito');
+      } catch (error: any) {
+        console.error('❌ [AppStore] Error importing curriculum:', error);
+        toast.error('Error al importar el currículo');
+        throw error;
       }
     },
 
@@ -874,26 +920,24 @@ if (browser) {
 
     clearTimeout(timer);
     timer = setTimeout(async () => {
-      const user = get(authStoreUser);
-      if (!user) return;
-
       const { INSIGNIAS } = await import('$lib/constants/insignias');
+      const currentUnlocked = state.unlockedAchievements.map(a => a.id);
       
       const stats = {
         classesCount: state.classes.length,
         studentsCount: state.students.length,
         schoolsCount: state.schools.length,
-        lessonsCreatedCount: state.skills.length,
+        lessonsCreatedCount: (state.skills || []).length,
         completedTournamentsCount: (state.localTournaments || []).filter((t: any) => t.status === 'completed').length,
         lobbyContributionsCount: (state.lobbySuggestions || []).filter((s: any) => s.authorId === user.uid).length
       };
 
       INSIGNIAS.forEach(insignia => {
-        if (insignia.type === 'automatic' && insignia.condition?.(stats)) {
-          // unlockAchievement check handled internally if already unlocked
+        // Redundancy check: only call unlock if NOT already in state
+        if (insignia.type === 'automatic' && !currentUnlocked.includes(insignia.id) && insignia.condition?.(stats)) {
           appStore.unlockAchievement(insignia.id);
         }
       });
-    }, 2000); // Debounce check by 2 seconds to let data settle
+    }, 3000); // 3 seconds to let snapshots settle
   });
 }

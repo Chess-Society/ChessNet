@@ -169,14 +169,14 @@
     );
 
     const lobbyUnsub = onSnapshot(
-      query(collection(db, "lobby_suggestions"), orderBy("createdAt", "desc")),
+      query(collection(db, "lobby_suggestions"), orderBy("createdAt", "desc"), limit(50)),
       (snap) => {
         lobbySuggestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
     );
 
     const ticketsUnsub = onSnapshot(
-      query(collection(db, "lobby_reports"), orderBy("createdAt", "desc")),
+      query(collection(db, "lobby_reports"), orderBy("createdAt", "desc"), limit(50)),
       (snap) => {
         supportTickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
@@ -716,25 +716,49 @@
               {/if}
            </div>
 
-           <!-- Badge Command -->
-           <div class="space-y-4">
-              <div class="flex items-center gap-3">
-                <Star weight="duotone" class="w-4 h-4 text-violet-500" />
-                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">{$t('admin.modal.award_insignias')}</p>
-              </div>
-              <div class="flex flex-wrap gap-1.5">
-                {#each INSIGNIAS as badge}
-                   {@const isOwned = userInsignias.some(ui => ui.id === badge.id)}
-                   <button 
-                    onclick={() => isOwned ? handleRevokeInsignia(badge.id) : handleAwardInsignia(badge.id)}
-                    class="flex items-center gap-2 px-3 py-2.5 border transition-all {isOwned ? 'bg-violet-500 border-violet-400 text-white' : 'bg-white/[0.02] border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-300'} cursor-pointer rounded-none"
-                   >
-                    <badge.icon weight="fill" class="w-3.5 h-3.5" />
-                    <span class="text-[9px] font-mono font-black uppercase tracking-widest">{$t(badge.titleKey)}</span>
-                   </button>
-                {/each}
-              </div>
-           </div>
+            <!-- Badge Command -->
+            <div class="space-y-6">
+               <div class="flex items-center gap-3">
+                 <Star weight="duotone" class="w-4 h-4 text-violet-500" />
+                 <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">{$t('admin.modal.award_insignias')}</p>
+               </div>
+               
+               <div class="space-y-4">
+                 <!-- Special / Admin Badges -->
+                 <div>
+                   <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mb-3 italic">Especiales / Manuales</p>
+                   <div class="flex flex-wrap gap-1.5">
+                     {#each INSIGNIAS.filter(b => b.type === 'special') as badge}
+                        {@const isOwned = userInsignias.some(ui => ui.id === badge.id)}
+                        <button 
+                         onclick={() => isOwned ? handleRevokeInsignia(badge.id) : handleAwardInsignia(badge.id)}
+                         class="flex items-center gap-2 px-3 py-2.5 border transition-all {isOwned ? 'bg-violet-500 border-violet-400 text-white' : 'bg-white/[0.02] border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-300'} cursor-pointer rounded-none group/badge"
+                        >
+                         <badge.icon weight="fill" class="w-3.5 h-3.5 {isOwned ? 'text-white' : 'group-hover/badge:text-violet-400'}" />
+                         <span class="text-[9px] font-mono font-black uppercase tracking-widest">{$t(badge.titleKey)}</span>
+                        </button>
+                     {/each}
+                   </div>
+                 </div>
+
+                 <!-- Automatic Badges -->
+                 <div>
+                   <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mb-3 italic">Progreso Automático (Fuerza Bruta)</p>
+                   <div class="flex flex-wrap gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
+                     {#each INSIGNIAS.filter(b => b.type === 'automatic') as badge}
+                        {@const isOwned = userInsignias.some(ui => ui.id === badge.id)}
+                        <button 
+                         onclick={() => isOwned ? handleRevokeInsignia(badge.id) : handleAwardInsignia(badge.id)}
+                         class="flex items-center gap-2 px-2.5 py-2 border transition-all {isOwned ? 'bg-zinc-700 border-zinc-600 text-white' : 'bg-white/[0.01] border-white/5 text-slate-600 hover:border-white/20 hover:text-slate-400'} cursor-pointer rounded-none"
+                        >
+                         <badge.icon weight="fill" class="w-2.5 h-2.5" />
+                         <span class="text-[8px] font-mono font-black uppercase tracking-widest">{$t(badge.titleKey)}</span>
+                        </button>
+                     {/each}
+                   </div>
+                 </div>
+               </div>
+            </div>
         </div>
       </div>
     </div>

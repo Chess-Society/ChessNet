@@ -49,38 +49,45 @@ export const gamificationApi = {
     color: string = "#3b82f6",
     criteria: any,
   ): Promise<Badge> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("No authenticated user");
-
-    const badgeData = {
-      owner_id: user.uid,
-      school_id: schoolId,
-      name,
-      description,
-      icon,
-      color,
-      criteria,
-      is_active: true,
-      created_at: new Date().toISOString()
-    };
-
-    const docRef = await addDoc(collection(db, "badges"), badgeData);
-    const docSnap = await getDoc(docRef);
-    return toData<Badge>(docSnap);
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'createBadge',
+        schoolId, name, description, icon, color, criteria
+      })
+    });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error creating badge');
+    return result.badge;
   },
 
   // Update a badge
-  async updateBadge(id: string, updates: Partial<Badge>): Promise<Badge> {
-    const docRef = doc(db, "badges", id);
-    await updateDoc(docRef, updates);
-
-    const docSnap = await getDoc(docRef);
-    return toData<Badge>(docSnap);
+  async updateBadge(id: string, updates: Partial<Badge>): Promise<void> {
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'updateBadge',
+        id, updates
+      })
+    });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error updating badge');
   },
 
   // Delete a badge
   async deleteBadge(id: string): Promise<void> {
-    await deleteDoc(doc(db, "badges", id));
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'deleteBadge',
+        id
+      })
+    });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error deleting badge');
   },
 
   // Get student badges
@@ -112,37 +119,31 @@ export const gamificationApi = {
   },
 
   // Award badge to student
-  async awardBadge(studentId: string, badgeId: string): Promise<StudentBadge> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("No authenticated user");
-
-    const sbData = {
-      owner_id: user.uid,
-      student_id: studentId,
-      badge_id: badgeId,
-      earned_at: new Date().toISOString()
-    };
-
-    const docRef = await addDoc(collection(db, "student_badges"), sbData);
-    const docSnap = await getDoc(docRef);
-    return toData<StudentBadge>(docSnap);
+  async awardBadge(studentId: string, badgeId: string): Promise<void> {
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'awardBadge',
+        studentId, badgeId
+      })
+    });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error awarding badge');
   },
 
   // Remove badge from student
   async removeBadge(studentId: string, badgeId: string): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("No authenticated user");
-
-    const q = query(
-      collection(db, "student_badges"),
-      where("owner_id", "==", user.uid),
-      where("student_id", "==", studentId),
-      where("badge_id", "==", badgeId)
-    );
-    const snap = await getDocs(q);
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => batch.delete(d.ref));
-    await batch.commit();
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'removeBadge',
+        studentId, badgeId
+      })
+    });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error removing badge');
   },
 
   // Get student statistics
@@ -157,22 +158,20 @@ export const gamificationApi = {
     studentId: string,
     updates: Partial<StudentStats>,
   ): Promise<StudentStats> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("No authenticated user");
-
-    const docRef = doc(db, "student_stats", studentId);
-    const data = {
-      ...updates,
-      owner_id: user.uid,
-      student_id: studentId,
-      last_activity: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    await setDoc(docRef, data, { merge: true });
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'updateStudentStats',
+        studentId, updates
+      })
+    });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error updating student stats');
     
-    const docSnap = await getDoc(docRef);
-    return toData<StudentStats>(docSnap);
+    const stats = await this.getStudentStats(studentId);
+    if (!stats) throw new Error('Stats not found after update');
+    return stats;
   },
 
   // Add points to student
@@ -180,24 +179,17 @@ export const gamificationApi = {
     studentId: string,
     points: number,
     reason?: string,
-  ): Promise<StudentStats> {
-    const currentStats = await this.getStudentStats(studentId);
-    const newPoints = (currentStats?.points || 0) + points;
-    const newLevel = Math.floor(newPoints / 100) + 1; // 100 points per level
-
-    const updatedStats = await this.updateStudentStats(studentId, {
-      points: newPoints,
-      level: newLevel,
+  ): Promise<void> {
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'addPoints',
+        studentId, points, reason
+      })
     });
-
-    // Log activity
-    await this.logActivity(studentId, "points_earned", {
-      points,
-      reason,
-      totalPoints: newPoints,
-    });
-
-    return updatedStats;
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error adding points');
   },
 
   // Update streak
@@ -306,73 +298,31 @@ export const gamificationApi = {
     activityType: string,
     activityData?: any,
   ): Promise<void> {
-    const user = auth.currentUser;
-    if (!user) throw new Error("No authenticated user");
-
-    await addDoc(collection(db, "activity_logs"), {
-      owner_id: user.uid,
-      student_id: studentId,
-      activity_type: activityType,
-      activity_data: activityData || null,
-      created_at: new Date().toISOString()
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'logActivity',
+        studentId, activityType, activityData
+      })
     });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error logging activity');
   },
 
   // Check and award badges
   async checkAndAwardBadges(studentId: string): Promise<Badge[]> {
-    const studentStats = await this.getStudentStats(studentId);
-    const studentBadges = await this.getStudentBadges(studentId);
-    const earnedBadgeIds = studentBadges.map((sb) => sb.badge_id);
-
-    // Get student's school_id
-    const studentDoc = await getDoc(doc(db, "students", studentId));
-    if (!studentDoc.exists()) return [];
-    
-    const schoolId = studentDoc.data().school_id;
-    const badges = await this.getBadgesBySchool(schoolId);
-    const newBadges: Badge[] = [];
-
-    for (const badge of badges) {
-      if (earnedBadgeIds.includes(badge.id)) continue;
-
-      const criteria = badge.criteria;
-      let shouldAward = false;
-
-      // Check different badge criteria
-      if (
-        criteria.lessons_completed &&
-        (studentStats?.lessons_completed || 0) >= criteria.lessons_completed
-      ) {
-        shouldAward = true;
-      } else if (
-        criteria.exercises_completed &&
-        (studentStats?.exercises_completed || 0) >= criteria.exercises_completed
-      ) {
-        shouldAward = true;
-      } else if (
-        criteria.tournaments_participated &&
-        (studentStats?.tournaments_participated || 0) >=
-          criteria.tournaments_participated
-      ) {
-        shouldAward = true;
-      } else if (
-        criteria.streak_days &&
-        (studentStats?.streak_days || 0) >= criteria.streak_days
-      ) {
-        shouldAward = true;
-      } else if (criteria.points && (studentStats?.points || 0) >= criteria.points) {
-        shouldAward = true;
-      } else if (criteria.level && (studentStats?.level || 0) >= criteria.level) {
-        shouldAward = true;
-      }
-
-      if (shouldAward) {
-        await this.awardBadge(studentId, badge.id);
-        newBadges.push(badge);
-      }
-    }
-
-    return newBadges;
+    const response = await fetch('/api/gamification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'checkAndAwardBadges',
+        studentId
+      })
+    });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Error checking badges');
+    return result.newBadges;
   },
 
 };

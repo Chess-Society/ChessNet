@@ -8,13 +8,7 @@ service cloud.firestore {
       return isAuthenticated() && 
         request.auth.token.email.lower() in [
           "andreslgumuzio@gmail.com", 
-          "tomih@chess-society.com", 
-          "admin@chessnet.app", 
-          "admin@chessnet.pro", 
-          "escuelatopchess@gmail.com",
-          "tomihersan@gmail.com",
-          "tomih98@gmail.com",
-          "tomihh98@gmail.com"
+          
         ];
     }
     
@@ -154,54 +148,53 @@ service cloud.firestore {
     }
 
     match /local_tournaments/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /local_tournament_players/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /local_tournament_pairings/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /local_tournament_rounds/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /tournament_participants/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /tournament_matches/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /badges/{docId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.owner_id == request.auth.uid);
-      allow write: if isSuperAdmin() || (isAuthenticated() && (resource == null || resource.data.owner_id == request.auth.uid) && request.resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /student_badges/{docId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.owner_id == request.auth.uid);
-      allow write: if isSuperAdmin() || (isAuthenticated() && (resource == null || resource.data.owner_id == request.auth.uid) && request.resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /student_stats/{studentId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.owner_id == request.auth.uid);
-      allow write: if isSuperAdmin() || (isAuthenticated() && (resource == null || resource.data.owner_id == request.auth.uid) && request.resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /activity_logs/{docId} {
       allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
-      allow update, delete: if isSuperAdmin();
+      allow write: if isSuperAdmin();
     }
 
     match /class_students/{docId} {
@@ -215,8 +208,8 @@ service cloud.firestore {
     }
 
     match /attendance/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow write: if isSuperAdmin();
     }
 
     match /skills/{docId} {
