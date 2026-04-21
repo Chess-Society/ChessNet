@@ -28,6 +28,7 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { showToast, showError } from '$lib/stores/toast';
   import { appStore } from '$lib/stores/appStore';
+  import { localTournamentsApi } from '$lib/api/local-tournaments';
 
   let { data } = $props<{ data: any }>();
   let schools = $derived(data.schools || []);
@@ -67,12 +68,12 @@
           selected_students: []
       };
 
-      await appStore.addLocalTournament(tournamentToCreate);
+      const created = await localTournamentsApi.createTournament(tournamentToCreate as any);
 
       showToast.success($t('tournaments.create_success'));
       await invalidateAll();
       setTimeout(() => {
-        goto(`/panel/tournaments`);
+        goto(`/panel/tournaments/${created.id}`);
       }, 400);
     } catch (error) {
       showError(error);

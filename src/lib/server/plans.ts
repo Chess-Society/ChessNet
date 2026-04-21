@@ -7,11 +7,8 @@ export async function getUserPlan(uid: string) {
         // First check if the user is in the admin list by fetching their auth record
         // This is a bit expensive but ensures consistency for admins
         // Wrap in a sub-try/catch to avoid crashing the whole function if auth lookup fails
-        // Bypass para desarrollo local
-        if (uid === 'chessnet-dev-uid' || uid === 'antigravity-dev-worker') return 'premium';
-        
         if (!isFirebaseAdminInitialized) {
-            return 'premium'; 
+            return 'free'; // Default to free if not initialized in production
         }
 
         try {

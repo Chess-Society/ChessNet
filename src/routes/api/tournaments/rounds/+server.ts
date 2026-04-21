@@ -42,7 +42,7 @@ export const POST: RequestHandler = async (event) => {
       // Actualizar el torneo (ronda actual)
       batch.update(tournamentRef, {
         currentRound: Math.max(0, round_no - 1),
-        updated_at: new Date().toISOString()
+        updatedAt: new Date().toISOString()
       });
 
       await batch.commit();
@@ -62,7 +62,7 @@ export const POST: RequestHandler = async (event) => {
       // Actualizar ronda actual en el torneo
       await tournamentRef.update({
         currentRound: round_no,
-        updated_at: new Date().toISOString()
+        updatedAt: new Date().toISOString()
       });
 
       return json({ success: true, data: { id: docId, ...roundData } });

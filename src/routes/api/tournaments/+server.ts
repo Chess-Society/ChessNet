@@ -52,19 +52,19 @@ export const POST: RequestHandler = async (event) => {
       max_players: body.max_players || 16,
       entry_fee: body.entry_fee || 0,
       prize_pool: body.prize_pool || 0,
-      start_date: body.start_date || null,
-      end_date: body.end_date || null,
+      startAt: body.startAt || body.start_date || null,
+      endAt: body.endAt || body.end_date || null,
       registration_deadline: body.registration_deadline || null,
       status: body.status || 'draft',
-      current_round: body.current_round || 0,
-      total_rounds: body.total_rounds || 0,
+      currentRound: body.currentRound || body.current_round || 0,
+      roundsPlanned: body.roundsPlanned || body.total_rounds || 0,
       players_registered: 0,
       location: body.location || null,
       organizer: body.organizer || null,
       notes: body.notes || null,
       rules: body.rules || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const docRef = await adminDb.collection("local_tournaments").add(tournamentData);
@@ -107,12 +107,13 @@ export const PUT: RequestHandler = async (event) => {
     const updates = await request.json();
     const cleanUpdates = {
       ...updates,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
 
     delete cleanUpdates.id;
     delete cleanUpdates.owner_id;
     delete cleanUpdates.created_at;
+    delete cleanUpdates.createdAt;
 
     await docRef.update(cleanUpdates);
 

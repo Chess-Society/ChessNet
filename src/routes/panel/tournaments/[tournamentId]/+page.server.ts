@@ -58,8 +58,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     pairings = await Promise.all(matchSnap.docs.map(async (doc: any) => {
       const m = { id: doc.id, ...doc.data() };
       // Mapear campos consistentes con localTournamentsApi
-      const p1Id = m.white_student_id || m.player1_id;
-      const p2Id = m.black_student_id || m.player2_id;
+      const p1Id = m.white_student_id;
+      const p2Id = m.black_student_id;
       
       if (p1Id) {
         const s1Snap = await adminDb.collection("students").doc(p1Id).get();
@@ -102,10 +102,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     const registeredPlayers = participants.map(p => {
       // Robust date parsing for created_at
       let regDate = new Date().toISOString();
-      if (p.created_at) {
+      if (p.createdAt) {
         try {
-          if (typeof p.created_at.toDate === 'function') regDate = p.created_at.toDate().toISOString();
-          else regDate = new Date(p.created_at).toISOString();
+          regDate = new Date(p.createdAt).toISOString();
         } catch (e) {}
       }
 
@@ -120,20 +119,20 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       };
     });
 
-    const roundNumbers = [...new Set(pairings.map(p => p.round_no || p.round))].filter(Boolean).sort((a, b) => (a as any) - (b as any));
+    const roundNumbers = [...new Set(pairings.map(p => p.round_no))].filter(Boolean).sort((a, b) => (a as any) - (b as any));
     const rounds = roundNumbers.map(r => ({
       id: `round-${r}`,
       tournament_id: tournamentId,
       round_number: r,
-      status: r < (tournament.current_round || tournament.currentRound || 0) ? 'completed' : (r === (tournament.current_round || tournament.currentRound || 0) ? 'in_progress' : 'not_started')
+      status: r < (tournament.currentRound || 0) ? 'completed' : (r === (tournament.currentRound || 0) ? 'in_progress' : 'not_started')
     }));
 
     const formattedPairings = pairings.map(p => ({
       id: p.id,
-      round_no: p.round_no || p.round,
-      board: p.board || p.board_number,
-      white_student_id: p.white_student_id || p.player1_id,
-      black_student_id: p.black_student_id || p.player2_id,
+      round_no: p.round_no,
+      board: p.board,
+      white_student_id: p.white_student_id,
+      black_student_id: p.black_student_id,
       result: p.result || '*',
       white_name: p.white_name || p.player1?.name || 'White',
       black_name: p.black_name || p.player2?.name || 'Black'
@@ -147,7 +146,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         student_name: p.students?.name || 'Unknown',
         rating: p.rating || 1200,
         points: p.score || 0,
-        games_played: pairings.filter(m => (m.player1_id === p.student_id || m.player2_id === p.student_id) && m.result && m.result !== '*').length,
+        games_played: pairings.filter(m => (m.white_student_id === p.student_id || m.black_student_id === p.student_id) && m.result && m.result !== '*').length,
         buchholz: p.tiebreak_score || 0
       }));
 

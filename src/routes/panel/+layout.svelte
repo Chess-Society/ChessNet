@@ -117,11 +117,7 @@
     unsubs.forEach(u => u());
     unsubs = [];
 
-    // Local dev uid handling
-    if ($authUser.uid === 'chessnet-dev-uid') {
-        console.log("🛠️ [Panel Layout] Modo desarrollo local activo. Omitiendo listeners de comunidad.");
-        return;
-    }
+
 
     const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
     

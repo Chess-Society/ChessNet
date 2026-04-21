@@ -42,19 +42,11 @@ export const localTournamentsApi = {
       format: formData.format,
       school_id: formData.school_id || (formData as any).school_id, 
       time_control: formData.time_control,
-      start_date: formData.startAt, // API expects start_date
-      end_date: formData.endAt, // API expects end_date
+      startAt: formData.startAt,
+      endAt: formData.endAt,
       notes: formData.notes,
       roundsPlanned: formData.roundsPlanned || calculateDefaultRounds(formData.selected_students.length, formData.format)
     };
-
-    if (ownerId === 'chessnet-dev-uid') {
-        const id = await appStore.addLocalTournament({ ...tournamentData, owner_id: ownerId, createdAt: new Date().toISOString(), status: 'planned', currentRound: 0 } as any);
-        for (const studentId of formData.selected_students) {
-            await this.addPlayer(id, studentId);
-        }
-        return { ...tournamentData, id } as any;
-    }
 
     const response = await fetch('/api/tournaments', {
       method: 'POST',
@@ -78,22 +70,12 @@ export const localTournamentsApi = {
   },
 
   async getTournament(id: string): Promise<LocalTournament | null> {
-    const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        return get(appStore).localTournaments.find(t => t.id === id) || null;
-    }
     const docSnap = await getDoc(doc(db, 'local_tournaments', id));
     if (!docSnap.exists()) return null;
     return toData<LocalTournament>(docSnap);
   },
 
   async updateTournament(id: string, updates: Partial<LocalTournament>): Promise<void> {
-    const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        await appStore.updateLocalTournament(id, updates);
-        return;
-    }
-    
     const response = await fetch(`/api/tournaments?id=${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -107,22 +89,6 @@ export const localTournamentsApi = {
   },
 
   async deleteTournament(id: string): Promise<void> {
-    const ownerId = await getOwnerId();
-    
-    if (ownerId === 'chessnet-dev-uid') {
-        await appStore.removeLocalTournament(id);
-        await appStore.removeLocalTournamentPairings(id);
-        const tournamentRounds = get(appStore).localTournamentRounds.filter(r => r.tournament_id === id);
-        for (const r of tournamentRounds) {
-            await appStore.removeLocalTournamentRound(id, r.round_no);
-        }
-        const tournamentPlayers = get(appStore).localTournamentPlayers.filter(p => p.student_id && p.tournament_id === id);
-        for (const p of tournamentPlayers) {
-            await appStore.removeLocalTournamentPlayer(id, p.student_id);
-        }
-        return;
-    }
-
     const response = await fetch(`/api/tournaments?id=${id}`, {
       method: 'DELETE'
     });
@@ -193,48 +159,18 @@ export const localTournamentsApi = {
     let studentName = manualName;
 
     if (!studentName) {
-      if (ownerId === 'chessnet-dev-uid') {
-        const mockStudents = get(appStore).students;
-        const found = mockStudents.find((s: any) => s.id === studentId);
-        if (found) {
-          studentName = found.name || `${found.first_name || ''} ${found.last_name || ''}`.trim();
-        }
-        
-        if (!studentName) {
-            // Check localStorage as final fallback
-            const saved = localStorage.getItem('chessnet_mock_students');
-            if (saved) {
-                const items = JSON.parse(saved);
-                const foundAgain = items.find((s: any) => s.id === studentId);
-                if (foundAgain) {
-                    studentName = foundAgain.name || `${foundAgain.first_name || ''} ${foundAgain.last_name || ''}`.trim();
-                }
-            }
-        }
-        
-        if (!studentName) throw new Error('Student not found in local data');
+      const studentDoc = await getDoc(doc(db, 'students', studentId));
+      if (!studentDoc.exists()) {
+        throw new Error('Student not found');
       } else {
-        const studentDoc = await getDoc(doc(db, 'students', studentId));
-        if (!studentDoc.exists()) {
-          throw new Error('Student not found');
-        } else {
-          const student = studentDoc.data();
-          studentName = student.name || `${student.first_name || ''} ${student.last_name || ''}`.trim();
-        }
+        const student = studentDoc.data();
+        studentName = student.name || `${student.first_name || ''} ${student.last_name || ''}`.trim();
       }
     }
 
     const docId = `${tournamentId}_${studentId}`;
 
-    if (ownerId === 'chessnet-dev-uid') {
-        await appStore.addLocalTournamentPlayer({
-          tournament_id: tournamentId,
-          student_id: studentId,
-          student_name: studentName,
-          status: 'active'
-        });
-        return;
-    }
+
 
     const response = await fetch('/api/tournaments/players', {
       method: 'POST',
@@ -260,10 +196,7 @@ export const localTournamentsApi = {
 
   async removePlayer(tournamentId: string, studentId: string): Promise<void> {
     const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        await appStore.removeLocalTournamentPlayer(tournamentId, studentId);
-        return;
-    }
+
     
     const response = await fetch(`/api/tournaments/players?tournament_id=${tournamentId}&student_id=${studentId}`, {
       method: 'DELETE'
@@ -277,10 +210,7 @@ export const localTournamentsApi = {
 
   async withdrawPlayer(tournamentId: string, studentId: string): Promise<void> {
     const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        await appStore.updateLocalTournamentPlayer(tournamentId, studentId, { status: 'withdrawn' });
-        return;
-    }
+
     
     const response = await fetch('/api/tournaments/players', {
       method: 'POST',
@@ -300,10 +230,7 @@ export const localTournamentsApi = {
 
   async reactivatePlayer(tournamentId: string, studentId: string): Promise<void> {
     const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        await appStore.updateLocalTournamentPlayer(tournamentId, studentId, { status: 'active' });
-        return;
-    }
+
     
     const response = await fetch('/api/tournaments/players', {
       method: 'POST',
@@ -323,9 +250,7 @@ export const localTournamentsApi = {
 
   async getTournamentPlayers(tournamentId: string): Promise<LocalTournamentPlayer[]> {
     const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        return get(appStore).localTournamentPlayers.filter(p => p.tournament_id === tournamentId);
-    }
+
     const q = query(
       getOwnedQuery('local_tournament_players'),
       where('tournament_id', '==', tournamentId)
@@ -337,14 +262,7 @@ export const localTournamentsApi = {
   // Round and pairing management
   async createRound(tournamentId: string, roundNo: number): Promise<void> {
     const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        await appStore.addLocalTournamentRound({
-          tournament_id: tournamentId,
-          round_no: roundNo,
-          startedAt: new Date().toISOString()
-        });
-        return;
-    }
+
 
     const response = await fetch('/api/tournaments/rounds', {
       method: 'POST',
@@ -371,12 +289,8 @@ export const localTournamentsApi = {
 
     // Create round if it doesn't exist
     let roundExists = false;
-    if (ownerId === 'chessnet-dev-uid') {
-        roundExists = get(appStore).localTournamentRounds.some(r => r.tournament_id === tournamentId && r.round_no === roundNo);
-    } else {
-        const roundDoc = await getDoc(doc(db, 'local_tournament_rounds', `${tournamentId}_${roundNo}`));
-        roundExists = roundDoc.exists();
-    }
+    const roundDoc = await getDoc(doc(db, 'local_tournament_rounds', `${tournamentId}_${roundNo}`));
+    roundExists = roundDoc.exists();
     
     if (!roundExists) {
       await this.createRound(tournamentId, roundNo);
@@ -399,25 +313,19 @@ export const localTournamentsApi = {
     }
 
     // Save pairings via API
-    if (ownerId === 'chessnet-dev-uid') {
-      for (const pairing of pairings) {
-        await appStore.addLocalTournamentPairing(pairing);
-      }
-    } else {
-      const response = await fetch('/api/tournaments/pairings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tournament_id: tournamentId,
-          round_no: roundNo,
-          pairings
-        })
-      });
+    const response = await fetch('/api/tournaments/pairings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tournament_id: tournamentId,
+        round_no: roundNo,
+        pairings
+      })
+    });
 
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Error al guardar los emparejamientos');
-      }
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al guardar los emparejamientos');
     }
   },
 
@@ -435,14 +343,7 @@ export const localTournamentsApi = {
     
     if (pairing) {
       const ownerId = await getOwnerId();
-      if (ownerId === 'chessnet-dev-uid') {
-          await appStore.updateLocalTournamentPairing(pairing.id, {
-            result,
-            points_white,
-            points_black
-          });
-          return;
-      }
+
       
       const response = await fetch('/api/tournaments/pairings', {
         method: 'PUT',
@@ -464,14 +365,7 @@ export const localTournamentsApi = {
 
   async resetRound(tournamentId: string, roundNo: number): Promise<void> {
     const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        await appStore.removeLocalTournamentPairings(tournamentId, roundNo);
-        await appStore.removeLocalTournamentRound(tournamentId, roundNo);
-        await appStore.updateLocalTournament(tournamentId, {
-            currentRound: Math.max(1, roundNo - 1)
-        });
-        return;
-    }
+
 
     const response = await fetch('/api/tournaments/rounds', {
       method: 'POST',
@@ -491,10 +385,7 @@ export const localTournamentsApi = {
 
   async getRoundPairings(tournamentId: string, roundNo: number): Promise<LocalTournamentPairing[]> {
     const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        const allPairings = get(appStore).localTournamentPairings;
-        return allPairings.filter(p => p.tournament_id === tournamentId && p.round_no === roundNo);
-    }
+
     const q = query(
       getOwnedQuery('local_tournament_pairings'),
       where('tournament_id', '==', tournamentId),
@@ -506,9 +397,7 @@ export const localTournamentsApi = {
 
   async getTournamentPairings(tournamentId: string): Promise<LocalTournamentPairing[]> {
     const ownerId = await getOwnerId();
-    if (ownerId === 'chessnet-dev-uid') {
-        return get(appStore).localTournamentPairings.filter(p => p.tournament_id === tournamentId);
-    }
+
     const q = query(
       getOwnedQuery('local_tournament_pairings'),
       where('tournament_id', '==', tournamentId)

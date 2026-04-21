@@ -16,10 +16,20 @@ let initialized = false;
 if (!admin.apps.length) {
     const projectId = privateEnv.FB_PROJECT_ID || publicEnv.PUBLIC_FIREBASE_PROJECT_ID;
     const clientEmail = privateEnv.FB_CLIENT_EMAIL;
-    const privateKey = privateEnv.FB_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    let privateKey = privateEnv.FB_PRIVATE_KEY;
+
+    if (privateKey) {
+        // Handle escaped newlines
+        privateKey = privateKey.replace(/\\n/g, '\n');
+        
+        // Remove accidental quotes at the beginning/end that sometimes happen in env vars
+        if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+            privateKey = privateKey.substring(1, privateKey.length - 1);
+        }
+    }
 
     try {
-        if (clientEmail && privateKey) {
+        if (clientEmail && privateKey && projectId) {
             admin.initializeApp({
                 credential: admin.credential.cert({
                     projectId,
@@ -30,17 +40,20 @@ if (!admin.apps.length) {
             initialized = true;
             console.log('✅ [FirebaseAdmin] Initialized successfully with Service Account');
         } else if (projectId) {
-            // En local, intentar usar ADC o simplemente avisar
+            // Fallback for local development or missing service account
+            console.warn('⚠️ [FirebaseAdmin] Missing FB_CLIENT_EMAIL or FB_PRIVATE_KEY. Attempting Default Credentials fallback...');
             try {
                 admin.initializeApp({ projectId });
                 initialized = true;
-                console.warn('⚠️ [FirebaseAdmin] Initialized with Default Credentials. This might fail if GOOGLE_APPLICATION_CREDENTIALS is not set.');
+                console.log('✅ [FirebaseAdmin] Initialized with Default Credentials.');
             } catch (abc) {
-                console.error('❌ [FirebaseAdmin] Basic initialization failed. Requires FB_CLIENT_EMAIL and FB_PRIVATE_KEY in .env');
+                console.error('❌ [FirebaseAdmin] Initialization failed. Please configure FB_CLIENT_EMAIL, FB_PRIVATE_KEY and FB_PROJECT_ID.');
             }
+        } else {
+            console.error('❌ [FirebaseAdmin] Missing essential config: PUBLIC_FIREBASE_PROJECT_ID');
         }
     } catch (error) {
-        console.error('❌ [FirebaseAdmin] Fatal error initializing SDK:', error);
+        console.error('❌ [FirebaseAdmin] Fatal error during SDK initialization:', error);
     }
 } else {
     initialized = true;
