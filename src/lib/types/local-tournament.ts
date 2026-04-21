@@ -1,6 +1,6 @@
 export interface LocalTournament {
   id: string;
-  owner_id: string;
+  ownerId: string;
   schoolId?: string;
   name: string;
   format: "swiss" | "round_robin" | "knockout";

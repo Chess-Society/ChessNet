@@ -36,18 +36,27 @@ export function initGlobalConfig() {
   // 2. Global Announcements (Public)
   const q = query(
     collection(db, 'announcements'), 
-    where('is_global', '==', true), 
-    orderBy('created_at', 'desc'), 
-    limit(1)
+    orderBy('createdAt', 'desc'), 
+    limit(50) // Increased limit to ensure we catch global ones
   );
 
   announcementsUnsub = onSnapshot(q, 
     (snap) => {
-      const announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const announcements = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          isGlobal: data.isGlobal === true || data.is_global === true, // More robust check
+          createdAt: data.createdAt ?? data.created_at,
+          linkText: data.linkText ?? data.link_text ?? 'VER MÁS'
+        };
+      }).filter(a => a.isGlobal);
+      
       globalAnnouncements.set(announcements);
     },
     (error) => {
-      // Often fails in local if no index or no data
+      console.warn('⚠️ [ConfigStore] Announcements read error:', error.message);
     }
   );
 }

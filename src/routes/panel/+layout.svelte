@@ -323,7 +323,7 @@
   {/if}
 
   <!-- Mobile Header (Premium App Style) -->
-  <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-[60] {isImpersonating ? 'translate-y-10' : ''}">
+  <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-[60] transition-transform duration-300" style="transform: translateY(calc(var(--banner-height, 0px) + {isImpersonating ? '40px' : '0px'}))">
     <!-- Logo: min 44x44px para área táctil Apple HIG -->
     <button onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto min-w-[44px] min-h-[44px] -ml-2 pl-2">
       <Logo className="h-7 w-7 shadow-violet-flare/20" />
@@ -457,7 +457,7 @@
     </div>
   {/if}
 
-  <header class="hidden lg:block fixed top-0 right-0 left-0 bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5 z-40 transition-all {isImpersonating ? 'mt-10' : ''}">
+  <header class="hidden lg:block fixed top-0 right-0 left-0 bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5 z-40 transition-all duration-300" style="margin-top: calc(var(--banner-height, 0px) + {isImpersonating ? '40px' : '0px'})">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-6">
       <div class="flex items-center gap-4 lg:gap-8 min-w-0 flex-1">
         
@@ -668,7 +668,7 @@
     </div>
   </header>
 
-  <main class="pt-20 lg:pt-20 pb-32 lg:pb-24 min-h-screen {isImpersonating ? 'mt-10' : ''}">
+  <main class="pt-20 lg:pt-20 pb-32 lg:pb-24 min-h-screen transition-all duration-300" style="margin-top: calc(var(--banner-height, 0px) + {isImpersonating ? '40px' : '0px'})">
     <div class="max-w-7xl mx-auto px-4 lg:px-0">
         {#if $authLoading}
             <div class="flex flex-col items-center justify-center min-h-[60vh] gap-6" in:fade>

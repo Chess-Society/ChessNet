@@ -17,15 +17,15 @@
     let roundsData = $derived.by(() => {
         const rMap = new Map<number, LocalTournamentPairing[]>();
         pairings.forEach(p => {
-            if (!rMap.has(p.round_no)) rMap.set(p.round_no, []);
-            rMap.get(p.round_no)?.push(p);
+            if (!rMap.has(p.roundNo)) rMap.set(p.roundNo, []);
+            rMap.get(p.roundNo)?.push(p);
         });
         
         const sortedRounds = Array.from(rMap.entries())
             .sort((a, b) => a[0] - b[0])
             .map(([no, pairs]) => ({
                 no,
-                pairs: pairs.sort((a, b) => a.board - b.board)
+                pairs: [...pairs].sort((a, b) => a.board - b.board)
             }));
             
         return sortedRounds;
@@ -45,8 +45,8 @@
         const finalMatch = lastRound.pairs[0];
         if (!finalMatch || !finalMatch.result) return null;
         
-        if (finalMatch.result === '1-0') return { name: finalMatch.white_name, id: finalMatch.white_student_id };
-        if (finalMatch.result === '0-1') return { name: finalMatch.black_name, id: finalMatch.black_student_id };
+        if (finalMatch.result === '1-0') return { name: finalMatch.whiteName, id: finalMatch.whiteStudentId };
+        if (finalMatch.result === '0-1') return { name: finalMatch.blackName, id: finalMatch.blackStudentId };
         return null;
     });
 </script>
@@ -84,10 +84,10 @@
                                 <div class="flex items-center justify-between p-4 border-b border-zinc-800/50 transition-colors {pairing.result === '1-0' ? 'bg-violet-600/5' : ''}">
                                     <div class="flex items-center gap-3 overflow-hidden">
                                         <div class="w-8 h-8 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xs font-black {pairing.result === '1-0' ? 'text-violet-400 border-violet-500/30' : 'text-zinc-600'}">
-                                            {pairing.white_name?.[0] || '?'}
+                                            {pairing.whiteName?.[0] || '?'}
                                         </div>
                                         <span class="text-xs font-bold transition-all truncate {pairing.result === '1-0' ? 'text-white' : pairing.result === '0-1' ? 'text-zinc-600 line-through' : 'text-zinc-400'}">
-                                            {pairing.white_name || 'TBD'}
+                                            {pairing.whiteName || 'TBD'}
                                         </span>
                                     </div>
                                     {#if pairing.result === '1-0'}
@@ -105,10 +105,10 @@
                                             <span class="text-xs font-black text-zinc-700 uppercase tracking-widest italic">BYE / VACANTE</span>
                                         {:else}
                                             <div class="w-8 h-8 rounded-none bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xs font-black {pairing.result === '0-1' ? 'text-violet-400 border-violet-500/30' : 'text-zinc-600'}">
-                                                {pairing.black_name?.[0] || '?'}
+                                                {pairing.blackName?.[0] || '?'}
                                             </div>
                                             <span class="text-xs font-bold transition-all truncate {pairing.result === '0-1' ? 'text-white' : pairing.result === '1-0' ? 'text-zinc-600 line-through' : 'text-zinc-400'}">
-                                                {pairing.black_name || 'TBD'}
+                                                {pairing.blackName || 'TBD'}
                                             </span>
                                         {/if}
                                     </div>

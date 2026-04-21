@@ -52,17 +52,18 @@
     name: tournament?.name || '',
     description: tournament?.description || '',
     format: tournament?.format || 'swiss',
-    time_control: tournament?.time_control || '15+10',
-    max_players: tournament?.max_players || 16,
-    entry_fee: tournament?.entry_fee || 0,
-    prize_pool: tournament?.prize_pool || 0,
-    start_date: tournament?.start_date ? new Date(tournament.start_date).toISOString().slice(0, 16) : '',
-    end_date: tournament?.end_date ? new Date(tournament.end_date).toISOString().slice(0, 16) : '',
-    registration_deadline: tournament?.registration_deadline ? new Date(tournament.registration_deadline).toISOString().slice(0, 16) : '',
+    timeControl: tournament?.timeControl || '15+10',
+    maxPlayers: tournament?.maxPlayers || 16,
+    entryFee: tournament?.entryFee || 0,
+    prizePool: tournament?.prizePool || 0,
+    startAt: tournament?.startAt ? new Date(tournament.startAt).toISOString().slice(0, 16) : '',
+    endAt: tournament?.endAt ? new Date(tournament.endAt).toISOString().slice(0, 16) : '',
+    registrationDeadline: tournament?.registrationDeadline ? new Date(tournament.registrationDeadline).toISOString().slice(0, 16) : '',
     location: tournament?.location || '',
     organizer: tournament?.organizer || '',
     notes: tournament?.notes || '',
-    rules: tournament?.rules || ''
+    rules: tournament?.rules || '',
+    schoolId: tournament?.schoolId || ''
   });
 
   const validateForm = () => {
@@ -70,18 +71,18 @@
 
     if (!formData.name.trim()) errors.name = $t('tournaments.form.name_required');
     if (!formData.description.trim()) errors.description = $t('tournaments.form.desc_required');
-    if (formData.max_players < 2) errors.max_players = $t('tournaments.form.min_players_error');
-    if (formData.max_players > 64) errors.max_players = $t('tournaments.form.max_players_error');
-    if (formData.entry_fee < 0) errors.entry_fee = $t('tournaments.form.negative_error');
-    if (formData.prize_pool < 0) errors.prize_pool = $t('tournaments.form.negative_error');
+    if (formData.maxPlayers < 2) errors.maxPlayers = $t('tournaments.form.min_players_error');
+    if (formData.maxPlayers > 64) errors.maxPlayers = $t('tournaments.form.max_players_error');
+    if (formData.entryFee < 0) errors.entryFee = $t('tournaments.form.negative_error');
+    if (formData.prizePool < 0) errors.prizePool = $t('tournaments.form.negative_error');
     
-    if (!formData.start_date) errors.start_date = $t('tournaments.form.required');
-    if (!formData.end_date) errors.end_date = $t('tournaments.form.required');
-    if (!formData.registration_deadline) errors.registration_deadline = $t('tournaments.form.required');
+    if (!formData.startAt) errors.startAt = $t('tournaments.form.required');
+    if (!formData.endAt) errors.endAt = $t('tournaments.form.required');
+    if (!formData.registrationDeadline) errors.registrationDeadline = $t('tournaments.form.required');
 
-    if (formData.start_date && formData.end_date) {
-      if (new Date(formData.end_date) <= new Date(formData.start_date)) {
-        errors.end_date = $t('tournaments.form.date_sequence_error');
+    if (formData.startAt && formData.endAt) {
+      if (new Date(formData.endAt) <= new Date(formData.startAt)) {
+        errors.endAt = $t('tournaments.form.date_sequence_error');
       }
     }
 
@@ -281,7 +282,7 @@
                   <input 
                     id="tournament-time-control"
                     type="text" 
-                    bind:value={formData.time_control}
+                    bind:value={formData.timeControl}
                     class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
                     placeholder="10+5"
                   />
@@ -307,19 +308,19 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="space-y-3">
               <label for="max-players" class="glass-label">{$t('tournaments.max_capacity')}</label>
-              <input id="max-players" type="number" bind:value={formData.max_players} class="glass-input w-full px-6 bg-zinc-950/50 font-bold" />
+              <input id="max-players" type="number" bind:value={formData.maxPlayers} class="glass-input w-full px-6 bg-zinc-950/50 font-bold" />
             </div>
             <div class="space-y-3">
               <label for="entry-fee" class="glass-label">{$t('tournaments.entry_fee_label')}</label>
               <div class="relative">
-                <input id="entry-fee" type="number" bind:value={formData.entry_fee} class="glass-input w-full px-6 bg-zinc-950/50 text-violet-400 font-bold" />
+                <input id="entry-fee" type="number" bind:value={formData.entryFee} class="glass-input w-full px-6 bg-zinc-950/50 text-violet-400 font-bold" />
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 font-black">€</span>
               </div>
             </div>
             <div class="space-y-3">
               <label for="prize-pool" class="glass-label">{$t('tournaments.prize_pool_label')}</label>
               <div class="relative">
-                <input id="prize-pool" type="number" bind:value={formData.prize_pool} class="glass-input w-full px-6 bg-zinc-950/50 text-violet-400 font-black" />
+                <input id="prize-pool" type="number" bind:value={formData.prizePool} class="glass-input w-full px-6 bg-zinc-950/50 text-violet-400 font-black" />
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 font-black">€</span>
               </div>
             </div>
@@ -345,15 +346,15 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 border-t border-white/5">
             <div class="space-y-2">
               <label for="start-date" class="glass-label">{$t('tournaments.start')}</label>
-              <input id="start-date" type="datetime-local" bind:value={formData.start_date} class="glass-input w-full px-4 text-xs [color-scheme:dark] bg-zinc-950/50" />
+              <input id="start-date" type="datetime-local" bind:value={formData.startAt} class="glass-input w-full px-4 text-xs [color-scheme:dark] bg-zinc-950/50" />
             </div>
             <div class="space-y-2">
               <label for="end-date" class="glass-label">{$t('tournaments.status_completed')}</label>
-              <input id="end-date" type="datetime-local" bind:value={formData.end_date} class="glass-input w-full px-4 text-xs [color-scheme:dark] bg-zinc-950/50" />
+              <input id="end-date" type="datetime-local" bind:value={formData.endAt} class="glass-input w-full px-4 text-xs [color-scheme:dark] bg-zinc-950/50" />
             </div>
             <div class="space-y-2">
               <label for="reg-deadline" class="glass-label">{$t('tournaments.registration_deadline')}</label>
-              <input id="reg-deadline" type="datetime-local" bind:value={formData.registration_deadline} class="glass-input w-full px-4 text-xs text-violet-400 [color-scheme:dark] bg-zinc-950/50" />
+              <input id="reg-deadline" type="datetime-local" bind:value={formData.registrationDeadline} class="glass-input w-full px-4 text-xs text-violet-400 [color-scheme:dark] bg-zinc-950/50" />
             </div>
           </div>
         </div>

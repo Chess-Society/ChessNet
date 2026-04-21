@@ -363,10 +363,10 @@
 
     // Prepare reordering payload
     // We use the current index in the full list as the new order
-    const orderedList = categoryId === 'all' ? newItems : skillsState.sort((a,b) => (a.order || 0) - (b.order || 0)); // This sort is tricky
+    const orderedList = categoryId === 'all' ? newItems : [...skillsState].sort((a,b) => (a.order || 0) - (b.order || 0)); 
     
     // Better strategy: just update the orders for the items that changed
-    const reorderings = skillsState.map((item, index) => ({
+    const reorderings = orderedList.map((item, index) => ({
       id: item.id,
       order: index
     }));

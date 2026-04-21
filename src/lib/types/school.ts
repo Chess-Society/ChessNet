@@ -1,6 +1,6 @@
 export interface School {
   id: string;
-  owner_id: string;
+  ownerId: string;
   name: string;
   city?: string;
   address?: string;
@@ -14,7 +14,7 @@ export interface School {
 
 export interface Category {
   id: string;
-  owner_id: string;
+  ownerId: string;
   name: string;
   description?: string;
   color?: string;
@@ -25,7 +25,7 @@ export interface Category {
 
 export interface Class {
   id: string;
-  owner_id: string;
+  ownerId: string;
   schoolId: string;
   schoolName?: string;
   name: string;
@@ -43,7 +43,7 @@ export interface Class {
 
 export interface Student {
   id: string;
-  owner_id: string;
+  ownerId: string;
   schoolId: string;
   classId?: string;
   name: string;
@@ -68,7 +68,7 @@ export interface Student {
 
 export interface Skill {
   id: string;
-  owner_id: string;
+  ownerId: string;
   categoryId?: string;
   name: string;
   description?: string;
@@ -91,7 +91,7 @@ export interface Skill {
 
 export interface ClassSkill {
   id: string;
-  owner_id: string;
+  ownerId: string;
   classId: string;
   skillId: string;
   orderIndex?: number;
@@ -100,7 +100,7 @@ export interface ClassSkill {
 
 export interface ClassStudent {
   id: string;
-  owner_id: string;
+  ownerId: string;
   classId: string;
   studentId: string;
   enrolledAt: string;
@@ -110,7 +110,7 @@ export interface ClassStudent {
 
 export interface StudentSkill {
   id: string;
-  owner_id: string;
+  ownerId: string;
   studentId: string;
   skillId: string;
   level: number; // 0-100
@@ -187,7 +187,7 @@ export interface StudentSkillForm {
 }
 
 export interface ClassOccupancy {
-  owner_id: string;
+  ownerId: string;
   classId: string;
   enrolled: number;
 }

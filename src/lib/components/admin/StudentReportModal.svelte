@@ -25,13 +25,13 @@
 
   // Data from store
   const student = $derived($appStore.students.find(s => s.id === studentId));
-  const school = $derived($appStore.schools.find(s => s.id === student?.school_id));
-  const studentClasses = $derived($appStore.classes.filter(c => student?.class_id === c.id));
+  const school = $derived($appStore.schools.find(s => s.id === student?.schoolId));
+  const studentClasses = $derived($appStore.classes.filter(c => student?.classId === c.id));
   
   // Metrics calculations
-  const attendance = $derived($appStore.attendance.filter(a => a.student_id === studentId));
-  const payments = $derived($appStore.payments.filter(p => p.student_id === studentId).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-  const tournamentResults = $derived($appStore.localTournamentPlayers.filter(p => p.student_id === studentId));
+  const attendance = $derived($appStore.attendance.filter(a => a.studentId === studentId));
+  const payments = $derived($appStore.payments.filter(p => p.studentId === studentId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+  const tournamentResults = $derived($appStore.localTournamentPlayers.filter(p => p.studentId === studentId));
   
   const attendanceStats = $derived.by(() => {
     if (attendance.length === 0) return { rate: 0, p: 0, a: 0, t: 0 };
@@ -47,7 +47,7 @@
   const paymentStatus = $derived.by(() => {
     if (payments.length === 0) return 'pending';
     const lastPayment = payments[0];
-    const lastDate = new Date(lastPayment.created_at);
+    const lastDate = new Date(lastPayment.createdAt);
     const today = new Date();
     const diffMonths = (today.getFullYear() - lastDate.getFullYear()) * 12 + (today.getMonth() - lastDate.getMonth());
     return diffMonths <= 1 ? 'ok' : 'overdue';
@@ -162,7 +162,7 @@
               <div class="space-y-3">
                 {#each payments.slice(0, 2) as payment}
                   <div class="flex items-center justify-between text-sm">
-                    <span class="text-zinc-500 font-medium">{formatDate(payment.created_at)}</span>
+                    <span class="text-zinc-500 font-medium">{formatDate(payment.createdAt)}</span>
                     <span class="text-white font-bold">{payment.amount}€</span>
                   </div>
                 {/each}
@@ -187,10 +187,10 @@
                   <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-none p-4 flex items-center justify-between">
                     <div>
                       <p class="text-white font-bold text-sm truncate max-w-[140px]">
-                        {$appStore.localTournaments.find(t => t.id === result.tournament_id)?.name || '---'}
+                        {$appStore.localTournaments.find(t => t.id === result.tournamentId)?.name || '---'}
                       </p>
                       <p class="text-[10px] text-zinc-600 font-black uppercase tracking-tighter mt-1">
-                        {formatDate($appStore.localTournaments.find(t => t.id === result.tournament_id)?.startAt || '')}
+                        {formatDate($appStore.localTournaments.find(t => t.id === result.tournamentId)?.startAt || '')}
                       </p>
                     </div>
                     <div class="flex items-center gap-2">

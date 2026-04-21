@@ -53,13 +53,33 @@
         // Listen to tournaments
         const qT = query(collection(db, 'local_tournaments'), where('owner_id', '==', user.uid));
         unsubTournaments = onSnapshot(qT, (snap) => {
-          localTournaments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          localTournaments = snap.docs.map(d => {
+            const data = d.data();
+            return { 
+                id: d.id, 
+                ...data,
+                ownerId: data.ownerId || data.owner_id,
+                schoolId: data.schoolId || data.school_id,
+                timeControl: data.timeControl || data.time_control,
+                createdAt: data.createdAt || data.created_at,
+                updatedAt: data.updatedAt || data.updated_at
+            };
+          });
         });
 
         // Listen to players
         const qP = query(collection(db, 'local_tournament_players'), where('owner_id', '==', user.uid));
         unsubPlayers = onSnapshot(qP, (snap) => {
-          localPlayers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          localPlayers = snap.docs.map(d => {
+            const data = d.data();
+            return { 
+                id: d.id, 
+                ...data,
+                tournamentId: data.tournamentId || data.tournament_id,
+                studentId: data.studentId || data.student_id,
+                createdAt: data.createdAt || data.created_at
+            };
+          });
         });
       }
     });
@@ -83,7 +103,7 @@
     active: tournaments.filter(t => t.status === 'in_progress').length,
     upcoming: tournaments.filter(t => t.status === 'upcoming').length,
     totalPlayers: players.length,
-    uniquePlayers: new Set(players.map(p => p.student_id)).size
+    uniquePlayers: new Set(players.map(p => p.studentId)).size
   });
 
   let filteredTournaments = $derived(
@@ -349,7 +369,7 @@
                       <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{$t('tournaments.participants')}</span>
                   </div>
                   <span class="text-[10px] font-bold text-zinc-300">
-                    {players.filter(p => p.tournament_id === tournament.id).length} {$t('tournaments.registered_label')}
+                    {players.filter(p => p.tournamentId === tournament.id).length} {$t('tournaments.registered_label')}
                   </span>
                 </div>
 

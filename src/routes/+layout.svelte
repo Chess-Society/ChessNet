@@ -21,6 +21,8 @@
   import { INSIGNIAS } from '$lib/constants/insignias';
   import BadgeUnlockModal from '$lib/components/ui/BadgeUnlockModal.svelte';
 
+  import BroadcastBanner from '$lib/components/BroadcastBanner.svelte';
+
   let { children } = $props();
   let maintenanceMode = $derived($systemConfig.maintenanceMode);
 
@@ -62,6 +64,10 @@
     }
   });
 </script>
+
+{#if $page.url.pathname !== '/'}
+  <BroadcastBanner />
+{/if}
 
 <main class="min-h-screen text-surface-200 relative overflow-x-hidden">
   <!-- Fondo con Gradientes Dinámicos -->

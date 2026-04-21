@@ -62,18 +62,63 @@
       if (user && tournamentId) {
         // Tournament Doc
         unsubT = onSnapshot(doc(db, 'local_tournaments', tournamentId), (s) => {
-          if (s.exists()) localTournament = { id: s.id, ...s.data() };
+          if (s.exists()) {
+            const data = s.data();
+            localTournament = { 
+                id: s.id, 
+                ...data,
+                ownerId: data.ownerId || data.owner_id,
+                schoolId: data.schoolId || data.school_id,
+                timeControl: data.timeControl || data.time_control,
+                maxPlayers: data.maxPlayers || data.max_players,
+                prizePool: data.prizePool || data.prize_pool,
+                createdAt: data.createdAt || data.created_at,
+                updatedAt: data.updatedAt || data.updated_at
+            };
+          }
         });
 
         // Related Collections
-        const qP = query(collection(db, 'local_tournament_players'), where('tournament_id', '==', tournamentId));
-        unsubP = onSnapshot(qP, s => localPlayers = s.docs.map(d => ({ id: d.id, ...d.data() })));
+        const qP = query(collection(db, 'local_tournament_players'), where('tournamentId', '==', tournamentId));
+        unsubP = onSnapshot(qP, s => localPlayers = s.docs.map(d => {
+            const data = d.data();
+            return { 
+                id: d.id, 
+                ...data,
+                tournamentId: data.tournamentId || data.tournament_id,
+                studentId: data.studentId || data.student_id,
+                createdAt: data.createdAt || data.created_at
+            };
+        }));
 
-        const qPair = query(collection(db, 'local_tournament_pairings'), where('tournament_id', '==', tournamentId));
-        unsubPair = onSnapshot(qPair, s => localPairings = s.docs.map(d => ({ id: d.id, ...d.data() })));
+        const qPair = query(collection(db, 'local_tournament_pairings'), where('tournamentId', '==', tournamentId));
+        unsubPair = onSnapshot(qPair, s => localPairings = s.docs.map(d => {
+            const data = d.data();
+            return { 
+                id: d.id, 
+                ...data,
+                tournamentId: data.tournamentId || data.tournament_id,
+                roundNo: data.roundNo || data.round_no,
+                whiteStudentId: data.whiteStudentId || data.white_student_id,
+                blackStudentId: data.blackStudentId || data.black_student_id,
+                pointsWhite: data.pointsWhite || data.points_white,
+                pointsBlack: data.pointsBlack || data.points_black,
+                updatedAt: data.updatedAt || data.updated_at
+            };
+        }));
 
-        const qR = query(collection(db, 'local_tournament_rounds'), where('tournament_id', '==', tournamentId));
-        unsubR = onSnapshot(qR, s => localRounds = s.docs.map(d => ({ id: d.id, ...d.data() })));
+        const qR = query(collection(db, 'local_tournament_rounds'), where('tournamentId', '==', tournamentId));
+        unsubR = onSnapshot(qR, s => localRounds = s.docs.map(d => {
+            const data = d.data();
+            return { 
+                id: d.id, 
+                ...data,
+                tournamentId: data.tournamentId || data.tournament_id,
+                roundNo: data.roundNo || data.round_no,
+                startedAt: data.startedAt || data.started_at,
+                finishedAt: data.finishedAt || data.finished_at
+            };
+        }));
       }
     });
 
@@ -161,7 +206,7 @@
           const api = await getLocalTournamentsApi();
           const p = pairings.find(pair => pair.id === pairingId);
           if (p) {
-              await api.updateResult(tournamentId, p.round_no, p.board, result as any);
+              await api.updateResult(tournamentId, p.roundNo, p.board, result as any);
           }
       } catch (error) {
           console.error("Error updating result:", error);
@@ -172,26 +217,26 @@
   const currentRoundFinished = $derived(
     tournament && 
     rounds.length > 0 && 
-    pairings.filter(p => p.round_no === (tournament.currentRound || 1)).length > 0 &&
-    pairings.filter(p => p.round_no === (tournament.currentRound || 1)).every(p => p.result !== undefined || p.bye)
+    pairings.filter(p => p.roundNo === (tournament.currentRound || 1)).length > 0 &&
+    pairings.filter(p => p.roundNo === (tournament.currentRound || 1)).every(p => p.result !== undefined || p.bye)
   );
 
-  const sortedStandings = $derived(
-    players.map(p => {
-        const playerPairings = pairings.filter(pair => pair.white_student_id === p.student_id || pair.black_student_id === p.student_id);
+  const sortedStandings = $derived.by(() => {
+    const computed = players.map(p => {
+        const playerPairings = pairings.filter(pair => pair.whiteStudentId === p.studentId || pair.blackStudentId === p.studentId);
         let pts = 0; let buchholz = 0; let sb = 0;
         playerPairings.forEach(pair => {
             if (!pair.result && !pair.bye) return;
-            const isWhite = pair.white_student_id === p.student_id;
-            const pPts = isWhite ? pair.points_white || 0 : pair.points_black || 0;
+            const isWhite = pair.whiteStudentId === p.studentId;
+            const pPts = isWhite ? pair.pointsWhite || 0 : pair.pointsBlack || 0;
             pts += pPts;
-            const oppId = isWhite ? pair.black_student_id : pair.white_student_id;
+            const oppId = isWhite ? pair.blackStudentId : pair.whiteStudentId;
             if (oppId) {
-                const oppResults = pairings.filter(p2 => (p2.white_student_id === oppId || p2.black_student_id === oppId) && (p2.result || p2.bye));
+                const oppResults = pairings.filter(p2 => (p2.whiteStudentId === oppId || p2.blackStudentId === oppId) && (p2.result || p2.bye));
                 let oppTotalPts = 0;
                 oppResults.forEach(r => {
-                    if (r.white_student_id === oppId) oppTotalPts += r.points_white || 0;
-                    else oppTotalPts += r.points_black || 0;
+                    if (r.whiteStudentId === oppId) oppTotalPts += r.pointsWhite || 0;
+                    else oppTotalPts += r.pointsBlack || 0;
                 });
                 buchholz += oppTotalPts;
                 if (pPts === 1) sb += oppTotalPts;
@@ -201,12 +246,14 @@
         const tb1 = (tournament?.format === 'round_robin') ? sb : buchholz;
         const tb2 = (tournament?.format === 'round_robin') ? buchholz : sb;
         return { ...p, currentPoints: pts, tb1, tb2 };
-    }).sort((a,b) => {
+    });
+
+    return [...computed].sort((a,b) => {
         if (b.currentPoints !== a.currentPoints) return b.currentPoints - a.currentPoints;
         if (b.tb1 !== a.tb1) return b.tb1 - a.tb1;
         return b.tb2 - a.tb2;
-    })
-  );
+    });
+  });
 
   const handleNextRound = async () => {
     if (!tournamentId || !tournament) return;
@@ -214,7 +261,7 @@
     
     // Check if tournament is actually finished
     if (tournament.format === 'knockout') {
-        const lastRoundPairings = pairings.filter(p => p.round_no === (tournament.currentRound || 1));
+        const lastRoundPairings = pairings.filter(p => p.roundNo === (tournament.currentRound || 1));
         if (lastRoundPairings.length === 1 && !lastRoundPairings[0].bye) {
             // It was the final
             await handleFinishTournament();
@@ -458,7 +505,7 @@
                                     </div>
                                     <div class="flex items-center gap-2 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-none text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                                         <Users size={14} class="text-indigo-500" />
-                                        {players.length} / {tournament.max_players || '∞'}
+                                        {players.length} / {tournament.maxPlayers || '∞'}
                                     </div>
                                 </div>
                             </div>
@@ -480,7 +527,7 @@
                             <div class="space-y-4 relative z-10">
                                 {#each [
                                     { icon: Clock, label: $t('tournaments.start'), value: tournament.startAt ? new Date(tournament.startAt).toLocaleDateString() : $t('tournaments.date_pending') },
-                                    { icon: Target, label: $t('tournaments.time_control'), value: tournament.time_control || '10+5' },
+                                    { icon: Target, label: $t('tournaments.time_control'), value: tournament.timeControl || '10+5' },
                                     { icon: ListNumbers, label: $t('tournaments.rounds'), value: `${tournament.currentRound || 0} / ${tournament.roundsPlanned || '?'}` },
                                     { icon: MapPin, label: $t('tournaments.venue'), value: (tournament.location || 'Local').slice(0, 20) + ((tournament.location?.length ?? 0) > 20 ? '...' : '') }
                                 ] as item}
@@ -514,7 +561,7 @@
                                 <div class="p-6 bg-zinc-950/50 border border-zinc-800/50 rounded-none text-center space-y-2">
                                     <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{$t('tournaments.prizes.total')}</span>
                                     <span class="text-2xl font-black text-amber-400 tracking-tighter">
-                                        {tournament.prize_pool || 0}€
+                                        {tournament.prizePool || 0}€
                                     </span>
                                     <span class="text-[8px] font-bold text-amber-500/50 block uppercase">LIQUID POOL</span>
                                 </div>
@@ -558,7 +605,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-zinc-800">
-                                {#each players.sort((a,b) => (b.rating || 1200) - (a.rating || 1200)) as player, idx}
+                                {#each [...players].sort((a,b) => (b.rating || 1200) - (a.rating || 1200)) as player, idx}
                                     <tr class="hover:bg-zinc-800/30 transition-colors group {player.status === 'withdrawn' ? 'opacity-40 grayscale' : ''}">
                                         <td class="px-8 py-5">
                                             <div class="text-xs font-black text-zinc-700">#{idx + 1}</div>
@@ -566,10 +613,10 @@
                                         <td class="px-8 py-5">
                                             <div class="flex items-center gap-3">
                                                 <div class="w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-none flex items-center justify-center text-zinc-600 font-black group-hover:text-violet-400 group-hover:border-violet-500/30 transition-all">
-                                                    {player.student_name?.[0]?.toUpperCase() || '?'}
+                                                    {player.studentName?.[0]?.toUpperCase() || '?'}
                                                 </div>
                                                 <div class="flex flex-col">
-                                                    <span class="font-bold text-white text-sm uppercase tracking-tight">{player.student_name}</span>
+                                                    <span class="font-bold text-white text-sm uppercase tracking-tight">{player.studentName}</span>
                                                     {#if player.status === 'withdrawn'}
                                                         <span class="text-[8px] text-red-500 font-black tracking-widest uppercase">{$t('tournaments.status_withdrawn')}</span>
                                                     {/if}
@@ -588,7 +635,7 @@
                                         <td class="px-8 py-5 text-right">
                                             <div class="flex items-center justify-end gap-2">
                                                 <button 
-                                                    onclick={() => handleWithdrawPlayer(player.student_id, player.status)}
+                                                    onclick={() => handleWithdrawPlayer(player.studentId, player.status)}
                                                     class="p-2 hover:bg-zinc-800 rounded-none transition-colors text-zinc-500 hover:text-red-400"
                                                     title={player.status === 'withdrawn' ? $t('tournaments.player_reactivated') : $t('tournaments.player_withdrawn')}
                                                 >
@@ -599,7 +646,7 @@
                                                     {/if}
                                                 </button>
                                                 <button 
-                                                    onclick={() => removePlayer(player.student_id)}
+                                                    onclick={() => removePlayer(player.studentId)}
                                                     disabled={rounds.length > 0}
                                                     class="p-2 hover:bg-zinc-800 rounded-none transition-colors text-zinc-500 hover:text-red-400 disabled:opacity-30"
                                                     title={$t('tournaments.delete_permanently')}
@@ -656,7 +703,7 @@
                                  <div>
                                      <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.round')} {tournament.currentRound || 1}</h3>
                                      <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                                         {pairings.filter(p => p.round_no === (tournament.currentRound || 1) && (p.result !== undefined || p.bye)).length} / {pairings.filter(p => p.round_no === (tournament.currentRound || 1)).length} {$t('tournaments.games_completed')}
+                                         {pairings.filter(p => p.roundNo === (tournament.currentRound || 1) && (p.result !== undefined || p.bye)).length} / {pairings.filter(p => p.roundNo === (tournament.currentRound || 1)).length} {$t('tournaments.games_completed')}
                                      </p>
                                  </div>
                              </div>
@@ -679,7 +726,7 @@
                                         {#if isProcessing}
                                             <ArrowsClockwise weight="bold" class="w-4 h-4 animate-spin" />
                                         {/if}
-                                        {(tournament.format === 'knockout' && pairings.filter(p => p.round_no === (tournament.currentRound || 1)).length === 1) ? $t('tournaments.finish_tournament') : $t('tournaments.generate_next_round')}
+                                        {(tournament.format === 'knockout' && pairings.filter(p => p.roundNo === (tournament.currentRound || 1)).length === 1) ? $t('tournaments.finish_tournament') : $t('tournaments.generate_next_round')}
                                         <CaretRight weight="bold" class="w-3 h-3" />
                                      </button>
                                  {/if}
@@ -695,20 +742,20 @@
                              </div>
                          </div>
 
-                         {#each rounds.sort((a,b) => b.round_no - a.round_no) as round}
+                         {#each [...rounds].sort((a,b) => b.roundNo - a.roundNo) as round}
                             <div class="bg-zinc-900 border border-zinc-800 rounded-none overflow-hidden shadow-2xl mb-8 group/round">
                                 <div class="bg-zinc-950/50 px-8 py-6 border-b border-zinc-800 flex justify-between items-center bg-gradient-to-r from-zinc-950 to-zinc-900">
                                     <div class="flex items-center gap-4">
-                                        <h3 class="text-lg font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.round')} {round.round_no}</h3>
+                                        <h3 class="text-lg font-outfit font-black text-white uppercase tracking-tight">{$t('tournaments.round')} {round.roundNo}</h3>
                                     </div>
-                                    {#if round.round_no === tournament.currentRound}
+                                    {#if round.roundNo === tournament.currentRound}
                                         <span class="px-3 py-1 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-none text-[10px] font-black uppercase tracking-widest animate-pulse">{$t('tournaments.status_active')}</span>
                                     {:else}
                                         <span class="px-3 py-1 bg-zinc-800 text-zinc-500 border border-zinc-700 rounded-none text-[10px] font-black uppercase tracking-widest">{$t('tournaments.status_closed')}</span>
                                     {/if}
                                 </div>
                                 <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-900">
-                                    {#each pairings.filter(p => p.round_no === round.round_no).sort((a,b) => a.board - b.board) as p}
+                                    {#each pairings.filter(p => p.roundNo === round.roundNo).sort((a,b) => a.board - b.board) as p}
                                         <div class="flex flex-col bg-zinc-950/40 border border-zinc-800 rounded-none group/match hover:border-violet-500/30 transition-all hover:bg-zinc-950/60 shadow-lg relative overflow-hidden">
                                             <!-- Board Number -->
                                             <div class="absolute top-0 right-0 p-3 opacity-10 group-hover/match:opacity-20 transition-opacity">
@@ -720,7 +767,7 @@
                                                 <div class="flex items-center justify-between">
                                                     <div class="flex items-center gap-3">
                                                         <div class="w-8 h-8 rounded-none bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-bold text-white shadow-inner">W</div>
-                                                        <span class="font-bold text-white text-sm truncate max-w-[120px]">{p.white_name}</span>
+                                                        <span class="font-bold text-white text-sm truncate max-w-[120px]">{p.whiteName}</span>
                                                     </div>
                                                     {#if p.result === '1-0' || p.result === '0-1'}
                                                         <div class="px-3 py-1 bg-violet-600 text-white rounded-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/20">{$t('tournaments.win')}</div>
@@ -733,7 +780,7 @@
                                                 <div class="flex items-center justify-between">
                                                     <div class="flex items-center gap-3">
                                                         <div class="w-8 h-8 rounded-none bg-white border border-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-900 shadow-inner">B</div>
-                                                        <span class="font-bold text-white text-sm truncate max-w-[120px]">{p.bye ? $t('tournaments.bye') : p.black_name}</span>
+                                                        <span class="font-bold text-white text-sm truncate max-w-[120px]">{p.bye ? $t('tournaments.bye') : p.blackName}</span>
                                                     </div>
                                                     {#if p.result === '0-1'}
                                                         <div class="px-3 py-1 bg-violet-600 text-white rounded-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-violet-500/20">{$t('tournaments.white_wins').split(' ')[0]}</div>
@@ -823,7 +870,7 @@
                                     <span class="text-xl font-black">2</span>
                                 </div>
                                 <div class="w-24 md:w-32 h-20 bg-gradient-to-b from-slate-100/10 to-transparent rounded-none border-x border-t border-slate-100/10 flex flex-col items-center justify-center p-2">
-                                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-tighter truncate w-full text-center">{sortedStandings[1].student_name}</span>
+                                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-tighter truncate w-full text-center">{sortedStandings[1].studentName}</span>
                                     <span class="text-xs font-black text-white">{sortedStandings[1].currentPoints}pts</span>
                                 </div>
                             </div>
@@ -836,7 +883,7 @@
                                     <Crown weight="fill" class="w-10 h-10" />
                                 </div>
                                 <div class="w-28 md:w-40 h-32 bg-gradient-to-b from-amber-500/20 to-transparent rounded-none border-x border-t border-amber-500/20 flex flex-col items-center justify-center p-4">
-                                    <span class="text-[11px] font-black text-amber-500 uppercase tracking-tight text-center leading-tight mb-1">{sortedStandings[0].student_name}</span>
+                                    <span class="text-[11px] font-black text-amber-500 uppercase tracking-tight text-center leading-tight mb-1">{sortedStandings[0].studentName}</span>
                                     <span class="text-2xl font-black text-white">{sortedStandings[0].currentPoints}pts</span>
                                 </div>
                             </div>
@@ -849,7 +896,7 @@
                                     <span class="text-xl font-black">3</span>
                                 </div>
                                 <div class="w-24 md:w-32 h-16 bg-gradient-to-b from-orange-700/10 to-transparent rounded-none border-x border-t border-orange-700/10 flex flex-col items-center justify-center p-2">
-                                    <span class="text-[9px] font-black text-orange-400 uppercase tracking-tighter truncate w-full text-center">{sortedStandings[2].student_name}</span>
+                                    <span class="text-[9px] font-black text-orange-400 uppercase tracking-tighter truncate w-full text-center">{sortedStandings[2].studentName}</span>
                                     <span class="text-xs font-black text-white">{sortedStandings[2].currentPoints}pts</span>
                                 </div>
                             </div>
@@ -890,7 +937,7 @@
                                          </td>
                                          <td class="px-8 py-5">
                                              <div class="flex items-center gap-3">
-                                                 <span class="font-bold text-white text-base group-hover:text-violet-300 transition-colors uppercase tracking-tight">{player.student_name}</span>
+                                                 <span class="font-bold text-white text-base group-hover:text-violet-300 transition-colors uppercase tracking-tight">{player.studentName}</span>
                                                  {#if i === 0}<Crown weight="fill" class="w-4 h-4 text-amber-500 animate-pulse" />{/if}
                                                  {#if player.status === 'withdrawn'}
                                                      <span class="text-[10px] font-bold bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded-none uppercase">{$t('tournaments.withdrawn_short')}</span>
@@ -945,7 +992,7 @@
                  
                  <h4 class="text-xl font-outfit font-black text-white mb-2 uppercase tracking-tight relative z-10">{$t('tournaments.prize_pool')}</h4>
                  <div class="flex items-baseline gap-2 mb-8 relative z-10">
-                    <span class="text-4xl font-black text-white">{tournament.prize_pool || 0}</span>
+                    <span class="text-4xl font-black text-white">{tournament.prizePool || 0}</span>
                     <span class="text-xl font-bold text-zinc-600">€ EUR</span>
                  </div>
                  
@@ -1025,7 +1072,7 @@
                         class="w-full bg-zinc-950 border border-zinc-800 rounded-none pl-16 pr-8 py-5 text-sm text-white font-bold focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all appearance-none cursor-pointer shadow-inner"
                     >
                             <option value="">{$t('tournaments.searching_students')}</option>
-                            {#each students.filter(s => !players.some(p => p.student_id === s.id)) as student}
+                            {#each students.filter(s => !players.some(p => p.studentId === s.id)) as student}
                                 <option value={student.id}>{student.name.toUpperCase()} (ELO {student.rating || 1200})</option>
                             {/each}
                     </select>

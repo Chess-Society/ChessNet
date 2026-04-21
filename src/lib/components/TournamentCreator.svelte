@@ -33,13 +33,13 @@
   let formData = $state<CreateTournamentForm>({
     name: '',
     format: 'swiss',
-    school_id: '',
-    time_control: '',
+    schoolId: '',
+    timeControl: '',
     startAt: '',
     endAt: '',
     roundsPlanned: undefined,
     notes: '',
-    selected_students: []
+    selectedStudents: []
   });
 
   // UI state
@@ -54,7 +54,7 @@
   let searchTerm = $state('');
 
   // Form validation
-  let isFormValid = $derived(!!formData.name.trim() && formData.selected_students.length >= 2);
+  let isFormValid = $derived(!!formData.name.trim() && formData.selectedStudents.length >= 2);
   
   function calculateDefaultRounds(playerCount: number, format: string): number {
     if (playerCount < 2) return 1;
@@ -71,14 +71,14 @@
     }
   }
 
-  let calculatedRounds = $derived(calculateDefaultRounds(formData.selected_students.length, formData.format));
+  let calculatedRounds = $derived(calculateDefaultRounds(formData.selectedStudents.length, formData.format));
   
   let filteredStudents = $derived(
     searchTerm.trim() 
       ? students.filter(student => 
           student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (student.first_name && student.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (student.last_name && student.last_name.toLowerCase().includes(searchTerm.toLowerCase()))
+          (student.firstName && student.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (student.lastName && student.lastName.toLowerCase().includes(searchTerm.toLowerCase()))
         )
       : students
   );
@@ -97,13 +97,13 @@
   function resetForm() {
     formData.name = '';
     formData.format = 'swiss';
-    formData.school_id = '';
-    formData.time_control = '';
+    formData.schoolId = '';
+    formData.timeControl = '';
     formData.startAt = '';
     formData.endAt = '';
     formData.roundsPlanned = undefined;
     formData.notes = '';
-    formData.selected_students = [];
+    formData.selectedStudents = [];
     
     step = 1;
     error = '';
@@ -129,25 +129,25 @@
   }
 
   function toggleStudent(studentId: string) {
-    if (formData.selected_students.includes(studentId)) {
-      formData.selected_students = formData.selected_students.filter(id => id !== studentId);
+    if (formData.selectedStudents.includes(studentId)) {
+      formData.selectedStudents = formData.selectedStudents.filter(id => id !== studentId);
     } else {
-      formData.selected_students = [...formData.selected_students, studentId];
+      formData.selectedStudents = [...formData.selectedStudents, studentId];
     }
   }
 
   function selectAllStudents() {
-    formData.selected_students = filteredStudents.map(s => s.id);
+    formData.selectedStudents = filteredStudents.map(s => s.id);
   }
 
   function deselectAllStudents() {
-    formData.selected_students = [];
+    formData.selectedStudents = [];
   }
 
   function nextStep() {
     if (step === 1 && formData.name.trim()) {
       step = 2;
-    } else if (step === 2 && formData.selected_students.length >= 2) {
+    } else if (step === 2 && formData.selectedStudents.length >= 2) {
       step = 3;
     }
   }
@@ -272,7 +272,7 @@
                 <label for="tournament-school" class="block text-sm font-medium text-slate-300 mb-2">
                   {$t('tournaments.form.school')}
                 </label>
-                <select id="tournament-school" bind:value={formData.school_id} class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
+                <select id="tournament-school" bind:value={formData.schoolId} class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors">
                   <option value="">{$t('tournaments.form.no_school')}</option>
                   {#each schools as school}
                     <option value={school.id}>{school.name}</option>
@@ -289,7 +289,7 @@
                 <input
                   id="tournament-time"
                   type="text"
-                  bind:value={formData.time_control}
+                  bind:value={formData.timeControl}
                   placeholder={$t('tournaments.form.time_control_placeholder')}
                   class="w-full bg-slate-700 border border-slate-600 rounded-none px-4 py-2 text-white focus:border-orange-500 outline-none transition-colors"
                 />
@@ -340,7 +340,7 @@
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-medium text-white">{$t('tournaments.step_players')}</h3>
               <div class="text-sm text-slate-400">
-                {$t('tournaments.players.selected', { count: formData.selected_students.length })}
+                {$t('tournaments.players.selected', { count: formData.selectedStudents.length })}
               </div>
             </div>
 
@@ -378,7 +378,7 @@
                     <label class="flex items-center p-3 hover:bg-slate-700/50 cursor-pointer border-b border-slate-700 last:border-b-0">
                       <input
                         type="checkbox"
-                        checked={formData.selected_students.includes(student.id)}
+                        checked={formData.selectedStudents.includes(student.id)}
                         onchange={() => toggleStudent(student.id)}
                         class="mr-3 rounded bg-slate-700 border-slate-600 text-orange-500 focus:ring-orange-500"
                       />
@@ -386,7 +386,7 @@
                         <div class="font-medium text-white">{student.name}</div>
                         {#if student.first_name || student.last_name}
                           <div class="text-sm text-slate-400">
-                            {student.first_name} {student.last_name}
+                            {student.firstName} {student.lastName}
                           </div>
                         {/if}
                       </div>
@@ -394,7 +394,7 @@
                   {/each}
                 </div>
 
-                {#if formData.selected_students.length < 2}
+                {#if formData.selectedStudents.length < 2}
                   <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-none flex items-center space-x-3">
                     <Info class="w-5 h-5 text-yellow-400 flex-shrink-0" />
                     <p class="text-yellow-300 text-sm">
@@ -425,16 +425,16 @@
               </div>
               <div class="flex justify-between">
                 <span class="text-slate-400">{$t('tournaments.participants')}:</span>
-                <span class="text-white">{formData.selected_students.length}</span>
+                <span class="text-white">{formData.selectedStudents.length}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-slate-400">{$t('tournaments.confirm.estimated_rounds')}</span>
                 <span class="text-white">{calculatedRounds}</span>
               </div>
-              {#if formData.time_control}
+              {#if formData.timeControl}
                 <div class="flex justify-between">
                   <span class="text-slate-400">{$t('tournaments.time_control')}:</span>
-                  <span class="text-white">{formData.time_control}</span>
+                  <span class="text-white">{formData.timeControl}</span>
                 </div>
               {/if}
             </div>
@@ -442,7 +442,7 @@
             <div>
               <h4 class="text-sm font-medium text-slate-300 mb-2">{$t('tournaments.confirm.registered_players')}</h4>
               <div class="bg-slate-700/50 rounded-none p-4 max-h-40 overflow-y-auto">
-                {#each formData.selected_students as studentId}
+                {#each formData.selectedStudents as studentId}
                   {@const student = students.find(s => s.id === studentId)}
                   {#if student}
                     <div class="flex items-center space-x-2 py-1">
@@ -475,7 +475,7 @@
           {#if step < 3}
             <button 
               onclick={nextStep}
-              disabled={(step === 1 && !formData.name.trim()) || (step === 2 && formData.selected_students.length < 2)}
+              disabled={(step === 1 && !formData.name.trim()) || (step === 2 && formData.selectedStudents.length < 2)}
               class="px-6 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-none transition-colors font-semibold"
             >
               {$t('common.next')}

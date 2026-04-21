@@ -38,7 +38,7 @@
     startDate: '',
     timeControl: '15 + 10',
     location: '',
-    school_id: '',
+    schoolId: '',
     format: 'swiss',
     maxPlayers: 16,
     prizePool: 0,
@@ -62,10 +62,7 @@
       const tournamentToCreate = {
           ...tournament,
           startAt: tournament.startDate,
-          time_control: tournament.timeControl,
-          max_players: tournament.maxPlayers,
-          prize_pool: tournament.prizePool,
-          selected_students: []
+          selectedStudents: []
       };
 
       const created = await localTournamentsApi.createTournament(tournamentToCreate as any);
@@ -186,17 +183,17 @@
               {#each schools as school}
                 <button
                   type="button"
-                  onclick={() => tournament.school_id = school.id}
-                  class="selection-card {tournament.school_id === school.id ? 'active' : ''}"
+                  onclick={() => tournament.schoolId = school.id}
+                  class="selection-card {tournament.schoolId === school.id ? 'active' : ''}"
                 >
                   <div class="card-icon">
-                    <Buildings weight={tournament.school_id === school.id ? "fill" : "duotone"} />
+                    <Buildings weight={tournament.schoolId === school.id ? "fill" : "duotone"} />
                   </div>
                   <div class="card-content">
                     <span class="card-title">{school.name}</span>
                     <p class="text-[9px] font-bold opacity-30 uppercase tracking-widest mt-1">{school.city}</p>
                   </div>
-                  {#if tournament.school_id === school.id}
+                  {#if tournament.schoolId === school.id}
                     <div class="card-check" in:scale>
                       <Check size={14} weight="bold" />
                     </div>
@@ -206,17 +203,17 @@
 
               <button
                 type="button"
-                onclick={() => tournament.school_id = ''}
-                class="selection-card {tournament.school_id === '' ? 'active' : ''}"
+                onclick={() => tournament.schoolId = ''}
+                class="selection-card {tournament.schoolId === '' ? 'active' : ''}"
               >
                 <div class="card-icon">
-                  <Sparkle weight={tournament.school_id === '' ? "fill" : "duotone"} />
+                  <Sparkle weight={tournament.schoolId === '' ? "fill" : "duotone"} />
                 </div>
                 <div class="card-content">
                   <span class="card-title">{$t('classes.independent')}</span>
                   <p class="text-[9px] font-bold opacity-30 uppercase tracking-widest mt-1">{$t('common.verified')}</p>
                 </div>
-                {#if tournament.school_id === ''}
+                {#if tournament.schoolId === ''}
                   <div class="card-check" in:scale>
                     <Check size={14} weight="bold" />
                   </div>

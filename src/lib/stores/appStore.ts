@@ -212,7 +212,21 @@ function createAppStore() {
             
             unsubscribes.push(onSnapshot(q, 
               (snap) => {
-                const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const docs = snap.docs.map(d => {
+                  const data = d.data();
+                  return {
+                    id: d.id,
+                    ...data,
+                    // Normalize legacy field names to camelCase
+                    ownerId: data.ownerId || data.owner_id,
+                    schoolId: data.schoolId || data.school_id,
+                    classId: data.classId || data.class_id,
+                    studentId: data.studentId || data.student_id,
+                    tournamentId: data.tournamentId || data.tournament_id,
+                    createdAt: data.createdAt || data.created_at,
+                    updatedAt: data.updatedAt || data.updated_at
+                  };
+                });
                 
                 // PERFORMANCE: Only update if the data has actually changed
                 // This prevents redundant re-renders of the entire appStore

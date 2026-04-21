@@ -19,9 +19,24 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       throw error(404, 'Torneo no encontrado');
     }
 
-    const tournament = { id: tournamentSnap.id, ...tournamentSnap.data() } as any;
+    const rawData = tournamentSnap.data() || {};
+    const tournament = { 
+        id: tournamentSnap.id, 
+        ...rawData,
+        ownerId: rawData.ownerId || rawData.owner_id,
+        schoolId: rawData.schoolId || rawData.school_id,
+        timeControl: rawData.timeControl || rawData.time_control,
+        maxPlayers: rawData.maxPlayers || rawData.max_players,
+        entryFee: rawData.entryFee || rawData.entry_fee,
+        prizePool: rawData.prizePool || rawData.prize_pool,
+        startAt: rawData.startAt || rawData.start_at || rawData.startDate || rawData.start_date,
+        endAt: rawData.endAt || rawData.end_at || rawData.endDate || rawData.end_date,
+        registrationDeadline: rawData.registrationDeadline || rawData.registration_deadline || rawData.registration_deadline,
+        createdAt: rawData.createdAt || rawData.created_at,
+        updatedAt: rawData.updatedAt || rawData.updated_at
+    } as any;
 
-    if (tournament.owner_id && tournament.owner_id !== uid) {
+    if (tournament.ownerId !== uid) {
       throw error(403, 'No tienes permiso para editar este torneo');
     }
 

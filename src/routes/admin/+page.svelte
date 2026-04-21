@@ -361,7 +361,7 @@
 
 <div class="min-w-[320px] min-h-screen bg-[#02040a] text-white selection:bg-violet-500/30 font-sans">
   <!-- Top Navigation Bar -->
-  <nav class="sticky top-0 z-[60] bg-[#02040a]/90 backdrop-blur-2xl border-b border-white/10 pt-[env(safe-area-inset-top)] px-4 sm:px-8 flex items-center justify-between">
+  <nav class="sticky z-[60] bg-[#02040a]/90 backdrop-blur-2xl border-b border-white/10 pt-[env(safe-area-inset-top)] px-4 sm:px-8 flex items-center justify-between transition-all duration-300" style="top: var(--banner-height, 0px)">
     <div class="flex items-center gap-3 sm:gap-4 py-4 sm:py-5">
       <div class="w-9 h-9 bg-primary-600 flex items-center justify-center rounded-none">
         <SquaresFour weight="bold" class="w-5 h-5 text-white" />
@@ -404,7 +404,7 @@
 
   <div class="flex">
     <!-- Sidebar Navigation -->
-    <aside class="w-64 min-h-[calc(100vh-57px)] border-r border-white/10 bg-[#02040a] hidden lg:flex flex-col">
+    <aside class="w-64 min-h-[calc(100vh-57px-var(--banner-height,0px))] border-r border-white/10 bg-[#02040a] hidden lg:flex flex-col">
       <div class="p-6 space-y-1">
         <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-[0.3em] mb-5 px-2">{$t('admin.sidebar.principal')}</p>
         <nav class="space-y-px">
@@ -447,7 +447,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-4 sm:p-6 md:p-10 max-w-[1400px] mx-auto min-h-[calc(100vh-57px)] relative overflow-hidden pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-10">
+    <main class="flex-1 p-4 sm:p-6 md:p-10 max-w-[1400px] mx-auto min-h-[calc(100vh-57px-var(--banner-height,0px))] relative overflow-hidden pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-10">
       <!-- Subtle Background -->
       <div class="absolute inset-0 -z-10 bg-[#02040a]">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_0%,rgba(124,58,237,0.04)_0%,transparent_60%)]"></div>

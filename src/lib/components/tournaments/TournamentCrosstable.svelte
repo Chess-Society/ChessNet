@@ -3,17 +3,17 @@
     import { t } from '$lib/i18n';
 
     interface Player {
-        student_id: string;
-        student_name: string;
+        studentId: string;
+        studentName: string;
     }
 
     interface Pairing {
-        white_student_id: string;
-        black_student_id: string;
+        whiteStudentId: string;
+        blackStudentId: string;
         result?: string;
         bye?: boolean;
-        points_white?: number;
-        points_black?: number;
+        pointsWhite?: number;
+        pointsBlack?: number;
     }
 
     let { players = [], pairings = [] }: { players: Player[], pairings: Pairing[] } = $props();
@@ -23,13 +23,13 @@
         if (p1Id === p2Id) return null; // Diagonal
         
         const pairing = pairings.find(p => 
-            (p.white_student_id === p1Id && p.black_student_id === p2Id) ||
-            (p.white_student_id === p2Id && p.black_student_id === p1Id)
+            (p.whiteStudentId === p1Id && p.blackStudentId === p2Id) ||
+            (p.whiteStudentId === p2Id && p.blackStudentId === p1Id)
         );
 
         if (!pairing || pairing.result === undefined) return '';
 
-        const isWhite = pairing.white_student_id === p1Id;
+        const isWhite = pairing.whiteStudentId === p1Id;
         if (pairing.result === '1/2-1/2') return '½';
         if (pairing.result === '1-0') return isWhite ? '1' : '0';
         if (pairing.result === '0-1') return isWhite ? '0' : '1';
@@ -42,14 +42,14 @@
         let pts = 0;
         pairings.forEach(p => {
             if (p.result === undefined && !p.bye) return;
-            if (p.white_student_id === playerId) pts += p.points_white || 0;
-            if (p.black_student_id === playerId) pts += p.points_black || 0;
+            if (p.whiteStudentId === playerId) pts += p.pointsWhite || 0;
+            if (p.blackStudentId === playerId) pts += p.pointsBlack || 0;
         });
         return pts;
     };
 
     // Sort players by points for the crosstable display (optional, usually by seed or name)
-    let sortedPlayers = $derived([...players].sort((a,b) => a.student_name.localeCompare(b.student_name)));
+    let sortedPlayers = $derived([...players].sort((a,b) => a.studentName.localeCompare(b.studentName)));
 </script>
 
 <div class="overflow-x-auto rounded-[24px] border border-zinc-800 bg-zinc-950/50 backdrop-blur-md" in:fade>
@@ -65,27 +65,32 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-zinc-800/50">
-            {#each sortedPlayers as p, i}
-                <tr class="hover:bg-zinc-800/20 transition-colors group">
-                    <td class="px-4 py-4 text-xs font-black text-zinc-600 border-r border-zinc-800/30">{i + 1}</td>
-                    <td class="px-6 py-4">
-                        <span class="text-sm font-bold text-white uppercase tracking-tight group-hover:text-violet-400 transition-colors">{p.student_name}</span>
+            {#each sortedPlayers as player, i}
+                <tr class="border-b border-zinc-800/30 hover:bg-zinc-900/40 transition-colors group">
+                    <td class="p-4 text-xs font-black text-zinc-500 tabular-nums">{i + 1}</td>
+                    <td class="p-4">
+                        <span class="text-xs font-bold text-zinc-300 group-hover:text-white transition-colors">
+                            {player.studentName}
+                        </span>
                     </td>
-                    {#each sortedPlayers as p2, j}
-                        <td class="px-2 py-4 text-center border-r border-zinc-800/30 {i === j ? 'bg-zinc-900/50' : ''}">
-                            {#if i === j}
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-zinc-800"></div>
-                                </div>
-                            {:else}
-                                <span class="text-sm font-black {getResult(p.student_id, p2.student_id) === '1' ? 'text-violet-400' : getResult(p.student_id, p2.student_id) === '0' ? 'text-zinc-600' : 'text-zinc-400'}">
-                                    {getResult(p.student_id, p2.student_id)}
-                                </span>
-                            {/if}
+                    {#each sortedPlayers as opponent}
+                        <td class="p-0 border-x border-zinc-900/30">
+                            <div class="h-10 w-10 flex items-center justify-center text-xs font-black tabular-nums">
+                                {#if player.studentId === opponent.studentId}
+                                    <div class="w-full h-full bg-zinc-900/80"></div>
+                                {:else}
+                                    {@const res = getResult(player.studentId, opponent.studentId)}
+                                    <span class="{res === '1' ? 'text-violet-400' : res === '0' ? 'text-zinc-600' : 'text-zinc-400'}">
+                                        {res || '-'}
+                                    </span>
+                                {/if}
+                            </div>
                         </td>
                     {/each}
-                    <td class="px-6 py-4 text-center">
-                        <span class="text-lg font-black text-amber-400">{getPoints(p.student_id)}</span>
+                    <td class="p-4 text-center">
+                        <span class="text-xs font-black text-violet-400 tabular-nums">
+                            {getPoints(player.studentId)}
+                        </span>
                     </td>
                 </tr>
             {/each}

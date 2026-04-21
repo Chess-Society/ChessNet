@@ -843,7 +843,7 @@ async function generateKnockoutPairings(
           roundNo: roundNo,
           board,
           whiteStudentId: winners[i].studentId,
-          whiteName: winners[i].name,
+          whiteName: winners[i].studentName,
           bye: true,
           result: "1-0",
           pointsWhite: 1

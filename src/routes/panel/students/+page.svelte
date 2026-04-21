@@ -41,7 +41,7 @@
 
   const metrics = $derived.by(() => {
     const activeCount = students.length; // Future: filter by active status if implemented
-    const schoolsCount = new Set(students.map(s => s.school_id).filter(Boolean)).size;
+    const schoolsCount = new Set(students.map(s => s.schoolId).filter(Boolean)).size;
     const avgStudentsPerClass = classes.length > 0 ? (students.length / classes.length).toFixed(1) : 0;
 
     return {
@@ -55,7 +55,7 @@
   const filteredStudents = $derived(
     students.filter(s => {
       const nameMatch = s.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const schoolMatch = !selectedSchool || s.school_id === selectedSchool;
+      const schoolMatch = !selectedSchool || s.schoolId === selectedSchool;
       return nameMatch && schoolMatch;
     })
   );
@@ -324,14 +324,14 @@
                   <td class="px-8 py-6 text-center">
                     <div class="flex justify-center">
                       <div class="h-8 min-w-[32px] px-2 bg-zinc-950 border border-zinc-800 rounded-none flex items-center justify-center text-[10px] font-black text-zinc-500 uppercase">
-                        {student.class_id ? 1 : 0}
+                        {student.classId ? 1 : 0}
                       </div>
                     </div>
                   </td>
                   <td class="px-8 py-6">
                     <div class="flex items-center gap-2 text-zinc-400 font-medium">
                       <Buildings weight="bold" class="w-4 h-4 text-zinc-600" />
-                      <span class="text-sm">{getSchoolName(student.school_id)}</span>
+                      <span class="text-sm">{getSchoolName(student.schoolId)}</span>
                     </div>
                   </td>
                   <td class="px-8 py-6 text-right">
@@ -417,7 +417,7 @@
                   <h3 class="text-white font-bold text-lg leading-tight">{student.name}</h3>
                   <div class="flex items-center gap-2 mt-1">
                     <Buildings weight="bold" class="w-3 h-3 text-zinc-600" />
-                    <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{getSchoolName(student.school_id)}</span>
+                    <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{getSchoolName(student.schoolId)}</span>
                   </div>
                 </div>
               </div>
@@ -433,7 +433,7 @@
               </div>
               <div class="bg-zinc-950/50 border border-white/5 rounded-none p-4">
                 <p class="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Clase</p>
-                <p class="text-sm font-black text-white">{student.class_id ? 'Asignada' : 'N/A'}</p>
+                <p class="text-sm font-black text-white">{student.classId ? 'Asignada' : 'N/A'}</p>
               </div>
             </div>
 
