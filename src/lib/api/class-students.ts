@@ -22,17 +22,17 @@ export const classStudentsApi = {
     const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_students"),
-      where("class_id", "==", classId),
+      where("classId", "==", classId),
       where("status", "==", "active"),
-      orderBy("enrolled_at", "asc")
+      orderBy("enrolledAt", "asc")
     );
 
     const querySnapshot = await getDocs(q);
     const enrollments = querySnapshot.docs.map(doc => toData<any>(doc));
 
     for (const enrollment of enrollments) {
-      if (enrollment.student_id) {
-        const studentDoc = await getDoc(doc(db, "students", enrollment.student_id));
+      if (enrollment.studentId) {
+        const studentDoc = await getDoc(doc(db, "students", enrollment.studentId));
         if (studentDoc.exists()) {
           enrollment.student = toData<Student>(studentDoc);
         }
@@ -49,17 +49,17 @@ export const classStudentsApi = {
     const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_students"),
-      where("student_id", "==", studentId),
+      where("studentId", "==", studentId),
       where("status", "==", "active"),
-      orderBy("enrolled_at", "desc")
+      orderBy("enrolledAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
     const enrollments = querySnapshot.docs.map(doc => toData<any>(doc));
 
     for (const enrollment of enrollments) {
-      if (enrollment.class_id) {
-        const classDoc = await getDoc(doc(db, "classes", enrollment.class_id));
+      if (enrollment.classId) {
+        const classDoc = await getDoc(doc(db, "classes", enrollment.classId));
         if (classDoc.exists()) {
           enrollment.class = toData<any>(classDoc);
         }
@@ -78,8 +78,8 @@ export const classStudentsApi = {
     // Verificar si ya existe una inscripción
     const q = query(
       getOwnedQuery("class_students"),
-      where("class_id", "==", classId),
-      where("student_id", "==", studentId)
+      where("classId", "==", classId),
+      where("studentId", "==", studentId)
     );
     const existingSnap = await getDocs(q);
     
@@ -96,10 +96,10 @@ export const classStudentsApi = {
 
     const docData = {
       owner_id: ownerId,
-      class_id: classId,
-      student_id: studentId,
+      classId: classId,
+      studentId: studentId,
       status: "active",
-      enrolled_at: new Date().toISOString()
+      enrolledAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "class_students"), docData);
@@ -120,10 +120,10 @@ export const classStudentsApi = {
       const docRef = doc(collection(db, "class_students"));
       batch.set(docRef, {
         owner_id: ownerId,
-        class_id: classId,
-        student_id: studentId,
+        classId: classId,
+        studentId: studentId,
         status: "active",
-        enrolled_at: now
+        enrolledAt: now
       });
       newRefs.push(docRef);
     }
@@ -145,8 +145,8 @@ export const classStudentsApi = {
     const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_students"),
-      where("class_id", "==", classId),
-      where("student_id", "==", studentId)
+      where("classId", "==", classId),
+      where("studentId", "==", studentId)
     );
     const snap = await getDocs(q);
     
@@ -192,7 +192,7 @@ export const classStudentsApi = {
     const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_students"),
-      where("class_id", "==", classId),
+      where("classId", "==", classId),
       where("status", "==", "active")
     );
     
@@ -203,7 +203,7 @@ export const classStudentsApi = {
   /**
    * Obtiene la ocupación de todas las clases del profesor.
    */
-  async getAllClassOccupancies(): Promise<{ class_id: string; enrolled: number }[]> {
+  async getAllClassOccupancies(): Promise<{ classId: string; enrolled: number }[]> {
     const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_students"),
@@ -214,11 +214,11 @@ export const classStudentsApi = {
     const enrollments = snap.docs.map(doc => doc.data());
     
     const countMap = enrollments.reduce((acc: any, e: any) => {
-      acc[e.class_id] = (acc[e.class_id] || 0) + 1;
+      acc[e.classId] = (acc[e.classId] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    return Object.entries(countMap).map(([class_id, enrolled]) => ({ class_id, enrolled: enrolled as number }));
+    return Object.entries(countMap).map(([classId, enrolled]) => ({ classId, enrolled: enrolled as number }));
   },
 
   /**
@@ -235,11 +235,11 @@ export const classStudentsApi = {
     // Obtener IDs de alumnos ya inscritos
     const enrolledQuery = query(
       getOwnedQuery("class_students"),
-      where("class_id", "==", classId),
+      where("classId", "==", classId),
       where("status", "==", "active")
     );
     const enrolledSnap = await getDocs(enrolledQuery);
-    const enrolledIds = new Set(enrolledSnap.docs.map(e => (e.data() as any).student_id));
+    const enrolledIds = new Set(enrolledSnap.docs.map(e => (e.data() as any).studentId));
     
     return allStudents.filter(student => !enrolledIds.has(student.id));
   },
@@ -259,16 +259,16 @@ export const classStudentsApi = {
     const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_students"),
-      where("student_id", "==", studentId),
-      orderBy("enrolled_at", "desc")
+      where("studentId", "==", studentId),
+      orderBy("enrolledAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
     const enrollments = querySnapshot.docs.map(doc => toData<any>(doc));
 
     for (const enrollment of enrollments) {
-      if (enrollment.class_id) {
-        const classDoc = await getDoc(doc(db, "classes", enrollment.class_id));
+      if (enrollment.classId) {
+        const classDoc = await getDoc(doc(db, "classes", enrollment.classId));
         if (classDoc.exists()) {
           enrollment.classes = toData<any>(classDoc);
         }

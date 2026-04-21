@@ -1,27 +1,27 @@
 export interface LocalTournament {
   id: string;
   owner_id: string;
-  school_id?: string;
+  schoolId?: string;
   name: string;
   format: "swiss" | "round_robin" | "knockout";
-  time_control?: string; // e.g., "15+10"
+  timeControl?: string; // e.g., "15+10"
   location?: string;
   startAt?: string;
   endAt?: string;
-  prize_pool?: number;
-  max_players?: number;
+  prizePool?: number;
+  maxPlayers?: number;
   roundsPlanned?: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;
   status: "draft" | "upcoming" | "in_progress" | "completed" | "cancelled";
   currentRound: number;
-  start_date?: string; // Compatibilidad con vistas generales
-  end_date?: string; // Compatibilidad con vistas generales
-  registration_deadline?: string; // Compatibilidad con vistas generales
+  startDate?: string; // Compatibilidad con vistas generales
+  endDate?: string; // Compatibilidad con vistas generales
+  registrationDeadline?: string; // Compatibilidad con vistas generales
   organizer?: string;
   rules?: string;
-  entry_fee?: number;
+  entryFee?: number;
   description?: string; // Compatibilidad con vistas generales
   _ttl?: number; 
   _expiresAt?: string; // ISO date when expires
@@ -30,9 +30,9 @@ export interface LocalTournament {
 
 export interface LocalTournamentPlayer {
   id: string;
-  tournament_id: string;
-  student_id: string;
-  student_name?: string; // Denormalized for convenience
+  tournamentId: string;
+  studentId: string;
+  studentName?: string; // Denormalized for convenience
   rating?: number;
   seed?: number;
   status: 'active' | 'withdrawn';
@@ -41,8 +41,8 @@ export interface LocalTournamentPlayer {
 
 export interface LocalTournamentRound {
   id: string;
-  tournament_id: string;
-  round_no: number;
+  tournamentId: string;
+  roundNo: number;
   startedAt?: string;
   finishedAt?: string;
   notes?: string;
@@ -50,28 +50,28 @@ export interface LocalTournamentRound {
 
 export interface LocalTournamentPairing {
   id: string;
-  tournament_id: string;
-  round_no: number;
+  tournamentId: string;
+  roundNo: number;
   board: number;
-  white_student_id?: string;
-  black_student_id?: string;
-  white_name?: string; // Denormalized
-  black_name?: string; // Denormalized
+  whiteStudentId?: string;
+  blackStudentId?: string;
+  whiteName?: string; // Denormalized
+  blackName?: string; // Denormalized
   result?: "1-0" | "0-1" | "1/2-1/2";
   bye?: boolean;
-  points_white?: number;
-  points_black?: number;
+  pointsWhite?: number;
+  pointsBlack?: number;
   notes?: string;
   updatedAt?: string;
 }
 
 export interface LocalTournamentStanding {
-  student_id: string;
-  student_name: string;
+  studentId: string;
+  studentName: string;
   points: number;
   tiebreak1?: number; // Buchholz, etc.
   tiebreak2?: number;
-  games_played: number;
+  gamesPlayed: number;
   wins: number;
   draws: number;
   losses: number;
@@ -88,14 +88,14 @@ export interface LocalTournamentComplete extends LocalTournament {
 export interface CreateTournamentForm {
   name: string;
   format: "swiss" | "round_robin" | "knockout";
-  school_id?: string;
-  time_control?: string;
+  schoolId?: string;
+  timeControl?: string;
   location?: string;
   startAt?: string;
   endAt?: string;
-  prize_pool?: number;
-  max_players?: number;
+  prizePool?: number;
+  maxPlayers?: number;
   roundsPlanned?: number;
   notes?: string;
-  selected_students: string[]; // Student IDs to register
+  selectedStudents: string[]; // Student IDs to register
 }

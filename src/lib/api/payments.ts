@@ -36,7 +36,7 @@ export const paymentsApi = {
       let q = query(
         collection(db, "payments"),
         where("owner_id", "==", uid),
-        orderBy("created_at", "desc")
+        orderBy("createdAt", "desc")
       );
 
       const querySnapshot = await getDocs(q);
@@ -44,32 +44,32 @@ export const paymentsApi = {
 
       // Apply additional filters in memory if necessary
       if (filters) {
-        if (filters.payment_type) payments = payments.filter(p => p.payment_type === filters.payment_type);
+        if (filters.paymentType) payments = payments.filter(p => p.paymentType === filters.paymentType);
         if (filters.status) payments = payments.filter(p => p.status === filters.status);
         if (filters.concept) payments = payments.filter(p => p.concept === filters.concept);
-        if (filters.student_id) payments = payments.filter(p => p.student_id === filters.student_id);
-        if (filters.school_id) payments = payments.filter(p => p.school_id === filters.school_id);
-        if (filters.class_id) payments = payments.filter(p => p.class_id === filters.class_id);
-        if (filters.date_from) payments = payments.filter(p => p.created_at >= filters.date_from!);
-        if (filters.date_to) payments = payments.filter(p => p.created_at <= filters.date_to!);
-        if (filters.due_date_from) payments = payments.filter(p => p.due_date! >= filters.due_date_from!);
-        if (filters.due_date_to) payments = payments.filter(p => p.due_date! <= filters.due_date_to!);
-        if (filters.amount_min) payments = payments.filter(p => p.amount >= filters.amount_min!);
-        if (filters.amount_max) payments = payments.filter(p => p.amount <= filters.amount_max!);
+        if (filters.studentId) payments = payments.filter(p => p.studentId === filters.studentId);
+        if (filters.schoolId) payments = payments.filter(p => p.schoolId === filters.schoolId);
+        if (filters.classId) payments = payments.filter(p => p.classId === filters.classId);
+        if (filters.dateFrom) payments = payments.filter(p => p.createdAt >= filters.dateFrom!);
+        if (filters.dateTo) payments = payments.filter(p => p.createdAt <= filters.dateTo!);
+        if (filters.dueDateFrom) payments = payments.filter(p => p.dueDate! >= filters.dueDateFrom!);
+        if (filters.dueDateTo) payments = payments.filter(p => p.dueDate! <= filters.dueDateTo!);
+        if (filters.amountMin) payments = payments.filter(p => p.amount >= filters.amountMin!);
+        if (filters.amountMax) payments = payments.filter(p => p.amount <= filters.amountMax!);
       }
 
       // Manual join for details
       for (const payment of payments) {
-        if (payment.student_id) {
-          const studentSnap = await getDoc(doc(db, "students", payment.student_id));
+        if (payment.studentId) {
+          const studentSnap = await getDoc(doc(db, "students", payment.studentId));
           if (studentSnap.exists()) payment.student = toData<any>(studentSnap);
         }
-        if (payment.school_id) {
-          const schoolSnap = await getDoc(doc(db, "schools", payment.school_id));
+        if (payment.schoolId) {
+          const schoolSnap = await getDoc(doc(db, "schools", payment.schoolId));
           if (schoolSnap.exists()) payment.school = toData<any>(schoolSnap);
         }
-        if (payment.class_id) {
-          const classSnap = await getDoc(doc(db, "classes", payment.class_id));
+        if (payment.classId) {
+          const classSnap = await getDoc(doc(db, "classes", payment.classId));
           if (classSnap.exists()) payment.class = toData<any>(classSnap);
         }
       }
@@ -95,16 +95,16 @@ export const paymentsApi = {
       if (payment.owner_id !== uid) return null;
 
       // Manual joins
-      if (payment.student_id) {
-        const studentSnap = await getDoc(doc(db, "students", payment.student_id));
+      if (payment.studentId) {
+        const studentSnap = await getDoc(doc(db, "students", payment.studentId));
         if (studentSnap.exists()) payment.student = toData<any>(studentSnap);
       }
-      if (payment.school_id) {
-        const schoolSnap = await getDoc(doc(db, "schools", payment.school_id));
+      if (payment.schoolId) {
+        const schoolSnap = await getDoc(doc(db, "schools", payment.schoolId));
         if (schoolSnap.exists()) payment.school = toData<any>(schoolSnap);
       }
-      if (payment.class_id) {
-        const classSnap = await getDoc(doc(db, "classes", payment.class_id));
+      if (payment.classId) {
+        const classSnap = await getDoc(doc(db, "classes", payment.classId));
         if (classSnap.exists()) payment.class = toData<any>(classSnap);
       }
 
@@ -126,8 +126,8 @@ export const paymentsApi = {
         owner_id: uid,
         currency: 'EUR',
         status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
 
       const docRef = await addDoc(collection(db, "payments"), data);
@@ -145,7 +145,7 @@ export const paymentsApi = {
       const docRef = doc(db, "payments", paymentId);
       await updateDoc(docRef, {
         ...updates,
-        updated_at: new Date().toISOString()
+        updatedAt: new Date().toISOString()
       });
 
       const docSnap = await getDoc(docRef);
@@ -160,9 +160,9 @@ export const paymentsApi = {
   async markAsPaid(paymentId: string, paymentMethod?: PaymentMethod, paymentReference?: string): Promise<Payment> {
     const updates: Partial<Payment> = {
       status: 'paid',
-      paid_date: new Date().toISOString(),
-      payment_method: paymentMethod || undefined,
-      payment_reference: paymentReference || undefined
+      paidDate: new Date().toISOString(),
+      paymentMethod: paymentMethod || undefined,
+      paymentReference: paymentReference || undefined
     };
 
     return this.updatePayment(paymentId, updates);
@@ -182,10 +182,10 @@ export const paymentsApi = {
         where("owner_id", "==", uid)
       );
       const snapshot = await getDocs(q);
-      const allPayments = snapshot.docs.map(doc => doc.data() as Payment);
+      const allPayments = snapshot.docs.map(doc => doc.data() as any);
 
       const thisMonthPayments = allPayments.filter(p => 
-        p.status === 'paid' && p.paid_date && p.paid_date >= firstDayThisMonth
+        p.status === 'paid' && p.paidDate && p.paidDate >= firstDayThisMonth
       );
       
       const totalThisMonth = thisMonthPayments.reduce((sum, p) => sum + p.amount, 0);
@@ -193,18 +193,18 @@ export const paymentsApi = {
       const pendingPay = allPayments.filter(p => p.status === 'pending');
 
       return {
-        total_revenue_this_month: totalThisMonth,
-        total_revenue_last_month: 0, 
-        revenue_growth_percentage: 0,
-        pending_payments_count: pendingPay.length,
-        overdue_payments_count: overduePay.length,
-        overdue_amount: overduePay.reduce((sum, p) => sum + p.amount, 0),
-        average_payment_amount: allPayments.length > 0 
+        totalRevenueThisMonth: totalThisMonth,
+        totalRevenueLastMonth: 0, 
+        revenueGrowthPercentage: 0,
+        pendingPaymentsCount: pendingPay.length,
+        overduePaymentsCount: overduePay.length,
+        overdueAmount: overduePay.reduce((sum, p) => sum + p.amount, 0),
+        averagePaymentAmount: allPayments.length > 0 
           ? allPayments.reduce((sum, p) => sum + p.amount, 0) / allPayments.length 
           : 0,
-        top_paying_students: [],
-        top_paying_schools: [],
-        monthly_revenue_trend: []
+        topPayingStudents: [],
+        topPayingSchools: [],
+        monthlyRevenueTrend: []
       };
     } catch (error) {
       console.error('Error in getPaymentStats:', error);

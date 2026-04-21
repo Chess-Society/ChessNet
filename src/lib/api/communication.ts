@@ -30,8 +30,8 @@ export const communicationApi = {
     const ownerId = await getOwnerId();
     let q = query(
       getOwnedQuery("announcements"),
-      where("school_id", "==", schoolId),
-      orderBy("created_at", "desc")
+      where("schoolId", "==", schoolId),
+      orderBy("createdAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -42,7 +42,7 @@ export const communicationApi = {
     }
 
     if (filters?.isPublished !== undefined) {
-      data = data.filter(a => a.is_published === filters.isPublished);
+      data = data.filter(a => a.isPublished === filters.isPublished);
     }
 
     if (filters?.offset !== undefined) {
@@ -89,18 +89,18 @@ export const communicationApi = {
 
     const data = {
       owner_id: ownerId,
-      school_id: schoolId,
+      schoolId: schoolId,
       title,
       content,
       type,
-      target_type: targetType,
-      target_id: targetId || null,
+      targetType: targetType,
+      targetId: targetId || null,
       priority,
-      is_published: isPublished,
-      published_at: isPublished ? new Date().toISOString() : null,
-      expires_at: expiresAt || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      isPublished: isPublished,
+      publishedAt: isPublished ? new Date().toISOString() : null,
+      expiresAt: expiresAt || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "announcements"), data);
@@ -123,7 +123,7 @@ export const communicationApi = {
 
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const docSnap = await getDoc(docRef);
@@ -146,8 +146,8 @@ export const communicationApi = {
    */
   async publishAnnouncement(id: string): Promise<Announcement> {
     return this.updateAnnouncement(id, {
-      is_published: true,
-      published_at: new Date().toISOString(),
+      isPublished: true,
+      publishedAt: new Date().toISOString(),
     });
   },
 
@@ -156,8 +156,8 @@ export const communicationApi = {
    */
   async unpublishAnnouncement(id: string): Promise<Announcement> {
     return this.updateAnnouncement(id, {
-      is_published: false,
-      published_at: undefined,
+      isPublished: false,
+      publishedAt: undefined,
     });
   },
 
@@ -179,12 +179,12 @@ export const communicationApi = {
 
     const messageData = {
       owner_id: ownerId,
-      student_id: studentId,
+      studentId: studentId,
       title,
       content,
       type,
-      is_read: false,
-      created_at: new Date().toISOString()
+      isRead: false,
+      createdAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "parent_messages"), messageData);
@@ -205,7 +205,7 @@ export const communicationApi = {
         throw new Error("No autorizado");
     }
 
-    await updateDoc(docRef, { is_read: true });
+    await updateDoc(docRef, { isRead: true });
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);
   },

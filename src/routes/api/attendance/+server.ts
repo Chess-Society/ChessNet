@@ -12,21 +12,21 @@ export const GET: RequestHandler = async (event) => {
 
   const { url } = event;
   const uid = user.uid;
-  const classId = url.searchParams.get('class_id');
-  const studentId = url.searchParams.get('student_id');
+  const classId = url.searchParams.get('classId') || url.searchParams.get('class_id');
+  const studentId = url.searchParams.get('studentId') || url.searchParams.get('student_id');
   const date = url.searchParams.get('date');
-  const dateFrom = url.searchParams.get('date_from');
-  const dateTo = url.searchParams.get('date_to');
+  const dateFrom = url.searchParams.get('dateFrom') || url.searchParams.get('date_from');
+  const dateTo = url.searchParams.get('dateTo') || url.searchParams.get('date_to');
 
   try {
     let query = adminDb.collection("attendance").where("owner_id", "==", uid);
 
     if (classId) {
-      query = query.where("class_id", "==", classId);
+      query = query.where("classId", "==", classId);
     }
 
     if (studentId) {
-      query = query.where("student_id", "==", studentId);
+      query = query.where("studentId", "==", studentId);
     }
 
     if (date) {
@@ -42,7 +42,13 @@ export const GET: RequestHandler = async (event) => {
     }
 
     const snapshot = await query.orderBy("date", "desc").get();
-    const attendance = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    const attendance = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      return serializeRecord({ 
+          id: doc.id, 
+          ...data 
+      });
+    });
 
     return json({ 
       success: true, 
@@ -66,29 +72,32 @@ export const POST: RequestHandler = async (event) => {
 
   try {
     const body = await request.json();
-    const { student_id, class_id, date, status, notes } = body;
+    const studentId = body.studentId || body.student_id;
+    const classId = body.classId || body.class_id;
+    const { date, status, notes } = body;
 
-    if (!student_id || !class_id || !date || !status) {
+    if (!studentId || !classId || !date || !status) {
       return json({ error: 'Faltan campos obligatorios' }, { status: 400 });
     }
 
     // Verificar si ya existe un registro para este alumno, clase y fecha
     const existingSnapshot = await adminDb.collection("attendance")
       .where("owner_id", "==", uid)
-      .where("student_id", "==", student_id)
-      .where("class_id", "==", class_id)
+      .where("studentId", "==", studentId)
+      .where("classId", "==", classId)
       .where("date", "==", date)
       .limit(1)
       .get();
 
+    // Standardize to camelCase for the database
     const attendanceData = {
-      student_id,
-      class_id,
+      studentId: studentId,
+      classId: classId,
       date,
       status,
       notes: notes || null,
       owner_id: uid,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
 
     if (!existingSnapshot.empty) {
@@ -104,7 +113,7 @@ export const POST: RequestHandler = async (event) => {
       // Crear nuevo
       const dataWithCreated = {
         ...attendanceData,
-        created_at: new Date().toISOString()
+        createdAt: new Date().toISOString()
       };
       const docRef = await adminDb.collection("attendance").add(dataWithCreated);
       return json({ 
@@ -131,23 +140,24 @@ export const PUT: RequestHandler = async (event) => {
 
   try {
     const body = await request.json();
-    const { class_id, date, records } = body;
+    const classId = body.classId || body.class_id;
+    const { date, records } = body;
 
-    if (!class_id || !date || !Array.isArray(records)) {
+    if (!classId || !date || !Array.isArray(records)) {
       return json({ error: 'Formato de datos inválido' }, { status: 400 });
     }
 
     // 1. Obtener todos los registros existentes para esta clase y fecha en una sola consulta
     const existingSnapshot = await adminDb.collection("attendance")
       .where("owner_id", "==", uid)
-      .where("class_id", "==", class_id)
+      .where("classId", "==", classId)
       .where("date", "==", date)
       .get();
     
-    // 2. Crear un mapa de student_id -> doc_id para búsqueda rápida
+    // 2. Crear un mapa de studentId -> docId para búsqueda rápida
     const existingMap = new Map();
     existingSnapshot.docs.forEach((doc: any) => {
-      existingMap.set(doc.data().student_id, doc.id);
+      existingMap.set(doc.data().studentId, doc.id);
     });
 
     const batch = adminDb.batch();
@@ -155,19 +165,20 @@ export const PUT: RequestHandler = async (event) => {
 
     // 3. Procesar récords usando el mapa en memoria
     for (const record of records) {
-      const { student_id, status, notes } = record;
+      const studentId = record.studentId || record.student_id;
+      const { status, notes } = record;
       
       const data = {
-        student_id,
-        class_id,
+        studentId,
+        classId,
         date,
         status,
         notes: notes || null,
         owner_id: uid,
-        updated_at: new Date().toISOString()
+        updatedAt: new Date().toISOString()
       };
 
-      const existingId = existingMap.get(student_id);
+      const existingId = existingMap.get(studentId);
 
       if (existingId) {
         batch.update(adminDb.collection("attendance").doc(existingId), data);
@@ -175,10 +186,10 @@ export const PUT: RequestHandler = async (event) => {
         const newDocRef = adminDb.collection("attendance").doc();
         batch.set(newDocRef, {
           ...data,
-          created_at: new Date().toISOString()
+          createdAt: new Date().toISOString()
         });
       }
-      results.push(data);
+      results.push({ id: existingId || 'new', ...data });
     }
 
     await batch.commit();

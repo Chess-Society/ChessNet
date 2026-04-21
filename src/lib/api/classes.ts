@@ -22,17 +22,16 @@ export const classesApi = {
    * Incluye información del centro (denormalizada o vía join manual si falta).
    */
   async getMyClasses(): Promise<Class[]> {
-    const ownerId = await getOwnerId();
     const q = query(getOwnedQuery("classes"), orderBy("name", "asc"));
     const querySnapshot = await getDocs(q);
     const classes = querySnapshot.docs.map(doc => toData<Class>(doc));
 
-    // Si falta school_name (datos antiguos), lo recuperamos manualmente
+    // Si falta schoolName (datos antiguos), lo recuperamos manualmente
     for (const cls of classes) {
-      if (cls.school_id) {
+      if (cls.schoolId) {
         try {
-          const school = await schoolsApi.getSchool(cls.school_id);
-          cls.school_name = school.name;
+          const school = await schoolsApi.getSchool(cls.schoolId);
+          cls.schoolName = school.name;
         } catch (e) {
         }
       }
@@ -45,10 +44,9 @@ export const classesApi = {
    * Obtiene las clases de un centro específico.
    */
   async getClassesBySchool(schoolId: string): Promise<Class[]> {
-    const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("classes"),
-      where("school_id", "==", schoolId),
+      where("schoolId", "==", schoolId),
       orderBy("name", "asc")
     );
 
@@ -60,13 +58,12 @@ export const classesApi = {
    * Obtiene todas las clases con información de ocupación (alumnos inscritos).
    */
   async getClassesWithOccupancy(): Promise<(Class & { enrolled?: number })[]> {
-    const ownerId = await getOwnerId();
     const classes = await this.getMyClasses();
     
     for (const cls of classes) {
       const q = query(
         getOwnedQuery("class_students"),
-        where("class_id", "==", cls.id),
+        where("classId", "==", cls.id),
         where("status", "==", "active")
       );
       const snap = await getDocs(q);
@@ -89,10 +86,10 @@ export const classesApi = {
     const cls = toData<Class>(docSnap);
     if (cls.owner_id !== ownerId) throw new Error("Acceso denegado");
 
-    // Asegurar school_name
-    if (cls.school_id) {
-      const school = await schoolsApi.getSchool(cls.school_id);
-      cls.school_name = school.name;
+    // Asegurar schoolName
+    if (cls.schoolId) {
+      const school = await schoolsApi.getSchool(cls.schoolId);
+      cls.schoolName = school.name;
     }
 
     return cls;
@@ -100,26 +97,26 @@ export const classesApi = {
 
   /**
    * Crea una nueva clase. 
-   * Denormaliza el school_name para optimizar lecturas.
+   * Denormaliza el schoolName para optimizar lecturas.
    */
   async createClass(classData: CreateClassForm): Promise<Class> {
     const ownerId = await getOwnerId();
     
     // Recuperamos el nombre del centro para denormalizar
-    const school = await schoolsApi.getSchool(classData.school_id as string);
+    const school = await schoolsApi.getSchool(classData.schoolId as string);
 
     const data = {
       owner_id: ownerId,
       name: classData.name,
-      school_id: classData.school_id,
-      school_name: school.name, // Denormalización
+      schoolId: classData.schoolId,
+      schoolName: school.name, // Denormalización
       description: classData.description || "",
       level: classData.level || "",
       schedule: classData.schedule || "",
-      max_students: classData.max_students || 20,
+      maxStudents: classData.maxStudents || 20,
       active: classData.active !== false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     const docRef = await addDoc(collection(db, "classes"), data);
@@ -137,15 +134,15 @@ export const classesApi = {
     const current = await this.getClass(id);
     if (current.owner_id !== ownerId) throw new Error("No autorizado");
 
-    // Si cambia el school_id, actualizamos también el school_name
-    if (updates.school_id && updates.school_id !== current.school_id) {
-       const school = await schoolsApi.getSchool(updates.school_id);
-       (updates as any).school_name = school.name;
+    // Si cambia el schoolId, actualizamos también el schoolName
+    if (updates.schoolId && updates.schoolId !== current.schoolId) {
+       const school = await schoolsApi.getSchool(updates.schoolId);
+       (updates as any).schoolName = school.name;
     }
 
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const updatedSnap = await getDoc(docRef);
@@ -167,15 +164,14 @@ export const classesApi = {
    * Obtiene los alumnos activos en una clase.
    */
   async getClassStudents(classId: string): Promise<Student[]> {
-    const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_students"),
-      where("class_id", "==", classId),
+      where("classId", "==", classId),
       where("status", "==", "active")
     );
 
     const querySnapshot = await getDocs(q);
-    const studentIds = querySnapshot.docs.map(doc => (doc.data() as any).student_id);
+    const studentIds = querySnapshot.docs.map(doc => (doc.data() as any).studentId);
 
     const students: Student[] = [];
     for (const sid of studentIds) {
@@ -192,17 +188,16 @@ export const classesApi = {
    * Obtiene todas las inscripciones (activas o no) de una clase.
    */
   async getClassEnrollments(classId: string): Promise<ClassStudent[]> {
-    const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_students"),
-      where("class_id", "==", classId)
+      where("classId", "==", classId)
     );
 
     const querySnapshot = await getDocs(q);
     const enrollments = querySnapshot.docs.map(doc => toData<ClassStudent>(doc));
 
     for (const enrollment of enrollments) {
-      const studentDoc = await getDoc(doc(db, "students", enrollment.student_id));
+      const studentDoc = await getDoc(doc(db, "students", enrollment.studentId));
       if (studentDoc.exists()) {
         (enrollment as any).students = toData<any>(studentDoc);
       }
@@ -215,19 +210,18 @@ export const classesApi = {
    * Obtiene el temario (habilidades) de una clase.
    */
   async getClassSkills(classId: string): Promise<any[]> {
-    const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("class_skills"),
-      where("class_id", "==", classId),
-      orderBy("order_index", "asc")
+      where("classId", "==", classId),
+      orderBy("orderIndex", "asc")
     );
 
     const querySnapshot = await getDocs(q);
     const classSkills = querySnapshot.docs.map(doc => toData<any>(doc));
 
     for (const cs of classSkills) {
-      if (cs.skill_id) {
-        const skillDoc = await getDoc(doc(db, "skills", cs.skill_id));
+      if (cs.skillId) {
+        const skillDoc = await getDoc(doc(db, "skills", cs.skillId));
         if (skillDoc.exists()) {
           (cs as any).skills = toData<any>(skillDoc);
         }
@@ -246,18 +240,18 @@ export const classesApi = {
     
     const newClass = await this.createClass({
       name: newName,
-      school_id: originalClass.school_id,
+      schoolId: originalClass.schoolId,
       description: originalClass.description,
       level: originalClass.level,
       schedule: originalClass.schedule,
-      max_students: originalClass.max_students,
+      maxStudents: originalClass.maxStudents,
       active: true
     });
 
     // Copiar habilidades
     const q = query(
       getOwnedQuery("class_skills"),
-      where("class_id", "==", classId)
+      where("classId", "==", classId)
     );
     const skillsSnap = await getDocs(q);
     
@@ -267,10 +261,10 @@ export const classesApi = {
       const newSkillRef = doc(collection(db, "class_skills"));
       batch.set(newSkillRef, {
         owner_id: ownerId,
-        class_id: newClass.id,
-        skill_id: (data as any).skill_id,
-        order_index: (data as any).order_index,
-        created_at: new Date().toISOString()
+        classId: newClass.id,
+        skillId: (data as any).skillId,
+        orderIndex: (data as any).orderIndex,
+        createdAt: new Date().toISOString()
       });
     });
 
@@ -282,13 +276,12 @@ export const classesApi = {
    * Obtiene analíticas básicas de una clase.
    */
   async getClassAnalytics(classId: string): Promise<any> {
-    const ownerId = await getOwnerId();
     const classInfo = await this.getClass(classId);
     
     // Ocupación
     const occupancyQ = query(
         getOwnedQuery("class_students"),
-        where("class_id", "==", classId),
+        where("classId", "==", classId),
         where("status", "==", "active")
     );
     const occupancySnap = await getDocs(occupancyQ);
@@ -296,14 +289,14 @@ export const classesApi = {
     // Habilidades
     const skillsSnap = await getDocs(query(
         getOwnedQuery("class_skills"),
-        where("class_id", "==", classId)
+        where("classId", "==", classId)
     ));
 
     // Asistencia reciente (últimos 30 días)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const attendanceQ = query(
       getOwnedQuery("attendance"),
-      where("class_id", "==", classId),
+      where("classId", "==", classId),
       where("date", ">=", thirtyDaysAgo)
     );
     const attendanceSnap = await getDocs(attendanceQ);
@@ -315,9 +308,9 @@ export const classesApi = {
 
     return {
       class: classInfo,
-      enrolled_students: occupancySnap.size,
-      skills_count: skillsSnap.size,
-      attendance_rate: Math.round(attendanceRate * 100) / 100
+      enrolledStudents: occupancySnap.size,
+      skillsCount: skillsSnap.size,
+      attendanceRate: Math.round(attendanceRate * 100) / 100
     };
   }
 };

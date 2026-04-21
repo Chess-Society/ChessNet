@@ -8,26 +8,26 @@ export type PaymentMethod = 'cash' | 'transfer' | 'card' | 'paypal' | 'bizum' | 
 export interface Payment {
   id: string;
   owner_id: string;
-  payment_type: PaymentType;
-  student_id?: string;
-  school_id?: string;
-  class_id?: string;
+  paymentType: PaymentType;
+  studentId?: string;
+  schoolId?: string;
+  classId?: string;
   amount: number;
   currency: string;
   concept: PaymentConcept;
   description?: string;
-  period_start?: string;
-  period_end?: string;
+  periodStart?: string;
+  periodEnd?: string;
   status: PaymentStatus;
-  due_date: string;
-  paid_date?: string;
-  payment_method?: PaymentMethod;
-  payment_reference?: string;
-  invoice_number?: string;
-  invoice_date?: string;
+  dueDate: string;
+  paidDate?: string;
+  paymentMethod?: PaymentMethod;
+  paymentReference?: string;
+  invoiceNumber?: string;
+  invoiceDate?: string;
   notes?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PaymentWithDetails extends Payment {
@@ -37,84 +37,84 @@ export interface PaymentWithDetails extends Payment {
 }
 
 export interface PaymentSummary {
-  total_amount: number;
-  paid_amount: number;
-  pending_amount: number;
-  overdue_amount: number;
-  total_payments: number;
-  paid_payments: number;
-  pending_payments: number;
-  overdue_payments: number;
+  totalAmount: number;
+  paidAmount: number;
+  pendingAmount: number;
+  overdueAmount: number;
+  totalPayments: number;
+  paidPayments: number;
+  pendingPayments: number;
+  overduePayments: number;
 }
 
 export interface StudentPaymentSummary extends PaymentSummary {
-  student_id: string;
-  student_name: string;
-  last_payment_date?: string;
-  next_due_date?: string;
+  studentId: string;
+  studentName: string;
+  lastPaymentDate?: string;
+  nextDueDate?: string;
 }
 
 export interface SchoolPaymentSummary extends PaymentSummary {
-  school_id: string;
-  school_name: string;
-  last_payment_date?: string;
-  next_due_date?: string;
+  schoolId: string;
+  schoolName: string;
+  lastPaymentDate?: string;
+  nextDueDate?: string;
 }
 
 export interface MonthlyRevenue {
   month: string; // YYYY-MM
-  total_revenue: number;
-  paid_revenue: number;
-  pending_revenue: number;
-  student_payments: number;
-  school_payments: number;
-  payment_count: number;
+  totalRevenue: number;
+  paidRevenue: number;
+  pendingRevenue: number;
+  studentPayments: number;
+  schoolPayments: number;
+  paymentCount: number;
 }
 
 export interface PaymentFilters {
-  payment_type?: PaymentType;
+  paymentType?: PaymentType;
   status?: PaymentStatus;
   concept?: PaymentConcept;
-  student_id?: string;
-  school_id?: string;
-  class_id?: string;
-  date_from?: string;
-  date_to?: string;
-  due_date_from?: string;
-  due_date_to?: string;
-  amount_min?: number;
-  amount_max?: number;
+  studentId?: string;
+  schoolId?: string;
+  classId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  dueDateFrom?: string;
+  dueDateTo?: string;
+  amountMin?: number;
+  amountMax?: number;
 }
 
 export interface CreatePaymentData {
-  payment_type: PaymentType;
-  student_id?: string;
-  school_id?: string;
-  class_id?: string;
+  paymentType: PaymentType;
+  studentId?: string;
+  schoolId?: string;
+  classId?: string;
   amount: number;
   currency?: string;
   concept: PaymentConcept;
   description?: string;
-  period_start?: string;
-  period_end?: string;
+  periodStart?: string;
+  periodEnd?: string;
   status?: PaymentStatus;
-  due_date: string;
-  payment_method?: string;
-  payment_reference?: string;
-  invoice_number?: string;
-  invoice_date?: string;
+  dueDate: string;
+  paymentMethod?: string;
+  paymentReference?: string;
+  invoiceNumber?: string;
+  invoiceDate?: string;
   notes?: string;
 }
 
 export interface PaymentStats {
-  total_revenue_this_month: number;
-  total_revenue_last_month: number;
-  revenue_growth_percentage: number;
-  pending_payments_count: number;
-  overdue_payments_count: number;
-  overdue_amount: number;
-  average_payment_amount: number;
-  top_paying_students: StudentPaymentSummary[];
-  top_paying_schools: SchoolPaymentSummary[];
-  monthly_revenue_trend: MonthlyRevenue[];
+  totalRevenueThisMonth: number;
+  totalRevenueLastMonth: number;
+  revenueGrowthPercentage: number;
+  pendingPaymentsCount: number;
+  overduePaymentsCount: number;
+  overdueAmount: number;
+  averagePaymentAmount: number;
+  topPayingStudents: StudentPaymentSummary[];
+  topPayingSchools: SchoolPaymentSummary[];
+  monthlyRevenueTrend: MonthlyRevenue[];
 }

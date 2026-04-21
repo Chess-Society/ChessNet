@@ -23,13 +23,16 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 
     const updateData = {
       ...body,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
     
     // Cleanup body fields to avoid overwriting sensitive data
     delete (updateData as any).id;
     delete (updateData as any).owner_id;
     delete (updateData as any).created_at;
+    delete (updateData as any).createdAt;
+    delete (updateData as any).updated_at;
+
 
     await studentRef.update(updateData);
 

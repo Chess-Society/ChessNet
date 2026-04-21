@@ -15,11 +15,11 @@ export const POST: RequestHandler = async (event) => {
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
   try {
-    const { plan_name, price_id } = await request.json();
+    const { planName, priceId } = await request.json();
     const uid = locals.user.uid;
-    const user_email = locals.user.email;
+    const userEmail = locals.user.email;
 
-    if (!price_id) {
+    if (!priceId) {
       return json({ success: false, error: 'Falta el ID de precio' }, { status: 400 });
     }
 
@@ -28,7 +28,7 @@ export const POST: RequestHandler = async (event) => {
       payment_method_types: ['card'],
       line_items: [
         {
-          price: price_id,
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -36,9 +36,9 @@ export const POST: RequestHandler = async (event) => {
       success_url: `${url.origin}/panel/upgrade?session_id={CHECKOUT_SESSION_ID}&status=success`,
       cancel_url: `${url.origin}/panel/upgrade?status=cancel`,
       client_reference_id: uid,
-      customer_email: user_email || undefined,
+      customer_email: userEmail || undefined,
       metadata: {
-        plan_name: plan_name || 'Maestro Premium',
+        planName: planName || 'Maestro Premium',
         uid: uid
       },
       subscription_data: {
@@ -48,7 +48,7 @@ export const POST: RequestHandler = async (event) => {
       }
     });
 
-    return json({ success: true, payment_url: session.url });
+    return json({ success: true, paymentUrl: session.url });
   } catch (error: any) {
     console.error('❌ Error creating Stripe session:', error);
     return json({ success: false, error: error.message }, { status: 500 });

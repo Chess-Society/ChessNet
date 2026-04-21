@@ -14,13 +14,13 @@ export const PUT: RequestHandler = async (event) => {
   const uid = user.uid;
 
   try {
-    const { pairing_id, result, points_white, points_black } = await request.json();
+    const { pairingId, result, pointsWhite, pointsBlack } = await request.json();
 
-    if (!pairing_id) {
-      return json({ error: 'pairing_id is required' }, { status: 400 });
+    if (!pairingId) {
+      return json({ error: 'pairingId is required' }, { status: 400 });
     }
 
-    const pairingRef = adminDb.collection('local_tournament_pairings').doc(pairing_id);
+    const pairingRef = adminDb.collection('local_tournament_pairings').doc(pairingId);
     const snap = await pairingRef.get();
 
     if (!snap.exists || snap.data()?.owner_id !== uid) {
@@ -29,8 +29,8 @@ export const PUT: RequestHandler = async (event) => {
 
     await pairingRef.update({
       result,
-      points_white,
-      points_black,
+      pointsWhite,
+      pointsBlack,
       updatedAt: new Date().toISOString()
     });
 
@@ -52,14 +52,14 @@ export const POST: RequestHandler = async (event) => {
   const uid = user.uid;
 
   try {
-    const { tournament_id, round_no, pairings } = await request.json();
+    const { tournamentId, roundNo, pairings } = await request.json();
 
-    if (!tournament_id || !round_no || !pairings) {
+    if (!tournamentId || !roundNo || !pairings) {
        return json({ error: 'Missing data' }, { status: 400 });
     }
 
     // Verify tournament ownership
-    const tournamentSnap = await adminDb.collection('local_tournaments').doc(tournament_id).get();
+    const tournamentSnap = await adminDb.collection('local_tournaments').doc(tournamentId).get();
     if (!tournamentSnap.exists || tournamentSnap.data()?.owner_id !== uid) {
       return json({ error: 'Unauthorized' }, { status: 403 });
     }

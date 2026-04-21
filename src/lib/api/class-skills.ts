@@ -31,16 +31,16 @@ export const classSkillsApi = {
     const q = query(
       collection(db, "class_skills"),
       where("owner_id", "==", uid),
-      where("class_id", "==", classId),
-      orderBy("order_index", "asc")
+      where("classId", "==", classId),
+      orderBy("orderIndex", "asc")
     );
 
     const querySnapshot = await getDocs(q);
     const classSkills = querySnapshot.docs.map(doc => toData<any>(doc));
 
     for (const cs of classSkills) {
-      if (cs.skill_id) {
-        const skillDoc = await getDoc(doc(db, "skills", cs.skill_id));
+      if (cs.skillId) {
+        const skillDoc = await getDoc(doc(db, "skills", cs.skillId));
         if (skillDoc.exists()) {
           cs.skill = toData<Skill>(skillDoc);
         }
@@ -58,16 +58,16 @@ export const classSkillsApi = {
     const q = query(
       collection(db, "class_skills"),
       where("owner_id", "==", user.uid),
-      where("skill_id", "==", skillId),
-      orderBy("created_at", "desc")
+      where("skillId", "==", skillId),
+      orderBy("createdAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
     const classSkills = querySnapshot.docs.map(doc => toData<any>(doc));
 
     for (const cs of classSkills) {
-      if (cs.class_id) {
-        const classDoc = await getDoc(doc(db, "classes", cs.class_id));
+      if (cs.classId) {
+        const classDoc = await getDoc(doc(db, "classes", cs.classId));
         if (classDoc.exists()) {
           cs.class = toData<any>(classDoc);
         }
@@ -86,8 +86,8 @@ export const classSkillsApi = {
     const q = query(
       collection(db, "class_skills"),
       where("owner_id", "==", user.uid),
-      where("class_id", "==", classId),
-      where("skill_id", "==", skillId)
+      where("classId", "==", classId),
+      where("skillId", "==", skillId)
     );
     const existingSnap = await getDocs(q);
     if (!existingSnap.empty) {
@@ -99,20 +99,20 @@ export const classSkillsApi = {
       const lastQ = query(
         collection(db, "class_skills"),
         where("owner_id", "==", user.uid),
-        where("class_id", "==", classId),
-        orderBy("order_index", "desc"),
+        where("classId", "==", classId),
+        orderBy("orderIndex", "desc"),
         limit(1)
       );
       const lastSnap = await getDocs(lastQ);
-      orderIndex = lastSnap.empty ? 1 : (lastSnap.docs[0].data().order_index || 0) + 1;
+      orderIndex = lastSnap.empty ? 1 : (lastSnap.docs[0].data().orderIndex || 0) + 1;
     }
 
     const docRef = await addDoc(collection(db, "class_skills"), {
       owner_id: user.uid,
-      class_id: classId,
-      skill_id: skillId,
-      order_index: orderIndex,
-      created_at: new Date().toISOString()
+      classId,
+      skillId,
+      orderIndex,
+      createdAt: new Date().toISOString()
     });
 
     const docSnap = await getDoc(docRef);
@@ -128,12 +128,12 @@ export const classSkillsApi = {
     const lastQ = query(
       collection(db, "class_skills"),
       where("owner_id", "==", user.uid),
-      where("class_id", "==", classId),
-      orderBy("order_index", "desc"),
+      where("classId", "==", classId),
+      orderBy("orderIndex", "desc"),
       limit(1)
     );
     const lastSnap = await getDocs(lastQ);
-    let nextOrderIndex = lastSnap.empty ? 1 : (lastSnap.docs[0].data().order_index || 0) + 1;
+    let nextOrderIndex = lastSnap.empty ? 1 : (lastSnap.docs[0].data().orderIndex || 0) + 1;
 
     const batch = writeBatch(db);
     const now = new Date().toISOString();
@@ -143,10 +143,10 @@ export const classSkillsApi = {
       const docRef = doc(collection(db, "class_skills"));
       batch.set(docRef, {
         owner_id: user.uid,
-        class_id: classId,
-        skill_id: skillId,
-        order_index: nextOrderIndex++,
-        created_at: now
+        classId,
+        skillId,
+        orderIndex: nextOrderIndex++,
+        createdAt: now
       });
       newRefs.push(docRef);
     }
@@ -169,8 +169,8 @@ export const classSkillsApi = {
     const q = query(
       collection(db, "class_skills"),
       where("owner_id", "==", user.uid),
-      where("class_id", "==", classId),
-      where("skill_id", "==", skillId)
+      where("classId", "==", classId),
+      where("skillId", "==", skillId)
     );
     const snap = await getDocs(q);
     
@@ -201,12 +201,12 @@ export const classSkillsApi = {
         const q = query(
             collection(db, "class_skills"),
             where("owner_id", "==", user.uid),
-            where("class_id", "==", classId),
-            where("skill_id", "==", skillId)
+            where("classId", "==", classId),
+            where("skillId", "==", skillId)
         );
         const snap = await getDocs(q);
         if (!snap.empty) {
-            batch.update(snap.docs[0].ref, { order_index: i });
+            batch.update(snap.docs[0].ref, { orderIndex: i });
         }
     }
 
@@ -225,7 +225,7 @@ export const classSkillsApi = {
       return [];
     }
 
-    const skillIds = sourceSkills.map(s => s.skill_id);
+    const skillIds = sourceSkills.map(s => s.skillId);
     return this.assignSkillsToClass(toClassId, skillIds);
   }
 };

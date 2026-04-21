@@ -17,10 +17,19 @@ export const GET: RequestHandler = async (event) => {
   try {
     const snapshot = await adminDb.collection("schools")
       .where("owner_id", "==", uid)
-      .orderBy("created_at", "desc")
+      .orderBy("createdAt", "desc")
       .get();
     
-    const schools = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    // Standardize response fields for frontend consumption
+    const schools = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      return serializeRecord({ 
+        id: doc.id, 
+        ...data,
+        createdAt: data.createdAt || data.created_at,
+        updatedAt: data.updatedAt || data.updated_at
+      });
+    });
     return json({ schools });
   } catch (error: any) {
     console.error('❌ Error in GET schools API:', error.message);
@@ -58,10 +67,14 @@ export const POST: RequestHandler = async (event) => {
       name: name.trim(),
       city: city?.trim() || null,
       owner_id: uid,
-      created_by: uid,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdBy: uid,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
+    
+    // Support legacy field names in outgoing data for a graceful transition
+    if ((schoolData as any).created_at) delete (schoolData as any).created_at;
+    if ((schoolData as any).updated_at) delete (schoolData as any).updated_at;
 
     const docRef = await adminDb.collection("schools").add(schoolData);
     return json({ 
@@ -102,11 +115,13 @@ export const PUT: RequestHandler = async (event) => {
 
     const updateData = {
       ...body,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
     delete updateData.id;
     delete updateData.owner_id;
+    delete updateData.createdAt;
     delete updateData.created_at;
+    delete updateData.updated_at;
 
     await schoolRef.update(updateData);
 
@@ -127,10 +142,8 @@ export const DELETE: RequestHandler = async (event) => {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const { request } = event;
-  const uid = user.uid;
-
   try {
+    const { request } = event;
     const body = await request.json();
     const { id } = body;
 
@@ -141,7 +154,7 @@ export const DELETE: RequestHandler = async (event) => {
     const schoolRef = adminDb.collection("schools").doc(id);
     const schoolSnap = await schoolRef.get();
 
-    if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== uid) {
+    if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== user.uid) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 

@@ -14,10 +14,19 @@ export const GET: RequestHandler = async (event) => {
   try {
     const snapshot = await adminDb.collection("students")
       .where("owner_id", "==", user.uid)
-      .orderBy("created_at", "desc")
+      .orderBy("createdAt", "desc")
       .get();
         
-    const students = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    // Standardize response fields for frontend consumption
+    const students = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      return serializeRecord({ 
+        id: doc.id, 
+        ...data,
+        createdAt: data.createdAt || data.created_at,
+        updatedAt: data.updatedAt || data.updated_at
+      });
+    });
     return json({ students });
   } catch (error: any) {
     console.error('❌ Error in GET students API:', error.message);
@@ -47,20 +56,25 @@ export const POST: RequestHandler = async (event) => {
     const studentData = {
       ...body,
       owner_id: user.uid,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
+    
+    // Support legacy field names in outgoing data for a graceful transition
+    if (studentData.created_at) delete studentData.created_at;
+    if (studentData.updated_at) delete studentData.updated_at;
 
     const docRef = await adminDb.collection("students").add(studentData);
     const studentId = docRef.id;
 
-    // Sincronizar con class_students si se proporcionó una clase
-    if (body.class_id) {
+    // Sincronizar con classStudents si se proporcionó una clase
+    if (body.classId || body.class_id) {
+      const classId = body.classId || body.class_id;
       const enrollmentData = {
-        class_id: body.class_id,
-        student_id: studentId,
+        classId,
+        studentId,
         owner_id: user.uid,
-        enrolled_at: new Date().toISOString()
+        enrolledAt: new Date().toISOString()
       };
       await adminDb.collection("class_students").add(enrollmentData);
     }
@@ -93,23 +107,26 @@ export const PUT: RequestHandler = async (event) => {
     }
 
     const oldData = docSnap.data();
-    const oldClassId = oldData?.class_id;
+    const oldClassId = oldData?.classId || oldData?.class_id;
 
     const updateData = {
       ...body,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
     delete updateData.id;
     delete updateData.owner_id;
+    delete updateData.createdAt;
     delete updateData.created_at;
+    delete updateData.updated_at;
 
     await docRef.update(updateData);
 
     // Sincronizar con class_students si la clase cambió
-    if (updateData.class_id !== undefined && updateData.class_id !== oldClassId) {
+    const newClassId = updateData.classId || updateData.class_id;
+    if (newClassId !== undefined && newClassId !== oldClassId) {
       // 1. Eliminar inscripciones anteriores (debería haber solo una, pero usamos batch por seguridad)
       const enrollmentsq = await adminDb.collection("class_students")
-        .where("student_id", "==", id)
+        .where("studentId", "==", id)
         .where("owner_id", "==", user.uid)
         .get();
       
@@ -117,13 +134,13 @@ export const PUT: RequestHandler = async (event) => {
       enrollmentsq.docs.forEach((doc: any) => batch.delete(doc.ref));
       await batch.commit();
 
-      // 2. Crear nueva inscripción si hay un nuevo class_id
-      if (updateData.class_id) {
+      // 2. Crear nueva inscripción si hay un nuevo classId
+      if (newClassId) {
         await adminDb.collection("class_students").add({
-          class_id: updateData.class_id,
-          student_id: id,
+          classId: newClassId,
+          studentId: id,
           owner_id: user.uid,
-          enrolled_at: new Date().toISOString()
+          enrolledAt: new Date().toISOString()
         });
       }
     }
@@ -155,7 +172,7 @@ export const DELETE: RequestHandler = async (event) => {
 
     // Eliminar también registros de inscripción
     const enrollmentsq = await adminDb.collection("class_students")
-      .where("student_id", "==", id)
+      .where("studentId", "==", id)
       .where("owner_id", "==", user.uid)
       .get();
     

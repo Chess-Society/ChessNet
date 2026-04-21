@@ -19,7 +19,6 @@ export const schoolsApi = {
    * Obtiene todos los centros (escuelas/colegios) del profesor actual.
    */
   async getMySchools(): Promise<School[]> {
-    const ownerId = await getOwnerId();
     const q = query(getOwnedQuery("schools"), orderBy("name", "asc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => toData<School>(doc));
@@ -29,7 +28,6 @@ export const schoolsApi = {
    * Obtiene centros filtrados por ciudad.
    */
   async getSchoolsByCity(city: string): Promise<School[]> {
-    const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("schools"),
       where("city", "==", city),
@@ -85,8 +83,8 @@ export const schoolsApi = {
     const data = {
       ...schoolData,
       owner_id: ownerId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "schools"), data);
@@ -107,7 +105,7 @@ export const schoolsApi = {
 
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const docSnap = await getDoc(docRef);
@@ -128,20 +126,19 @@ export const schoolsApi = {
   /**
    * Obtiene centros junto con el recuento de clases asociadas.
    */
-  async getSchoolsWithClassCount(): Promise<(School & { classes_count: number })[]> {
-    const ownerId = await getOwnerId();
+  async getSchoolsWithClassCount(): Promise<(School & { classesCount: number })[]> {
     const schools = await this.getMySchools();
     const result = [];
 
     for (const school of schools) {
       const classesQuery = query(
         getOwnedQuery("classes"),
-        where("school_id", "==", school.id)
+        where("schoolId", "==", school.id)
       );
       const classesSnap = await getDocs(classesQuery);
       result.push({
         ...school,
-        classes_count: classesSnap.size
+        classesCount: classesSnap.size
       });
     }
 

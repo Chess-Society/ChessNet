@@ -40,12 +40,12 @@ export const localTournamentsApi = {
     const tournamentData = {
       name: formData.name,
       format: formData.format,
-      school_id: formData.school_id || (formData as any).school_id, 
-      time_control: formData.time_control,
+      schoolId: formData.schoolId, 
+      timeControl: formData.timeControl,
       startAt: formData.startAt,
       endAt: formData.endAt,
       notes: formData.notes,
-      roundsPlanned: formData.roundsPlanned || calculateDefaultRounds(formData.selected_students.length, formData.format)
+      roundsPlanned: formData.roundsPlanned || calculateDefaultRounds(formData.selectedStudents.length, formData.format)
     };
 
     const response = await fetch('/api/tournaments', {
@@ -62,7 +62,7 @@ export const localTournamentsApi = {
     const { data: tournament } = await response.json();
 
     // Add selected students as players
-    for (const studentId of formData.selected_students) {
+    for (const studentId of formData.selectedStudents) {
       await this.addPlayer(tournament.id, studentId);
     }
 
@@ -107,9 +107,8 @@ export const localTournamentsApi = {
 
     // Apply filters
     if (filters) {
-      if (filters.school_id || (filters as any).school_id) {
-        const schoolId = filters.school_id || (filters as any).school_id;
-        tournaments = tournaments.filter(t => t.school_id === schoolId);
+      if (filters.schoolId) {
+        tournaments = tournaments.filter(t => t.schoolId === filters.schoolId);
       }
       if (filters.format) {
         tournaments = tournaments.filter(t => t.format === filters.format);
@@ -137,7 +136,7 @@ export const localTournamentsApi = {
     
     const roundsQuery = query(
       getOwnedQuery('local_tournament_rounds'),
-      where('tournament_id', '==', id)
+      where('tournamentId', '==', id)
     );
     const roundsSnap = await getDocs(roundsQuery);
     const rounds = roundsSnap.docs.map(doc => toData<LocalTournamentRound>(doc));
@@ -164,7 +163,7 @@ export const localTournamentsApi = {
         throw new Error('Student not found');
       } else {
         const student = studentDoc.data();
-        studentName = student.name || `${student.first_name || ''} ${student.last_name || ''}`.trim();
+        studentName = student.name || `${student.firstName || ''} ${student.lastName || ''}`.trim();
       }
     }
 
@@ -176,9 +175,9 @@ export const localTournamentsApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tournament_id: tournamentId,
-        student_id: studentId,
-        student_name: studentName,
+        tournamentId: tournamentId,
+        studentId: studentId,
+        studentName: studentName,
         status: 'active'
       })
     });
@@ -198,7 +197,7 @@ export const localTournamentsApi = {
     const ownerId = await getOwnerId();
 
     
-    const response = await fetch(`/api/tournaments/players?tournament_id=${tournamentId}&student_id=${studentId}`, {
+    const response = await fetch(`/api/tournaments/players?tournamentId=${tournamentId}&studentId=${studentId}`, {
       method: 'DELETE'
     });
 
@@ -216,8 +215,8 @@ export const localTournamentsApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tournament_id: tournamentId,
-        student_id: studentId,
+        tournamentId: tournamentId,
+        studentId: studentId,
         status: 'withdrawn'
       })
     });
@@ -236,8 +235,8 @@ export const localTournamentsApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tournament_id: tournamentId,
-        student_id: studentId,
+        tournamentId: tournamentId,
+        studentId: studentId,
         status: 'active'
       })
     });
@@ -253,7 +252,7 @@ export const localTournamentsApi = {
 
     const q = query(
       getOwnedQuery('local_tournament_players'),
-      where('tournament_id', '==', tournamentId)
+      where('tournamentId', '==', tournamentId)
     );
     const snap = await getDocs(q);
     return snap.docs.map(doc => toData<LocalTournamentPlayer>(doc));
@@ -268,8 +267,8 @@ export const localTournamentsApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tournament_id: tournamentId,
-        round_no: roundNo
+        tournamentId: tournamentId,
+        roundNo: roundNo
       })
     });
 
@@ -317,8 +316,8 @@ export const localTournamentsApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tournament_id: tournamentId,
-        round_no: roundNo,
+        tournamentId: tournamentId,
+        roundNo: roundNo,
         pairings
       })
     });
@@ -335,8 +334,8 @@ export const localTournamentsApi = {
     board: number, 
     result: "1-0" | "0-1" | "1/2-1/2"
   ): Promise<void> {
-    const points_white = result === "1-0" ? 1 : result === "1/2-1/2" ? 0.5 : 0;
-    const points_black = result === "0-1" ? 1 : result === "1/2-1/2" ? 0.5 : 0;
+    const pointsWhite = result === "1-0" ? 1 : result === "1/2-1/2" ? 0.5 : 0;
+    const pointsBlack = result === "0-1" ? 1 : result === "1/2-1/2" ? 0.5 : 0;
 
     const pairings = await this.getRoundPairings(tournamentId, roundNo);
     const pairing = pairings.find(p => p.board === board);
@@ -349,10 +348,10 @@ export const localTournamentsApi = {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          pairing_id: pairing.id,
+          pairingId: pairing.id,
           result,
-          points_white,
-          points_black
+          pointsWhite,
+          pointsBlack
         })
       });
 
@@ -371,8 +370,8 @@ export const localTournamentsApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tournament_id: tournamentId,
-        round_no: roundNo,
+        tournamentId: tournamentId,
+        roundNo: roundNo,
         action: 'reset'
       })
     });
@@ -388,8 +387,8 @@ export const localTournamentsApi = {
 
     const q = query(
       getOwnedQuery('local_tournament_pairings'),
-      where('tournament_id', '==', tournamentId),
-      where('round_no', '==', roundNo)
+      where('tournamentId', '==', tournamentId),
+      where('roundNo', '==', roundNo)
     );
     const snap = await getDocs(q);
     return snap.docs.map(doc => toData<LocalTournamentPairing>(doc));
@@ -400,7 +399,7 @@ export const localTournamentsApi = {
 
     const q = query(
       getOwnedQuery('local_tournament_pairings'),
-      where('tournament_id', '==', tournamentId)
+      where('tournamentId', '==', tournamentId)
     );
     const snap = await getDocs(q);
     return snap.docs.map(doc => toData<LocalTournamentPairing>(doc));
@@ -415,8 +414,8 @@ export const localTournamentsApi = {
     // 1. Basic points and game stats
     const standings: LocalTournamentStanding[] = players.map(player => {
       const playerPairings = pairings.filter(p => 
-        p.white_student_id === player.student_id || 
-        p.black_student_id === player.student_id
+        p.whiteStudentId === player.studentId || 
+        p.blackStudentId === player.studentId
       );
 
       let points = 0;
@@ -427,8 +426,8 @@ export const localTournamentsApi = {
       playerPairings.forEach(pairing => {
         if (pairing.result === undefined && !pairing.bye) return;
 
-        const isWhite = pairing.white_student_id === player.student_id;
-        const playerPoints = isWhite ? pairing.points_white || 0 : pairing.points_black || 0;
+        const isWhite = pairing.whiteStudentId === player.studentId;
+        const playerPoints = isWhite ? pairing.pointsWhite || 0 : pairing.pointsBlack || 0;
         
         points += playerPoints;
 
@@ -438,10 +437,10 @@ export const localTournamentsApi = {
       });
 
       return {
-        student_id: player.student_id,
-        student_name: player.student_name || 'Unknown',
+        studentId: player.studentId,
+        studentName: player.studentName || 'Unknown',
         points,
-        games_played: playerPairings.filter(p => p.result || p.bye).length,
+        gamesPlayed: playerPairings.filter(p => p.result || p.bye).length,
         wins,
         draws,
         losses,
@@ -454,7 +453,7 @@ export const localTournamentsApi = {
     // 2. Calculate Tiebreaks
     standings.forEach(standing => {
       const playerPairings = pairings.filter(p => 
-        (p.white_student_id === standing.student_id || p.black_student_id === standing.student_id) &&
+        (p.whiteStudentId === standing.studentId || p.blackStudentId === standing.studentId) &&
         (p.result || p.bye)
       );
 
@@ -462,22 +461,17 @@ export const localTournamentsApi = {
       let sonnebornBerger = 0;
 
       playerPairings.forEach(p => {
-        const isWhite = p.white_student_id === standing.student_id;
-        const result = p.result;
-        const playerPoints = isWhite ? p.points_white || 0 : p.points_black || 0;
-        const opponentId = isWhite ? p.black_student_id : p.white_student_id;
+        const isWhite = p.whiteStudentId === standing.studentId;
+        const playerPoints = isWhite ? p.pointsWhite || 0 : p.pointsBlack || 0;
+        const opponentId = isWhite ? p.blackStudentId : p.whiteStudentId;
 
         if (opponentId) {
-          const opponentStanding = standings.find(s => s.student_id === opponentId);
+          const opponentStanding = standings.find(s => s.studentId === opponentId);
           if (opponentStanding) {
             buchholz += opponentStanding.points;
             if (playerPoints === 1) sonnebornBerger += opponentStanding.points;
             else if (playerPoints === 0.5) sonnebornBerger += (opponentStanding.points * 0.5);
           }
-        } else if (p.bye) {
-           // Standard: Bye doesn't contribute to Buchholz directly in some systems, 
-           // but here we keep it simple or follow FIDE virtual opponent (too complex for now).
-           // Let's just skip opponent points for Bye.
         }
       });
 
@@ -510,11 +504,11 @@ export const localTournamentsApi = {
     const tournaments = await this.getAllTournaments();
     
     const stats: TournamentStats = {
-      total_tournaments: tournaments.length,
-      active_tournaments: tournaments.filter(t => getTournamentStatus(t) === 'active').length,
-      completed_tournaments: tournaments.filter(t => getTournamentStatus(t) === 'completed').length,
-      total_players: 0,
-      total_games: 0,
+      totalTournaments: tournaments.length,
+      activeTournaments: tournaments.filter(t => getTournamentStatus(t) === 'active').length,
+      completedTournaments: tournaments.filter(t => getTournamentStatus(t) === 'completed').length,
+      totalPlayers: 0,
+      totalGames: 0,
       formats: { swiss: 0, round_robin: 0, knockout: 0 }
     };
 
@@ -522,8 +516,8 @@ export const localTournamentsApi = {
       const players = await this.getTournamentPlayers(tournament.id);
       const pairings = await this.getTournamentPairings(tournament.id);
       
-      stats.total_players += players.length;
-      stats.total_games += pairings.filter(p => p.result).length;
+      stats.totalPlayers += players.length;
+      stats.totalGames += pairings.filter(p => p.result).length;
       stats.formats[tournament.format]++;
     }
 
@@ -531,7 +525,6 @@ export const localTournamentsApi = {
   },
 
   async cleanOrphanedData(): Promise<void> {
-    const ownerId = await getOwnerId();
     const batch = writeBatch(db);
     let deletedCount = 0;
 
@@ -544,7 +537,7 @@ export const localTournamentsApi = {
       const snap = await getDocs(getOwnedQuery(collectionName));
       snap.docs.forEach(doc => {
         const data = doc.data();
-        if ((data as any).tournament_id && !validTournamentIds.has((data as any).tournament_id)) {
+        if ((data as any).tournamentId && !validTournamentIds.has((data as any).tournamentId)) {
           batch.delete(doc.ref);
           deletedCount++;
         }
@@ -559,7 +552,6 @@ export const localTournamentsApi = {
     // 3. Ejecutar borrado si hay huérfanos
     if (deletedCount > 0) {
       await batch.commit();
-    } else {
     }
   }
 };
@@ -603,7 +595,7 @@ async function generateSwissPairings(
   
   // Available players to pair (only active ones)
   const availablePlayers = [...standings].filter(s => {
-    const p = players.find(player => player.student_id === s.student_id);
+    const p = players.find(player => player.studentId === s.studentId);
     return p?.status !== 'withdrawn';
   });
   const pairings: Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[] = [];
@@ -628,15 +620,15 @@ async function generateSwissPairings(
     if (availablePlayers.length === 1) {
       const player = availablePlayers.shift()!;
       pairings.push({
-        tournament_id: tournamentId,
-        round_no: roundNo,
+        tournamentId: tournamentId,
+        roundNo: roundNo,
         board,
-        white_student_id: player.student_id,
-        white_name: player.student_name,
+        whiteStudentId: player.studentId,
+        whiteName: player.studentName,
         bye: true,
         result: "1-0",
-        points_white: 1,
-        points_black: 0
+        pointsWhite: 1,
+        pointsBlack: 0
       });
       break;
     }
@@ -648,8 +640,8 @@ async function generateSwissPairings(
     for (let i = 0; i < availablePlayers.length; i++) {
       const p2 = availablePlayers[i];
       const alreadyPlayed = previousPairings.some(p => 
-        (p.white_student_id === player1.student_id && p.black_student_id === p2.student_id) ||
-        (p.white_student_id === p2.student_id && p.black_student_id === player1.student_id)
+        (p.whiteStudentId === player1.studentId && p.blackStudentId === p2.studentId) ||
+        (p.whiteStudentId === p2.studentId && p.blackStudentId === player1.studentId)
       );
       
       if (!alreadyPlayed) {
@@ -664,8 +656,8 @@ async function generateSwissPairings(
     const player2 = availablePlayers.splice(opponentIndex, 1)[0];
     
     // Color balancing: Count whites for each
-    const whitesP1 = previousPairings.filter(p => p.white_student_id === player1.student_id && !p.bye).length;
-    const whitesP2 = previousPairings.filter(p => p.white_student_id === player2.student_id && !p.bye).length;
+    const whitesP1 = previousPairings.filter(p => p.whiteStudentId === player1.studentId && !p.bye).length;
+    const whitesP2 = previousPairings.filter(p => p.whiteStudentId === player2.studentId && !p.bye).length;
 
     let whitePlayer, blackPlayer;
     if (whitesP1 > whitesP2) {
@@ -680,13 +672,13 @@ async function generateSwissPairings(
     }
 
     pairings.push({
-      tournament_id: tournamentId,
-      round_no: roundNo,
+      tournamentId: tournamentId,
+      roundNo: roundNo,
       board,
-      white_student_id: whitePlayer.student_id,
-      black_student_id: blackPlayer.student_id,
-      white_name: whitePlayer.student_name,
-      black_name: blackPlayer.student_name
+      whiteStudentId: whitePlayer.studentId,
+      blackStudentId: blackPlayer.studentId,
+      whiteName: whitePlayer.studentName,
+      blackName: blackPlayer.studentName
     });
     
     board++;
@@ -709,9 +701,9 @@ async function generateRoundRobinPairings(
   if (playersArray.length % 2 !== 0) {
     playersArray.push({ 
       id: 'bye', 
-      tournament_id: tournamentId, 
-      student_id: 'bye', 
-      student_name: 'BYE',
+      tournamentId: tournamentId, 
+      studentId: 'bye', 
+      studentName: 'BYE',
       status: 'active'
     } as any);
   }
@@ -734,19 +726,19 @@ async function generateRoundRobinPairings(
     const p1 = currentRoundPlayers[i];
     const p2 = currentRoundPlayers[n - 1 - i];
 
-    if (p1.student_id === 'bye' || p2.student_id === 'bye') {
-      const realPlayer = p1.student_id !== 'bye' ? p1 : p2;
+    if (p1.studentId === 'bye' || p2.studentId === 'bye') {
+      const realPlayer = p1.studentId !== 'bye' ? p1 : p2;
       pairings.push({
-        tournament_id: tournamentId,
-        round_no: roundNo,
+        tournamentId: tournamentId,
+        roundNo: roundNo,
         board: 0, // Specialized board for byes
-        white_student_id: realPlayer.student_id,
-        white_name: realPlayer.student_name,
-        black_student_id: 'BYE',
-        black_name: 'BYE',
+        whiteStudentId: realPlayer.studentId,
+        whiteName: realPlayer.studentName,
+        blackStudentId: 'BYE',
+        blackName: 'BYE',
         result: '1-0', // Automatic point for bye in local RR
-        points_white: 1,
-        points_black: 0,
+        pointsWhite: 1,
+        pointsBlack: 0,
         bye: true
       });
       continue;
@@ -755,16 +747,16 @@ async function generateRoundRobinPairings(
     // Alternate colors based on round/index for fairness
     const isWhite = (i + roundNo) % 2 === 0;
     pairings.push({
-      tournament_id: tournamentId,
-      round_no: roundNo,
+      tournamentId: tournamentId,
+      roundNo: roundNo,
       board: board++,
-      white_student_id: isWhite ? p1.student_id : p2.student_id,
-      white_name: isWhite ? p1.student_name : p2.student_name,
-      black_student_id: isWhite ? p2.student_id : p1.student_id,
-      black_name: isWhite ? p2.student_name : p1.student_name,
+      whiteStudentId: isWhite ? p1.studentId : p2.studentId,
+      whiteName: isWhite ? p1.studentName : p2.studentName,
+      blackStudentId: isWhite ? p2.studentId : p1.studentId,
+      blackName: isWhite ? p2.studentName : p1.studentName,
       result: undefined,
-      points_white: 0,
-      points_black: 0
+      pointsWhite: 0,
+      pointsBlack: 0
     });
   }
 
@@ -787,25 +779,25 @@ async function generateKnockoutPairings(
     for (let i = 0; i < shuffledPlayers.length; i += 2) {
       if (i + 1 < shuffledPlayers.length) {
         pairings.push({
-          tournament_id: tournamentId,
-          round_no: roundNo,
+          tournamentId: tournamentId,
+          roundNo: roundNo,
           board,
-          white_student_id: shuffledPlayers[i].student_id,
-          black_student_id: shuffledPlayers[i + 1].student_id,
-          white_name: shuffledPlayers[i].student_name,
-          black_name: shuffledPlayers[i + 1].student_name
+          whiteStudentId: shuffledPlayers[i].studentId,
+          blackStudentId: shuffledPlayers[i + 1].studentId,
+          whiteName: shuffledPlayers[i].studentName,
+          blackName: shuffledPlayers[i + 1].studentName
         });
       } else {
         // Bye for last player
         pairings.push({
-          tournament_id: tournamentId,
-          round_no: roundNo,
+          tournamentId: tournamentId,
+          roundNo: roundNo,
           board,
-          white_student_id: shuffledPlayers[i].student_id,
-          white_name: shuffledPlayers[i].student_name,
+          whiteStudentId: shuffledPlayers[i].studentId,
+          whiteName: shuffledPlayers[i].studentName,
           bye: true,
           result: "1-0",
-          points_white: 1
+          pointsWhite: 1
         });
       }
       board++;
@@ -817,15 +809,15 @@ async function generateKnockoutPairings(
 
     for (const pairing of prevRoundPairings) {
       if (pairing.bye) {
-        const winner = players.find(p => p.student_id === pairing.white_student_id);
+        const winner = players.find(p => p.studentId === pairing.whiteStudentId);
         if (winner) winners.push(winner);
       } else if (pairing.result) {
         let winnerId: string | undefined;
-        if (pairing.result === "1-0") winnerId = pairing.white_student_id;
-        else if (pairing.result === "0-1") winnerId = pairing.black_student_id;
+        if (pairing.result === "1-0") winnerId = pairing.whiteStudentId;
+        else if (pairing.result === "0-1") winnerId = pairing.blackStudentId;
         
         if (winnerId) {
-          const winner = players.find(p => p.student_id === winnerId);
+          const winner = players.find(p => p.studentId === winnerId);
           if (winner) winners.push(winner);
         }
       }
@@ -836,25 +828,25 @@ async function generateKnockoutPairings(
     for (let i = 0; i < winners.length; i += 2) {
       if (i + 1 < winners.length) {
         pairings.push({
-          tournament_id: tournamentId,
-          round_no: roundNo,
+          tournamentId: tournamentId,
+          roundNo: roundNo,
           board,
-          white_student_id: winners[i].student_id,
-          black_student_id: winners[i + 1].student_id,
-          white_name: winners[i].student_name,
-          black_name: winners[i + 1].student_name
+          whiteStudentId: winners[i].studentId,
+          blackStudentId: winners[i + 1].studentId,
+          whiteName: winners[i].studentName,
+          blackName: winners[i + 1].studentName
         });
       } else {
         // Bye for last winner
         pairings.push({
-          tournament_id: tournamentId,
-          round_no: roundNo,
+          tournamentId: tournamentId,
+          roundNo: roundNo,
           board,
-          white_student_id: winners[i].student_id,
-          white_name: winners[i].student_name,
+          whiteStudentId: winners[i].studentId,
+          whiteName: winners[i].name,
           bye: true,
           result: "1-0",
-          points_white: 1
+          pointsWhite: 1
         });
       }
       board++;
@@ -867,8 +859,8 @@ async function generateKnockoutPairings(
 async function havePlayed(tournamentId: string, player1Id: string, player2Id: string): Promise<boolean> {
   const pairings = await localTournamentsApi.getTournamentPairings(tournamentId);
   return pairings.some(p => 
-    (p.white_student_id === player1Id && p.black_student_id === player2Id) ||
-    (p.white_student_id === player2Id && p.black_student_id === player1Id)
+    (p.whiteStudentId === player1Id && p.blackStudentId === player2Id) ||
+    (p.whiteStudentId === player2Id && p.blackStudentId === player1Id)
   );
 }
 

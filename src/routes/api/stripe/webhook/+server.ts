@@ -50,7 +50,7 @@ export const POST = async ({ request }) => {
                     try {
                         await adminDb.collection('users').doc(userId).update({
                             'settings.plan': 'premium',
-                            'settings.stripe_customer_id': session.customer,
+                            'settings.stripeCustomerId': session.customer,
                             'settings.status': 'active',
                             'updatedAt': new Date().toISOString()
                         });
@@ -58,7 +58,7 @@ export const POST = async ({ request }) => {
                         await adminDb.collection('users').doc(userId).set({
                             settings: {
                                 plan: 'premium',
-                                stripe_customer_id: session.customer,
+                                stripeCustomerId: session.customer,
                                 status: 'active'
                             },
                             updatedAt: new Date().toISOString()
@@ -66,7 +66,7 @@ export const POST = async ({ request }) => {
                     }
 
                     await logSystemEvent({
-                        type: 'pago_completado',
+                        type: 'paymentCompleted',
                         userId,
                         status: 'success',
                         details: { sessionId: session.id, customer: session.customer }
@@ -80,7 +80,7 @@ export const POST = async ({ request }) => {
                 const subscription = event.data.object as Stripe.Subscription;
                 const customerId = subscription.customer as string;
 
-                const snapshot = await adminDb.collection('users').where('settings.stripe_customer_id', '==', customerId).get();
+                const snapshot = await adminDb.collection('users').where('settings.stripeCustomerId', '==', customerId).get();
 
                 if (!snapshot.empty) {
                     const userDoc = snapshot.docs[0];
@@ -91,7 +91,7 @@ export const POST = async ({ request }) => {
                     });
 
                     await logSystemEvent({
-                        type: 'suscripcion_cancelada',
+                        type: 'subscriptionCanceled',
                         userId: userDoc.id,
                         status: 'success',
                         details: { subscriptionId: subscription.id, customer: customerId }
@@ -105,10 +105,10 @@ export const POST = async ({ request }) => {
                 const invoice = event.data.object as Stripe.Invoice;
                 const customerId = invoice.customer as string;
                 
-                const snapshot = await adminDb.collection('users').where('settings.stripe_customer_id', '==', customerId).get();
+                const snapshot = await adminDb.collection('users').where('settings.stripeCustomerId', '==', customerId).get();
                 if (!snapshot.empty) {
                     await logSystemEvent({
-                        type: 'pago_fallido',
+                        type: 'paymentFailed',
                         userId: snapshot.docs[0].id,
                         status: 'error',
                         details: { invoiceId: invoice.id, amount: invoice.amount_due }
@@ -126,7 +126,7 @@ export const POST = async ({ request }) => {
         console.error('❌ Error en el procesamiento del webhook:', error);
         
         await logSystemEvent({
-            type: 'webhook_error',
+            type: 'webhookError',
             status: 'error',
             details: { message: error.message, eventType: event.type }
         });

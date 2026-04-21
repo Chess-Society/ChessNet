@@ -30,8 +30,8 @@ export const exercisesApi = {
     const ownerId = await getOwnerId();
     let q = query(
       getOwnedQuery("chess_exercises"),
-      where("school_id", "==", schoolId),
-      orderBy("created_at", "desc")
+      where("schoolId", "==", schoolId),
+      orderBy("createdAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -77,17 +77,17 @@ export const exercisesApi = {
     schoolId: string,
     exercise: Omit<
       ChessExercise,
-      "id" | "school_id" | "created_at" | "updated_at" | "owner_id"
+      "id" | "schoolId" | "createdAt" | "updatedAt" | "owner_id"
     >,
   ): Promise<ChessExercise> {
     const ownerId = await getOwnerId();
 
     const data = {
       ...exercise,
-      school_id: schoolId,
+      schoolId: schoolId,
       owner_id: ownerId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "chess_exercises"), data);
@@ -110,7 +110,7 @@ export const exercisesApi = {
 
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const docSnap = await getDoc(docRef);
@@ -143,13 +143,13 @@ export const exercisesApi = {
 
     await addDoc(collection(db, "exercise_attempts"), {
       owner_id: ownerId,
-      exercise_id: exerciseId,
-      student_id: studentId,
+      exerciseId: exerciseId,
+      studentId: studentId,
       moves,
-      is_correct: isCorrect,
-      time_spent_seconds: timeSpentSeconds,
-      hints_used: hintsUsed,
-      attempted_at: new Date().toISOString()
+      isCorrect: isCorrect,
+      timeSpentSeconds: timeSpentSeconds,
+      hintsUsed: hintsUsed,
+      attemptedAt: new Date().toISOString()
     });
   },
 
@@ -164,22 +164,22 @@ export const exercisesApi = {
 
     let q = query(
       getOwnedQuery("exercise_attempts"),
-      where("student_id", "==", studentId),
-      orderBy("attempted_at", "desc")
+      where("studentId", "==", studentId),
+      orderBy("attemptedAt", "desc")
     );
 
     if (exerciseId) {
-      q = query(q, where("exercise_id", "==", exerciseId));
+      q = query(q, where("exerciseId", "==", exerciseId));
     }
 
     const querySnapshot = await getDocs(q);
     const attempts = querySnapshot.docs.map(doc => toData<any>(doc));
 
     for (const attempt of attempts) {
-      if (attempt.exercise_id) {
-        const exerciseSnap = await getDoc(doc(db, "chess_exercises", attempt.exercise_id));
+      if (attempt.exerciseId) {
+        const exerciseSnap = await getDoc(doc(db, "chess_exercises", attempt.exerciseId));
         if (exerciseSnap.exists()) {
-          attempt.chess_exercises = toData<ChessExercise>(exerciseSnap);
+          attempt.exercise = toData<ChessExercise>(exerciseSnap);
         }
       }
     }

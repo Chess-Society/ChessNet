@@ -21,7 +21,6 @@ export const studentsApi = {
    * Obtiene todos los alumnos del profesor actual.
    */
   async getMyStudents(): Promise<Student[]> {
-    const ownerId = await getOwnerId();
     const q = query(getOwnedQuery("students"), orderBy("name", "asc"));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => toData<Student>(doc));
@@ -31,10 +30,9 @@ export const studentsApi = {
    * Obtiene los alumnos de un centro específico.
    */
   async getStudentsBySchool(schoolId: string): Promise<Student[]> {
-    const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("students"),
-      where("school_id", "==", schoolId),
+      where("schoolId", "==", schoolId),
       orderBy("name", "asc")
     );
 
@@ -70,8 +68,8 @@ export const studentsApi = {
     const data = {
       ...studentData,
       owner_id: ownerId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     const docRef = await addDoc(collection(db, "students"), data);
@@ -91,7 +89,7 @@ export const studentsApi = {
 
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const updatedSnap = await getDoc(docRef);
@@ -122,8 +120,8 @@ export const studentsApi = {
       batch.set(docRef, {
         ...student,
         owner_id: ownerId,
-        created_at: now,
-        updated_at: now,
+        createdAt: now,
+        updatedAt: now,
       });
     });
 
@@ -135,23 +133,23 @@ export const studentsApi = {
   /**
    * Guarda múltiples registros de asistencia.
    */
-  async saveAttendance(classId: string, date: string, attendanceList: { student_id: string; status: string; notes?: string }[]): Promise<void> {
+  async saveAttendance(classId: string, date: string, attendanceList: { studentId: string; status: string; notes?: string }[]): Promise<void> {
     const ownerId = await getOwnerId();
     const batch = writeBatch(db);
     const now = new Date().toISOString();
 
     for (const item of attendanceList) {
-      const attendanceId = `${item.student_id}_${classId}_${date}`;
+      const attendanceId = `${item.studentId}_${classId}_${date}`;
       const docRef = doc(db, "attendance", attendanceId);
       
       batch.set(docRef, {
         owner_id: ownerId,
-        class_id: classId,
-        student_id: item.student_id,
+        classId: classId,
+        studentId: item.studentId,
         date: date,
         status: item.status,
         notes: item.notes || "",
-        updated_at: now
+        updatedAt: now
       });
     }
 
@@ -162,10 +160,9 @@ export const studentsApi = {
    * Obtiene el historial de asistencia de un alumno.
    */
   async getStudentAttendance(studentId: string): Promise<Attendance[]> {
-    const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("attendance"),
-      where("student_id", "==", studentId),
+      where("studentId", "==", studentId),
       orderBy("date", "desc")
     );
 
@@ -179,18 +176,18 @@ export const studentsApi = {
   async getStudentAttendanceSummary(studentId: string): Promise<any> {
     const attendance = await this.getStudentAttendance(studentId);
     
-    const present = attendance.filter((a: any) => a.status === 'P').length;
-    const absent = attendance.filter((a: any) => a.status === 'A').length;
-    const late = attendance.filter(a => a.status === 'T').length;
-    const total = attendance.length;
+    const presentCount = attendance.filter((a: any) => a.status === 'P').length;
+    const absentCount = attendance.filter((a: any) => a.status === 'A').length;
+    const lateCount = attendance.filter(a => a.status === 'T').length;
+    const totalSessions = attendance.length;
 
     return {
-      student_id: studentId,
-      present_count: present,
-      absent_count: absent,
-      late_count: late,
-      total_sessions: total,
-      attendance_rate: total > 0 ? (present / total) * 100 : 0
+      studentId: studentId,
+      presentCount: presentCount,
+      absentCount: absentCount,
+      lateCount: lateCount,
+      totalSessions: totalSessions,
+      attendanceRate: totalSessions > 0 ? (presentCount / totalSessions) * 100 : 0
     };
   },
 
@@ -200,18 +197,17 @@ export const studentsApi = {
    * Obtiene el nivel de habilidades de un alumno.
    */
   async getStudentSkills(studentId: string): Promise<any[]> {
-    const ownerId = await getOwnerId();
     const q = query(
       getOwnedQuery("student_skills"),
-      where("student_id", "==", studentId)
+      where("studentId", "==", studentId)
     );
 
     const querySnapshot = await getDocs(q);
     const studentSkills = querySnapshot.docs.map(doc => toData<any>(doc));
 
     for (const ss of studentSkills) {
-      if (ss.skill_id) {
-        const skillDoc = await getDoc(doc(db, "skills", ss.skill_id));
+      if (ss.skillId) {
+        const skillDoc = await getDoc(doc(db, "skills", ss.skillId));
         if (skillDoc.exists()) {
           ss.skills = toData<any>(skillDoc);
         }
@@ -237,13 +233,13 @@ export const studentsApi = {
     
     const data = {
       owner_id: ownerId,
-      student_id: studentId,
-      skill_id: skillId,
+      studentId: studentId,
+      skillId: skillId,
       level,
       mastered,
       notes: notes || "",
-      last_practiced: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      lastPracticed: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     await setDoc(docRef, data, { merge: true });

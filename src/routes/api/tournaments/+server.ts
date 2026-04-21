@@ -44,21 +44,21 @@ export const POST: RequestHandler = async (event) => {
     
     const tournamentData = {
       owner_id: uid,
-      school_id: body.school_id || null,
+      schoolId: body.schoolId || null,
       name: body.name || 'Torneo sin nombre',
       description: body.description || null,
       format: body.format || 'swiss',
-      time_control: body.time_control || '10+5',
-      max_players: body.max_players || 16,
-      entry_fee: body.entry_fee || 0,
-      prize_pool: body.prize_pool || 0,
-      startAt: body.startAt || body.start_date || null,
-      endAt: body.endAt || body.end_date || null,
-      registration_deadline: body.registration_deadline || null,
+      timeControl: body.timeControl || '10+5',
+      maxPlayers: body.maxPlayers || 16,
+      entryFee: body.entryFee || 0,
+      prizePool: body.prizePool || 0,
+      startAt: body.startAt || null,
+      endAt: body.endAt || null,
+      registrationDeadline: body.registrationDeadline || null,
       status: body.status || 'draft',
-      currentRound: body.currentRound || body.current_round || 0,
-      roundsPlanned: body.roundsPlanned || body.total_rounds || 0,
-      players_registered: 0,
+      currentRound: body.currentRound || 0,
+      roundsPlanned: body.roundsPlanned || 0,
+      playersRegistered: 0,
       location: body.location || null,
       organizer: body.organizer || null,
       notes: body.notes || null,
@@ -112,7 +112,6 @@ export const PUT: RequestHandler = async (event) => {
 
     delete cleanUpdates.id;
     delete cleanUpdates.owner_id;
-    delete cleanUpdates.created_at;
     delete cleanUpdates.createdAt;
 
     await docRef.update(cleanUpdates);
@@ -159,15 +158,15 @@ export const DELETE: RequestHandler = async (event) => {
     const batch = adminDb.batch();
 
     // 1. Borrar jugadores
-    const players = await adminDb.collection('local_tournament_players').where('tournament_id', '==', id).get();
+    const players = await adminDb.collection('local_tournament_players').where('tournamentId', '==', id).get();
     players.docs.forEach((doc: any) => batch.delete(doc.ref));
 
     // 2. Borrar rondas
-    const rounds = await adminDb.collection('local_tournament_rounds').where('tournament_id', '==', id).get();
+    const rounds = await adminDb.collection('local_tournament_rounds').where('tournamentId', '==', id).get();
     rounds.docs.forEach((doc: any) => batch.delete(doc.ref));
 
     // 3. Borrar pairings
-    const pairings = await adminDb.collection('local_tournament_pairings').where('tournament_id', '==', id).get();
+    const pairings = await adminDb.collection('local_tournament_pairings').where('tournamentId', '==', id).get();
     pairings.docs.forEach((doc: any) => batch.delete(doc.ref));
 
     // 4. Borrar el torneo

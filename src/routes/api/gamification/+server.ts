@@ -51,14 +51,14 @@ async function createBadge(uid: string, params: any) {
 
   const badgeData = {
     owner_id: uid,
-    school_id: schoolId,
+    schoolId,
     name,
     description,
     icon,
     color: color || '#3b82f6',
     criteria: criteria || {},
-    is_active: true,
-    created_at: new Date().toISOString()
+    isActive: true,
+    createdAt: new Date().toISOString()
   };
 
   const docRef = await adminDb.collection('badges').add(badgeData);
@@ -73,9 +73,12 @@ async function updateBadge(uid: string, params: any) {
   if (!badgeDoc.exists) return json({ error: 'Insignia no encontrada' }, { status: 404 });
   if (badgeDoc.data()?.owner_id !== uid) return json({ error: 'No autorizado' }, { status: 403 });
 
-  // No permitir cambiar owner_id o school_id
-  const { owner_id, school_id, ...safeUpdates } = updates;
-  await badgeRef.update(safeUpdates);
+  // No permitir cambiar owner_id o schoolId
+  const { owner_id, schoolId, ...safeUpdates } = updates;
+  await badgeRef.update({
+    ...safeUpdates,
+    updatedAt: new Date().toISOString()
+  });
 
   return json({ success: true });
 }
@@ -107,9 +110,9 @@ async function awardBadge(uid: string, params: any) {
 
   const sbData = {
     owner_id: uid,
-    student_id: studentId,
-    badge_id: badgeId,
-    earned_at: new Date().toISOString()
+    studentId,
+    badgeId,
+    earnedAt: new Date().toISOString()
   };
 
   await adminDb.collection('student_badges').add(sbData);
@@ -121,8 +124,8 @@ async function removeBadge(uid: string, params: any) {
 
   const snapshot = await adminDb.collection('student_badges')
     .where('owner_id', '==', uid)
-    .where('student_id', '==', studentId)
-    .where('badge_id', '==', badgeId)
+    .where('studentId', '==', studentId)
+    .where('badgeId', '==', badgeId)
     .get();
 
   if (snapshot.empty) return json({ success: true });
@@ -146,9 +149,9 @@ async function updateStudentStats(uid: string, params: any) {
   const data = {
     ...updates,
     owner_id: uid,
-    student_id: studentId,
-    last_activity: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    studentId,
+    lastActivity: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   await statsRef.set(data, { merge: true });
@@ -169,9 +172,9 @@ async function addPoints(uid: string, params: any) {
     points: newPoints,
     level: newLevel,
     owner_id: uid,
-    student_id: studentId,
-    last_activity: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    studentId,
+    lastActivity: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   await statsRef.set(updates, { merge: true });
@@ -179,10 +182,10 @@ async function addPoints(uid: string, params: any) {
   // Log activity
   await adminDb.collection('activity_logs').add({
     owner_id: uid,
-    student_id: studentId,
-    activity_type: 'points_earned',
-    activity_data: { points, reason, totalPoints: newPoints },
-    created_at: new Date().toISOString()
+    studentId,
+    activityType: 'points_earned',
+    activityData: { points, reason, totalPoints: newPoints },
+    createdAt: new Date().toISOString()
   });
 
   return json({ success: true, points: newPoints, level: newLevel });
@@ -193,10 +196,10 @@ async function logActivity(uid: string, params: any) {
 
   await adminDb.collection('activity_logs').add({
     owner_id: uid,
-    student_id: studentId,
-    activity_type: activityType,
-    activity_data: activityData || null,
-    created_at: new Date().toISOString()
+    studentId,
+    activityType,
+    activityData: activityData || null,
+    createdAt: new Date().toISOString()
   });
 
   return json({ success: true });
@@ -212,20 +215,20 @@ async function checkAndAwardBadges(uid: string, params: any) {
   // 2. Obtener insignias ya ganadas
   const earnedSnapshot = await adminDb.collection('student_badges')
     .where('owner_id', '==', uid)
-    .where('student_id', '==', studentId)
+    .where('studentId', '==', studentId)
     .get();
-  const earnedBadgeIds = earnedSnapshot.docs.map((doc: any) => doc.data().badge_id);
+  const earnedBadgeIds = earnedSnapshot.docs.map((doc: any) => doc.data().badgeId);
 
   // 3. Obtener escuela del estudiante
   const studentDoc = await adminDb.collection('students').doc(studentId).get();
   if (!studentDoc.exists) return json({ error: 'Estudiante no encontrado' }, { status: 404 });
-  const schoolId = studentDoc.data()?.school_id;
+  const schoolId = studentDoc.data()?.schoolId;
 
   // 4. Obtener insignias de la escuela
   const badgesSnapshot = await adminDb.collection('badges')
     .where('owner_id', '==', uid)
-    .where('school_id', '==', schoolId)
-    .where('is_active', '==', true)
+    .where('schoolId', '==', schoolId)
+    .where('isActive', '==', true)
     .get();
 
   const newBadges = [];
@@ -238,10 +241,10 @@ async function checkAndAwardBadges(uid: string, params: any) {
     const criteria = badge.criteria;
     let shouldAward = false;
 
-    if (criteria.lessons_completed && (studentStats?.lessons_completed || 0) >= criteria.lessons_completed) shouldAward = true;
-    else if (criteria.exercises_completed && (studentStats?.exercises_completed || 0) >= criteria.exercises_completed) shouldAward = true;
-    else if (criteria.tournaments_participated && (studentStats?.tournaments_participated || 0) >= criteria.tournaments_participated) shouldAward = true;
-    else if (criteria.streak_days && (studentStats?.streak_days || 0) >= criteria.streak_days) shouldAward = true;
+    if (criteria.lessonsCompleted && (studentStats?.lessonsCompleted || 0) >= criteria.lessonsCompleted) shouldAward = true;
+    else if (criteria.exercisesCompleted && (studentStats?.exercisesCompleted || 0) >= criteria.exercisesCompleted) shouldAward = true;
+    else if (criteria.tournamentsParticipated && (studentStats?.tournamentsParticipated || 0) >= criteria.tournamentsParticipated) shouldAward = true;
+    else if (criteria.streakDays && (studentStats?.streakDays || 0) >= criteria.streakDays) shouldAward = true;
     else if (criteria.points && (studentStats?.points || 0) >= criteria.points) shouldAward = true;
     else if (criteria.level && (studentStats?.level || 0) >= criteria.level) shouldAward = true;
 
@@ -249,9 +252,9 @@ async function checkAndAwardBadges(uid: string, params: any) {
       const sbRef = adminDb.collection('student_badges').doc();
       batch.set(sbRef, {
         owner_id: uid,
-        student_id: studentId,
-        badge_id: badge.id,
-        earned_at: new Date().toISOString()
+        studentId,
+        badgeId: badge.id,
+        earnedAt: new Date().toISOString()
       });
       newBadges.push(badge);
     }

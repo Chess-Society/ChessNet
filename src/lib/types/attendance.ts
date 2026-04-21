@@ -5,13 +5,13 @@ export type AttendanceStatus = 'P' | 'T' | 'A'; // Presente, Tardanza, Ausente
 export interface Attendance {
   id: string;
   owner_id: string;
-  student_id: string;
-  class_id: string;
+  studentId: string;
+  classId: string;
   date: string; // YYYY-MM-DD format
   status: AttendanceStatus;
   notes?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AttendanceWithDetails extends Attendance {
@@ -20,67 +20,67 @@ export interface AttendanceWithDetails extends Attendance {
 }
 
 export interface AttendanceRecord {
-  student_id: string;
-  student_name: string;
+  studentId: string;
+  studentName: string;
   status: AttendanceStatus;
   notes?: string;
 }
 
 export interface ClassAttendance {
-  class_id: string;
-  class_name: string;
+  classId: string;
+  className: string;
   date: string;
   records: AttendanceRecord[];
-  total_students: number;
-  present_count: number;
-  late_count: number;
-  absent_count: number;
+  totalStudents: number;
+  presentCount: number;
+  lateCount: number;
+  absentCount: number;
 }
 
 export interface StudentAttendanceStats {
-  student_id: string;
-  student_name: string;
-  total_sessions: number;
-  present_count: number;
-  late_count: number;
-  absent_count: number;
-  attendance_rate: number; // percentage
-  punctuality_rate: number; // percentage (present / (present + late))
-  last_attendance_date?: string;
+  studentId: string;
+  studentName: string;
+  totalSessions: number;
+  presentCount: number;
+  lateCount: number;
+  absentCount: number;
+  attendanceRate: number; // percentage
+  punctualityRate: number; // percentage (present / (present + late))
+  lastAttendanceDate?: string;
 }
 
 export interface ClassAttendanceStats {
-  class_id: string;
-  class_name: string;
-  total_sessions: number;
-  average_attendance_rate: number;
-  average_punctuality_rate: number;
-  most_attended_date?: string;
-  least_attended_date?: string;
+  classId: string;
+  className: string;
+  totalSessions: number;
+  averageAttendanceRate: number;
+  averagePunctualityRate: number;
+  mostAttendedDate?: string;
+  leastAttendedDate?: string;
   students: StudentAttendanceStats[];
 }
 
 export interface AttendanceFilters {
-  class_id?: string;
-  student_id?: string;
-  date_from?: string;
-  date_to?: string;
+  classId?: string;
+  studentId?: string;
+  dateFrom?: string;
+  dateTo?: string;
   status?: AttendanceStatus;
 }
 
 export interface AttendanceCalendarEvent {
   date: string;
-  class_id: string;
-  class_name: string;
+  classId: string;
+  className: string;
   schedule: string;
-  attendance_taken: boolean;
-  present_count?: number;
-  total_students?: number;
+  attendanceTaken: boolean;
+  presentCount?: number;
+  totalStudents?: number;
 }
 
 export interface AttendanceForm {
-  class_id: string;
-  student_id: string;
+  classId: string;
+  studentId: string;
   date: string;
   status: "P" | "T" | "A";
   notes?: string;
@@ -88,12 +88,12 @@ export interface AttendanceForm {
 
 export interface StudentAttendance {
   owner_id: string;
-  student_id: string;
+  studentId: string;
   marks: number;
-  p_count: number;
-  t_count: number;
-  a_count: number;
-  attendance_rate: number;
-  punctuality_rate: number;
-  last_date: string;
+  pCount: number;
+  tCount: number;
+  aCount: number;
+  attendanceRate: number;
+  punctualityRate: number;
+  lastDate: string;
 }

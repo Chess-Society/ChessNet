@@ -32,9 +32,7 @@ export const attendanceApi = {
    * Get attendance records with optional filters
    */
   async get(filters: AttendanceFilters = {}) {
-    const ownerId = await getOwnerId();
-
-    let q = query(
+    const q = query(
       getOwnedQuery('attendance'),
       orderBy('date', 'desc')
     );
@@ -42,17 +40,17 @@ export const attendanceApi = {
     const querySnapshot = await getDocs(q);
     let records = querySnapshot.docs.map(doc => toData<any>(doc));
 
-    if (filters.class_id) {
-      records = records.filter(r => r.class_id === filters.class_id);
+    if (filters.classId) {
+      records = records.filter(r => r.classId === filters.classId);
     }
-    if (filters.student_id) {
-      records = records.filter(r => r.student_id === filters.student_id);
+    if (filters.studentId) {
+      records = records.filter(r => r.studentId === filters.studentId);
     }
-    if (filters.date_from) {
-      records = records.filter(r => r.date >= filters.date_from!);
+    if (filters.dateFrom) {
+      records = records.filter(r => r.date >= filters.dateFrom!);
     }
-    if (filters.date_to) {
-      records = records.filter(r => r.date <= filters.date_to!);
+    if (filters.dateTo) {
+      records = records.filter(r => r.date <= filters.dateTo!);
     }
     if (filters.status) {
       records = records.filter(r => r.status === filters.status);
@@ -60,14 +58,14 @@ export const attendanceApi = {
 
     // Fetch details (Manual Join)
     for (const record of records) {
-      if (record.student_id) {
-        const studentDoc = await getDoc(doc(db, "students", record.student_id));
+      if (record.studentId) {
+        const studentDoc = await getDoc(doc(db, "students", record.studentId));
         if (studentDoc.exists()) {
           record.student = { id: studentDoc.id, name: studentDoc.data().name, email: studentDoc.data().email };
         }
       }
-      if (record.class_id) {
-        const classDoc = await getDoc(doc(db, "classes", record.class_id));
+      if (record.classId) {
+        const classDoc = await getDoc(doc(db, "classes", record.classId));
         if (classDoc.exists()) {
           record.class = { id: classDoc.id, name: classDoc.data().name, schedule: classDoc.data().schedule };
         }
@@ -83,7 +81,7 @@ export const attendanceApi = {
   async getByClassAndDate(classId: string, date: string) {
     const q = query(
       getOwnedQuery('attendance'),
-      where('class_id', '==', classId),
+      where('classId', '==', classId),
       where('date', '==', date)
     );
 
@@ -92,8 +90,8 @@ export const attendanceApi = {
 
     // Fetch student details
     for (const record of records) {
-      if (record.student_id) {
-        const studentDoc = await getDoc(doc(db, "students", record.student_id));
+      if (record.studentId) {
+        const studentDoc = await getDoc(doc(db, "students", record.studentId));
         if (studentDoc.exists()) {
           record.student = { id: studentDoc.id, name: studentDoc.data().name, email: studentDoc.data().email };
         }
@@ -120,12 +118,12 @@ export const attendanceApi = {
     
     const attendanceData = {
       owner_id: ownerId,
-      student_id: studentId,
-      class_id: classId,
+      studentId,
+      classId,
       date,
       status,
       notes: notes || "",
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
 
     await setDoc(docRef, attendanceData, { merge: true });
@@ -145,17 +143,17 @@ export const attendanceApi = {
     const result: string[] = [];
 
     for (const record of records) {
-      const attendanceId = `${record.student_id}_${classId}_${date}`;
+      const attendanceId = `${record.studentId}_${classId}_${date}`;
       const docRef = doc(db, "attendance", attendanceId);
       
       const data = {
         owner_id: ownerId,
-        student_id: record.student_id,
-        class_id: classId,
+        studentId: record.studentId,
+        classId,
         date,
         status: record.status,
         notes: record.notes || "",
-        updated_at: now
+        updatedAt: now
       };
       
       batch.set(docRef, data, { merge: true });
@@ -192,16 +190,16 @@ export const attendanceApi = {
    * Get attendance statistics for a student
    */
   async getStudentStats(studentId: string, classId?: string, dateFrom?: string, dateTo?: string): Promise<StudentAttendanceStats> {
-    let q = query(
+    const q = query(
       getOwnedQuery('attendance'),
-      where('student_id', '==', studentId)
+      where('studentId', '==', studentId)
     );
 
     const querySnapshot = await getDocs(q);
     let data = querySnapshot.docs.map(doc => toData<any>(doc));
 
     if (classId) {
-      data = data.filter(r => r.class_id === classId);
+      data = data.filter(r => r.classId === classId);
     }
     if (dateFrom) {
       data = data.filter(r => r.date >= dateFrom);
@@ -212,14 +210,14 @@ export const attendanceApi = {
 
     if (!data || data.length === 0) {
       return {
-        student_id: studentId,
-        student_name: 'Unknown Student',
-        total_sessions: 0,
-        present_count: 0,
-        late_count: 0,
-        absent_count: 0,
-        attendance_rate: 0,
-        punctuality_rate: 0
+        studentId,
+        studentName: 'Unknown Student',
+        totalSessions: 0,
+        presentCount: 0,
+        lateCount: 0,
+        absentCount: 0,
+        attendanceRate: 0,
+        punctualityRate: 0
       };
     }
 
@@ -240,15 +238,15 @@ export const attendanceApi = {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date;
 
     return {
-      student_id: studentId,
-      student_name: studentName,
-      total_sessions: totalSessions,
-      present_count: presentCount,
-      late_count: lateCount,
-      absent_count: absentCount,
-      attendance_rate: attendanceRate,
-      punctuality_rate: punctualityRate,
-      last_attendance_date: lastAttendanceDate
+      studentId,
+      studentName,
+      totalSessions,
+      presentCount,
+      lateCount,
+      absentCount,
+      attendanceRate,
+      punctualityRate,
+      lastAttendanceDate
     };
   },
 
@@ -262,9 +260,9 @@ export const attendanceApi = {
     const classData = classDoc.data();
 
     // Get all attendance records for the class
-    let q = query(
+    const q = query(
       getOwnedQuery('attendance'),
-      where('class_id', '==', classId)
+      where('classId', '==', classId)
     );
 
     const querySnapshot = await getDocs(q);
@@ -279,21 +277,21 @@ export const attendanceApi = {
 
     if (!data || data.length === 0) {
       return {
-        class_id: classId,
-        class_name: classData?.name || 'Unknown Class',
-        total_sessions: 0,
-        average_attendance_rate: 0,
-        average_punctuality_rate: 0,
+        classId,
+        className: classData?.name || 'Unknown Class',
+        totalSessions: 0,
+        averageAttendanceRate: 0,
+        averagePunctualityRate: 0,
         students: []
       };
     }
 
     // Group by student
     const studentGroups = data.reduce((acc, record) => {
-      if (!acc[record.student_id]) {
-        acc[record.student_id] = [];
+      if (!acc[record.studentId]) {
+        acc[record.studentId] = [];
       }
-      acc[record.student_id].push(record);
+      acc[record.studentId].push(record);
       return acc;
     }, {} as Record<string, any[]>);
 
@@ -320,15 +318,15 @@ export const attendanceApi = {
         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]?.date;
 
       students.push({
-        student_id: studentId,
-        student_name: studentName,
-        total_sessions: totalSessions,
-        present_count: presentCount,
-        late_count: lateCount,
-        absent_count: absentCount,
-        attendance_rate: attendanceRate,
-        punctuality_rate: punctualityRate,
-        last_attendance_date: lastAttendanceDate
+        studentId,
+        studentName,
+        totalSessions,
+        presentCount,
+        lateCount,
+        absentCount,
+        attendanceRate,
+        punctualityRate,
+        lastAttendanceDate
       });
 
       totalAttendanceRate += attendanceRate;
@@ -370,14 +368,14 @@ export const attendanceApi = {
     }
 
     return {
-      class_id: classId,
-      class_name: classData?.name || 'Unknown Class',
-      total_sessions: Object.keys(dateGroups).length,
-      average_attendance_rate: averageAttendanceRate,
-      average_punctuality_rate: averagePunctualityRate,
-      most_attended_date: mostAttendedDate,
-      least_attended_date: leastAttendedDate,
-      students: students.sort((a, b) => b.attendance_rate - a.attendance_rate)
+      classId,
+      className: classData?.name || 'Unknown Class',
+      totalSessions: Object.keys(dateGroups).length,
+      averageAttendanceRate,
+      averagePunctualityRate,
+      mostAttendedDate,
+      leastAttendedDate,
+      students: students.sort((a, b) => b.attendanceRate - a.attendanceRate)
     };
   },
 
@@ -406,7 +404,7 @@ export const attendanceApi = {
 
     // Group attendance by class and date
     const attendanceMap = attendance.reduce((acc: any, record: any) => {
-      const key = `${record.class_id}-${record.date}`;
+      const key = `${record.classId}-${record.date}`;
       if (!acc[key]) {
         acc[key] = { present: 0, total: 0 };
       }
@@ -432,12 +430,12 @@ export const attendanceApi = {
         if (attendanceData) {
           events.push({
             date: dateStr,
-            class_id: classItem.id,
-            class_name: classItem.name,
+            classId: classItem.id,
+            className: classItem.name,
             schedule: classItem.schedule || '',
-            attendance_taken: true,
-            present_count: attendanceData.present,
-            total_students: attendanceData.total
+            attendanceTaken: true,
+            presentCount: attendanceData.present,
+            totalStudents: attendanceData.total
           });
         }
       }

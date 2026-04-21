@@ -14,23 +14,23 @@ export const POST: RequestHandler = async (event) => {
   const uid = user.uid;
 
   try {
-    const { tournament_id, student_id, student_name, status } = await request.json();
+    const { tournamentId, studentId, studentName, status } = await request.json();
 
-    if (!tournament_id || !student_id) {
-      return json({ error: 'tournament_id y student_id son requeridos' }, { status: 400 });
+    if (!tournamentId || !studentId) {
+      return json({ error: 'tournamentId y studentId son requeridos' }, { status: 400 });
     }
 
     // Verificar propiedad del torneo
-    const tournamentSnap = await adminDb.collection('local_tournaments').doc(tournament_id).get();
+    const tournamentSnap = await adminDb.collection('local_tournaments').doc(tournamentId).get();
     if (!tournamentSnap.exists || tournamentSnap.data()?.owner_id !== uid) {
       return json({ error: 'No autorizado o torneo no encontrado' }, { status: 403 });
     }
 
-    const docId = `${tournament_id}_${student_id}`;
+    const docId = `${tournamentId}_${studentId}`;
     const playerData = {
-      tournament_id,
-      student_id,
-      student_name,
+      tournamentId,
+      studentId,
+      studentName,
       owner_id: uid,
       status: status || 'active',
       createdAt: new Date().toISOString()
@@ -56,15 +56,15 @@ export const DELETE: RequestHandler = async (event) => {
 
   const { url } = event;
   const uid = user.uid;
-  const tournament_id = url.searchParams.get('tournament_id');
-  const student_id = url.searchParams.get('student_id');
+  const tournamentId = url.searchParams.get('tournamentId');
+  const studentId = url.searchParams.get('studentId');
 
-  if (!tournament_id || !student_id) {
+  if (!tournamentId || !studentId) {
     return json({ error: 'IDs requeridos' }, { status: 400 });
   }
 
   try {
-    const docId = `${tournament_id}_${student_id}`;
+    const docId = `${tournamentId}_${studentId}`;
     const docRef = adminDb.collection('local_tournament_players').doc(docId);
     const snap = await docRef.get();
 

@@ -22,8 +22,8 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
       return json({ error: 'Clase no encontrada o acceso denegado' }, { status: 404 });
     }
 
-    const { id: _, owner_id: __, created_at: ___, ...updateData } = body;
-    updateData.updated_at = new Date().toISOString();
+    const { id: _, owner_id: __, created_at: ___, createdAt: ____, updated_at: _____, ...updateData } = body;
+    updateData.updatedAt = new Date().toISOString();
 
     await classRef.update(updateData);
 
@@ -60,7 +60,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
 
     await classRef.update({
       ...body,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     });
 
     return json({ success: true });

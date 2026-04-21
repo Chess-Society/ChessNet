@@ -124,7 +124,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       - category: Una de estas categorías exactas: "Táctica", "Estrategia", "Aperturas", "Finales", "Historia".
       - level: "beginner", "intermediate", o "advanced".
       - difficulty: Número del 1 al 5.
-      - learning_objectives: Array de strings con objetivos.
+      - learningObjectives: Array de strings con objetivos.
       - resources: Array de strings con términos de búsqueda para recursos.
       
       IMPORTANTE:
@@ -170,13 +170,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             category: s.category || 'Táctica',
             level: s.level || 'beginner',
             difficulty: Number(s.difficulty) || 1,
-            learning_objectives: Array.isArray(s.learning_objectives) ? s.learning_objectives : [],
-            order_index: idx,
+            learningObjectives: Array.isArray(s.learningObjectives || s.learning_objectives) ? (s.learningObjectives || s.learning_objectives) : [],
+            orderIndex: idx,
             resources: Array.isArray(s.resources) ? s.resources : [],
             id: `ai-${Date.now()}-${idx}`,
             owner_id: locals.user.uid,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
             active: true
         }));
 

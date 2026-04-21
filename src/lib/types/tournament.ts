@@ -7,69 +7,69 @@ export interface Tournament {
   type?: "swiss" | "round_robin" | "elimination" | "team";
   format?: "swiss" | "round_robin" | "elimination" | "team" | "knockout" | "single_elimination";
   status: "planned" | "active" | "completed" | "draft" | "upcoming" | "in_progress" | "cancelled";
-  start_date?: string;
-  end_date?: string;
-  registration_deadline?: string;
-  max_participants?: number;
-  max_players?: number; // Aliased for legacy compatibility
-  time_control?: string;
-  entry_fee?: number;
-  prize_pool?: number;
+  startDate?: string;
+  endDate?: string;
+  registrationDeadline?: string;
+  maxParticipants?: number;
+  maxPlayers?: number; // Aliased for legacy compatibility
+  timeControl?: string;
+  entryFee?: number;
+  prizePool?: number;
   location?: string;
   organizer?: string;
   notes?: string;
   rules?: string;
-  school_id: string;
-  current_round?: number;
-  total_rounds?: number;
-  players_registered?: number;
+  schoolId: string;
+  currentRound?: number;
+  totalRounds?: number;
+  playersRegistered?: number;
   owner_id: string;
-  created_at: string;
-  updated_at?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface TournamentParticipant {
   id: string;
   owner_id: string;
-  tournament_id: string;
-  student_id: string;
+  tournamentId: string;
+  studentId: string;
   rating: number;
   score: number;
-  tiebreak_score?: number;
-  created_at: string;
+  tiebreakScore?: number;
+  createdAt: string;
   students?: Student; // For joined data
 }
 
 export interface TournamentMatch {
   id: string;
   owner_id: string;
-  tournament_id: string;
+  tournamentId: string;
   round: number;
-  board_number: number;
-  player1_id: string;
-  player2_id: string;
+  boardNumber: number;
+  player1Id: string;
+  player2Id: string;
   result?: "1-0" | "0-1" | "1/2-1/2" | "bye" | "forfeit" | "*";
   moves?: string[];
-  game_duration_seconds?: number;
-  played_at?: string;
-  created_at: string;
+  gameDurationSeconds?: number;
+  playedAt?: string;
+  createdAt: string;
   player1?: Student;
   player2?: Student;
 }
 
 export interface TournamentFilters {
   format?: "swiss" | "round_robin" | "knockout";
-  school_id?: string;
+  schoolId?: string;
   status?: "planned" | "active" | "completed";
   startDate?: string;
   endDate?: string;
 }
 
 export interface TournamentStats {
-  total_tournaments: number;
-  active_tournaments: number;
-  completed_tournaments: number;
-  total_players: number;
-  total_games: number;
+  totalTournaments: number;
+  activeTournaments: number;
+  completedTournaments: number;
+  totalPlayers: number;
+  totalGames: number;
   formats: Record<string, number>;
 }

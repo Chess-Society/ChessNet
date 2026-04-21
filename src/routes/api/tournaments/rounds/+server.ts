@@ -13,14 +13,14 @@ export const POST: RequestHandler = async (event) => {
   const uid = user.uid;
 
   try {
-    const { tournament_id, round_no, action } = await request.json();
+    const { tournamentId, roundNo, action } = await request.json();
 
-    if (!tournament_id || round_no === undefined) {
-      return json({ error: 'tournament_id y round_no son requeridos' }, { status: 400 });
+    if (!tournamentId || roundNo === undefined) {
+      return json({ error: 'tournamentId y roundNo son requeridos' }, { status: 400 });
     }
 
     // Verificar propiedad del torneo
-    const tournamentRef = adminDb.collection('local_tournaments').doc(tournament_id);
+    const tournamentRef = adminDb.collection('local_tournaments').doc(tournamentId);
     const tournamentSnap = await tournamentRef.get();
     if (!tournamentSnap.exists || tournamentSnap.data()?.owner_id !== uid) {
       return json({ error: 'No autorizado o torneo no encontrado' }, { status: 403 });
@@ -31,17 +31,17 @@ export const POST: RequestHandler = async (event) => {
       
       // Borrar pairings de esta ronda
       const pairings = await adminDb.collection('local_tournament_pairings')
-        .where('tournament_id', '==', tournament_id)
-        .where('round_no', '==', round_no)
+        .where('tournamentId', '==', tournamentId)
+        .where('roundNo', '==', roundNo)
         .get();
       pairings.docs.forEach((doc: any) => batch.delete(doc.ref));
 
       // Borrar la ronda
-      batch.delete(adminDb.collection('local_tournament_rounds').doc(`${tournament_id}_${round_no}`));
+      batch.delete(adminDb.collection('local_tournament_rounds').doc(`${tournamentId}_${roundNo}`));
 
       // Actualizar el torneo (ronda actual)
       batch.update(tournamentRef, {
-        currentRound: Math.max(0, round_no - 1),
+        currentRound: Math.max(0, roundNo - 1),
         updatedAt: new Date().toISOString()
       });
 
@@ -49,10 +49,10 @@ export const POST: RequestHandler = async (event) => {
       return json({ success: true, message: 'Ronda reiniciada correctamente' });
     } else {
       // Crear ronda
-      const docId = `${tournament_id}_${round_no}`;
+      const docId = `${tournamentId}_${roundNo}`;
       const roundData = {
-        tournament_id,
-        round_no,
+        tournamentId,
+        roundNo,
         owner_id: uid,
         startedAt: new Date().toISOString()
       };
@@ -61,7 +61,7 @@ export const POST: RequestHandler = async (event) => {
       
       // Actualizar ronda actual en el torneo
       await tournamentRef.update({
-        currentRound: round_no,
+        currentRound: roundNo,
         updatedAt: new Date().toISOString()
       });
 

@@ -5,16 +5,24 @@ import { serializeRecord } from '$lib/server/serialize';
 
 export const GET: RequestHandler = async ({ locals }) => {
   if (!locals.user) {
-    return json({ error: 'User not authenticated' }, { status: 401 });
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
     const snapshot = await adminDb.collection("skills")
       .where("owner_id", "==", locals.user.uid)
-      .orderBy("created_at", "desc")
+      .orderBy("createdAt", "desc")
       .get();
-        
-    const skills = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+         
+    const skills = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      return serializeRecord({ 
+        id: doc.id, 
+        ...data,
+        createdAt: data.createdAt || data.created_at,
+        updatedAt: data.updatedAt || data.updated_at
+      });
+    });
     return json({ skills });
   } catch (error: any) {
     console.error('❌ Error in GET skills API:', error.message);
@@ -24,7 +32,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) {
-    return json({ error: 'User not authenticated' }, { status: 401 });
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
@@ -40,9 +48,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         const skillData = {
           ...skill,
           owner_id: locals.user.uid,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         };
+        // Remove legacy fields if they exist in imported data
+        if ((skillData as any).created_at) delete (skillData as any).created_at;
+        if ((skillData as any).updated_at) delete (skillData as any).updated_at;
+        
         batch.set(skillRef, skillData);
         results.push(skillRef.id);
       });
@@ -55,12 +67,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const skillData = {
       ...body,
       owner_id: locals.user.uid,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
+    
+    // Cleanup legacy fields
+    if ((skillData as any).created_at) delete (skillData as any).created_at;
+    if ((skillData as any).updated_at) delete (skillData as any).updated_at;
 
     const docRef = await adminDb.collection("skills").add(skillData);
-    return json({ success: true, id: docRef.id });
+    return json({ success: true, id: docRef.id, skill: { id: docRef.id, ...skillData } });
   } catch (error: any) {
     console.error('❌ Error in POST skills API:', error.message);
     return json({ error: 'Error al procesar la habilidad' }, { status: 500 });
@@ -69,24 +85,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 export const DELETE: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) {
-    return json({ error: 'User not authenticated' }, { status: 401 });
+    return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
   try {
     const { id } = await request.json();
-    if (!id) return json({ error: 'ID required' }, { status: 400 });
+    if (!id) return json({ error: 'ID requerido' }, { status: 400 });
 
     const docRef = adminDb.collection("skills").doc(id);
     const docSnap = await docRef.get();
 
     if (!docSnap.exists || docSnap.data()?.owner_id !== locals.user.uid) {
-      return json({ error: 'Unauthorized' }, { status: 403 });
+      return json({ error: 'No autorizado' }, { status: 403 });
     }
 
     await docRef.delete();
     return json({ success: true });
   } catch (error: any) {
     console.error('❌ Error in DELETE skills API:', error.message);
-    return json({ error: 'Error deleting skill' }, { status: 500 });
+    return json({ error: 'Error al eliminar la habilidad' }, { status: 500 });
   }
 };

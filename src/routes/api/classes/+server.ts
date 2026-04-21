@@ -14,10 +14,19 @@ export const GET: RequestHandler = async (event) => {
   try {
     const snapshot = await adminDb.collection("classes")
       .where("owner_id", "==", user.uid)
-      .orderBy("created_at", "desc")
+      .orderBy("createdAt", "desc")
       .get();
         
-    const classes = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    // Standardize response fields for frontend consumption
+    const classes = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      return serializeRecord({ 
+        id: doc.id, 
+        ...data,
+        createdAt: data.createdAt || data.created_at,
+        updatedAt: data.updatedAt || data.updated_at
+      });
+    });
     return json({ classes });
   } catch (error: any) {
     console.error('❌ Error in GET classes API:', error.message);
@@ -46,9 +55,13 @@ export const POST: RequestHandler = async (event) => {
     const classData = {
       ...body,
       owner_id: user.uid,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
+    
+    // Support legacy field names in outgoing data for a graceful transition
+    if ((classData as any).created_at) delete (classData as any).created_at;
+    if ((classData as any).updated_at) delete (classData as any).updated_at;
 
     const docRef = await adminDb.collection("classes").add(classData);
     return json({ class: { id: docRef.id, ...classData } });
@@ -80,11 +93,13 @@ export const PUT: RequestHandler = async (event) => {
 
     const updateData = {
       ...body,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
     delete updateData.id;
     delete updateData.owner_id;
+    delete updateData.createdAt;
     delete updateData.created_at;
+    delete updateData.updated_at;
 
     await docRef.update(updateData);
     return json({ success: true, class: { id, ...docSnap.data(), ...updateData } });
@@ -114,9 +129,7 @@ export const DELETE: RequestHandler = async (event) => {
     }
 
     const data = docSnap.data();
-    const ownerId = data?.owner_id || data?.userId;
-
-    if (ownerId !== user.uid) {
+    if (data?.owner_id !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -124,15 +137,15 @@ export const DELETE: RequestHandler = async (event) => {
     const batch = adminDb.batch();
 
     // 1. Find and remove all enrollments for this class
-    const enrollmentsSnapshot = await adminDb.collection("class_students").where("class_id", "==", id).get();
+    const enrollmentsSnapshot = await adminDb.collection("class_students").where("classId", "==", id).get();
     enrollmentsSnapshot.docs.forEach((doc: any) => {
       batch.delete(doc.ref);
     });
 
     // 2. Find and update all students assigned to this class
-    const studentsSnapshot = await adminDb.collection("students").where("class_id", "==", id).get();
+    const studentsSnapshot = await adminDb.collection("students").where("classId", "==", id).get();
     studentsSnapshot.docs.forEach((doc: any) => {
-      batch.update(doc.ref, { class_id: null, updated_at: new Date().toISOString() });
+      batch.update(doc.ref, { classId: null, updatedAt: new Date().toISOString() });
     });
 
     // 3. Delete the class itself

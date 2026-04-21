@@ -24,9 +24,9 @@ export const gamificationApi = {
     const q = query(
       collection(db, "badges"),
       where("owner_id", "==", user.uid),
-      where("school_id", "==", schoolId),
-      where("is_active", "==", true),
-      orderBy("created_at")
+      where("schoolId", "==", schoolId),
+      where("isActive", "==", true),
+      orderBy("createdAt")
     );
 
     const querySnapshot = await getDocs(q);
@@ -98,8 +98,8 @@ export const gamificationApi = {
     const q = query(
       collection(db, "student_badges"),
       where("owner_id", "==", user.uid),
-      where("student_id", "==", studentId),
-      orderBy("earned_at", "desc")
+      where("studentId", "==", studentId),
+      orderBy("earnedAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -107,10 +107,10 @@ export const gamificationApi = {
 
     // Manual join for badge data
     for (const sb of studentBadges) {
-      if (sb.badge_id) {
-        const badgeSnap = await getDoc(doc(db, "badges", sb.badge_id));
+      if (sb.badgeId) {
+        const badgeSnap = await getDoc(doc(db, "badges", sb.badgeId));
         if (badgeSnap.exists()) {
-          sb.badges = toData<Badge>(badgeSnap);
+          sb.badge = toData<Badge>(badgeSnap);
         }
       }
     }
@@ -195,13 +195,13 @@ export const gamificationApi = {
   // Update streak
   async updateStreak(studentId: string): Promise<StudentStats> {
     const currentStats = await this.getStudentStats(studentId);
-    const lastActivity = currentStats?.last_activity
-      ? new Date(currentStats.last_activity)
+    const lastActivity = currentStats?.lastActivity
+      ? new Date(currentStats.lastActivity)
       : null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    let newStreak = currentStats?.streak_days || 0;
+    let newStreak = currentStats?.streakDays || 0;
 
     if (lastActivity) {
       const lastActivityDate = new Date(lastActivity);
@@ -225,17 +225,17 @@ export const gamificationApi = {
     }
 
     return await this.updateStudentStats(studentId, {
-      streak_days: newStreak,
+      streakDays: newStreak,
     });
   },
 
   // Increment exercises completed
   async incrementExercisesCompleted(studentId: string): Promise<StudentStats> {
     const currentStats = await this.getStudentStats(studentId);
-    const newCount = (currentStats?.exercises_completed || 0) + 1;
+    const newCount = (currentStats?.exercisesCompleted || 0) + 1;
 
     const updatedStats = await this.updateStudentStats(studentId, {
-      exercises_completed: newCount,
+      exercisesCompleted: newCount,
     });
 
     // Log activity
@@ -249,10 +249,10 @@ export const gamificationApi = {
   // Increment lessons completed
   async incrementLessonsCompleted(studentId: string): Promise<StudentStats> {
     const currentStats = await this.getStudentStats(studentId);
-    const newCount = (currentStats?.lessons_completed || 0) + 1;
+    const newCount = (currentStats?.lessonsCompleted || 0) + 1;
 
     const updatedStats = await this.updateStudentStats(studentId, {
-      lessons_completed: newCount,
+      lessonsCompleted: newCount,
     });
 
     // Log activity
@@ -268,10 +268,10 @@ export const gamificationApi = {
     studentId: string,
   ): Promise<StudentStats> {
     const currentStats = await this.getStudentStats(studentId);
-    const newCount = (currentStats?.tournaments_participated || 0) + 1;
+    const newCount = (currentStats?.tournamentsParticipated || 0) + 1;
 
     const updatedStats = await this.updateStudentStats(studentId, {
-      tournaments_participated: newCount,
+      tournamentsParticipated: newCount,
     });
 
     // Log activity
@@ -285,10 +285,10 @@ export const gamificationApi = {
   // Add play time
   async addPlayTime(studentId: string, seconds: number): Promise<StudentStats> {
     const currentStats = await this.getStudentStats(studentId);
-    const newTime = (currentStats?.total_play_time_seconds || 0) + seconds;
+    const newTime = (currentStats?.totalPlayTimeSeconds || 0) + seconds;
 
     return await this.updateStudentStats(studentId, {
-      total_play_time_seconds: newTime,
+      totalPlayTimeSeconds: newTime,
     });
   },
 
@@ -323,6 +323,5 @@ export const gamificationApi = {
     const result = await response.json();
     if (!result.success) throw new Error(result.error || 'Error checking badges');
     return result.newBadges;
-  },
-
+  }
 };

@@ -22,8 +22,8 @@ export const PUT: RequestHandler = async ({ request, locals, params }) => {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 
-    const { id: _, owner_id: __, created_at: ___, ...updateData } = body;
-    updateData.updated_at = new Date().toISOString();
+    const { id: _, owner_id: __, created_at: ___, createdAt: ____, updated_at: _____, ...updateData } = body;
+    updateData.updatedAt = new Date().toISOString();
 
     await schoolRef.update(updateData);
 

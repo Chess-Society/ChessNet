@@ -17,8 +17,8 @@ export const GET: RequestHandler = async (event) => {
     user: {
       id: user.uid,
       email: user.email,
-      full_name: user.displayName || null,
-      avatar_url: user.photoURL || null,
+      fullName: user.displayName || null,
+      avatarUrl: user.photoURL || null,
       isAdmin: user.isAdmin || false
     },
     error: null

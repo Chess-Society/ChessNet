@@ -1,30 +1,40 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { adminDb } from '$lib/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
   if (!locals.user) {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const classId = url.searchParams.get('class_id');
-  const studentId = url.searchParams.get('student_id');
+  const classId = url.searchParams.get('classId') || url.searchParams.get('class_id');
+  const studentId = url.searchParams.get('studentId') || url.searchParams.get('student_id');
 
   try {
     let query = adminDb.collection("class_students").where("owner_id", "==", locals.user.uid);
 
     if (classId) {
-      query = query.where("class_id", "==", classId);
+      query = query.where("classId", "==", classId);
     }
 
     if (studentId) {
-      query = query.where("student_id", "==", studentId);
+      query = query.where("studentId", "==", studentId);
     }
 
     const snapshot = await query.get();
-    const classStudents = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+    const classStudents = snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      return serializeRecord({ 
+        id: doc.id, 
+        ...data,
+        enrolledAt: data.enrolledAt || data.enrolled_at,
+        classId: data.classId || data.class_id,
+        studentId: data.studentId || data.student_id
+      });
+    });
 
-    return json({ class_students: classStudents });
+    return json({ classStudents });
 
   } catch (error: any) {
     console.error('❌ Error in GET class-students API:', error.message);
@@ -39,16 +49,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const { class_id, student_id } = body;
+    const classId = body.classId || body.class_id;
+    const studentId = body.studentId || body.student_id;
 
-    if (!class_id || !student_id) {
-      return json({ error: 'class_id and student_id are required' }, { status: 400 });
+    if (!classId || !studentId) {
+      return json({ error: 'classId and studentId are required' }, { status: 400 });
     }
 
     // Comprobar si ya está inscrito
     const existingSnap = await adminDb.collection("class_students")
-      .where("class_id", "==", class_id)
-      .where("student_id", "==", student_id)
+      .where("classId", "==", classId)
+      .where("studentId", "==", studentId)
       .where("owner_id", "==", locals.user.uid)
       .get();
       
@@ -57,21 +68,21 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
 
     const enrollmentData = {
-      class_id,
-      student_id,
+      classId,
+      studentId,
       owner_id: locals.user.uid,
-      enrolled_at: new Date().toISOString()
+      enrolledAt: new Date().toISOString()
     };
 
     const docRef = await adminDb.collection("class_students").add(enrollmentData);
     
     // Sincronizar hacia el registro de estudiante
-    await adminDb.collection("students").doc(student_id).update({
-      class_id: class_id,
-      updated_at: new Date().toISOString()
+    await adminDb.collection("students").doc(studentId).update({
+      classId: classId,
+      updatedAt: new Date().toISOString()
     });
     
-    return json({ class_student: { id: docRef.id, ...enrollmentData } });
+    return json({ classStudent: { id: docRef.id, ...enrollmentData } });
 
   } catch (error: any) {
     console.error('❌ Error in POST class-students API:', error.message);
@@ -84,17 +95,17 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const classId = url.searchParams.get('class_id');
-  const studentId = url.searchParams.get('student_id');
+  const classId = url.searchParams.get('classId') || url.searchParams.get('class_id');
+  const studentId = url.searchParams.get('studentId') || url.searchParams.get('student_id');
 
   if (!classId || !studentId) {
-    return json({ error: 'class_id and student_id are required' }, { status: 400 });
+    return json({ error: 'classId and studentId are required' }, { status: 400 });
   }
 
   try {
     const snapshot = await adminDb.collection("class_students")
-      .where("class_id", "==", classId)
-      .where("student_id", "==", studentId)
+      .where("classId", "==", classId)
+      .where("studentId", "==", studentId)
       .where("owner_id", "==", locals.user.uid)
       .get();
       
@@ -105,13 +116,14 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
     const batch = adminDb.batch();
     snapshot.docs.forEach((doc: any) => batch.delete(doc.ref));
     
-    // Sincronizar hacia el registro de estudiante (quitar class_id si coincide con esta clase)
+    // Sincronizar hacia el registro de estudiante (quitar classId si coincide con esta clase)
     const studentRef = adminDb.collection("students").doc(studentId);
     const studentSnap = await studentRef.get();
-    if (studentSnap.exists && studentSnap.data()?.class_id === classId) {
+    const studentData = studentSnap.data();
+    if (studentSnap.exists && (studentData?.classId === classId || studentData?.class_id === classId)) {
       batch.update(studentRef, { 
-        class_id: null,
-        updated_at: new Date().toISOString()
+        classId: null,
+        updatedAt: new Date().toISOString()
       });
     }
 

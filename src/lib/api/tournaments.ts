@@ -28,7 +28,7 @@ export const tournamentsApi = {
     const q = query(
       collection(db, "local_tournaments"),
       where("owner_id", "==", uid),
-      orderBy("created_at", "desc")
+      orderBy("createdAt", "desc")
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => toData<Tournament>(doc));
@@ -42,8 +42,8 @@ export const tournamentsApi = {
     const q = query(
       collection(db, "local_tournaments"),
       where("owner_id", "==", uid),
-      where("school_id", "==", schoolId),
-      orderBy("created_at", "desc")
+      where("schoolId", "==", schoolId),
+      orderBy("createdAt", "desc")
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => toData<Tournament>(doc));
@@ -81,17 +81,17 @@ export const tournamentsApi = {
     
     const docData = {
       owner_id: uid,
-      school_id: schoolId,
+      schoolId,
       name,
       description: description || "",
       type,
-      start_date: startDate || null,
-      end_date: endDate || null,
-      max_participants: maxParticipants || null,
-      time_control: timeControl || "",
-      created_by: uid,
+      startDate: startDate || null,
+      endDate: endDate || null,
+      maxParticipants: maxParticipants || null,
+      timeControl: timeControl || "",
+      createdBy: uid,
       status: "planned",
-      created_at: new Date().toISOString()
+      createdAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "local_tournaments"), docData);
@@ -107,7 +107,7 @@ export const tournamentsApi = {
     const docRef = doc(db, "local_tournaments", id);
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     });
     const docSnap = await getDoc(docRef);
     return toData<Tournament>(docSnap);
@@ -124,7 +124,7 @@ export const tournamentsApi = {
     const docRef = doc(db, "local_tournaments", id);
     await updateDoc(docRef, {
       status: "active",
-      start_date: new Date().toISOString().split("T")[0],
+      startDate: new Date().toISOString().split("T")[0],
     });
   },
 
@@ -133,7 +133,7 @@ export const tournamentsApi = {
     const docRef = doc(db, "local_tournaments", id);
     await updateDoc(docRef, {
       status: "completed",
-      end_date: new Date().toISOString().split("T")[0],
+      endDate: new Date().toISOString().split("T")[0],
     });
   },
 
@@ -147,7 +147,7 @@ export const tournamentsApi = {
     const q = query(
       collection(db, "tournament_participants"),
       where("owner_id", "==", uid),
-      where("tournament_id", "==", tournamentId),
+      where("tournamentId", "==", tournamentId),
       orderBy("score", "desc")
     );
     const querySnapshot = await getDocs(q);
@@ -155,8 +155,8 @@ export const tournamentsApi = {
     
     // FETCH STUDENTS (Equivalent to join)
     for (const p of participants) {
-      if (p.student_id) {
-        const studentDoc = await getDoc(doc(db, "students", p.student_id));
+      if (p.studentId) {
+        const studentDoc = await getDoc(doc(db, "students", p.studentId));
         if (studentDoc.exists()) {
           p.students = toData<Student>(studentDoc);
         }
@@ -177,12 +177,12 @@ export const tournamentsApi = {
 
     const docData = {
       owner_id: uid,
-      tournament_id: tournamentId,
-      student_id: studentId,
+      tournamentId,
+      studentId,
       rating: rating || 1200,
       score: 0,
-      tiebreak_score: 0,
-      created_at: new Date().toISOString()
+      tiebreakScore: 0,
+      createdAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "tournament_participants"), docData);
@@ -205,7 +205,7 @@ export const tournamentsApi = {
     const docRef = doc(db, "tournament_participants", participantId);
     await updateDoc(docRef, {
       score,
-      tiebreak_score: tiebreakScore || 0,
+      tiebreakScore: tiebreakScore || 0,
     });
     const docSnap = await getDoc(docRef);
     return toData<TournamentParticipant>(docSnap);
@@ -222,7 +222,7 @@ export const tournamentsApi = {
     let q = query(
       collection(db, "tournament_matches"),
       where("owner_id", "==", uid),
-      where("tournament_id", "==", tournamentId)
+      where("tournamentId", "==", tournamentId)
     );
 
     if (round !== undefined) {
@@ -234,17 +234,17 @@ export const tournamentsApi = {
     
     matches.sort((a, b) => {
       if (a.round !== b.round) return a.round - b.round;
-      return (a.board_number || 0) - (b.board_number || 0);
+      return (a.boardNumber || 0) - (b.boardNumber || 0);
     });
 
     // Populate players (joins)
     for (const m of matches) {
-      if (m.player1_id) {
-        const p1Doc = await getDoc(doc(db, "students", m.player1_id));
+      if (m.player1Id) {
+        const p1Doc = await getDoc(doc(db, "students", m.player1Id));
         if (p1Doc.exists()) m.player1 = toData<Student>(p1Doc);
       }
-      if (m.player2_id) {
-        const p2Doc = await getDoc(doc(db, "students", m.player2_id));
+      if (m.player2Id) {
+        const p2Doc = await getDoc(doc(db, "students", m.player2Id));
         if (p2Doc.exists()) m.player2 = toData<Student>(p2Doc);
       }
     }
@@ -255,7 +255,7 @@ export const tournamentsApi = {
   // Create tournament matches
   async createTournamentMatches(
     tournamentId: string,
-    matches: Omit<TournamentMatch, "id" | "tournament_id" | "created_at">[],
+    matches: Omit<TournamentMatch, "id" | "tournamentId" | "createdAt">[],
   ): Promise<TournamentMatch[]> {
     const uid = auth.currentUser?.uid;
     if (!uid) throw new Error("User not authenticated");
@@ -266,8 +266,8 @@ export const tournamentsApi = {
       const docData = {
         ...match,
         owner_id: uid,
-        tournament_id: tournamentId,
-        created_at: new Date().toISOString()
+        tournamentId,
+        createdAt: new Date().toISOString()
       };
       const docRef = await addDoc(collection(db, "tournament_matches"), docData);
       const docSnap = await getDoc(docRef);
@@ -288,8 +288,8 @@ export const tournamentsApi = {
     await updateDoc(docRef, {
       result,
       moves: moves || [],
-      game_duration_seconds: gameDurationSeconds || 0,
-      played_at: new Date().toISOString(),
+      gameDurationSeconds: gameDurationSeconds || 0,
+      playedAt: new Date().toISOString(),
     });
     const docSnap = await getDoc(docRef);
     return toData<TournamentMatch>(docSnap);
