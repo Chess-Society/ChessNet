@@ -11,7 +11,7 @@ export const cookieSynced = writable<boolean>(false);
 
 // Inicializar auth state con tiempo muerto de seguridad (8s)
 export const initAuth = () => {
-    if (!browser) return;
+    if (typeof window === 'undefined') return;
 
     // Local Development Bypass Check
     const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -66,7 +66,7 @@ export const initAuth = () => {
             // FIREBASE SAYS NULL. 
             // If we have a current session user, we only clear it if we are NOT in dev bypass
             // AND we have waited long enough for Firebase to truly confirm the state.
-            const hasBypass = browser && document.cookie.includes('antigravity_access=antigravity-dev-secret');
+            const hasBypass = (typeof window !== 'undefined') && document.cookie.includes('antigravity_access=antigravity-dev-secret');
             
             if (currentUser && !hasBypass && resolved) {
                 user.set(null);

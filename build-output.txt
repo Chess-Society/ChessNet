@@ -1,0 +1,545 @@
+
+> chessnet-sveltekit@1.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding SSR bundle for production...[36m[39m
+transforming...
+"signInAnonymously" is imported from external module "firebase/auth" but never used in "src/lib/firebase.ts".
+[32m✓[39m 6925 modules transformed.
+rendering chunks...
+⚠️ [FirebaseAdmin] Missing FB_CLIENT_EMAIL or FB_PRIVATE_KEY. Attempting Default Credentials fallback...
+✅ [FirebaseAdmin] Initialized with Default Credentials.
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 6928 modules transformed.
+rendering chunks...
+computing gzip size...
+[2m.svelte-kit/output/client/[22m[32m_app/version.json                                 [39m[1m[2m  0.03 kB[22m[1m[22m[2m │ gzip:   0.05 kB[22m
+[2m.svelte-kit/output/client/[22m[32m.vite/manifest.json                               [39m[1m[2m 85.08 kB[22m[1m[22m[2m │ gzip:   7.98 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/44.tn0RQdqM.css             [39m[1m[2m  0.00 kB[22m[1m[22m[2m │ gzip:   0.02 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/1.CR6YUCxf.css              [39m[1m[2m  0.03 kB[22m[1m[22m[2m │ gzip:   0.05 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/36.BqjhAntD.css             [39m[1m[2m  0.05 kB[22m[1m[22m[2m │ gzip:   0.06 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/13.CHk4wj0C.css             [39m[1m[2m  0.06 kB[22m[1m[22m[2m │ gzip:   0.07 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/ConfirmModal.C4qGZBiV.css   [39m[1m[2m  0.06 kB[22m[1m[22m[2m │ gzip:   0.07 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/26.C3cFTSpE.css             [39m[1m[2m  0.08 kB[22m[1m[22m[2m │ gzip:   0.08 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/38.BVrhKtRz.css             [39m[1m[2m  0.16 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/37.DLHvxMXX.css             [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/18.B4iMohI9.css             [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:   0.14 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/27.QuqWzRqG.css             [39m[1m[2m  0.18 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/50.BmbEFWF2.css             [39m[1m[2m  0.20 kB[22m[1m[22m[2m │ gzip:   0.15 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/11.BG3jeZ4j.css             [39m[1m[2m  0.20 kB[22m[1m[22m[2m │ gzip:   0.14 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/45.BzOkTo5H.css             [39m[1m[2m  0.20 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/40.BMFM3It4.css             [39m[1m[2m  0.21 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/47.Cm7vKIEe.css             [39m[1m[2m  0.21 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/16.D_O-W28L.css             [39m[1m[2m  0.21 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/29.CfBcWq5o.css             [39m[1m[2m  0.29 kB[22m[1m[22m[2m │ gzip:   0.19 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/12.Da3tLV6v.css             [39m[1m[2m  0.30 kB[22m[1m[22m[2m │ gzip:   0.15 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/23.CPdkD3Lj.css             [39m[1m[2m  0.36 kB[22m[1m[22m[2m │ gzip:   0.21 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/21.m3ryXnkU.css             [39m[1m[2m  0.44 kB[22m[1m[22m[2m │ gzip:   0.23 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/4.Bu7gTGQ8.css              [39m[1m[2m  0.46 kB[22m[1m[22m[2m │ gzip:   0.26 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/15.BNkXKvvt.css             [39m[1m[2m  0.56 kB[22m[1m[22m[2m │ gzip:   0.22 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/25.CMLuq3IR.css             [39m[1m[2m  0.62 kB[22m[1m[22m[2m │ gzip:   0.36 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/39.Cc_eHvSV.css             [39m[1m[2m  0.66 kB[22m[1m[22m[2m │ gzip:   0.24 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/14.DmgneXcx.css             [39m[1m[2m  0.84 kB[22m[1m[22m[2m │ gzip:   0.49 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/5.BQR_xVF6.css              [39m[1m[2m  0.90 kB[22m[1m[22m[2m │ gzip:   0.24 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/46.CXuow9f6.css             [39m[1m[2m  0.93 kB[22m[1m[22m[2m │ gzip:   0.34 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/17.CMNnxxYY.css             [39m[1m[2m  1.40 kB[22m[1m[22m[2m │ gzip:   0.46 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/20.BvMmNOEf.css             [39m[1m[2m  1.43 kB[22m[1m[22m[2m │ gzip:   0.53 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/InsigniaBadge.CvuzdrLC.css  [39m[1m[2m  1.77 kB[22m[1m[22m[2m │ gzip:   0.69 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/19.9-cxK9V0.css             [39m[1m[2m  1.82 kB[22m[1m[22m[2m │ gzip:   0.78 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/42.ogykQOJ7.css             [39m[1m[2m  1.89 kB[22m[1m[22m[2m │ gzip:   0.69 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/3.B407y8tn.css              [39m[1m[2m  2.12 kB[22m[1m[22m[2m │ gzip:   0.82 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/41.Cru5QeRB.css             [39m[1m[2m  4.37 kB[22m[1m[22m[2m │ gzip:   1.30 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/Toaster.CbWpK_cD.css        [39m[1m[2m  4.42 kB[22m[1m[22m[2m │ gzip:   1.21 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/24.OmHCxF8P.css             [39m[1m[2m 12.73 kB[22m[1m[22m[2m │ gzip:   2.81 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/28.C0iLKTVl.css             [39m[1m[2m 23.08 kB[22m[1m[22m[2m │ gzip:   3.98 kB[22m
+[2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/0.BptKE2uf.css              [39m[1m[2m178.53 kB[22m[1m[22m[2m │ gzip:  23.63 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/C-f2K3qs.js                 [39m[1m[2m  0.04 kB[22m[1m[22m[2m │ gzip:   0.06 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Ccw7PXcW.js                 [39m[1m[2m  0.09 kB[22m[1m[22m[2m │ gzip:   0.10 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/entry/start.Bt9GXTHo.js            [39m[1m[2m  0.12 kB[22m[1m[22m[2m │ gzip:   0.11 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BcnhIjqT.js                 [39m[1m[2m  0.12 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DIBch8MY.js                 [39m[1m[2m  0.14 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/3PH2321K.js                 [39m[1m[2m  0.19 kB[22m[1m[22m[2m │ gzip:   0.17 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/2.CoW2RjD9.js                [39m[1m[2m  0.22 kB[22m[1m[22m[2m │ gzip:   0.17 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Di7xiCCt.js                 [39m[1m[2m  0.23 kB[22m[1m[22m[2m │ gzip:   0.16 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Cr8Xup_U.js                 [39m[1m[2m  0.37 kB[22m[1m[22m[2m │ gzip:   0.26 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Dw9C3iA9.js                 [39m[1m[2m  0.38 kB[22m[1m[22m[2m │ gzip:   0.28 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BxnErD4m.js                 [39m[1m[2m  0.40 kB[22m[1m[22m[2m │ gzip:   0.29 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/7OMJszfw.js                 [39m[1m[2m  0.41 kB[22m[1m[22m[2m │ gzip:   0.30 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DjL0iq7a.js                 [39m[1m[2m  0.46 kB[22m[1m[22m[2m │ gzip:   0.31 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/VoY_kgzH.js                 [39m[1m[2m  0.52 kB[22m[1m[22m[2m │ gzip:   0.28 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/COCnz758.js                 [39m[1m[2m  0.52 kB[22m[1m[22m[2m │ gzip:   0.33 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BpbtKtNZ.js                 [39m[1m[2m  0.62 kB[22m[1m[22m[2m │ gzip:   0.33 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DMBlyjXc.js                 [39m[1m[2m  0.68 kB[22m[1m[22m[2m │ gzip:   0.45 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/22.dPyou7Wn.js               [39m[1m[2m  0.70 kB[22m[1m[22m[2m │ gzip:   0.44 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DkwQpx-I.js                 [39m[1m[2m  0.73 kB[22m[1m[22m[2m │ gzip:   0.47 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BfBcTJJm.js                 [39m[1m[2m  0.73 kB[22m[1m[22m[2m │ gzip:   0.48 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Y9Q-39GH.js                 [39m[1m[2m  0.76 kB[22m[1m[22m[2m │ gzip:   0.48 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/pBApSXvY.js                 [39m[1m[2m  0.77 kB[22m[1m[22m[2m │ gzip:   0.51 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DIaFWNh9.js                 [39m[1m[2m  0.81 kB[22m[1m[22m[2m │ gzip:   0.45 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/TC87idKr.js                 [39m[1m[2m  0.82 kB[22m[1m[22m[2m │ gzip:   0.51 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/D7HrI6pR.js                 [39m[1m[2m  1.02 kB[22m[1m[22m[2m │ gzip:   0.62 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/hHX8ckTF.js                 [39m[1m[2m  1.13 kB[22m[1m[22m[2m │ gzip:   0.65 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DTh9SPkR.js                 [39m[1m[2m  1.28 kB[22m[1m[22m[2m │ gzip:   0.68 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CjTMrxOf.js                 [39m[1m[2m  1.72 kB[22m[1m[22m[2m │ gzip:   0.73 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BiEsN9Sz.js                 [39m[1m[2m  2.11 kB[22m[1m[22m[2m │ gzip:   1.05 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CwfTKAJn.js                 [39m[1m[2m  2.23 kB[22m[1m[22m[2m │ gzip:   0.98 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DPIyTlVm.js                 [39m[1m[2m  2.30 kB[22m[1m[22m[2m │ gzip:   1.14 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/2An6i6lv.js                 [39m[1m[2m  2.36 kB[22m[1m[22m[2m │ gzip:   1.16 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CFymTpCi.js                 [39m[1m[2m  2.38 kB[22m[1m[22m[2m │ gzip:   1.16 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DmluSAEV.js                 [39m[1m[2m  2.48 kB[22m[1m[22m[2m │ gzip:   1.22 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/lOctVTdg.js                 [39m[1m[2m  2.53 kB[22m[1m[22m[2m │ gzip:   1.22 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DCDMfHDP.js                 [39m[1m[2m  2.54 kB[22m[1m[22m[2m │ gzip:   1.20 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CWFd01hR.js                 [39m[1m[2m  2.54 kB[22m[1m[22m[2m │ gzip:   1.18 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CYs0rZzj.js                 [39m[1m[2m  2.54 kB[22m[1m[22m[2m │ gzip:   1.22 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/B30DOvVr.js                 [39m[1m[2m  2.62 kB[22m[1m[22m[2m │ gzip:   1.28 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/D4Mi09W9.js                 [39m[1m[2m  2.63 kB[22m[1m[22m[2m │ gzip:   1.34 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CgRofwzJ.js                 [39m[1m[2m  2.64 kB[22m[1m[22m[2m │ gzip:   1.35 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CEU1ZVXz.js                 [39m[1m[2m  2.64 kB[22m[1m[22m[2m │ gzip:   1.36 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CNarDNuN.js                 [39m[1m[2m  2.66 kB[22m[1m[22m[2m │ gzip:   1.37 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DykLU1Dp.js                 [39m[1m[2m  2.66 kB[22m[1m[22m[2m │ gzip:   1.14 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CfQRy2um.js                 [39m[1m[2m  2.67 kB[22m[1m[22m[2m │ gzip:   1.32 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BZnTUfTF.js                 [39m[1m[2m  2.71 kB[22m[1m[22m[2m │ gzip:   1.39 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Ccd78l07.js                 [39m[1m[2m  2.75 kB[22m[1m[22m[2m │ gzip:   1.24 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Co6CGpqJ.js                 [39m[1m[2m  2.76 kB[22m[1m[22m[2m │ gzip:   1.45 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BukxfKKg.js                 [39m[1m[2m  2.77 kB[22m[1m[22m[2m │ gzip:   1.39 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/D9vDbPBu.js                 [39m[1m[2m  2.78 kB[22m[1m[22m[2m │ gzip:   1.40 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BuGaW0C_.js                 [39m[1m[2m  2.80 kB[22m[1m[22m[2m │ gzip:   1.25 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DHuMDVUu.js                 [39m[1m[2m  2.82 kB[22m[1m[22m[2m │ gzip:   1.30 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DXyJEy3P.js                 [39m[1m[2m  2.83 kB[22m[1m[22m[2m │ gzip:   1.27 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CFXjtvGU.js                 [39m[1m[2m  2.84 kB[22m[1m[22m[2m │ gzip:   1.27 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/D7GL1Ipz.js                 [39m[1m[2m  2.90 kB[22m[1m[22m[2m │ gzip:   1.33 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Dn6BHSqr.js                 [39m[1m[2m  2.90 kB[22m[1m[22m[2m │ gzip:   1.45 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/D_B3l_lr.js                 [39m[1m[2m  2.91 kB[22m[1m[22m[2m │ gzip:   1.41 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/C4QX1OND.js                 [39m[1m[2m  2.93 kB[22m[1m[22m[2m │ gzip:   1.27 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/D8TzKZW4.js                 [39m[1m[2m  2.95 kB[22m[1m[22m[2m │ gzip:   1.48 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/4Ih386eN.js                 [39m[1m[2m  2.96 kB[22m[1m[22m[2m │ gzip:   1.46 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BRzquRHX.js                 [39m[1m[2m  3.00 kB[22m[1m[22m[2m │ gzip:   1.40 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BvlIJg2g.js                 [39m[1m[2m  3.01 kB[22m[1m[22m[2m │ gzip:   1.29 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/B5Dki4vf.js                 [39m[1m[2m  3.08 kB[22m[1m[22m[2m │ gzip:   1.40 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/C4N48_Gl.js                 [39m[1m[2m  3.08 kB[22m[1m[22m[2m │ gzip:   1.33 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BwdeqToo.js                 [39m[1m[2m  3.11 kB[22m[1m[22m[2m │ gzip:   1.39 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CKKn-dmD.js                 [39m[1m[2m  3.12 kB[22m[1m[22m[2m │ gzip:   1.48 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CAed72vj.js                 [39m[1m[2m  3.20 kB[22m[1m[22m[2m │ gzip:   1.31 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/eLjO60lm.js                 [39m[1m[2m  3.21 kB[22m[1m[22m[2m │ gzip:   1.40 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BrbtdprG.js                 [39m[1m[2m  3.21 kB[22m[1m[22m[2m │ gzip:   1.45 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DKhgj2nn.js                 [39m[1m[2m  3.25 kB[22m[1m[22m[2m │ gzip:   1.51 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CzPzf756.js                 [39m[1m[2m  3.30 kB[22m[1m[22m[2m │ gzip:   1.43 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DRUClTkp.js                 [39m[1m[2m  3.35 kB[22m[1m[22m[2m │ gzip:   1.45 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BfVy0sNE.js                 [39m[1m[2m  3.35 kB[22m[1m[22m[2m │ gzip:   1.37 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DFuX2kun.js                 [39m[1m[2m  3.37 kB[22m[1m[22m[2m │ gzip:   1.55 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/f3OEJ89Q.js                 [39m[1m[2m  3.44 kB[22m[1m[22m[2m │ gzip:   1.51 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BM48A66U.js                 [39m[1m[2m  3.45 kB[22m[1m[22m[2m │ gzip:   1.39 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DbwVXI5H.js                 [39m[1m[2m  3.47 kB[22m[1m[22m[2m │ gzip:   1.62 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/B7srfTWG.js                 [39m[1m[2m  3.48 kB[22m[1m[22m[2m │ gzip:   1.48 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/C7hBwcIT.js                 [39m[1m[2m  3.53 kB[22m[1m[22m[2m │ gzip:   1.59 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DJUW2C13.js                 [39m[1m[2m  3.54 kB[22m[1m[22m[2m │ gzip:   1.58 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CCWXzhb0.js                 [39m[1m[2m  3.55 kB[22m[1m[22m[2m │ gzip:   1.41 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Dt5321vu.js                 [39m[1m[2m  3.57 kB[22m[1m[22m[2m │ gzip:   1.48 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BsxYhiQe.js                 [39m[1m[2m  3.59 kB[22m[1m[22m[2m │ gzip:   1.67 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/C8n-gKOu.js                 [39m[1m[2m  3.61 kB[22m[1m[22m[2m │ gzip:   1.42 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/B-m3fTm4.js                 [39m[1m[2m  3.69 kB[22m[1m[22m[2m │ gzip:   1.68 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/C5WzSvZr.js                 [39m[1m[2m  3.74 kB[22m[1m[22m[2m │ gzip:   1.66 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CQHZ_ClL.js                 [39m[1m[2m  3.77 kB[22m[1m[22m[2m │ gzip:   1.62 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/C7R5XY5L.js                 [39m[1m[2m  3.82 kB[22m[1m[22m[2m │ gzip:   1.57 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CvnZyzaS.js                 [39m[1m[2m  3.84 kB[22m[1m[22m[2m │ gzip:   1.61 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/De_X44B_.js                 [39m[1m[2m  3.85 kB[22m[1m[22m[2m │ gzip:   1.68 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/s9uOC6lO.js                 [39m[1m[2m  3.88 kB[22m[1m[22m[2m │ gzip:   1.74 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Dq72FtDg.js                 [39m[1m[2m  3.90 kB[22m[1m[22m[2m │ gzip:   1.71 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BqdJ_uF2.js                 [39m[1m[2m  3.91 kB[22m[1m[22m[2m │ gzip:   1.52 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DTC_FFj1.js                 [39m[1m[2m  3.93 kB[22m[1m[22m[2m │ gzip:   1.66 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CO5iF7v7.js                 [39m[1m[2m  3.94 kB[22m[1m[22m[2m │ gzip:   1.91 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/lx6PIbfU.js                 [39m[1m[2m  3.97 kB[22m[1m[22m[2m │ gzip:   1.51 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CcAgpdK0.js                 [39m[1m[2m  4.01 kB[22m[1m[22m[2m │ gzip:   1.65 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DjBGnij7.js                 [39m[1m[2m  4.06 kB[22m[1m[22m[2m │ gzip:   1.71 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DmsM2ei-.js                 [39m[1m[2m  4.14 kB[22m[1m[22m[2m │ gzip:   1.75 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DAimG09S.js                 [39m[1m[2m  4.16 kB[22m[1m[22m[2m │ gzip:   1.66 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BGyymXtS.js                 [39m[1m[2m  4.25 kB[22m[1m[22m[2m │ gzip:   1.58 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/jNLnzbxK.js                 [39m[1m[2m  4.28 kB[22m[1m[22m[2m │ gzip:   1.79 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Bmk12uSs.js                 [39m[1m[2m  4.30 kB[22m[1m[22m[2m │ gzip:   1.64 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DoEpqOu3.js                 [39m[1m[2m  4.32 kB[22m[1m[22m[2m │ gzip:   1.78 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/eGKXoymh.js                 [39m[1m[2m  4.33 kB[22m[1m[22m[2m │ gzip:   1.72 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/B998KWl8.js                 [39m[1m[2m  4.38 kB[22m[1m[22m[2m │ gzip:   1.48 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/D8zgXoPZ.js                 [39m[1m[2m  4.39 kB[22m[1m[22m[2m │ gzip:   2.29 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BnIXpRcI.js                 [39m[1m[2m  4.40 kB[22m[1m[22m[2m │ gzip:   1.93 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CuA7daJB.js                 [39m[1m[2m  4.42 kB[22m[1m[22m[2m │ gzip:   2.08 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/eqPvmIFp.js                 [39m[1m[2m  4.53 kB[22m[1m[22m[2m │ gzip:   1.83 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/jiDBPNoD.js                 [39m[1m[2m  4.62 kB[22m[1m[22m[2m │ gzip:   1.84 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CVAyFcZy.js                 [39m[1m[2m  4.72 kB[22m[1m[22m[2m │ gzip:   1.81 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Cma26JAe.js                 [39m[1m[2m  4.80 kB[22m[1m[22m[2m │ gzip:   1.64 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DRSJdD13.js                 [39m[1m[2m  5.06 kB[22m[1m[22m[2m │ gzip:   1.47 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/od89jXP8.js                 [39m[1m[2m  5.14 kB[22m[1m[22m[2m │ gzip:   1.97 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/B5dPEf4H.js                 [39m[1m[2m  5.16 kB[22m[1m[22m[2m │ gzip:   2.17 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BHQhMLRz.js                 [39m[1m[2m  5.20 kB[22m[1m[22m[2m │ gzip:   2.08 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DrUVL3ts.js                 [39m[1m[2m  5.31 kB[22m[1m[22m[2m │ gzip:   2.15 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Bk5wKQCR.js                 [39m[1m[2m  5.34 kB[22m[1m[22m[2m │ gzip:   2.07 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/34.CjXJDa9g.js               [39m[1m[2m  5.43 kB[22m[1m[22m[2m │ gzip:   1.88 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DFo5g2Dr.js                 [39m[1m[2m  5.45 kB[22m[1m[22m[2m │ gzip:   2.04 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Dki1fUVu.js                 [39m[1m[2m  5.48 kB[22m[1m[22m[2m │ gzip:   2.24 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DgOVCQ0L.js                 [39m[1m[2m  5.60 kB[22m[1m[22m[2m │ gzip:   2.25 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BSBtyE53.js                 [39m[1m[2m  5.70 kB[22m[1m[22m[2m │ gzip:   2.30 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DVPdZy6A.js                 [39m[1m[2m  6.15 kB[22m[1m[22m[2m │ gzip:   2.14 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/zg8oD_Mm.js                 [39m[1m[2m  6.37 kB[22m[1m[22m[2m │ gzip:   2.82 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BHMnmT59.js                 [39m[1m[2m  6.44 kB[22m[1m[22m[2m │ gzip:   2.33 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/zobQRah4.js                 [39m[1m[2m  6.66 kB[22m[1m[22m[2m │ gzip:   2.57 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BtAjfTvk.js                 [39m[1m[2m  7.04 kB[22m[1m[22m[2m │ gzip:   3.16 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/33.B-Xui_g_.js               [39m[1m[2m  7.19 kB[22m[1m[22m[2m │ gzip:   2.99 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DKUTF7Iw.js                 [39m[1m[2m  7.32 kB[22m[1m[22m[2m │ gzip:   3.34 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/x_Rq6KoZ.js                 [39m[1m[2m  7.44 kB[22m[1m[22m[2m │ gzip:   2.28 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/gNCwQBkH.js                 [39m[1m[2m  7.72 kB[22m[1m[22m[2m │ gzip:   3.41 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/6.ryWg33rb.js                [39m[1m[2m  7.84 kB[22m[1m[22m[2m │ gzip:   3.49 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DxuYbr0l.js                 [39m[1m[2m  8.05 kB[22m[1m[22m[2m │ gzip:   2.78 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/O3wNybdr.js                 [39m[1m[2m  8.15 kB[22m[1m[22m[2m │ gzip:   3.24 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/11.CIDmraYi.js               [39m[1m[2m  9.11 kB[22m[1m[22m[2m │ gzip:   3.37 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/13.DBmEYe9A.js               [39m[1m[2m  9.72 kB[22m[1m[22m[2m │ gzip:   3.67 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/10.bhC24Qv5.js               [39m[1m[2m  9.77 kB[22m[1m[22m[2m │ gzip:   3.86 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/30.6J7_rXMr.js               [39m[1m[2m 11.32 kB[22m[1m[22m[2m │ gzip:   3.86 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/8.C6GHNgXM.js                [39m[1m[2m 11.73 kB[22m[1m[22m[2m │ gzip:   4.31 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/nxLQglBv.js                 [39m[1m[2m 12.16 kB[22m[1m[22m[2m │ gzip:   3.58 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/LIUXj3zf.js                 [39m[1m[2m 12.66 kB[22m[1m[22m[2m │ gzip:   3.74 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/7.DTOMDIxU.js                [39m[1m[2m 12.71 kB[22m[1m[22m[2m │ gzip:   4.83 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/SJvXZ_Kg.js                 [39m[1m[2m 12.86 kB[22m[1m[22m[2m │ gzip:   5.20 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/1.CQdklgux.js                [39m[1m[2m 12.92 kB[22m[1m[22m[2m │ gzip:   4.67 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/48.C0zr3b9L.js               [39m[1m[2m 13.70 kB[22m[1m[22m[2m │ gzip:   5.10 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/9.BzTBe8aE.js                [39m[1m[2m 14.06 kB[22m[1m[22m[2m │ gzip:   4.31 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/44.BSTNMhp_.js               [39m[1m[2m 15.65 kB[22m[1m[22m[2m │ gzip:   4.96 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/29.CX8M4WmI.js               [39m[1m[2m 16.23 kB[22m[1m[22m[2m │ gzip:   4.83 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BNWeuGN7.js                 [39m[1m[2m 16.33 kB[22m[1m[22m[2m │ gzip:   4.47 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/32.s14jQNC4.js               [39m[1m[2m 16.51 kB[22m[1m[22m[2m │ gzip:   5.33 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/40.BTSVnz0a.js               [39m[1m[2m 17.60 kB[22m[1m[22m[2m │ gzip:   5.33 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/26.BGJyDnmH.js               [39m[1m[2m 17.86 kB[22m[1m[22m[2m │ gzip:   5.63 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/31.5nK0d7-E.js               [39m[1m[2m 18.01 kB[22m[1m[22m[2m │ gzip:   5.27 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/19.CW6MNfKf.js               [39m[1m[2m 18.52 kB[22m[1m[22m[2m │ gzip:   6.15 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DHlbC5bO.js                 [39m[1m[2m 18.71 kB[22m[1m[22m[2m │ gzip:   4.83 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/41.CNdCrCTA.js               [39m[1m[2m 19.13 kB[22m[1m[22m[2m │ gzip:   5.84 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/50.DW4wBnyO.js               [39m[1m[2m 19.39 kB[22m[1m[22m[2m │ gzip:   6.37 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DhZsdl79.js                 [39m[1m[2m 19.94 kB[22m[1m[22m[2m │ gzip:   5.44 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/45.D712HPJi.js               [39m[1m[2m 20.20 kB[22m[1m[22m[2m │ gzip:   5.73 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/42.BrnVr_C6.js               [39m[1m[2m 21.16 kB[22m[1m[22m[2m │ gzip:   6.85 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/27.CanwM77r.js               [39m[1m[2m 21.34 kB[22m[1m[22m[2m │ gzip:   6.29 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/16.Du8xIDJx.js               [39m[1m[2m 22.79 kB[22m[1m[22m[2m │ gzip:   6.96 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/entry/app.BcLijouG.js              [39m[1m[2m 23.51 kB[22m[1m[22m[2m │ gzip:   6.84 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/43.CdmuUPQq.js               [39m[1m[2m 24.04 kB[22m[1m[22m[2m │ gzip:   8.01 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/51.yPyZ8ts7.js               [39m[1m[2m 24.19 kB[22m[1m[22m[2m │ gzip:   5.27 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/35.Do41gJgu.js               [39m[1m[2m 24.60 kB[22m[1m[22m[2m │ gzip:   7.81 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/47.BC1SVH6p.js               [39m[1m[2m 26.26 kB[22m[1m[22m[2m │ gzip:   6.75 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/18.CBqDs--x.js               [39m[1m[2m 26.48 kB[22m[1m[22m[2m │ gzip:   7.98 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/4.BZTFS9DE.js                [39m[1m[2m 27.00 kB[22m[1m[22m[2m │ gzip:   7.59 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DZoxdn3-.js                 [39m[1m[2m 27.21 kB[22m[1m[22m[2m │ gzip:  10.65 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/37.CsiSKX-d.js               [39m[1m[2m 28.13 kB[22m[1m[22m[2m │ gzip:   8.01 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/23.CcQX8va-.js               [39m[1m[2m 28.54 kB[22m[1m[22m[2m │ gzip:   8.62 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/21.BJ1yKHab.js               [39m[1m[2m 28.89 kB[22m[1m[22m[2m │ gzip:   8.23 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BRHCPsBq.js                 [39m[1m[2m 29.34 kB[22m[1m[22m[2m │ gzip:  11.35 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/20.cxP0aiSD.js               [39m[1m[2m 30.88 kB[22m[1m[22m[2m │ gzip:   9.07 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/14.CARFe9HX.js               [39m[1m[2m 31.03 kB[22m[1m[22m[2m │ gzip:   8.59 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/24.Dtvv0bBZ.js               [39m[1m[2m 32.57 kB[22m[1m[22m[2m │ gzip:  10.60 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/39.HMIzcmmG.js               [39m[1m[2m 33.68 kB[22m[1m[22m[2m │ gzip:   8.44 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/15.BWiCG4vQ.js               [39m[1m[2m 34.57 kB[22m[1m[22m[2m │ gzip:   9.48 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/38.B3ujiq0w.js               [39m[1m[2m 36.45 kB[22m[1m[22m[2m │ gzip:  10.35 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/12.GjozNEov.js               [39m[1m[2m 36.63 kB[22m[1m[22m[2m │ gzip:   9.85 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/25.DEWoPEkx.js               [39m[1m[2m 36.73 kB[22m[1m[22m[2m │ gzip:   9.06 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/28.Bxf3fsVo.js               [39m[1m[2m 41.90 kB[22m[1m[22m[2m │ gzip:  11.37 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/0.BW0eNBnG.js                [39m[1m[2m 46.10 kB[22m[1m[22m[2m │ gzip:  13.45 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/17.BtG8PDL7.js               [39m[1m[2m 52.60 kB[22m[1m[22m[2m │ gzip:  13.36 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/3.BF2325f-.js                [39m[1m[2m 60.91 kB[22m[1m[22m[2m │ gzip:  16.27 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/36.DLEBHrss.js               [39m[1m[2m 85.34 kB[22m[1m[22m[2m │ gzip:  25.36 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/46.GtyVfJow.js               [39m[1m[2m 86.92 kB[22m[1m[22m[2m │ gzip:  22.47 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/Bphns6j9.js                 [39m[1m[2m 98.38 kB[22m[1m[22m[2m │ gzip:  28.97 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/5.DNRysh32.js                [39m[1m[2m110.56 kB[22m[1m[22m[2m │ gzip:  28.46 kB[22m
+[2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BVNao6VH.js                 [39m[1m[33m635.44 kB[39m[22m[2m │ gzip: 149.56 kB[22m
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 18.00s[39m
+[2m.svelte-kit/output/server/[22m[32m.vite/manifest.json                                                     [39m[1m[2m 79.19 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.tn0RQdqM.css                                [39m[1m[2m  0.00 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_error.CR6YUCxf.css                               [39m[1m[2m  0.03 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.BqjhAntD.css                                [39m[1m[2m  0.05 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.CHk4wj0C.css                                [39m[1m[2m  0.06 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/ConfirmModal.C4qGZBiV.css                         [39m[1m[2m  0.06 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.C3cFTSpE.css                                [39m[1m[2m  0.08 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.BVrhKtRz.css                                [39m[1m[2m  0.16 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.DLHvxMXX.css                                [39m[1m[2m  0.17 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.B4iMohI9.css                                [39m[1m[2m  0.17 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.QuqWzRqG.css                                [39m[1m[2m  0.18 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.BmbEFWF2.css                                [39m[1m[2m  0.20 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.BG3jeZ4j.css                                [39m[1m[2m  0.20 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.BzOkTo5H.css                                [39m[1m[2m  0.20 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.D_O-W28L.css                                [39m[1m[2m  0.21 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.BMFM3It4.css                                [39m[1m[2m  0.21 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.Cm7vKIEe.css                                [39m[1m[2m  0.21 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.CfBcWq5o.css                                [39m[1m[2m  0.29 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.Da3tLV6v.css                                [39m[1m[2m  0.30 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.CPdkD3Lj.css                                [39m[1m[2m  0.36 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.m3ryXnkU.css                                [39m[1m[2m  0.44 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.Bu7gTGQ8.css                                [39m[1m[2m  0.46 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.BNkXKvvt.css                                [39m[1m[2m  0.56 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.CMLuq3IR.css                                [39m[1m[2m  0.62 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.Cc_eHvSV.css                                [39m[1m[2m  0.66 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.DmgneXcx.css                                [39m[1m[2m  0.84 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.BQR_xVF6.css                                [39m[1m[2m  0.90 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.CXuow9f6.css                                [39m[1m[2m  0.93 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.Btp3V8dR.css                                [39m[1m[2m  1.15 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.CMNnxxYY.css                                [39m[1m[2m  1.40 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/InsigniaBadge.DsAwa35S.css                        [39m[1m[2m  1.72 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.9-cxK9V0.css                                [39m[1m[2m  1.82 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_layout.Dn68jNiG.css                              [39m[1m[2m  1.85 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.ogykQOJ7.css                                [39m[1m[2m  1.89 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.Cru5QeRB.css                                [39m[1m[2m  4.37 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/Toaster.CbWpK_cD.css                              [39m[1m[2m  4.42 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.D70OoGOm.css                                [39m[1m[2m 12.58 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.Cd3JVG7e.css                                [39m[1m[2m 22.85 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_layout.DDk3zbSM.css                              [39m[1m[2m175.93 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/_layout.ts.js                                       [39m[1m[2m  0.04 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/false.js                                                         [39m[1m[2m  0.05 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/create/_page.server.ts.js                   [39m[1m[2m  0.10 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/_page.server.ts.js                                        [39m[1m[2m  0.11 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/_layout.ts.js                                             [39m[1m[2m  0.12 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/dashboard/_page.server.ts.js                        [39m[1m[2m  0.12 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/planes/_page.server.ts.js                                 [39m[1m[2m  0.13 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_schoolId_/lessons/_page.server.ts.js       [39m[1m[2m  0.14 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_schoolId_/tournaments/_page.server.ts.js   [39m[1m[2m  0.14 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/html.js                                                          [39m[1m[2m  0.14 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/fallbacks/layout.svelte.js                                      [39m[1m[2m  0.17 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/constants.js                                                     [39m[1m[2m  0.17 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/index-server.js                                                  [39m[1m[2m  0.18 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/login/_page.server.ts.js                                  [39m[1m[2m  0.19 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/planner/_page.server.ts.js                          [39m[1m[2m  0.21 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/check-auth/_server.ts.js                          [39m[1m[2m  0.21 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/admin/_layout.server.ts.js                                [39m[1m[2m  0.22 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/context.js                                                       [39m[1m[2m  0.28 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/shared-server.js                                                 [39m[1m[2m  0.28 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/_layout.server.ts.js                                      [39m[1m[2m  0.29 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/_layout.server.ts.js                                [39m[1m[2m  0.36 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/admin/_page.server.ts.js                                  [39m[1m[2m  0.36 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36minternal.js                                                             [39m[1m[2m  0.41 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/state.svelte.js                                                  [39m[1m[2m  0.45 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/whoami/_server.ts.js                              [39m[1m[2m  0.53 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/client.js                                                        [39m[1m[2m  0.56 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/environment.js                                                   [39m[1m[2m  0.62 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Logo.js                                                          [39m[1m[2m  0.69 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/stores.js                                                        [39m[1m[2m  0.72 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/dashboard/_page.svelte.js                           [39m[1m[2m  0.74 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/skills/create/_page.server.ts.js                    [39m[1m[2m  0.74 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/create/_page.server.ts.js                   [39m[1m[2m  0.75 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/utils.js                                                         [39m[1m[2m  0.78 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/toast.js                                                         [39m[1m[2m  0.90 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/health-check/_server.ts.js                        [39m[1m[2m  0.99 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/students/create/_page.server.ts.js                  [39m[1m[2m  1.00 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/uiStore.js                                                       [39m[1m[2m  1.02 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/date.js                                                          [39m[1m[2m  1.06 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_page.server.ts.js                          [39m[1m[2m  1.16 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/schools/_id_/_server.ts.js                        [39m[1m[2m  1.24 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/reports/_page.server.ts.js                          [39m[1m[2m  1.30 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_schoolId_/edit/_page.server.ts.js          [39m[1m[2m  1.36 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/subscriptions.js                                                 [39m[1m[2m  1.46 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/students/_page.server.ts.js                         [39m[1m[2m  1.47 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/serialize.js                                                     [39m[1m[2m  1.48 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/tournaments/create/_page.server.ts.js               [39m[1m[2m  1.59 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/stripe/checkout/_server.ts.js                     [39m[1m[2m  1.61 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/skills/_skillId_/edit/_page.server.ts.js            [39m[1m[2m  1.64 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/auth.js                                                          [39m[1m[2m  1.78 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/attendance/_page.server.ts.js     [39m[1m[2m  1.83 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/payments/_page.server.ts.js                         [39m[1m[2m  1.83 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/tournaments/_tournamentId_/edit/_page.server.ts.js  [39m[1m[2m  1.86 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/subscriptions/_server.ts.js                       [39m[1m[2m  1.96 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/auth/session/_server.ts.js                        [39m[1m[2m  1.97 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/skills/_page.server.ts.js         [39m[1m[2m  2.03 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/classes/_id_/_server.ts.js                        [39m[1m[2m  2.15 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/edit/_page.server.ts.js           [39m[1m[2m  2.17 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/render-context.js                                                [39m[1m[2m  2.26 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/firebase.js                                                      [39m[1m[2m  2.28 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/students/_page.server.ts.js       [39m[1m[2m  2.31 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/students/_studentId_/_server.ts.js                [39m[1m[2m  2.35 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/tournaments/rounds/_server.ts.js                  [39m[1m[2m  2.35 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/plans.js                                                         [39m[1m[2m  2.35 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/tournaments/pairings/_server.ts.js                [39m[1m[2m  2.46 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/lichess/login/_server.ts.js                       [39m[1m[2m  2.48 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/tournaments/_page.server.ts.js                      [39m[1m[2m  2.61 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/users/me/_server.ts.js                            [39m[1m[2m  2.65 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/firebase-admin.js                                                [39m[1m[2m  2.68 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/tournaments/players/_server.ts.js                 [39m[1m[2m  2.75 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/lichess/callback/_server.ts.js                    [39m[1m[2m  2.75 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/attendance/_page.server.ts.js                       [39m[1m[2m  2.77 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/index.js                                                         [39m[1m[2m  2.77 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/skills/_page.server.ts.js                           [39m[1m[2m  2.81 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/upgrade/_page.server.ts.js                          [39m[1m[2m  2.91 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Toaster.svelte_svelte_type_style_lang.js                         [39m[1m[2m  2.92 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/achievements/_server.ts.js                        [39m[1m[2m  3.07 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/CaretLeft.js                                                     [39m[1m[2m  3.08 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/CaretDown.js                                                     [39m[1m[2m  3.14 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/CaretRight.js                                                    [39m[1m[2m  3.15 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_schoolId_/_page.server.ts.js               [39m[1m[2m  3.17 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_page.server.ts.js                          [39m[1m[2m  3.19 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ArrowUpRight.js                                                  [39m[1m[2m  3.26 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/skills/_server.ts.js                              [39m[1m[2m  3.28 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Plus.js                                                          [39m[1m[2m  3.30 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Check.js                                                         [39m[1m[2m  3.30 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ArrowRight.js                                                    [39m[1m[2m  3.30 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ArrowLeft.js                                                     [39m[1m[2m  3.31 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/MagnifyingGlass.js                                               [39m[1m[2m  3.41 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ArrowArcLeft.js                                                  [39m[1m[2m  3.45 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/DotsThreeVertical.js                                             [39m[1m[2m  3.45 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/students/_studentId_/_page.server.ts.js             [39m[1m[2m  3.47 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Layout.js                                                        [39m[1m[2m  3.51 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/UpdatePill.js                                                    [39m[1m[2m  3.53 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Clock.js                                                         [39m[1m[2m  3.57 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ChartBar.js                                                      [39m[1m[2m  3.59 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Table.js                                                         [39m[1m[2m  3.60 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/WarningCircle.js                                                 [39m[1m[2m  3.62 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/TrendUp.js                                                       [39m[1m[2m  3.67 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/X.js                                                             [39m[1m[2m  3.69 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/internal.js                                                      [39m[1m[2m  3.76 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/plus2.js                                                         [39m[1m[2m  3.76 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ArrowClockwise.js                                                [39m[1m[2m  3.78 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/DownloadSimple.js                                                [39m[1m[2m  3.79 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/arrow-right.js                                                   [39m[1m[2m  3.81 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/arrow-left.js                                                    [39m[1m[2m  3.81 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/CheckCircle.js                                                   [39m[1m[2m  3.86 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/User.js                                                          [39m[1m[2m  3.88 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/stripe/webhook/_server.ts.js                      [39m[1m[2m  3.96 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Info.js                                                          [39m[1m[2m  3.97 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Target.js                                                        [39m[1m[2m  3.98 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/CalendarBlank.js                                                 [39m[1m[2m  3.98 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/_page.server.ts.js                                  [39m[1m[2m  4.00 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Pulse.js                                                         [39m[1m[2m  4.01 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ChartLineUp.js                                                   [39m[1m[2m  4.07 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/shield2.js                                                       [39m[1m[2m  4.10 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/CreditCard.js                                                    [39m[1m[2m  4.13 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/CurrencyEur.js                                                   [39m[1m[2m  4.13 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Lightning.js                                                     [39m[1m[2m  4.15 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/XCircle.js                                                       [39m[1m[2m  4.22 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/PencilSimple.js                                                  [39m[1m[2m  4.22 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Tag.js                                                           [39m[1m[2m  4.24 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/class-students/_server.ts.js                      [39m[1m[2m  4.28 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/UserCircle.js                                                    [39m[1m[2m  4.30 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Trash.js                                                         [39m[1m[2m  4.31 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/BookOpen.js                                                      [39m[1m[2m  4.34 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/NavigationArrow.js                                               [39m[1m[2m  4.37 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/FileText.js                                                      [39m[1m[2m  4.39 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Shield.js                                                        [39m[1m[2m  4.46 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Icon.js                                                          [39m[1m[2m  4.51 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Question.js                                                      [39m[1m[2m  4.51 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/trophy2.js                                                       [39m[1m[2m  4.53 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/UserCheck.js                                                     [39m[1m[2m  4.54 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ConfirmModal.js                                                  [39m[1m[2m  4.56 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/sparkles.js                                                      [39m[1m[2m  4.57 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/settings.js                                                      [39m[1m[2m  4.60 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Medal.js                                                         [39m[1m[2m  4.60 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/UserPlus.js                                                      [39m[1m[2m  4.62 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ChatCircleDots.js                                                [39m[1m[2m  4.66 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/MapPin.js                                                        [39m[1m[2m  4.67 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/FloppyDisk.js                                                    [39m[1m[2m  4.68 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/class-skills/_server.ts.js                        [39m[1m[2m  4.70 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ChartPieSlice.js                                                 [39m[1m[2m  4.71 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/reports/_studentId_/_page.server.ts.js              [39m[1m[2m  4.73 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Stack.js                                                         [39m[1m[2m  4.73 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Hourglass.js                                                     [39m[1m[2m  4.79 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/schools/_server.ts.js                             [39m[1m[2m  4.89 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Users.js                                                         [39m[1m[2m  4.90 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/IdentificationBadge.js                                           [39m[1m[2m  4.96 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Lifebuoy.js                                                      [39m[1m[2m  5.02 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ChalkboardTeacher.js                                             [39m[1m[2m  5.04 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ArrowsClockwise.js                                               [39m[1m[2m  5.06 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Buildings.js                                                     [39m[1m[2m  5.07 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Trophy.js                                                        [39m[1m[2m  5.09 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Warning.js                                                       [39m[1m[2m  5.10 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/classes/_server.ts.js                             [39m[1m[2m  5.13 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/ListChecks.js                                                    [39m[1m[2m  5.15 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Megaphone.js                                                     [39m[1m[2m  5.17 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/_page.server.ts.js                [39m[1m[2m  5.27 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Student.js                                                       [39m[1m[2m  5.30 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/IdentificationCard.js                                            [39m[1m[2m  5.41 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_schoolId_/tournaments/_page.svelte.js      [39m[1m[2m  5.48 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Calendar.js                                                      [39m[1m[2m  5.50 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/exports.js                                                       [39m[1m[2m  5.54 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/students/_server.ts.js                            [39m[1m[2m  5.67 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/attendance/_server.ts.js                          [39m[1m[2m  5.71 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/tournaments/_server.ts.js                         [39m[1m[2m  5.80 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/SquaresFour.js                                                   [39m[1m[2m  5.84 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Crown.js                                                         [39m[1m[2m  5.91 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/GraduationCap.js                                                 [39m[1m[2m  5.94 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Eye.js                                                           [39m[1m[2m  5.96 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/UsersThree.js                                                    [39m[1m[2m  6.09 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Lightbulb.js                                                     [39m[1m[2m  6.11 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Sparkle.js                                                       [39m[1m[2m  6.22 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Link.js                                                          [39m[1m[2m  6.24 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/hooks.server.js                                                 [39m[1m[2m  6.30 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/tournaments/_tournamentId_/_page.server.ts.js       [39m[1m[2m  6.32 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Star.js                                                          [39m[1m[2m  6.46 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/skills/import-ai/_server.ts.js                    [39m[1m[2m  6.72 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Globe.js                                                         [39m[1m[2m  6.92 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/login/_page.svelte.js                                     [39m[1m[2m  7.36 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Note.js                                                          [39m[1m[2m  8.32 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/gamification/_server.ts.js                        [39m[1m[2m  8.63 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/InsigniaBadge.js                                                 [39m[1m[2m  8.65 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_schoolId_/lessons/_page.svelte.js          [39m[1m[2m  8.73 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Coins.js                                                         [39m[1m[2m  8.92 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Receipt.js                                                       [39m[1m[2m  9.15 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/donate/_page.svelte.js                                    [39m[1m[2m  9.19 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Phone.js                                                         [39m[1m[2m  9.77 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/payments/_server.ts.js                            [39m[1m[2m 10.22 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/achievements/_page.svelte.js                        [39m[1m[2m 11.82 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/create/_page.svelte.js                      [39m[1m[2m 12.13 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/Gear.js                                                          [39m[1m[2m 13.43 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/attendance/_page.svelte.js        [39m[1m[2m 14.59 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/_error.svelte.js                                          [39m[1m[2m 15.15 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/students/_studentId_/_page.svelte.js                [39m[1m[2m 15.23 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/legal/terms/_page.svelte.js                               [39m[1m[2m 15.58 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/faq/_page.svelte.js                                       [39m[1m[2m 15.69 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/lobby/_page.svelte.js                               [39m[1m[2m 15.85 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/upgrade/_page.svelte.js                             [39m[1m[2m 16.39 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/tournaments/_page.svelte.js                         [39m[1m[2m 17.14 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_schoolId_/edit/_page.svelte.js             [39m[1m[2m 17.16 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/legal/cookies/_page.svelte.js                             [39m[1m[2m 17.85 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/students/create/_page.svelte.js                     [39m[1m[2m 18.11 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/students/_studentId_/edit/_page.server.ts.js        [39m[1m[2m 18.64 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_page.svelte.js                             [39m[1m[2m 18.75 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/edit/_page.svelte.js              [39m[1m[2m 19.49 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/SortAscending.js                                                 [39m[1m[2m 19.92 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/schools/_schoolId_/_page.svelte.js                  [39m[1m[2m 20.22 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/pricing/_page.svelte.js                                   [39m[1m[2m 20.59 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/students/_studentId_/edit/_page.svelte.js           [39m[1m[2m 20.65 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/tournaments/create/_page.svelte.js                  [39m[1m[2m 21.66 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/tournaments/_tournamentId_/edit/_page.svelte.js     [39m[1m[2m 22.34 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/planner/_page.svelte.js                             [39m[1m[2m 22.36 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/_page.svelte.js                   [39m[1m[2m 23.26 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/reports/_page.svelte.js                             [39m[1m[2m 23.62 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/students/_page.svelte.js                            [39m[1m[2m 24.13 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/insignias.js                                                     [39m[1m[2m 24.18 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mremote-entry.js                                                         [39m[1m[2m 24.21 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/attendance/_page.svelte.js                          [39m[1m[2m 24.29 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/payments/_page.svelte.js                            [39m[1m[2m 24.32 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/legal/privacy/_page.svelte.js                             [39m[1m[2m 24.88 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/create/_page.svelte.js                      [39m[1m[2m 25.10 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/support/_page.svelte.js                             [39m[1m[2m 25.21 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/students/_page.svelte.js          [39m[1m[2m 25.60 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/settings/_page.svelte.js                            [39m[1m[2m 27.48 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/_page.svelte.js                                           [39m[1m[2m 28.47 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/root.js                                                          [39m[1m[2m 29.50 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/roadmap/_page.svelte.js                                   [39m[1m[2m 29.71 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/appStore.js                                                      [39m[1m[2m 30.46 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/reports/_studentId_/_page.svelte.js                 [39m[1m[2m 31.07 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/shared.js                                                        [39m[1m[2m 33.56 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/tournaments/_tournamentId_/_page.svelte.js          [39m[1m[2m 34.08 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_classId_/skills/_page.svelte.js            [39m[1m[2m 34.22 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/skills/create/_page.svelte.js                       [39m[1m[2m 37.33 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/classes/_page.svelte.js                             [39m[1m[2m 37.71 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/payments/create/_page.svelte.js                     [39m[1m[2m 38.01 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/skills/_skillId_/edit/_page.svelte.js               [39m[1m[2m 39.64 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/_page.svelte.js                                     [39m[1m[2m 41.06 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/skills/_page.svelte.js                              [39m[1m[2m 44.55 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/_layout.svelte.js                                         [39m[1m[2m 49.25 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/admin/_page.svelte.js                                     [39m[1m[2m 55.93 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mentries/pages/panel/_layout.svelte.js                                   [39m[1m[2m 62.92 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/renderer.js                                                      [39m[1m[2m 96.97 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mchunks/i18n.js                                                          [39m[1m[2m106.92 kB[22m[1m[22m
+[2m.svelte-kit/output/server/[22m[36mindex.js                                                                [39m[1m[2m126.61 kB[22m[1m[22m
+[32m✓ built in 35.70s[39m
+
+Run npm run preview to preview your production build locally.
+
+> Using @sveltejs/adapter-netlify
+  ✔ done

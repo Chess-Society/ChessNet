@@ -26,7 +26,7 @@
   let { children } = $props();
   let maintenanceMode = $derived($systemConfig.maintenanceMode);
 
-  if (browser) {
+  if (typeof window !== 'undefined') {
     initAuth();
     initGlobalConfig();
   }
@@ -47,7 +47,7 @@
 
   // Guard de Navegación Centralizado (Svelte 5 Runes)
   $effect(() => {
-    if (!$authInitialized || !browser || $loading || isRedirecting) return;
+    if (!$authInitialized || (typeof window === 'undefined') || $loading || isRedirecting) return;
 
     // Lógica de Redirección Robusta
     const currentPath = $page.url.pathname as string;

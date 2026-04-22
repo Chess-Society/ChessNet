@@ -15,7 +15,7 @@ export function toggleLocale() {
     console.warn('Language toggling is disabled. ChessNet is now Spanish-only.');
 }
 
-if (browser) {
+if (typeof window !== 'undefined') {
     // Force Spanish regardless of previous settings
     localStorage.setItem('locale', 'es');
     document.documentElement.lang = 'es';

@@ -16,7 +16,7 @@ const firebaseConfig = {
   measurementId: env.PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-if (browser) {
+if (typeof window !== 'undefined') {
   if (!env.PUBLIC_FIREBASE_API_KEY || !env.PUBLIC_FIREBASE_PROJECT_ID) {
     console.error('❌ [Firebase] CRITICAL: Environment variables (PUBLIC_FIREBASE_*) are missing!');
   } else {
@@ -31,7 +31,7 @@ const db = getFirestore(app);
 
 
 let analytics = null;
-if (browser) {
+if (typeof window !== 'undefined') {
   isSupported().then(supported => {
     if (supported) {
       analytics = getAnalytics(app);

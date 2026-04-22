@@ -16,7 +16,7 @@ let configUnsub: (() => void) | null = null;
 let announcementsUnsub: (() => void) | null = null;
 
 export function initGlobalConfig() {
-  if (!browser || configUnsub) return;
+  if (typeof window === 'undefined' || configUnsub) return;
 
   // 1. System Config (Public)
   configUnsub = onSnapshot(doc(db, 'system', 'config'), 

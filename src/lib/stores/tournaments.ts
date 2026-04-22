@@ -71,7 +71,7 @@ export const tournamentPairings = writable<TournamentPairing[]>([]);
 let db: IDBDatabase | null = null;
 
 const initDB = async (): Promise<IDBDatabase> => {
-  if (!browser) {
+  if (typeof window === 'undefined') {
     throw new Error('IndexedDB not available in server environment');
   }
 
@@ -775,7 +775,7 @@ export const tournamentDB = {
 };
 
 // Initialize on client side
-if (browser) {
+if (typeof window !== 'undefined') {
   tournamentDB.init().then(() => {
     tournamentDB.loadTournaments();
   }).catch(console.error);
