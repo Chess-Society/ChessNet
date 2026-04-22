@@ -24,7 +24,7 @@ export const GET: RequestHandler = async (event) => {
     
     const allDocs = [...newQuerySnapshot.docs];
     // Add legacy docs if they aren't already there (shouldn't be, but to be safe)
-    legacyQuerySnapshot.docs.forEach(doc => {
+    legacyQuerySnapshot.docs.forEach((doc: any) => {
       if (!allDocs.find(d => d.id === doc.id)) {
         allDocs.push(doc);
       }

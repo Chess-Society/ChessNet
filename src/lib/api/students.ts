@@ -52,7 +52,7 @@ export const studentsApi = {
     const data = toData<Student>(docSnap);
     const ownerId = await getOwnerId();
     
-    if (data.owner_id !== ownerId) {
+    if (data.ownerId !== ownerId) {
       throw new Error("Acceso denegado");
     }
 
@@ -85,7 +85,7 @@ export const studentsApi = {
     const docRef = doc(db, "students", id);
     
     const current = await this.getStudent(id);
-    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    if (current.ownerId !== ownerId) throw new Error("No autorizado");
 
     await updateDoc(docRef, {
       ...updates,
@@ -102,7 +102,7 @@ export const studentsApi = {
   async deleteStudent(id: string): Promise<void> {
     const ownerId = await getOwnerId();
     const current = await this.getStudent(id);
-    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    if (current.ownerId !== ownerId) throw new Error("No autorizado");
 
     await deleteDoc(doc(db, "students", id));
   },

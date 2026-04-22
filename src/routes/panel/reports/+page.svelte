@@ -58,7 +58,7 @@
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
     const newStudents = students.filter(s => {
-      const createdAt = s.created_at ? new Date(s.created_at) : new Date(0);
+      const createdAt = s.createdAt ? new Date(s.createdAt) : new Date(0);
       return createdAt > thirtyDaysAgo;
     }).length;
 
@@ -92,7 +92,7 @@
   const schoolBreakdown = $derived(() => {
     const total = students.length || 1;
     return schools.map(s => {
-      const count = students.filter(student => student.school_id === s.id).length;
+      const count = students.filter(student => student.schoolId === s.id).length;
       return {
         id: s.id,
         name: s.name,

@@ -587,7 +587,7 @@
                   <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3">{$t('payments.issued_to')}</div>
                   <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-none bg-zinc-100 flex items-center justify-center">
-                      {#if formData.payment_type === 'student'}
+                      {#if formData.paymentType === 'student'}
                         <UserIcon weight="fill" class="w-5 h-5 text-zinc-400" />
                       {:else}
                         <Buildings weight="fill" class="w-5 h-5 text-zinc-400" />

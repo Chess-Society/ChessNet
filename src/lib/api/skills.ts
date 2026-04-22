@@ -22,8 +22,8 @@ export const skillsApi = {
 
     const q = query(
       collection(db, "skills"),
-      where("owner_id", "==", user.uid),
-      orderBy("order_index", "asc")
+      where("ownerId", "==", user.uid),
+      orderBy("orderIndex", "asc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -31,8 +31,8 @@ export const skillsApi = {
 
     // Fetch category info for each skill
     for (const skill of skills) {
-      if (skill.category_id) {
-        const catDoc = await getDoc(doc(db, "categories", skill.category_id));
+      if (skill.categoryId) {
+        const catDoc = await getDoc(doc(db, "categories", skill.categoryId));
         if (catDoc.exists()) {
           (skill as any).categories = toData<any>(catDoc);
         }
@@ -49,9 +49,9 @@ export const skillsApi = {
 
     const q = query(
       collection(db, "skills"),
-      where("owner_id", "==", user.uid),
-      where("category_id", "==", categoryId),
-      orderBy("order_index", "asc")
+      where("ownerId", "==", user.uid),
+      where("categoryId", "==", categoryId),
+      orderBy("orderIndex", "asc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -70,8 +70,8 @@ export const skillsApi = {
     const skill = toData<Skill>(docSnap);
 
     // Fetch category info
-    if (skill.category_id) {
-      const catDoc = await getDoc(doc(db, "categories", skill.category_id));
+    if (skill.categoryId) {
+      const catDoc = await getDoc(doc(db, "categories", skill.categoryId));
       if (catDoc.exists()) {
         (skill as any).categories = toData<any>(catDoc);
       }
@@ -86,16 +86,16 @@ export const skillsApi = {
     if (!user) throw new Error("No authenticated user");
 
     const docRef = await addDoc(collection(db, "skills"), {
-      owner_id: user.uid,
+      ownerId: user.uid,
       name: skillData.name,
-      category_id: skillData.category_id,
+      categoryId: skillData.categoryId,
       description: skillData.description || "",
       icon: skillData.icon || "",
-      resource_link: skillData.resource_link || "",
+      resourceLink: skillData.resourceLink || "",
       level: skillData.level || 1,
-      order_index: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      orderIndex: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
 
     const docSnap = await getDoc(docRef);
@@ -108,7 +108,7 @@ export const skillsApi = {
 
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const updatedSnap = await getDoc(docRef);
@@ -129,8 +129,8 @@ export const skillsApi = {
     skillIds.forEach((id, index) => {
       const docRef = doc(db, "skills", id);
       batch.update(docRef, {
-        order_index: index,
-        updated_at: now
+        orderIndex: index,
+        updatedAt: now
       });
     });
 
@@ -145,12 +145,12 @@ export const skillsApi = {
     // Fetch student skills first
     const progressQuery = query(
       collection(db, "student_skills"),
-      where("owner_id", "==", user.uid),
-      where("student_id", "==", studentId)
+      where("ownerId", "==", user.uid),
+      where("studentId", "==", studentId)
     );
     const progressSnap = await getDocs(progressQuery);
     const progressMap = new Map();
-    progressSnap.docs.forEach(d => progressMap.set(d.data().skill_id, d.data()));
+    progressSnap.docs.forEach(d => progressMap.set(d.data().skillId, d.data()));
 
     // Fetch all skills
     const skills = await this.getMySkills();
@@ -169,13 +169,13 @@ export const skillsApi = {
 
     const q = query(
       collection(db, "class_skills"),
-      where("owner_id", "==", user.uid),
-      where("class_id", "==", classId),
-      orderBy("order_index", "asc")
+      where("ownerId", "==", user.uid),
+      where("classId", "==", classId),
+      orderBy("orderIndex", "asc")
     );
 
     const querySnapshot = await getDocs(q);
-    const skillIds = querySnapshot.docs.map(doc => doc.data().skill_id);
+    const skillIds = querySnapshot.docs.map(doc => doc.data().skillId);
 
     const skills: Skill[] = [];
     for (const sid of skillIds) {
@@ -214,10 +214,10 @@ export const skillsApi = {
           await this.createSkill({
             name: item.name,
             description: item.description,
-            category_id: category.id,
+            categoryId: category.id,
             level: item.level as any,
             icon: "Book",
-            resource_link: ""
+            resourceLink: ""
           });
         }
       }

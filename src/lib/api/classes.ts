@@ -84,7 +84,7 @@ export const classesApi = {
     if (!docSnap.exists()) throw new Error("Clase no encontrada");
 
     const cls = toData<Class>(docSnap);
-    if (cls.owner_id !== ownerId) throw new Error("Acceso denegado");
+    if (cls.ownerId !== ownerId) throw new Error("Acceso denegado");
 
     // Asegurar schoolName
     if (cls.schoolId) {
@@ -132,7 +132,7 @@ export const classesApi = {
     const docRef = doc(db, "classes", id);
     
     const current = await this.getClass(id);
-    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    if (current.ownerId !== ownerId) throw new Error("No autorizado");
 
     // Si cambia el schoolId, actualizamos también el schoolName
     if (updates.schoolId && updates.schoolId !== current.schoolId) {
@@ -155,7 +155,7 @@ export const classesApi = {
   async deleteClass(id: string): Promise<void> {
     const ownerId = await getOwnerId();
     const current = await this.getClass(id);
-    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    if (current.ownerId !== ownerId) throw new Error("No autorizado");
 
     await deleteDoc(doc(db, "classes", id));
   },

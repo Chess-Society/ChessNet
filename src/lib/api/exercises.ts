@@ -65,7 +65,7 @@ export const exercisesApi = {
     if (!docSnap.exists()) throw new Error("Ejercicio no encontrado");
     
     const data = toData<ChessExercise>(docSnap);
-    if (data.owner_id !== ownerId) throw new Error("Acceso denegado");
+    if (data.ownerId !== ownerId) throw new Error("Acceso denegado");
     
     return data;
   },
@@ -106,7 +106,7 @@ export const exercisesApi = {
     const docRef = doc(db, "chess_exercises", id);
     
     const current = await this.getExercise(id);
-    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    if (current.ownerId !== ownerId) throw new Error("No autorizado");
 
     await updateDoc(docRef, {
       ...updates,
@@ -123,7 +123,7 @@ export const exercisesApi = {
   async deleteExercise(id: string): Promise<void> {
     const ownerId = await getOwnerId();
     const current = await this.getExercise(id);
-    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    if (current.ownerId !== ownerId) throw new Error("No autorizado");
     
     await deleteDoc(doc(db, "chess_exercises", id));
   },

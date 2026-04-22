@@ -7,7 +7,7 @@ export interface ChessPosition {
 
 export interface Badge {
   id: string;
-  owner_id: string;
+  ownerId: string;
   schoolId: string;
   name: string;
   description: string;
@@ -20,7 +20,7 @@ export interface Badge {
 
 export interface StudentBadge {
   id: string;
-  owner_id: string;
+  ownerId: string;
   studentId: string;
   badgeId: string;
   earnedAt: string;
@@ -29,7 +29,7 @@ export interface StudentBadge {
 
 export interface StudentStats {
   id: string;
-  owner_id: string;
+  ownerId: string;
   studentId: string;
   points: number;
   level: number;
@@ -44,7 +44,7 @@ export interface StudentStats {
 
 export interface CurriculumUnit {
   id: string;
-  owner_id: string;
+  ownerId: string;
   schoolId: string;
   title: string;
   description?: string;
@@ -57,7 +57,7 @@ export interface CurriculumUnit {
 
 export interface Lesson {
   id: string;
-  owner_id: string;
+  ownerId: string;
   unitId: string;
   title: string;
   description?: string;
@@ -80,7 +80,7 @@ export interface ChessExercise {
   category: "tactics" | "strategy" | "endgame" | "opening";
   hints?: string[];
   explanation?: string;
-  owner_id: string;
+  ownerId: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -88,7 +88,7 @@ export interface ChessExercise {
 export interface Announcement {
   id: string;
   schoolId: string;
-  owner_id: string;
+  ownerId: string;
   title: string;
   content: string;
   type?: "general" | "class" | "student" | "event";

@@ -93,7 +93,7 @@
           s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (s.description || '').toLowerCase().includes(searchQuery.toLowerCase());
         
-        const catId = typeof s.category === 'string' ? s.category_id : (s.category?.id || s.category_id);
+        const catId = typeof s.category === 'string' ? s.categoryId : (s.category?.id || s.categoryId);
         const matchesCategory = selectedCategory === 'all' || catId === selectedCategory || s.category === selectedCategory;
         
         return matchesSearch && matchesCategory;
@@ -105,7 +105,7 @@
     (data?.categories || []).map((cat: any) => ({
       ...cat,
       items: filteredSkills.filter((s) => {
-        const sCatId = typeof s.category === 'string' ? s.category_id : (s.category?.id || s.category_id);
+        const sCatId = typeof s.category === 'string' ? s.categoryId : (s.category?.id || s.categoryId);
         return sCatId === (cat.id || cat.name) || s.category === cat.name;
       })
     })).filter((cat: any) => cat.items.length > 0 || selectedCategory === cat.id)
@@ -113,9 +113,9 @@
 
   const stats = $derived({
     total: skills.length,
-    mastered: skills.filter((s) => (s.students_mastered || 0) > 0).length,
+    mastered: skills.filter((s) => (s.studentsMastered || 0) > 0).length,
     advanced: skills.filter((s) => s.level === 'advanced').length,
-    hours: skills.reduce((acc, s) => acc + (Number(s.estimated_hours) || 0), 0)
+    hours: skills.reduce((acc, s) => acc + (Number(s.estimatedHours) || 0), 0)
   });
 
   const deleteSkill = async (id: string, name: string) => {
@@ -339,7 +339,7 @@
     } else {
       // Update only items in this category within the global list
       const otherSkills = skillsState.filter(s => {
-        const sCatId = typeof s.category === 'string' ? s.category_id : (s.category?.id || s.category_id);
+        const sCatId = typeof s.category === 'string' ? s.categoryId : (s.category?.id || s.categoryId);
         return sCatId !== categoryId && s.category !== categoryId;
       });
       skillsState = [...otherSkills, ...newItems].sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -355,7 +355,7 @@
       skillsState = newItems;
     } else {
       const otherSkills = skillsState.filter(s => {
-        const sCatId = typeof s.category === 'string' ? s.category_id : (s.category?.id || s.category_id);
+        const sCatId = typeof s.category === 'string' ? s.categoryId : (s.category?.id || s.categoryId);
         return sCatId !== categoryId && s.category !== categoryId;
       });
       skillsState = [...otherSkills, ...newItems];
@@ -366,7 +366,7 @@
     const orderedList = categoryId === 'all' ? newItems : [...skillsState].sort((a,b) => (a.order || 0) - (b.order || 0)); 
     
     // Better strategy: just update the orders for the items that changed
-    const reorderings = orderedList.map((item, index) => ({
+    const reorderings = orderedList.map((item: any, index: number) => ({
       id: item.id,
       order: index
     }));
@@ -414,16 +414,6 @@
       </div>
       
       <div class="flex items-center gap-6">
-        <div class="flex items-center gap-6">
-          <div class="flex items-center gap-2">
-            <Users weight="bold" class="w-4 h-4 text-violet-400" />
-            <span class="text-xs font-black text-white">{s.studentsMastered || 0}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <Clock weight="bold" class="w-4 h-4 text-zinc-500" />
-            <span class="text-xs font-black text-zinc-400">{s.estimatedHours || 0}h</span>
-          </div>
-        </div>
         <div class="w-20 h-20 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-none flex items-center justify-center text-white shadow-2xl shadow-violet-600/20 relative group overflow-hidden">
           <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <Path weight="duotone" class="w-10 h-10 group-hover:scale-110 transition-transform duration-500" />
@@ -569,12 +559,11 @@
           <div class="w-16 h-16 bg-violet-600/20 rounded-none flex items-center justify-center text-violet-500">
             <Brain weight="fill" class="w-8 h-8 animate-pulse" />
           </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{$t('skills.category')}</span>
-                  <div class="px-2 py-0.5 bg-zinc-950 border border-zinc-800 rounded-none text-[9px] font-bold text-zinc-400">
-                    {s.categoryId || 'General'}
-                  </div>
-                </div>
+          <div class="space-y-1">
+            <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight tracking-wide">{$t('skills.ai_analyzing') || 'EXTRAYENDO CONTENIDO'}</h3>
+            <p class="text-xs font-jakarta font-medium text-zinc-400">{$t('skills.ai_analyzing_desc') || 'Nuestro motor de IA está procesando el archivo PDF para generar las lecciones.'}</p>
+          </div>
+        </div>
         <div class="w-full md:w-80 space-y-3">
           <div class="flex justify-between text-[10px] font-black text-violet-400 uppercase tracking-widest">
             <span>{Math.round(extractionProgress)}%</span>
@@ -907,7 +896,7 @@
 </div>
 
 {#snippet SkillCardComp({ skill, getDifficultyColor, getResourceType, getResourceIcon, getResourceLabel, deleteSkill }: { skill: SkillWithDetails, getDifficultyColor: (d: any) => string, getResourceType: (r: string) => string, getResourceIcon: (t: string) => any, getResourceLabel: (t: string) => string, deleteSkill: (id: string, name: string) => void })}
-  {@const masteredCount = skill.students_mastered || 0}
+  {@const masteredCount = skill.studentsMastered || 0}
   {@const masteryProgress = Math.min((masteredCount / 20) * 100, 100)}
   {@const isSelected = selectedIds.includes(skill.id)}
   
@@ -988,7 +977,7 @@
       <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
         <div class="flex items-center gap-2 text-zinc-500">
           <BookOpen weight="fill" class="w-4 h-4 text-violet-500" />
-          <span>{skill.estimated_hours || 0}h</span>
+          <span>{skill.estimatedHours || 0}h</span>
         </div>
         <div class="flex items-center gap-2 text-zinc-400">
           <CheckCircle weight="fill" class="w-4 h-4" />

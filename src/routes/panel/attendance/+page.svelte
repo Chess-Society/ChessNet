@@ -80,7 +80,7 @@
   const setStatus = async (studentId: string, status: string) => {
     if (!selectedClassId || isProcessing) return;
     
-    const record = currentAttendance.find(r => r.student_id === studentId);
+    const record = currentAttendance.find(r => r.studentId === studentId);
     if (record?.status === status) return;
 
     try {

@@ -50,7 +50,7 @@ export const schoolsApi = {
     const data = toData<School>(docSnap);
     const ownerId = await getOwnerId();
     
-    if (data.owner_id !== ownerId) {
+    if (data.ownerId !== ownerId) {
       throw new Error("Acceso denegado");
     }
     
@@ -101,7 +101,7 @@ export const schoolsApi = {
     
     // Verificación de seguridad previa a la actualización
     const current = await this.getSchool(id);
-    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    if (current.ownerId !== ownerId) throw new Error("No autorizado");
 
     await updateDoc(docRef, {
       ...updates,
@@ -118,7 +118,7 @@ export const schoolsApi = {
   async deleteSchool(id: string): Promise<void> {
     const ownerId = await getOwnerId();
     const current = await this.getSchool(id);
-    if (current.owner_id !== ownerId) throw new Error("No autorizado");
+    if (current.ownerId !== ownerId) throw new Error("No autorizado");
     
     await deleteDoc(doc(db, "schools", id));
   },

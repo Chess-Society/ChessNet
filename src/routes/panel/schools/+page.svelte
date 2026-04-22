@@ -43,14 +43,14 @@
   // Optimización: Precalcular el conteo de alumnos por centro para evitar filtrados repetitivos en el render
   const studentsCountMap = $derived(
     students.reduce((acc, s) => {
-      const schoolId = s.school_id;
+      const schoolId = s.schoolId;
       if (schoolId) acc[schoolId] = (acc[schoolId] || 0) + 1;
       return acc;
     }, {} as Record<string, number>)
   );
 
-  const getStudentCount = (school_id: string) => {
-    return studentsCountMap[school_id] || 0;
+  const getStudentCount = (schoolId: string) => {
+    return studentsCountMap[schoolId] || 0;
   };
 
   const deleteSchool = (id: string) => {

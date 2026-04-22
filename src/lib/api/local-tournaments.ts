@@ -590,6 +590,8 @@ async function generateSwissPairings(
   roundNo: number, 
   players: LocalTournamentPlayer[]
 ): Promise<Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[]> {
+  const ownerId = await getOwnerId();
+  if (!ownerId) throw new Error("No authenticated user");
   const standings = await localTournamentsApi.calculateStandings(tournamentId);
   const previousPairings = await localTournamentsApi.getTournamentPairings(tournamentId);
   
@@ -620,6 +622,7 @@ async function generateSwissPairings(
     if (availablePlayers.length === 1) {
       const player = availablePlayers.shift()!;
       pairings.push({
+        ownerId,
         tournamentId: tournamentId,
         roundNo: roundNo,
         board,
@@ -672,6 +675,7 @@ async function generateSwissPairings(
     }
 
     pairings.push({
+      ownerId,
       tournamentId: tournamentId,
       roundNo: roundNo,
       board,
@@ -692,6 +696,8 @@ async function generateRoundRobinPairings(
   roundNo: number, 
   players: LocalTournamentPlayer[]
 ): Promise<Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[]> {
+  const ownerId = await getOwnerId();
+  if (!ownerId) throw new Error("No authenticated user");
   const activePlayers = players.filter(p => (p as any).status !== 'withdrawn');
   const pairings: Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[] = [];
   if (activePlayers.length < 2) return pairings;
@@ -729,6 +735,7 @@ async function generateRoundRobinPairings(
     if (p1.studentId === 'bye' || p2.studentId === 'bye') {
       const realPlayer = p1.studentId !== 'bye' ? p1 : p2;
       pairings.push({
+        ownerId,
         tournamentId: tournamentId,
         roundNo: roundNo,
         board: 0, // Specialized board for byes
@@ -747,6 +754,7 @@ async function generateRoundRobinPairings(
     // Alternate colors based on round/index for fairness
     const isWhite = (i + roundNo) % 2 === 0;
     pairings.push({
+      ownerId,
       tournamentId: tournamentId,
       roundNo: roundNo,
       board: board++,
@@ -768,6 +776,8 @@ async function generateKnockoutPairings(
   roundNo: number, 
   players: LocalTournamentPlayer[]
 ): Promise<Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[]> {
+  const ownerId = await getOwnerId();
+  if (!ownerId) throw new Error("No authenticated user");
   const pairings: Omit<LocalTournamentPairing, 'id' | 'updatedAt'>[] = [];
   
   if (roundNo === 1) {
@@ -779,6 +789,7 @@ async function generateKnockoutPairings(
     for (let i = 0; i < shuffledPlayers.length; i += 2) {
       if (i + 1 < shuffledPlayers.length) {
         pairings.push({
+          ownerId,
           tournamentId: tournamentId,
           roundNo: roundNo,
           board,
@@ -790,6 +801,7 @@ async function generateKnockoutPairings(
       } else {
         // Bye for last player
         pairings.push({
+          ownerId,
           tournamentId: tournamentId,
           roundNo: roundNo,
           board,
@@ -828,6 +840,7 @@ async function generateKnockoutPairings(
     for (let i = 0; i < winners.length; i += 2) {
       if (i + 1 < winners.length) {
         pairings.push({
+          ownerId,
           tournamentId: tournamentId,
           roundNo: roundNo,
           board,
@@ -839,6 +852,7 @@ async function generateKnockoutPairings(
       } else {
         // Bye for last winner
         pairings.push({
+          ownerId,
           tournamentId: tournamentId,
           roundNo: roundNo,
           board,

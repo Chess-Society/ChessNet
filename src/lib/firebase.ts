@@ -91,9 +91,9 @@ export const toData = <T>(doc: any): T => {
     else if (key === 'points_black') newKey = 'pointsBlack';
     else if (key === 'white_student_id') newKey = 'whiteStudentId';
     else if (key === 'black_student_id') newKey = 'blackStudentId';
-    else if (key === 'round_no') newKey = 'roundNo';
-    else if (key === 'started_at') newKey = 'startedAt';
-    else if (key === 'finished_at') newKey = 'finishedAt';
+    else if (key === 'started_at' || key === 'start_date') newKey = 'startAt';
+    else if (key === 'finished_at' || key === 'end_date') newKey = 'endAt';
+    else if (key === 'registration_deadline') newKey = 'registrationDeadline';
     else if (key === 'created_at') newKey = 'createdAt';
     else if (key === 'updated_at') newKey = 'updatedAt';
     

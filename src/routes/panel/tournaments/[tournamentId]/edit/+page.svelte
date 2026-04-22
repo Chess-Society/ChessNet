@@ -99,10 +99,8 @@
       const updates = {
         ...formData,
         format: formData.format as any,
-        startAt: new Date(formData.start_date).toISOString(),
-        endAt: new Date(formData.end_date).toISOString(),
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: new Date(formData.end_date).toISOString(),
+        startAt: new Date(formData.startAt).toISOString(),
+        endAt: new Date(formData.endAt).toISOString()
       };
 
       await localTournamentsApi.updateTournament(tournament.id, updates);
@@ -454,7 +452,7 @@
                     <Calendar weight="duotone" class="w-5 h-5 text-zinc-600" />
                     <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('common.date')}</span>
                   </div>
-                  <span class="text-[10px] font-bold text-white uppercase">{formData.start_date ? new Date(formData.start_date).toLocaleDateString() : 'TBD'}</span>
+                  <span class="text-[10px] font-bold text-white uppercase">{formData.startAt ? new Date(formData.startAt).toLocaleDateString() : 'TBD'}</span>
                 </div>
                 <div class="flex items-center justify-between p-4 bg-zinc-950/20 border border-zinc-800/40 rounded-none">
                   <div class="flex items-center gap-3">
@@ -468,7 +466,7 @@
                     <Clock weight="duotone" class="w-5 h-5 text-zinc-600" />
                     <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('tournaments.time_control')}</span>
                   </div>
-                  <span class="text-[10px] font-bold text-white uppercase">{formData.time_control}</span>
+                  <span class="text-[10px] font-bold text-white uppercase">{formData.timeControl}</span>
                 </div>
               </div>
             </div>

@@ -1,0 +1,76 @@
+
+> chessnet-sveltekit@1.0.0 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+
+====================================
+Loading svelte-check in workspace: c:\Users\tomih\Desktop\ChessNet
+Getting Svelte diagnostics...
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\api\local-tournaments.ts[39m:624:9
+[31mError[39m: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'. 
+[36m      pairings.push({
+        [35mownerId[36m,
+        tournamentId: tournamentId,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\api\local-tournaments.ts[39m:677:7
+[31mError[39m: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'. 
+[36m    pairings.push({
+      [35mownerId[36m,
+      tournamentId: tournamentId,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\api\local-tournaments.ts[39m:736:9
+[31mError[39m: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'. 
+[36m      pairings.push({
+        [35mownerId[36m,
+        tournamentId: tournamentId,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\api\local-tournaments.ts[39m:755:7
+[31mError[39m: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'. 
+[36m    pairings.push({
+      [35mownerId[36m,
+      tournamentId: tournamentId,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\api\local-tournaments.ts[39m:789:11
+[31mError[39m: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'. 
+[36m        pairings.push({
+          [35mownerId[36m,
+          tournamentId: tournamentId,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\api\local-tournaments.ts[39m:801:11
+[31mError[39m: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'. 
+[36m        pairings.push({
+          [35mownerId[36m,
+          tournamentId: tournamentId,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\api\local-tournaments.ts[39m:840:11
+[31mError[39m: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'. 
+[36m        pairings.push({
+          [35mownerId[36m,
+          tournamentId: tournamentId,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\api\local-tournaments.ts[39m:852:11
+[31mError[39m: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'. 
+[36m        pairings.push({
+          [35mownerId[36m,
+          tournamentId: tournamentId,
+[39m
+
+====================================
+[31msvelte-check found 8 errors and 0 warnings in 1 file
+[39m

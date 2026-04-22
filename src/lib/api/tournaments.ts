@@ -59,7 +59,7 @@ export const tournamentsApi = {
     if (!docSnap.exists()) throw new Error("Tournament not found");
     
     const tournament = toData<Tournament>(docSnap);
-    if (tournament.owner_id !== uid) throw new Error("Access denied");
+    if (tournament.ownerId !== uid) throw new Error("Access denied");
     
     return tournament;
   },

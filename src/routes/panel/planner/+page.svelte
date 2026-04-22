@@ -83,7 +83,7 @@
         type: 'class',
         title: c.name,
         time: c.schedule || '17:00',
-        location: c.school_name || translation('planner.locations.school'),
+        location: c.schoolName || translation('planner.locations.school'),
         tag: translation('planner.classes'),
         color: 'violet',
         href: `/panel/classes/${c.id}`

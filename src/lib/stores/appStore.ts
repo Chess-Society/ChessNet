@@ -5,13 +5,17 @@ import {
   doc, 
   getDoc, 
   setDoc, 
+  updateDoc,
   onSnapshot, 
   collection, 
   addDoc, 
   deleteDoc, 
   query, 
+  where,
+  limit,
   orderBy,
   getDocs,
+  writeBatch,
   or
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -123,7 +127,7 @@ function createAppStore() {
   // Centralized subscription to handle user changes and synchronization
   let authUnsub: any = null;
   
-  if (browser) {
+  if (typeof window !== 'undefined') {
     authUnsub = derived([authStoreUser, authStoreInitialized], ([$u, $ai]) => ({ user: $u, initialized: $ai }))
       .subscribe(async ({ user, initialized }) => {
         // Handle logout or user change
@@ -213,6 +217,7 @@ function createAppStore() {
           );
           unsubscribes.push(unsubSettings);
 
+          const collectionsMap = [
             { key: 'schools', path: 'schools' },
             { key: 'students', path: 'students' },
             { key: 'classes', path: 'classes' },
@@ -966,11 +971,11 @@ export const appStore = createAppStore();
 
 // --- Automated Achievement Checker Task ---
 // Runs independently of the data syncing loop to prevent recursive updates and race conditions
-if (browser) {
+if (typeof window !== 'undefined') {
   let timer: any;
   appStore.subscribe(state => {
     // Only run if we have a valid browser environment
-    if (!browser) return;
+    if (typeof window === 'undefined') return;
 
     const user = get(authStoreUser);
     const initialized = get(authStoreInitialized);
