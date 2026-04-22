@@ -76,26 +76,27 @@ export const toData = <T>(doc: any): T => {
   const normalized: any = { id };
   for (const key in data) {
     let newKey = key;
-    if (key === 'owner_id') newKey = 'ownerId';
+    if (key === 'owner_id' || key === 'userId') newKey = 'ownerId';
     else if (key === 'student_id') newKey = 'studentId';
-    else if (key === 'round_no') newKey = 'roundNo';
-    else if (key === 'tournament_id') newKey = 'tournamentId';
     else if (key === 'school_id') newKey = 'schoolId';
     else if (key === 'class_id') newKey = 'classId';
+    else if (key === 'tournament_id') newKey = 'tournamentId';
+    else if (key === 'round_no') newKey = 'roundNo';
     else if (key === 'first_name') newKey = 'firstName';
     else if (key === 'last_name') newKey = 'lastName';
-    else if (key === 'time_control') newKey = 'timeControl';
-    else if (key === 'max_players') newKey = 'maxPlayers';
-    else if (key === 'prize_pool') newKey = 'prizePool';
-    else if (key === 'points_white') newKey = 'pointsWhite';
-    else if (key === 'points_black') newKey = 'pointsBlack';
-    else if (key === 'white_student_id') newKey = 'whiteStudentId';
-    else if (key === 'black_student_id') newKey = 'blackStudentId';
-    else if (key === 'started_at' || key === 'start_date') newKey = 'startAt';
-    else if (key === 'finished_at' || key === 'end_date') newKey = 'endAt';
-    else if (key === 'registration_deadline') newKey = 'registrationDeadline';
+    else if (key === 'parent_email') newKey = 'parentEmail';
+    else if (key === 'parent_phone') newKey = 'parentPhone';
+    else if (key === 'date_of_birth') newKey = 'dateOfBirth';
+    else if (key === 'lichess_username') newKey = 'lichessUsername';
+    else if (key === 'payment_type') newKey = 'paymentType';
+    else if (key === 'due_date') newKey = 'dueDate';
+    else if (key === 'paid_date') newKey = 'paidDate';
+    else if (key === 'period_start') newKey = 'periodStart';
+    else if (key === 'period_end') newKey = 'periodEnd';
     else if (key === 'created_at') newKey = 'createdAt';
     else if (key === 'updated_at') newKey = 'updatedAt';
+    else if (key === 'started_at' || key === 'start_date') newKey = 'startAt';
+    else if (key === 'finished_at' || key === 'end_date') newKey = 'endAt';
     
     normalized[newKey] = data[key];
   }

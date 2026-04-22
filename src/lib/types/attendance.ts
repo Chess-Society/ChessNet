@@ -4,7 +4,7 @@ export type AttendanceStatus = 'P' | 'T' | 'A'; // Presente, Tardanza, Ausente
 
 export interface Attendance {
   id: string;
-  owner_id: string;
+  ownerId: string;
   studentId: string;
   classId: string;
   date: string; // YYYY-MM-DD format
@@ -87,7 +87,7 @@ export interface AttendanceForm {
 }
 
 export interface StudentAttendance {
-  owner_id: string;
+  ownerId: string;
   studentId: string;
   marks: number;
   pCount: number;

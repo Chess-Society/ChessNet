@@ -7,7 +7,7 @@ export type PaymentMethod = 'cash' | 'transfer' | 'card' | 'paypal' | 'bizum' | 
 
 export interface Payment {
   id: string;
-  owner_id: string;
+  ownerId: string;
   paymentType: PaymentType;
   studentId?: string;
   schoolId?: string;

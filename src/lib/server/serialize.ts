@@ -42,14 +42,27 @@ export function serializeRecord<T>(data: any): T {
         let newKey = key;
         
         // Auto-mapping legacy snake_case keys to camelCase
-        if (key === 'owner_id') newKey = 'ownerId';
+        if (key === 'owner_id' || key === 'userId') newKey = 'ownerId';
         else if (key === 'student_id') newKey = 'studentId';
-        else if (key === 'round_no') newKey = 'roundNo';
-        else if (key === 'tournament_id') newKey = 'tournamentId';
         else if (key === 'school_id') newKey = 'schoolId';
         else if (key === 'class_id') newKey = 'classId';
+        else if (key === 'tournament_id') newKey = 'tournamentId';
+        else if (key === 'round_no') newKey = 'roundNo';
         else if (key === 'first_name') newKey = 'firstName';
         else if (key === 'last_name') newKey = 'lastName';
+        else if (key === 'parent_email') newKey = 'parentEmail';
+        else if (key === 'parent_phone') newKey = 'parentPhone';
+        else if (key === 'date_of_birth') newKey = 'dateOfBirth';
+        else if (key === 'lichess_username') newKey = 'lichessUsername';
+        else if (key === 'payment_type') newKey = 'paymentType';
+        else if (key === 'due_date') newKey = 'dueDate';
+        else if (key === 'paid_date') newKey = 'paidDate';
+        else if (key === 'period_start') newKey = 'periodStart';
+        else if (key === 'period_end') newKey = 'periodEnd';
+        else if (key === 'created_at') newKey = 'createdAt';
+        else if (key === 'updated_at') newKey = 'updatedAt';
+        else if (key === 'started_at' || key === 'start_date') newKey = 'startAt';
+        else if (key === 'finished_at' || key === 'end_date') newKey = 'endAt';
 
         serialized[newKey] = serializeRecord(data[key]);
       }

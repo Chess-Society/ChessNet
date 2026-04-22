@@ -560,7 +560,7 @@
             <Brain weight="fill" class="w-8 h-8 animate-pulse" />
           </div>
           <div class="space-y-1">
-            <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight tracking-wide">{$t('skills.ai_analyzing') || 'EXTRAYENDO CONTENIDO'}</h3>
+            <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">{$t('skills.ai_analyzing') || 'EXTRAYENDO CONTENIDO'}</h3>
             <p class="text-xs font-jakarta font-medium text-zinc-400">{$t('skills.ai_analyzing_desc') || 'Nuestro motor de IA está procesando el archivo PDF para generar las lecciones.'}</p>
           </div>
         </div>
