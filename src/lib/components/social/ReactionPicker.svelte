@@ -2,12 +2,17 @@
   import { fade, scale, fly } from 'svelte/transition';
   import { Rocket, Trophy, Lightbulb, Question, WarningCircle, Skull } from 'phosphor-svelte';
   
-  interface Props {
+  interface ReactionPickerProps {
     onSelect: (key: string) => void;
     activeReactions?: string[];
+    unlockedEmotes?: string[];
   }
 
-  let { onSelect, activeReactions = [] }: Props = $props();
+  let { 
+    onSelect, 
+    activeReactions = [], 
+    unlockedEmotes = [] 
+  }: ReactionPickerProps = $props();
   let hoveredKey = $state<string | null>(null);
 
   const options = [
@@ -50,6 +55,19 @@
       </button>
     </div>
   {/each}
+  {#if (unlockedEmotes || []).length > 0}
+    <div class="w-[1px] h-6 bg-white/10 mx-1"></div>
+    {#each unlockedEmotes as emote, i}
+      <div in:scale={{ delay: (options.length + i) * 30, duration: 200, start: 0.5 }}>
+        <button
+          onclick={() => onSelect(emote)}
+          class="group relative w-10 h-10 flex items-center justify-center transition-all rounded-full hover:bg-white/10 {activeReactions.includes(emote) ? 'bg-white/10 ring-1 ring-white/20' : ''}"
+        >
+          <span class="text-lg group-hover:scale-125 transition-transform duration-300">{emote.split(' ')[1] || emote}</span>
+        </button>
+      </div>
+    {/each}
+  {/if}
 </div>
 
 <style>

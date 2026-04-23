@@ -44,13 +44,31 @@
         lichessUrl: lichessUrl.trim() || null,
       };
 
+      const economy = $appStore.settings?.economy;
+      const isPremium = $appStore.settings?.plan === 'premium' || economy?.battlePass?.isPremium;
+
       if (post) {
-        await appStore.updatePost(post.id, postData);
+        await appStore.updatePost(post.id, {
+          ...postData,
+          metadata: {
+            ...post.metadata,
+            authorColor: economy?.activeColor || 'none',
+            authorFrame: economy?.activeFrame || 'none',
+            authorFont: economy?.activeFont || 'none',
+            isPremium
+          }
+        });
         toast.success('Actualizado');
       } else {
         await appStore.addPost({
           ...postData,
-          reactions: {}
+          reactions: {},
+          metadata: {
+            authorColor: economy?.activeColor || 'none',
+            authorFrame: economy?.activeFrame || 'none',
+            authorFont: economy?.activeFont || 'none',
+            isPremium
+          }
         });
         toast.success('Publicado');
       }

@@ -716,5 +716,39 @@ export const adminApi = {
       }
       transaction.delete(txRef);
     });
+  },
+
+  /**
+   * Obtiene la distribución de prestigio entre los profesores.
+   */
+  async getPrestigeDistribution() {
+    try {
+      const q = query(
+        collection(db, "users"), 
+        where("economy.prestige", ">", 0),
+        orderBy("economy.prestige", "desc")
+      );
+      const snap = await getDocs(q);
+      return snap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.displayName || data.full_name || "Profesor",
+          prestige: data.economy?.prestige || 0,
+          photoURL: data.photoURL || data.avatar_url
+        };
+      });
+    } catch (error) {
+      console.error("[AdminAPI] Error getting prestige distribution:", error);
+      // Fallback: fetch some users if query fails (likely due to missing index)
+      const qFallback = query(collection(db, "users"), limit(10));
+      const snap = await getDocs(qFallback);
+      return snap.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().displayName || "Profesor",
+        prestige: doc.data().economy?.prestige || 0,
+        photoURL: doc.data().photoURL
+      })).filter(u => u.prestige > 0);
+    }
   }
 };

@@ -40,6 +40,29 @@
     if (!date) return '';
     return new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(new Date(date));
   }
+
+  // Customization derived from profile data
+  let customization = $derived(profile?.economy?.customization || {
+    themeColor: '#8b5cf6',
+    font: 'Outfit',
+    frame: 'none',
+    badges: []
+  });
+
+  let collection = $derived(profile?.economy?.collection || {
+    badges: [],
+    emotes: [],
+    fonts: [],
+    colors: [],
+    themes: [],
+    frames: []
+  });
+
+  // Dynamic Styles
+  let profileStyles = $derived(`
+    --theme-color: ${customization.themeColor || '#8b5cf6'};
+    --theme-font: "${customization.font || 'Outfit'}", sans-serif;
+  `);
 </script>
 
 <div class="profile-page-container">
@@ -63,22 +86,22 @@
     </div>
   {:else}
     <!-- Profile Hero -->
-    <div class="profile-hero" in:fly={{ y: 20 }}>
+    <div class="profile-hero" in:fly={{ y: 20 }} style={profileStyles}>
       <div class="hero-content">
-        <div class="avatar-large">
+        <div class="avatar-large frame-{customization.frame || 'none'}">
           {#if profile.photoURL || profile.avatar_url}
             <img src={profile.photoURL || profile.avatar_url} alt={profile.displayName || profile.full_name} />
           {:else}
             <div class="avatar-placeholder">{(profile.displayName || profile.full_name || 'U')[0]}</div>
           {/if}
-          <div class="role-badge">
+          <div class="role-badge" style="background: var(--theme-color)">
             <Star weight="fill" size={12} />
             {profile.settings?.role || 'PROFESOR'}
           </div>
         </div>
 
         <div class="profile-main-info">
-          <h1 class="display-name">
+          <h1 class="display-name" style="font-family: var(--theme-font)">
             {profile.displayName || profile.full_name || 'Profesor Sin Nombre'}
           </h1>
           
@@ -131,10 +154,19 @@
       </div>
 
       <div class="sidebar-column">
-        <div class="info-card">
+        <div class="info-card" style="--card-accent: var(--theme-color)">
           <h3 class="card-title">Logros y Reconocimientos</h3>
           <div class="badges-grid">
-            {#if profile.badgesCount > 0}
+            {#if collection.badges && collection.badges.length > 0}
+              {#each collection.badges as badge}
+                <div class="badge-item group">
+                  <div class="badge-mini">
+                    <Trophy size={20} weight="fill" style="color: var(--theme-color)" />
+                  </div>
+                  <span class="badge-tooltip">{badge}</span>
+                </div>
+              {/each}
+            {:else if profile.badgesCount > 0}
               {#each Array(profile.badgesCount) as _}
                 <div class="badge-mini">
                   <Trophy size={20} weight="fill" class="text-amber-500" />
@@ -143,6 +175,24 @@
             {:else}
               <p class="empty-text">Sin insignias destacadas</p>
             {/if}
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3 class="card-title">Colección Cosmética</h3>
+          <div class="cosmetic-stats">
+            <div class="c-stat">
+              <span class="c-val">{collection.emotes?.length || 0}</span>
+              <span class="c-lab">Emotes</span>
+            </div>
+            <div class="c-stat">
+              <span class="c-val">{collection.colors?.length || 0}</span>
+              <span class="c-lab">Colores</span>
+            </div>
+            <div class="c-stat">
+              <span class="c-val">{collection.fonts?.length || 0}</span>
+              <span class="c-lab">Fuentes</span>
+            </div>
           </div>
         </div>
 
@@ -355,7 +405,7 @@
 
 
   .stat-box.nets {
-    border-color: rgba(139, 92, 246, 0.2);
+    border-color: var(--theme-color);
   }
 
   .icon-bg {
@@ -363,8 +413,76 @@
     right: -10px;
     bottom: -10px;
     opacity: 0.05;
-    color: #8b5cf6;
+    color: var(--theme-color);
     transform: rotate(-15deg);
+  }
+
+  /* Avatar Frames */
+  .avatar-large.frame-neon-violet {
+    border: 4px solid #8b5cf6;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  }
+
+  .avatar-large.frame-gold {
+    border: 4px solid #fbbf24;
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+  }
+
+  /* Tooltips for badges */
+  .badge-item {
+    position: relative;
+  }
+
+  .badge-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-5px);
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s;
+  }
+
+  .badge-item:hover .badge-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+  }
+
+  .cosmetic-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .c-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255,255,255,0.02);
+    padding: 0.75rem;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .c-val {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #fff;
+  }
+
+  .c-lab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   .content-layout {

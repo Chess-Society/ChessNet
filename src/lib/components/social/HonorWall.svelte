@@ -11,9 +11,9 @@
     try {
       const data = await adminApi.getPrestigeDistribution();
       // Mock some photos if missing for aesthetics
-      ranking = data.map((u, i) => ({
+      ranking = data.map((u: any, i: number) => ({
         ...u,
-        photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`
+        photoURL: u.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`
       }));
     } catch (e) {
       console.error(e);

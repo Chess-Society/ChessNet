@@ -41,7 +41,13 @@
         title: postTitle || 'Actualización de Estado',
         content: postContent,
         type: 'SCHOOL_UPDATE',
-        fen: detectedFen || undefined
+        fen: detectedFen || undefined,
+        metadata: {
+          authorColor: $appStore.settings?.economy?.activeColor,
+          authorFrame: $appStore.settings?.economy?.activeFrame,
+          authorFont: $appStore.settings?.economy?.activeFont,
+          isPremium: $appStore.settings?.plan === 'premium'
+        }
       });
       postContent = '';
       postTitle = '';

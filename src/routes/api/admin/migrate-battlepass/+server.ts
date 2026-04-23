@@ -14,7 +14,7 @@ export async function POST({ request }) {
         let count = 0;
         let skipped = 0;
 
-        const promises = usersSnap.docs.map(async (doc) => {
+        const promises = usersSnap.docs.map(async (doc: any) => {
             const data = doc.data();
             
             if (data.economy && !data.economy.battlePass) {

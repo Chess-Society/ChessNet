@@ -110,13 +110,51 @@
     post.metadata?.isPremium || 
     (post.authorId === $user?.uid && $appStore.settings?.plan === 'premium')
   );
+
+  const authorNameColor = $derived(post.metadata?.authorColor || 'text-white');
+  const authorFrame = $derived(post.metadata?.authorFrame || 'none');
+
+  const frameStyles: Record<string, string> = {
+    'Acero': 'border-zinc-400 shadow-[0_0_10px_rgba(161,161,170,0.3)]',
+    'Amatista': 'border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.5)]',
+    'Eléctrico': 'border-blue-400 shadow-[0_0_20px_rgba(96,165,250,0.6)] animate-pulse',
+    'Maestro': 'border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.8)] border-[3px]',
+    'Neón Violeta': 'border-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]',
+    'Dorado Real': 'border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]',
+    'Cian Cyber': 'border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]',
+    'Esmeralda': 'border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]',
+    'Rojo Sangre': 'border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]'
+  };
+
+  const nameColorStyles: Record<string, string> = {
+    'Esmeralda': 'text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.3)]',
+    'Violeta Neón': 'text-violet-400 drop-shadow-[0_0_8px_rgba(167,139,250,0.5)]',
+    'Oro Puro': 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)] font-black',
+    'Gris Piedra': 'text-zinc-500',
+    'Violeta': 'text-violet-400',
+    'Dorado': 'text-amber-400',
+    'Cian': 'text-cyan-400',
+    'Rojo': 'text-red-500',
+    'Fucsia': 'text-fuchsia-400'
+  };
+
+  const nameFontStyles: Record<string, string> = {
+    'Retro': 'font-mono tracking-tighter',
+    'Elegante': 'italic font-serif',
+    'Maestro': 'uppercase tracking-[0.2em] font-black',
+    'Cyber': 'font-cyber',
+    'Inter Tight': 'font-inter-tight',
+    'Monospace Pro': 'font-mono'
+  };
+
+  const authorFont = $derived(post.metadata?.authorFont || 'none');
 </script>
 
 <div class="post-card group relative p-4 bg-zinc-950 border border-white/5 hover:border-white/10 transition-all duration-300">
   <div class="flex gap-4">
     <!-- Left: Avatar Column -->
     <div class="flex flex-col items-center gap-2">
-      <div class="w-12 h-12 bg-zinc-900 border border-white/10 overflow-hidden relative">
+      <div class="w-12 h-12 bg-zinc-900 border border-white/10 overflow-hidden relative {frameStyles[authorFrame] || ''}">
         {#if post.authorPhotoUrl}
           <img src={post.authorPhotoUrl} alt={post.authorName} class="w-full h-full object-cover" />
         {:else}
@@ -140,7 +178,7 @@
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2 min-w-0">
           <div class="flex items-center gap-1.5 min-w-0">
-            <span class="text-[11px] font-black text-white uppercase truncate">{post.authorName}</span>
+            <span class="text-[11px] font-black uppercase truncate {nameColorStyles[authorNameColor] || 'text-white'} {nameFontStyles[authorFont] || ''}">{post.authorName}</span>
             {#if isPremiumAuthor}
               <Rocket size={10} weight="fill" class="text-violet-400 flex-shrink-0" />
             {/if}
@@ -173,7 +211,7 @@
           </h3>
         {/if}
         
-        <p class="text-xs text-zinc-400 font-medium leading-relaxed whitespace-pre-wrap">
+        <p class="text-xs text-zinc-400 font-medium leading-relaxed whitespace-pre-wrap {nameFontStyles[authorFont] || ''}">
           {post.content}
         </p>
 
@@ -263,6 +301,7 @@
               <ReactionPicker 
                 onSelect={handleReact} 
                 activeReactions={Object.keys(post.reactions || {}).filter(k => $user?.uid && post.reactions[k]?.includes($user.uid))}
+                unlockedEmotes={$appStore.settings?.economy?.collection?.emotes || []}
               />
             {/if}
           </div>

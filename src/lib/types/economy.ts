@@ -18,10 +18,24 @@ export interface UserBattlePass {
 	weeklyChallenges: Record<string, { progress: number; total: number; claimed: boolean; xp: number; resetAt: any }>;
 }
 
+export interface UserCollection {
+	badges: string[];
+	emotes: string[];
+	fonts: string[];
+	colors: string[];
+	themes: string[];
+	frames: string[];
+}
+
 export interface UserEconomy {
 	netsBalance: number;
 	totalNetsEarned: number;
 	tier: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | 'DIAMOND';
+	prestige?: number;
 	battlePass?: UserBattlePass;
+	collection?: UserCollection;
+	activeColor?: string;
+	activeFrame?: string;
+	activeFont?: string;
 	lastUpdated?: Date | any;
 }

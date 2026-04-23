@@ -54,7 +54,7 @@ export const battlepassApi = {
   /**
    * Claims a reward for a specific tier.
    */
-  async claimTier(userId: string, tierLevel: number, rewardNets: number = 0): Promise<void> {
+  async claimTier(userId: string, tierLevel: number, reward: { type: string, value: any }): Promise<void> {
     if (!userId) throw new Error("No user ID provided");
     const userRef = doc(db, 'users', userId);
     
@@ -63,7 +63,8 @@ export const battlepassApi = {
       if (!userDoc.exists()) throw new Error("User not found");
       
       const data = userDoc.data();
-      const claimedTiers = data?.economy?.battlePass?.claimedTiers || [];
+      const bp = data?.economy?.battlePass;
+      const claimedTiers = bp?.claimedTiers || [];
       
       if (claimedTiers.includes(tierLevel)) {
         throw new Error("Tier already claimed");
@@ -73,9 +74,27 @@ export const battlepassApi = {
         'economy.battlePass.claimedTiers': arrayUnion(tierLevel)
       };
 
-      if (rewardNets > 0) {
-        updates['economy.netsBalance'] = increment(rewardNets);
-        updates['economy.totalNetsEarned'] = increment(rewardNets);
+      // Handle different reward types
+      const { type, value } = reward;
+      
+      if (type === 'nets') {
+        updates['economy.netsBalance'] = increment(value);
+        updates['economy.totalNetsEarned'] = increment(value);
+      } else if (type === 'emote') {
+        updates['economy.collection.emotes'] = arrayUnion(value);
+      } else if (type === 'font') {
+        updates['economy.collection.fonts'] = arrayUnion(value);
+      } else if (type === 'color') {
+        updates['economy.collection.colors'] = arrayUnion(value);
+      } else if (type === 'badge') {
+        updates['economy.collection.badges'] = arrayUnion(value);
+      } else if (type === 'frame') {
+        updates['economy.collection.frames'] = arrayUnion(value);
+      } else if (type === 'theme') {
+        updates['economy.collection.themes'] = arrayUnion(value);
+      } else if (type === 'crate') {
+        // Logic for adding a crate could go here, or just increment a counter
+        updates[`economy.inventory.crates.${value}`] = increment(1);
       }
 
       transaction.update(userRef, updates);
@@ -96,5 +115,104 @@ export const battlepassApi = {
 
      // Then grant XP (which handles tier recalculation)
      await this.grantXp(userId, xpReward);
+  },
+
+  /**
+   * Opens a crate, deducting nets and adding the item to collection.
+   */
+  async openCrate(userId: string, cost: number, reward: { type: string, value: any }): Promise<void> {
+    if (!userId) throw new Error("No user ID provided");
+    const userRef = doc(db, 'users', userId);
+    
+    await runTransaction(db, async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      if (!userDoc.exists()) throw new Error("User not found");
+      
+      const data = userDoc.data();
+      const nets = data?.economy?.netsBalance || 0;
+      
+      if (nets < cost) throw new Error("Insufficient Nets");
+
+      const updates: Record<string, any> = {
+        'economy.netsBalance': increment(-cost)
+      };
+
+      const { type, value } = reward;
+      const collectionKey = `economy.collection.${type}s`; // e.g. emotes, fonts, colors
+      
+      // Special case for types that don't end in 's' or have different mapping
+      let finalKey = collectionKey;
+      if (type === 'badge') finalKey = 'economy.collection.badges';
+      if (type === 'theme') finalKey = 'economy.collection.themes';
+      if (type === 'frame') finalKey = 'economy.collection.frames';
+      if (type === 'font') finalKey = 'economy.collection.fonts';
+      if (type === 'color') finalKey = 'economy.collection.colors';
+      if (type === 'emote') finalKey = 'economy.collection.emotes';
+
+      updates[finalKey] = arrayUnion(value);
+
+      transaction.update(userRef, updates);
+    });
+  },
+
+  /**
+   * Equips a cosmetic item from the collection.
+   */
+  async equipItem(userId: string, type: 'color' | 'frame' | 'font', value: string): Promise<void> {
+    if (!userId) throw new Error("No user ID provided");
+    const userRef = doc(db, 'users', userId);
+    
+    const fieldMap = {
+      color: 'economy.activeColor',
+      frame: 'economy.activeFrame',
+      font: 'economy.activeFont'
+    };
+
+    await updateDoc(userRef, {
+      [fieldMap[type]]: value
+    });
+  },
+
+  /**
+   * Directly purchase an item from the shop.
+   */
+  async buyShopItem(userId: string, item: { name: string, type: string, price: number, value?: any }): Promise<void> {
+    if (!userId) throw new Error("No user ID provided");
+    const userRef = doc(db, 'users', userId);
+
+    await runTransaction(db, async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      if (!userDoc.exists()) throw new Error("User not found");
+      
+      const data = userDoc.data();
+      const currentBalance = data?.economy?.netsBalance || 0;
+      
+      if (currentBalance < item.price) {
+        throw new Error("Insufficient Nets");
+      }
+
+      const updates: Record<string, any> = {
+        'economy.netsBalance': increment(-item.price)
+      };
+
+      const type = item.type;
+      const value = item.value || item.name;
+      
+      const collectionKeyMap: Record<string, string> = {
+        'emote': 'economy.collection.emotes',
+        'font': 'economy.collection.fonts',
+        'color': 'economy.collection.colors',
+        'frame': 'economy.collection.frames',
+        'theme': 'economy.collection.themes',
+        'badge': 'economy.collection.badges'
+      };
+
+      const finalKey = collectionKeyMap[type];
+      if (finalKey) {
+        updates[finalKey] = arrayUnion(value);
+      }
+
+      transaction.update(userRef, updates);
+    });
   }
 };
