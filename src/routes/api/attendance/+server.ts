@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 import { serializeRecord } from '$lib/server/serialize';
 

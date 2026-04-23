@@ -45,6 +45,24 @@
     completedTournamentsCount: $appStore.localTournaments.filter(t => t.status === 'completed').length
   });
 
+  const isDirector = $derived($appStore.settings.role === 'director' || $appStore.settings.role === 'admin');
+  const currentSchool = $derived($appStore.schools.find(s => s.id === $appStore.settings.schoolId) || $appStore.schools[0]);
+
+  async function handleToggleGovernance(field: 'socialEnabled' | 'economyEnabled') {
+    if (!currentSchool) return;
+    
+    try {
+      const newValue = !currentSchool[field];
+      await appStore.updateSchool({
+        ...currentSchool,
+        [field]: newValue
+      });
+      toast.success(`Sistema ${field === 'socialEnabled' ? 'social' : 'económico'} ${newValue ? 'activado' : 'desactivado'}`);
+    } catch (e: any) {
+      toast.error(e.message || "Error al actualizar la gobernanza");
+    }
+  }
+
   const availableInsignias = $derived(
     INSIGNIAS.filter(insignia => 
       $appStore.unlockedAchievements.some(a => a.id === insignia.id)
@@ -235,6 +253,60 @@
               </div>
           </div>
       </div>
+
+      <!-- Governance Section (Only for Directors) -->
+      {#if isDirector && currentSchool}
+        <div class="bento-card p-6 sm:p-10 border-amber-500/10" in:fade>
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-lg sm:text-xl font-outfit font-bold text-white flex items-center gap-3">
+              <Shield weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
+              Gobernanza de Academia
+            </h2>
+            <div class="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-[10px] font-black text-amber-500 uppercase tracking-widest">
+              Control Maestro
+            </div>
+          </div>
+          
+          <div class="space-y-6">
+            <!-- Social Switch -->
+            <div class="flex items-center justify-between p-6 bg-zinc-950/30 rounded-none border border-white/5 group hover:border-violet-500/30 transition-all">
+              <div class="max-w-md">
+                <p class="text-sm font-outfit font-bold text-white mb-1">Muro Social de Profesores</p>
+                <p class="text-[11px] text-slate-500 font-plus-jakarta leading-relaxed">Permite a los profesores compartir posts, análisis y retos en el feed global de la escuela.</p>
+              </div>
+              <button 
+                onclick={() => handleToggleGovernance('socialEnabled')}
+                class="w-12 h-6 {currentSchool.socialEnabled ? 'bg-emerald-600' : 'bg-zinc-800'} rounded-none relative transition-colors shadow-lg"
+                aria-label="Alternar Muro Social"
+              >
+                <div class="absolute {currentSchool.socialEnabled ? 'right-1' : 'left-1'} top-1 w-4 h-4 bg-white rounded-none transition-all"></div>
+              </button>
+            </div>
+
+            <!-- Economy Switch -->
+            <div class="flex items-center justify-between p-6 bg-zinc-950/30 rounded-none border border-white/5 group hover:border-amber-500/30 transition-all">
+              <div class="max-w-md">
+                <p class="text-sm font-outfit font-bold text-white mb-1">Economía de Reconocimiento (Nets)</p>
+                <p class="text-[11px] text-slate-500 font-plus-jakarta leading-relaxed">Activa el sistema de hitos, pronósticos académicos y recompensas en Nets para la escuela.</p>
+              </div>
+              <button 
+                onclick={() => handleToggleGovernance('economyEnabled')}
+                class="w-12 h-6 {currentSchool.economyEnabled ? 'bg-amber-600' : 'bg-zinc-800'} rounded-none relative transition-colors shadow-lg"
+                aria-label="Alternar Economía de Reconocimiento"
+              >
+                <div class="absolute {currentSchool.economyEnabled ? 'right-1' : 'left-1'} top-1 w-4 h-4 bg-white rounded-none transition-all"></div>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-8 p-4 bg-amber-500/5 border border-amber-500/10 flex items-start gap-3">
+            <Warning size={16} class="text-amber-500 shrink-0 mt-0.5" />
+            <p class="text-[10px] text-zinc-500 leading-relaxed uppercase font-bold tracking-tight">
+              Nota: Estos cambios afectan a toda la escuela. Los profesores y alumnos dejarán de ver las funcionalidades sociales o económicas instantáneamente si se desactivan.
+            </p>
+          </div>
+        </div>
+      {/if}
 
       <!-- Danger Zone Section -->
       <div class="bento-card p-6 sm:p-10 border-red-500/10 hover:border-red-500/20">

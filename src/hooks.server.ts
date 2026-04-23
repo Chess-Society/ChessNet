@@ -1,8 +1,13 @@
 import { authenticate } from '$lib/server/auth';
 import type { Handle } from '@sveltejs/kit';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 import { ADMIN_EMAILS } from '$lib/constants';
 import { json } from '@sveltejs/kit';
+
+// Cache de mantenimiento en memoria — evita consultar Firestore en cada request SSR
+const MAINTENANCE_CACHE_TTL_MS = 60_000; // 60 segundos
+let maintenanceCacheValue: boolean = false;
+let maintenanceCacheExpiry: number = 0;
 
 export const handle: Handle = async ({ event, resolve }) => {
     // 1. Poblar event.locals con la información del usuario desde la cookie __session
@@ -18,21 +23,31 @@ export const handle: Handle = async ({ event, resolve }) => {
     
     if (!isAsset && !isAdminRoute && !isDev) {
         try {
-            const configRef = adminDb.collection("system").doc("config");
-            const configSnap = await configRef.get();
-            const isMaintenance = configSnap.exists && configSnap.data()?.maintenanceMode === true;
+            const now = Date.now();
+            let isMaintenance: boolean;
+
+
+
+            // Usar caché si aún es válido
+            if (now < maintenanceCacheExpiry) {
+                isMaintenance = maintenanceCacheValue;
+            } else {
+                // Refrescar caché desde Firestore
+                const configRef = adminDb.collection("system").doc("config");
+                const configSnap = await configRef.get();
+                isMaintenance = configSnap.exists && configSnap.data()?.maintenanceMode === true;
+                maintenanceCacheValue = isMaintenance;
+                maintenanceCacheExpiry = now + MAINTENANCE_CACHE_TTL_MS;
+            }
             
             if (isMaintenance) {
-                const userEmail = (event.locals.user?.email || '').toLowerCase();
-                const isAdmin = userEmail && ADMIN_EMAILS.map(e => e.toLowerCase()).includes(userEmail);
-                
-                if (!isAdmin) {
-                    // Si es una petición de datos (feth), devolvemos error 503
+                if (!event.locals.isAdmin) {
+                    // Si es una petición de datos (fetch), devolvemos error 503
                     if (event.request.headers.get('accept')?.includes('application/json')) {
                         return json({ error: 'Sistema en mantenimiento' }, { status: 503 });
                     }
                     
-                    // Si es navegación, podemos devolver una página de mantenimiento simple
+                    // Si es navegación, devolver página de mantenimiento
                     return new Response(`
                         <!DOCTYPE html>
                         <html lang="es">

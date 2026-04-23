@@ -10,6 +10,9 @@ export interface School {
   location?: string;
   createdAt: string;
   updatedAt: string;
+  sharedWith?: string[];
+  socialEnabled?: boolean;
+  economyEnabled?: boolean;
 }
 
 export interface Category {
@@ -39,6 +42,9 @@ export interface Class {
   studentIds?: string[];
   createdAt: string;
   updatedAt: string;
+  sharedWith?: string[];
+  socialEnabled?: boolean;
+  economyEnabled?: boolean;
 }
 
 export interface Student {
@@ -64,6 +70,9 @@ export interface Student {
   lichessAccessToken?: string;
   createdAt: string;
   updatedAt: string;
+  sharedWith?: string[];
+  socialEnabled?: boolean;
+  economyEnabled?: boolean;
 }
 
 export interface Skill {

@@ -28,7 +28,8 @@
     ArrowLeft,
     X,
     ArrowArcLeft,
-    Buildings
+    Buildings,
+    EnvelopeSimple
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, slide, fly, scale } from 'svelte/transition';
@@ -63,8 +64,40 @@
     organizer: tournament?.organizer || '',
     notes: tournament?.notes || '',
     rules: tournament?.rules || '',
-    schoolId: tournament?.schoolId || ''
+    schoolId: tournament?.schoolId || '',
+    sharedWith: tournament?.sharedWith || [] as string[]
   });
+
+  let newDirectorEmail = $state('');
+  let isResolvingEmail = $state(false);
+
+  const addDirector = async () => {
+    if (!newDirectorEmail) return;
+    try {
+      isResolvingEmail = true;
+      const res = await fetch(`/api/users/resolve-email?email=${encodeURIComponent(newDirectorEmail)}`);
+      if (!res.ok) throw new Error('Usuario no encontrado o error de servidor');
+      const user = await res.json();
+      
+      if (!formData.sharedWith) formData.sharedWith = [];
+      if (formData.sharedWith.includes(user.uid)) {
+        showToast.error('Este director ya tiene acceso');
+      } else {
+        formData.sharedWith = [...formData.sharedWith, user.uid];
+        newDirectorEmail = '';
+        showToast.success('Director añadido correctamente');
+      }
+    } catch (e: any) {
+      showToast.error(e.message);
+    } finally {
+      isResolvingEmail = false;
+    }
+  };
+
+  const removeDirector = (uid: string) => {
+    formData.sharedWith = formData.sharedWith.filter(id => id !== uid);
+    showToast.success('Acceso revocado');
+  };
 
   const validateForm = () => {
     errors = {};
@@ -355,6 +388,76 @@
               <input id="reg-deadline" type="datetime-local" bind:value={formData.registrationDeadline} class="glass-input w-full px-4 text-xs text-violet-400 [color-scheme:dark] bg-zinc-950/50" />
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Section: Director Access (Sharing) -->
+      <section class="bento-card !p-10 relative overflow-hidden group border-violet-500/10">
+        <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-transparent opacity-100"></div>
+        
+        <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">
+          <div class="w-14 h-14 bg-violet-600/20 border border-violet-500/30 rounded-none flex items-center justify-center text-violet-400 shadow-xl shadow-violet-500/10">
+            <Users weight="duotone" class="w-8 h-8" />
+          </div>
+          <div>
+            <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Acceso Directores</h3>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Comparte este torneo con directores de clubes</p>
+          </div>
+        </div>
+
+        <div class="space-y-8 relative z-10">
+          <div class="space-y-4">
+            <p class="text-xs text-zinc-400 font-jakarta leading-relaxed">
+              Introduce el email del director para permitirle ver este torneo y sus resultados. Solo podrá ver los datos creados por ti.
+            </p>
+            
+            <div class="flex gap-3">
+              <div class="relative flex-1 group">
+                <EnvelopeSimple weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
+                <input
+                  type="email"
+                  placeholder="email@del-director.com"
+                  bind:value={newDirectorEmail}
+                  class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
+                  onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), addDirector())}
+                />
+              </div>
+              <button 
+                type="button"
+                onclick={addDirector}
+                disabled={!newDirectorEmail || isResolvingEmail}
+                class="px-8 bg-violet-600 hover:bg-violet-500 text-white font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50"
+              >
+                {isResolvingEmail ? '...' : 'Añadir'}
+              </button>
+            </div>
+          </div>
+
+          {#if formData.sharedWith && formData.sharedWith.length > 0}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {#each formData.sharedWith as uid}
+                <div class="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-none group/item">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-violet-500/20 flex items-center justify-center text-violet-400 font-black text-[10px]">
+                      {uid.substring(0, 2).toUpperCase()}
+                    </div>
+                    <span class="text-[10px] font-bold text-zinc-300 uppercase tracking-widest truncate max-w-[120px]">{uid}</span>
+                  </div>
+                  <button 
+                    type="button"
+                    onclick={() => removeDirector(uid)}
+                    class="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+                  >
+                    <X weight="bold" size={14} />
+                  </button>
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <div class="p-8 border border-dashed border-white/5 text-center">
+              <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-widest italic">No se ha compartido con ningún director</p>
+            </div>
+          {/if}
         </div>
       </section>
 

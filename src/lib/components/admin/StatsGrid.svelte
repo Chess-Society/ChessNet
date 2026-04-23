@@ -85,28 +85,42 @@
 
 <div class="space-y-8">
   <!-- Primary Insights -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10 border border-white/10 shadow-2xl">
     {#each primaryCards as card, i}
       {@const Icon = card.icon}
-      <div class="relative group" in:fade={{ delay: i * 150 }}>
-        <div class="absolute -inset-1 bg-gradient-to-r {card.color} rounded-none opacity-10 group-hover:opacity-20 transition duration-500 blur-xl"></div>
-        <div class="relative bg-black/40 backdrop-blur-3xl border border-white/10 p-6 md:p-10 rounded-none overflow-hidden">
-          <div class="flex items-center justify-between mb-4 md:mb-8">
-            <div class="p-3 md:p-4 bg-white/5 rounded-none border border-white/10">
-              <Icon weight="duotone" class="w-6 h-6 md:w-8 md:h-8 text-white" />
+      <div class="relative bg-[#02040a] p-10 group overflow-hidden" in:fade={{ delay: i * 150 }}>
+        <!-- Background Decorative Element -->
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] border-l border-b border-white/5 -mr-16 -mt-16 rotate-45 transition-transform group-hover:scale-110"></div>
+        
+        <div class="relative z-10 flex flex-col h-full">
+          <div class="flex items-center justify-between mb-12">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-primary-500 transition-all group-hover:text-white">
+                <Icon weight="bold" class="w-6 h-6" />
+              </div>
+              <div class="h-px w-8 bg-white/10"></div>
+              <p class="text-[10px] font-mono font-black text-slate-500 uppercase tracking-[0.4em]">{card.label}</p>
             </div>
-            <div class="flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-none">
-              <span class="w-1.5 h-1.5 rounded-none bg-violet-500 animate-pulse"></span>
-              <span class="text-[8px] font-black text-violet-400 uppercase tracking-widest">Live</span>
+            
+            <div class="flex items-center gap-2">
+              <div class="px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-[8px] font-mono font-black text-violet-400 uppercase tracking-widest">
+                REALTIME_DATA
+              </div>
             </div>
           </div>
           
-          <div class="space-y-1">
-            <p class="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">{card.label}</p>
-            <h3 class="text-4xl md:text-6xl font-black font-display tracking-tighter text-white italic leading-none">
+          <div class="mt-auto">
+            <h3 class="text-6xl md:text-8xl font-black font-display tracking-[-0.04em] text-white italic leading-none mb-4 group-hover:translate-x-2 transition-transform duration-500">
               {card.value}
             </h3>
-            <p class="text-[10px] md:text-xs font-bold text-slate-400 mt-4 tracking-tight">{card.description}</p>
+            <div class="flex items-end justify-between">
+               <p class="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest max-w-[200px] leading-relaxed italic">{card.description}</p>
+               <div class="flex gap-1">
+                 {#each Array(5) as _, j}
+                   <div class="w-1 h-3 bg-primary-500/20 {j < 3 ? 'bg-primary-500' : ''}"></div>
+                 {/each}
+               </div>
+            </div>
           </div>
         </div>
       </div>
@@ -114,23 +128,33 @@
   </div>
 
   <!-- Operational Grid -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 border border-white/10">
     {#each secondaryCards as card, i}
       {@const Icon = card.icon}
-      <div class="relative group" in:fade={{ delay: 300 + (i * 100) }}>
-        <div class="bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 p-8 rounded-none transition-all duration-300">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="p-2.5 bg-white/5 rounded-none border border-white/10 group-hover:scale-110 transition-transform">
-              <Icon weight="duotone" class="w-5 h-5 text-white/70" />
+      <div class="relative bg-[#02040a] p-8 group transition-all hover:bg-white/[0.01]" in:fade={{ delay: 300 + (i * 100) }}>
+        <div class="flex flex-col gap-6">
+          <div class="flex items-start justify-between">
+            <div class="w-10 h-10 bg-white/[0.03] border border-white/5 flex items-center justify-center text-slate-500 group-hover:text-white transition-colors">
+              <Icon weight="bold" class="w-5 h-5" />
             </div>
-            <div>
-              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">{card.label}</p>
-              <p class="text-[8px] font-bold text-slate-600 uppercase italic leading-none">{card.sub}</p>
-            </div>
+            <p class="text-[10px] font-mono font-black text-slate-800 italic">0{i + 1}</p>
           </div>
-          <h4 class="text-3xl font-black font-display italic text-white/90">
-             {card.value.toLocaleString()}
-          </h4>
+          
+          <div>
+            <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.2em] mb-1">{card.label}</p>
+            <h4 class="text-4xl font-black font-display italic text-white leading-none">
+               {card.value.toLocaleString()}
+            </h4>
+            <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mt-4 flex items-center gap-2">
+              <span class="w-1 h-1 bg-slate-800"></span>
+              {card.sub}
+            </p>
+          </div>
+        </div>
+        
+        <!-- Bottom Scanline decoration -->
+        <div class="absolute bottom-0 left-0 w-full h-0.5 bg-white/5 overflow-hidden">
+          <div class="h-full bg-primary-500/40 w-1/3 animate-[shimmer_3s_infinite]"></div>
         </div>
       </div>
     {/each}

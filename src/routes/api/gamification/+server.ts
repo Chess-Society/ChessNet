@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb, adminAuth } from '$lib/firebase-admin';
+import { adminDb, adminAuth } from '$lib/server/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 import { serializeRecord } from '$lib/server/serialize';
 
@@ -161,6 +161,12 @@ async function updateStudentStats(uid: string, params: any) {
 async function addPoints(uid: string, params: any) {
   const { studentId, points, reason } = params;
 
+  // HIGH-02: Verificar que el estudiante pertenece al usuario autenticado
+  const studentDoc = await adminDb.collection('students').doc(studentId).get();
+  if (!studentDoc.exists || studentDoc.data()?.owner_id !== uid) {
+    return json({ error: 'No autorizado para este estudiante' }, { status: 403 });
+  }
+
   const statsRef = adminDb.collection('student_stats').doc(studentId);
   const statsDoc = await statsRef.get();
   const currentStats = statsDoc.exists ? statsDoc.data() : {};
@@ -193,6 +199,12 @@ async function addPoints(uid: string, params: any) {
 
 async function logActivity(uid: string, params: any) {
   const { studentId, activityType, activityData } = params;
+
+  // HIGH-02 (derivado): Verificar propiedad del estudiante antes de loggear
+  const studentDoc = await adminDb.collection('students').doc(studentId).get();
+  if (!studentDoc.exists || studentDoc.data()?.owner_id !== uid) {
+    return json({ error: 'No autorizado para este estudiante' }, { status: 403 });
+  }
 
   await adminDb.collection('activity_logs').add({
     owner_id: uid,

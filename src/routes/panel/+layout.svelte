@@ -23,7 +23,14 @@
     Trophy,
     Lifebuoy,
     BookOpen,
-    Medal
+    Medal,
+    RocketLaunch,
+    ShareNetwork,
+    ChatTeardropDots,
+    ChartPieSlice,
+    Lightning,
+    Question,
+    WarningCircle
   } from 'phosphor-svelte';
 
   import { fade, fly } from 'svelte/transition';
@@ -48,12 +55,15 @@
   let showMobileMenu = $state(false);
 
   // Reactividad del store
-  let teacherName = $derived($appStore?.settings?.teacherName || $authUser?.displayName || ($authLoading ? '...' : 'User'));
+  let teacherName = $derived($appStore?.settings?.teacherName || $authUser?.displayName || ($authLoading ? '...' : 'Socio'));
   let teacherAvatar = $derived($appStore?.settings?.teacherAvatar || $authUser?.photoURL || null);
   let plan = $derived(data.isAdmin ? 'premium' : ($appStore?.settings?.plan || 'free'));
   let email = $derived($authUser?.email || '');
   
   let currentRoute = $derived($page.url.pathname);
+
+  // Economía del profesor
+  let netsBalance = $derived($appStore?.settings?.economy?.netsBalance || 0);
 
   // Impersonation state
   let isImpersonating = $derived(!!data.impersonateEmail);
@@ -61,11 +71,13 @@
   // Lobby & Support Notifications state
   let lobbyPulse = $state(false);
   let supportPulse = $state(false);
+  let adminPulse = $state(false); // Separado: dot rojo en link Admin (tickets abiertos sin revisar)
   let unsubs: (() => void)[] = [];
 
   // Scroll logic for mobile nav
   let lastScrollY = $state(0);
   let isNavVisible = $state(true);
+  let showSupportMenu = $state(false);
   let navThreshold = 30; // Reducido para mayor sensibilidad
 
   function handleScroll() {
@@ -119,25 +131,35 @@
     }
   });
 
+  // BUG-06: Auto-resetear lobbyPulse al entrar en /panel/lobby
+  $effect(() => {
+    if (currentRoute.startsWith('/panel/lobby')) {
+      lobbyPulse = false;
+      const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
+      localStorage.setItem(`last_viewed_${colName}`, Date.now().toString());
+      localStorage.setItem('last_viewed_announcements_global', Date.now().toString());
+    }
+  });
+
   // 2. Monitor for Support Tickets (User or Admin) - Effect based on appStore
   $effect(() => {
     const list = $appStore.reports || [];
     if (list.length > 0) {
       const isAdmin = $authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase());
       
-      // Admin sees red dot if any "open" ticket exists
       if (isAdmin) {
+        // Admin: dot en /admin si hay tickets abiertos sin revisar
         const openTickets = list.filter(r => r.status === 'open');
         if (openTickets.length > 0) {
           const lastUpdate = openTickets[0].updatedAt || openTickets[0].createdAt;
           const lastViewed = localStorage.getItem('last_viewed_support_admin');
           if (lastUpdate) {
             const updateTime = typeof lastUpdate.toDate === 'function' ? lastUpdate.toDate().getTime() : new Date(lastUpdate).getTime();
-            if (!lastViewed || updateTime > parseInt(lastViewed)) supportPulse = true;
+            if (!lastViewed || updateTime > parseInt(lastViewed)) adminPulse = true;
           }
         }
       } else {
-        // User sees red dot if their last ticket was updated by admin (status != resolved)
+        // Usuario: dot en /panel/support si su ticket fue actualizado
         const activeTickets = list.filter(r => r.status !== 'resolved');
         if (activeTickets.length > 0) {
           const lastUpdate = activeTickets[0].updatedAt || activeTickets[0].createdAt;
@@ -164,7 +186,9 @@
   });
 
   function stopImpersonating() {
-    document.cookie = 'impersonate_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    // Borrar ambas cookies de impersonación (id + email)
+    document.cookie = 'impersonate_id=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'impersonate_email=; path=/; max-age=0; SameSite=Lax';
     window.location.href = '/admin';
   }
 
@@ -189,6 +213,7 @@
       'lobby': 'nav.lobby',
       'inventory': 'nav.inventory',
       'materials': 'nav.materials',
+      'nets': 'nav.nets',
       'support': 'support.title'
     };
 
@@ -270,13 +295,15 @@
 </script>
 
 <div class="min-h-screen bg-zinc-950 text-slate-300 font-jakarta selection:bg-violet-500/30">
+  <!-- BroadcastBanner renderizado desde el root +layout.svelte para evitar duplicación -->
+
   <!-- Impersonation Banner -->
   {#if isImpersonating}
-    <div class="fixed top-0 inset-x-0 h-10 bg-red-600 z-[100] flex items-center justify-center gap-3 px-4 shadow-lg border-b border-white/10">
+    <div class="fixed top-0 inset-x-0 h-10 bg-red-600 z-[250] flex items-center justify-center gap-3 px-4 shadow-lg border-b border-white/10">
       <Warning weight="duotone" class="w-4 h-4 text-white" />
-      <span class="text-[10px] font-outfit font-black text-white uppercase tracking-widest">{$t('admin.impersonation_active') || 'Impersonation Mode Active'}</span>
-      <button onclick={stopImpersonating} class="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-none text-[9px] font-bold text-white transition-all uppercase tracking-widest border border-white/10">
-        {$t('admin.back_to_admin') || 'Back to Admin'}
+      <span class="text-[10px] font-outfit font-black text-white uppercase tracking-widest">{$t('admin.impersonation_active')}</span>
+      <button type="button" onclick={stopImpersonating} class="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-none text-[9px] font-bold text-white transition-all uppercase tracking-widest border border-white/10">
+        {$t('admin.back_to_admin')}
       </button>
     </div>
   {/if}
@@ -284,15 +311,23 @@
   <!-- Mobile Header (Premium App Style) -->
   <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-[60] transition-transform duration-300" style="transform: translateY(calc(var(--banner-height, 0px) + {isImpersonating ? '40px' : '0px'}))">
     <!-- Logo: min 44x44px para área táctil Apple HIG -->
-    <button onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto min-w-[44px] min-h-[44px] -ml-2 pl-2">
+    <button type="button" onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto min-w-[44px] min-h-[44px] -ml-2 pl-2" aria-label="Go to home">
       <Logo className="h-7 w-7 shadow-violet-flare/20" />
-      <span class="text-lg font-outfit font-black text-white tracking-tighter uppercase">ChessNet</span>
+      <span class="text-xl font-outfit font-black text-white tracking-tighter uppercase">ChessNet</span>
     </button>
     
-    <div class="flex items-center gap-4 pointer-events-auto">
+    <div class="flex items-center gap-3 pointer-events-auto">
+       <div class="flex items-center gap-1.5 mr-1">
+         <div class="px-2 py-1 bg-white/5 border border-white/10 backdrop-blur-md flex items-center gap-1">
+           <ChartPieSlice weight="fill" size={12} class="text-primary-400" />
+           <span class="text-[9px] font-black text-white">{netsBalance.toLocaleString()}</span>
+         </div>
+       </div>
        <button 
+         type="button"
          onclick={() => showMobileMenu = true}
-         class="w-8 h-8 rounded-none bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-[10px] ring-2 ring-white/10 overflow-hidden"
+         class="w-9 h-9 rounded-none bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-[10px] ring-2 ring-white/10 overflow-hidden shadow-lg shadow-violet-500/20"
+         aria-label="Open profile menu"
        >
          {#if teacherAvatar}
            <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover" />
@@ -308,6 +343,7 @@
     <div class="fixed inset-0 z-[100] lg:hidden" in:fade={{ duration: 200 }}>
       <!-- Backdrop -->
       <button 
+        type="button"
         class="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-default w-full h-full border-none" 
         onclick={() => showMobileMenu = false}
         aria-label="Close menu"
@@ -332,9 +368,9 @@
           <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-none border border-white/5">
             {#if plan === 'premium'}
               <Crown weight="fill" size={10} class="text-amber-500" />
-              <span class="text-[8px] font-black text-white uppercase tracking-widest">PREMIUM COACH</span>
+              <span class="text-[8px] font-black text-white uppercase tracking-widest">{$t('panel.premiumCoach')}</span>
             {:else}
-              <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">FREE PLAN</span>
+              <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">{$t('panel.freePlan')}</span>
             {/if}
           </div>
         </div>
@@ -352,9 +388,25 @@
                onclick={() => showMobileMenu = false}
                class="flex items-center gap-4 px-6 py-4 rounded-none text-amber-500 font-black bg-amber-500/5 border border-amber-500/10 transition-all font-outfit">
               <Key weight="duotone" size={20} />
-              <span class="text-xs uppercase tracking-widest">ADMINISTRATION</span>
+              <span class="text-xs uppercase tracking-widest">{$t('common.admin')}</span>
             </a>
           {/if}
+
+          {#if $appStore?.settings?.role === 'director'}
+            <a href="/panel/director" 
+               onclick={() => showMobileMenu = false}
+               class="flex items-center gap-4 px-6 py-4 rounded-none text-emerald-500 font-black bg-emerald-500/5 border border-emerald-500/10 transition-all font-outfit">
+              <Buildings weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.director_console')}</span>
+            </a>
+          {/if}
+
+          <a href="/panel/changelog" 
+             onclick={() => showMobileMenu = false}
+             class="flex items-center gap-4 px-6 py-4 rounded-none text-slate-400 font-bold hover:bg-violet-500/10 hover:text-violet-400 transition-all font-outfit {currentRoute.includes('/changelog') ? 'bg-violet-500/10 text-violet-400' : ''}">
+            <RocketLaunch weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.changelog')}</span>
+          </a>
 
           <div class="h-px bg-white/5 my-2 mx-4"></div>
           <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.management') || 'Gestión'}</p>
@@ -401,10 +453,19 @@
             <Medal weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.achievements')}</span>
           </a>
+          <a href="/panel/social" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/social') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <ChatTeardropDots weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.social')}</span>
+          </a>
+          <a href="/panel/nets" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3.5 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/nets') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <ChartPieSlice weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.nets')}</span>
+          </a>
         </nav>
 
         <div class="p-6 border-t border-white/5">
           <button 
+            type="button"
             onclick={handleLogout}
             class="w-full flex items-center justify-center gap-3 py-4 rounded-none bg-red-500/10 text-red-500 font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
           >
@@ -417,8 +478,8 @@
   {/if}
 
   <header class="hidden lg:block fixed top-0 right-0 left-0 bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5 z-40 transition-all duration-300" style="margin-top: calc(var(--banner-height, 0px) + {isImpersonating ? '40px' : '0px'})">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-6">
-      <div class="flex items-center gap-4 lg:gap-8 min-w-0 flex-1">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4 lg:gap-8">
+      <div class="flex items-center gap-4 lg:gap-8 min-w-0 flex-shrink-1 flex-grow-1">
         
         <!-- Desktop Logo -->
         <button onclick={handleGoHome} class="hidden lg:flex items-center gap-3 cursor-pointer group transition-transform active:scale-95 flex-shrink-0" type="button">
@@ -428,7 +489,7 @@
         
         <nav class="hidden lg:flex items-center gap-2 text-slate-500 min-w-0 flex-shrink">
           <div class="w-px h-10 bg-white/5 mx-1 flex-shrink-0"></div>
-          <button onclick={handleGoHome} class="hover:text-violet-400 transition-colors flex-shrink-0">
+          <button type="button" onclick={handleGoHome} class="hover:text-violet-400 transition-colors flex-shrink-0" aria-label="Home">
             <House weight="duotone" size={20} />
           </button>
           
@@ -437,7 +498,7 @@
               {#each breadcrumbItems as item, i}
                 <CaretRight weight="bold" size={12} class="text-white/10 flex-shrink-0" />
                 <a href={item.href} class="text-[10px] font-outfit font-bold uppercase tracking-widest transition-colors truncate max-w-[80px] xl:max-w-[120px] {i === breadcrumbItems.length - 1 ? 'text-white pointer-events-none' : 'text-slate-500 hover:text-violet-400'}">
-                  {item.name}
+                  {item?.name || ''}
                 </a>
               {/each}
             </div>
@@ -445,47 +506,58 @@
         </nav>
 
         <!-- Quick Module Switcher (Teachers only) -->
-        <div class="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-none border border-white/5 flex-shrink-0">
+        <div class="hidden lg:flex items-center gap-0.5 bg-white/[0.03] p-1 rounded-none border border-white/10 flex-shrink backdrop-blur-xl">
           <a href="/panel/schools" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
              title={$t('nav.schools')}>
-            <Buildings size={20} weight={currentRoute.includes('/schools') ? 'fill' : 'duotone'} />
+            <Buildings size={20} weight={currentRoute.includes('/schools') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
           </a>
           <a href="/panel/classes" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
              title={$t('nav.classes')}>
-            <Chalkboard size={20} weight={currentRoute.includes('/classes') ? 'fill' : 'duotone'} />
+            <Chalkboard size={20} weight={currentRoute.includes('/classes') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
           </a>
           <a href="/panel/students" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
              title={$t('nav.students')}>
-            <Users size={20} weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} />
+            <Users size={20} weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
           </a>
           <div class="w-px h-6 bg-white/5 mx-1"></div>
           <a href="/panel/attendance" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'}" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
              title={$t('nav.attendance')}>
-            <ListChecks size={20} weight={currentRoute.includes('/attendance') ? 'fill' : 'duotone'} />
+            <ListChecks size={20} weight={currentRoute.includes('/attendance') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
           </a>
           <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
              title={$t('nav.payments')}>
-            <Wallet size={20} weight={currentRoute.includes('/payments') ? 'fill' : 'duotone'} />
+            <Wallet size={20} weight={currentRoute.includes('/payments') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
             {#if plan !== 'premium'}
               <div class="absolute -top-1 -right-1">
-                <Crown weight="fill" size={10} class="text-violet-400" />
+                <Crown weight="fill" size={10} class="text-violet-400 animate-pulse" />
               </div>
             {/if}
           </a>
           <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
              title={$t('nav.tournaments')}>
-            <Trophy size={20} weight={currentRoute.includes('/tournaments') ? 'fill' : 'duotone'} />
+            <Trophy size={20} weight={currentRoute.includes('/tournaments') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
             {#if plan !== 'premium'}
               <div class="absolute -top-1 -right-1">
-                <Crown weight="fill" size={10} class="text-violet-400" />
+                <Crown weight="fill" size={10} class="text-violet-400 animate-pulse" />
               </div>
             {/if}
+          </a>
+          <div class="w-px h-6 bg-white/5 mx-1"></div>
+          <a href="/panel/social" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/social') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+             title={$t('nav.social')}>
+            <ChatTeardropDots size={20} weight={currentRoute.includes('/social') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+          </a>
+          <a href="/panel/nets" 
+             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/nets') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+             title={$t('nav.nets')}>
+            <ChartPieSlice size={20} weight={currentRoute.includes('/nets') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
           </a>
         </div>
       </div>
@@ -494,47 +566,67 @@
         <!-- Language Switcher -->
 
         
-        <!-- Subscription Badge -->
-        <div class="hidden md:flex items-center gap-2.5 bg-white/5 rounded-none py-2 px-4 border border-white/5 group hover:border-violet-500/20 transition-all flex-shrink-0">
-          {#if plan === 'premium'}
-            <Crown weight="duotone" size={16} class="text-violet-400 group-hover:scale-110 transition-transform" />
-            <span class="text-[10px] font-outfit font-bold text-white uppercase tracking-widest">{$t('panel.premiumCoach')}</span>
-          {:else}
-            <div class="w-2 h-2 rounded-none bg-slate-600"></div>
-            <span class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest">{$t('panel.freePlan')}</span>
-          {/if}
+
+
+        <!-- Economy Capsules -->
+        <div class="hidden lg:flex items-center gap-3 flex-shrink-0">
+          <div class="flex items-center gap-3 px-4 py-2.5 bg-white/[0.03] border border-white/10 backdrop-blur-3xl group hover:border-primary-500/40 transition-all duration-500 hover:bg-primary-500/[0.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.1)] relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-primary-500/0 via-primary-500/5 to-primary-500/0 -translate-x-full group-hover:animate-shimmer"></div>
+            <ChartPieSlice weight="fill" size={16} class="text-primary-400 group-hover:scale-110 transition-transform duration-500" />
+            <div class="flex flex-col relative z-10">
+              <span class="text-[8px] font-black text-zinc-500 uppercase leading-none mb-1 tracking-widest">Saldo Nets</span>
+              <span class="text-[12px] font-black text-white tracking-[0.1em] uppercase leading-none group-hover:text-primary-300 transition-colors">{netsBalance.toLocaleString()}</span>
+            </div>
+          </div>
         </div>
         
         <div class="relative group">
-          <button class="flex items-center gap-3 hover:bg-white/5 p-1 rounded-none transition-all border border-transparent hover:border-white/10">
-            <div class="w-10 h-10 rounded-none bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-sm ring-4 ring-violet-500/10 shadow-xl overflow-hidden relative shadow-violet-flare/10">
+          <button type="button" class="flex items-center gap-3 hover:bg-white/[0.03] p-1.5 rounded-none transition-all border border-transparent hover:border-white/10 group-hover:shadow-[0_0_30px_rgba(139,92,246,0.05)]" aria-label="User account menu">
+            <div class="w-10 h-10 rounded-none bg-gradient-to-br from-violet-600 to-indigo-900 flex items-center justify-center text-white font-outfit font-extrabold text-sm ring-1 ring-white/20 shadow-xl overflow-hidden relative group-hover:ring-violet-500/50 transition-all duration-500">
               {#if teacherAvatar}
-                <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover" />
+                <img src={teacherAvatar} alt="Profile" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
               {:else}
-                {initials}
+                <span class="group-hover:scale-110 transition-transform duration-500">{initials}</span>
               {/if}
+              <div class="absolute inset-0 bg-gradient-to-tr from-violet-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
-            <div class="text-left hidden sm:block pr-1">
+            <div class="text-left hidden sm:block pr-2">
               <div class="flex items-center gap-2">
-                <p class="text-sm font-outfit font-bold text-white leading-tight">{teacherName}</p>
+                <p class="text-sm font-outfit font-black text-white leading-tight tracking-tight group-hover:text-violet-300 transition-colors">{teacherName}</p>
                 {#if $appStore?.settings?.featuredInsignias && $appStore.settings.featuredInsignias.length > 0}
-                  <div class="flex items-center gap-1.5 translate-y-[1px]">
+                  <div class="flex items-center gap-1.5">
                     {#each $appStore.settings.featuredInsignias as insId}
                       {@const ins = INSIGNIAS.find(i => i.id === insId)}
                       {#if ins}
                         {@const Icon = ins.icon}
-                        <Icon size={12} weight="fill" class={ins.color} />
+                        <Icon size={12} weight="fill" class="{ins.color} drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]" />
                       {/if}
                     {/each}
                   </div>
                 {/if}
               </div>
-              <div class="flex items-center gap-1.5 pt-0.5">
-                <p class="text-[9px] text-slate-500 font-outfit font-black uppercase tracking-widest">Control Panel</p>
-                <CaretDown weight="bold" size={10} class="text-slate-600 group-hover:text-violet-400 transition-colors" />
+              <div class="flex flex-col gap-0.5 pt-0.5">
+                <div class="flex items-center gap-1.5">
+                  <p class="text-[9px] text-slate-500 font-outfit font-black uppercase tracking-[0.3em] group-hover:text-slate-400 transition-colors">{$t('nav.control_panel')}</p>
+                  <CaretDown weight="bold" size={10} class="text-slate-600 group-hover:text-violet-400 group-hover:translate-y-0.5 transition-all" />
+                </div>
               </div>
             </div>
           </button>
+
+          <!-- Plan Badge - Moved Below Profile Box per user request -->
+          <div class="absolute top-[calc(100%-12px)] right-2 pointer-events-none">
+            {#if plan === 'premium'}
+              <div class="flex items-center gap-1.5 px-2 py-0.5 bg-violet-500 text-[7px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                <Crown weight="fill" size={8} />
+                <span>{$t('panel.premiumCoach')}</span>
+              </div>
+            {:else}
+              <div class="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-800 text-[7px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                <span>{$t('panel.freePlan')}</span>
+              </div>
+            {/if}
+          </div>
           
           <!-- Dropdown -->
           <div class="absolute right-0 top-full mt-3 w-64 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-none shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right z-[100] translate-y-2 group-hover:translate-y-0">
@@ -559,8 +651,15 @@
             <div class="p-2 space-y-1">
               <a href="/panel/settings" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-none transition-all group/item">
                 <GearSix weight="duotone" size={18} class="group-hover/item:rotate-90 transition-transform duration-500" /> 
-                {$t('nav.settings') || 'SETTINGS'}
+                {$t('nav.settings')}
               </a>
+
+              {#if $appStore?.settings?.role === 'director'}
+                <a href="/panel/director" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-emerald-400 hover:bg-emerald-600/10 rounded-none transition-all group/item">
+                  <Buildings weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" /> 
+                  {$t('nav.director_console')}
+                </a>
+              {/if}
 
               <!-- Support Link (Everyone) -->
               <a href="/panel/support" 
@@ -572,20 +671,25 @@
               >
                 <div class="flex items-center gap-3">
                   <Lifebuoy weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" /> 
-                  {$t('support.title') || 'SOPORTE CHESSNET'}
+                  {$t('support.title')}
                 </div>
                 {#if supportPulse}
                   <div class="w-2 h-2 bg-amber-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
                 {/if}
               </a>
               {#if data.isAdmin}
-                <a href="/admin" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-primary-400 hover:bg-primary-500/10 rounded-none transition-all group/admin">
+                <a href="/admin" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-primary-400 hover:bg-primary-500/10 rounded-none transition-all group/admin"
+                   onclick={() => {
+                     adminPulse = false;
+                     localStorage.setItem('last_viewed_support_admin', Date.now().toString());
+                   }}
+                >
                   <div class="flex items-center gap-3">
-                    <Key weight="duotone" size={18} /> 
-                    ADMINISTRATION
+                    <Key weight="duotone" size={18} />
+                    {$t('common.admin')}
                   </div>
-                  {#if supportPulse}
-                    <div class="w-2 h-2 bg-amber-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
+                  {#if adminPulse}
+                    <div class="w-2 h-2 bg-red-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
                   {/if}
                 </a>
               {/if}
@@ -613,13 +717,31 @@
                   </div>
                 {/if}
               </a>
+
+              <a href="/panel/social" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-none transition-all group/item">
+                <ChatTeardropDots weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" /> 
+                {$t('nav.social')}
+              </a>
+
+              <a href="/panel/nets" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-none transition-all group/item">
+                <ChartPieSlice weight="duotone" size={18} class="group-hover/item:scale-110 transition-transform" /> 
+                {$t('nav.nets')}
+              </a>
+
+              <div class="h-px bg-white/5 my-1"></div>
+
+              <!-- New: Changelog Link -->
+              <a href="/panel/changelog" class="flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-600/10 hover:text-violet-400 rounded-none transition-all group/item">
+                <RocketLaunch weight="duotone" size={18} class="group-hover/item:animate-bounce" /> 
+                {$t('nav.changelog')}
+              </a>
             </div>
             
             <div class="mx-2 mt-1 border-t border-white/5 pt-1">
-              <button onclick={handleLogout} class="w-full flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-red-400/70 hover:bg-red-500/10 hover:text-red-400 rounded-none transition-all">
+            <button type="button" onclick={handleLogout} class="w-full flex items-center gap-3 px-4 py-3 text-xs font-outfit font-bold text-red-400/70 hover:bg-red-500/10 hover:text-red-400 rounded-none transition-all">
                 <SignOut weight="duotone" size={18} /> 
                 {$t('nav.logout')}
-              </button>
+            </button>
             </div>
           </div>
         </div>
@@ -627,7 +749,7 @@
     </div>
   </header>
 
-  <main class="pt-20 lg:pt-20 pb-32 lg:pb-24 min-h-screen transition-all duration-300" style="margin-top: calc(var(--banner-height, 0px) + {isImpersonating ? '40px' : '0px'})">
+  <main class="pt-24 lg:pt-24 pb-32 lg:pb-24 min-h-screen transition-all duration-300" style="margin-top: calc(var(--banner-height, 0px) + {isImpersonating ? '40px' : '0px'})">
     <div class="max-w-7xl mx-auto px-4 lg:px-0">
         {#if $authLoading}
             <div class="flex flex-col items-center justify-center min-h-[60vh] gap-6" in:fade>
@@ -678,66 +800,123 @@
       onCancel={$uiStore.confirmDialog.onCancel || (() => {})}
     />
   {/if}
-
   <!-- Mobile Bottom Tab Bar (Premium App Style) -->
   <div 
     id="mobile-nav-bar"
-    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-none shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-75 opacity-30 blur-[2px] pointer-events-auto'}"
-    role="button"
-    tabindex="0"
-    onclick={() => isNavVisible = true}
-    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') isNavVisible = true; }}
+    class="lg:hidden fixed bottom-6 left-4 right-4 z-50 bg-zinc-900/90 backdrop-blur-3xl border border-white/10 rounded-none shadow-[0_20px_50px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)] ring-1 ring-white/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] {isNavVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-20 scale-90 opacity-0 pointer-events-none'}"
   >
-    <div class="h-20 relative px-2 flex items-center justify-between pb-1">
-      <nav class="flex items-center justify-around w-full relative">
-        <!-- Left Side -->
-        <a href="/panel" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute === '/panel' ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.dashboard').split(' ')[0]}</span>
+    <div class="h-16 relative px-2 flex items-center justify-between">
+      <nav class="flex items-center justify-around w-full">
+        <a href="/panel" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute === '/panel' ? 'text-violet-400' : 'text-slate-500'}">
+          <House weight={currentRoute === '/panel' ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-widest leading-none">PANEL</span>
         </a>
         
-        <a href={plan === 'premium' ? '/panel/lobby' : '/pricing'} class="relative flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.lobby').split(' ')[1] || $t('nav.lobby')}</span>
+        <a href="/panel/social" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/social') ? 'text-violet-400' : 'text-slate-500'}">
+          <ShareNetwork weight={currentRoute.includes('/social') ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-widest leading-none">COMUNIDAD</span>
+        </a>
+ 
+        <!-- Center Action Button (Support Menu) -->
+        <div class="relative -top-5">
+          <button 
+             type="button"
+             class="flex items-center justify-center w-14 h-14 rounded-none bg-gradient-to-tr from-violet-600 to-indigo-800 shadow-[0_8px_25px_rgba(139,92,246,0.5)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
+             onclick={() => showSupportMenu = true}
+             aria-label="Support and Quick Actions"
+          >
+            <Logo className="h-7 w-7 text-white" />
+            {#if supportPulse}
+              <div class="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-none ring-2 ring-white"></div>
+            {/if}
+          </button>
+        </div>
+
+        <a href="/panel/lobby" class="relative flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400' : 'text-slate-500'}">
+          <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-widest leading-none">MENSAJES</span>
           {#if lobbyPulse && plan === 'premium'}
-            <div class="absolute top-0 right-1 w-2 h-2 bg-violet-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
+            <div class="absolute top-0 right-1 w-1.5 h-1.5 bg-violet-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
           {/if}
         </a>
- 
-        <!-- Center Yellow Support Button -->
-        <div class="relative -top-6 px-1">
-          <a href="/panel/support" 
-             class="flex items-center justify-center w-14 h-14 rounded-none bg-gradient-to-tr from-amber-500 to-yellow-300 shadow-[0_8px_20px_rgba(245,158,11,0.4)] border-4 border-zinc-950 transition-all active:scale-90 relative overflow-hidden group"
-             title={$t('nav.support')}
-             onclick={() => {
-               supportPulse = false;
-               localStorage.setItem('last_viewed_support', Date.now().toString());
-             }}
-          >
-            <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <Lifebuoy weight="bold" size={24} class="text-zinc-950" />
-            {#if supportPulse}
-              <div class="absolute top-2 right-2 w-3 h-3 bg-white rounded-none animate-pulse shadow-lg ring-2 ring-amber-600"></div>
-            {/if}
-          </a>
-          <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-            <span class="text-[7px] font-black text-amber-500 uppercase tracking-[0.2em] leading-none">Help</span>
-          </div>
-        </div>
- 
-        <!-- Right Side -->
-        <a href="/panel/students" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/students') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <Users weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.students')}</span>
-        </a>
- 
-        <a href="/panel/planner" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/planner') ? 'text-violet-400 font-bold' : 'text-slate-500'}">
-          <Calendar weight={currentRoute.includes('/planner') ? 'fill' : 'duotone'} size={22} />
-          <span class="text-[9px] font-black uppercase tracking-widest leading-none">{$t('nav.planner') || 'Plan'}</span>
+
+        <a href="/panel/settings" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/settings') ? 'text-violet-400' : 'text-slate-500'}">
+          <GearSix weight={currentRoute.includes('/settings') ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-widest leading-none">AJUSTES</span>
         </a>
       </nav>
     </div>
   </div>
+
+  <!-- Support Quick Menu -->
+  {#if showSupportMenu}
+    <div 
+      class="lg:hidden fixed inset-0 z-[100] flex items-end justify-center p-4"
+    >
+      <!-- Backdrop -->
+      <button 
+        type="button"
+        class="absolute inset-0 bg-black/80 backdrop-blur-md w-full h-full border-none cursor-default" 
+        onclick={() => showSupportMenu = false}
+        onkeydown={(e) => e.key === 'Escape' && (showSupportMenu = false)}
+        aria-label="Close support menu"
+        transition:fade
+      ></button>
+
+      <!-- Drawer Content -->
+      <div 
+        class="relative w-full max-w-sm bg-zinc-900 border border-white/10 p-6 space-y-4 shadow-2xl mb-24 z-10"
+        transition:fly={{ y: 100 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="support-title"
+      >
+        <div class="flex items-center gap-4 mb-2">
+          <div class="w-10 h-10 bg-violet-600 flex items-center justify-center">
+            <Logo className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 id="support-title" class="text-sm font-black text-white uppercase tracking-widest">Centro de Ayuda</h3>
+            <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">¿Cómo podemos ayudarte hoy?</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-2">
+          <button type="button" class="w-full flex items-center gap-4 p-4 bg-white/5 border border-white/5 hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-left group">
+            <ChatTeardropDots size={20} class="text-violet-400 group-hover:scale-110 transition-transform" />
+            <div>
+              <p class="text-xs font-black text-white uppercase tracking-wider">Hablar con Soporte</p>
+              <p class="text-[9px] text-zinc-600 font-bold uppercase">Chat en vivo con el equipo</p>
+            </div>
+          </button>
+
+          <button type="button" class="w-full flex items-center gap-4 p-4 bg-white/5 border border-white/5 hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-left group">
+            <Question size={20} class="text-amber-400 group-hover:scale-110 transition-transform" />
+            <div>
+              <p class="text-xs font-black text-white uppercase tracking-wider">Preguntas Frecuentes</p>
+              <p class="text-[9px] text-zinc-600 font-bold uppercase">Resuelve tus dudas rápido</p>
+            </div>
+          </button>
+
+          <button type="button" class="w-full flex items-center gap-4 p-4 bg-white/5 border border-white/5 hover:bg-red-500/10 hover:border-red-500/20 transition-all text-left group">
+            <WarningCircle size={20} class="text-red-400 group-hover:scale-110 transition-transform" />
+            <div>
+              <p class="text-xs font-black text-white uppercase tracking-wider">Reportar un Fallo</p>
+              <p class="text-[9px] text-zinc-600 font-bold uppercase">Ayúdanos a mejorar</p>
+            </div>
+          </button>
+        </div>
+
+        <button 
+          type="button"
+          onclick={() => showSupportMenu = false}
+          class="w-full py-3 bg-zinc-950 text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] hover:text-white transition-all border border-white/5"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style lang="postcss">

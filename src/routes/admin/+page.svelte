@@ -13,6 +13,7 @@
   import { fade, slide, scale, fly } from 'svelte/transition';
   import { toast } from '$lib/stores/toast';
   import { uiStore } from '$lib/stores/uiStore';
+  import { appStore } from '$lib/stores/appStore';
   
   // Icons
   import { 
@@ -27,8 +28,10 @@
     Star,
     Pulse,
     CheckCircle,
-    Shield,
-    Lifebuoy
+    Globe,
+    ShieldCheckered,
+    Lifebuoy,
+    Shield
   } from 'phosphor-svelte';
 
   // Components
@@ -36,10 +39,15 @@
   import UserTable from '$lib/components/admin/UserTable.svelte';
   import SystemConsole from '$lib/components/admin/SystemConsole.svelte';
   import LiveActivityFeed from '$lib/components/admin/LiveActivityFeed.svelte';
-  import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
   import TicketManager from '$lib/components/admin/TicketManager.svelte';
+  import SocialFeed from '$lib/components/social/SocialFeed.svelte';
+  import LichessPulse from '$lib/components/admin/LichessPulse.svelte';
   import StripeSimulator from '$lib/components/StripeSimulator.svelte';
   import UpdatePill from '$lib/components/common/UpdatePill.svelte';
+  import PrestigeBadge from '$lib/components/economy/PrestigeBadge.svelte';
+
+  import GovernanceHub from '$lib/components/admin/GovernanceHub.svelte';
+  import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
 
   // Constants
   import { INSIGNIAS } from '$lib/constants/insignias';
@@ -281,6 +289,18 @@
     }
   }
 
+  async function handleRepairEconomy() {
+    isSaving = true;
+    try {
+      const res = await adminApi.repairEconomyData();
+      toast.success(`Economía sincronizada: ${res.initializedCount} carteras inicializadas.`);
+    } catch (e) {
+      toast.error($t('admin.broadcast.error'));
+    } finally {
+      isSaving = false;
+    }
+  }
+
   async function handleUpdateSuggestionStatus(id: string, status: string) {
     try {
       await adminApi.updateSuggestionStatus(id, status);
@@ -366,9 +386,12 @@
       <div class="w-9 h-9 bg-primary-600 flex items-center justify-center rounded-none">
         <SquaresFour weight="bold" class="w-5 h-5 text-white" />
       </div>
-      <div>
-        <h1 class="text-sm sm:text-base font-black font-display uppercase italic tracking-tighter leading-none">ChessNet <span class="text-primary-500">/</span> {$t('admin.title')}</h1>
-        <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-[0.2em] mt-0.5">OPERATIONAL INTERFACE // v2.5</p>
+      <div class="overflow-visible pr-4">
+        <h1 class="text-base sm:text-xl font-black font-display uppercase italic tracking-tighter leading-none text-white whitespace-nowrap">ChessNet <span class="text-primary-500">/</span> {$t('admin.title')}</h1>
+        <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+          <span class="w-1 h-1 bg-emerald-500 animate-pulse"></span>
+          {$t('admin.tech.sys_desc')} // v0.13.0 Beta
+        </p>
       </div>
     </div>
 
@@ -377,6 +400,12 @@
         <span class="w-1.5 h-1.5 bg-violet-500 animate-pulse"></span>
         <span class="text-[9px] font-mono font-black text-violet-400 uppercase tracking-widest">{$t('admin.nav.operational')}</span>
       </div>
+
+      <PrestigeBadge 
+        nets={$appStore.settings.economy?.netsBalance || 0} 
+        prestige={0}
+        variant="ghost" 
+      />
       
       <a 
         href="/panel" 
@@ -391,9 +420,9 @@
   <!-- Mobile Only Header Stats -->
   <div class="lg:hidden grid grid-cols-3 gap-px bg-white/10 border-b border-white/10">
     {#each [
-      { label: 'Users', val: stats.totalUsers, color: 'text-violet-400' },
-      { label: 'Revenue', val: `$${Math.round(stats.totalRevenue)}`, color: 'text-violet-400' },
-      { label: 'Tickets', val: supportTickets.filter(t => t.status === 'open').length, color: 'text-amber-400' }
+      { label: $t('admin.nav.stats_users'), val: stats.totalUsers, color: 'text-violet-400' },
+      { label: $t('admin.nav.stats_revenue'), val: `$${Math.round(stats.totalRevenue)}`, color: 'text-violet-400' },
+      { label: $t('admin.nav.stats_tickets'), val: supportTickets.filter(t => t.status === 'open').length, color: 'text-amber-400' }
     ] as s}
       <div class="p-4 bg-[#02040a] text-center">
         <p class="text-[7px] font-mono font-black text-slate-600 uppercase tracking-widest mb-1">{s.label}</p>
@@ -404,245 +433,370 @@
 
   <div class="flex">
     <!-- Sidebar Navigation -->
-    <aside class="w-64 min-h-[calc(100vh-57px-var(--banner-height,0px))] border-r border-white/10 bg-[#02040a] hidden lg:flex flex-col">
-      <div class="p-6 space-y-1">
-        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-[0.3em] mb-5 px-2">{$t('admin.sidebar.principal')}</p>
-        <nav class="space-y-px">
-          {#each [
-            { id: 'dashboard', label: $t('admin.sidebar.dashboard'), icon: SquaresFour },
-            { id: 'users', label: $t('admin.sidebar.teachers'), icon: Users },
-            { id: 'tickets', label: $t('admin.sidebar.support'), icon: Lifebuoy },
-            { id: 'lobby', label: $t('admin.sidebar.community'), icon: ChatTeardropDots },
-            { id: 'system', label: $t('admin.sidebar.system'), icon: Gear }
-          ] as item}
-            {@const Icon = item.icon}
-            <button 
-              onclick={() => activeTab = item.id}
-              class="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-mono font-black uppercase tracking-widest transition-all {activeTab === item.id ? 'bg-primary-500/10 text-primary-400 border-l-2 border-primary-500' : 'text-slate-600 hover:text-white hover:bg-white/5 border-l-2 border-transparent'} rounded-none"
-            >
-              <Icon weight={activeTab === item.id ? 'fill' : 'bold'} class="w-4 h-4 flex-shrink-0" />
-              <span class="truncate">{item.label}</span>
-              {#if item.id === 'tickets' && supportTickets.filter(t => t.status === 'open').length > 0}
-                <span class="ml-auto px-1.5 py-0.5 bg-amber-500 text-black text-[9px] font-black animate-pulse">
-                  {supportTickets.filter(t => t.status === 'open').length}
-                </span>
-              {/if}
-            </button>
-          {/each}
-        </nav>
-      </div>
+    <aside class="w-64 min-h-[calc(100vh-57px-var(--banner-height,0px))] border-r border-white/10 bg-[#02040a] hidden lg:flex flex-col sticky top-[57px]">
+      <div class="p-8 space-y-8 flex-1">
+        <div>
+          <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-6 flex items-center gap-2">
+            <span class="w-1 h-1 bg-primary-500"></span>
+            {$t('admin.sidebar.principal')}
+          </p>
+          <nav class="space-y-px">
+            {#each [
+              { id: 'dashboard', label: $t('admin.sidebar.dashboard'), icon: SquaresFour },
+              { id: 'users', label: $t('admin.sidebar.teachers'), icon: Users },
+              { id: 'governance', label: $t('admin.sidebar.governance'), icon: ShieldCheckered },
+              { id: 'broadcast', label: $t('admin.sidebar.broadcast'), icon: Globe },
+              { id: 'tickets', label: $t('admin.sidebar.support'), icon: Lifebuoy },
+              { id: 'lobby', label: $t('admin.sidebar.community'), icon: ChatTeardropDots },
+              { id: 'system', label: $t('admin.sidebar.system'), icon: Gear }
+            ] as item}
+              {@const Icon = item.icon}
+              <button 
+                onclick={() => activeTab = item.id}
+                class="w-full flex items-center gap-4 px-4 py-4 text-[11px] font-mono font-black uppercase tracking-widest transition-all {activeTab === item.id ? 'bg-primary-500 text-white shadow-[0_10px_20px_rgba(16,185,129,0.2)] relative z-10' : 'text-slate-500 hover:text-white hover:bg-white/5'} rounded-none group"
+              >
+                <Icon weight={activeTab === item.id ? 'fill' : 'bold'} class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110" />
+                <span class="truncate">{item.label}</span>
+                {#if item.id === 'tickets' && supportTickets.filter(t => t.status === 'open').length > 0}
+                  <span class="ml-auto px-1.5 py-0.5 {activeTab === item.id ? 'bg-white text-primary-600' : 'bg-amber-500 text-black'} text-[9px] font-black animate-pulse">
+                    {supportTickets.filter(t => t.status === 'open').length}
+                  </span>
+                {/if}
+              </button>
+            {/each}
+          </nav>
+        </div>
 
-      <div class="mt-auto p-6 border-t border-white/10">
-        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-[0.3em] mb-4">{$t('admin.sidebar.shortcuts')}</p>
-        <div class="bg-white/[0.02] border border-white/10 p-4 rounded-none">
-          <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest mb-3">{$t('admin.sidebar.db_health')}</p>
-          <div class="flex items-center justify-between">
-            <span class="text-2xl font-black font-display italic">98%</span>
-            <div class="w-8 h-8 bg-violet-500/10 flex items-center justify-center text-violet-400 rounded-none">
-              <CheckCircle weight="bold" class="w-4 h-4" />
+        <div class="space-y-6">
+          <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest flex items-center gap-2">
+             <span class="w-1 h-1 bg-violet-500"></span>
+             SYSTEM STATUS
+          </p>
+          <div class="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
+            <div class="bg-black/40 p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest">NETWORK LOAD</span>
+                <span class="text-[9px] font-mono font-black text-emerald-500 uppercase">OPTIMAL</span>
+              </div>
+              <div class="h-1 bg-white/5 overflow-hidden">
+                <div class="h-full bg-emerald-500 w-1/3 animate-[shimmer_2s_infinite]"></div>
+              </div>
+            </div>
+            <div class="bg-black/40 p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest">LATENCY</span>
+                <span class="text-[9px] font-mono font-black text-violet-400 uppercase">24ms</span>
+              </div>
+              <div class="h-1 bg-white/5 overflow-hidden">
+                <div class="h-full bg-violet-500 w-1/4"></div>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="p-8 border-t border-white/10 bg-white/[0.01]">
+        <div class="flex items-center justify-between text-slate-700">
+          <p class="text-[8px] font-mono font-black uppercase tracking-widest">OPERATIONAL LEVEL</p>
+          <span class="text-[10px] font-black font-display italic">L3</span>
         </div>
       </div>
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-4 sm:p-6 md:p-10 max-w-[1400px] mx-auto min-h-[calc(100vh-57px-var(--banner-height,0px))] relative overflow-hidden pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-10">
-      <!-- Subtle Background -->
-      <div class="absolute inset-0 -z-10 bg-[#02040a]">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_0%,rgba(124,58,237,0.04)_0%,transparent_60%)]"></div>
+    <main class="flex-1 p-6 sm:p-8 md:p-12 max-w-[1600px] mx-auto min-h-[calc(100vh-57px-var(--banner-height,0px))] relative pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-12">
+      <!-- Background Patterns -->
+      <div class="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(124,58,237,0.03)_0%,transparent_50%)]"></div>
+        <div class="absolute inset-0 opacity-[0.03] grayscale invert" style="background-image: radial-gradient(#fff 0.5px, transparent 0.5px); background-size: 24px 24px;"></div>
       </div>
       
       <div class="relative z-10 h-full">
         {#if isLoading && users.length === 0}
-         <div class="h-full flex items-center justify-center" in:fade>
-           <div class="flex flex-col items-center gap-6">
-              <div class="w-12 h-12 border-2 border-primary-500/20 border-t-primary-500 animate-spin rounded-none"></div>
-              <p class="text-[10px] font-mono font-black uppercase tracking-widest text-slate-600">{$t('admin.msg.loading_realtime')}</p>
+         <div class="h-[60vh] flex items-center justify-center" in:fade>
+           <div class="flex flex-col items-center gap-8">
+              <div class="relative w-16 h-16">
+                <div class="absolute inset-0 border-2 border-primary-500/20 rounded-none"></div>
+                <div class="absolute inset-0 border-2 border-primary-500 border-t-transparent animate-spin rounded-none"></div>
+              </div>
+              <p class="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-slate-600 animate-pulse">{$t('admin.msg.loading_realtime')}</p>
            </div>
          </div>
       {:else}
           {#each [activeTab] as _ (activeTab)}
-          <div in:fade={{ duration: 400 }}>
+          <div in:fly={{ y: 20, duration: 500, delay: 100 }}>
             {#if activeTab === 'dashboard'}
-               <div class="space-y-8 sm:space-y-12">
-                  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div>
-                      <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/10 text-[9px] font-mono font-black text-primary-400 uppercase tracking-[0.3em] mb-5 rounded-none">
-                        <span class="w-1.5 h-1.5 bg-violet-500 animate-pulse rounded-none"></span>
-                        {$t('admin.dashboard.sync')}
+               <div class="space-y-12">
+                  <!-- Dashboard Header -->
+                  <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
+                    <div class="space-y-6">
+                      <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white text-black flex items-center justify-center font-display italic font-black text-2xl">
+                          01
+                        </div>
+                        <div>
+                          <div class="inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-[9px] font-mono font-black text-violet-400 uppercase tracking-[0.3em] rounded-none">
+                            <span class="w-1.5 h-1.5 bg-violet-500 animate-pulse rounded-none"></span>
+                            {$t('admin.dashboard.sync')}
+                          </div>
+                          <h2 class="text-5xl md:text-7xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.8] mt-2">
+                            CENTRAL<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">OPERACIONES</span>
+                          </h2>
+                        </div>
                       </div>
-                      <h2 class="text-4xl sm:text-5xl font-black font-display uppercase italic tracking-[-0.04em] leading-[0.85]">Operational<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-500">Overview</span></h2>
                     </div>
-                  <div class="flex items-center gap-2">
-                     <button onclick={refreshStats} class="px-6 py-3 bg-white/5 border border-white/10 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-2 text-white rounded-none">
-                        <Pulse class="w-4 h-4" />
+
+                    <div class="flex items-center gap-3">
+                      <div class="hidden sm:flex flex-col items-end mr-4">
+                        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">Tiempo de Actividad</p>
+                        <p class="text-sm font-black font-display italic text-emerald-500">99.98%</p>
+                      </div>
+                      <button 
+                        onclick={refreshStats} 
+                        class="h-14 px-8 bg-white hover:bg-violet-500 hover:text-white text-black transition-all flex items-center gap-3 font-black text-xs uppercase tracking-widest group rounded-none"
+                      >
+                        <Pulse class="w-5 h-5 group-hover:animate-pulse" />
                         {$t('admin.dashboard.refresh')}
-                     </button>
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <StatsGrid {stats} />
+                  <LichessPulse />
+                  <StatsGrid {stats} />
 
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-px bg-white/10 border border-white/10">
-                   <!-- Real-time Activity Hub -->
-                   <div class="xl:col-span-2 bg-[#02040a] p-8 space-y-8">
-                      <LiveActivityFeed {activities} />
-                      <BroadcastCenter />
-                   </div>
-
-                   <!-- Critical Actions & System Info -->
-                   <div class="bg-[#02040a] p-8 space-y-6 border-l border-white/10">
-                      <!-- Guard Card -->
-                      <div class="space-y-4">
-                        <div class="flex items-center gap-3 mb-4">
-                          <div class="w-6 h-6 bg-red-500/10 flex items-center justify-center rounded-none">
-                            <Shield weight="duotone" class="w-3.5 h-3.5 text-red-500" />
-                          </div>
-                          <h3 class="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-red-400">{$t('admin.guard.title')}</h3>
-                        </div>
-                        <button 
-                           onclick={handleToggleMaintenance}
-                           class="w-full flex items-center justify-between p-5 border {maintenanceMode ? 'bg-red-500 text-white border-red-400' : 'bg-white/[0.02] border-white/10 text-slate-400 hover:border-white/20 hover:text-white'} transition-all rounded-none"
-                        >
-                           <div class="text-left">
-                             <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">{$t('admin.guard.maintenance_mode')}</p>
-                             <p class="text-xs font-black uppercase italic">{maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}</p>
+                  <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                     <!-- Real-time Activity Hub -->
+                     <div class="xl:col-span-8 space-y-8">
+                        <div class="bg-zinc-900/40 border border-white/5 p-8 relative overflow-hidden group">
+                           <div class="absolute top-0 right-0 p-8 opacity-5">
+                             <Pulse size={80} />
                            </div>
-                           <Gear weight="fill" class="w-5 h-5" />
-                        </button>
-                        
-                        <button 
-                           onclick={handleRepairUsers}
-                           class="w-full flex items-center justify-between p-5 bg-white/[0.02] border border-white/10 text-slate-400 hover:border-primary-500/30 hover:bg-primary-500/10 hover:text-primary-400 transition-all rounded-none"
-                        >
-                           <div class="text-left">
-                             <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">{$t('admin.guard.db_integrity')}</p>
-                             <p class="text-xs font-black uppercase italic">{$t('admin.guard.sync_repair')}</p>
-                           </div>
-                           <Pulse weight="bold" class="w-5 h-5" />
-                        </button>
-                      </div>
-
-                      <!-- System Info -->
-                      <div class="border-t border-white/10 pt-6 space-y-4">
-                        <div class="flex items-center justify-between mb-4">
-                          <h4 class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-[0.3em]">{$t('admin.env.title')}</h4>
-                          <span class="px-2 py-1 bg-violet-500/10 text-violet-500 border border-violet-500/20 text-[8px] font-mono font-black rounded-none">{$t('admin.env.stable')}</span>
-                        </div>
-                        {#each [
-                          { label: $t('admin.env.uptime'), val: '99.98%' },
-                          { label: $t('admin.env.cpu'), val: '12.4%' },
-                          { label: $t('admin.env.region'), val: 'eu-west3' }
-                        ] as row}
-                          <div class="flex justify-between items-center">
-                            <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">{row.label}</span>
-                            <span class="text-[10px] font-black italic text-white">{row.val}</span>
-                          </div>
-                        {/each}
-                      </div>
-                   </div>
-                </div>
-             </div>
-
-          {:else if activeTab === 'users'}
-            <div class="space-y-12">
-               <div>
-                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter text-white">{$t('admin.users.list_title')}</h2>
-                  <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
-                    {$t('admin.users.list_subtitle')}
-                  </p>
-               </div>
-
-               <UserTable 
-                  {users} 
-                  onEdit={openUserDetails}
-                  onImpersonate={handleImpersonate}
-                  onSearch={handleSearchUsers}
-               />
-            </div>
-
-          {:else if activeTab === 'tickets'}
-            <div in:fade>
-              <TicketManager tickets={supportTickets} />
-            </div>
-
-          {:else if activeTab === 'lobby'}
-             <div class="space-y-10">
-               <div>
-                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter text-white">{$t('admin.lobby.title')}</h2>
-                  <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2 italic">{$t('admin.lobby.subtitle')}</p>
-               </div>
-
-               <div class="space-y-px bg-white/10 border border-white/10">
-                 {#each lobbySuggestions as s (s.id)}
-                   <div 
-                    class="bg-[#02040a] p-8"
-                    in:slide
-                   >
-                     <div class="flex flex-col md:flex-row gap-8">
-                       <div class="flex-1 space-y-4">
-                         <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center font-mono font-black uppercase text-white text-sm rounded-none">
-                              {s.authorName?.[0] || 'A'}
-                            </div>
-                            <div>
-                               <p class="text-[10px] font-mono font-black text-primary-400 uppercase tracking-widest">{s.authorName}</p>
-                               <p class="text-[9px] text-slate-600 font-mono font-black uppercase">{new Date(s.createdAt).toLocaleDateString()}</p>
-                            </div>
-                         </div>
-                         <h4 class="text-lg font-black uppercase italic tracking-tight text-white">{s.title}</h4>
-                         <p class="text-sm text-slate-500 leading-relaxed">{s.content}</p>
-                       </div>
-                       
-                       <div class="md:w-56 space-y-2 flex-shrink-0">
-                           <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-3">{$t('admin.lobby.update_status')}</p>
-                           <select 
-                             value={s.status} 
-                             onchange={(e) => handleUpdateSuggestionStatus(s.id, (e.target as HTMLSelectElement).value)}
-                             class="w-full bg-black/40 border border-white/10 px-4 py-3 text-[10px] font-mono font-black uppercase outline-none focus:border-primary-500 transition-all appearance-none text-slate-400 rounded-none"
-                           >
-                             <option value="pending">{$t('admin.lobby.status_pending')}</option>
-                             <option value="planned">{$t('admin.lobby.status_planned')}</option>
-                             <option value="implemented">{$t('admin.lobby.status_implemented')}</option>
-                           </select>
-                           <button 
-                             onclick={() => handleDeleteSuggestion(s.id)}
-                             class="w-full py-3 bg-red-500/10 text-red-500 border border-red-500/20 text-[9px] font-mono font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all cursor-pointer rounded-none"
-                           >
-                              {$t('admin.lobby.delete')}
-                           </button>
+                           <LiveActivityFeed {activities} />
                         </div>
                      </div>
-                   </div>
-                 {/each}
-               </div>
-             </div>
 
-          {:else if activeTab === 'system'}
-             <div class="space-y-12">
-                <div>
-                  <h2 class="text-4xl font-black font-display uppercase italic tracking-tighter text-white">{$t('admin.system.engine')}</h2>
-                  <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">{$t('admin.system.engine_desc')}</p>
+                     <!-- Sidebar Blocks -->
+                     <div class="xl:col-span-4 space-y-8">
+
+                        <!-- Guard Terminal -->
+                        <div class="bg-[#02040a] border border-white/10 p-8 space-y-8 relative overflow-hidden">
+                           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 opacity-50"></div>
+                           
+                           <div class="flex items-center gap-4">
+                              <div class="w-10 h-10 bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500">
+                                <Shield weight="fill" size={20} />
+                              </div>
+                              <div>
+                                <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">{$t('admin.guard.title')}</h3>
+                                <p class="text-[8px] font-mono text-slate-600 uppercase mt-0.5 tracking-widest italic">PROTOCOL LEVEL: OMEGA</p>
+                              </div>
+                           </div>
+
+                           <div class="space-y-4">
+                              <button 
+                                 onclick={handleToggleMaintenance}
+                                 class="w-full flex items-center justify-between p-6 border {maintenanceMode ? 'bg-red-500 text-white border-red-400' : 'bg-white/[0.03] border-white/10 text-slate-400 hover:border-white/20 hover:text-white'} transition-all rounded-none group"
+                              >
+                                 <div class="text-left">
+                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">{$t('admin.guard.maintenance_mode')}</p>
+                                   <p class="text-sm font-black uppercase italic">{maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}</p>
+                                 </div>
+                                 <Gear weight="fill" class="w-6 h-6 group-hover:rotate-180 transition-transform duration-700" />
+                              </button>
+                              
+                              <button 
+                                 onclick={handleRepairUsers}
+                                 class="w-full flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 text-slate-400 hover:border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-400 transition-all rounded-none group"
+                              >
+                                 <div class="text-left">
+                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">{$t('admin.guard.db_integrity')}</p>
+                                   <p class="text-sm font-black uppercase italic">{$t('admin.guard.sync_repair')}</p>
+                                 </div>
+                                 <Pulse weight="bold" class="w-6 h-6 group-hover:scale-110 transition-transform" />
+                              </button>
+
+                              <button 
+                                 onclick={handleRepairEconomy}
+                                 class="w-full flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 text-slate-400 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all rounded-none group"
+                              >
+                                 <div class="text-left">
+                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">Gestión de Nets</p>
+                                   <p class="text-sm font-black uppercase italic">Sincronizar Economía</p>
+                                 </div>
+                                 <Star weight="bold" class="w-6 h-6 group-hover:scale-110 transition-transform text-violet-500" />
+                              </button>
+                           </div>
+
+                           <div class="grid grid-cols-2 gap-4">
+                             <div class="p-4 bg-white/[0.02] border border-white/5">
+                               <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mb-1">DB SYNC</p>
+                               <p class="text-xs font-black text-emerald-500 uppercase italic">SUCCESS</p>
+                             </div>
+                             <div class="p-4 bg-white/[0.02] border border-white/5">
+                               <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mb-1">API LAYER</p>
+                               <p class="text-xs font-black text-violet-400 uppercase italic">ACTIVE</p>
+                             </div>
+                           </div>
+                         </div>
+
+                          <!-- Governance Prediction Hub -->
+                          <div class="bg-black/20 border border-white/5 p-8 relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-6">
+                              <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">CENTRO DE GOBERNANZA</h3>
+                              <button onclick={() => activeTab = 'governance'} class="text-[9px] font-mono font-black text-primary-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2">
+                                GESTIONAR <ArrowArcLeft class="rotate-180 w-3 h-3" />
+                              </button>
+                            </div>
+                            <p class="text-slate-500 text-[10px] leading-relaxed">Accede al panel de gobernanza para gestionar hitos de predicción, resolver oráculos de Lichess y distribuir recompensas.</p>
+                          </div>
+
+                         <!-- Technical Metadata -->
+                        <div class="bg-zinc-900/20 border border-white/5 p-8 space-y-6">
+                           <div class="flex items-center justify-between">
+                              <h4 class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">{$t('admin.env.title')}</h4>
+                              <span class="text-[9px] font-mono font-black text-white px-2 py-0.5 bg-violet-500">PRODUCTION</span>
+                           </div>
+                           <div class="space-y-4">
+                              {#each [
+                                { label: $t('admin.env.uptime'), val: '99.98%', color: 'text-emerald-500' },
+                                { label: $t('admin.env.cpu'), val: '12.4%', color: 'text-violet-400' },
+                                { label: $t('admin.env.region'), val: 'eu-west3', color: 'text-white' },
+                                { label: 'Node Version', val: 'v20.11.0', color: 'text-slate-500' }
+                              ] as row}
+                                <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                                  <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">{row.label}</span>
+                                  <span class="text-[10px] font-black italic {row.color}">{row.val}</span>
+                                </div>
+                              {/each}
+                           </div>
+                           <div class="pt-4 flex items-center gap-3">
+                             <div class="w-full h-1.5 bg-white/5 rounded-none overflow-hidden flex">
+                               <div class="h-full bg-violet-500 w-1/2"></div>
+                               <div class="h-full bg-violet-400 w-1/4 opacity-50"></div>
+                             </div>
+                             <span class="text-[8px] font-mono font-black text-slate-700 uppercase">LOAD</span>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+            {:else if activeTab === 'users'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      02
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">{$t('admin.users.list_title')}</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-primary-500 rounded-none"></span>
+                         {$t('admin.users.list_subtitle')}
+                       </p>
+                    </div>
+                  </div>
+
+                  <UserTable 
+                     {users} 
+                     onEdit={openUserDetails}
+                     onImpersonate={handleImpersonate}
+                     onSearch={handleSearchUsers}
+                  />
+               </div>
+
+            {:else if activeTab === 'governance'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      03
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Centro de Gobernanza</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-primary-500 rounded-none animate-pulse"></span>
+                         Gobernanza de Hitos y Distribución de Nets
+                       </p>
+                    </div>
+                  </div>
+                  <GovernanceHub />
+               </div>
+
+            {:else if activeTab === 'broadcast'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      04
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Avisos Globales</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-primary-500 rounded-none animate-pulse"></span>
+                         Comunicaciones prioritarias para toda la red
+                       </p>
+                    </div>
+                  </div>
+                  <BroadcastCenter />
+               </div>
+
+            {:else if activeTab === 'tickets'}
+              <div class="space-y-12">
+                <div class="flex items-center gap-6">
+                  <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                    05
+                  </div>
+                  <div>
+                     <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Centro de Soporte</h2>
+                     <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                       <span class="w-1.5 h-1.5 bg-amber-500 rounded-none animate-pulse"></span>
+                       Gestión de Incidencias y Tickets
+                     </p>
+                  </div>
                 </div>
-                
-                <StripeSimulator />
-                
-                <SystemConsole 
-                  logs={systemLogs}
-                  {maintenanceMode}
-                  onToggleMaintenance={handleToggleMaintenance}
-                  onRepairData={handleRepairUsers}
-                  onClearLogs={() => toast.info('No disponible temporalmente')}
-                />
-             </div>
-          {/if}
-        </div>
-        {/each}
-      {/if}
-    </div>
-  </main>
+                <TicketManager tickets={supportTickets} />
+              </div>
+
+            {:else if activeTab === 'lobby'}
+               <div class="h-[70vh] overflow-y-auto custom-scrollbar">
+                 <SocialFeed />
+               </div>
+
+            {:else if activeTab === 'system'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      06
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">{$t('admin.system.engine')}</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-red-500 rounded-none animate-ping"></span>
+                         {$t('admin.system.engine_desc')}
+                       </p>
+                    </div>
+                  </div>
+                  
+                  <StripeSimulator />
+                  
+                  <div class="bg-zinc-900/40 border border-white/5 p-8 md:p-12">
+                    <SystemConsole 
+                      logs={systemLogs}
+                      {maintenanceMode}
+                      onToggleMaintenance={handleToggleMaintenance}
+                      onRepairData={handleRepairUsers}
+                      onClearLogs={() => toast.info('No disponible temporalmente')}
+                    />
+                  </div>
+               </div>
+            {/if}
+          </div>
+          {/each}
+        {/if}
+      </div>
+    </main>
+  </div>
 </div>
+
+
 
   <!-- User Detail Modal -->
   {#if showEditModal && selectedUser}
@@ -775,7 +929,8 @@
     <div class="bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-stretch rounded-none">
       {#each [
         { id: 'dashboard', icon: SquaresFour, label: 'Dash' },
-        { id: 'users', icon: Users, label: 'Users' }
+        { id: 'users', icon: Users, label: 'Users' },
+        { id: 'broadcast', icon: Globe, label: 'Info' }
       ] as item}
         {@const Icon = item.icon}
         <button 
@@ -816,7 +971,6 @@
       {/each}
     </div>
   </div>
-</div>
 
 <UpdatePill />
 

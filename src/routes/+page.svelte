@@ -95,7 +95,7 @@
       <div class="max-w-6xl mx-auto flex flex-col items-center text-center">
         <div class="inline-flex items-center gap-3 px-3 py-1 bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[9px] font-bold uppercase tracking-[0.3em] mb-12 animate-fade-in font-mono rounded-none">
           <span class="w-1 h-1 bg-primary-500 rounded-none"></span>
-          <span>ESTADO SISTEMA</span>
+          <span>ESTADO DEL SISTEMA</span>
           <span class="text-primary-900">/</span>
           <span class="text-primary-500/50">ESTABLE</span>
         </div>
@@ -208,19 +208,19 @@
           <div class="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/10 border border-white/10">
             <div class="bg-[#02040a] py-16 px-8 text-center space-y-4 group">
                <span class="text-5xl font-display font-black text-white tracking-[-0.05em] block group-hover:text-primary-500 transition-colors">100%</span>
-                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] font-mono italic">SYST.SECURITY</p>
+                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] font-mono italic">Seguridad</p>
             </div>
             <div class="bg-[#02040a] py-16 px-8 text-center space-y-4 group">
                <span class="text-5xl font-display font-black text-white tracking-[-0.05em] block group-hover:text-indigo-500 transition-colors">ALPHA</span>
-                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] font-mono italic">DEPLOY.STATUS</p>
+                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] font-mono italic">Despliegue</p>
             </div>
             <div class="bg-[#02040a] py-16 px-8 text-center space-y-4 group">
                <span class="text-5xl font-display font-black text-white tracking-[-0.05em] block group-hover:text-primary-500 transition-colors">LIVE</span>
-                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] font-mono italic">SYNC.ENGINE</p>
+                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] font-mono italic">Sincronización</p>
             </div>
             <div class="bg-[#02040a] py-16 px-8 text-center space-y-4 group">
                <span class="text-5xl font-display font-black text-white tracking-[-0.05em] block group-hover:text-indigo-500 transition-colors">MODERN</span>
-                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] font-mono italic">CORE.ARCH</p>
+                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] font-mono italic">Arquitectura</p>
             </div>
           </div>
        </div>
@@ -369,7 +369,7 @@
          <div class="space-y-8">
            <h4 class="text-[10px] font-black text-white uppercase tracking-[0.3em] font-mono italic">Governance</h4>
            <div class="flex flex-col gap-5 text-[10px] font-black text-slate-600 uppercase tracking-widest">
-              <a href="/faq" class="hover:text-white transition-colors">FAQ_SYS</a>
+              <a href="/faq" class="hover:text-white transition-colors">Preguntas Frecuentes</a>
               <a href="/panel/support" class="hover:text-white transition-colors">{$t('support.title') || 'Support'}</a>
               <a href="/legal/terms" class="hover:text-white transition-colors">{$t('nav.terms')}</a>
               <a href="/legal/privacy" class="hover:text-white transition-colors">{$t('nav.privacy')}</a>
@@ -379,7 +379,7 @@
     </div>
     
     <div class="max-w-7xl mx-auto pt-20 mt-20 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-8">
-       <p class="text-slate-700 text-[9px] font-black uppercase tracking-[0.4em] font-mono">© {new Date().getFullYear()} CHESSNET_SYSTEMS. V4.0.0_PRODUCTION</p>
+       <p class="text-slate-700 text-[9px] font-black uppercase tracking-[0.4em] font-mono">© {new Date().getFullYear()} ChessNet. Versión 4.0.0 Estable</p>
        <div class="flex items-center gap-6 text-slate-700 text-[9px] font-black uppercase tracking-[0.2em] italic font-mono">
           <span class="flex items-center gap-2 underline underline-offset-4 decoration-primary-500/30">Latency: 24ms</span>
           <span class="flex items-center gap-2 underline underline-offset-4 decoration-indigo-500/30">Stable: Tier-1</span>

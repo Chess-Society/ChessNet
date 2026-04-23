@@ -1,4 +1,4 @@
-import { adminDb, adminAuth, isFirebaseAdminInitialized } from '$lib/firebase-admin';
+import { adminDb, adminAuth, isFirebaseAdminInitialized } from '$lib/server/firebase-admin';
 import { error, redirect } from '@sveltejs/kit';
 import { ADMIN_EMAILS } from '$lib/constants';
 
@@ -7,7 +7,7 @@ export async function getUserPlan(uid: string) {
         // First check if the user is in the admin list by fetching their auth record
         // This is a bit expensive but ensures consistency for admins
         // Wrap in a sub-try/catch to avoid crashing the whole function if auth lookup fails
-        if (!isFirebaseAdminInitialized) {
+        if (!isFirebaseAdminInitialized()) {
             return 'free'; // Default to free if not initialized in production
         }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fade, fly, scale } from 'svelte/transition';
+  import { fade, fly, scale, slide } from 'svelte/transition';
   import { 
     Lifebuoy, 
     Warning, 
@@ -34,7 +34,9 @@
   let newReport = $state({
     title: '',
     content: '',
-    type: 'bug' // bug, billing, general, suggestion
+    type: 'bug', // bug, billing, general, suggestion, director_request
+    schoolName: '',
+    teachers: ''
   });
 
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
@@ -44,7 +46,15 @@
   });
 
   async function handleSubmitReport() {
-    if (!newReport.title || !newReport.content) {
+    if (newReport.type === 'director_request') {
+      if (!newReport.schoolName || !newReport.teachers) {
+        toast.error($t('support.toast_fill_all'));
+        return;
+      }
+      // Re-ensure title/content are set in case user didn't trigger selection logic
+      newReport.title = `Solicitud de Director: ${newReport.schoolName}`;
+      newReport.content = `Solicitud formal para el rol de Director.\n\nEscuela: ${newReport.schoolName}\nProfesores a cargo:\n${newReport.teachers}`;
+    } else if (!newReport.title || !newReport.content) {
       toast.error($t('support.toast_fill_all'));
       return;
     }
@@ -58,12 +68,13 @@
         authorEmail: $authUser?.email,
         authorAvatar: $authUser?.photoURL || null,
         status: 'open',
+        priority: newReport.type === 'director_request' ? 'high' : 'normal',
         createdAt: new Date().toISOString()
       });
       
       toast.success($t('support.toast_sent_success'));
       showCreateModal = false;
-      newReport = { title: '', content: '', type: 'bug' };
+      newReport = { title: '', content: '', type: 'bug', schoolName: '', teachers: '' };
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -121,8 +132,8 @@
         <Lifebuoy weight="fill" class="w-3 h-3" />
         {$t('support.title')}
       </div>
-      <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-[0.85]">
-        {$t('support.center_title_prefix')}<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">{$t('support.center_title')}</span>
+      <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-none italic">
+        {$t('support.center_title_prefix')}<br/><span class="pb-1 inline-block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">{$t('support.center_title')}</span>
       </h1>
       <p class="text-zinc-500 font-plus-jakarta text-sm lg:text-lg max-w-xl">
         {$t('support.desc')}
@@ -314,10 +325,16 @@
         <div class="space-y-6">
           <div class="space-y-3">
             <span class="block text-[10px] font-black text-amber-500 uppercase tracking-widest ml-2">{$t('support.category')}</span>
-            <div class="grid grid-cols-2 gap-3">
-              {#each ['bug', 'billing', 'general', 'improvement'] as type}
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {#each ['bug', 'billing', 'general', 'improvement', 'director_request'] as type}
                 <button 
-                  onclick={() => newReport.type = type}
+                  onclick={() => {
+                    newReport.type = type;
+                    if (type === 'director_request') {
+                      newReport.title = 'Solicitud de Director Pendiente';
+                      newReport.content = 'Pendiente de Validación';
+                    }
+                  }}
                   class="py-3 px-4 rounded-none border text-[10px] font-black uppercase tracking-widest transition-all {newReport.type === type ? 'bg-amber-500 border-amber-500 text-black' : 'bg-white/5 border-white/5 text-zinc-500 hover:border-white/20'}"
                 >
                   {$t(`support.category.${type === 'improvement' ? 'feature' : type}`)}
@@ -326,27 +343,85 @@
             </div>
           </div>
 
-          <div class="space-y-3">
-            <label for="report-title" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{$t('support.ticket_title')}</label>
-            <input 
-              id="report-title"
-              bind:value={newReport.title}
-              type="text" 
-              placeholder={$t('support.placeholder_example')}
-              class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-none text-white font-medium focus:border-amber-500 outline-none transition-all placeholder:text-zinc-800"
-            />
-          </div>
+          {#if newReport.type === 'director_request'}
+            <div class="p-6 bg-amber-500/5 border border-amber-500/20 rounded-none space-y-6 relative overflow-hidden group" transition:slide>
+              <!-- Decorative background icon -->
+              <IdentificationCard weight="fill" class="absolute -right-4 -top-4 w-24 h-24 text-amber-500/5 rotate-12 group-hover:rotate-6 transition-transform duration-700" />
+              
+              <div class="flex items-start gap-4">
+                <div class="p-3 bg-amber-500/20 text-amber-500 rounded-none border border-amber-500/30">
+                  <Warning size={20} weight="fill" />
+                </div>
+                <div class="space-y-1">
+                  <h4 class="text-[11px] font-black uppercase tracking-[0.2em] text-amber-500">{$t('support.category.director_request')}</h4>
+                  <p class="text-[10px] font-bold text-zinc-400 leading-relaxed max-w-[90%]">{$t('support.director_request_warning')}</p>
+                </div>
+              </div>
 
-          <div class="space-y-3">
-            <label for="report-content" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{$t('support.ticket_desc')}</label>
-            <textarea 
-              id="report-content"
-              bind:value={newReport.content}
-              rows="5"
-              placeholder={$t('support.placeholder_desc')}
-              class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-none text-white font-medium focus:border-amber-500 outline-none transition-all resize-none placeholder:text-zinc-800"
-            ></textarea>
-          </div>
+              <div class="grid grid-cols-1 gap-5 pt-2">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between ml-1">
+                    <label for="school-name" class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{$t('support.school_name')}</label>
+                    {#if newReport.schoolName}
+                      <span class="text-[8px] font-black text-amber-500 uppercase tracking-widest" transition:fade>{$t('support.completed')}</span>
+                    {/if}
+                  </div>
+                  <input 
+                    id="school-name"
+                    bind:value={newReport.schoolName}
+                    type="text" 
+                    placeholder="Ej: Club de Ajedrez Central"
+                    class="w-full py-4 px-4 bg-black/60 border border-white/10 rounded-none text-white text-sm focus:border-amber-500 focus:bg-black/80 outline-none transition-all placeholder:text-zinc-700 shadow-inner"
+                  />
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between ml-1">
+                    <label for="teachers-charge" class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{$t('support.teachers_charge')}</label>
+                    {#if newReport.teachers}
+                      <span class="text-[8px] font-black text-amber-500 uppercase tracking-widest" transition:fade>{$t('support.verified')}</span>
+                    {/if}
+                  </div>
+                  <textarea 
+                    id="teachers-charge"
+                    bind:value={newReport.teachers}
+                    rows="3"
+                    placeholder={$t('support.placeholder_teachers')}
+                    class="w-full py-4 px-4 bg-black/60 border border-white/10 rounded-none text-white text-sm focus:border-amber-500 focus:bg-black/80 outline-none transition-all resize-none placeholder:text-zinc-700 shadow-inner"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 pt-2">
+                <div class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
+                <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{$t('support.priority_verification')}</span>
+              </div>
+            </div>
+          {/if}
+
+          {#if newReport.type !== 'director_request'}
+            <div class="space-y-3" transition:slide>
+              <label for="report-title" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{$t('support.ticket_title')}</label>
+              <input 
+                id="report-title"
+                bind:value={newReport.title}
+                type="text" 
+                placeholder={$t('support.placeholder_example')}
+                class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-none text-white font-medium focus:border-amber-500 outline-none transition-all placeholder:text-zinc-800"
+              />
+            </div>
+
+            <div class="space-y-3" transition:slide>
+              <label for="report-content" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{$t('support.ticket_desc')}</label>
+              <textarea 
+                id="report-content"
+                bind:value={newReport.content}
+                rows="5"
+                placeholder={$t('support.placeholder_desc')}
+                class="w-full py-4 px-6 bg-white/[0.03] border border-white/10 rounded-none text-white font-medium focus:border-amber-500 outline-none transition-all resize-none placeholder:text-zinc-800"
+              ></textarea>
+            </div>
+          {/if}
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -358,7 +433,7 @@
            </button>
            <button 
              onclick={handleSubmitReport}
-             disabled={isSubmitting || !newReport.title || !newReport.content}
+             disabled={isSubmitting || (newReport.type === 'director_request' ? (!newReport.schoolName || !newReport.teachers) : (!newReport.title || !newReport.content))}
              class="py-4 bg-amber-500 text-black rounded-none text-[10px] font-black uppercase tracking-widest shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
            >
              {#if isSubmitting}

@@ -1,13 +1,17 @@
-import { adminAuth, isFirebaseAdminInitialized } from '$lib/firebase-admin';
+import { adminAuth, isFirebaseAdminInitialized } from '$lib/server/firebase-admin';
 import { redirect, type RequestEvent } from '@sveltejs/kit';
 import { ADMIN_EMAILS } from '$lib/constants';
 import { dev } from '$app/environment';
+import { env as privateEnv } from '$env/dynamic/private';
 
 export async function authenticate(event: RequestEvent) {
     // Local AI Access Bypass (Development Only)
+    // HIGH-01: Secret desde env var — nunca hardcodeado en código fuente
+    // Definir DEV_AUTH_BYPASS_SECRET en .env para activar el bypass local
     if (dev) {
         const aiAccess = event.cookies.get('antigravity_access');
-        if (aiAccess === 'antigravity-dev-secret') {
+        const bypassSecret = privateEnv.DEV_AUTH_BYPASS_SECRET;
+        if (bypassSecret && aiAccess === bypassSecret) {
             event.locals.user = {
                 uid: 'antigravity-dev-worker',
                 email: 'tomih@chess-society.com', // Recognized admin email
@@ -30,7 +34,7 @@ export async function authenticate(event: RequestEvent) {
         return event.locals;
     }
 
-    if (!isFirebaseAdminInitialized) {
+    if (!isFirebaseAdminInitialized()) {
         if (!dev) console.warn('⚠️ [Auth] Admin SDK not initialized. Skipping session verification.');
         event.locals.user = null;
         event.locals.isAdmin = false;
@@ -46,12 +50,14 @@ export async function authenticate(event: RequestEvent) {
             picture: decodedClaims.picture
         };
 
-        const userEmail = event.locals.user.email?.trim().toLowerCase();
+        // SEC-01: Priorizar Custom Claims sobre lista estática
+        const isClaimAdmin = decodedClaims.admin === true;
+        const userEmail = decodedClaims.email?.trim().toLowerCase();
         const isEmailAdmin = userEmail 
             ? ADMIN_EMAILS.map(e => e.trim().toLowerCase()).includes(userEmail) 
             : false;
         
-        event.locals.isAdmin = isEmailAdmin || (decodedClaims.admin === true);
+        event.locals.isAdmin = isClaimAdmin || isEmailAdmin;
 
     } catch (err) {
         console.error('Auth helper error:', err);

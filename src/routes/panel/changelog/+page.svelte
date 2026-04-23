@@ -1,0 +1,175 @@
+<script lang="ts">
+  import { fade, fly } from 'svelte/transition';
+  import { RocketLaunch, Star, ShieldCheck, Users, Buildings, Trophy, Sparkle, ChartLineUp } from 'phosphor-svelte';
+  import { t } from '$lib/i18n';
+
+  const updates = [
+    {
+      version: '0.13.0 Beta',
+      date: '2026-04-22',
+      title: 'Evolución del Panel de Control',
+      icon: RocketLaunch,
+      color: 'text-violet-400',
+      bgColor: 'bg-violet-500/10',
+      items: [
+        {
+          title: 'Nueva Interfaz Administrativa',
+          description: 'Re-ingeniería total de la interfaz administrativa para una gestión más clara y eficiente.',
+          icon: ShieldCheck
+        },
+        {
+          title: 'Expansión Internacional',
+          description: 'Soporte global para escuelas en cualquier país con buscador inteligente de regiones.',
+          icon: Sparkle
+        },
+        {
+          title: 'Colaboración de Red',
+          description: 'Los profesores ahora pueden compartir su actividad con los directores manteniendo su privacidad.',
+          icon: Users
+        }
+      ]
+    },
+    {
+      version: '0.12.0 Beta',
+      date: '2026-04-21',
+      title: 'Análisis Unificado de Lichess',
+      icon: ChartLineUp,
+      color: 'text-blue-400',
+      bgColor: 'bg-blue-500/10',
+      items: [
+        {
+          title: 'Sincronización Lichess.org',
+          description: 'Conexión profunda con perfiles de alumnos para seguimiento automático de partidas y ELO.',
+          icon: Sparkle
+        },
+        {
+          title: 'Pulse de Grupo Unificado',
+          description: 'Seguimiento del progreso de todo el grupo de manera unificada y de un vistazo rápido con métricas globales.',
+          icon: ChartLineUp
+        }
+      ]
+    },
+    {
+      version: '0.11.0',
+      date: '2026-04-20',
+      title: 'Mejoras en el Sistema de Torneos',
+      icon: Trophy,
+      color: 'text-amber-400',
+      bgColor: 'bg-amber-500/10',
+      items: [
+        {
+          title: 'Torneos Locales Avanzados',
+          description: 'Sistema de emparejamientos mejorado y gestión de rondas en tiempo real para tus torneos presenciales.',
+          icon: Sparkle
+        },
+        {
+          title: 'Reportes de Rendimiento',
+          description: 'Visualización clara del progreso de los alumnos tras cada competición.',
+          icon: Star
+        }
+      ]
+    },
+    {
+      version: '0.10.0',
+      date: '2026-04-15',
+      title: 'Lanzamiento Beta Pública',
+      icon: RocketLaunch,
+      color: 'text-emerald-400',
+      bgColor: 'bg-emerald-500/10',
+      items: [
+        {
+          title: 'Plataforma Todo-en-Uno',
+          description: 'Gestión de escuelas, clases, alumnos y pagos diseñada específicamente para profesores de ajedrez.',
+          icon: Buildings
+        }
+      ]
+    }
+  ];
+</script>
+
+<svelte:head>
+  <title>Changelog - ChessNet</title>
+</svelte:head>
+
+<div class="max-w-4xl mx-auto py-12 px-6" in:fade>
+  <div class="mb-16 text-center">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-500/10 border border-violet-500/20 mb-6">
+      <Sparkle size={14} class="text-violet-400 animate-pulse" />
+      <span class="text-[10px] font-black text-violet-400 uppercase tracking-[0.2em]">Actualizaciones y Evolución</span>
+    </div>
+    <h1 class="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter mb-4 px-4 leading-[0.9]">
+      CHESSNET <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500 py-2 pr-6 inline-block">CHRONICLES</span>
+    </h1>
+    <p class="text-zinc-500 font-bold uppercase tracking-widest text-xs">
+      Descubre las últimas mejoras diseñadas para hacer tu enseñanza más eficiente.
+    </p>
+  </div>
+
+  <div class="space-y-20 relative">
+    <!-- Vertical Line -->
+    <div class="absolute left-[39px] top-4 bottom-4 w-px bg-gradient-to-b from-violet-500/50 via-zinc-800 to-zinc-900 hidden md:block"></div>
+
+    {#each updates as update, i}
+      <div class="relative pl-0 md:pl-24" in:fly={{ y: 20, delay: i * 100 }}>
+        <!-- Version Badge (Mobile) -->
+        <div class="md:hidden flex items-center gap-3 mb-6">
+          <div class="px-3 py-1 {update.bgColor} {update.color} border border-current/20 text-[10px] font-black tracking-widest">
+            {update.version}
+          </div>
+          <span class="text-[10px] text-zinc-600 font-bold tracking-widest uppercase">{update.date}</span>
+        </div>
+
+        <!-- Desktop Dot -->
+        <div class="absolute left-0 top-0 hidden md:flex items-center justify-center w-20">
+          <div class="w-10 h-10 {update.bgColor} {update.color} border border-current/30 flex items-center justify-center shadow-xl shadow-current/5 relative z-10">
+            <update.icon size={20} weight="duotone" />
+          </div>
+          <div class="absolute -left-52 top-0 text-right w-48 pr-8 mt-1">
+            <p class="text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em]">{update.version}</p>
+            <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1 opacity-60">{update.date}</p>
+          </div>
+        </div>
+
+        <div class="bento-card !p-8 md:!p-12 relative group hover:border-white/10 transition-all">
+          <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <update.icon size={120} weight="duotone" />
+          </div>
+
+          <h2 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight mb-8 relative z-10">
+            {update.title}
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+            {#each update.items as item}
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-none {update.bgColor} {update.color} flex items-center justify-center">
+                    <item.icon size={16} weight="bold" />
+                  </div>
+                  <h3 class="text-sm font-outfit font-bold text-zinc-200 uppercase tracking-tight">{item.title}</h3>
+                </div>
+                <p class="text-[13px] text-zinc-500 leading-relaxed font-jakarta font-medium">
+                  {item.description}
+                </p>
+              </div>
+            {/each}
+          </div>
+        </div>
+      </div>
+    {/each}
+  </div>
+
+  <div class="mt-20 p-12 bg-zinc-900/30 border border-dashed border-zinc-800 text-center">
+    <p class="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mb-2">¿Tienes una idea?</p>
+    <p class="text-zinc-400 font-jakarta text-sm mb-8">Estamos construyendo el futuro del ajedrez educativo contigo.</p>
+    <a href="/panel/support" class="inline-flex items-center gap-3 px-8 py-3 bg-white text-zinc-950 font-black text-[10px] uppercase tracking-widest hover:bg-violet-400 hover:text-white transition-all">
+      Enviar Sugerencia
+    </a>
+  </div>
+</div>
+
+<style lang="postcss">
+  :global(.bento-card) {
+    @apply bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-none transition-all duration-300;
+  }
+</style>

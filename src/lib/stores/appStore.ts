@@ -27,42 +27,32 @@ function createAppStore() {
   });
 
   const actions = createActions(store);
-
+  
   return {
     subscribe,
     ...actions,
     
-    // UI Helpers
-    notifyAchievementDisplayed: async (achievementId: string) => {
-      const user = get(authStoreUser);
-      if (!user) return;
-      
-      // Update locally first
-      update((s: AppState) => ({
-        ...s,
-        pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId),
-        unlockedAchievements: s.unlockedAchievements.map(a => 
-          a.id === achievementId ? { ...a, notified: true } : a
-        )
-      }));
-
-      // Persist to Firebase
-      try {
-        await updateDoc(doc(db, 'achievements', achievementId), {
-          notified: true,
-          notifiedAt: new Date().toISOString()
-        });
-      } catch (error) {
-        console.error('❌ [AppStore] Error notifying achievement:', error);
-      }
-    },
-
     reset: () => {
       if (unsubscribeListeners) {
         unsubscribeListeners();
         unsubscribeListeners = null;
       }
       set(initialState);
+    },
+
+    // Getters helpers
+    get school() {
+      const state = get(store);
+      return state.schools[0] || null;
+    },
+    get isSocialEnabled() {
+      return (get(store).schools[0]?.socialEnabled !== false);
+    },
+    get isEconomyEnabled() {
+      return (get(store).schools[0]?.economyEnabled !== false);
+    },
+    get settings() {
+      return get(store).settings;
     }
   };
 }

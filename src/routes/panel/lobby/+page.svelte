@@ -3,26 +3,16 @@
   import { 
     ChatCircleDots, 
     Lightbulb, 
-    Megaphone, 
-    ArrowRight, 
     Plus, 
     Star, 
-    ListChecks, 
-    Clock, 
-    UserCircle,
-    PaperPlaneTilt,
-    Lock,
     Crown,
     X,
-    HandWaving,
-    ChatTeardropDots,
-    SealCheck,
-    Lifebuoy,
-    Trash,
-    Hash,
-    CaretLeft,
-    PaperPlane,
-    Warning
+    CalendarBlank,
+    HandCoins,
+    Buildings,
+    Target,
+    Pulse,
+    ChartBar
   } from 'phosphor-svelte';
   import { db } from '$lib/firebase';
   import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, where, deleteDoc, limit } from 'firebase/firestore';
@@ -39,42 +29,35 @@
   import { parseDate, formatDate } from '$lib/utils/date';
   import UpdatePill from '$lib/components/common/UpdatePill.svelte';
   import { globalAnnouncements as globalAnnouncementsStore } from '$lib/stores/configStore';
+  import PredictionCard from '$lib/components/social/PredictionCard.svelte';
+  import CreateMarketModal from '$lib/components/social/CreateMarketModal.svelte';
+  import { predictionApi } from '$lib/api/predictions';
 
   // State
-  let showCreateModal = $state(false);
-  let isSubmitting = $state(false);
+  let showCreateMarketModal = $state(false);
+  let marketToEdit = $state<any>(null);
+  let markets = $state<any[]>([]);
+  let selectedCategory = $state('Todos');
+  const categories = ['Todos', 'Torneos', 'Mejoras', 'Docencia', 'Academia'];
+  let filteredMarkets = $derived(selectedCategory === 'Todos' ? markets : markets.filter(m => m.category === selectedCategory));
+
+
   
-  // Community Chat State
-  let groups = $derived($appStore.communityGroups || []);
-  let lobbyAnnouncements = $derived($appStore.lobbyAnnouncements || []);
-  let globalAnnouncements = $derived($globalAnnouncementsStore || []);
-  
-  let announcements = $derived([...globalAnnouncements, ...lobbyAnnouncements].sort((a,b) => {
-    const dateA = new Date(a.createdAt || a.created_at || 0).getTime();
-    const dateB = new Date(b.createdAt || b.created_at || 0).getTime();
-    return dateB - dateA;
-  }));
-  
-  let selectedGroupId = $state<string | null>(null);
-  let selectedGroupName = $derived(groups.find(g => g.id === selectedGroupId)?.name || '');
-  let messages = $state<any[]>([]);
-  let newMessage = $state('');
-  let showCreateGroupModal = $state(false);
-  
-  let newGroup = $state({
-    name: '',
-    description: ''
-  });
-  
-  let newSuggestion = $state({
-    title: '',
-    description: '',
-    category: 'feature' // feature, bug, improvement
+  onMount(() => {
+    // Listen for markets
+    const qM = query(collection(db, 'prediction_markets'), orderBy('createdAt', 'desc'), limit(12));
+    const unsubM = onSnapshot(qM, (snap) => {
+      markets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    });
+
+    return () => {
+      unsubM();
+    };
   });
 
 
   const plan = $derived($appStore?.settings?.plan || 'free');
-  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+  const isAdmin = $derived($authUser?.email ? ADMIN_EMAILS.includes($authUser.email.toLowerCase()) : false);
 
   onMount(() => {
     // Plan Guardrail
@@ -84,46 +67,8 @@
     }
   });
 
-  // Default group selection
-  $effect(() => {
-    if (!selectedGroupId && groups.length > 0) {
-      selectedGroupId = groups[0].id;
-    }
-  });
+  // Default group selection removed (Comunidad disabled)
 
-  // Watch selectedGroupId to fetch messages
-  $effect(() => {
-    if (selectedGroupId) {
-      const qM = query(
-        collection(db, 'community_messages'), 
-        where('groupId', '==', selectedGroupId)
-      );
-      
-      const unsubM = onSnapshot(qM, (snap) => {
-        let loadedMessages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        messages = (loadedMessages as any[]).sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0).getTime();
-          const dateB = new Date(b.createdAt || 0).getTime();
-          return dateA - dateB;
-        });
-
-        // Scroll to bottom
-        setTimeout(() => {
-          const container = document.getElementById('chat-container');
-          if (container) {
-            container.scrollTo({
-              top: container.scrollHeight,
-              behavior: 'smooth'
-            });
-          }
-        }, 100);
-      }, (err) => {
-        console.error("Error en listener de mensajes:", err);
-      });
-      
-      return unsubM;
-    }
-  });
 
   // Clear notifications pulse when lobby is viewed
   $effect(() => {
@@ -135,73 +80,7 @@
     }
   });
 
-  async function handleSendMessage() {
-    if (!newMessage.trim() || !selectedGroupId) return;
-    
-    try {
-      await addDoc(collection(db, 'community_messages'), {
-        groupId: selectedGroupId,
-        text: newMessage.trim(),
-        authorId: $authUser?.uid,
-        authorName: $appStore?.settings?.teacherName || $authUser?.displayName || $t('common.anonymous'),
-        authorAvatar: $appStore?.settings?.teacherAvatar || $authUser?.photoURL || null,
-        authorInsignias: $appStore?.settings?.featuredInsignias || [],
-        createdAt: new Date().toISOString()
-      });
-      newMessage = '';
-    } catch (err: any) {
-      toast.error(err.message);
-    }
-  }
 
-  async function handleCreateGroup() {
-    if (!newGroup.name || !isAdmin) return;
-    
-    isSubmitting = true;
-    try {
-      await addDoc(collection(db, 'community_groups'), {
-        ...newGroup,
-        createdAt: new Date().toISOString()
-      });
-      toast.success("Grupo creado");
-      showCreateGroupModal = false;
-      newGroup = { name: '', description: '' };
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      isSubmitting = false;
-    }
-  }
-
-  async function handleSubmitSuggestion() {
-    if (!newSuggestion.title || !newSuggestion.description) return;
-    if (plan !== 'premium' && !isAdmin) {
-        toast.error("Sólo los usuarios Premium pueden enviar sugerencias");
-        return;
-    }
-
-    isSubmitting = true;
-    try {
-      await addDoc(collection(db, 'lobby_suggestions'), {
-        ...newSuggestion,
-        authorId: $authUser?.uid,
-        authorName: $appStore?.settings?.teacherName || $authUser?.displayName || $t('common.anonymous'),
-        authorAvatar: $appStore?.settings?.teacherAvatar || $authUser?.photoURL || null,
-        authorInsignias: $appStore?.settings?.featuredInsignias || [],
-        votes: [],
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      });
-      
-      toast.success("¡Sugerencia enviada correctamente!");
-      showCreateModal = false;
-      newSuggestion = { title: '', description: '', category: 'feature' };
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      isSubmitting = false;
-    }
-  }
 
 
   async function handleDelete(collectionName: string, id: string) {
@@ -238,53 +117,45 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-8 sm:space-y-12" in:fade>
   
-  <!-- Header Section -->
-  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-    <div class="space-y-4 lg:space-y-4">
-       <div class="hidden lg:inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-none text-[10px] font-black uppercase tracking-[0.2em] text-violet-400">
-        <ChatCircleDots weight="fill" class="w-3 h-3" />
-        {$t('lobby.teacher_lobby')}
+  <!-- Header Section: OPS CENTER -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-12">
+    <div class="space-y-4">
+       <div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/10 border border-primary-500/20 rounded-none text-[10px] font-black uppercase tracking-[0.2em] text-primary-400">
+        <Pulse weight="fill" class="w-3 h-3 animate-pulse" />
+        SISTEMA DE OPERACIONES - v4.2
       </div>
-      <h1 class="text-3xl sm:text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-[0.85]">
-        {$t('lobby.community_title_1')}<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500">{$t('lobby.community_title_2')}</span>
+      <h1 class="text-4xl sm:text-5xl lg:text-7xl font-outfit font-black text-white tracking-tighter uppercase leading-[0.9] italic">
+        OPS <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-500">CENTER</span>
       </h1>
-      <p class="text-zinc-500 font-plus-jakarta text-xs sm:text-sm lg:text-lg max-w-xl">
-        {$t('lobby.subtitle')}
+      <p class="text-zinc-500 font-plus-jakarta text-sm lg:text-base max-w-xl">
+        Gestión estratégica, impacto comunitario y desarrollo de la red docente.
       </p>
+    </div>
 
-      <!-- Pedagogical Bit - Teacher's Corner -->
-      <div class="mt-6 p-6 bg-amber-500/5 border border-amber-500/10 rounded-none flex items-start gap-4 max-w-xl group hover:bg-amber-500/10 transition-all duration-500">
-        <div class="w-10 h-10 bg-amber-500/20 rounded-none flex items-center justify-center text-amber-500 shrink-0 group-hover:scale-110 transition-transform">
-          <Lightbulb weight="duotone" size={20} />
-        </div>
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+      <div class="bg-zinc-900/80 border border-white/5 p-4 flex items-center gap-6 backdrop-blur-xl">
         <div class="space-y-1">
-          <h4 class="text-[10px] font-black text-amber-500/80 uppercase tracking-widest leading-none">{$t('lobby.teacher_corner')}</h4>
-          <p class="text-xs text-zinc-400 leading-relaxed font-medium">
-            {$t('lobby.pedagogical_tip')}
+          <p class="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Estado del Pulso</p>
+          <p class="text-xs font-black text-emerald-400 uppercase tracking-tighter flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+            OPERATIVO
           </p>
         </div>
       </div>
     </div>
-
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-      <!-- Tabs Selector -->
-      <div class="flex items-center gap-2 bg-zinc-900/50 p-1.5 rounded-none border border-white/5">
-        <div class="flex-1 px-6 py-2.5 rounded-none text-[10px] font-black uppercase tracking-widest bg-zinc-800 text-white shadow-lg">
-          {$t('lobby.community')}
-        </div>
-      </div>
-
-      {#if isAdmin}
-        <button 
-          onclick={() => showCreateGroupModal = true}
-          class="h-12 px-6 bg-white hover:bg-violet-100 text-zinc-950 rounded-none shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest group"
-        >
-          <Plus size={18} weight="bold" class="group-hover:rotate-90 transition-transform duration-300" />
-          {$t('lobby.new_group')}
-        </button>
-      {/if}
-    </div>
   </div>
+
+    {#if isAdmin}
+      <button 
+        onclick={() => showCreateMarketModal = true}
+        class="h-12 px-8 bg-primary-500 hover:bg-primary-400 text-black rounded-none shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest group"
+      >
+        <Plus size={18} weight="bold" />
+        Nuevo Hito Académico
+      </button>
+    {/if}
+
+  <div class="h-px w-full bg-white/5"></div>
 
   <!-- Main Content -->
   {#if plan !== 'premium' && !isAdmin}
@@ -310,274 +181,46 @@
         </button>
     </div>
   {:else}
-    <!-- Chat Section -->
-    <div class="flex flex-col lg:flex-row gap-6 sm:gap-8 min-h-[600px] sm:min-h-[700px]">
-        <!-- Groups Sidebar -->
-        <div class="w-full lg:w-80 space-y-4 lg:space-y-6">
-          <div class="bg-zinc-900/60 border border-white/5 rounded-none p-4 sm:p-6 backdrop-blur-xl h-full flex flex-col">
-            <h3 class="text-[9px] sm:text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-4 sm:mb-6 ml-2 flex items-center gap-2">
-              <Hash size={12} class="text-violet-500" />
-              {$t('lobby.channels_room')}
-            </h3>
-            <div class="flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-3 pb-4 lg:pb-0 scrollbar-hide flex-1">
-              {#each groups as g (g.id)}
-                <div class="relative group/group flex-shrink-0 lg:flex-shrink-0 lg:w-full">
-                  <button 
-                    onclick={() => { selectedGroupId = g.id; selectedGroupName = g.name; }}
-                    class="w-full flex items-center justify-between p-4 rounded-none transition-all {selectedGroupId === g.id ? 'bg-violet-600 text-white shadow-xl shadow-violet-600/20' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-transparent hover:border-white/10'}"
-                  >
-                    <div class="flex items-center gap-3 truncate">
-                      <span class="font-outfit font-bold text-sm truncate uppercase tracking-tight">{g.name}</span>
-                    </div>
-                  </button>
-                  {#if isAdmin && selectedGroupId === g.id}
-                    <button 
-                      onclick={(e) => { e.stopPropagation(); handleDelete('community_groups', g.id); }}
-                      class="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block p-1.5 hover:bg-red-500/20 rounded-none text-white/60 hover:text-white transition-all z-10"
-                    >
-                      <Trash weight="bold" size={14} />
-                    </button>
-                  {/if}
-                </div>
-              {/each}
-            </div>
-          </div>
+      <!-- Hitos de Pronóstico (Polymarket Style) -->
+      <div class="space-y-8" in:fade>
+        <div class="flex items-center gap-4 overflow-x-auto pb-4 scrollbar-hide">
+          {#each categories as cat}
+            <button 
+              onclick={() => selectedCategory = cat}
+              class="px-6 py-2 rounded-none text-[10px] font-black uppercase tracking-widest transition-all border {selectedCategory === cat ? 'bg-primary-500 text-black border-primary-500' : 'bg-white/5 text-zinc-500 border-white/5 hover:border-white/10'}"
+            >
+              {cat}
+            </button>
+          {/each}
         </div>
 
-        <!-- Chat Area -->
-        <div class="flex-1 flex flex-col bg-zinc-950/40 border border-white/5 rounded-none overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] relative">
-          {#if selectedGroupId}
-            <!-- Chat Header -->
-            <div class="p-5 sm:p-8 border-b border-white/5 bg-zinc-900/40 flex items-center justify-between backdrop-blur-3xl">
-              <div class="flex items-center gap-4 lg:gap-6">
-                <div class="w-10 h-10 sm:w-14 sm:h-14 bg-violet-600 text-white rounded-none sm:rounded-none flex items-center justify-center shadow-2xl shadow-violet-600/20 shrink-0">
-                  <Hash size={20} weight="bold" class="sm:hidden" />
-                  <Hash size={24} weight="bold" class="hidden sm:block" />
-                </div>
-                <div class="min-w-0">
-                  <h3 class="font-outfit font-black text-base sm:text-2xl text-white uppercase tracking-tight truncate">#{selectedGroupName}</h3>
-                  <p class="text-[8px] sm:text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] truncate">{(groups.find(g => g.id === selectedGroupId)?.description || $t('lobby.discussion_channel'))}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Messages List -->
-            <div 
-              id="chat-container"
-              class="flex-1 overflow-y-auto p-5 sm:p-10 space-y-6 sm:space-y-8 scroll-smooth"
-            >
-              {#each messages as m (m.id)}
-                <div class="flex gap-5 {m.authorId === $authUser?.uid ? 'flex-row-reverse' : ''}" in:fade>
-                  <div class="w-12 h-12 rounded-none bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex-shrink-0 overflow-hidden flex items-center justify-center shadow-lg relative group/avatar">
-                    {#if m.authorAvatar}
-                      <img src={m.authorAvatar} alt="avatar" class="w-full h-full object-cover" />
-                    {:else}
-                      <span class="text-xs font-bold text-zinc-500">{m.authorName?.[0] || '?'}</span>
-                    {/if}
-                  </div>
-                  <div class="flex flex-col max-w-[75%] {m.authorId === $authUser?.uid ? 'items-end' : ''}">
-                    <div class="flex items-center gap-3 mb-2 px-1">
-                      <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{m.authorName}</span>
-                      
-                      {#if m.authorInsignias && m.authorInsignias.length > 0}
-                        <div class="flex items-center gap-1.5">
-                          {#each m.authorInsignias as insId}
-                            {@const ins = INSIGNIAS.find(i => i.id === insId)}
-                            {#if ins}
-                              {@const Icon = ins.icon}
-                              <Icon size={12} weight="fill" class={ins.color} />
-                            {/if}
-                          {/each}
-                        </div>
-                      {/if}
-
-                      <span class="text-[9px] text-zinc-600 font-bold">
-                        {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div class="px-6 py-4 rounded-none text-sm font-medium leading-[1.6] shadow-xl {m.authorId === $authUser?.uid ? 'bg-violet-600 text-white' : 'bg-white/5 text-zinc-300 border border-white/5'}">
-                      {m.text}
-                    </div>
-                    {#if isAdmin}
-                      <button 
-                        onclick={() => handleDelete('community_messages', m.id)}
-                        class="mt-2 text-[10px] font-bold text-red-500/40 hover:text-red-500 transition-colors uppercase tracking-widest px-2"
-                      >
-                        {$t('common.delete')}
-                      </button>
-                    {/if}
-                  </div>
-                </div>
-              {:else}
-                <div class="h-full flex flex-col items-center justify-center opacity-20 scale-110">
-                  <ChatTeardropDots size={80} weight="duotone" class="text-violet-500 shadow-violet-600/20" />
-                  <p class="mt-6 font-outfit font-black uppercase tracking-[0.3em] text-lg">{$t('lobby.first_to_speak')}</p>
-                </div>
-              {/each}
-            </div>
-
-            <!-- Chat Input -->
-            <div class="p-5 sm:p-8 bg-zinc-900/40 border-t border-white/5 backdrop-blur-3xl">
-              <form 
-                class="relative flex items-center gap-3 sm:gap-4"
-                onsubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
-              >
-                <div class="relative flex-1 group">
-                  <div class="absolute inset-0 bg-violet-600/5 rounded-none blur-xl transition-all group-focus-within:bg-violet-600/10"></div>
-                  <input 
-                    type="text"
-                    bind:value={newMessage}
-                    placeholder={$t('lobby.type_placeholder') || "Escribe algo..."}
-                    class="relative w-full bg-white/[0.03] border border-white/10 rounded-none py-4 sm:py-5 px-5 sm:px-8 text-sm sm:text-base text-white font-medium focus:border-violet-500/50 outline-none transition-all placeholder:text-zinc-800"
-                  />
-                </div>
-                <button 
-                  type="submit"
-                  disabled={!newMessage.trim()}
-                  class="h-[52px] w-[52px] sm:h-[60px] sm:w-[60px] bg-white hover:bg-violet-100 text-zinc-950 rounded-none flex items-center justify-center transition-all disabled:opacity-30 disabled:grayscale hover:scale-105 active:scale-95 shadow-2xl group shrink-0"
-                >
-                  <PaperPlane size={24} weight="fill" class="sm:hidden group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                  <PaperPlane size={28} weight="fill" class="hidden sm:block group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                </button>
-              </form>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {#each filteredMarkets as market (market.id)}
+            <PredictionCard {market} onEdit={(m) => { marketToEdit = m; showCreateMarketModal = true; }} />
           {:else}
-            <div class="flex-1 flex flex-col items-center justify-center text-center p-20 space-y-8 opacity-40">
-              <div class="w-32 h-32 bg-white/5 rounded-none flex items-center justify-center relative">
-                <div class="absolute inset-0 bg-white/5 rounded-none animate-ping opacity-20"></div>
-                <Hash size={64} weight="duotone" />
+            <div class="col-span-full py-20 bg-zinc-900/40 border border-white/5 border-dashed flex flex-col items-center justify-center text-center space-y-4 opacity-50">
+              <div class="p-6 bg-white/5 rounded-none">
+                <ChartBar size={48} weight="duotone" />
               </div>
-              <div class="space-y-3">
-                <h3 class="text-3xl font-outfit font-black uppercase tracking-tight">{$t('lobby.select_channel')}</h3>
-                <p class="text-lg max-w-sm mx-auto font-medium">{$t('lobby.join_conversation')}</p>
+              <div class="space-y-1">
+                <h3 class="text-xl font-black text-white uppercase tracking-tight">Sin hitos activos</h3>
+                <p class="text-xs text-zinc-500 font-bold uppercase tracking-widest">Espera a que la dirección proponga nuevos retos académicos</p>
               </div>
             </div>
-          {/if}
+          {/each}
         </div>
       </div>
     {/if}
-  </div>
-
-<!-- Create Suggestion Modal -->
-{#if showCreateModal}
-  <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md overflow-y-auto" transition:fade>
-    <div 
-      class="bg-[#0a0a0c] w-full max-w-xl rounded-none border border-white/10 shadow-3xl overflow-hidden relative"
-      transition:scale
-    >
-      <div class="p-8 border-b border-white/5 flex items-center justify-between">
-        <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight">{$t('lobby.propose_improvement')}</h3>
-        <button 
-          onclick={() => showCreateModal = false}
-          class="p-2 hover:bg-white/5 rounded-none transition-all"
-        >
-          <X weight="bold" class="w-6 h-6 text-zinc-500" />
-        </button>
-      </div>
-
-      <div class="p-8 space-y-8">
-        <div class="space-y-4">
-          <label for="suggestion-title" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{$t('lobby.idea_title')}</label>
-          <input 
-            id="suggestion-title"
-            bind:value={newSuggestion.title}
-            type="text" 
-            placeholder={$t('lobby.idea_title_placeholder')}
-            class="w-full py-5 px-8 bg-white/[0.03] border border-white/10 rounded-none text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-zinc-800 shadow-inner"
-          />
-        </div>
-
-        <div class="space-y-4">
-          <label for="suggestion-description" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{$t('lobby.detailed_description')}</label>
-          <textarea 
-            id="suggestion-description"
-            bind:value={newSuggestion.description}
-            rows="5"
-            placeholder={$t('lobby.idea_desc_placeholder')}
-            class="w-full py-5 px-8 bg-white/[0.03] border border-white/10 rounded-none text-white font-medium focus:border-violet-500 outline-none transition-all resize-none placeholder:text-zinc-800 shadow-inner"
-          ></textarea>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-           <button 
-             onclick={() => showCreateModal = false}
-             class="py-5 rounded-none text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-white/5 transition-all"
-           >
-             {$t('common.cancel')}
-           </button>
-             <button 
-              onclick={handleSubmitSuggestion}
-              disabled={isSubmitting || !newSuggestion.title || !newSuggestion.description}
-              class="py-5 bg-violet-600 text-white rounded-none text-[11px] font-black uppercase tracking-widest shadow-2xl shadow-violet-600/30 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-            >
-              {isSubmitting ? $t('lobby.publishing') : $t('lobby.publish_idea')}
-            </button>
-        </div>
-      </div>
-    </div>
-  </div>
-{/if}
+</div>
 
 
-<!-- Create Group Modal -->
-{#if showCreateGroupModal}
-  <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md overflow-y-auto" transition:fade>
-    <div 
-      class="bg-[#0a0a0c] w-full max-w-xl rounded-none border border-white/10 shadow-3xl overflow-hidden relative"
-      transition:scale
-    >
-      <div class="p-8 border-b border-white/5 flex items-center justify-between">
-        <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight">{$t('lobby.new_channel')}</h3>
-        <button 
-          onclick={() => showCreateGroupModal = false}
-          class="p-2 hover:bg-white/5 rounded-none transition-all"
-        >
-          <X weight="bold" class="w-6 h-6 text-zinc-500" />
-        </button>
-      </div>
 
-      <div class="p-8 space-y-8">
-        <div class="space-y-4">
-          <label for="group-name" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{$t('lobby.channel_name')}</label>
-          <input 
-            id="group-name"
-            bind:value={newGroup.name}
-            type="text" 
-            placeholder={$t('lobby.channel_name_placeholder')}
-            class="w-full py-5 px-8 bg-white/[0.03] border border-white/10 rounded-none text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-zinc-800 shadow-inner"
-          />
-        </div>
 
-        <div class="space-y-4">
-          <label for="group-desc" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">{$t('lobby.channel_purpose')}</label>
-          <input 
-            id="group-desc"
-            bind:value={newGroup.description}
-            type="text" 
-            placeholder={$t('lobby.channel_purpose_placeholder')}
-            class="w-full py-5 px-8 bg-white/[0.03] border border-white/10 rounded-none text-white font-medium focus:border-violet-500 outline-none transition-all placeholder:text-zinc-800 shadow-inner"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-           <button 
-             onclick={() => showCreateGroupModal = false}
-             class="py-5 rounded-none text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:bg-white/5 transition-all"
-           >
-             {$t('common.cancel')}
-           </button>
-            <button 
-             onclick={handleCreateGroup}
-             disabled={isSubmitting || !newGroup.name}
-             class="py-5 bg-white text-zinc-950 rounded-none text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all disabled:opacity-50"
-           >
-             {isSubmitting ? $t('lobby.creating') : $t('lobby.create_channel')}
-           </button>
-        </div>
-      </div>
-    </div>
-  </div>
-{/if}
+<CreateMarketModal 
+  show={showCreateMarketModal} 
+  onClose={() => { showCreateMarketModal = false; marketToEdit = null; }}
+  editMarket={marketToEdit}
+/>
 
 <UpdatePill />
 
@@ -593,6 +236,15 @@
   :global(.animate-spin-slow) {
     animation: spin 8s linear infinite;
   }
+  @keyframes progress-stripe {
+    from { background-position: 1rem 0; }
+    to { background-position: 0 0; }
+  }
+
+  :global(.animate-progress-stripe) {
+    animation: progress-stripe 1s linear infinite;
+  }
+
   @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }

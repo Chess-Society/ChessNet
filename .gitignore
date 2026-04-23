@@ -24,3 +24,14 @@ LEGACY_RESOURCES_BACKUP/
 chessnet-modern/
 scratch/
 *.zip
+
+# Vite build cache (generado automáticamente)
+vite.config.js.timestamp-*.mjs
+
+# Archivos de auditoría y trabajo temporal
+svelte-check-errors*.txt
+all_keys*.txt
+check_results*.txt
+check_output*.txt
+extract_keys.cjs
+inject_keys.cjs

@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb, adminAuth } from '$lib/firebase-admin';
+import { adminDb, adminAuth } from '$lib/server/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 
 // DELETE — Eliminar cuenta de usuario y TODOS sus datos asociados

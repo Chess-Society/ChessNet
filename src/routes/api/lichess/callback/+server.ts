@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 import { env as privateEnv } from '$env/dynamic/private';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {

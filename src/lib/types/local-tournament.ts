@@ -14,6 +14,7 @@ export interface LocalTournament {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  sharedWith?: string[];
   status: "draft" | "upcoming" | "in_progress" | "completed" | "cancelled";
   currentRound: number;
   startDate?: string; // Compatibilidad con vistas generales

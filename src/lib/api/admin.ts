@@ -1,4 +1,5 @@
 import { db } from "$lib/firebase";
+import type { Firestore } from "firebase/firestore";
 import { 
   collection, 
   getDocs, 
@@ -131,8 +132,9 @@ export const adminApi = {
       // Log action
       await addDoc(collection(db, "system_logs"), {
         type: 'maintenance_toggle',
+        category: 'SYSTEM',
         action: 'Mantenimiento',
-        details: `Modo mantenimiento ${enabled ? 'activado' : 'desactivado'}`,
+        message: `Modo mantenimiento ${enabled ? 'activado' : 'desactivado'}`,
         timestamp: new Date().toISOString(),
         status: 'success'
       });
@@ -193,8 +195,9 @@ export const adminApi = {
         }),
         addDoc(logRef, {
           type: 'insignia_awarded',
+          category: 'RECOGNITION',
           action: 'Concesión de Insignia',
-          details: `Insignia ${insigniaId} concedida manualmente al usuario ${userId}`,
+          message: `Insignia ${insigniaId} concedida manualmente al usuario ${userId}`,
           timestamp: new Date().toISOString(),
           status: 'success'
         })
@@ -228,8 +231,9 @@ export const adminApi = {
         }),
         addDoc(collection(db, "system_logs"), {
           type: 'insignia_revoked',
+          category: 'RECOGNITION',
           action: 'Revocación de Insignia',
-          details: `Insignia ${insigniaId} revocada al usuario ${userId}`,
+          message: `Insignia ${insigniaId} revocada al usuario ${userId}`,
           timestamp: new Date().toISOString(),
           status: 'success'
         })
@@ -369,8 +373,9 @@ export const adminApi = {
         }),
         addDoc(collection(db, "system_logs"), {
           type: 'trial_granted',
+          category: 'SUBSCRIPTION',
           action: 'Concesión de Trial',
-          details: `Premium trial de ${days} días concedido al usuario ${userId}`,
+          message: `Premium trial de ${days} días concedido al usuario ${userId}`,
           timestamp: new Date().toISOString(),
           status: 'success'
         })
@@ -405,8 +410,9 @@ export const adminApi = {
         updateDoc(userRef, updates),
         addDoc(collection(db, "system_logs"), {
           type: 'premium_revoked',
+          category: 'SUBSCRIPTION',
           action: 'Revocación Premium',
-          details: `Acceso Premium revocado al usuario ${userId}`,
+          message: `Acceso Premium revocado al usuario ${userId}`,
           timestamp: new Date().toISOString(),
           status: 'warning'
         })
@@ -485,5 +491,230 @@ export const adminApi = {
 
     await Promise.all(promises);
     return { count: repairedCount, total: usersSnap.size };
+  },
+
+  /**
+   * Promueve a un usuario al rol de Director y establece su escuela.
+   */
+  async promoteToDirector(userEmail: string, schoolName: string) {
+    try {
+      // 1. Buscar usuario por email
+      const q = query(collection(db, "users"), where("email", "==", userEmail), limit(1));
+      const snap = await getDocs(q);
+      
+      if (snap.empty) {
+        throw new Error("Usuario no encontrado");
+      }
+
+      const userDoc = snap.docs[0];
+      const userId = userDoc.id;
+
+      // 2. Actualizar rol y escuela
+      await Promise.all([
+        updateDoc(doc(db, "users", userId), {
+          "settings.role": "director",
+          "settings.schoolName": schoolName,
+          "settings.updatedAt": new Date().toISOString()
+        }),
+        addDoc(collection(db, "system_logs"), {
+          type: 'role_changed',
+          category: 'USERS',
+          action: 'Promoción a Director',
+          message: `Usuario ${userEmail} promovido a Director de ${schoolName}`,
+          timestamp: new Date().toISOString(),
+          status: 'success'
+        })
+      ]);
+
+      return { userId };
+    } catch (error) {
+      console.error("[AdminAPI] Error promoting to director:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * ECONOMÍA Y PRESTIGIO: Inicializa y gestiona Nets y Stakes.
+   */
+  async initUserEconomy(userId: string) {
+    try {
+      const userRef = doc(db, "users", userId);
+      const economyData = {
+        netsBalance: 100, // Bono inicial
+        totalNetsEarned: 100,
+        tier: 'BRONZE',
+        lastEconomyUpdate: new Date().toISOString()
+      };
+
+      await updateDoc(userRef, {
+        economy: economyData
+      });
+
+      await addDoc(collection(db, "nets_transactions"), {
+        userId,
+        amount: 100,
+        type: 'EARN',
+        reason: 'Bono de bienvenida ChessNet OS',
+        createdAt: new Date().toISOString()
+      });
+
+      return economyData;
+    } catch (error) {
+      console.error("[AdminAPI] Error initializing economy:", error);
+      throw error;
+    }
+  },
+
+  async addNets(userId: string, amount: number, reason: string, status: 'confirmed' | 'pending' = 'confirmed', validatorId?: string) {
+    try {
+      const userRef = doc(db, "users", userId);
+      const { increment } = await import('firebase/firestore');
+
+      const promises: any[] = [
+        addDoc(collection(db, "nets_transactions"), {
+          userId,
+          amount,
+          type: amount > 0 ? 'EARN' : 'SPEND',
+          reason,
+          status,
+          validatorId: validatorId || null,
+          createdAt: new Date().toISOString()
+        })
+      ];
+
+      // Only update balance if confirmed
+      if (status === 'confirmed') {
+        promises.push(updateDoc(userRef, {
+          "economy.netsBalance": increment(amount),
+          "economy.totalNetsEarned": increment(amount > 0 ? amount : 0),
+          "economy.lastEconomyUpdate": new Date().toISOString()
+        }));
+      }
+
+      await Promise.all(promises);
+    } catch (error) {
+      console.error("[AdminAPI] Error adding nets:", error);
+      throw error;
+    }
+  },
+
+  async confirmNetsTransaction(txId: string, userId: string, validatorId: string) {
+    try {
+      const { runTransaction } = await import('firebase/firestore');
+      const userRef = doc(db, "users", userId);
+      const txRef = doc(db, "nets_transactions", txId);
+
+      await runTransaction(db, async (transaction) => {
+        const txSnap = await transaction.get(txRef);
+        if (!txSnap.exists()) throw new Error('Transacción no encontrada');
+        
+        const txData = txSnap.data();
+        if (txData.status === 'confirmed') return; // Already confirmed
+
+        const amount = txData.amount || 0;
+        const userSnap = await transaction.get(userRef);
+        
+        transaction.update(txRef, {
+          status: 'confirmed',
+          validatorId,
+          confirmedAt: new Date().toISOString()
+        });
+
+        if (userSnap.exists()) {
+          transaction.update(userRef, {
+            "economy.netsBalance": (userSnap.data()?.economy?.netsBalance || 0) + amount,
+            "economy.totalNetsEarned": (userSnap.data()?.economy?.totalNetsEarned || 0) + (amount > 0 ? amount : 0),
+            "economy.lastEconomyUpdate": new Date().toISOString()
+          });
+        }
+      });
+    } catch (error) {
+      console.error("[AdminAPI] Error confirming nets transaction:", error);
+      throw error;
+    }
+  },
+
+  async repairEconomyData() {
+    try {
+      const usersSnap = await getDocs(collection(db, "users"));
+      let initializedCount = 0;
+
+      const promises = usersSnap.docs.map(async (uDoc) => {
+        const data = uDoc.data();
+        if (!data.economy) {
+          await this.initUserEconomy(uDoc.id);
+          initializedCount++;
+        }
+      });
+
+      await Promise.all(promises);
+      return { initializedCount, total: usersSnap.size };
+    } catch (error) {
+      console.error("[AdminAPI] Error repairing economy data:", error);
+      throw error;
+    }
+  },
+
+
+  /**
+   * Sets the economy data for a specific user directly.
+   */
+  async updateUserEconomy(userId: string, data: { netsBalance?: number, tier?: string }): Promise<void> {
+    const userRef = doc(db, 'users', userId);
+    const updates: any = {};
+    if (data.netsBalance !== undefined) updates['economy.netsBalance'] = data.netsBalance;
+    if (data.tier !== undefined) updates['economy.tier'] = data.tier;
+    updates['economy.lastEconomyUpdate'] = new Date().toISOString();
+    
+    await updateDoc(userRef, updates);
+  },
+
+  /**
+   * Updates an existing Nets transaction and adjusts the user's balance.
+   */
+  async updateNetsTransaction(txId: string, userId: string, oldAmount: number, newAmount: number, reason: string): Promise<void> {
+    const { runTransaction } = await import('firebase/firestore');
+    const userRef = doc(db, 'users', userId);
+    const txRef = doc(db, 'nets_transactions', txId);
+
+    await runTransaction(db, async (transaction) => {
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists()) throw new Error('Usuario no encontrado');
+
+      const difference = newAmount - oldAmount;
+
+      transaction.update(userRef, {
+        'economy.netsBalance': (userSnap.data()?.economy?.netsBalance || 0) + difference,
+        'economy.lastEconomyUpdate': new Date().toISOString()
+      });
+
+      transaction.update(txRef, {
+        amount: newAmount,
+        reason: reason,
+        updatedAt: new Date().toISOString()
+      });
+    });
+  },
+
+  /**
+   * Deletes a Nets transaction and optionally reverts the user's balance.
+   */
+  async deleteNetsTransaction(txId: string, userId: string, amount: number, revertBalance: boolean = false): Promise<void> {
+    const { runTransaction } = await import('firebase/firestore');
+    const userRef = doc(db, 'users', userId);
+    const txRef = doc(db, 'nets_transactions', txId);
+
+    await runTransaction(db, async (transaction) => {
+      if (revertBalance) {
+        const userSnap = await transaction.get(userRef);
+        if (userSnap.exists()) {
+          transaction.update(userRef, {
+            'economy.netsBalance': (userSnap.data()?.economy?.netsBalance || 0) - amount,
+            'economy.lastEconomyUpdate': new Date().toISOString()
+          });
+        }
+      }
+      transaction.delete(txRef);
+    });
   }
 };

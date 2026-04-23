@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 import { serializeRecord } from '$lib/server/serialize';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
@@ -71,7 +71,7 @@ export const GET: RequestHandler = async (event) => {
 
   } catch (error: any) {
     console.error('❌ API Error in GET /api/payments:', error);
-    return json({ error: 'Error al obtener los pagos', details: error.message }, { status: 500 });
+    return json({ error: 'Error al obtener los pagos' }, { status: 500 });
   }
 };
 

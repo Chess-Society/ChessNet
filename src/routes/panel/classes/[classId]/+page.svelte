@@ -236,7 +236,7 @@
                   <Folders weight="bold" class="w-4 h-4 text-violet-500" />
                   <h2 class="text-[11px] font-mono font-bold text-white uppercase tracking-[0.2em]">{$t('classes.details')}</h2>
                 </div>
-                <span class="text-[8px] font-mono text-zinc-700">SECTION_INFO_PRIMARY</span>
+                <span class="text-[8px] font-mono text-zinc-700">Información de la Clase</span>
              </div>
 
              <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">

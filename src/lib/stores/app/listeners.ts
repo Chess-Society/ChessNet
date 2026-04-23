@@ -1,4 +1,5 @@
 import { get } from 'svelte/store';
+import { toast } from '$lib/stores/toast';
 import { db, toData } from '$lib/firebase';
 import { 
   doc, 
@@ -22,6 +23,11 @@ export function setupListeners(store: Writable<AppState>, user: any) {
   const unsubscribes: (() => void)[] = [];
   const initializedCollections = new Set<string>();
   const dataCache: Record<string, string> = {};
+
+  // Developer Bypass Notification
+  if (user?.uid === 'antigravity-dev-worker') {
+    console.info('🛠️ [AppStore] Developer Bypass Active: Real-time listeners enabled for development mode.');
+  }
 
   const userRef = doc(db, 'users', user.uid);
   let isSyncingSettings = false;
@@ -54,10 +60,11 @@ export function setupListeners(store: Writable<AppState>, user: any) {
             ...currentState.settings, 
             ...(data.settings || {}),
             teacherEmail: userEmail,
-            featuredInsignias: data.settings?.featuredInsignias || []
+            featuredInsignias: data.settings?.featuredInsignias || [],
+            economy: data.economy || null
           };
           if (ADMIN_EMAILS.includes(userEmail)) settings.plan = 'premium';
-          return { ...currentState, settings, dashboardLayout: data.dashboardLayout || [] };
+          return { ...currentState, settings, dashboardLayout: data.dashboardLayout || [], initialized: true };
         });
       } catch (err) {
         console.error('❌ [AppStore] Error processing settings:', err);
@@ -75,7 +82,11 @@ export function setupListeners(store: Writable<AppState>, user: any) {
   // 2. Collection Listener Helper
   const setupCollectionListener = (key: string, path: string, queryFn?: Query) => {
     const collRef = collection(db, path);
-    const q = queryFn || query(collRef, or(where("owner_id", "==", user.uid), where("ownerId", "==", user.uid)));
+    const q = queryFn || query(collRef, or(
+      where("owner_id", "==", user.uid), 
+      where("ownerId", "==", user.uid),
+      where("sharedWith", "array-contains", user.uid)
+    ));
     
     const unsub = onSnapshot(q, (snap: QuerySnapshot) => {
       const docs = snap.docs.map((d: QueryDocumentSnapshot) => toData<any>(d));
@@ -134,11 +145,62 @@ export function setupListeners(store: Writable<AppState>, user: any) {
   const communityCollections = [
     { key: 'lobbyAnnouncements', path: 'lobby_announcements' },
     { key: 'lobbySuggestions', path: 'lobby_suggestions' },
-    { key: 'communityGroups', path: 'community_groups' }
+    { key: 'communityGroups', path: 'community_groups' },
+    { key: 'posts', path: 'faculty_stream' },
+    { key: 'markets', path: 'prediction_markets' }
   ];
   communityCollections.forEach(c => {
-    const q = query(collection(db, c.path), orderBy('createdAt', 'desc'), limit(100));
-    setupCollectionListener(c.key, c.path, q);
+    const collRef = collection(db, c.path);
+    const q = query(collRef, orderBy('createdAt', 'desc'), limit(100));
+    
+    const unsub = onSnapshot(q, (snap: QuerySnapshot) => {
+      const isFirstLoad = !initializedCollections.has(c.key);
+      const docs = snap.docs.map((d: QueryDocumentSnapshot) => toData<any>(d));
+      
+      const currentDataAsString = JSON.stringify(docs);
+      if (dataCache[c.key] === currentDataAsString) return;
+
+      // Real implementation for reaction detection
+      if (c.key === 'posts' && !isFirstLoad && dataCache[c.key]) {
+        try {
+          const previousPosts = JSON.parse(dataCache[c.key]);
+          docs.forEach(post => {
+            const prev = previousPosts.find((p: any) => p.id === post.id);
+            if (prev && post.authorId === user.uid) {
+              const currentReactions = post.reactions || {};
+              const previousReactions = prev.reactions || {};
+
+              for (const emoji in currentReactions) {
+                const newUsers = currentReactions[emoji] || [];
+                const oldUsers = previousReactions[emoji] || [];
+                
+                if (newUsers.length > oldUsers.length) {
+                  // Find users that are in newUsers but not in oldUsers
+                  const addedUsers = newUsers.filter((u: string) => !oldUsers.includes(u));
+                  const realAddedUsers = addedUsers.filter((u: string) => u !== user.uid);
+                  
+                  if (realAddedUsers.length > 0) {
+                    toast.info(`Alguien ha reaccionado con ${emoji} a tu publicación`);
+                  }
+                }
+              }
+            }
+          });
+        } catch (e) {
+          console.error('Error parsing previous posts for notifications:', e);
+        }
+      }
+
+      dataCache[c.key] = currentDataAsString;
+      if (isFirstLoad) initializedCollections.add(c.key);
+
+      update((s: AppState) => {
+        const newState = { ...s } as any;
+        newState[c.key] = docs;
+        return newState as AppState;
+      });
+    });
+    unsubscribes.push(unsub);
   });
 
   // 4. Reports (Admin specific)

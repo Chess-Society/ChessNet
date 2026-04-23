@@ -2,44 +2,62 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, signInAnonymously } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
-import { browser } from "$app/environment";
-import { env } from "$env/dynamic/public";
+import { browser, building } from "$app/environment";
+import * as publicEnv from "$env/static/public";
+import type { FirebaseApp } from "firebase/app";
+import type { Auth } from "firebase/auth";
+import type { Firestore } from "firebase/firestore";
+import type { Analytics } from "firebase/analytics";
 
+// Helper to get config from dynamic env
+const getFirebaseConfig = () => ({
+  apiKey: publicEnv.PUBLIC_FIREBASE_API_KEY,
+  authDomain: publicEnv.PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: publicEnv.PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: publicEnv.PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: publicEnv.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: publicEnv.PUBLIC_FIREBASE_APP_ID,
+  measurementId: publicEnv.PUBLIC_FIREBASE_MEASUREMENT_ID
+});
 
-const firebaseConfig = {
-  apiKey: env.PUBLIC_FIREBASE_API_KEY,
-  authDomain: env.PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: env.PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: env.PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: env.PUBLIC_FIREBASE_APP_ID,
-  measurementId: env.PUBLIC_FIREBASE_MEASUREMENT_ID
-};
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
+let analytics: Analytics | null = null;
 
-if (typeof window !== 'undefined') {
-  if (!env.PUBLIC_FIREBASE_API_KEY || !env.PUBLIC_FIREBASE_PROJECT_ID) {
-    console.error('❌ [Firebase] CRITICAL: Environment variables (PUBLIC_FIREBASE_*) are missing!');
-  } else {
-  }
-}
+// Only initialize if we have required config AND we are not in the middle of a build
+const config = getFirebaseConfig();
+const hasConfig = !!(config.apiKey && config.projectId && config.appId);
+const shouldInitialize = hasConfig && !building;
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
+if (shouldInitialize) {
+    try {
+        app = getApps().length === 0 ? initializeApp(config) : getApp();
+        auth = getAuth(app);
+        db = getFirestore(app);
 
-
-
-let analytics = null;
-if (typeof window !== 'undefined') {
-  isSupported().then(supported => {
-    if (supported) {
-      analytics = getAnalytics(app);
+        if (browser) {
+            isSupported().then(supported => {
+                if (supported) {
+                    analytics = getAnalytics(app);
+                }
+            });
+        }
+    } catch (error) {
+        console.error("⚠️ [Firebase] Initialization failed:", error);
     }
-  });
 }
 
-export { app, auth, db, analytics, signInAnonymously };
+// Fallback objects for build time or failed initialization
+// @ts-ignore
+if (!app) app = { name: '[DEFAULT]' } as FirebaseApp;
+// @ts-ignore
+if (!auth) auth = { currentUser: null } as Auth;
+// @ts-ignore
+if (!db) db = {} as Firestore;
+
+export { app, auth, db, analytics };
+export { signInAnonymously };
 
 // Auth helpers
 export const signInWithGoogle = async () => {

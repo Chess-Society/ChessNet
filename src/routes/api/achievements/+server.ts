@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 import { serializeRecord } from '$lib/server/serialize';
 
@@ -66,7 +66,7 @@ export const POST: RequestHandler = async (event) => {
       code: error.code,
       stack: error.stack
     });
-    return json({ error: 'Error al desbloquear logro', details: error.message }, { status: 500 });
+    return json({ error: 'Error al desbloquear logro' }, { status: 500 });
   }
 };
 

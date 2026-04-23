@@ -44,7 +44,17 @@
     return Megaphone;
   }
 
-  const showPill = $derived(!newsDismissed && latestAnnouncement);
+  const showPill = $derived.by(() => {
+    if (newsDismissed || !latestAnnouncement) return false;
+    
+    // Prevent showing old notifications (max 48h)
+    const created = new Date(latestAnnouncement.createdAt).getTime();
+    const now = Date.now();
+    const diff = now - created;
+    const isRecent = diff < (48 * 60 * 60 * 1000); 
+
+    return isRecent;
+  });
 </script>
 
 {#if showPill}
@@ -70,7 +80,11 @@
           <div class="flex items-center gap-2 mb-0.5">
             <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
             <p class="text-[8px] font-black text-white/40 uppercase tracking-[0.2em]">
-              {latestAnnouncement.type || $t('lobby.update_label')}
+              {#if latestAnnouncement.type === 'feature'}
+                Funcionalidad
+              {:else}
+                {latestAnnouncement.type || $t('lobby.update_label')}
+              {/if}
             </p>
           </div>
           <h4 class="text-sm font-black text-white uppercase italic tracking-tight truncate leading-tight">

@@ -92,7 +92,7 @@ export const paymentsApi = {
 
       const payment = toData<PaymentWithDetails>(docSnap);
       
-      if (payment.owner_id !== uid) return null;
+      if (payment.ownerId !== uid) return null;
 
       // Manual joins
       if (payment.studentId) {

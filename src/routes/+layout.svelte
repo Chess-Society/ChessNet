@@ -22,6 +22,7 @@
   import BadgeUnlockModal from '$lib/components/ui/BadgeUnlockModal.svelte';
 
   import BroadcastBanner from '$lib/components/BroadcastBanner.svelte';
+  import SocialNotificationListener from '$lib/components/social/SocialNotificationListener.svelte';
 
   let { children } = $props();
   let maintenanceMode = $derived($systemConfig.maintenanceMode);
@@ -198,6 +199,7 @@
   {/if}
 
   <ConfirmModal />
+  <SocialNotificationListener />
   <Toast />
   <CookieBanner />
 </main>

@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 
 export const GET: RequestHandler = async ({ url, locals }) => {
   if (!locals.user) {
@@ -58,8 +58,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const { action } = await request.json();
     
     if (action === 'check-limit') {
-      // Logic for client-side quick checks
-      return json({ success: true, can_proceed: true });
+      const body = await request.json();
+      const type = body.type || 'student';
+      const uid = locals.user.uid;
+      
+      let can_proceed = false;
+      
+      if (type === 'student') {
+        const { checkStudentLimit } = await import('$lib/server/plans');
+        can_proceed = await checkStudentLimit(uid);
+      } else if (type === 'school') {
+        const { checkSchoolLimit } = await import('$lib/server/plans');
+        can_proceed = await checkSchoolLimit(uid);
+      } else if (type === 'class') {
+        const { checkClassLimit } = await import('$lib/server/plans');
+        can_proceed = await checkClassLimit(uid);
+      }
+
+      return json({ success: true, can_proceed });
     }
     
     return json({ error: 'Invalid action' }, { status: 400 });

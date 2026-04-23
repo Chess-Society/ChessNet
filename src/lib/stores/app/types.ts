@@ -10,15 +10,21 @@ import type {
   Lead,
   Badge,
   StudentBadge,
-  Attendance
+  Attendance,
+  UserEconomy,
+  SocialPost
 } from '$lib/types';
+import type { PredictionMarket } from '$lib/types/governance';
 
 export interface AppSettings {
   plan: string;
+  role?: 'teacher' | 'director' | 'admin';
+  schoolName?: string; // Optional: specific school name for directors
   teacherName: string;
   teacherAvatar: string;
   teacherEmail?: string;
   featuredInsignias?: string[]; // IDs of up to 3 featured insignias
+  economy?: UserEconomy;
   [key: string]: any;
 }
 
@@ -46,8 +52,11 @@ export interface AppState {
   communityGroups: any[];
   unlockedAchievements: any[];
   pendingAchievementIds: string[]; // Queue for sequential display
+  posts: SocialPost[];
+  markets: PredictionMarket[];
   settings: AppSettings;
   dashboardLayout: string[];
+  initialized: boolean;
 }
 
 export const initialState: AppState = {
@@ -74,11 +83,14 @@ export const initialState: AppState = {
   communityGroups: [],
   unlockedAchievements: [],
   pendingAchievementIds: [],
+  posts: [],
+  markets: [],
   settings: { 
     plan: 'free',
     teacherName: '',
     teacherAvatar: '',
     featuredInsignias: []
   },
-  dashboardLayout: []
+  dashboardLayout: [],
+  initialized: false
 };

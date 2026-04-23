@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { checkPlanGating } from '$lib/server/plans';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 
 export const load: PageServerLoad = async (event) => {
   const { locals, url } = event;

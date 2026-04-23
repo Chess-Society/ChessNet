@@ -1,4 +1,4 @@
-import { adminAuth } from '$lib/firebase-admin';
+import { adminAuth } from '$lib/server/firebase-admin';
 import { json } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import type { RequestHandler } from './$types';

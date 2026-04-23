@@ -29,14 +29,43 @@
   let name = $state('');
   let city = $state('');
   let country = $state('espana');
+  let customCountry = $state('');
   let isCreating = $state(false);
+
+  let searchQuery = $state('');
+  let isSelectOpen = $state(false);
 
   const countries = [
     { id: 'espana', code: 'ES', icon: MapPin },
     { id: 'andorra', code: 'AD', icon: Globe },
     { id: 'mexico', code: 'MX', icon: Buildings },
-    { id: 'argentina', code: 'AR', icon: Buildings }
+    { id: 'argentina', code: 'AR', icon: Buildings },
+    { id: 'colombia', code: 'CO', icon: Globe },
+    { id: 'usa', code: 'US', icon: Buildings },
+    { id: 'chile', code: 'CL', icon: MapPin },
+    { id: 'peru', code: 'PE', icon: MapPin },
+    { id: 'ecuador', code: 'EC', icon: MapPin },
+    { id: 'venezuela', code: 'VE', icon: MapPin },
+    { id: 'guatemala', code: 'GT', icon: MapPin },
+    { id: 'cuba', code: 'CU', icon: MapPin },
+    { id: 'bolivia', code: 'BO', icon: MapPin },
+    { id: 'dominicana', code: 'DO', icon: MapPin },
+    { id: 'honduras', code: 'HN', icon: MapPin },
+    { id: 'paraguay', code: 'PY', icon: MapPin },
+    { id: 'salvador', code: 'SV', icon: MapPin },
+    { id: 'nicaragua', code: 'NI', icon: MapPin },
+    { id: 'costarica', code: 'CR', icon: MapPin },
+    { id: 'panama', code: 'PA', icon: MapPin },
+    { id: 'uruguay', code: 'UY', icon: MapPin },
+    { id: 'puertorico', code: 'PR', icon: MapPin },
+    { id: 'others', code: '?', icon: Globe }
   ];
+
+  let filteredCountries = $derived(
+    countries.filter(c => 
+      $t(`countries.${c.id}`).toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
 
   async function createSchool() {
     if (!name.trim()) {
@@ -44,12 +73,14 @@
       return;
     }
 
+    const finalCountry = country === 'others' ? customCountry : country;
+
     try {
       isCreating = true;
       const newSchool = await appStore.addSchool({
         name: name.trim(),
         city: city.trim() || null,
-        country: country
+        country: finalCountry
       });
 
       showToast.success($t('schools.create_success'));
@@ -162,26 +193,80 @@
           </div>
 
           <div class="space-y-6 pt-6 border-t border-white/5">
-            <span class="glass-label">{$t('schools.form.country_label')}</span>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {#each countries as c}
+            <label for="country-search" class="glass-label">{$t('schools.form.country_label')}</label>
+            
+            <div class="relative">
+              <!-- Custom Searchable Select -->
+              <div class="relative group">
+                <Globe weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-emerald-500 transition-colors pointer-events-none z-10" />
                 <button
-                  class="selection-card small {country === c.id ? 'active' : ''}"
-                  onclick={() => country = c.id}
+                  type="button"
+                  onclick={() => isSelectOpen = !isSelectOpen}
+                  class="glass-input pl-16 pr-12 w-full flex items-center justify-between text-left focus:ring-emerald-500/20 focus:border-emerald-500 bg-zinc-950/50 min-h-[64px]"
                 >
-                  <div class="card-icon">
-                    <c.icon weight={country === c.id ? "fill" : "duotone"} />
-                  </div>
-                  <div class="card-content">
-                    <span class="card-title">{$t(`countries.${c.id}`)}</span>
-                  </div>
-                  {#if country === c.id}
-                    <div class="card-check" in:scale>
-                      <Check size={12} weight="bold" />
-                    </div>
-                  {/if}
+                  <span class={country ? 'text-white' : 'text-zinc-500'}>
+                    {country ? $t(`countries.${country}`) : $t('countries.select')}
+                  </span>
+                  <CaretLeft weight="bold" class="w-4 h-4 transition-transform {isSelectOpen ? '-rotate-90' : 'rotate-0'}" />
                 </button>
-              {/each}
+
+                {#if isSelectOpen}
+                  <div 
+                    class="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-white/10 shadow-2xl z-[150] overflow-hidden max-h-80 flex flex-col"
+                    transition:fly={{ y: -10, duration: 200 }}
+                  >
+                    <div class="p-4 border-b border-white/5 bg-zinc-950/50">
+                      <input
+                        type="text"
+                        bind:value={searchQuery}
+                        placeholder={$t('countries.search_placeholder')}
+                        class="w-full bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-emerald-400 placeholder:text-zinc-700"
+                        id="country-search"
+                        onkeydown={(e) => e.key === 'Enter' && e.preventDefault()}
+                      />
+                    </div>
+                    <div class="overflow-y-auto custom-scrollbar">
+                      {#each filteredCountries as c}
+                        <button
+                          type="button"
+                          class="w-full flex items-center justify-between px-6 py-4 hover:bg-emerald-600/10 transition-colors group/item {country === c.id ? 'bg-emerald-600/20' : ''}"
+                          onclick={() => {
+                            country = c.id;
+                            isSelectOpen = false;
+                            searchQuery = '';
+                          }}
+                        >
+                          <div class="flex items-center gap-4">
+                            <div class="w-8 h-8 flex items-center justify-center {country === c.id ? 'text-emerald-400' : 'text-zinc-600 group-hover/item:text-emerald-500'} transition-colors">
+                              <c.icon weight={country === c.id ? "fill" : "duotone"} size={20} />
+                            </div>
+                            <span class="text-sm font-bold uppercase tracking-tight {country === c.id ? 'text-emerald-400' : 'text-zinc-400 group-hover/item:text-white'}">
+                              {$t(`countries.${c.id}`)}
+                            </span>
+                          </div>
+                          {#if country === c.id}
+                            <Check size={16} weight="bold" class="text-emerald-500" />
+                          {/if}
+                        </button>
+                      {/each}
+                    </div>
+                  </div>
+                {/if}
+              </div>
+
+              {#if country === 'others'}
+                <div class="pt-6" transition:fly={{ y: 10, duration: 200 }}>
+                  <div class="relative group">
+                    <Sparkle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
+                    <input
+                      type="text"
+                      bind:value={customCountry}
+                      placeholder={$t('countries.select')}
+                      class="glass-input pl-16 pr-8 w-full focus:ring-emerald-500/20 focus:border-emerald-500 bg-zinc-950/50"
+                    />
+                  </div>
+                </div>
+              {/if}
             </div>
           </div>
         </div>

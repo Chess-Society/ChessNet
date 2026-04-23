@@ -1,4 +1,6 @@
 import { db, auth, toData } from "$lib/firebase";
+import type { Firestore } from "firebase/firestore";
+import type { Auth } from "firebase/auth";
 import { 
   doc, 
   getDoc, 

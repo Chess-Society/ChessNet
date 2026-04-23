@@ -85,17 +85,62 @@
   </div>
 
   {#if successMessage}
-    <div class="absolute inset-0 bg-[#09090b]/90 backdrop-blur-2xl z-50 flex flex-col items-center justify-center text-white text-center" transition:fade>
-      <div class="relative mb-6">
-        <div class="absolute -inset-4 bg-primary-500/20 rounded-none blur-xl animate-pulse"></div>
-        <div class="w-20 h-20 bg-primary-500 rounded-none flex items-center justify-center shadow-2xl shadow-primary-500/50">
-          <CheckCircle2 class="w-10 h-10 text-white" />
+    <div class="absolute inset-0 bg-[#09090b]/95 backdrop-blur-2xl z-50 flex flex-col items-center justify-center text-white text-center" transition:fade>
+      <div class="relative mb-12">
+        <div class="absolute -inset-10 bg-primary-500/20 rounded-none blur-[60px] animate-pulse"></div>
+        <div class="w-24 h-24 bg-zinc-950 border-2 border-primary-500 flex items-center justify-center shadow-[0_0_50px_rgba(139,92,246,0.3)] relative">
+          <!-- Animated scanning line -->
+          <div class="absolute inset-0 w-full h-0.5 bg-primary-500/50 shadow-[0_0_10px_#8b5cf6] animate-[scan_2s_ease-in-out_infinite]"></div>
+          <Sparkles class="w-12 h-12 text-primary-400 animate-pulse" />
         </div>
       </div>
-      <h2 class="text-3xl font-display font-black tracking-tighter">{$t('auth.welcome_back')}</h2>
-      <p class="text-primary-400 font-medium mt-2 animate-pulse uppercase tracking-widest text-xs">{$t('auth.preparing_panel')}</p>
+      
+      <div class="space-y-6 max-w-xs w-full px-6">
+        <div>
+          <h2 class="text-3xl font-display font-black tracking-tighter uppercase italic">
+            {$t('auth.welcome_back')}
+          </h2>
+          <div class="h-0.5 w-12 bg-primary-500 mx-auto mt-2"></div>
+        </div>
+        
+        <div class="space-y-3">
+          <div class="flex flex-col gap-2">
+            <p class="text-primary-400 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">
+              {$t('auth.preparing_panel')}
+            </p>
+            <div class="h-1 w-full bg-zinc-900 border border-white/5 overflow-hidden">
+              <div class="h-full bg-primary-500 animate-[loading-bar_1.5s_ease-in-out_infinite] shadow-[0_0_10px_#8b5cf6]" style="width: 40%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-1">
+            {#each ['auth_node_sync', 'academy_data_load', 'social_pulse_connect', 'ops_center_ready'] as step, i}
+              <div class="flex items-center gap-3 py-1 opacity-40 animate-[step-in_0.5s_ease-out_forwards]" style="animation-delay: {i * 0.2}s">
+                <div class="w-1.5 h-1.5 bg-primary-500/50"></div>
+                <span class="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">{step.replace(/_/g, ' ')}</span>
+                <span class="ml-auto text-[8px] font-black text-primary-500/40">OK</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      </div>
     </div>
   {/if}
+
+  <style lang="postcss">
+    @keyframes scan {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(94px); }
+    }
+    @keyframes loading-bar {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+    @keyframes step-in {
+      from { transform: translateX(-10px); opacity: 0; }
+      to { transform: translateX(0); opacity: 0.4; }
+    }
+  </style>
 
   <div class="w-full max-w-md relative z-10 flex flex-col gap-8" in:fade={{ duration: 800 }}>
     

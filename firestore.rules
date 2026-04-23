@@ -5,16 +5,24 @@ service cloud.firestore {
     
     // Lista de administradores autorizados (Sincronizado con constants.ts)
     function isSuperAdmin() { 
-      return isAuthenticated() && 
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
         request.auth.token.email.lower() in [
           "andreslgumuzio@gmail.com", 
           "tomih@chess-society.com",
           "escuelatopchess@gmail.com",
-          "tomihersan@gmail.com"
-        ];
+          "tomihersan@gmail.com",
+          "tomih@chessnet.pro",
+          "admin@chessnet.pro"
+        ]
+      );
     }
     
     function isOwner(docData) { return docData.owner_id == request.auth.uid; }
+    function isShared(docData) { 
+      return isAuthenticated() && 
+        ('sharedWith' in docData && request.auth.uid in docData.sharedWith);
+    }
     
     // Perfiles y Configuración de usuario (Identificados por UID)
     match /users/{userId} {
@@ -99,7 +107,13 @@ service cloud.firestore {
     // Lobby: Mensajería de la comunidad
     match /community_messages/{messageId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
+      // SEC-04: Validar estructura y limitar tamaño para prevenir flood/mensajes malformados
+      allow create: if isAuthenticated()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.keys().hasAll(['authorId', 'content', 'createdAt'])
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 2000;
       allow update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.authorId == request.auth.uid);
     }
 
@@ -107,17 +121,20 @@ service cloud.firestore {
     // We deny client-side creation to enforce Freemium limits and security via API
     
     match /schools/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow read: if isSuperAdmin() || (isAuthenticated() && (isOwner(resource.data) || isShared(resource.data)));
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && isOwner(resource.data));
       allow create: if isSuperAdmin() || (isAuthenticated() && request.resource.data.owner_id == request.auth.uid);
     }
     
     match /classes/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow read: if isSuperAdmin() || (isAuthenticated() && (isOwner(resource.data) || isShared(resource.data)));
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && isOwner(resource.data));
       allow create: if isSuperAdmin() || (isAuthenticated() && request.resource.data.owner_id == request.auth.uid);
     }
     
     match /students/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow read: if isSuperAdmin() || (isAuthenticated() && (isOwner(resource.data) || isShared(resource.data)));
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && isOwner(resource.data));
       allow create: if isSuperAdmin() || (isAuthenticated() && request.resource.data.owner_id == request.auth.uid);
     }
 
@@ -150,22 +167,26 @@ service cloud.firestore {
     }
 
     match /local_tournaments/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow read: if isSuperAdmin() || (isAuthenticated() && (isOwner(resource.data) || isShared(resource.data)));
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && isOwner(resource.data));
       allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
     }
 
     match /local_tournament_players/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow read: if isSuperAdmin() || (isAuthenticated() && (isOwner(resource.data) || isShared(resource.data)));
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && isOwner(resource.data));
       allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
     }
 
     match /local_tournament_pairings/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow read: if isSuperAdmin() || (isAuthenticated() && (isOwner(resource.data) || isShared(resource.data)));
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && isOwner(resource.data));
       allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
     }
 
     match /local_tournament_rounds/{docId} {
-      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow read: if isSuperAdmin() || (isAuthenticated() && (isOwner(resource.data) || isShared(resource.data)));
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && isOwner(resource.data));
       allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
     }
 
@@ -211,7 +232,15 @@ service cloud.firestore {
 
     match /attendance/{docId} {
       allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
-      allow write: if isSuperAdmin();
+      // El propietario puede crear y actualizar su propio registro de asistencia
+      // (las operaciones en lote pasan por el API con Admin SDK, las individuales desde el cliente)
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+      allow update: if isSuperAdmin() || (
+        isAuthenticated() &&
+        resource.data.owner_id == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['owner_id'])
+      );
+      allow delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
     }
 
     match /skills/{docId} {
@@ -233,6 +262,66 @@ service cloud.firestore {
     match /parent_messages/{docId} {
       allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
       allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    match /leads/{docId} {
+      allow read, update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.owner_id == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.owner_id == request.auth.uid;
+    }
+
+    // --- SOCIAL & GOVERNANCE (SISTEMA DE HITOS) ---
+
+    match /faculty_stream/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isSuperAdmin() || (isAuthenticated() && resource.data.authorId == request.auth.uid);
+    }
+
+    match /prediction_markets/{docId} {
+      allow read: if isAuthenticated();
+      // Permitir creación a SuperAdmins o Directores de la escuela correspondiente
+      allow create: if isSuperAdmin() || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/schools/$(request.resource.data.schoolId)) &&
+        get(/databases/$(database)/documents/schools/$(request.resource.data.schoolId)).data.owner_id == request.auth.uid
+      );
+      // Permitir actualización: 
+      // 1. SuperAdmins pueden todo
+      // 2. Directores pueden editar detalles o resolver hitos de su escuela
+      // 3. Usuarios pueden participar (pools) o disputar
+      allow update: if isSuperAdmin() || (
+        isAuthenticated() && (
+          (
+            // Edición de detalles por Director
+            resource.data.status == 'OPEN' &&
+            get(/databases/$(database)/documents/schools/$(resource.data.schoolId)).data.owner_id == request.auth.uid &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['question', 'description', 'endDate', 'updatedAt', 'tags', 'validationSource', 'externalId'])
+          ) || (
+            // Resolución por Director
+            get(/databases/$(database)/documents/schools/$(resource.data.schoolId)).data.owner_id == request.auth.uid &&
+            request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'resultOptionId', 'resolvedAt', 'resolutionProposedAt'])
+          ) || (
+            // Participación de usuario (Actualización de pools) o Disputa
+            request.resource.data.diff(resource.data).affectedKeys().hasAny(['totalPool', 'options', 'updatedAt', 'status', 'disputedBy'])
+          )
+        )
+      );
+      allow delete: if isSuperAdmin() || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/schools/$(resource.data.schoolId)) &&
+        get(/databases/$(database)/documents/schools/$(resource.data.schoolId)).data.owner_id == request.auth.uid
+      );
+    }
+
+    match /prediction_bets/{docId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      // Solo el propio usuario puede crear su pronóstico
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Permitir actualización para añadir más Nets al mismo pronóstico
+      // SEGURIDAD: No se pueden cambiar campos de identidad ni el mercado
+      allow update: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'marketId', 'schoolId', 'amount', 'createdAt']);
     }
 
     // Default deny for anything else

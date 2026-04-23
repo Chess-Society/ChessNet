@@ -23,7 +23,8 @@
     ArrowLeft,
     IdentificationBadge,
     NavigationArrow,
-    Browser
+    Browser,
+    Users
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
@@ -41,20 +42,93 @@
     address: '',
     phone: '',
     email: '',
-    website: ''
+    website: '',
+    sharedWith: [] as string[]
   });
+
+  let customCountry = $state('');
+  let newDirectorEmail = $state('');
+  let isResolvingEmail = $state(false);
+
+  const addDirector = async () => {
+    if (!newDirectorEmail) return;
+    try {
+      isResolvingEmail = true;
+      const res = await fetch(`/api/users/resolve-email?email=${encodeURIComponent(newDirectorEmail)}`);
+      if (!res.ok) throw new Error('Usuario no encontrado o error de servidor');
+      const user = await res.json();
+      
+      if (!formData.sharedWith) formData.sharedWith = [];
+      if (formData.sharedWith.includes(user.uid)) {
+        showToast.error('Este director ya tiene acceso');
+      } else {
+        formData.sharedWith.push(user.uid);
+        newDirectorEmail = '';
+        showToast.success('Director añadido correctamente');
+      }
+    } catch (e: any) {
+      showToast.error(e.message);
+    } finally {
+      isResolvingEmail = false;
+    }
+  };
+
+  const removeDirector = (uid: string) => {
+    formData.sharedWith = formData.sharedWith.filter(id => id !== uid);
+    showToast.success('Acceso revocado');
+  };
+
+  let searchQuery = $state('');
+  let isSelectOpen = $state(false);
+
+  const countries = [
+    { id: 'espana', code: 'ES', icon: MapPin },
+    { id: 'andorra', code: 'AD', icon: Globe },
+    { id: 'mexico', code: 'MX', icon: Buildings },
+    { id: 'argentina', code: 'AR', icon: Buildings },
+    { id: 'colombia', code: 'CO', icon: Globe },
+    { id: 'usa', code: 'US', icon: Buildings },
+    { id: 'chile', code: 'CL', icon: MapPin },
+    { id: 'peru', code: 'PE', icon: MapPin },
+    { id: 'ecuador', code: 'EC', icon: MapPin },
+    { id: 'venezuela', code: 'VE', icon: MapPin },
+    { id: 'guatemala', code: 'GT', icon: MapPin },
+    { id: 'cuba', code: 'CU', icon: MapPin },
+    { id: 'bolivia', code: 'BO', icon: MapPin },
+    { id: 'dominicana', code: 'DO', icon: MapPin },
+    { id: 'honduras', code: 'HN', icon: MapPin },
+    { id: 'paraguay', code: 'PY', icon: MapPin },
+    { id: 'salvador', code: 'SV', icon: MapPin },
+    { id: 'nicaragua', code: 'NI', icon: MapPin },
+    { id: 'costarica', code: 'CR', icon: MapPin },
+    { id: 'panama', code: 'PA', icon: MapPin },
+    { id: 'uruguay', code: 'UY', icon: MapPin },
+    { id: 'puertorico', code: 'PR', icon: MapPin },
+    { id: 'others', code: '?', icon: Globe }
+  ];
+
+  let filteredCountries = $derived(
+    countries.filter(c => 
+      $t(`countries.${c.id}`).toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
 
   onMount(() => {
     if (schoolData) {
+      const isQuick = countries.some(c => c.id === schoolData.country);
       formData = {
         name: schoolData.name || '',
         city: schoolData.city || '',
-        country: schoolData.country || 'espana',
+        country: isQuick ? (schoolData.country || 'espana') : (schoolData.country ? 'others' : 'espana'),
         address: schoolData.address || '',
         phone: schoolData.phone || '',
         email: schoolData.email || '',
-        website: schoolData.website || ''
+        website: schoolData.website || '',
+        sharedWith: schoolData.sharedWith || []
       };
+      if (!isQuick && schoolData.country) {
+        customCountry = schoolData.country;
+      }
     }
   });
 
@@ -74,10 +148,15 @@
     if (!validateForm()) return;
     try {
       isSubmitting = true;
+      const finalCountry = formData.country === 'others' ? customCountry : formData.country;
+      
       const response = await fetch(`/api/schools/${schoolData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          country: finalCountry
+        }),
       });
 
       if (!response.ok) {
@@ -96,13 +175,6 @@
       isSubmitting = false;
     }
   };
-
-  const countries = [
-    { id: 'espana', label: 'countries.espana', icon: MapPin },
-    { id: 'andorra', label: 'countries.andorra', icon: Globe },
-    { id: 'mexico', label: 'countries.mexico', icon: Buildings },
-    { id: 'argentina', label: 'countries.argentina', icon: Buildings }
-  ];
 </script>
 
 <svelte:head>
@@ -197,27 +269,80 @@
               </div>
             </div>
             <div class="space-y-6">
-              <span class="glass-label">{$t('schools.form.country_label')}</span>
-              <div class="grid grid-cols-2 gap-3">
-                {#each countries as c}
+              <label for="country-search" class="glass-label">{$t('schools.form.country_label')}</label>
+              
+              <div class="relative">
+                <!-- Custom Searchable Select -->
+                <div class="relative group">
+                  <Globe weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-emerald-500 transition-colors pointer-events-none z-10" />
                   <button
                     type="button"
-                    onclick={() => formData.country = c.id}
-                    class="selection-card small {formData.country === c.id ? 'active' : ''}"
+                    onclick={() => isSelectOpen = !isSelectOpen}
+                    class="glass-input pl-16 pr-12 w-full flex items-center justify-between text-left focus:ring-emerald-500/20 focus:border-emerald-500 bg-zinc-950/50 min-h-[64px]"
                   >
-                    <div class="card-icon">
-                      <c.icon weight={formData.country === c.id ? "fill" : "duotone"} />
-                    </div>
-                    <div class="card-content">
-                      <span class="card-title">{$t(c.label)}</span>
-                    </div>
-                    {#if formData.country === c.id}
-                      <div class="card-check" in:scale>
-                        <Check size={12} weight="bold" />
-                      </div>
-                    {/if}
+                    <span class={formData.country ? 'text-white' : 'text-zinc-500'}>
+                      {formData.country ? $t(`countries.${formData.country}`) : $t('countries.select')}
+                    </span>
+                    <CaretLeft weight="bold" class="w-4 h-4 transition-transform {isSelectOpen ? '-rotate-90' : 'rotate-0'}" />
                   </button>
-                {/each}
+
+                  {#if isSelectOpen}
+                    <div 
+                      class="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-white/10 shadow-2xl z-[150] overflow-hidden max-h-80 flex flex-col"
+                      transition:fly={{ y: -10, duration: 200 }}
+                    >
+                      <div class="p-4 border-b border-white/5 bg-zinc-950/50">
+                        <input
+                          type="text"
+                          bind:value={searchQuery}
+                          placeholder={$t('countries.search_placeholder')}
+                          class="w-full bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest text-emerald-400 placeholder:text-zinc-700"
+                          id="country-search"
+                          onkeydown={(e) => e.key === 'Enter' && e.preventDefault()}
+                        />
+                      </div>
+                      <div class="overflow-y-auto custom-scrollbar">
+                        {#each filteredCountries as c}
+                          <button
+                            type="button"
+                            class="w-full flex items-center justify-between px-6 py-4 hover:bg-emerald-600/10 transition-colors group/item {formData.country === c.id ? 'bg-emerald-600/20' : ''}"
+                            onclick={() => {
+                              formData.country = c.id;
+                              isSelectOpen = false;
+                              searchQuery = '';
+                            }}
+                          >
+                            <div class="flex items-center gap-4">
+                              <div class="w-8 h-8 flex items-center justify-center {formData.country === c.id ? 'text-emerald-400' : 'text-zinc-600 group-hover/item:text-emerald-500'} transition-colors">
+                                <c.icon weight={formData.country === c.id ? "fill" : "duotone"} size={20} />
+                              </div>
+                              <span class="text-sm font-bold uppercase tracking-tight {formData.country === c.id ? 'text-emerald-400' : 'text-zinc-400 group-hover/item:text-white'}">
+                                {$t(`countries.${c.id}`)}
+                              </span>
+                            </div>
+                            {#if formData.country === c.id}
+                              <Check size={16} weight="bold" class="text-emerald-500" />
+                            {/if}
+                          </button>
+                        {/each}
+                      </div>
+                    </div>
+                  {/if}
+                </div>
+
+                {#if formData.country === 'others'}
+                  <div class="pt-6" transition:fly={{ y: 10, duration: 200 }}>
+                    <div class="relative group">
+                      <Sparkle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
+                      <input
+                        type="text"
+                        bind:value={customCountry}
+                        placeholder={$t('countries.select')}
+                        class="glass-input pl-16 pr-8 w-full focus:ring-emerald-500/20 focus:border-emerald-500 bg-zinc-950/50"
+                      />
+                    </div>
+                  </div>
+                {/if}
               </div>
             </div>
           </div>
@@ -286,6 +411,74 @@
               />
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Section: Director Access (Sharing) -->
+      <section class="bento-card !p-10 relative overflow-hidden group border-violet-500/10">
+        <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-transparent opacity-100"></div>
+        
+        <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">
+          <div class="w-14 h-14 bg-violet-600/20 border border-violet-500/30 rounded-none flex items-center justify-center text-violet-400 shadow-xl shadow-violet-500/10">
+            <Users weight="duotone" class="w-8 h-8" />
+          </div>
+          <div>
+            <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('schools.access_directors.title')}</h3>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('schools.access_directors.desc')}</p>
+          </div>
+        </div>
+
+        <div class="space-y-8 relative z-10">
+          <div class="space-y-4">
+            <p class="text-xs text-zinc-400 font-jakarta leading-relaxed">
+              {$t('schools.access_directors.help')}
+            </p>
+            
+            <div class="flex gap-3">
+              <div class="relative flex-1 group">
+                <EnvelopeSimple weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
+                <input
+                  type="email"
+                  placeholder={$t('schools.access_directors.placeholder')}
+                  bind:value={newDirectorEmail}
+                  class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
+                  onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), addDirector())}
+                />
+              </div>
+              <button 
+                onclick={addDirector}
+                disabled={!newDirectorEmail || isResolvingEmail}
+                class="px-8 bg-violet-600 hover:bg-violet-500 text-white font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50"
+              >
+                {isResolvingEmail ? '...' : $t('schools.access_directors.add_btn')}
+              </button>
+            </div>
+          </div>
+
+          {#if formData.sharedWith && formData.sharedWith.length > 0}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {#each formData.sharedWith as uid}
+                <div class="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-none group/item">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-violet-500/20 flex items-center justify-center text-violet-400 font-black text-[10px]">
+                      {uid.substring(0, 2).toUpperCase()}
+                    </div>
+                    <span class="text-[10px] font-bold text-zinc-300 uppercase tracking-widest truncate max-w-[120px]">{uid}</span>
+                  </div>
+                  <button 
+                    onclick={() => removeDirector(uid)}
+                    class="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+                  >
+                    <X weight="bold" size={14} />
+                  </button>
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <div class="p-8 border border-dashed border-white/5 text-center">
+              <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-widest italic">{$t('schools.access_directors.empty')}</p>
+            </div>
+          {/if}
         </div>
       </section>
     </div>

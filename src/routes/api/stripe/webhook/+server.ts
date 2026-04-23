@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
-import { adminDb } from '$lib/firebase-admin'; 
+import { adminDb } from '$lib/server/firebase-admin'; 
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
     apiVersion: '2023-10-16' as any,
@@ -112,6 +112,33 @@ export const POST = async ({ request }) => {
                         userId: snapshot.docs[0].id,
                         status: 'error',
                         details: { invoiceId: invoice.id, amount: invoice.amount_due }
+                    });
+                }
+                break;
+            }
+
+            case 'customer.subscription.updated': {
+                const subscription = event.data.object as Stripe.Subscription;
+                const customerId = subscription.customer as string;
+
+                const snapshot = await adminDb.collection('users').where('settings.stripeCustomerId', '==', customerId).get();
+
+                if (!snapshot.empty) {
+                    const userDoc = snapshot.docs[0];
+                    // Sincronizar estado real de la suscripción de Stripe
+                    const isActive = subscription.status === 'active' || subscription.status === 'trialing';
+                    await userDoc.ref.update({
+                        'settings.plan': isActive ? 'premium' : 'free',
+                        'settings.status': subscription.status,
+                        'settings.subscriptionId': subscription.id,
+                        updatedAt: new Date().toISOString()
+                    });
+
+                    await logSystemEvent({
+                        type: 'subscriptionUpdated',
+                        userId: userDoc.id,
+                        status: 'success',
+                        details: { subscriptionId: subscription.id, stripeStatus: subscription.status, plan: isActive ? 'premium' : 'free' }
                     });
                 }
                 break;

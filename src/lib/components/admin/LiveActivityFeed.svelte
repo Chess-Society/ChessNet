@@ -59,61 +59,68 @@
   }
 </script>
 
-<div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-none shadow-2xl flex flex-col overflow-hidden">
-  <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-black/40">
+<div class="bg-black border border-white/10 rounded-none shadow-2xl flex flex-col overflow-hidden">
+  <div class="px-8 py-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
     <div class="flex items-center gap-3">
-      <div class="p-2 bg-primary-500/20 rounded-none">
-        <Pulse weight="bold" class="w-4 h-4 text-primary-400 animate-pulse" />
+      <div class="p-2 bg-primary-500/10 border border-primary-500/20 rounded-none">
+        <Pulse weight="bold" class="w-4 h-4 text-primary-500 animate-pulse" />
       </div>
-      <h3 class="text-sm font-black uppercase tracking-widest text-white">{$t('admin.activity.pulse')}</h3>
+      <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">{$t('admin.activity.pulse')}</h3>
     </div>
-    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-none">{$t('admin.activity.stream')}</span>
+    <span class="text-[9px] font-mono font-black text-slate-700 uppercase tracking-widest bg-white/5 px-3 py-1 border border-white/5 rounded-none">FLUJO_DE_RED</span>
   </div>
 
-  <div class="flex-1 overflow-y-auto max-h-[450px] p-2 space-y-2 custom-scrollbar">
+  <div class="flex-1 overflow-y-auto max-h-[450px] divide-y divide-white/5 custom-scrollbar">
     {#each activities as act (act.id)}
       {@const Icon = getStatusIcon(act)}
       <div 
-        class="group flex items-center gap-4 p-4 hover:bg-white/[0.04] rounded-none transition-all border border-transparent hover:border-white/5"
+        class="group flex items-center gap-6 p-6 hover:bg-white/[0.01] transition-all relative overflow-hidden"
         in:slide={{ axis: 'y' }}
       >
-        <div class="relative">
-          <div class="w-12 h-12 rounded-none flex items-center justify-center border {getStatusColor(act.status)} group-hover:scale-105 transition-transform">
-            <Icon weight="duotone" class="w-6 h-6" />
+        <div class="relative flex-shrink-0">
+          <div class="w-12 h-12 rounded-none flex items-center justify-center border {getStatusColor(act.status)} group-hover:scale-105 transition-transform bg-black">
+            <Icon weight="bold" class="w-5 h-5" />
           </div>
           {#if act.type === 'user_joined'}
-             <div class="absolute -top-1 -right-1 w-3 h-3 bg-primary-500 border-2 border-[#1e293b] rounded-none"></div>
+             <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-primary-500 border border-black rounded-none"></div>
           {/if}
         </div>
 
         <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-0.5">
-            <h4 class="text-sm font-bold text-slate-200 truncate group-hover:text-white transition-colors uppercase italic">{act.title}</h4>
-            <span class="text-[9px] font-black text-slate-600 shrink-0">·</span>
-            <span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter shrink-0">{formatTime(act.timestamp)}</span>
+          <div class="flex items-center gap-3 mb-1">
+            <h4 class="text-sm font-black text-white truncate group-hover:text-primary-400 transition-colors uppercase italic font-display">{act.title}</h4>
+            <div class="h-px flex-1 bg-white/[0.02] group-hover:bg-primary-500/20 transition-colors"></div>
+            <span class="text-[9px] font-mono font-black text-slate-700 uppercase tracking-tighter shrink-0">{formatTime(act.timestamp)}</span>
           </div>
-          <p class="text-[11px] text-slate-500 font-medium truncate italic">{act.subtitle}</p>
+          <p class="text-[10px] font-mono font-black text-slate-600 uppercase tracking-wide truncate italic">{act.subtitle}</p>
         </div>
 
-        <div class="opacity-0 group-hover:opacity-100 transition-opacity pr-2">
-           <div class="w-8 h-8 rounded-none bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">
+        <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+           <button class="h-10 w-10 bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white hover:bg-primary-500 transition-all rounded-none">
               <Clock weight="bold" class="w-4 h-4" />
-           </div>
+           </button>
         </div>
       </div>
     {:else}
-      <div class="h-64 flex flex-col items-center justify-center text-slate-700 py-10 space-y-4">
-        <Terminal weight="thin" class="w-12 h-12 opacity-20" />
-        <p class="italic text-white">{$t('admin.activity.waiting')}</p>
+      <div class="h-64 flex flex-col items-center justify-center py-10 space-y-6">
+        <div class="relative">
+          <Terminal weight="bold" class="w-12 h-12 text-slate-900" />
+          <div class="absolute inset-0 border border-slate-800 animate-pulse"></div>
+        </div>
+        <p class="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-slate-700">{$t('admin.activity.waiting')}</p>
       </div>
     {/each}
   </div>
 
-  <div class="px-8 py-4 bg-black/20 border-t border-white/5 text-[9px] text-slate-600 flex justify-between items-center italic">
-    <span>Listening to firebase.auth, firebase.firestore</span>
-    <div class="flex items-center gap-2">
-      <span class="w-1.5 h-1.5 rounded-none bg-primary-500"></span>
-      <span>Socket Established</span>
+  <div class="px-8 py-5 bg-white/[0.01] border-t border-white/10 text-[8px] font-mono font-black text-slate-700 flex justify-between items-center uppercase tracking-widest">
+    <div class="flex items-center gap-4">
+      <span class="text-slate-800">MONITOREANDO:</span>
+      <span class="flex items-center gap-1"><span class="w-1 h-1 bg-violet-500"></span> SOCKET_AUTENTICACION</span>
+      <span class="flex items-center gap-1"><span class="w-1 h-1 bg-violet-500"></span> COLECCION_FS</span>
+    </div>
+    <div class="flex items-center gap-2 text-emerald-500/50">
+      <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none animate-pulse"></div>
+      <span>ACTIVO</span>
     </div>
   </div>
 </div>

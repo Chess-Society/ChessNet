@@ -44,7 +44,7 @@ export const es = {
     'lobby.news_restriction': 'Los anuncios de la comunidad y actualizaciones oficiales solo están disponibles para usuarios Premium.',
     'lobby.access_now': 'Acceder ahora',
     'lobby.community_title': 'Comunidad de Profesores',
-    'lobby.community_desc': 'Participate in real-time discussion groups. Share experiences and connect with other chess professionals.',
+    'lobby.community_desc': 'Participa en grupos de discusión en tiempo real. Comparte experiencias y conecta con otros profesionales del ajedrez.',
     'lobby.news_title': 'Novedades y Comunicados',
     'lobby.news_desc': 'Mantente al día con las últimas actualizaciones, mejoras de rendimiento y nuevas funcionalidades que llegan a ChessNet.',
     'lobby.subgroups': 'Sub Grupos',

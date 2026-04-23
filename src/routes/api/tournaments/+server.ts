@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 import type { RequestHandler } from './$types';
 import { authenticate } from '$lib/server/auth';
 import { serializeRecord } from '$lib/server/serialize';
@@ -129,6 +129,26 @@ export const PUT: RequestHandler = async (event) => {
     delete cleanUpdates.createdAt;
 
     await docRef.update(cleanUpdates);
+
+    // Propagar sharedWith a jugadores, rondas y pairings si ha cambiado
+    if ('sharedWith' in cleanUpdates) {
+      const batch = adminDb.batch();
+      
+      const collections = [
+        'local_tournament_players',
+        'local_tournament_rounds',
+        'local_tournament_pairings'
+      ];
+
+      for (const coll of collections) {
+        const snap = await adminDb.collection(coll).where("tournamentId", "==", id).get();
+        snap.docs.forEach((doc: any) => {
+          batch.update(doc.ref, { sharedWith: cleanUpdates.sharedWith, updatedAt: cleanUpdates.updatedAt });
+        });
+      }
+
+      await batch.commit();
+    }
 
     return json({ 
       success: true, 

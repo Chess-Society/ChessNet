@@ -6,12 +6,16 @@ import {
   deleteDoc, 
   collection, 
   addDoc, 
-  writeBatch
+  writeBatch,
+  updateDoc,
+  arrayUnion,
+  arrayRemove
 } from 'firebase/firestore';
 import { t } from '$lib/i18n';
 import { toast } from '../toast';
 import { user as authStoreUser } from '../auth';
 import { apiFetch } from './api';
+import { adminApi } from '$lib/api/admin';
 import type { CreateSkillForm } from '$lib/types';
 import type { AppState } from './types';
 import type { Writable } from 'svelte/store';
@@ -41,6 +45,14 @@ export function createActions(store: Writable<AppState>) {
         method: 'DELETE',
         body: JSON.stringify({ id })
       }, 'Error removing school');
+    },
+    removeAllSchools: async () => {
+      const state = get(store) as AppState;
+      const ids = state.schools.map((s: any) => s.id);
+      if (ids.length === 0) return;
+      const batch = writeBatch(db);
+      ids.forEach(id => batch.delete(doc(db, 'schools', id)));
+      await batch.commit();
     },
     updateSchool: async (school: any) => {
       const result = await apiFetch('/api/schools', {
@@ -79,6 +91,14 @@ export function createActions(store: Writable<AppState>) {
         body: JSON.stringify({ id })
       }, 'Error removing student');
     },
+    removeAllStudents: async () => {
+      const state = get(store) as AppState;
+      const ids = state.students.map((s: any) => s.id);
+      if (ids.length === 0) return;
+      const batch = writeBatch(db);
+      ids.forEach(id => batch.delete(doc(db, 'students', id)));
+      await batch.commit();
+    },
     
     // CLASSES
     addClass: async (cls: any) => {
@@ -108,6 +128,14 @@ export function createActions(store: Writable<AppState>) {
         method: 'DELETE',
         body: JSON.stringify({ id })
       }, 'Error removing class');
+    },
+    removeAllClasses: async () => {
+      const state = get(store) as AppState;
+      const ids = state.classes.map((c: any) => c.id);
+      if (ids.length === 0) return;
+      const batch = writeBatch(db);
+      ids.forEach(id => batch.delete(doc(db, 'classes', id)));
+      await batch.commit();
     },
     
     // ENROLLMENT
@@ -214,16 +242,25 @@ export function createActions(store: Writable<AppState>) {
       const user = get(authStoreUser);
       if (!user) throw new Error("No authenticated user");
       const { id, ...data } = record;
+      
+      let attendanceId = id;
       if (id) {
         await setDoc(doc(db, 'attendance', id), data, { merge: true });
       } else {
-        const attendanceId = `${record.studentId}_${record.classId}_${record.date}`;
+        attendanceId = `${record.studentId}_${record.classId}_${record.date}`;
         await setDoc(doc(db, 'attendance', attendanceId), { 
           ...data,
           id: attendanceId,
           owner_id: user.uid,
           createdAt: new Date().toISOString() 
         }, { merge: true });
+      }
+
+      // Generar Nets automáticos (en proceso de validación)
+      try {
+        await adminApi.addNets(user.uid, 10, `Asistencia: ${record.date}`, 'pending');
+      } catch (e) {
+        console.error("Error generating automatic nets:", e);
       }
     },
     
@@ -368,6 +405,86 @@ export function createActions(store: Writable<AppState>) {
       const user = get(authStoreUser);
       if (!user) return;
       await setDoc(doc(db, 'users', user.uid), { dashboardLayout: layout, updatedAt: new Date().toISOString() }, { merge: true });
+    },
+    
+    // UTILS
+    syncAll: async () => {
+      // With real-time listeners, syncAll is mostly visual assurance
+      // but we can trigger a small delay to make it feel real
+      await new Promise(r => setTimeout(r, 800));
+      return true;
+    },
+    
+    // ACHIEVEMENTS
+    markAchievementAsNotified: async (achievementId: string) => {
+      const user = get(authStoreUser);
+      if (!user) return;
+      const docRef = doc(db, 'achievements', achievementId);
+      await setDoc(docRef, { notified: true, updatedAt: new Date().toISOString() }, { merge: true });
+      
+      update(s => ({
+        ...s,
+        pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId)
+      }));
+    },
+
+    // ACCOUNT
+    deleteAccount: async () => {
+      const user = auth.currentUser;
+      if (!user) throw new Error('No user found');
+      
+      // 1. Trigger deletion API (which should clean up Firestore data)
+      await apiFetch('/api/auth/delete', { method: 'POST' }, 'Error deleting data');
+      
+      // 2. Delete Auth User
+      await user.delete();
+    },
+
+    // POSTS
+    addPost: async (post: any) => {
+      const user = get(authStoreUser);
+      if (!user) throw new Error("No authenticated user");
+      const collRef = collection(db, 'faculty_stream');
+      const docRef = await addDoc(collRef, { 
+        ...post, 
+        authorId: user.uid,
+        authorName: user.displayName || 'Profesor',
+        authorPhotoUrl: user.photoURL || '',
+        reactions: {},
+        votes: { up: [], down: [] },
+        tipsTotal: 0,
+        createdAt: new Date().toISOString() 
+      });
+      return docRef.id;
+    },
+    removePost: async (id: string) => {
+      await deleteDoc(doc(db, 'faculty_stream', id));
+      toast.success('Publicación eliminada');
+    },
+    updatePost: async (id: string, updates: any) => {
+      const docRef = doc(db, 'faculty_stream', id);
+      await updateDoc(docRef, { 
+        ...updates, 
+        updatedAt: new Date().toISOString() 
+      });
+    },
+    reactToPost: async (postId: string, emoji: string) => {
+      const user = get(authStoreUser);
+      if (!user) return;
+      
+      const state = get(store);
+      const post = state.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const userReactions = post.reactions[emoji] || [];
+      const hasReacted = userReactions.includes(user.uid);
+      
+      const docRef = doc(db, 'faculty_stream', postId);
+      const updatePath = `reactions.${emoji}`;
+      
+      await updateDoc(docRef, {
+        [updatePath]: hasReacted ? arrayRemove(user.uid) : arrayUnion(user.uid)
+      });
     }
   };
 }

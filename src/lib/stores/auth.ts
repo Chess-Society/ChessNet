@@ -87,6 +87,7 @@ export const initAuth = () => {
         if (!resolved) {
             loading.set(false);
             authInitialized.set(true);
+            cookieSynced.set(true); // Desbloquear UI aunque Firebase no responda
             resolved = true;
         }
     }, 8000);

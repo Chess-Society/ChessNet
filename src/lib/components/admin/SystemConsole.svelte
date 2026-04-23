@@ -40,83 +40,89 @@
   }
 </script>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
   <!-- System Health Card -->
   <div class="lg:col-span-1 space-y-6">
-    <div class="bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 p-8 rounded-none shadow-2xl relative overflow-hidden group">
-      <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-        <Shield weight="duotone" class="w-24 h-24" />
+    <div class="bg-black border border-white/10 p-8 rounded-none shadow-2xl relative overflow-hidden group">
+      <div class="absolute top-0 right-0 p-4 opacity-5 font-mono text-[8px] leading-tight select-none">
+        SEC_LEVEL: 04<br/>
+        ENCRYPTION: AES-256
       </div>
       
-      <h3 class="text-xl font-black font-display uppercase italic tracking-wider mb-8 flex items-center gap-3 text-white">
-        <Shield weight="duotone" class="w-6 h-6 text-primary-500" />
+      <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] mb-10 flex items-center gap-4 text-white">
+        <div class="p-2 bg-primary-500/10 border border-primary-500/20">
+          <Shield weight="bold" class="w-5 h-5 text-primary-500" />
+        </div>
         {$t('admin.system.security_title')}
       </h3>
 
       <div class="space-y-6">
-        <div class="flex items-center justify-between p-4 bg-black/20 rounded-none border border-white/5">
-          <div>
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.system.maintenance_label')}</p>
-            <p class="text-xs font-bold {maintenanceMode ? 'text-red-400' : 'text-violet-400'} uppercase">
-              {maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}
+        <div class="flex items-center justify-between p-5 bg-white/[0.01] rounded-none border border-white/5">
+          <div class="space-y-1">
+            <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">MAINT_STATUS</p>
+            <p class="text-[10px] font-mono font-black {maintenanceMode ? 'text-red-500' : 'text-emerald-500'} uppercase">
+              {maintenanceMode ? 'ACTIVE_PROTECT' : 'NOMINAL_OPER'}
             </p>
           </div>
           <button 
             onclick={onToggleMaintenance}
-            class="px-4 py-2 rounded-none text-[9px] font-black uppercase tracking-widest transition-all {maintenanceMode ? 'bg-red-500 text-white' : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'}"
+            class="px-4 py-2 rounded-none text-[8px] font-mono font-black uppercase tracking-widest transition-all {maintenanceMode ? 'bg-red-500 text-black' : 'bg-white/5 text-slate-500 border border-white/10 hover:border-white/30 hover:text-white'}"
           >
-            {maintenanceMode ? $t('admin.system.turn_off') : $t('admin.system.turn_on')}
+            {maintenanceMode ? 'DISABLE' : 'ENGAGE'}
           </button>
         </div>
 
-        <div class="p-4 bg-black/20 rounded-none border border-white/5 space-y-3">
-          <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">{$t('admin.system.data_optimization')}</p>
+        <div class="p-5 bg-white/[0.01] rounded-none border border-white/5 space-y-4">
+          <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">DATA_INTEGRITY</p>
           <button 
             onclick={onRepairData}
-            class="w-full py-4 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all flex items-center justify-center gap-2"
+            class="w-full py-4 bg-primary-500 text-black rounded-none text-[9px] font-mono font-black uppercase tracking-[0.2em] hover:bg-white transition-all flex items-center justify-center gap-3"
           >
-            <Database weight="fill" class="w-4 h-4" />
-            {$t('admin.system.sync_indices')}
+            <Database weight="bold" class="w-4 h-4" />
+            REPAIR_INDICES
           </button>
         </div>
       </div>
     </div>
 
     <!-- Quick Status -->
-    <div class="bg-gradient-to-br from-primary-500/20 to-violet-500/20 backdrop-blur-xl border border-white/10 p-8 rounded-none shadow-2xl">
-      <div class="flex items-center gap-4 mb-4">
-        <div class="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center">
-          <Pulse class="w-5 h-5 text-white animate-pulse" />
+    <div class="bg-black border border-white/10 p-8 rounded-none shadow-2xl relative overflow-hidden">
+      <div class="flex items-center gap-4 mb-8">
+        <div class="w-10 h-10 rounded-none bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
+          <Pulse weight="bold" class="w-5 h-5 text-primary-500 animate-pulse" />
         </div>
-        <h4 class="font-black uppercase italic tracking-widest text-sm text-white">{$t('admin.system.server_status')}</h4>
+        <h4 class="font-mono font-black uppercase tracking-[0.2em] text-xs text-white">{$t('admin.system.server_status')}</h4>
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-1">
-          <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.system.api_latency')}</p>
-          <p class="text-xl font-bold font-display italic text-white">24ms</p>
+      <div class="grid grid-cols-1 gap-6">
+        <div class="space-y-2 border-l-2 border-primary-500/20 pl-4">
+          <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">NETWORK_LATENCY</p>
+          <p class="text-2xl font-mono font-black text-white">24<span class="text-[10px] text-slate-700 ml-1">MS</span></p>
         </div>
-        <div class="space-y-1">
-          <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{$t('admin.system.uptime')}</p>
-          <p class="text-xl font-bold font-display italic text-violet-400">99.9%</p>
+        <div class="space-y-2 border-l-2 border-violet-500/20 pl-4">
+          <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">SYSTEM_UPTIME</p>
+          <p class="text-2xl font-mono font-black text-violet-500">99.9<span class="text-[10px] text-slate-700 ml-1">%</span></p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Real-time Console Log -->
-  <div class="lg:col-span-2 bg-[#0f172a] border border-white/5 rounded-none shadow-2xl overflow-hidden flex flex-col">
-    <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-black/40">
-      <div class="flex items-center gap-3">
-        <Terminal weight="bold" class="w-5 h-5 text-primary-500" />
-        <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+  <div class="lg:col-span-3 bg-black border border-white/10 rounded-none shadow-2xl overflow-hidden flex flex-col">
+    <div class="px-8 py-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+      <div class="flex items-center gap-4">
+        <div class="p-2 bg-white/5 border border-white/10">
+          <Terminal weight="bold" class="w-4 h-4 text-white" />
+        </div>
+        <h3 class="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-3">
           {$t('admin.system.console_title')}
-          <span class="inline-flex w-2 h-2 rounded-none bg-primary-500 animate-pulse"></span>
+          <span class="inline-flex w-1.5 h-1.5 bg-primary-500 animate-pulse"></span>
         </h3>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-4">
+        <span class="text-[8px] font-mono text-slate-800 tracking-tighter">STREAM: ACTIVE</span>
         <button 
           onclick={onClearLogs}
-          class="p-2 text-slate-600 hover:text-red-400 transition-colors"
+          class="h-8 w-8 flex items-center justify-center text-slate-700 hover:text-red-500 border border-transparent hover:border-red-500/20 transition-all"
           title={$t('admin.system.clear_console')}
         >
           <Trash weight="bold" class="w-4 h-4" />
@@ -124,33 +130,40 @@
       </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto max-h-[500px] p-6 font-mono text-[11px] space-y-2 custom-scrollbar">
+    <div class="flex-1 overflow-y-auto max-h-[550px] divide-y divide-white/[0.02] custom-scrollbar">
       {#each logs as log (log.id)}
-        <div class="flex gap-4 group hover:bg-white/[0.02] p-1 rounded transition-colors" in:slide>
-          <span class="text-slate-600 shrink-0 select-none">[{formatTime(log.timestamp)}]</span>
-          <span class="px-2 h-4 flex items-center rounded-none shrink-0 border {getStatusColor(log.status)} font-black uppercase text-[8px] tracking-tighter">
+        <div class="flex gap-6 group hover:bg-white/[0.01] p-5 transition-colors" in:slide>
+          <span class="text-slate-800 shrink-0 font-mono text-[9px] tracking-tighter uppercase">[{formatTime(log.timestamp)}]</span>
+          <span class="px-2 h-4 flex items-center rounded-none shrink-0 border {getStatusColor(log.status)} font-mono font-black uppercase text-[7px] tracking-tighter">
             {log.status || 'INFO'}
           </span>
-          <div class="flex-1">
-            <span class="text-slate-300 font-bold uppercase tracking-tight">{log.type || log.action}:</span>
-            <span class="text-slate-500 ml-2 italic">
+          <div class="flex-1 min-w-0">
+            <span class="text-slate-500 font-mono font-black uppercase text-[9px] tracking-wider">{log.type || log.action}:</span>
+            <span class="text-slate-700 ml-4 font-mono text-[10px] uppercase break-all">
                {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
             </span>
           </div>
         </div>
-      {/each}
-      
-      {#if logs.length === 0}
-        <div class="h-full flex flex-col items-center justify-center text-slate-700 py-10 space-y-4">
-          <Bug weight="thin" class="w-12 h-12 opacity-20" />
-          <p class="italic text-white">{$t('admin.system.waiting_events')}</p>
+      {:else}
+        <div class="h-64 flex flex-col items-center justify-center py-20 space-y-6">
+          <div class="relative">
+            <Bug weight="bold" class="w-12 h-12 text-slate-900" />
+            <div class="absolute inset-0 border border-slate-800 animate-pulse"></div>
+          </div>
+          <p class="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-slate-800">{$t('admin.system.waiting_events')}</p>
         </div>
-      {/if}
+      {/each}
     </div>
 
-    <div class="px-8 py-4 bg-black/20 border-t border-white/5 text-[9px] text-slate-600 flex justify-between items-center italic">
-      <span>Connected to firebase-production-instance-01</span>
-      <span>UTF-8 Bash-Agent</span>
+    <div class="px-8 py-5 bg-white/[0.01] border-t border-white/10 text-[8px] font-mono font-black text-slate-800 flex justify-between items-center uppercase tracking-[0.2em]">
+      <div class="flex items-center gap-6">
+        <span>INSTANCE: FB_PROD_01</span>
+        <span>AGENT: BASH_V3</span>
+      </div>
+      <div class="flex items-center gap-2 text-emerald-500/30">
+        <div class="w-1.5 h-1.5 bg-emerald-500/50 rounded-none"></div>
+        <span>SYNC_ESTABLISHED</span>
+      </div>
     </div>
   </div>
 </div>

@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { authenticate } from '$lib/server/auth';
-import { adminDb } from '$lib/firebase-admin';
+import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async (event) => {
@@ -13,6 +13,7 @@ export const load: PageServerLoad = async (event) => {
   const uid = user.uid;
 
   try {
+    console.time('📊 Dashboard Load Queries');
     const [schoolsSnap, studentsSnap, classesSnap, paymentsSnap, attendanceSnap] = await Promise.all([
       adminDb.collection("schools").where("owner_id", "==", uid).get(),
       adminDb.collection("students").where("owner_id", "==", uid).get(),
@@ -20,6 +21,7 @@ export const load: PageServerLoad = async (event) => {
       adminDb.collection("payments").where("owner_id", "==", uid).orderBy("paid_date", "desc").limit(100).get(),
       adminDb.collection("attendance").where("owner_id", "==", uid).orderBy("date", "desc").limit(100).get()
     ]);
+    console.timeEnd('📊 Dashboard Load Queries');
 
 
     const schools = schoolsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));

@@ -103,127 +103,195 @@
   }
 
   const types = $derived([
-    { id: 'news', icon: Info, color: 'text-blue-400 border-blue-500/30 bg-blue-500/10', label: 'News' },
-    { id: 'feature', icon: CheckCircle, color: 'text-violet-400 border-violet-500/30 bg-violet-500/10', label: 'Feature' },
-    { id: 'improvement', icon: Warning, color: 'text-amber-400 border-amber-500/30 bg-amber-500/10', label: 'Update' },
-    { id: 'critical', icon: Megaphone, color: 'text-red-400 border-red-500/30 bg-red-500/10', label: 'Urgent' }
+    { 
+      id: 'news', 
+      icon: Info, 
+      label: 'News',
+      active: 'bg-blue-500/20 border-blue-500 text-blue-400 shadow-[0_0_40px_rgba(59,130,246,0.2)]',
+      inactive: 'bg-white/[0.03] border-white/10 text-slate-500 hover:border-blue-500/40 hover:text-blue-400',
+      border: 'border-l-blue-500',
+      bg: 'bg-blue-500'
+    },
+    { 
+      id: 'feature', 
+      icon: CheckCircle, 
+      label: 'Feature',
+      active: 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.2)]',
+      inactive: 'bg-white/[0.03] border-white/10 text-slate-500 hover:border-emerald-500/40 hover:text-emerald-400',
+      border: 'border-l-emerald-500',
+      bg: 'bg-emerald-500'
+    },
+    { 
+      id: 'improvement', 
+      icon: Warning, 
+      label: 'Update',
+      active: 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_40px_rgba(245,158,11,0.2)]',
+      inactive: 'bg-white/[0.03] border-white/10 text-slate-500 hover:border-amber-500/40 hover:text-amber-400',
+      border: 'border-l-amber-500',
+      bg: 'bg-amber-500'
+    },
+    { 
+      id: 'critical', 
+      icon: Megaphone, 
+      label: 'Urgent',
+      active: 'bg-red-500/20 border-red-500 text-red-400 shadow-[0_0_40px_rgba(239,68,68,0.2)]',
+      inactive: 'bg-white/[0.03] border-white/10 text-slate-500 hover:border-red-500/40 hover:text-red-400',
+      border: 'border-l-red-500',
+      bg: 'bg-red-500'
+    }
   ]);
+
+  function getAnnMeta(t: string) {
+    return types.find(it => it.id === t) || types[0];
+  }
 </script>
 
 <div class="space-y-6">
-  <div class="bg-zinc-900/40 backdrop-blur-xl border border-white/5 p-5 sm:p-10 rounded-none shadow-2xl space-y-6 sm:space-y-8 relative overflow-hidden group">
-    <!-- Mesh Gradient Background -->
-    <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-500/10 blur-[100px] rounded-none group-hover:bg-primary-500/20 transition-all duration-1000"></div>
+  <div class="bg-black border border-white/10 p-8 sm:p-12 rounded-none shadow-2xl space-y-10 relative overflow-hidden group">
+    <!-- Technical Background -->
+    <div class="absolute top-0 right-0 p-4 opacity-5 font-mono text-[8px] leading-tight select-none pointer-events-none">
+      {$t('admin.tech.auth')}: {isSending ? 'SENDING' : 'IDLE'}<br/>
+      {$t('admin.tech.buffer')}: {message.length}B<br/>
+      {$t('admin.tech.status')}: NOMINAL
+    </div>
 
     <div class="flex items-center justify-between">
-      <div class="space-y-1">
-        <h3 class="text-xl font-black font-display uppercase italic tracking-wider flex items-center gap-3 text-white">
-          <Globe weight="duotone" class="w-6 h-6 text-violet-500" />
+      <div class="space-y-2">
+        <h3 class="text-2xl font-display font-black uppercase italic tracking-[0.2em] flex items-center gap-4 text-white">
+          <div class="p-2 bg-primary-500/10 border border-primary-500/20">
+            <Globe weight="bold" class="w-6 h-6 text-primary-500" />
+          </div>
           {$t('admin.broadcast.title')}
         </h3>
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-9">{$t('admin.broadcast.subtitle')}</p>
+        <p class="text-[9px] font-mono font-black text-slate-700 uppercase tracking-widest ml-16">{$t('admin.broadcast.subtitle')}</p>
       </div>
     </div>
 
-    <div class="space-y-6 relative z-10">
+    <div class="space-y-10 relative z-10">
       <!-- Message Type Selector -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         {#each types as item}
           {@const Icon = item.icon}
           <button 
             onclick={() => type = item.id as any}
-            class="flex flex-col items-center gap-2 p-4 rounded-none border transition-all {type === item.id ? item.color + ' border border-current shadow-lg shadow-current/5 scale-[1.02]' : 'bg-black/20 border-white/5 text-slate-500 hover:border-white/20'}"
+            class="flex flex-col items-center gap-4 p-8 rounded-none border transition-all duration-300 {type === item.id ? item.active : item.inactive}"
           >
-            <Icon weight="duotone" class="w-5 h-5" />
-            <span class="text-[9px] font-black uppercase tracking-tighter">{item.label}</span>
+            <Icon weight={type === item.id ? 'fill' : 'bold'} size={24} />
+            <span class="text-[10px] font-mono font-black uppercase tracking-widest">{item.label}</span>
           </button>
         {/each}
       </div>
 
-      <!-- Title Input -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input 
-          bind:value={title}
-          placeholder="Título del anuncio..."
-          class="w-full bg-black/40 border border-white/10 rounded-none px-6 py-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-primary-500/50 transition-all shadow-inner"
-        />
-        <div class="flex gap-2">
+      <!-- Input Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label for="broadcast-title" class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest ml-1">{$t('admin.tech.subject')}</label>
           <input 
-            bind:value={link}
-            placeholder="URL (opcional)..."
-            class="flex-1 bg-black/40 border border-white/10 rounded-none px-6 py-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-primary-500/50 transition-all shadow-inner"
+            id="broadcast-title"
+            bind:value={title}
+            placeholder="S_SUBJECT_INPUT"
+            class="w-full bg-white/[0.02] border border-white/10 rounded-none px-6 py-4 text-xs font-mono text-white placeholder:text-slate-800 outline-none focus:border-primary-500/50 transition-all uppercase"
           />
-          <input 
-            bind:value={linkText}
-            placeholder="Texto botón..."
-            class="w-1/3 bg-black/40 border border-white/10 rounded-none px-6 py-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-primary-500/50 transition-all shadow-inner"
-          />
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="col-span-2 space-y-2">
+            <label for="broadcast-link" class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest ml-1">{$t('admin.tech.uri')}</label>
+            <input 
+              id="broadcast-link"
+              bind:value={link}
+              placeholder="HTTPS://INTERNAL.NET"
+              class="w-full bg-white/[0.02] border border-white/10 rounded-none px-6 py-4 text-xs font-mono text-white placeholder:text-slate-800 outline-none focus:border-primary-500/50 transition-all"
+            />
+          </div>
+          <div class="space-y-2">
+            <label for="broadcast-link-text" class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest ml-1">{$t('admin.tech.label')}</label>
+            <input 
+              id="broadcast-link-text"
+              bind:value={linkText}
+              placeholder="UI_TAG"
+              class="w-full bg-white/[0.02] border border-white/10 rounded-none px-6 py-4 text-xs font-mono text-white placeholder:text-slate-800 outline-none focus:border-primary-500/50 transition-all uppercase"
+            />
+          </div>
         </div>
       </div>
 
       <!-- Message Input -->
-      <div class="relative">
-        <textarea 
-          bind:value={message}
-          placeholder={$t('admin.broadcast.placeholder')}
-          class="w-full bg-black/40 border border-white/10 rounded-none p-5 sm:p-6 min-h-[160px] text-sm text-white placeholder:text-slate-600 outline-none focus:border-violet-500/50 transition-all resize-none shadow-inner"
-        ></textarea>
-        
-        <div class="mt-4 flex flex-col sm:flex-row items-center justify-end gap-4">
-          <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">{$t('admin.broadcast.characters', { count: message.length })}</span>
-          <button 
-            onclick={handleSend}
-            disabled={!message.trim() || isSending}
-            class="w-full sm:w-auto flex items-center justify-center gap-3 px-6 sm:px-8 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-none text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-violet-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 disabled:grayscale text-white"
-          >
-            {#if isSending}
-              <div class="w-4 h-4 border-2 border-white/20 border-t-white rounded-none animate-spin"></div>
-            {:else}
-              <PaperPlaneTilt weight="bold" class="w-4 h-4" />
-            {/if}
-            {$t('admin.broadcast.launch')}
-          </button>
+      <div class="space-y-2">
+        <label for="broadcast-payload" class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest ml-1">PAYLOAD_CONTENT</label>
+        <div class="relative">
+          <textarea 
+            id="broadcast-payload"
+            bind:value={message}
+            placeholder={$t('admin.broadcast.placeholder')}
+            class="w-full bg-white/[0.02] border border-white/10 rounded-none p-6 min-h-[200px] text-xs font-mono text-white placeholder:text-slate-800 outline-none focus:border-primary-500/50 transition-all resize-none shadow-inner uppercase"
+          ></textarea>
+          
+          <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-white/5 pt-6">
+            <div class="flex items-center gap-4">
+              <span class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-wider">ENCODING: UTF-8</span>
+              <span class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-wider">BYTES: {message.length}</span>
+            </div>
+            <button 
+              onclick={handleSend}
+              disabled={!message.trim() || isSending}
+              class="w-full sm:w-auto flex items-center justify-center gap-4 px-10 py-4 bg-primary-500 text-black rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-white hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-20 disabled:grayscale"
+            >
+              {#if isSending}
+                <div class="w-4 h-4 border-2 border-black/20 border-t-black rounded-none animate-spin"></div>
+                {$t('admin.announcements.sending')}
+              {:else}
+                <PaperPlaneTilt weight="bold" class="w-4 h-4" />
+                {$t('admin.tech.launch')}
+              {/if}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-    <div class="bg-zinc-900/40 border border-white/5 p-6 rounded-none space-y-4">
-      <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400">{$t('admin.announcements.history')}</h4>
-      <div class="space-y-3">
-        {#each activeAnnouncements as ann}
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-black/20 border border-white/5 gap-4 {ann.isGlobal ? 'border-l-2 border-l-violet-500' : 'border-l-2 border-l-zinc-700 opacity-60'}">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="text-white font-bold text-sm">{ann.title}</span>
-                {#if ann.isGlobal}
-                   <span class="px-2 py-0.5 bg-violet-500/20 text-violet-400 text-[8px] font-black uppercase tracking-widest border border-violet-500/30">GLOBAL</span>
-                {/if}
-              </div>
-              <p class="text-xs text-slate-500 line-clamp-1">{ann.message}</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <button 
-                onclick={() => toggleGlobal(ann)}
-                class="px-4 py-2 border {ann.isGlobal ? 'border-violet-500/30 text-violet-400 hover:bg-violet-500/10' : 'border-zinc-700 text-zinc-500 hover:bg-zinc-700/20'} text-[9px] font-black uppercase tracking-widest transition-all"
-              >
-                {ann.isGlobal ? $t('common.deactivate') : $t('common.activate')}
-              </button>
-              <button 
-                onclick={() => handleDelete(ann.id)}
-                class="p-2 text-slate-600 hover:text-red-500 transition-colors"
-                title={$t('common.delete')}
-              >
-                <Trash weight="bold" class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        {/each}
-      </div>
+  <div class="bg-black border border-white/10 p-8 rounded-none space-y-6">
+    <div class="flex items-center justify-between border-b border-white/10 pb-4">
+      <h4 class="text-[10px] font-mono font-black uppercase tracking-widest text-slate-600">{$t('admin.tech.archived')}</h4>
+      <span class="text-[8px] font-mono text-slate-800">{activeAnnouncements.length} {$t('admin.tech.records')}</span>
     </div>
-  <div class="flex items-center gap-4 p-4 bg-primary-500/10 border border-primary-500/20 rounded-none">
-    <ChatTeardropDots weight="duotone" class="w-6 h-6 text-primary-400" />
-    <p class="text-[10px] text-primary-300/80 font-medium italic">
+    <div class="space-y-4">
+      {#each activeAnnouncements as ann}
+        {@const meta = getAnnMeta(ann.type)}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all gap-6 {ann.isGlobal ? `border-l-4 ${meta.border}` : 'border-l-4 border-l-slate-900 opacity-60'}">
+          <div class="space-y-2">
+            <div class="flex items-center gap-3">
+              <span class="text-white font-black text-xs uppercase tracking-wider font-mono">{ann.title}</span>
+              {#if ann.isGlobal}
+                 <span class="px-2 py-0.5 {meta.bg} text-black text-[7px] font-black uppercase tracking-[0.2em]">LIVE</span>
+              {/if}
+            </div>
+            <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wide line-clamp-1 italic">{ann.message}</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <button 
+              onclick={() => toggleGlobal(ann)}
+              class="h-10 px-6 border {ann.isGlobal ? `${meta.border.replace('l-', '')}/30 text-white` : 'border-slate-800 text-slate-700 hover:border-white/20 hover:text-white'} text-[8px] font-mono font-black uppercase tracking-widest transition-all bg-white/[0.02]"
+            >
+              {ann.isGlobal ? 'DEACTIVATE' : 'RELOAD'}
+            </button>
+            <button 
+              onclick={() => handleDelete(ann.id)}
+              class="h-10 w-10 flex items-center justify-center border border-transparent hover:border-red-500/50 text-slate-800 hover:text-red-500 transition-all"
+              title={$t('common.delete')}
+            >
+              <Trash weight="bold" class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      {/each}
+    </div>
+  </div>
+
+  <div class="flex items-center gap-6 p-8 bg-white/[0.02] border border-white/10 rounded-none relative overflow-hidden">
+    <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 animate-pulse"></div>
+    <ChatTeardropDots weight="bold" class="w-6 h-6 text-primary-500 flex-shrink-0" />
+    <p class="text-[9px] font-mono text-slate-500 uppercase tracking-[0.2em] leading-relaxed">
       {$t('admin.broadcast.disclaimer')}
     </p>
   </div>
