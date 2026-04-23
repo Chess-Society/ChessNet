@@ -332,7 +332,7 @@
               <p class="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em]">Progreso de Rango</p>
             </div>
             <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight leading-none group-hover:text-primary-400 transition-colors">
-              PRÓXIMO RANGO <span class="text-zinc-600 mx-2">/</span> <span class="text-primary-400">{netsToNext > 0 ? netsToNext.toLocaleString() : 0} NETS</span>
+              PRÓXIMO RANGO <span class="text-zinc-600 mx-2">/</span> <span class="text-primary-400">{(netsToNext ?? 0) > 0 ? (netsToNext ?? 0).toLocaleString() : 0} NETS</span>
             </h3>
             <p class="text-[10px] text-zinc-500 font-bold uppercase mt-3 flex items-center gap-2">
               <span class="w-1 h-1 bg-primary-500"></span>
@@ -349,7 +349,7 @@
             <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em]">
               <div class="flex items-center gap-2 px-2 py-1 bg-white/5 border border-white/10">
                 <span class="text-zinc-500">SALDO ACTUAL:</span>
-                <span class="text-white">{userEconomy.netsBalance.toLocaleString()} NTS</span>
+                <span class="text-white">{(userEconomy.netsBalance ?? 0).toLocaleString()} NTS</span>
               </div>
             </div>
           </div>

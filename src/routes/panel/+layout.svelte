@@ -320,7 +320,7 @@
        <div class="flex items-center gap-1.5 mr-1">
          <div class="px-2 py-1 bg-white/5 border border-white/10 backdrop-blur-md flex items-center gap-1">
            <ChartPieSlice weight="fill" size={12} class="text-primary-400" />
-           <span class="text-[9px] font-black text-white">{netsBalance.toLocaleString()}</span>
+           <span class="text-[9px] font-black text-white">{(netsBalance ?? 0).toLocaleString()}</span>
          </div>
        </div>
        <button 
@@ -583,7 +583,7 @@
             <ChartPieSlice weight="fill" size={16} class="text-primary-400 group-hover:scale-110 transition-transform duration-500" />
             <div class="flex flex-col relative z-10">
               <span class="text-[8px] font-black text-zinc-500 uppercase leading-none mb-1 tracking-widest">Saldo Nets</span>
-              <span class="text-[12px] font-black text-white tracking-[0.1em] uppercase leading-none group-hover:text-primary-300 transition-colors">{netsBalance.toLocaleString()}</span>
+              <span class="text-[12px] font-black text-white tracking-[0.1em] uppercase leading-none group-hover:text-primary-300 transition-colors">{(netsBalance ?? 0).toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -863,15 +863,11 @@
         </div>
 
         <div class="grid grid-cols-1 gap-2">
-          <button type="button" class="w-full flex items-center gap-4 p-4 bg-white/5 border border-white/5 hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-left group">
-            <ChatTeardropDots size={20} class="text-violet-400 group-hover:scale-110 transition-transform" />
-            <div>
-              <p class="text-xs font-black text-white uppercase tracking-wider">Hablar con Soporte</p>
-              <p class="text-[9px] text-zinc-600 font-bold uppercase">Chat en vivo con el equipo</p>
-            </div>
-          </button>
-
-          <button type="button" class="w-full flex items-center gap-4 p-4 bg-white/5 border border-white/5 hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-left group">
+          <button 
+            type="button" 
+            class="w-full flex items-center gap-4 p-4 bg-white/5 border border-white/5 hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-left group"
+            onclick={() => { showSupportMenu = false; goto('/faq'); }}
+          >
             <Question size={20} class="text-amber-400 group-hover:scale-110 transition-transform" />
             <div>
               <p class="text-xs font-black text-white uppercase tracking-wider">Preguntas Frecuentes</p>
@@ -879,7 +875,11 @@
             </div>
           </button>
 
-          <button type="button" class="w-full flex items-center gap-4 p-4 bg-white/5 border border-white/5 hover:bg-red-500/10 hover:border-red-500/20 transition-all text-left group">
+          <button 
+            type="button" 
+            class="w-full flex items-center gap-4 p-4 bg-white/5 border border-white/5 hover:bg-red-500/10 hover:border-red-500/20 transition-all text-left group"
+            onclick={() => { showSupportMenu = false; goto('/panel/support'); }}
+          >
             <WarningCircle size={20} class="text-red-400 group-hover:scale-110 transition-transform" />
             <div>
               <p class="text-xs font-black text-white uppercase tracking-wider">Reportar un Fallo</p>

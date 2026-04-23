@@ -510,7 +510,7 @@
                   </td>
                   <td class="p-5 text-right">
                     <div class="flex flex-col items-end">
-                      <span class="text-xs font-black text-white tabular-nums">{m.totalPool.toLocaleString()}</span>
+                      <span class="text-xs font-black text-white tabular-nums">{(m.totalPool ?? 0).toLocaleString()}</span>
                       <span class="text-[7px] text-zinc-600 font-black tracking-wider uppercase">NETS_TOTAL</span>
                     </div>
                   </td>

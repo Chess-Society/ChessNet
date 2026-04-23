@@ -397,7 +397,7 @@
       </h1>
       <div class="flex items-center gap-3 px-4 py-2 bg-violet-500/10 border border-violet-500/20">
         <Coins size={14} weight="fill" class="text-amber-400" />
-        <span class="text-[11px] font-black text-white font-mono">{netsBalance.toLocaleString()}</span>
+        <span class="text-[11px] font-black text-white font-mono">{(netsBalance ?? 0).toLocaleString()}</span>
         <span class="text-[9px] text-zinc-500 font-black uppercase">NETS</span>
       </div>
     </div>

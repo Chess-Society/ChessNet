@@ -110,7 +110,7 @@
                 <div class="flex items-center gap-2 mt-2">
                   <Clock size={12} class="text-slate-700" />
                   <p class="text-[9px] text-slate-600 font-mono font-black uppercase tracking-widest italic">
-                    {new Date(s.createdAt).toLocaleString()}
+                    {s.createdAt ? new Date(s.createdAt).toLocaleString() : '---'}
                   </p>
                 </div>
               </div>

@@ -30,7 +30,7 @@
   const primaryCards = $derived([
     {
       label: $t('admin.stats.total_revenue'),
-      value: `${stats.totalRevenue.toLocaleString()}€`,
+      value: `${(stats.totalRevenue ?? 0).toLocaleString()}€`,
       icon: TrendUp,
       color: 'from-violet-400 to-indigo-500',
       description: $t('admin.stats.total_revenue_desc')
@@ -143,7 +143,7 @@
           <div>
             <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.2em] mb-1">{card.label}</p>
             <h4 class="text-4xl font-black font-display italic text-white leading-none">
-               {card.value.toLocaleString()}
+               {(card.value ?? 0).toLocaleString()}
             </h4>
             <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mt-4 flex items-center gap-2">
               <span class="w-1 h-1 bg-slate-800"></span>

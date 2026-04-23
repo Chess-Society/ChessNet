@@ -51,7 +51,7 @@
         </div>
         <h3 class="text-xl font-black text-white uppercase tracking-tighter italic">Nivel {currentRange}</h3>
         <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
-          {nets.toLocaleString()} Prestigio Acumulado
+          {(nets ?? 0).toLocaleString()} Prestigio Acumulado
         </p>
       </div>
     </div>
@@ -63,7 +63,7 @@
             <span class="text-[9px] font-black text-white uppercase tracking-widest">Siguiente Rango: {nextRange.name}</span>
           </div>
           <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest italic">
-            Faltan {netsToNext.toLocaleString()} NETS
+            Faltan {(netsToNext ?? 0).toLocaleString()} NETS
           </span>
         </div>
         

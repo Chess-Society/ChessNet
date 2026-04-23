@@ -264,7 +264,7 @@
         <span class="label">{$t('payments.revenue_month')}</span>
         <div class="value-row">
           <span class="symbol">€</span>
-          <span class="amount">{metrics.realizedRevenue.toLocaleString()}</span>
+          <span class="amount">{(metrics.realizedRevenue ?? 0).toLocaleString()}</span>
         </div>
         <div class="footer-stats">
           <CheckCircle size={14} />
@@ -281,7 +281,7 @@
         <span class="label">{$t('payments.accounts_receivable')}</span>
         <div class="value-row">
           <span class="symbol">€</span>
-          <span class="amount">{metrics.accountsReceivable.toLocaleString()}</span>
+          <span class="amount">{(metrics.accountsReceivable ?? 0).toLocaleString()}</span>
         </div>
         <div class="footer-stats">
           <Hourglass size={14} />
