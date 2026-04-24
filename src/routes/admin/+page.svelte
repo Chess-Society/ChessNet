@@ -390,6 +390,36 @@
     }
   }
 
+  async function handleResetEconomy(userId: string) {
+    const confirmed = await uiStore.confirm({
+      title: '¿REINICIAR ECONOMÍA?',
+      message: 'Esta acción es IRREVERSIBLE. Se eliminarán todos los Nets, colecciones, progreso del Pase de Batalla e inventario. El usuario volverá al estado inicial (100 Nets, Tier 1).',
+      type: 'danger',
+      confirmText: 'SÍ, REINICIAR TODO',
+      cancelText: 'CANCELAR'
+    });
+
+    if (!confirmed) return;
+
+    isSaving = true;
+    try {
+      await adminApi.resetUserEconomy(userId);
+      toast.success('Economía y progreso reiniciados correctamente');
+      
+      // Refrescar detalles
+      const [details, insignias] = await Promise.all([
+        adminApi.getUserDetails(userId),
+        adminApi.getUserInsignias(userId)
+      ]);
+      userDetails = details;
+      userInsignias = insignias;
+    } catch (e: any) {
+      toast.error(e.message || $t('admin.broadcast.error'));
+    } finally {
+      isSaving = false;
+    }
+  }
+
   function getPlanStatus(user: any) {
     return (user.settings?.plan === 'premium' || user.settings?.plan === 'pro') ? 'pro' : 'free';
   }
@@ -887,19 +917,19 @@
             <div class="space-y-4">
               <div class="flex items-center gap-3">
                 <Star weight="duotone" class="w-4 h-4 text-emerald-500" />
-                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">Gestión de Nets (MINT)</p>
+                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">ACUÑAR MONEDA (NETS)</p>
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/10 border border-white/10">
-                 {#each [100, 500, 1000, 5000] as amount}
-                   <button 
-                    onclick={() => handleMintNets(amount)}
-                    disabled={isSaving}
-                    class="py-4 bg-[#02040a] text-[10px] font-mono font-black uppercase tracking-widest transition-all hover:bg-emerald-500/10 hover:text-emerald-400 disabled:opacity-50 text-slate-400 cursor-pointer rounded-none"
-                   >
-                    +{amount}
-                   </button>
-                 {/each}
-              </div>
+              <div class="grid grid-cols-4 gap-2">
+                  {#each [25, 100, 250, 500] as amount}
+                    <button 
+                      onclick={() => handleMintNets(amount)}
+                      disabled={isSaving}
+                      class="py-1 px-2 bg-zinc-900 border border-white/5 hover:border-amber-500/50 hover:bg-amber-500/10 text-[10px] font-mono text-zinc-400 hover:text-amber-500 transition-all disabled:opacity-50"
+                    >
+                      +{amount}
+                    </button>
+                  {/each}
+                </div>
             </div>
 
             <!-- Badge Command -->
@@ -943,6 +973,32 @@
                      {/each}
                    </div>
                  </div>
+               </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="pt-8 border-t border-red-500/20 space-y-6">
+               <div class="flex items-center gap-3">
+                 <Shield weight="duotone" class="w-4 h-4 text-red-500" />
+                 <p class="text-[9px] font-mono font-black text-red-500 uppercase tracking-[0.3em]">Zona de Peligro</p>
+               </div>
+               
+               <div class="p-6 bg-red-500/5 border border-red-500/20 space-y-4">
+                 <div class="space-y-1">
+                    <p class="text-[10px] font-black text-white uppercase italic">PROTOCOL: FULL_RECONSTRUCTION</p>
+                    <p class="text-[9px] font-mono text-slate-500 uppercase leading-relaxed">
+                      ADVERTENCIA: Esta operación purgará el balance de Nets, vaciará el inventario completo, eliminará colecciones activas y restablecerá el Pase de Batalla al Nivel 1.
+                    </p>
+                 </div>
+
+                 <button 
+                onclick={() => handleResetEconomy(selectedUser?.id)}
+                disabled={isSaving}
+                class="w-full py-4 bg-red-950/20 border border-red-500/30 hover:bg-red-500 hover:text-black text-red-500 text-xs font-mono font-black tracking-widest transition-all group relative overflow-hidden disabled:opacity-50"
+              >
+                <div class="absolute inset-0 bg-red-500/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
+                <span class="relative">REESTABLECER_ORDEN_ECONOMICO</span>
+              </button>
                </div>
             </div>
         </div>

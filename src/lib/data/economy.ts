@@ -1,22 +1,22 @@
 export const XP_PER_TIER = 7500;
 
 export const RARITY_STYLES: Record<string, { color: string, border: string, glow: string, bg: string, label: string }> = {
-  'Common':     { color: 'text-zinc-400',    border: 'border-zinc-600',    glow: 'rgba(161,161,170,0.3)',   bg: 'bg-zinc-800/30',    label: 'Común' },
-  'Uncommon':   { color: 'text-emerald-400', border: 'border-emerald-500', glow: 'rgba(52,211,153,0.4)',    bg: 'bg-emerald-900/20', label: 'Infrecuente' },
-  'Rare':       { color: 'text-blue-400',    border: 'border-blue-500',    glow: 'rgba(96,165,250,0.5)',    bg: 'bg-blue-900/20',    label: 'Raro' },
-  'Epic':       { color: 'text-violet-400',  border: 'border-violet-500',  glow: 'rgba(139,92,246,0.6)',    bg: 'bg-violet-900/20',  label: 'Épico' },
-  'Legendary':  { color: 'text-amber-400',   border: 'border-amber-500',   glow: 'rgba(251,191,36,0.7)',    bg: 'bg-amber-900/20',   label: 'Legendario' },
-  'Mythic':     { color: 'text-red-400',     border: 'border-red-500',     glow: 'rgba(248,113,113,0.7)',   bg: 'bg-red-900/20',     label: 'Mítico' },
+  'Common':     { color: 'text-zinc-400',    border: 'border-zinc-600',    glow: 'rgba(161,161,170,0.3)',   bg: 'bg-zinc-800/30',    label: 'COMÚN' },
+  'Uncommon':   { color: 'text-emerald-400', border: 'border-emerald-500', glow: 'rgba(52,211,153,0.4)',    bg: 'bg-emerald-900/20', label: 'INFRECUENTE' },
+  'Rare':       { color: 'text-blue-400',    border: 'border-blue-500',    glow: 'rgba(96,165,250,0.5)',    bg: 'bg-blue-900/20',    label: 'RARO' },
+  'Epic':       { color: 'text-violet-400',  border: 'border-violet-500',  glow: 'rgba(139,92,246,0.6)',    bg: 'bg-violet-900/20',  label: 'ÉPICO' },
+  'Legendary':  { color: 'text-amber-400',   border: 'border-amber-500',   glow: 'rgba(251,191,36,0.7)',    bg: 'bg-amber-900/20',   label: 'LEGENDARIO' },
+  'Mythic':     { color: 'text-red-400',     border: 'border-red-500',     glow: 'rgba(248,113,113,0.7)',   bg: 'bg-red-900/20',     label: 'MÍTICO' },
 };
 
 export const possibleRewards = [
-  { name: 'Wave 👋',      type: 'emote',  rarity: 'Common' },
-  { name: 'Thinking 🤔',  type: 'emote',  rarity: 'Uncommon' },
-  { name: 'Cyber',        type: 'font',   rarity: 'Rare' },
-  { name: 'Cian',         type: 'color',  rarity: 'Rare' },
-  { name: 'Neón Violeta', type: 'frame',  rarity: 'Epic' },
-  { name: 'Dorado Real',  type: 'frame',  rarity: 'Legendary' },
-  { name: 'Fucsia Mítico',type: 'color',  rarity: 'Mythic' },
+  { name: 'Saludo 👋',      type: 'emote',  rarity: 'Common' },
+  { name: 'Pensativo 🤔',    type: 'emote',  rarity: 'Uncommon' },
+  { name: 'Cyber Mono',     type: 'font',   rarity: 'Rare' },
+  { name: 'Azul Cian',      type: 'color',  rarity: 'Rare' },
+  { name: 'Neón Violeta',   type: 'frame',  rarity: 'Epic' },
+  { name: 'Dorado Real',    type: 'frame',  rarity: 'Legendary' },
+  { name: 'Fucsia Mítico',  type: 'color',  rarity: 'Mythic' },
 ].map(r => ({ ...r, ...RARITY_STYLES[r.rarity] }));
 
 export const frameStyles: Record<string, string> = {
@@ -53,10 +53,10 @@ export const nameFontStyles: Record<string, string> = {
 };
 
 export const shopItems = [
-  { name: 'Fucsia', type: 'color', price: 1500, rarity: 'Legendary', desc: 'Un color fucsia neón que destaca en cualquier publicación.' },
-  { name: 'Cian Cyber', type: 'frame', price: 2500, rarity: 'Legendary', desc: 'Marco tecnológico con efectos de pulso cian.' },
-  { name: 'Monospace Pro', type: 'font', price: 800, rarity: 'Epic', desc: 'Tipografía de terminal para un look más técnico.' },
-  { name: 'Rojo Sangre', type: 'frame', price: 3000, rarity: 'Epic', desc: 'Marco agresivo para los jugadores más competitivos.' },
-  { name: 'Dorado', type: 'color', price: 5000, rarity: 'Mythic', desc: 'El color de los reyes del tablero.' },
-  { name: 'Esmeralda', type: 'frame', price: 1200, rarity: 'Rare', desc: 'Marco natural y elegante.' },
+  { name: 'Fucsia', type: 'color', price: 150, rarity: 'Legendary', desc: 'Un color fucsia neón que destaca en cualquier publicación.' },
+  { name: 'Cian Cyber', type: 'frame', price: 250, rarity: 'Legendary', desc: 'Marco tecnológico con efectos de pulso cian.' },
+  { name: 'Monospace Pro', type: 'font', price: 80, rarity: 'Epic', desc: 'Tipografía de terminal para un look más técnico.' },
+  { name: 'Rojo Sangre', type: 'frame', price: 300, rarity: 'Epic', desc: 'Marco agresivo para los jugadores más competitivos.' },
+  { name: 'Oro Real', type: 'color', price: 500, rarity: 'Mythic', desc: 'El color de los reyes del tablero.' },
+  { name: 'Esmeralda', type: 'frame', price: 120, rarity: 'Rare', desc: 'Marco natural e inteligente.' },
 ];

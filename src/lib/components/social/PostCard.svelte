@@ -4,7 +4,7 @@
     Gift, Trash, User, ArrowSquareOut, Heart, 
     ChatTeardrop, DotsThreeVertical, Trophy, 
     Sword, Target, ChartLineUp, ShareNetwork,
-    Rocket, Lightbulb, Question, WarningCircle, Skull
+    Rocket, Lightbulb, Question, WarningCircle, Skull, Shield
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import type { SocialPost } from '$lib/types/social';
@@ -15,7 +15,10 @@
   import ReactionPicker from './ReactionPicker.svelte';
   import ChessBoard from '../ChessBoard.svelte';
   import { toast } from '$lib/stores/toast';
+  import { uiStore } from '$lib/stores/uiStore';
   import { t } from '$lib/i18n';
+
+  import { frameStyles, nameColorStyles, nameFontStyles } from '$lib/data/economy';
 
   interface Props {
     post: SocialPost;
@@ -30,6 +33,7 @@
   let reactionTimeout: any;
 
   const isAuthor = $derived($user?.uid === post.authorId);
+  const isAdmin = $derived($appStore.settings?.role === 'admin');
   const userBalance = $derived($appStore.settings.economy?.netsBalance || 0);
   
   const reactionConfig: Record<string, any> = {
@@ -83,13 +87,15 @@
 
   function formatDate(date: any) {
     if (!date) return '';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return new Intl.DateTimeFormat('es-ES', { 
-      day: 'numeric', 
-      month: 'short', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    }).format(d);
+    const d = date?.toDate ? date.toDate() : (typeof date === 'string' ? new Date(date) : date);
+    if (isNaN(d.getTime())) return '';
+
+    // "WorldMonitor" Style: 24 APR 10:30
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = d.toLocaleString('es-ES', { month: 'short' }).toUpperCase().replace('.', '');
+    const time = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+    
+    return `${day} ${month} · ${time}`;
   }
 
   function handleReactionMouseEnter() {
@@ -111,43 +117,24 @@
     (post.authorId === $user?.uid && $appStore.settings?.plan === 'premium')
   );
 
-  const authorNameColor = $derived(post.metadata?.authorColor || 'text-white');
+  const authorNameColor = $derived(post.metadata?.authorColor || 'none');
   const authorFrame = $derived(post.metadata?.authorFrame || 'none');
-
-  const frameStyles: Record<string, string> = {
-    'Acero': 'border-zinc-400 shadow-[0_0_10px_rgba(161,161,170,0.3)]',
-    'Amatista': 'border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.5)]',
-    'Eléctrico': 'border-blue-400 shadow-[0_0_20px_rgba(96,165,250,0.6)] animate-pulse',
-    'Maestro': 'border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.8)] border-[3px]',
-    'Neón Violeta': 'border-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]',
-    'Dorado Real': 'border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]',
-    'Cian Cyber': 'border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]',
-    'Esmeralda': 'border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]',
-    'Rojo Sangre': 'border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]'
-  };
-
-  const nameColorStyles: Record<string, string> = {
-    'Esmeralda': 'text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.3)]',
-    'Violeta Neón': 'text-violet-400 drop-shadow-[0_0_8px_rgba(167,139,250,0.5)]',
-    'Oro Puro': 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)] font-black',
-    'Gris Piedra': 'text-zinc-500',
-    'Violeta': 'text-violet-400',
-    'Dorado': 'text-amber-400',
-    'Cian': 'text-cyan-400',
-    'Rojo': 'text-red-500',
-    'Fucsia': 'text-fuchsia-400'
-  };
-
-  const nameFontStyles: Record<string, string> = {
-    'Retro': 'font-mono tracking-tighter',
-    'Elegante': 'italic font-serif',
-    'Maestro': 'uppercase tracking-[0.2em] font-black',
-    'Cyber': 'font-cyber',
-    'Inter Tight': 'font-inter-tight',
-    'Monospace Pro': 'font-mono'
-  };
-
   const authorFont = $derived(post.metadata?.authorFont || 'none');
+
+  async function handleAdminDelete() {
+    if (!isAdmin || !onDelete) return;
+    const confirmed = await uiStore.confirm({
+      title: 'MODERACIÓN: ELIMINAR POST',
+      message: '¿Estás seguro de que quieres eliminar esta publicación como administrador? Esta acción no se puede deshacer.',
+      type: 'danger',
+      confirmText: 'SÍ, ELIMINAR',
+      cancelText: 'CANCELAR'
+    });
+
+    if (confirmed) {
+      onDelete(post.id);
+    }
+  }
 </script>
 
 <div class="post-card group relative p-4 bg-zinc-950 border border-white/5 hover:border-white/10 transition-all duration-300">
@@ -189,7 +176,16 @@
         </div>
         
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {#if isAuthor && onDelete}
+          {#if isAdmin}
+            <button 
+              onclick={handleAdminDelete}
+              class="p-1.5 text-red-500/50 hover:text-red-500 transition-colors flex items-center gap-1"
+              title="Moderación Administrador"
+            >
+              <Shield weight="fill" size={14} />
+              <Trash size={14} />
+            </button>
+          {:else if isAuthor && onDelete}
             <button 
               onclick={() => onDelete(post.id)}
               class="p-1.5 text-zinc-700 hover:text-red-500 transition-colors"
@@ -229,13 +225,13 @@
              <div class="flex items-center justify-between gap-4 border-t border-white/5 pt-4">
                 <div class="flex flex-col gap-1">
                    <span class="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">Opening_Data</span>
-                   <span class="text-[10px] font-black text-white uppercase tracking-wider">{post.metadata?.opening || 'Custom Position'}</span>
+                   <span class="text-[10px] font-black text-white uppercase tracking-wider">{post.metadata?.opening || 'Posición Personalizada'}</span>
                 </div>
                 
                 {#if post.lichessUrl}
                   <a href={post.lichessUrl} target="_blank" class="px-4 py-2 bg-white text-black text-[9px] font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all flex items-center gap-2">
                     <ArrowSquareOut size={12} weight="bold" />
-                    Analyze
+                    Analizar
                   </a>
                 {/if}
              </div>

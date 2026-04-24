@@ -95,6 +95,8 @@ export const battlepassApi = {
         updates['economy.collection.frames'] = arrayUnion(value);
       } else if (type === 'theme') {
         updates['economy.collection.themes'] = arrayUnion(value);
+      } else if (type === 'effect') {
+        updates['economy.collection.effects'] = arrayUnion(value);
       } else if (type === 'crate') {
         // Logic for adding a crate could go here, or just increment a counter
         updates[`economy.inventory.crates.${value}`] = increment(1);

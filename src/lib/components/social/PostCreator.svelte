@@ -92,11 +92,19 @@
   };
 
   const categories = [
-    { id: 'GAME_ANALYSIS', label: 'Análisis', icon: ChartLine, color: 'text-blue-400' },
-    { id: 'EXERCISE', label: 'Ejercicio', icon: Target, color: 'text-emerald-400' },
-    { id: 'ACHIEVEMENT', label: 'Logro', icon: Medal, color: 'text-amber-400' },
-    { id: 'SCHOOL_UPDATE', label: 'Escuelas', icon: Buildings, color: 'text-violet-400' }
+    { id: 'GAME_ANALYSIS', label: 'ANÁLISIS', icon: ChartLine, color: 'text-blue-400' },
+    { id: 'EXERCISE', label: 'EJERCICIO', icon: Target, color: 'text-emerald-400' },
+    { id: 'ACHIEVEMENT', label: 'LOGRO', icon: Medal, color: 'text-amber-400' },
+    { id: 'SCHOOL_UPDATE', label: 'ESCUELAS', icon: Buildings, color: 'text-violet-400' }
   ];
+
+  const isValidFen = $derived((f: string) => {
+    if (!f) return true;
+    const parts = f.trim().split(' ');
+    if (parts.length < 1) return false;
+    // Basic regex for FEN board part
+    return /^[pnbrqkPNBRQK1-8/]+$/.test(parts[0]);
+  });
 </script>
 
 <div class="relative group">
@@ -134,9 +142,9 @@
 
         <textarea 
           bind:value={content}
-          placeholder="Escribe tu reflexión o análisis aquí..."
+          placeholder="Escribe tu reflexión, análisis o posición táctica..."
           aria-label="Contenido de la publicación"
-          class="w-full bg-transparent text-xs text-zinc-300 placeholder:text-zinc-700 outline-none resize-none min-h-[100px] leading-relaxed"
+          class="w-full bg-transparent text-xs text-zinc-300 placeholder:text-zinc-700 outline-none resize-none min-h-[120px] leading-relaxed font-medium"
         ></textarea>
 
         <div class="flex flex-wrap items-center gap-2 pt-4 border-t border-white/5">
@@ -165,22 +173,29 @@
             </div>
           </div>
           <div class="space-y-2">
-            <div class="flex items-center gap-2 px-3 py-2 bg-zinc-950 border border-white/5">
-              <Image size={14} class="text-zinc-600" />
+            <div class="flex items-center gap-2 px-3 py-2.5 bg-zinc-950 border {fen && !isValidFen(fen) ? 'border-red-500/50' : 'border-white/5'} transition-colors">
+              <Image size={14} class={fen && !isValidFen(fen) ? 'text-red-500' : 'text-zinc-600'} />
               <input 
                 type="text" 
                 bind:value={fen}
-                placeholder="Posición FEN (Tablero)"
+                placeholder="Posición FEN (Opcional)"
                 aria-label="Posición FEN"
                 class="bg-transparent text-[10px] text-zinc-400 outline-none w-full font-mono"
               />
             </div>
+            {#if fen && !isValidFen(fen)}
+              <p class="text-[8px] font-mono text-red-500 uppercase tracking-widest px-1">FEN_INVALID_FORMAT</p>
+            {/if}
           </div>
         </div>
 
-        {#if fen && fen.length > 20}
-          <div class="flex justify-center p-4 bg-zinc-950 border border-white/5 pro-grid-bg" transition:fade>
-             <ChessBoard position={fen} interactive={false} size={200} showCoordinates={false} />
+        {#if fen && isValidFen(fen) && fen.length > 10}
+          <div class="flex flex-col items-center gap-4 p-6 bg-zinc-950 border border-white/5 pro-grid-bg" transition:fade>
+             <div class="text-[8px] font-mono font-black text-violet-400 uppercase tracking-[0.4em] mb-2">Previsualización de Posición</div>
+             <div class="relative group/board">
+                <div class="absolute -inset-4 bg-violet-500/5 blur-xl opacity-0 group-hover/board:opacity-100 transition-opacity"></div>
+                <ChessBoard position={fen} interactive={false} size={240} showCoordinates={false} />
+             </div>
           </div>
         {/if}
 

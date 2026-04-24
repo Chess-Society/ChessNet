@@ -118,7 +118,7 @@
 
             <div class="space-y-4">
               <div class="inline-block px-3 py-1 {getStatusColor(s.status)} border text-[8px] font-mono font-black uppercase tracking-[0.2em]">
-                {s.status}
+                {s.status === 'pending' ? 'PENDIENTE' : s.status === 'implemented' ? 'IMPLEMENTADO' : 'PLANIFICADO'}
               </div>
               <h4 class="text-3xl font-black uppercase italic tracking-tight text-white leading-[0.9]">
                 {s.title}
@@ -139,14 +139,14 @@
                     class="w-full py-3 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest hover:bg-violet-500 hover:text-white transition-all disabled:opacity-50"
                     disabled={s.status === 'planned'}
                   >
-                    PLAN_DEVELOPMENT
+                    PLANIFICAR_DESARROLLO
                   </button>
                   <button 
                     onclick={() => handleUpdateStatus(s.id, 'implemented')}
                     class="w-full py-3 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50"
                     disabled={s.status === 'implemented'}
                   >
-                    MARK_IMPLEMENTED
+                    MARCAR_COMPLETO
                   </button>
                 </div>
               </div>
@@ -154,9 +154,9 @@
               <div class="flex gap-2">
                 <button 
                   onclick={() => handleDelete(s.id)}
-                  class="flex-1 py-4 bg-red-500/5 text-red-500/60 border border-red-500/10 text-[9px] font-mono font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                  class="flex-1 py-4 bg-red-500/10 text-red-500 border border-red-500/30 text-[9px] font-mono font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-[0_0_15px_rgba(239,68,68,0.1)]"
                 >
-                  PURGE_ENTRY
+                  DEPURAR_REGISTRO
                 </button>
                 <div class="w-14 bg-white/5 border border-white/10 flex items-center justify-center text-slate-700">
                   <Timer size={18} />

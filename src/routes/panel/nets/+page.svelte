@@ -101,33 +101,33 @@
   const season = $derived({
     number: 1,
     name: 'GÉNESIS',
-    timeLeft: '45D 12H',
+    timeLeft: '15 Días 12 Horas',
     totalTiers: 20,
     currentTier: currentTier,
     currentXp: currentXp,
   });
 
   const baseTiers = [
-    { level: 1, type: 'free', reward: 'Hola 👋', category: 'emote', icon: Smiley, color: 'text-zinc-400', rarity: 'COMÚN' },
-    { level: 2, type: 'premium', reward: '25 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'COMÚN' },
-    { level: 3, type: 'free', reward: 'Gris Piedra', category: 'color', icon: PaintBrush, color: 'text-zinc-500', rarity: 'POCO COMÚN' },
-    { level: 4, type: 'premium', reward: 'Cyber', category: 'font', icon: TextT, color: 'text-blue-400', rarity: 'RARO' },
-    { level: 5, type: 'premium', reward: '50 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'POCO COMÚN' },
-    { level: 6, type: 'free', reward: 'Pensando 🤔', category: 'emote', icon: Smiley, color: 'text-zinc-400', rarity: 'POCO COMÚN' },
-    { level: 7, type: 'premium', reward: 'Violeta Neón', category: 'color', icon: PaintBrush, color: 'text-violet-400', rarity: 'ÉPICO' },
-    { level: 8, type: 'premium', reward: '75 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'RARO' },
-    { level: 9, type: 'free', reward: 'Corazón ❤️', category: 'emote', icon: Smiley, color: 'text-red-400', rarity: 'POCO COMÚN' },
-    { level: 10, type: 'premium', reward: 'MARCO ELITE', category: 'frame', icon: ImageSquare, color: 'text-emerald-400', rarity: 'LEGENDARIO' },
-    { level: 11, type: 'free', reward: 'Rojo Fuego', category: 'color', icon: PaintBrush, color: 'text-red-500', rarity: 'RARO' },
-    { level: 12, type: 'premium', reward: '100 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'ÉPICO' },
-    { level: 13, type: 'free', reward: 'Elegante', category: 'font', icon: TextT, color: 'text-zinc-300', rarity: 'RARO' },
-    { level: 14, type: 'premium', reward: 'Efecto Trueno', category: 'effect', icon: Lightning, color: 'text-yellow-400', rarity: 'ÉPICO' },
-    { level: 15, type: 'free', reward: '50 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'RARO' },
-    { level: 16, type: 'premium', reward: 'Dorado', category: 'color', icon: PaintBrush, color: 'text-amber-500', rarity: 'LEGENDARIO' },
-    { level: 17, type: 'free', reward: 'Llorando 😂', category: 'emote', icon: Smiley, color: 'text-yellow-400', rarity: 'RARO' },
-    { level: 18, type: 'premium', reward: 'MARCO MÍTICO', category: 'frame', icon: ImageSquare, color: 'text-red-500', rarity: 'MÍTICO' },
-    { level: 19, type: 'premium', reward: '250 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'LEGENDARIO' },
-    { level: 20, type: 'premium', reward: 'CHESSNET GOD', category: 'title', icon: Trophy, color: 'text-violet-500', rarity: 'DIVINO' },
+    { level: 1,  type: 'free',    reward: '25 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
+    { level: 2,  type: 'premium', reward: '50 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'RARO' },
+    { level: 3,  type: 'free',    reward: 'Módulo Suministros Alfa', category: 'crate',     icon: Package,   color: 'text-zinc-400',   rarity: 'COMÚN' },
+    { level: 4,  type: 'premium', reward: 'Cian Cyber',      category: 'nameColor', icon: Palette,   color: 'text-cyan-400',   rarity: 'RARO' },
+    { level: 5,  type: 'free',    reward: '35 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
+    { level: 6,  type: 'premium', reward: 'Módulo Suministros Gamma', category: 'crate',     icon: Package,   color: 'text-violet-400', rarity: 'ÉPICO' },
+    { level: 7,  type: 'free',    reward: 'Marco Acero',     category: 'frame',     icon: IdentificationCard, color: 'text-zinc-300', rarity: 'COMÚN' },
+    { level: 8,  type: 'premium', reward: '75 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'ÉPICO' },
+    { level: 9,  type: 'free',    reward: 'Módulo Suministros Beta', category: 'crate',     icon: Package,   color: 'text-blue-400',   rarity: 'RARO' },
+    { level: 10, type: 'premium', reward: 'Esmeralda',       category: 'nameColor', icon: Palette,   color: 'text-emerald-400', rarity: 'INFRECUENTE' },
+    { level: 11, type: 'free',    reward: '50 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
+    { level: 12, type: 'premium', reward: 'Tipografía Retro', category: 'font',      icon: TextT,     color: 'text-zinc-200',   rarity: 'RARO' },
+    { level: 13, type: 'free',    reward: 'Módulo Suministros Alfa', category: 'crate',     icon: Package,   color: 'text-zinc-400',   rarity: 'COMÚN' },
+    { level: 14, type: 'premium', reward: 'Trueno Cyber',    category: 'effect',    icon: Lightning, color: 'text-yellow-400', rarity: 'ÉPICO' },
+    { level: 15, type: 'free',    reward: 'Esmeralda',       category: 'nameColor', icon: Palette,   color: 'text-emerald-400', rarity: 'BÁSICO' },
+    { level: 16, type: 'premium', reward: 'Gris Piedra',     category: 'nameColor', icon: Palette,   color: 'text-zinc-400',   rarity: 'BÁSICO' },
+    { level: 17, type: 'free',    reward: 'Llorando 😂',     category: 'emote',     icon: Smiley,    color: 'text-yellow-400', rarity: 'RARO' },
+    { level: 18, type: 'premium', reward: 'MARCO MÍTICO',    category: 'frame',     icon: ImageSquare, color: 'text-red-500',  rarity: 'MÍTICO' },
+    { level: 19, type: 'premium', reward: '100 NETS',        category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'LEGENDARIO' },
+    { level: 20, type: 'premium', reward: 'DIOS CHESSNET',   category: 'title',     icon: Trophy,    color: 'text-violet-500', rarity: 'MÍTICO' },
   ];
 
   let tiers = $derived(baseTiers.map(t => ({...t, claimed: claimedTiers.includes(t.level)})));
@@ -156,9 +156,10 @@
       let rewardObj: { type: string, value: any } = { type: tier.category, value: tier.reward };
       
       if (tier.category === 'nets') {
-        rewardObj.value = parseInt(tier.reward);
+        rewardObj.value = parseInt(tier.reward.replace(/\D/g, ''));
       } else if (tier.category === 'crate') {
-        rewardObj.value = tier.reward.includes('Épica') ? 'epic' : (tier.reward.includes('Rara') ? 'rare' : 'basic');
+        const r = tier.reward.toLowerCase();
+        rewardObj.value = r.includes('gamma') ? 'epic' : (r.includes('beta') ? 'rare' : 'basic');
       }
       
       await battlepassApi.claimTier($user.uid, tier.level, rewardObj);
@@ -168,23 +169,24 @@
     }
   }
 
-
-
   const categoryLabels: Record<string, string> = {
-    'currency': 'MONEDA VIRTUAL',
-    'emote': 'EMOTE EXCLUSIVO',
-    'color': 'COLOR DE NOMBRE',
-    'font': 'FUENTE ESPECIAL',
-    'frame': 'MARCO DE AVATAR',
-    'effect': 'EFECTO VISUAL',
-    'title': 'TÍTULO DE PRESTIGIO'
+    'nets': 'CRÉDITOS NETS',
+    'crate': 'MÓDULO DE SUMINISTROS',
+    'frame': 'MATRIZ DE AVATAR',
+    'nameColor': 'ESPECTRO DE NOMBRE',
+    'font': 'INTERFAZ_TIPOGRÁFICA',
+    'effect': 'PROTOCOLO_VISUAL',
+    'emote': 'REACCIÓN_HOLOGRÁFICA',
+    'title': 'RANGO_DE_PRESTIGIO'
   };
 
   const iconMap: Record<string, any> = {
-    'currency': Coins,
-    'color': PaintBrush,
+    'nets': Coins,
+    'crate': Package,
     'frame': ImageSquare,
+    'nameColor': Palette,
     'font': TextT,
+    'effect': Lightning,
     'emote': Smiley,
     'title': Trophy
   };
@@ -420,8 +422,10 @@
           </div>
           <div class="flex items-center gap-4">
              <div class="flex items-center gap-2 px-3 py-1 bg-zinc-900/80 border border-white/10">
-               <Calendar size={14} class="text-amber-500" />
-               <span class="text-[9px] font-black text-white uppercase tracking-widest">{new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
+               <div class="space-y-1">
+              <span class="block text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">SEASON_TIMESTAMP</span>
+              <span class="block text-xs font-mono font-black text-white">MAY_2026 // JUN_2026</span>
+            </div>
              </div>
              <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20">
                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -598,10 +602,10 @@
     </div>
   {:else if currentTab === 'crates'}
     {@const crateData = [
-      { type: 'season', label: 'Caja de Temporada', price: 1000, frequency: 'SEASON', rarity: 'Legendary', desc: 'Objetos exclusivos de esta temporada. ¡Corre antes de que se acaben!', borderCls: 'border-amber-500/50', glowCls: 'bg-amber-500/5', iconCls: 'text-amber-500', btnCls: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '7d 5h 24m' },
-      { type: 'daily',  label: 'Caja Diaria',      price: 0,    frequency: 'DAILY',  rarity: 'Uncommon',  desc: 'Vuelve cada día para una oportunidad de unboxing gratis.',   borderCls: 'border-emerald-500',    glowCls: 'bg-emerald-500/10', iconCls: 'text-emerald-500', btnCls: 'bg-emerald-500 hover:bg-white text-black', ready: true, timer: '18h 45m' },
-      { type: 'weekly', label: 'Caja Semanal',     price: 250,  frequency: 'WEEKLY', rarity: 'Rare',      desc: 'Objetos infrecuentes y más. Mejores probabilidades.',       borderCls: 'border-blue-500/50',    glowCls: 'bg-blue-500/5',    iconCls: 'text-blue-500',    btnCls: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '2d 18h' },
-      { type: 'monthly',label: 'Caja Mensual',     price: 500,  frequency: 'MONTHLY',rarity: 'Legendary', desc: 'Bienes premium. La paciencia tiene su recompensa.',         borderCls: 'border-amber-500/50',   glowCls: 'bg-amber-500/5',   iconCls: 'text-amber-500',   btnCls: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '20d 18h' },
+      { type: 'season', label: 'Módulo Estacional', price: 1000, frequency: 'TEMPORADA', rarity: 'Legendary', desc: 'Suministros exclusivos de la temporada actual. Protocolo de tiempo limitado.', borderCls: 'border-amber-500/50', glowCls: 'bg-amber-500/5', iconCls: 'text-amber-500', btnCls: 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '7d 5h 24m' },
+      { type: 'daily',  label: 'Módulo Diario',     price: 0,    frequency: 'DIARIA',    rarity: 'Uncommon',  desc: 'Suministro estándar gratuito disponible cada 24 horas.',   borderCls: 'border-emerald-500',    glowCls: 'bg-emerald-500/10', iconCls: 'text-emerald-500', btnCls: 'bg-emerald-500 hover:bg-white text-black', ready: true, timer: '18h 45m' },
+      { type: 'weekly', label: 'Módulo Semanal',    price: 250,  frequency: 'SEMANAL',   rarity: 'Rare',      desc: 'Probabilidad aumentada de obtener componentes raros.',       borderCls: 'border-blue-500/50',    glowCls: 'bg-blue-500/5',    iconCls: 'text-blue-500',    btnCls: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '2d 18h' },
+      { type: 'monthly',label: 'Módulo Mensual',    price: 500,  frequency: 'MENSUAL',   rarity: 'Legendary', desc: 'Hardware premium garantizado. El ciclo de carga más largo.',         borderCls: 'border-amber-500/50',   glowCls: 'bg-amber-500/5',   iconCls: 'text-amber-500',   btnCls: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '20d 18h' },
     ]}
     <div class="space-y-8" in:fade={{ duration: 400 }}>
       <div class="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Cajas Disponibles</div>

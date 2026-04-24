@@ -757,5 +757,66 @@ export const adminApi = {
    */
   async mintNets(userId: string, amount: number) {
     return this.addNets(userId, amount, 'Concesión administrativa de Nets (MINT)');
+  },
+
+  /**
+   * Reinicia completamente la economía de un usuario (Nets, Pase de Batalla, Inventario).
+   */
+  async resetUserEconomy(userId: string) {
+    try {
+      const userRef = doc(db, "users", userId);
+      const timestamp = new Date().toISOString();
+
+      const initialEconomy = {
+        netsBalance: 100,
+        totalNetsEarned: 100,
+        tier: 'BRONZE',
+        prestige: 0,
+        lastEconomyUpdate: timestamp,
+        activeColor: 'none',
+        activeFrame: 'none',
+        activeFont: 'none',
+        collection: {
+          emotes: [],
+          fonts: [],
+          colors: [],
+          badges: [],
+          frames: [],
+          themes: []
+        },
+        battlePass: {
+          seasonId: 'season-1',
+          currentXp: 0,
+          currentTier: 1,
+          isPremium: false,
+          claimedTiers: [],
+          dailyChallenges: {},
+          weeklyChallenges: {}
+        },
+        inventory: {
+          crates: {}
+        }
+      };
+
+      await Promise.all([
+        updateDoc(userRef, {
+          economy: initialEconomy,
+          "settings.updatedAt": timestamp
+        }),
+        addDoc(collection(db, "system_logs"), {
+          type: 'economy_reset',
+          category: 'ECONOMY',
+          action: 'Reinicio de Economía',
+          message: `Economía del usuario ${userId} reiniciada completamente por un administrador`,
+          timestamp,
+          status: 'warning'
+        })
+      ]);
+
+      return initialEconomy;
+    } catch (error) {
+      console.error("[AdminAPI] Error resetting user economy:", error);
+      throw error;
+    }
   }
 };
