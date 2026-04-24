@@ -826,6 +826,7 @@ export const adminApi = {
 
   /**
    * REINICIO GLOBAL: Purgado masivo de economía para todos los usuarios.
+   * Optimizado para manejar grandes volúmenes de datos secuencialmente para evitar timeouts.
    */
   async resetGlobalEconomy() {
     try {
@@ -863,10 +864,12 @@ export const adminApi = {
         }
       };
 
-      // Procesar en batches de 500 (límite de Firestore)
-      const batches = [];
+      console.log(`[AdminAPI] Iniciando reinicio global para ${usersSnap.size} usuarios...`);
+
+      // Procesar usuarios en batches de 400
       let currentBatch = writeBatch(db);
       let count = 0;
+      let totalProcessed = 0;
 
       for (const uDoc of usersSnap.docs) {
         currentBatch.update(doc(db, "users", uDoc.id), {
@@ -874,51 +877,54 @@ export const adminApi = {
           "settings.updatedAt": timestamp
         });
         count++;
+        totalProcessed++;
 
-        if (count === 500) {
-          batches.push(currentBatch.commit());
+        if (count === 400) {
+          await currentBatch.commit();
+          console.log(`[AdminAPI] Batch de usuarios completado: ${totalProcessed}/${usersSnap.size}`);
           currentBatch = writeBatch(db);
           count = 0;
         }
       }
 
       if (count > 0) {
-        batches.push(currentBatch.commit());
+        await currentBatch.commit();
+        console.log(`[AdminAPI] Último batch de usuarios completado.`);
       }
 
-      // Purge Global Collections: prediction_markets, nets_transactions, and legacy economies
-      const collectionsToPurge = ['prediction_markets', 'nets_transactions', 'economies'];
-      const purgePromises = collectionsToPurge.map(async (collName) => {
+      // Purge Global Collections: prediction_markets, nets_transactions
+      const collectionsToPurge = ['prediction_markets', 'nets_transactions'];
+      
+      for (const collName of collectionsToPurge) {
+        console.log(`[AdminAPI] Purgando colección: ${collName}...`);
         const snap = await getDocs(collection(db, collName));
-        const purgeBatches = [];
         let pBatch = writeBatch(db);
         let pCount = 0;
+        let pTotal = 0;
 
         for (const pDoc of snap.docs) {
           pBatch.delete(pDoc.ref);
           pCount++;
-          if (pCount === 500) {
-            purgeBatches.push(pBatch.commit());
+          pTotal++;
+          if (pCount === 400) {
+            await pBatch.commit();
             pBatch = writeBatch(db);
             pCount = 0;
           }
         }
-        if (pCount > 0) purgeBatches.push(pBatch.commit());
-        return Promise.all(purgeBatches);
-      });
+        if (pCount > 0) await pBatch.commit();
+        console.log(`[AdminAPI] Purga de ${collName} completada: ${pTotal} documentos eliminados.`);
+      }
 
-      await Promise.all([
-        ...batches,
-        ...purgePromises,
-        addDoc(collection(db, "system_logs"), {
-          type: 'global_economy_reset',
-          category: 'ECONOMY',
-          action: 'Reinicio Global',
-          message: `Economía global reiniciada para ${usersSnap.size} usuarios por un administrador`,
-          timestamp,
-          status: 'danger'
-        })
-      ]);
+      // Final log
+      await addDoc(collection(db, "system_logs"), {
+        type: 'global_economy_reset',
+        category: 'ECONOMY',
+        action: 'Reinicio Global',
+        message: `Economía global reiniciada para ${usersSnap.size} usuarios por un administrador`,
+        timestamp,
+        status: 'danger'
+      });
 
       return { totalReset: usersSnap.size };
     } catch (error) {

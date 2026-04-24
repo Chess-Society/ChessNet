@@ -103,11 +103,23 @@
   const season = $derived({
     number: 1,
     name: 'GÉNESIS',
-    timeLeft: '15 Días 12 Horas',
+    timeLeft: seasonTimeLeft,
     totalTiers: 20,
     currentTier: currentTier,
     currentXp: currentXp,
   });
+
+  // Dynamic Season Dates
+  const getSeasonRange = () => {
+    const now = new Date();
+    const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+    const currentMonth = months[now.getUTCMonth()];
+    const nextMonth = months[(now.getUTCMonth() + 1) % 12];
+    const year = now.getUTCFullYear();
+    return `${currentMonth}_${year} // ${nextMonth}_${year}`;
+  };
+
+  let seasonRange = $state(getSeasonRange());
 
   const baseTiers = [
     { level: 1,  type: 'free',    reward: '10 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
@@ -289,12 +301,14 @@
 
   let rouletteItems = $state<any[]>([]);
 
-  async function openCrate(type: string) {
+  async function openCrate(crate: any) {
     if (isOpeningCrate || !$user) return;
-    const price = type === 'epic' ? 500 : (type === 'rare' ? 250 : 100);
-    if (netsBalance < price) return;
+    if (netsBalance < crate.price) {
+      toast.error('Nets insuficientes');
+      return;
+    }
 
-    crateType = type;
+    crateType = crate.type;
     isOpeningCrate = true;
     showCrateResult = false;
     crateResult = null;
@@ -302,7 +316,9 @@
     rouletteItems = Array(40).fill(0).map(() => possibleRewards[Math.floor(Math.random() * possibleRewards.length)]);
     
     try {
-      const winnerData = await battlepassApi.openCrate($user.uid, price, type);
+      // Map UI types to API types
+      const apiType = crate.type === 'monthly' ? 'epic' : (crate.type === 'weekly' ? 'rare' : 'basic');
+      const winnerData = await battlepassApi.openCrate($user.uid, crate.price, apiType);
       
       let winner = possibleRewards.find(r => r.name === winnerData.name) || possibleRewards[0];
       
@@ -333,21 +349,52 @@
   let rouletteOffset = $state(0);
 
 
-  let timeLeft = $state("");
+  let dailyTimeLeft = $state("");
+  let weeklyTimeLeft = $state("");
+  let monthlyTimeLeft = $state("");
+  let seasonTimeLeft = $state("");
+
   $effect(() => {
-    const updateTime = () => {
+    const updateTimers = () => {
       const now = new Date();
-      const nextMidnight = new Date(now);
-      nextMidnight.setUTCHours(24, 0, 0, 0);
-      const diff = nextMidnight.getTime() - now.getTime();
       
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      timeLeft = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      // Daily: Next UTC midnight
+      const nextDay = new Date(now);
+      nextDay.setUTCHours(24, 0, 0, 0);
+      const dDiff = nextDay.getTime() - now.getTime();
+      dailyTimeLeft = formatTime(dDiff);
+
+      // Weekly: Next Monday UTC
+      const nextWeek = new Date(now);
+      nextWeek.setUTCDate(now.getUTCDate() + (7 - (now.getUTCDay() || 7) + 1));
+      nextWeek.setUTCHours(0, 0, 0, 0);
+      const wDiff = nextWeek.getTime() - now.getTime();
+      weeklyTimeLeft = formatTime(wDiff, true);
+
+      // Monthly / Season: Next Month UTC
+      const nextMonth = new Date(now);
+      nextMonth.setUTCMonth(now.getUTCMonth() + 1, 1);
+      nextMonth.setUTCHours(0, 0, 0, 0);
+      const mDiff = nextMonth.getTime() - now.getTime();
+      monthlyTimeLeft = formatTime(mDiff, true);
+      seasonTimeLeft = formatTime(mDiff, true);
     };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
+
+    const formatTime = (ms: number, includeDays = false) => {
+      if (ms < 0) return "00:00:00";
+      const s = Math.floor(ms / 1000);
+      const m = Math.floor(s / 60);
+      const h = Math.floor(m / 60);
+      const d = Math.floor(h / 24);
+
+      if (includeDays && d > 0) {
+        return `${d}d ${h % 24}h ${m % 60}m`;
+      }
+      return `${(h % 24).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+    };
+
+    updateTimers();
+    const interval = setInterval(updateTimers, 1000);
     return () => clearInterval(interval);
   });
 
@@ -426,7 +473,7 @@
              <div class="flex items-center gap-2 px-3 py-1 bg-zinc-900/80 border border-white/10">
                <div class="space-y-1">
               <span class="block text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">SEASON_TIMESTAMP</span>
-              <span class="block text-xs font-mono font-black text-white">ABRIL_2026 // MAYO_2026</span>
+              <span class="block text-xs font-mono font-black text-white">{seasonRange}</span>
             </div>
              </div>
              <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20">
@@ -604,10 +651,10 @@
     </div>
   {:else if currentTab === 'crates'}
     {@const crateData = [
-      { type: 'season', label: 'Módulo Estacional', price: 1000, frequency: 'TEMPORADA', rarity: 'Legendary', desc: 'Suministros exclusivos de la temporada actual. Protocolo de tiempo limitado.', borderCls: 'border-amber-500/50', glowCls: 'bg-amber-500/5', iconCls: 'text-amber-500', btnCls: 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '7d 5h 24m' },
-      { type: 'daily',  label: 'Módulo Diario',     price: 0,    frequency: 'DIARIA',    rarity: 'Uncommon',  desc: 'Suministro estándar gratuito disponible cada 24 horas.',   borderCls: 'border-emerald-500',    glowCls: 'bg-emerald-500/10', iconCls: 'text-emerald-500', btnCls: 'bg-emerald-500 hover:bg-white text-black', ready: true, timer: '18h 45m' },
-      { type: 'weekly', label: 'Módulo Semanal',    price: 250,  frequency: 'SEMANAL',   rarity: 'Rare',      desc: 'Probabilidad aumentada de obtener componentes raros.',       borderCls: 'border-blue-500/50',    glowCls: 'bg-blue-500/5',    iconCls: 'text-blue-500',    btnCls: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '2d 18h' },
-      { type: 'monthly',label: 'Módulo Mensual',    price: 500,  frequency: 'MENSUAL',   rarity: 'Legendary', desc: 'Hardware premium garantizado. El ciclo de carga más largo.',         borderCls: 'border-amber-500/50',   glowCls: 'bg-amber-500/5',   iconCls: 'text-amber-500',   btnCls: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-500', ready: false, timer: '20d 18h' },
+      { type: 'season', label: 'Módulo Estacional', price: 1000, frequency: 'TEMPORADA', rarity: 'Legendary', desc: 'Suministros exclusivos de la temporada actual. Protocolo de tiempo limitado.', borderCls: 'border-amber-500/50', glowCls: 'bg-amber-500/5', iconCls: 'text-amber-500', btnCls: 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-500', ready: false, timer: seasonTimeLeft },
+      { type: 'daily',  label: 'Módulo Diario',     price: 100,  frequency: 'DIARIA',    rarity: 'Uncommon',  desc: 'Suministro estándar disponible cada 24 horas.',   borderCls: 'border-emerald-500',    glowCls: 'bg-emerald-500/10', iconCls: 'text-emerald-500', btnCls: 'bg-emerald-500 hover:bg-white text-black', ready: true, timer: dailyTimeLeft },
+      { type: 'weekly', label: 'Módulo Semanal',    price: 250,  frequency: 'SEMANAL',   rarity: 'Rare',      desc: 'Probabilidad aumentada de obtener componentes raros.',       borderCls: 'border-blue-500/50',    glowCls: 'bg-blue-500/5',    iconCls: 'text-blue-500',    btnCls: 'bg-blue-500/80 hover:bg-white text-black', ready: true, timer: weeklyTimeLeft },
+      { type: 'monthly',label: 'Módulo Mensual',    price: 500,  frequency: 'MENSUAL',   rarity: 'Legendary', desc: 'Hardware premium garantizado. El ciclo de carga más largo.',         borderCls: 'border-amber-500/50',   glowCls: 'bg-amber-500/5',   iconCls: 'text-amber-500',   btnCls: 'bg-amber-500/80 hover:bg-white text-black', ready: true, timer: monthlyTimeLeft },
     ]}
     <div class="space-y-8" in:fade={{ duration: 400 }}>
       <div class="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Cajas Disponibles</div>
@@ -633,8 +680,8 @@
               </div>
             </div>
 
-            <button
-              onclick={() => crate.ready && openCrate(crate.type)}
+              <button
+                onclick={() => crate.ready && openCrate(crate)}
               class="w-full py-3.5 {crate.btnCls} text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30"
               disabled={!crate.ready && netsBalance < crate.price}
             >
@@ -789,7 +836,7 @@
            <h4 class="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
              <Target size={16} class="text-emerald-500" /> RETOS DIARIOS
            </h4>
-           <span class="text-[9px] font-mono text-zinc-600 tracking-widest">REINICIO EN 12H</span>
+           <span class="text-[9px] font-mono text-zinc-600 tracking-widest">REINICIO EN {dailyTimeLeft}</span>
         </div>
 
         <div class="space-y-3">

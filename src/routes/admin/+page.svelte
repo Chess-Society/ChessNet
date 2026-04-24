@@ -486,7 +486,7 @@
   }
 </script>
 
-<div class="min-w-[320px] min-h-screen bg-[#02040a] text-white selection:bg-violet-500/30 font-sans flex">
+<div class="min-w-[320px] min-h-screen bg-[#02040a] text-white selection:bg-violet-500/30 font-sans flex flex-col lg:flex-row w-full overflow-x-hidden">
   <!-- Desktop Sidebar -->
   <aside class="w-[280px] border-r border-white/5 hidden lg:flex flex-col bg-[#02040a]/80 backdrop-blur-3xl relative z-50">
     <!-- Sidebar Header -->
@@ -640,7 +640,7 @@
   {/if}
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-6 sm:p-8 md:p-12 max-w-[1600px] mx-auto min-h-[calc(100vh-57px-var(--banner-height,0px))] relative pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-12">
+    <main class="flex-1 p-6 sm:p-8 md:p-12 max-w-[1600px] mx-auto w-full overflow-x-hidden min-h-[calc(100vh-57px-var(--banner-height,0px))] relative pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-12">
       <!-- Background Patterns -->
       <div class="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(124,58,237,0.03)_0%,transparent_50%)]"></div>
