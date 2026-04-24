@@ -115,6 +115,7 @@
                     dialog.onConfirm(inputValue);
                   }
                 }}
+                <!-- svelte-ignore a11y_autofocus -->
                 autofocus
               />
             </div>
