@@ -99,7 +99,55 @@
       : defaultWeekly) as Challenge[]
   );
   
-  
+  let dailyTimeLeft = $state("");
+  let weeklyTimeLeft = $state("");
+  let monthlyTimeLeft = $state("");
+  let seasonTimeLeft = $state("");
+
+  $effect(() => {
+    const updateTimers = () => {
+      const now = new Date();
+      
+      // Daily: Next UTC midnight
+      const nextDay = new Date(now);
+      nextDay.setUTCHours(24, 0, 0, 0);
+      const dDiff = nextDay.getTime() - now.getTime();
+      dailyTimeLeft = formatTime(dDiff);
+
+      // Weekly: Next Monday UTC
+      const nextWeek = new Date(now);
+      nextWeek.setUTCDate(now.getUTCDate() + (7 - (now.getUTCDay() || 7) + 1));
+      nextWeek.setUTCHours(0, 0, 0, 0);
+      const wDiff = nextWeek.getTime() - now.getTime();
+      weeklyTimeLeft = formatTime(wDiff, true);
+
+      // Monthly / Season: Next Month UTC
+      const nextMonth = new Date(now);
+      nextMonth.setUTCMonth(now.getUTCMonth() + 1, 1);
+      nextMonth.setUTCHours(0, 0, 0, 0);
+      const mDiff = nextMonth.getTime() - now.getTime();
+      monthlyTimeLeft = formatTime(mDiff, true);
+      seasonTimeLeft = formatTime(mDiff, true);
+    };
+
+    const formatTime = (ms: number, includeDays = false) => {
+      if (ms < 0) return "00:00:00";
+      const s = Math.floor(ms / 1000);
+      const m = Math.floor(s / 60);
+      const h = Math.floor(m / 60);
+      const d = Math.floor(h / 24);
+
+      if (includeDays && d > 0) {
+        return `${d}d ${h % 24}h ${m % 60}m`;
+      }
+      return `${(h % 24).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+    };
+
+    updateTimers();
+    const interval = setInterval(updateTimers, 1000);
+    return () => clearInterval(interval);
+  });
+
   const season = $derived({
     number: 1,
     name: 'GÉNESIS',
@@ -349,54 +397,7 @@
   let rouletteOffset = $state(0);
 
 
-  let dailyTimeLeft = $state("");
-  let weeklyTimeLeft = $state("");
-  let monthlyTimeLeft = $state("");
-  let seasonTimeLeft = $state("");
 
-  $effect(() => {
-    const updateTimers = () => {
-      const now = new Date();
-      
-      // Daily: Next UTC midnight
-      const nextDay = new Date(now);
-      nextDay.setUTCHours(24, 0, 0, 0);
-      const dDiff = nextDay.getTime() - now.getTime();
-      dailyTimeLeft = formatTime(dDiff);
-
-      // Weekly: Next Monday UTC
-      const nextWeek = new Date(now);
-      nextWeek.setUTCDate(now.getUTCDate() + (7 - (now.getUTCDay() || 7) + 1));
-      nextWeek.setUTCHours(0, 0, 0, 0);
-      const wDiff = nextWeek.getTime() - now.getTime();
-      weeklyTimeLeft = formatTime(wDiff, true);
-
-      // Monthly / Season: Next Month UTC
-      const nextMonth = new Date(now);
-      nextMonth.setUTCMonth(now.getUTCMonth() + 1, 1);
-      nextMonth.setUTCHours(0, 0, 0, 0);
-      const mDiff = nextMonth.getTime() - now.getTime();
-      monthlyTimeLeft = formatTime(mDiff, true);
-      seasonTimeLeft = formatTime(mDiff, true);
-    };
-
-    const formatTime = (ms: number, includeDays = false) => {
-      if (ms < 0) return "00:00:00";
-      const s = Math.floor(ms / 1000);
-      const m = Math.floor(s / 60);
-      const h = Math.floor(m / 60);
-      const d = Math.floor(h / 24);
-
-      if (includeDays && d > 0) {
-        return `${d}d ${h % 24}h ${m % 60}m`;
-      }
-      return `${(h % 24).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
-    };
-
-    updateTimers();
-    const interval = setInterval(updateTimers, 1000);
-    return () => clearInterval(interval);
-  });
 
 </script>
 
@@ -593,7 +594,7 @@
       <div class="bg-violet-950/10 border border-violet-500/20 p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
         <div class="absolute top-0 right-0 p-4">
            <span class="text-[10px] font-black text-violet-400 uppercase tracking-[0.3em] flex items-center gap-2">
-             <Lightning size={14} weight="fill" /> Rotación en: {timeLeft}
+             <Lightning size={14} weight="fill" /> Rotación en: {dailyTimeLeft}
            </span>
         </div>
         <div class="w-48 h-48 bg-zinc-900 border border-white/5 flex items-center justify-center relative group">
