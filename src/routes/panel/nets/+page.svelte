@@ -100,34 +100,34 @@
   
   const season = $derived({
     number: 1,
-    name: 'GREEN & BLACK',
-    timeLeft: '60D 8H',
+    name: 'GÉNESIS',
+    timeLeft: '45D 12H',
     totalTiers: 20,
     currentTier: currentTier,
     currentXp: currentXp,
   });
 
   const baseTiers = [
-    { level: 1, type: 'free', reward: 'Hola 👋', category: 'emote', icon: Smiley, color: 'text-zinc-400' },
-    { level: 2, type: 'premium', reward: '250 Nets', category: 'currency', icon: Coins, color: 'text-amber-400' },
-    { level: 3, type: 'free', reward: 'Gris Piedra', category: 'color', icon: PaintBrush, color: 'text-zinc-500' },
-    { level: 4, type: 'premium', reward: 'Cyber', category: 'font', icon: TextT, color: 'text-blue-400' },
-    { level: 5, type: 'premium', reward: '500 Nets', category: 'currency', icon: Coins, color: 'text-amber-400' },
-    { level: 6, type: 'free', reward: 'Pensando 🤔', category: 'emote', icon: Smiley, color: 'text-zinc-400' },
-    { level: 7, type: 'premium', reward: 'Violeta Neón', category: 'color', icon: PaintBrush, color: 'text-violet-400' },
-    { level: 8, type: 'premium', reward: '750 Nets', category: 'currency', icon: Coins, color: 'text-amber-400' },
-    { level: 9, type: 'free', reward: 'Corazón ❤️', category: 'emote', icon: Smiley, color: 'text-red-400' },
-    { level: 10, type: 'premium', reward: 'MARCO ELITE', category: 'frame', icon: ImageSquare, color: 'text-emerald-400', rarity: 'LEGENDARY' },
-    { level: 11, type: 'free', reward: 'Rojo Fuego', category: 'color', icon: PaintBrush, color: 'text-red-500' },
-    { level: 12, type: 'premium', reward: '1000 Nets', category: 'currency', icon: Coins, color: 'text-amber-400' },
-    { level: 13, type: 'free', reward: 'Elegante', category: 'font', icon: TextT, color: 'text-zinc-300' },
-    { level: 14, type: 'premium', reward: 'Efecto Trueno', category: 'effect', icon: Lightning, color: 'text-yellow-400' },
-    { level: 15, type: 'free', reward: '500 Nets', category: 'currency', icon: Coins, color: 'text-amber-400' },
-    { level: 16, type: 'premium', reward: 'Dorado', category: 'color', icon: PaintBrush, color: 'text-amber-500' },
-    { level: 17, type: 'free', reward: 'Llorando 😂', category: 'emote', icon: Smiley, color: 'text-yellow-400' },
-    { level: 18, type: 'premium', reward: 'MARCO MÍTICO', category: 'frame', icon: ImageSquare, color: 'text-red-500', rarity: 'MYTHIC' },
-    { level: 19, type: 'premium', reward: '2000 Nets', category: 'currency', icon: Coins, color: 'text-amber-400' },
-    { level: 20, type: 'premium', reward: 'CHESSNET GOD', category: 'title', icon: Trophy, color: 'text-violet-500', rarity: 'DIVINE' },
+    { level: 1, type: 'free', reward: 'Hola 👋', category: 'emote', icon: Smiley, color: 'text-zinc-400', rarity: 'COMÚN' },
+    { level: 2, type: 'premium', reward: '25 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'COMÚN' },
+    { level: 3, type: 'free', reward: 'Gris Piedra', category: 'color', icon: PaintBrush, color: 'text-zinc-500', rarity: 'POCO COMÚN' },
+    { level: 4, type: 'premium', reward: 'Cyber', category: 'font', icon: TextT, color: 'text-blue-400', rarity: 'RARO' },
+    { level: 5, type: 'premium', reward: '50 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'POCO COMÚN' },
+    { level: 6, type: 'free', reward: 'Pensando 🤔', category: 'emote', icon: Smiley, color: 'text-zinc-400', rarity: 'POCO COMÚN' },
+    { level: 7, type: 'premium', reward: 'Violeta Neón', category: 'color', icon: PaintBrush, color: 'text-violet-400', rarity: 'ÉPICO' },
+    { level: 8, type: 'premium', reward: '75 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'RARO' },
+    { level: 9, type: 'free', reward: 'Corazón ❤️', category: 'emote', icon: Smiley, color: 'text-red-400', rarity: 'POCO COMÚN' },
+    { level: 10, type: 'premium', reward: 'MARCO ELITE', category: 'frame', icon: ImageSquare, color: 'text-emerald-400', rarity: 'LEGENDARIO' },
+    { level: 11, type: 'free', reward: 'Rojo Fuego', category: 'color', icon: PaintBrush, color: 'text-red-500', rarity: 'RARO' },
+    { level: 12, type: 'premium', reward: '100 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'ÉPICO' },
+    { level: 13, type: 'free', reward: 'Elegante', category: 'font', icon: TextT, color: 'text-zinc-300', rarity: 'RARO' },
+    { level: 14, type: 'premium', reward: 'Efecto Trueno', category: 'effect', icon: Lightning, color: 'text-yellow-400', rarity: 'ÉPICO' },
+    { level: 15, type: 'free', reward: '50 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'RARO' },
+    { level: 16, type: 'premium', reward: 'Dorado', category: 'color', icon: PaintBrush, color: 'text-amber-500', rarity: 'LEGENDARIO' },
+    { level: 17, type: 'free', reward: 'Llorando 😂', category: 'emote', icon: Smiley, color: 'text-yellow-400', rarity: 'RARO' },
+    { level: 18, type: 'premium', reward: 'MARCO MÍTICO', category: 'frame', icon: ImageSquare, color: 'text-red-500', rarity: 'MÍTICO' },
+    { level: 19, type: 'premium', reward: '250 Nets', category: 'currency', icon: Coins, color: 'text-amber-400', rarity: 'LEGENDARIO' },
+    { level: 20, type: 'premium', reward: 'CHESSNET GOD', category: 'title', icon: Trophy, color: 'text-violet-500', rarity: 'DIVINO' },
   ];
 
   let tiers = $derived(baseTiers.map(t => ({...t, claimed: claimedTiers.includes(t.level)})));
@@ -170,7 +170,18 @@
 
 
 
+  const categoryLabels: Record<string, string> = {
+    'currency': 'MONEDA VIRTUAL',
+    'emote': 'EMOTE EXCLUSIVO',
+    'color': 'COLOR DE NOMBRE',
+    'font': 'FUENTE ESPECIAL',
+    'frame': 'MARCO DE AVATAR',
+    'effect': 'EFECTO VISUAL',
+    'title': 'TÍTULO DE PRESTIGIO'
+  };
+
   const iconMap: Record<string, any> = {
+    'currency': Coins,
     'color': PaintBrush,
     'frame': ImageSquare,
     'font': TextT,
@@ -401,20 +412,20 @@
           <div class="flex items-center gap-3">
             <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
               <div class="w-1 h-1 bg-emerald-400 rounded-full animate-pulse"></div>
-              Season {season.number} is back
+              Temporada {season.number} disponible
             </span>
             <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-              <Clock size={14} /> 60d 8h
+              <Clock size={14} /> {season.timeLeft}
             </span>
           </div>
           <div class="flex items-center gap-4">
              <div class="flex items-center gap-2 px-3 py-1 bg-zinc-900/80 border border-white/10">
                <Calendar size={14} class="text-amber-500" />
-               <span class="text-[9px] font-black text-white uppercase tracking-widest">14 - NOV, 17</span>
+               <span class="text-[9px] font-black text-white uppercase tracking-widest">{new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
              </div>
              <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20">
                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-               <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">LIVE</span>
+               <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">ACTIVO</span>
              </div>
           </div>
         </div>
@@ -423,8 +434,8 @@
         <div class="flex-1 flex flex-col items-center justify-center relative z-10 p-6 pt-24 pb-32">
           <!-- Season Title -->
           <div class="absolute top-24 left-8 text-left">
-            <h3 class="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em] mb-1">Season {season.number}</h3>
-            <h2 class="text-2xl font-black text-white uppercase tracking-tighter italic">GREEN & BLACK</h2>
+            <h3 class="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em] mb-1">TEMPORADA {season.number}</h3>
+            <h2 class="text-2xl font-black text-white uppercase tracking-tighter italic">{season.name}</h2>
           </div>
 
           <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-current opacity-[0.1] blur-[100px] pointer-events-none {selectedTier.color}"></div>
@@ -436,7 +447,7 @@
 
           <div class="text-center space-y-4 max-w-md">
             <div class="flex flex-col items-center gap-1">
-              <span class="text-[9px] font-black uppercase tracking-[0.3em] {selectedTier.color}">✦ {selectedTier.rarity || 'EPIC'} CHAT EFFECT</span>
+              <span class="text-[9px] font-black uppercase tracking-[0.3em] {selectedTier.color}">✦ {selectedTier.rarity} {categoryLabels[selectedTier.category] || 'RECOMPENSA'}</span>
               <h2 class="text-3xl sm:text-5xl font-black text-white uppercase tracking-tighter italic drop-shadow-sm">{selectedTier.reward}</h2>
             </div>
             
