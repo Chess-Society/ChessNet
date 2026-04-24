@@ -1,6 +1,7 @@
 <script lang="ts">
   import Toast from '$lib/components/Toast.svelte';
   import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+  import PromptModal from '$lib/components/PromptModal.svelte';
   import CookieBanner from '$lib/components/CookieBanner.svelte';
   import '../app.css';
 
@@ -199,6 +200,7 @@
   {/if}
 
   <ConfirmModal />
+  <PromptModal />
   <SocialNotificationListener />
   <Toast />
   <CookieBanner />
