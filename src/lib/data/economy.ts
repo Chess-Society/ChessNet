@@ -1,22 +1,27 @@
 export const XP_PER_TIER = 7500;
 
 export const RARITY_STYLES: Record<string, { color: string, border: string, glow: string, bg: string, label: string }> = {
-  'Common':     { color: 'text-zinc-400',    border: 'border-zinc-600',    glow: 'rgba(161,161,170,0.3)',   bg: 'bg-zinc-800/30',    label: 'COMÚN' },
-  'Uncommon':   { color: 'text-emerald-400', border: 'border-emerald-500', glow: 'rgba(52,211,153,0.4)',    bg: 'bg-emerald-900/20', label: 'INFRECUENTE' },
-  'Rare':       { color: 'text-blue-400',    border: 'border-blue-500',    glow: 'rgba(96,165,250,0.5)',    bg: 'bg-blue-900/20',    label: 'RARO' },
-  'Epic':       { color: 'text-violet-400',  border: 'border-violet-500',  glow: 'rgba(139,92,246,0.6)',    bg: 'bg-violet-900/20',  label: 'ÉPICO' },
-  'Legendary':  { color: 'text-amber-400',   border: 'border-amber-500',   glow: 'rgba(251,191,36,0.7)',    bg: 'bg-amber-900/20',   label: 'LEGENDARIO' },
-  'Mythic':     { color: 'text-red-400',     border: 'border-red-500',     glow: 'rgba(248,113,113,0.7)',   bg: 'bg-red-900/20',     label: 'MÍTICO' },
+  'Común':      { color: 'text-zinc-400',    border: 'border-zinc-600',    glow: 'rgba(161,161,170,0.3)',   bg: 'bg-zinc-800/30',    label: 'COMÚN' },
+  'Infrecuente': { color: 'text-emerald-400', border: 'border-emerald-500', glow: 'rgba(52,211,153,0.4)',    bg: 'bg-emerald-900/20', label: 'INFRECUENTE' },
+  'Raro':        { color: 'text-blue-400',    border: 'border-blue-500',    glow: 'rgba(96,165,250,0.5)',    bg: 'bg-blue-900/20',    label: 'RARO' },
+  'Épico':       { color: 'text-violet-400',  border: 'border-violet-500',  glow: 'rgba(139,92,246,0.6)',    bg: 'bg-violet-900/20',  label: 'ÉPICO' },
+  'Legendario':  { color: 'text-amber-400',   border: 'border-amber-500',   glow: 'rgba(251,191,36,0.7)',    bg: 'bg-amber-900/20',   label: 'LEGENDARIO' },
+  'Mítico':      { color: 'text-red-400',     border: 'border-red-500',     glow: 'rgba(248,113,113,0.7)',   bg: 'bg-red-900/20',     label: 'MÍTICO' },
 };
 
 export const possibleRewards = [
-  { name: 'Saludo 👋',      type: 'emote',  rarity: 'Common' },
-  { name: 'Pensativo 🤔',    type: 'emote',  rarity: 'Uncommon' },
-  { name: 'Cyber Mono',     type: 'font',   rarity: 'Rare' },
-  { name: 'Azul Cian',      type: 'color',  rarity: 'Rare' },
-  { name: 'Neón Violeta',   type: 'frame',  rarity: 'Epic' },
-  { name: 'Dorado Real',    type: 'frame',  rarity: 'Legendary' },
-  { name: 'Fucsia Mítico',  type: 'color',  rarity: 'Mythic' },
+  { name: 'Saludo 👋',      type: 'emote',  rarity: 'Común' },
+  { name: 'Pensativo 🤔',    type: 'emote',  rarity: 'Infrecuente' },
+  { name: 'Cyber Mono',     type: 'font',   rarity: 'Raro' },
+  { name: 'Azul Ártico',    type: 'color',  rarity: 'Raro' },
+  { name: 'Neón Violeta',   type: 'frame',  rarity: 'Épico' },
+  { name: 'Plasma Rojo',    type: 'color',  rarity: 'ÉPICO' },
+  { name: 'Dorado Real',    type: 'frame',  rarity: 'Legendario' },
+  { name: 'Sombra Negra',   type: 'color',  rarity: 'Legendary' },
+  { name: 'Fucsia Mítico',  type: 'color',  rarity: 'Mítico' },
+  { name: 'Corona Nexo',    type: 'frame',  rarity: 'Mítico' },
+  { name: 'Victoria 🏆',     type: 'emote',  rarity: 'Épico' },
+  { name: 'Error 404',      type: 'font',   rarity: 'Legendary' },
 ].map(r => ({ ...r, ...RARITY_STYLES[r.rarity] }));
 
 export const frameStyles: Record<string, string> = {
@@ -28,7 +33,8 @@ export const frameStyles: Record<string, string> = {
   'Dorado Real': 'border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]',
   'Cian Cyber': 'border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]',
   'Esmeralda': 'border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]',
-  'Rojo Sangre': 'border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]'
+  'Rojo Sangre': 'border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]',
+  'Corona Nexo': 'border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.8)] border-[4px] animate-pulse'
 };
 
 export const nameColorStyles: Record<string, string> = {
@@ -40,7 +46,10 @@ export const nameColorStyles: Record<string, string> = {
   'Dorado': 'text-amber-400',
   'Cian': 'text-cyan-400',
   'Rojo': 'text-red-500',
-  'Fucsia': 'text-fuchsia-400'
+  'Fucsia': 'text-fuchsia-400',
+  'Azul Ártico': 'text-cyan-300 drop-shadow-[0_0_5px_rgba(103,232,249,0.4)]',
+  'Plasma Rojo': 'text-red-600 drop-shadow-[0_0_10px_rgba(220,38,38,0.6)]',
+  'Sombra Negra': 'text-zinc-300 drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] font-black'
 };
 
 export const nameFontStyles: Record<string, string> = {
@@ -49,14 +58,15 @@ export const nameFontStyles: Record<string, string> = {
   'Maestro': 'uppercase tracking-[0.2em] font-black',
   'Cyber': 'font-cyber',
   'Inter Tight': 'font-inter-tight',
-  'Monospace Pro': 'font-mono'
+  'Monospace Pro': 'font-mono',
+  'Error 404': 'font-mono line-through opacity-80'
 };
 
 export const shopItems = [
-  { name: 'Fucsia', type: 'color', price: 150, rarity: 'Legendary', desc: 'Un color fucsia neón que destaca en cualquier publicación.' },
-  { name: 'Cian Cyber', type: 'frame', price: 250, rarity: 'Legendary', desc: 'Marco tecnológico con efectos de pulso cian.' },
-  { name: 'Monospace Pro', type: 'font', price: 80, rarity: 'Epic', desc: 'Tipografía de terminal para un look más técnico.' },
-  { name: 'Rojo Sangre', type: 'frame', price: 300, rarity: 'Epic', desc: 'Marco agresivo para los jugadores más competitivos.' },
-  { name: 'Oro Real', type: 'color', price: 500, rarity: 'Mythic', desc: 'El color de los reyes del tablero.' },
-  { name: 'Esmeralda', type: 'frame', price: 120, rarity: 'Rare', desc: 'Marco natural e inteligente.' },
+  { name: 'Plasma Rojo', type: 'color', price: 800, rarity: 'Épico', desc: 'Un color rojo intenso que parece fluir por tu nombre.' },
+  { name: 'Cian Cyber', type: 'frame', price: 1200, rarity: 'Legendary', desc: 'Marco tecnológico con efectos de pulso cian.' },
+  { name: 'Error 404', type: 'font', price: 1500, rarity: 'Legendary', desc: 'Tipografía corrupta para quienes rompen el sistema.' },
+  { name: 'Corona Nexo', type: 'frame', price: 5000, rarity: 'Mítico', desc: 'El artefacto definitivo de la red.' },
+  { name: 'Dorado Real', type: 'frame', price: 2500, rarity: 'Legendary', desc: 'El marco de los campeones del circuito.' },
+  { name: 'Sombra Negra', type: 'color', price: 3000, rarity: 'Legendary', desc: 'Presencia absoluta en el chat.' },
 ];

@@ -34,7 +34,7 @@
 
   const isAuthor = $derived($user?.uid === post.authorId);
   const isAdmin = $derived($appStore.settings?.role === 'admin');
-  const userBalance = $derived($appStore.settings.economy?.netsBalance || 0);
+  const userBalance = $derived($appStore.settings?.economy?.netsBalance || 0);
   
   const reactionConfig: Record<string, any> = {
     'brilliant': { icon: Rocket, color: 'text-cyan-400', label: '!!' },
@@ -90,12 +90,13 @@
     const d = date?.toDate ? date.toDate() : (typeof date === 'string' ? new Date(date) : date);
     if (isNaN(d.getTime())) return '';
 
-    // "WorldMonitor" Style: 24 APR 10:30
+    // "WorldMonitor" Style: 24 ABR 2024 · 10:30
     const day = d.getDate().toString().padStart(2, '0');
     const month = d.toLocaleString('es-ES', { month: 'short' }).toUpperCase().replace('.', '');
+    const year = d.getFullYear();
     const time = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
     
-    return `${day} ${month} · ${time}`;
+    return `${day} ${month} ${year} · ${time}`;
   }
 
   function handleReactionMouseEnter() {
@@ -121,6 +122,21 @@
   const authorFrame = $derived(post.metadata?.authorFrame || 'none');
   const authorFont = $derived(post.metadata?.authorFont || 'none');
 
+  async function handleDelete() {
+    if (!onDelete) return;
+    const confirmed = await uiStore.confirm({
+      title: 'ELIMINAR PUBLICACIÓN',
+      message: '¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer.',
+      type: 'danger',
+      confirmText: 'SÍ, ELIMINAR',
+      cancelText: 'CANCELAR'
+    });
+
+    if (confirmed) {
+      onDelete(post.id);
+    }
+  }
+
   async function handleAdminDelete() {
     if (!isAdmin || !onDelete) return;
     const confirmed = await uiStore.confirm({
@@ -135,9 +151,29 @@
       onDelete(post.id);
     }
   }
+
+  async function handleToggleFeature() {
+    if (!isAdmin) return;
+    try {
+      // Toggle the featured status
+      await socialApi.toggleFeaturePost(post.id, !post.isFeatured);
+      toast.success(post.isFeatured ? 'Post quitado de destacados' : 'Post destacado con éxito');
+    } catch (e) {
+      console.error("Error toggling feature:", e);
+      toast.error("Error al modificar el estado del post");
+    }
+  }
 </script>
 
-<div class="post-card group relative p-4 bg-zinc-950 border border-white/5 hover:border-white/10 transition-all duration-300">
+<div 
+  class="post-card group relative p-4 bg-zinc-950 border transition-all duration-300 {post.isFeatured ? 'border-violet-500/30 shadow-[0_0_20px_rgba(139,92,246,0.05)]' : 'border-white/5'}"
+>
+  {#if post.isFeatured}
+    <div class="absolute -top-px -left-px px-2 py-0.5 bg-violet-600 text-[7px] font-black text-white uppercase tracking-[0.2em] z-10">
+      POST_DESTACADO
+    </div>
+  {/if}
+  
   <div class="flex gap-4">
     <!-- Left: Avatar Column -->
     <div class="flex flex-col items-center gap-2">
@@ -177,17 +213,25 @@
         
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {#if isAdmin}
-            <button 
-              onclick={handleAdminDelete}
-              class="p-1.5 text-red-500/50 hover:text-red-500 transition-colors flex items-center gap-1"
-              title="Moderación Administrador"
-            >
-              <Shield weight="fill" size={14} />
-              <Trash size={14} />
-            </button>
+            <div class="flex items-center gap-1">
+              <button 
+                onclick={handleToggleFeature}
+                class="p-1.5 transition-colors flex items-center gap-1 {post.isFeatured ? 'text-violet-400' : 'text-zinc-700 hover:text-violet-400'}"
+                title="Destacar Post"
+              >
+                <Trophy size={14} weight={post.isFeatured ? "fill" : "bold"} />
+              </button>
+              <button 
+                onclick={handleAdminDelete}
+                class="p-1.5 text-red-500/50 hover:text-red-500 transition-colors flex items-center gap-1"
+                title="Eliminar como Administrador"
+              >
+                <Trash size={14} />
+              </button>
+            </div>
           {:else if isAuthor && onDelete}
             <button 
-              onclick={() => onDelete(post.id)}
+              onclick={handleDelete}
               class="p-1.5 text-zinc-700 hover:text-red-500 transition-colors"
             >
               <Trash size={14} />
@@ -224,7 +268,7 @@
              
              <div class="flex items-center justify-between gap-4 border-t border-white/5 pt-4">
                 <div class="flex flex-col gap-1">
-                   <span class="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">Opening_Data</span>
+                   <span class="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">DATOS_APERTURA</span>
                    <span class="text-[10px] font-black text-white uppercase tracking-wider">{post.metadata?.opening || 'Posición Personalizada'}</span>
                 </div>
                 

@@ -144,17 +144,24 @@ export const battlepassApi = {
         'economy.netsBalance': increment(-cost)
       };
 
-      // --- Secure RNG Server-Side (or Transaction-side) ---
-      // We must determine the reward securely here instead of trusting the client
-      let winner;
+      // --- Secure RNG Server-Side ---
+      // Selection logic based on crate type
+      let itemsPool = [];
       if (crateType === 'epic') {
-        winner = possibleRewards.find(r => r.rarity === 'Legendary') || possibleRewards[4];
+        // Epic crates: 60% Epic, 30% Legendary, 10% Mythic
+        itemsPool = possibleRewards.filter(r => ['Epic', 'Legendary', 'Mythic'].includes(r.rarity));
       } else if (crateType === 'rare') {
-        winner = possibleRewards.find(r => r.rarity === 'Rare') || possibleRewards[5];
+        // Rare crates: 50% Rare, 40% Epic, 10% Legendary
+        itemsPool = possibleRewards.filter(r => ['Rare', 'Epic', 'Legendary'].includes(r.rarity));
       } else {
-        winner = possibleRewards.find(r => r.rarity === 'Uncommon') || possibleRewards[0];
+        // Basic crates: 60% Common, 30% Uncommon, 10% Rare
+        itemsPool = possibleRewards.filter(r => ['Common', 'Uncommon', 'Rare'].includes(r.rarity));
       }
       
+      // Fallback if pool is empty
+      if (itemsPool.length === 0) itemsPool = possibleRewards;
+      
+      const winner = itemsPool[Math.floor(Math.random() * itemsPool.length)];
       finalWinner = winner;
 
       const type = winner.type;

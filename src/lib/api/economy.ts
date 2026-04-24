@@ -10,41 +10,44 @@ import {
 
 export const economyApi = {
   /**
-   * Envía una propina (Tip) de un usuario a otro.
-   * Utiliza una transacción para asegurar que ambos saldos se actualicen correctamente.
+   * Envía Nets (propinas) de un usuario a otro.
+   * Utiliza una transacción para asegurar que ambos saldos se actualicen correctamente
+   * en el campo economy.netsBalance del documento del usuario.
    */
   async sendTip(fromUserId: string, toUserId: string, amount: number, postId?: string): Promise<void> {
     if (amount <= 0) throw new Error("La cantidad debe ser mayor a cero.");
     if (fromUserId === toUserId) throw new Error("No puedes enviarte propinas a ti mismo.");
 
-    const fromRef = doc(db, "economies", fromUserId);
-    const toRef = doc(db, "economies", toUserId);
+    const fromRef = doc(db, "users", fromUserId);
+    const toRef = doc(db, "users", toUserId);
     
     await runTransaction(db, async (transaction) => {
       const fromSnap = await transaction.get(fromRef);
       const toSnap = await transaction.get(toRef);
 
-      if (!fromSnap.exists()) throw new Error("El usuario emisor no tiene cuenta económica.");
-      if (!toSnap.exists()) throw new Error("El usuario receptor no tiene cuenta económica.");
+      if (!fromSnap.exists()) throw new Error("El usuario emisor no existe.");
+      if (!toSnap.exists()) throw new Error("El usuario receptor no existe.");
 
       const fromData = fromSnap.data();
-      if (fromData.nets < amount) {
+      const currentNets = fromData.economy?.netsBalance || 0;
+
+      if (currentNets < amount) {
         throw new Error("Saldo insuficiente de Nets.");
       }
 
       // 1. Descontar del emisor
       transaction.update(fromRef, {
-        nets: increment(-amount),
-        lastUpdated: serverTimestamp()
+        "economy.netsBalance": increment(-amount),
+        "economy.lastEconomyUpdate": new Date().toISOString()
       });
 
       // 2. Añadir al receptor
       transaction.update(toRef, {
-        nets: increment(amount),
-        lastUpdated: serverTimestamp()
+        "economy.netsBalance": increment(amount),
+        "economy.lastEconomyUpdate": new Date().toISOString()
       });
 
-      // 3. Registrar transacción
+      // 3. Registrar transacción (Global Log)
       const txRef = doc(collection(db, "nets_transactions"));
       transaction.set(txRef, {
         userId: fromUserId,

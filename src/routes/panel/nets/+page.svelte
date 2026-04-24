@@ -29,7 +29,9 @@
     ArrowUp,
     Target,
     Cube,
-    ListChecks
+    ListChecks,
+    Palette,
+    IdentificationCard
   } from 'phosphor-svelte';
 
   import { battlepassApi } from '$lib/api/battlepass';
@@ -108,25 +110,25 @@
   });
 
   const baseTiers = [
-    { level: 1,  type: 'free',    reward: '25 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
-    { level: 2,  type: 'premium', reward: '50 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'RARO' },
-    { level: 3,  type: 'free',    reward: 'Módulo Suministros Alfa', category: 'crate',     icon: Package,   color: 'text-zinc-400',   rarity: 'COMÚN' },
-    { level: 4,  type: 'premium', reward: 'Cian Cyber',      category: 'nameColor', icon: Palette,   color: 'text-cyan-400',   rarity: 'RARO' },
-    { level: 5,  type: 'free',    reward: '35 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
-    { level: 6,  type: 'premium', reward: 'Módulo Suministros Gamma', category: 'crate',     icon: Package,   color: 'text-violet-400', rarity: 'ÉPICO' },
+    { level: 1,  type: 'free',    reward: '10 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
+    { level: 2,  type: 'premium', reward: '20 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'RARO' },
+    { level: 3,  type: 'free',    reward: 'Módulo Alfa',     category: 'crate',     icon: Package,   color: 'text-zinc-400',   rarity: 'COMÚN' },
+    { level: 4,  type: 'premium', reward: 'Azul Ártico',     category: 'nameColor', icon: Palette,   color: 'text-cyan-400',   rarity: 'RARO' },
+    { level: 5,  type: 'free',    reward: '15 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
+    { level: 6,  type: 'premium', reward: 'Módulo Gamma',    category: 'crate',     icon: Package,   color: 'text-violet-400', rarity: 'ÉPICO' },
     { level: 7,  type: 'free',    reward: 'Marco Acero',     category: 'frame',     icon: IdentificationCard, color: 'text-zinc-300', rarity: 'COMÚN' },
-    { level: 8,  type: 'premium', reward: '75 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'ÉPICO' },
-    { level: 9,  type: 'free',    reward: 'Módulo Suministros Beta', category: 'crate',     icon: Package,   color: 'text-blue-400',   rarity: 'RARO' },
+    { level: 8,  type: 'premium', reward: '30 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'ÉPICO' },
+    { level: 9,  type: 'free',    reward: 'Módulo Beta',     category: 'crate',     icon: Package,   color: 'text-blue-400',   rarity: 'RARO' },
     { level: 10, type: 'premium', reward: 'Esmeralda',       category: 'nameColor', icon: Palette,   color: 'text-emerald-400', rarity: 'INFRECUENTE' },
-    { level: 11, type: 'free',    reward: '50 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
+    { level: 11, type: 'free',    reward: '20 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
     { level: 12, type: 'premium', reward: 'Tipografía Retro', category: 'font',      icon: TextT,     color: 'text-zinc-200',   rarity: 'RARO' },
-    { level: 13, type: 'free',    reward: 'Módulo Suministros Alfa', category: 'crate',     icon: Package,   color: 'text-zinc-400',   rarity: 'COMÚN' },
+    { level: 13, type: 'free',    reward: 'Módulo Alfa',     category: 'crate',     icon: Package,   color: 'text-zinc-400',   rarity: 'COMÚN' },
     { level: 14, type: 'premium', reward: 'Trueno Cyber',    category: 'effect',    icon: Lightning, color: 'text-yellow-400', rarity: 'ÉPICO' },
-    { level: 15, type: 'free',    reward: 'Esmeralda',       category: 'nameColor', icon: Palette,   color: 'text-emerald-400', rarity: 'BÁSICO' },
+    { level: 15, type: 'free',    reward: 'Azul Ártico',     category: 'nameColor', icon: Palette,   color: 'text-cyan-400',   rarity: 'BÁSICO' },
     { level: 16, type: 'premium', reward: 'Gris Piedra',     category: 'nameColor', icon: Palette,   color: 'text-zinc-400',   rarity: 'BÁSICO' },
-    { level: 17, type: 'free',    reward: 'Llorando 😂',     category: 'emote',     icon: Smiley,    color: 'text-yellow-400', rarity: 'RARO' },
+    { level: 17, type: 'free',    reward: 'Victoria 🏆',      category: 'emote',     icon: Smiley,    color: 'text-yellow-400', rarity: 'RARO' },
     { level: 18, type: 'premium', reward: 'MARCO MÍTICO',    category: 'frame',     icon: ImageSquare, color: 'text-red-500',  rarity: 'MÍTICO' },
-    { level: 19, type: 'premium', reward: '100 NETS',        category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'LEGENDARIO' },
+    { level: 19, type: 'premium', reward: '50 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'LEGENDARIO' },
     { level: 20, type: 'premium', reward: 'DIOS CHESSNET',   category: 'title',     icon: Trophy,    color: 'text-violet-500', rarity: 'MÍTICO' },
   ];
 
@@ -170,7 +172,7 @@
   }
 
   const categoryLabels: Record<string, string> = {
-    'nets': 'CRÉDITOS NETS',
+    'nets': 'NETS',
     'crate': 'MÓDULO DE SUMINISTROS',
     'frame': 'MATRIZ DE AVATAR',
     'nameColor': 'ESPECTRO DE NOMBRE',
@@ -424,7 +426,7 @@
              <div class="flex items-center gap-2 px-3 py-1 bg-zinc-900/80 border border-white/10">
                <div class="space-y-1">
               <span class="block text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">SEASON_TIMESTAMP</span>
-              <span class="block text-xs font-mono font-black text-white">MAY_2026 // JUN_2026</span>
+              <span class="block text-xs font-mono font-black text-white">ABRIL_2026 // MAYO_2026</span>
             </div>
              </div>
              <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20">

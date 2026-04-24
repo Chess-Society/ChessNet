@@ -123,5 +123,15 @@ export const socialApi = {
     await updateDoc(postRef, {
       [`reactions.${emoji}`]: arrayRemove(userId)
     });
+  },
+
+  /**
+   * Destaca o quita el destacado de una publicación (Admin Only).
+   */
+  async toggleFeaturePost(postId: string, isFeatured: boolean): Promise<void> {
+    const postRef = doc(db, "faculty_stream", postId);
+    await updateDoc(postRef, {
+      isFeatured: isFeatured
+    });
   }
 };

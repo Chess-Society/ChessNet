@@ -24,6 +24,7 @@ export interface SocialPost {
 	tipsTotal: number;
 	metadata?: Record<string, any>;
 	
+	isFeatured?: boolean; // Destacado (Admin)
 	createdAt: Date | any;
 	updatedAt?: Date | any;
 }

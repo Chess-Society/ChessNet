@@ -13,7 +13,8 @@ import {
   updateDoc,
   setDoc,
   deleteDoc,
-  addDoc
+  addDoc,
+  writeBatch
 } from "firebase/firestore";
 
 export const adminApi = {
@@ -55,7 +56,9 @@ export const adminApi = {
         premiumUsers: premiumSnap.data().count,
         recentUsers: recentSnap.data().count,
         totalInsignias: insigniasSnap.data().count,
-        totalRevenue
+        totalRevenue,
+        activeSessions: Math.floor(Math.random() * 40) + 10, // Simulated for now
+        serverLoad: Math.floor(Math.random() * 15) + 5 // Simulated for now
       };
     } catch (error) {
       console.error("[AdminAPI] Error getting global stats:", error);
@@ -817,6 +820,109 @@ export const adminApi = {
       return initialEconomy;
     } catch (error) {
       console.error("[AdminAPI] Error resetting user economy:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * REINICIO GLOBAL: Purgado masivo de economía para todos los usuarios.
+   */
+  async resetGlobalEconomy() {
+    try {
+      const usersSnap = await getDocs(collection(db, "users"));
+      const timestamp = new Date().toISOString();
+      const initialEconomy = {
+        netsBalance: 100,
+        totalNetsEarned: 100,
+        tier: 'BRONZE',
+        prestige: 0,
+        lastEconomyUpdate: timestamp,
+        activeColor: 'none',
+        activeFrame: 'none',
+        activeFont: 'none',
+        collection: {
+          emotes: [],
+          fonts: [],
+          colors: [],
+          badges: [],
+          frames: [],
+          themes: [],
+          effects: []
+        },
+        battlePass: {
+          seasonId: 'season-1',
+          currentXp: 0,
+          currentTier: 1,
+          isPremium: false,
+          claimedTiers: [],
+          dailyChallenges: {},
+          weeklyChallenges: {}
+        },
+        inventory: {
+          crates: {}
+        }
+      };
+
+      // Procesar en batches de 500 (límite de Firestore)
+      const batches = [];
+      let currentBatch = writeBatch(db);
+      let count = 0;
+
+      for (const uDoc of usersSnap.docs) {
+        currentBatch.update(doc(db, "users", uDoc.id), {
+          economy: initialEconomy,
+          "settings.updatedAt": timestamp
+        });
+        count++;
+
+        if (count === 500) {
+          batches.push(currentBatch.commit());
+          currentBatch = writeBatch(db);
+          count = 0;
+        }
+      }
+
+      if (count > 0) {
+        batches.push(currentBatch.commit());
+      }
+
+      // Purge Global Collections: prediction_markets, nets_transactions, and legacy economies
+      const collectionsToPurge = ['prediction_markets', 'nets_transactions', 'economies'];
+      const purgePromises = collectionsToPurge.map(async (collName) => {
+        const snap = await getDocs(collection(db, collName));
+        const purgeBatches = [];
+        let pBatch = writeBatch(db);
+        let pCount = 0;
+
+        for (const pDoc of snap.docs) {
+          pBatch.delete(pDoc.ref);
+          pCount++;
+          if (pCount === 500) {
+            purgeBatches.push(pBatch.commit());
+            pBatch = writeBatch(db);
+            pCount = 0;
+          }
+        }
+        if (pCount > 0) purgeBatches.push(pBatch.commit());
+        return Promise.all(purgeBatches);
+      });
+
+      await Promise.all([
+        ...batches,
+        ...purgePromises,
+        addDoc(collection(db, "system_logs"), {
+          type: 'global_economy_reset',
+          category: 'ECONOMY',
+          action: 'Reinicio Global',
+          message: `Economía global reiniciada para ${usersSnap.size} usuarios por un administrador`,
+          timestamp,
+          status: 'danger'
+        })
+      ]);
+
+      return { totalReset: usersSnap.size };
+    } catch (error) {
+      console.error("[AdminAPI] Error resetting global economy:", error);
       throw error;
     }
   }

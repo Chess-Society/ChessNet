@@ -10,12 +10,24 @@ export interface ConfirmConfig {
   onCancel?: () => void;
 }
 
+export interface PromptConfig {
+  title: string;
+  message?: string;
+  placeholder?: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: (value: string) => void;
+  onCancel: () => void;
+}
+
 function createUIStore() {
   const { subscribe, set, update } = writable<{
     confirmDialog: ConfirmConfig | null,
+    promptDialog: PromptConfig | null,
     isLoading: boolean
   }>({
     confirmDialog: null,
+    promptDialog: null,
     isLoading: false
   });
 
@@ -40,9 +52,30 @@ function createUIStore() {
         }));
       });
     },
+    prompt: (config: { title: string, message?: string, placeholder?: string, confirmText?: string, cancelText?: string }) => {
+      return new Promise<string | null>((resolve) => {
+        update(s => ({
+          ...s,
+          promptDialog: {
+            ...config,
+            confirmText: config.confirmText || 'Confirmar',
+            cancelText: config.cancelText || 'Cancelar',
+            onConfirm: (val: string) => {
+              update(s2 => ({ ...s2, promptDialog: null }));
+              resolve(val);
+            },
+            onCancel: () => {
+              update(s2 => ({ ...s2, promptDialog: null }));
+              resolve(null);
+            }
+          }
+        }));
+      });
+    },
     setLoading: (loading: boolean) => update(s => ({ ...s, isLoading: loading })),
     closeConfirm: () => update(s => ({ ...s, confirmDialog: null })),
-    closeAllModals: () => update(s => ({ ...s, confirmDialog: null, isLoading: false }))
+    closePrompt: () => update(s => ({ ...s, promptDialog: null })),
+    closeAllModals: () => update(s => ({ ...s, confirmDialog: null, promptDialog: null, isLoading: false }))
   };
 }
 

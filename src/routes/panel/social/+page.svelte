@@ -52,7 +52,11 @@
   <title>Comunidad | ChessNet</title>
 </svelte:head>
 
-<div class="max-w-5xl mx-auto p-6 lg:p-12">
+<div class="min-h-screen bg-black text-white selection:bg-violet-500 selection:text-white pb-32 relative overflow-hidden">
+  <!-- Scanline effect -->
+  <div class="fixed inset-0 scanline-overlay opacity-[0.03] pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-6 pt-12 relative z-10">
   <!-- Header Section -->
   <header class="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8" in:fade={{ duration: 800 }}>
     <div class="relative">
@@ -80,26 +84,35 @@
   </header>
 
   <!-- Filter & Search Bar -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12" in:fade={{ delay: 400 }}>
-    <div class="flex flex-wrap gap-2">
+  <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-8 mb-16" in:fade={{ delay: 400 }}>
+    <!-- Segmented Control -->
+    <div class="inline-flex bg-zinc-950 border border-white/5 p-1 relative overflow-hidden">
+      <div class="absolute inset-0 opacity-[0.02] pro-grid-bg pointer-events-none"></div>
       {#each categories as cat}
         <button 
-          class="px-4 py-2 text-[9px] font-black uppercase tracking-widest transition-all border {selectedType === cat.id ? 'bg-violet-600 text-white border-violet-500' : 'bg-white/5 text-zinc-500 border-white/5 hover:bg-white/10'}"
+          class="relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all z-10 {selectedType === cat.id ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}"
           onclick={() => selectedType = cat.id}
         >
+          {#if selectedType === cat.id}
+            <div 
+              class="absolute inset-0 bg-violet-600 shadow-[0_0_20px_rgba(139,92,246,0.3)] -z-10"
+              transition:fade={{ duration: 200 }}
+            ></div>
+          {/if}
           {cat.label}
         </button>
       {/each}
     </div>
 
-    <div class="relative flex-1 max-w-md">
+    <div class="relative flex-1 max-w-md group">
+      <div class="absolute inset-0 bg-violet-500/5 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
       <input 
         type="text" 
         bind:value={searchQuery}
-        placeholder="Buscar en el feed..."
-        class="w-full bg-zinc-950/50 border border-white/10 px-10 py-3 text-xs text-white placeholder:text-zinc-600 focus:border-violet-500/50 outline-none transition-all"
+        placeholder="FILTRAR_CONTENIDO_STREAM..."
+        class="w-full bg-zinc-950 border border-white/10 px-12 py-4 text-[10px] font-mono font-black uppercase tracking-widest text-white placeholder:text-zinc-700 focus:border-violet-500/50 outline-none transition-all relative z-10"
       />
-      <div class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600">
+      <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 z-10">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
@@ -159,11 +172,29 @@
     {/if}
   </section>
 </div>
+</div>
 
 <style>
   :global(body) {
     background-image: 
       radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
       radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.03) 0px, transparent 50%);
+  }
+  .pro-grid-bg {
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .scanline-overlay {
+    background: linear-gradient(
+      to bottom,
+      transparent 50%,
+      rgba(0, 0, 0, 0.2) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 50;
   }
 </style>

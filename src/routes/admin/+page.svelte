@@ -29,9 +29,16 @@
     Pulse,
     CheckCircle,
     Globe,
-    ShieldCheckered,
-    Lifebuoy,
-    Shield
+    ShieldCheckered, 
+    Lifebuoy, 
+    Shield, 
+    Warning,
+    Megaphone,
+    ChatCenteredDots,
+    ListDashes,
+    Coins,
+    List,
+    ChartBar
   } from 'phosphor-svelte';
 
   // Components
@@ -48,6 +55,7 @@
 
   import GovernanceHub from '$lib/components/admin/GovernanceHub.svelte';
   import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
+  import DangerZone from '$lib/components/admin/DangerZone.svelte';
 
   // Constants
   import { INSIGNIAS } from '$lib/constants/insignias';
@@ -62,7 +70,9 @@
     premiumUsers: 0,
     recentUsers: 0,
     totalInsignias: 0,
-    totalRevenue: 0
+    totalRevenue: 0,
+    activeSessions: 0,
+    serverLoad: 12
   });
 
   let users = $state<any[]>([]);
@@ -73,7 +83,39 @@
   let maintenanceMode = $state(false);
   let isLoading = $state(true);
   let isSaving = $state(false);
+  let isSidebarOpen = $state(false); // Mobile sidebar state
   let searchTimeout: any;
+
+  const navigationGroups = [
+    {
+      title: 'MONITOR',
+      items: [
+        { id: 'dashboard', label: 'Consola Central', icon: SquaresFour },
+        { id: 'system', label: 'Consola Sistema', icon: ListDashes }
+      ]
+    },
+    {
+      title: 'USUARIOS',
+      items: [
+        { id: 'users', label: 'Gestión Base', icon: Users }
+      ]
+    },
+    {
+      title: 'COMUNIDAD',
+      items: [
+        { id: 'governance', label: 'Gobernanza Hub', icon: ShieldCheckered },
+        { id: 'broadcast', label: 'Avisos Globales', icon: Globe },
+        { id: 'tickets', label: 'Soporte Directo', icon: Lifebuoy, badge: () => supportTickets.filter(t => t.status === 'open').length },
+        { id: 'lobby', label: 'Feed & Social', icon: ChatTeardropDots }
+      ]
+    },
+    {
+      title: 'SISTEMA',
+      items: [
+        { id: 'danger', label: 'Zona Crítica', icon: Warning }
+      ]
+    }
+  ];
 
   // Derive activities from logs and users
   $effect(() => {
@@ -391,28 +433,49 @@
   }
 
   async function handleResetEconomy(userId: string) {
-    const confirmed = await uiStore.confirm({
-      title: '¿REINICIAR ECONOMÍA?',
-      message: 'Esta acción es IRREVERSIBLE. Se eliminarán todos los Nets, colecciones, progreso del Pase de Batalla e inventario. El usuario volverá al estado inicial (100 Nets, Tier 1).',
-      type: 'danger',
-      confirmText: 'SÍ, REINICIAR TODO',
+    const userInput = await uiStore.prompt({
+      title: '¡REINICIO DE ECONOMÍA!',
+      message: 'Esta acción reseteará Nets, Battle Pass e Inventario de este usuario. Escribe "RESET" para confirmar.',
+      placeholder: 'Escribe RESET aquí',
+      confirmText: 'EJECUTAR REINICIO',
       cancelText: 'CANCELAR'
     });
 
-    if (!confirmed) return;
+    if (userInput !== 'RESET') return;
 
     isSaving = true;
     try {
       await adminApi.resetUserEconomy(userId);
-      toast.success('Economía y progreso reiniciados correctamente');
-      
-      // Refrescar detalles
-      const [details, insignias] = await Promise.all([
-        adminApi.getUserDetails(userId),
-        adminApi.getUserInsignias(userId)
-      ]);
-      userDetails = details;
-      userInsignias = insignias;
+      toast.success('Economía del usuario restablecida');
+      // Actualizar detalles
+      const details = await adminApi.getUserDetails(userId);
+      userDetails = { ...userDetails, ...details };
+    } catch (e: any) {
+      toast.error(e.message || $t('admin.broadcast.error'));
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function handleResetGlobalEconomy() {
+    const userInput = await uiStore.prompt({
+      title: '¡ALERTA DE PURGADO GLOBAL!',
+      message: 'Esta acción REINICIARÁ LA ECONOMÍA DE TODOS LOS USUARIOS. Escribe "RESET" para confirmar.',
+      placeholder: 'Escribe RESET aquí',
+      confirmText: 'EJECUTAR PURGADO GLOBAL',
+      cancelText: 'CANCELAR'
+    });
+
+    if (userInput !== 'RESET') {
+      if (userInput !== null) toast.error('Confirmación incorrecta');
+      return;
+    }
+
+    isSaving = true;
+    try {
+      const res = await adminApi.resetGlobalEconomy();
+      toast.success(`Economía global reiniciada para ${res.totalReset} usuarios`);
+      refreshStats();
     } catch (e: any) {
       toast.error(e.message || $t('admin.broadcast.error'));
     } finally {
@@ -425,129 +488,158 @@
   }
 </script>
 
-<div class="min-w-[320px] min-h-screen bg-[#02040a] text-white selection:bg-violet-500/30 font-sans">
-  <!-- Top Navigation Bar -->
-  <nav class="sticky z-[60] bg-[#02040a]/90 backdrop-blur-2xl border-b border-white/10 pt-[env(safe-area-inset-top)] px-4 sm:px-8 flex items-center justify-between transition-all duration-300" style="top: var(--banner-height, 0px)">
-    <div class="flex items-center gap-3 sm:gap-4 py-4 sm:py-5">
-      <div class="w-9 h-9 bg-primary-600 flex items-center justify-center rounded-none">
-        <SquaresFour weight="bold" class="w-5 h-5 text-white" />
-      </div>
-      <div class="overflow-visible pr-4">
-        <h1 class="text-base sm:text-xl font-black font-display uppercase italic tracking-tighter leading-none text-white whitespace-nowrap">ChessNet <span class="text-primary-500">/</span> {$t('admin.title')}</h1>
-        <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest mt-1.5 flex items-center gap-2">
-          <span class="w-1 h-1 bg-emerald-500 animate-pulse"></span>
-          {$t('admin.tech.sys_desc')} // v0.13.0 Beta
-        </p>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-4">
-      <div class="hidden sm:flex items-center gap-2 px-4 py-2 bg-violet-500/5 border border-violet-500/20">
-        <span class="w-1.5 h-1.5 bg-violet-500 animate-pulse"></span>
-        <span class="text-[9px] font-mono font-black text-violet-400 uppercase tracking-widest">{$t('admin.nav.operational')}</span>
-      </div>
-
-      <PrestigeBadge 
-        nets={$appStore.settings.economy?.netsBalance || 0} 
-        prestige={$appStore.settings.economy?.prestige || 0}
-        variant="ghost" 
-      />
-      
-      <a 
-        href="/panel" 
-        class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-white/10 hover:border-white/20 transition-all text-white rounded-none"
+<div class="min-w-[320px] min-h-screen bg-[#02040a] text-white selection:bg-violet-500/30 font-sans flex">
+  <!-- Desktop Sidebar -->
+  <aside class="w-[280px] border-r border-white/5 hidden lg:flex flex-col bg-[#02040a]/80 backdrop-blur-3xl relative z-50">
+    <!-- Sidebar Header -->
+    <div class="px-10 py-12">
+      <button 
+        type="button"
+        class="w-full flex items-center gap-4 group cursor-pointer bg-transparent border-none p-0 text-left" 
+        onclick={() => activeTab = 'dashboard'}
       >
-        <ArrowArcLeft weight="bold" class="w-4 h-4" />
-        <span class="hidden md:inline">{$t('admin.nav.exit')}</span>
-      </a>
-    </div>
-  </nav>
-
-  <!-- Mobile Only Header Stats -->
-  <div class="lg:hidden grid grid-cols-3 gap-px bg-white/10 border-b border-white/10">
-    {#each [
-      { label: $t('admin.nav.stats_users'), val: stats.totalUsers, color: 'text-violet-400' },
-      { label: $t('admin.nav.stats_revenue'), val: `$${Math.round(stats.totalRevenue)}`, color: 'text-violet-400' },
-      { label: $t('admin.nav.stats_tickets'), val: supportTickets.filter(t => t.status === 'open').length, color: 'text-amber-400' }
-    ] as s}
-      <div class="p-4 bg-[#02040a] text-center">
-        <p class="text-[7px] font-mono font-black text-slate-600 uppercase tracking-widest mb-1">{s.label}</p>
-        <p class="text-sm font-black font-display {s.color} italic leading-none">{s.val}</p>
-      </div>
-    {/each}
-  </div>
-
-  <div class="flex">
-    <!-- Sidebar Navigation -->
-    <aside class="w-64 min-h-[calc(100vh-57px-var(--banner-height,0px))] border-r border-white/10 bg-[#02040a] hidden lg:flex flex-col sticky top-[57px]">
-      <div class="p-8 space-y-8 flex-1">
+        <div class="w-12 h-12 bg-white flex items-center justify-center transition-transform group-hover:scale-105">
+          <SquaresFour weight="fill" size={24} class="text-black" />
+        </div>
         <div>
-          <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-            <span class="w-1 h-1 bg-primary-500"></span>
-            {$t('admin.sidebar.principal')}
-          </p>
-          <nav class="space-y-px">
-            {#each [
-              { id: 'dashboard', label: $t('admin.sidebar.dashboard'), icon: SquaresFour },
-              { id: 'users', label: $t('admin.sidebar.teachers'), icon: Users },
-              { id: 'governance', label: $t('admin.sidebar.governance'), icon: ShieldCheckered },
-              { id: 'broadcast', label: $t('admin.sidebar.broadcast'), icon: Globe },
-              { id: 'tickets', label: $t('admin.sidebar.support'), icon: Lifebuoy },
-              { id: 'lobby', label: $t('admin.sidebar.community'), icon: ChatTeardropDots },
-              { id: 'system', label: $t('admin.sidebar.system'), icon: Gear }
-            ] as item}
+          <h1 class="text-lg font-black font-display uppercase italic tracking-tighter text-white leading-none">ADMIN_OS</h1>
+          <p class="text-[8px] font-mono font-black text-primary-500 uppercase tracking-widest mt-1 animate-pulse">SISTEMA_ACTIVO</p>
+        </div>
+      </button>
+    </div>
+
+    <!-- Navigation Groups -->
+    <nav class="flex-1 px-8 space-y-12 overflow-y-auto custom-scrollbar pb-10">
+      {#each navigationGroups as group}
+        <div class="space-y-4">
+          <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-[0.3em] px-4">{group.title}</p>
+          <div class="space-y-1">
+            {#each group.items as item}
               {@const Icon = item.icon}
               <button 
                 onclick={() => activeTab = item.id}
-                class="w-full flex items-center gap-4 px-4 py-4 text-[11px] font-mono font-black uppercase tracking-widest transition-all {activeTab === item.id ? 'bg-primary-500 text-white shadow-[0_10px_20px_rgba(16,185,129,0.2)] relative z-10' : 'text-slate-500 hover:text-white hover:bg-white/5'} rounded-none group"
+                class="w-full flex items-center gap-4 py-3.5 px-4 transition-all relative group/nav {activeTab === item.id ? 'bg-primary-500/5 text-primary-400' : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]'}"
               >
-                <Icon weight={activeTab === item.id ? 'fill' : 'bold'} class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110" />
-                <span class="truncate">{item.label}</span>
-                {#if item.id === 'tickets' && supportTickets.filter(t => t.status === 'open').length > 0}
-                  <span class="ml-auto px-1.5 py-0.5 {activeTab === item.id ? 'bg-white text-primary-600' : 'bg-amber-500 text-black'} text-[9px] font-black animate-pulse">
-                    {supportTickets.filter(t => t.status === 'open').length}
-                  </span>
+                {#if activeTab === item.id}
+                  <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-500" transition:slide={{ axis: 'y' }}></div>
+                {/if}
+                <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={18} />
+                <span class="text-[10px] font-mono font-black uppercase tracking-[0.2em]">{item.label}</span>
+                
+                {#if item.badge && item.badge() > 0}
+                  <div class="ml-auto bg-primary-500 text-black text-[7px] font-black px-1.5 py-0.5 rounded-none animate-pulse">
+                    {item.badge()}
+                  </div>
                 {/if}
               </button>
             {/each}
-          </nav>
-        </div>
-
-        <div class="space-y-6">
-          <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest flex items-center gap-2">
-             <span class="w-1 h-1 bg-violet-500"></span>
-             SYSTEM STATUS
-          </p>
-          <div class="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
-            <div class="bg-black/40 p-4">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest">NETWORK LOAD</span>
-                <span class="text-[9px] font-mono font-black text-emerald-500 uppercase">OPTIMAL</span>
-              </div>
-              <div class="h-1 bg-white/5 overflow-hidden">
-                <div class="h-full bg-emerald-500 w-1/3 animate-[shimmer_2s_infinite]"></div>
-              </div>
-            </div>
-            <div class="bg-black/40 p-4">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest">LATENCY</span>
-                <span class="text-[9px] font-mono font-black text-violet-400 uppercase">24ms</span>
-              </div>
-              <div class="h-1 bg-white/5 overflow-hidden">
-                <div class="h-full bg-violet-500 w-1/4"></div>
-              </div>
-            </div>
           </div>
         </div>
-      </div>
+      {/each}
+    </nav>
 
-      <div class="p-8 border-t border-white/10 bg-white/[0.01]">
-        <div class="flex items-center justify-between text-slate-700">
-          <p class="text-[8px] font-mono font-black uppercase tracking-widest">OPERATIONAL LEVEL</p>
-          <span class="text-[10px] font-black font-display italic">L3</span>
+    <!-- Sidebar Footer -->
+    <div class="p-8 border-t border-white/5 bg-black/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+        <span class="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest">SERVIDOR: OK_STABLE</span>
+      </div>
+      <button 
+        onclick={() => window.location.href = '/panel'}
+        class="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest text-slate-400 hover:bg-white/10 hover:text-white transition-all"
+      >
+        SALIR_AL_PANEL
+        <ArrowArcLeft weight="bold" size={14} />
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile Header -->
+  <header class="lg:hidden h-16 bg-[#02040a]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-[60] w-full">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-white flex items-center justify-center">
+        <SquaresFour weight="fill" size={18} class="text-black" />
+      </div>
+      <span class="text-xs font-mono font-black text-white uppercase tracking-widest">ADMIN_OS</span>
+    </div>
+    
+    <button 
+      onclick={() => isSidebarOpen = !isSidebarOpen}
+      class="p-2 text-white hover:bg-white/5 transition-colors"
+    >
+      <List size={24} />
+    </button>
+  </header>
+
+  <!-- Mobile Navigation Drawer -->
+  {#if isSidebarOpen}
+    <div 
+      class="fixed inset-0 z-[70] lg:hidden"
+      transition:fade={{ duration: 200 }}
+    >
+      <button 
+        type="button"
+        class="absolute inset-0 bg-black/80 backdrop-blur-sm w-full h-full border-none cursor-default" 
+        onclick={() => isSidebarOpen = false}
+        aria-label="Cerrar navegación"
+      ></button>
+      <div 
+        class="absolute left-0 top-0 bottom-0 w-[300px] bg-[#02040a] border-r border-white/10 flex flex-col shadow-2xl"
+        transition:fly={{ x: -300, duration: 400, opacity: 1, easing: (t) => t }}
+      >
+        <!-- Drawer Header -->
+        <div class="p-8 border-b border-white/5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white flex items-center justify-center">
+              <SquaresFour weight="fill" size={18} class="text-black" />
+            </div>
+            <span class="text-[10px] font-mono font-black text-white uppercase tracking-widest">ADMIN_MENU</span>
+          </div>
+          <button onclick={() => isSidebarOpen = false} class="text-slate-500 hover:text-white transition-colors">
+            <X size={20} weight="bold" />
+          </button>
+        </div>
+
+        <!-- Drawer Content -->
+        <nav class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+          {#each navigationGroups as group}
+            <div class="space-y-4">
+              <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-[0.3em]">{group.title}</p>
+              <div class="space-y-1">
+                {#each group.items as item}
+                  {@const Icon = item.icon}
+                  <button 
+                    onclick={() => { activeTab = item.id; isSidebarOpen = false; }}
+                    class="w-full flex items-center gap-4 py-3.5 px-4 transition-all relative {activeTab === item.id ? 'bg-primary-500/10 text-primary-400 border-l-2 border-primary-500' : 'text-slate-500 hover:text-slate-300'}"
+                  >
+                    <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={18} />
+                    <span class="text-[10px] font-mono font-black uppercase tracking-widest">{item.label}</span>
+
+                    {#if item.badge && item.badge() > 0}
+                      <div class="ml-auto bg-primary-500 text-black text-[7px] font-black px-1.5 py-0.5 rounded-none">
+                        {item.badge()}
+                      </div>
+                    {/if}
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {/each}
+        </nav>
+
+        <!-- Drawer Footer -->
+        <div class="p-8 border-t border-white/5 bg-white/[0.02]">
+          <button 
+            onclick={() => window.location.href = '/panel'}
+            class="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest text-slate-400"
+          >
+            SALIR_AL_PANEL
+            <ArrowArcLeft weight="bold" size={14} />
+          </button>
         </div>
       </div>
-    </aside>
+    </div>
+  {/if}
 
     <!-- Main Content Area -->
     <main class="flex-1 p-6 sm:p-8 md:p-12 max-w-[1600px] mx-auto min-h-[calc(100vh-57px-var(--banner-height,0px))] relative pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-12">
@@ -574,18 +666,18 @@
             {#if activeTab === 'dashboard'}
                <div class="space-y-12">
                   <!-- Dashboard Header -->
-                  <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
-                    <div class="space-y-6">
+                  <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
+                    <div class="space-y-4">
                       <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-white text-black flex items-center justify-center font-display italic font-black text-2xl">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white text-black flex items-center justify-center font-display italic font-black text-xl sm:text-2xl">
                           01
                         </div>
                         <div>
-                          <div class="inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-[9px] font-mono font-black text-violet-400 uppercase tracking-[0.3em] rounded-none">
-                            <span class="w-1.5 h-1.5 bg-violet-500 animate-pulse rounded-none"></span>
+                          <div class="inline-flex items-center gap-2 px-2 py-0.5 bg-violet-500/10 border border-violet-500/20 text-[8px] font-mono font-black text-violet-400 uppercase tracking-[0.3em]">
+                            <span class="w-1 h-1 bg-violet-500 animate-pulse"></span>
                             {$t('admin.dashboard.sync')}
                           </div>
-                          <h2 class="text-5xl md:text-7xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.8] mt-2">
+                          <h2 class="text-4xl sm:text-5xl md:text-7xl font-black font-display uppercase italic tracking-[-0.05em] leading-[0.8] mt-2">
                             CENTRAL<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">OPERACIONES</span>
                           </h2>
                         </div>
@@ -608,121 +700,160 @@
                   </div>
 
                   <LichessPulse />
-                  <StatsGrid {stats} />
-
+                  
                   <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-                     <!-- Real-time Activity Hub -->
+                     <!-- Quick Monitoring -->
                      <div class="xl:col-span-8 space-y-8">
-                        <div class="bg-zinc-900/40 border border-white/5 p-8 relative overflow-hidden group">
-                           <div class="absolute top-0 right-0 p-8 opacity-5">
-                             <Pulse size={80} />
+                        <StatsGrid {stats} />
+                        
+                        <div class="bg-black/40 border border-white/5 p-8 relative overflow-hidden">
+                           <div class="flex items-center justify-between mb-6">
+                             <div class="flex items-center gap-3">
+                               <Shield weight="fill" class="text-violet-500" />
+                               <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">{$t('admin.guard.title')}</h3>
+                             </div>
+                             <span class="text-[8px] font-mono text-slate-600 uppercase tracking-widest">SYSTEM_INTEGRITY_LEVEL: OMEGA</span>
                            </div>
-                           <LiveActivityFeed {activities} />
-                        </div>
-                     </div>
-
-                     <!-- Sidebar Blocks -->
-                     <div class="xl:col-span-4 space-y-8">
-
-                        <!-- Guard Terminal -->
-                        <div class="bg-[#02040a] border border-white/10 p-8 space-y-8 relative overflow-hidden">
-                           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 opacity-50"></div>
                            
-                           <div class="flex items-center gap-4">
-                              <div class="w-10 h-10 bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500">
-                                <Shield weight="fill" size={20} />
-                              </div>
-                              <div>
-                                <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">{$t('admin.guard.title')}</h3>
-                                <p class="text-[8px] font-mono text-slate-600 uppercase mt-0.5 tracking-widest italic">PROTOCOL LEVEL: OMEGA</p>
-                              </div>
-                           </div>
-
-                           <div class="space-y-4">
+                           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <button 
-                                 onclick={handleToggleMaintenance}
-                                 class="w-full flex items-center justify-between p-6 border {maintenanceMode ? 'bg-red-500 text-white border-red-400' : 'bg-white/[0.03] border-white/10 text-slate-400 hover:border-white/20 hover:text-white'} transition-all rounded-none group"
+                                 onclick={handleRepairUsers}
+                                 class="flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 text-slate-400 hover:border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-400 transition-all group"
                               >
                                  <div class="text-left">
-                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">{$t('admin.guard.maintenance_mode')}</p>
-                                   <p class="text-sm font-black uppercase italic">{maintenanceMode ? $t('admin.system.active') : $t('admin.system.inactive')}</p>
+                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">Sincronizar Base</p>
+                                   <p class="text-xs font-black uppercase italic">Reparar Estructura</p>
                                  </div>
-                                 <Gear weight="fill" class="w-6 h-6 group-hover:rotate-180 transition-transform duration-700" />
+                                 <ArrowArcLeft class="w-4 h-4 group-hover:rotate-180 transition-transform" />
                               </button>
                               
                               <button 
-                                 onclick={handleRepairUsers}
-                                 class="w-full flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 text-slate-400 hover:border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-400 transition-all rounded-none group"
-                              >
-                                 <div class="text-left">
-                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">{$t('admin.guard.db_integrity')}</p>
-                                   <p class="text-sm font-black uppercase italic">{$t('admin.guard.sync_repair')}</p>
-                                 </div>
-                                 <Pulse weight="bold" class="w-6 h-6 group-hover:scale-110 transition-transform" />
-                              </button>
-
-                              <button 
                                  onclick={handleRepairEconomy}
-                                 class="w-full flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 text-slate-400 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all rounded-none group"
+                                 class="flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 text-slate-400 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all group"
                               >
                                  <div class="text-left">
-                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">Gestión de Nets</p>
-                                   <p class="text-sm font-black uppercase italic">Sincronizar Economía</p>
+                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">Economía Nets</p>
+                                   <p class="text-xs font-black uppercase italic">Normalizar Carteras</p>
                                  </div>
-                                 <Star weight="bold" class="w-6 h-6 group-hover:scale-110 transition-transform text-violet-500" />
+                                 <Star class="w-4 h-4 group-hover:scale-125 transition-transform" />
                               </button>
-                           </div>
-
-                           <div class="grid grid-cols-2 gap-4">
-                             <div class="p-4 bg-white/[0.02] border border-white/5">
-                               <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mb-1">DB SYNC</p>
-                               <p class="text-xs font-black text-emerald-500 uppercase italic">SUCCESS</p>
-                             </div>
-                             <div class="p-4 bg-white/[0.02] border border-white/5">
-                               <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mb-1">API LAYER</p>
-                               <p class="text-xs font-black text-violet-400 uppercase italic">ACTIVE</p>
-                             </div>
-                           </div>
-                         </div>
-
-                          <!-- Governance Prediction Hub -->
-                          <div class="bg-black/20 border border-white/5 p-8 relative overflow-hidden">
-                            <div class="flex items-center justify-between mb-6">
-                              <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">CENTRO DE GOBERNANZA</h3>
-                              <button onclick={() => activeTab = 'governance'} class="text-[9px] font-mono font-black text-primary-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2">
-                                GESTIONAR <ArrowArcLeft class="rotate-180 w-3 h-3" />
-                              </button>
-                            </div>
-                            <p class="text-slate-500 text-[10px] leading-relaxed">Accede al panel de gobernanza para gestionar hitos de predicción, resolver oráculos de Lichess y distribuir recompensas.</p>
-                          </div>
-
-                         <!-- Technical Metadata -->
-                        <div class="bg-zinc-900/20 border border-white/5 p-8 space-y-6">
-                           <div class="flex items-center justify-between">
-                              <h4 class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">{$t('admin.env.title')}</h4>
-                              <span class="text-[9px] font-mono font-black text-white px-2 py-0.5 bg-violet-500">PRODUCTION</span>
-                           </div>
-                           <div class="space-y-4">
-                              {#each [
-                                { label: $t('admin.env.uptime'), val: '99.98%', color: 'text-emerald-500' },
-                                { label: $t('admin.env.cpu'), val: '12.4%', color: 'text-violet-400' },
-                                { label: $t('admin.env.region'), val: 'eu-west3', color: 'text-white' },
-                                { label: 'Node Version', val: 'v20.11.0', color: 'text-slate-500' }
-                              ] as row}
-                                <div class="flex justify-between items-center border-b border-white/5 pb-3">
-                                  <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">{row.label}</span>
-                                  <span class="text-[10px] font-black italic {row.color}">{row.val}</span>
-                                </div>
-                              {/each}
-                           </div>
-                           <div class="pt-4 flex items-center gap-3">
-                             <div class="w-full h-1.5 bg-white/5 rounded-none overflow-hidden flex">
-                               <div class="h-full bg-violet-500 w-1/2"></div>
-                               <div class="h-full bg-violet-400 w-1/4 opacity-50"></div>
-                             </div>
-                             <span class="text-[8px] font-mono font-black text-slate-700 uppercase">LOAD</span>
                            </div>
                         </div>
+                     </div>
+
+                     <!-- Quick Controls Sidebar -->
+                     <div class="xl:col-span-4 space-y-8">
+                        <!-- Maintenance Widget -->
+                        <div class="bg-black/40 border border-white/5 p-6 space-y-6">
+                          <div class="flex items-center justify-between">
+                            <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest italic">SECURITY_PROTOCOL</span>
+                            <div class="w-2 h-2 rounded-full {maintenanceMode ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-emerald-500 shadow-[0_0_10px_#10b981]'}"></div>
+                          </div>
+                          <button 
+                            onclick={handleToggleMaintenance}
+                            class="w-full py-4 border {maintenanceMode ? 'bg-red-500 text-white border-red-400' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'} text-[10px] font-mono font-black uppercase tracking-widest transition-all"
+                          >
+                            {maintenanceMode ? 'DESACTIVAR MANTENIMIENTO' : 'ACTIVAR MANTENIMIENTO'}
+                          </button>
+                        </div>
+
+                        <!-- Technical Stats -->
+                        <div class="bg-zinc-900/20 border border-white/5 p-6 space-y-4">
+                          {#each [
+                            { label: 'NETWORK_LOAD', val: '12%', color: 'text-emerald-500' },
+                            { label: 'CPU_USAGE', val: '8.4%', color: 'text-violet-400' },
+                            { label: 'MEMORY', val: '42.1%', color: 'text-white' }
+                          ] as row}
+                            <div class="flex justify-between items-center text-[9px] font-mono font-black">
+                              <span class="text-slate-600 tracking-widest">{row.label}</span>
+                              <span class={row.color}>{row.val}</span>
+                            </div>
+                          {/each}
+                        </div>
+
+                        <div class="bg-zinc-900/40 border border-white/5 p-6">
+                           <div class="flex items-center justify-between mb-4">
+                              <h4 class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest">METADATOS_ENTORNO</h4>
+                              <span class="text-[8px] font-black bg-violet-500 px-1.5 py-0.5">PROD</span>
+                           </div>
+                           <div class="space-y-2">
+                             <div class="flex justify-between text-[10px] font-mono font-black">
+                               <span class="text-slate-700">NODE_VER</span>
+                               <span class="text-slate-400 italic">v20.11.0</span>
+                             </div>
+                             <div class="flex justify-between text-[10px] font-mono font-black">
+                               <span class="text-slate-700">REGION</span>
+                               <span class="text-slate-400 italic">eu-west3</span>
+                             </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+            {:else if activeTab === 'pulse'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      02
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Lichess Pulse</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-none animate-pulse"></span>
+                         Monitoreo en tiempo real del Oráculo de Lichess
+                       </p>
+                    </div>
+                  </div>
+                  <LichessPulse />
+               </div>
+
+            {:else if activeTab === 'activity'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      03
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Feed Actividad</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-violet-500 rounded-none"></span>
+                         Registro de eventos en vivo de la plataforma
+                       </p>
+                    </div>
+                  </div>
+                  <div class="bg-zinc-900/40 border border-white/5 p-4 sm:p-8 relative overflow-hidden group">
+                     <LiveActivityFeed {activities} />
+                  </div>
+               </div>
+
+            {:else if activeTab === 'economy_stats'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      04
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Métricas Nets</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-amber-500 rounded-none animate-pulse"></span>
+                         Análisis de flujos económicos y ranking global
+                       </p>
+                    </div>
+                  </div>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     <div class="p-8 bg-zinc-900/40 border border-white/5">
+                        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-2">BALANCE TOTAL PROYECTADO</p>
+                        <p class="text-4xl font-black font-display italic text-amber-500">{((stats.totalRevenue ?? 0) * 100).toLocaleString()} <span class="text-xs">NETS</span></p>
+                     </div>
+                     <div class="p-8 bg-zinc-900/40 border border-white/5">
+                        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-2">REVENUE ESTIMADO</p>
+                        <p class="text-4xl font-black font-display italic text-emerald-500">${(stats.totalRevenue ?? 0).toLocaleString()}</p>
+                     </div>
+                     <div class="p-8 bg-zinc-900/40 border border-white/5">
+                        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-2">RATIO CONVERSIÓN</p>
+                        <p class="text-4xl font-black font-display italic text-violet-400">{((stats.premiumUsers / (stats.totalUsers || 1)) * 100).toFixed(1)}%</p>
                      </div>
                   </div>
                </div>
@@ -812,7 +943,7 @@
                     <div>
                        <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">{$t('admin.system.engine')}</h2>
                        <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
-                         <span class="w-1.5 h-1.5 bg-red-500 rounded-none animate-ping"></span>
+                         <span class="w-1.5 h-1.5 bg-violet-500 rounded-none animate-pulse"></span>
                          {$t('admin.system.engine_desc')}
                        </p>
                     </div>
@@ -820,16 +951,23 @@
                   
                   <StripeSimulator />
                   
-                  <div class="bg-zinc-900/40 border border-white/5 p-8 md:p-12">
-                    <SystemConsole 
-                      logs={systemLogs}
-                      {maintenanceMode}
-                      onToggleMaintenance={handleToggleMaintenance}
-                      onRepairData={handleRepairUsers}
-                      onClearLogs={() => toast.info('No disponible temporalmente')}
-                    />
-                  </div>
+                  <SystemConsole 
+                    logs={systemLogs}
+                    {maintenanceMode}
+                    onToggleMaintenance={handleToggleMaintenance}
+                    onRepairData={handleRepairUsers}
+                    onClearLogs={() => systemLogs = []}
+                  />
                </div>
+            {:else if activeTab === 'danger'}
+              <DangerZone 
+                onResetGlobal={handleResetGlobalEconomy}
+                onRepairIntegrity={handleRepairUsers}
+                onRepairEconomy={handleRepairEconomy}
+                onToggleMaintenance={handleToggleMaintenance}
+                {maintenanceMode}
+                {isSaving}
+              />
             {/if}
           </div>
           {/each}
@@ -837,15 +975,14 @@
       </div>
     </main>
   </div>
-</div>
 
 
 
   <!-- User Detail Modal -->
   {#if showEditModal && selectedUser}
-    <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/90 backdrop-blur-md" transition:fade>
+    <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/95 backdrop-blur-xl" transition:fade>
       <div 
-        class="bg-[#02040a] w-full max-w-2xl border border-white/10 shadow-2xl overflow-hidden relative max-h-[90vh] overflow-y-auto rounded-none"
+        class="bg-[#02040a] w-full max-w-2xl border-t sm:border border-white/10 shadow-2xl overflow-hidden relative h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto rounded-none"
         transition:fly={{ y: 100, duration: 400 }}
       >
         <!-- Modal Header -->
@@ -984,21 +1121,19 @@
                </div>
                
                <div class="p-6 bg-red-500/5 border border-red-500/20 space-y-4">
-                 <div class="space-y-1">
+                 <div class="space-y-4">
                     <p class="text-[10px] font-black text-white uppercase italic">PROTOCOL: FULL_RECONSTRUCTION</p>
-                    <p class="text-[9px] font-mono text-slate-500 uppercase leading-relaxed">
-                      ADVERTENCIA: Esta operación purgará el balance de Nets, vaciará el inventario completo, eliminará colecciones activas y restablecerá el Pase de Batalla al Nivel 1.
+                    <p class="text-[8px] font-mono text-slate-500 uppercase leading-relaxed">
+                      Esta operación restablecerá todos los Nets a 100, eliminará el inventario completo y reseteará el progreso del Battle Pass para este usuario.
                     </p>
+                    <button 
+                      onclick={() => handleResetEconomy(selectedUser?.id)}
+                      disabled={isSaving}
+                      class="w-full py-4 bg-red-600 hover:bg-red-500 text-white text-[10px] font-mono font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50"
+                    >
+                      EJECUTAR_RESET_ECONOMIA
+                    </button>
                  </div>
-
-                 <button 
-                onclick={() => handleResetEconomy(selectedUser?.id)}
-                disabled={isSaving}
-                class="w-full py-4 bg-red-950/20 border border-red-500/30 hover:bg-red-500 hover:text-black text-red-500 text-xs font-mono font-black tracking-widest transition-all group relative overflow-hidden disabled:opacity-50"
-              >
-                <div class="absolute inset-0 bg-red-500/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-                <span class="relative">REESTABLECER_ORDEN_ECONOMICO</span>
-              </button>
                </div>
             </div>
         </div>
@@ -1006,54 +1141,34 @@
     </div>
   {/if}
 
-  <!-- Mobile Navigation for Admins -->
+  <!-- Premium Mobile Navigation -->
   <div 
-    class="lg:hidden fixed bottom-5 left-4 right-4 z-[100] pb-[env(safe-area-inset-bottom)] transition-all duration-500 {isNavVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-30 pointer-events-none'}"
-    onclick={() => isNavVisible = true}
-    role="button"
-    tabindex="0"
-    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') isNavVisible = true; }}
+    class="lg:hidden fixed bottom-0 left-0 right-0 z-[100] pb-[env(safe-area-inset-bottom)] bg-[#02040a]/95 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]"
   >
-    <div class="bg-[#0a0a0c]/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-stretch rounded-none">
+    <div class="flex items-stretch h-20">
       {#each [
         { id: 'dashboard', icon: SquaresFour, label: 'Dash' },
-        { id: 'users', icon: Users, label: 'Users' },
-        { id: 'broadcast', icon: Globe, label: 'Info' }
-      ] as item}
-        {@const Icon = item.icon}
-        <button 
-          onclick={() => activeTab = item.id}
-          class="flex-1 flex flex-col items-center gap-1.5 py-4 transition-all border-r border-white/5 {activeTab === item.id ? 'text-primary-400 bg-primary-500/5' : 'text-slate-600 hover:text-white'} rounded-none"
-        >
-          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={20} />
-          <span class="text-[8px] font-mono font-black uppercase tracking-widest">{item.label}</span>
-        </button>
-      {/each}
-
-      <!-- Center Tickets Button -->
-      <button 
-        onclick={() => activeTab = 'tickets'}
-        class="relative flex-1 flex flex-col items-center gap-1.5 py-4 transition-all border-r border-white/5 {activeTab === 'tickets' ? 'text-amber-400 bg-amber-500/5' : 'text-slate-600 hover:text-amber-400'} rounded-none"
-      >
-        <Lifebuoy weight={activeTab === 'tickets' ? 'fill' : 'bold'} size={20} />
-        <span class="text-[8px] font-mono font-black uppercase tracking-widest">Tickets</span>
-        {#if supportTickets.filter(t => t.status === 'open').length > 0}
-          <div class="absolute top-2 right-3 min-w-[16px] h-4 bg-amber-500 text-black flex items-center justify-center text-[8px] font-black px-1 rounded-none">
-            {supportTickets.filter(t => t.status === 'open').length}
-          </div>
-        {/if}
-      </button>
-
-      {#each [
-        { id: 'lobby', icon: ChatTeardropDots, label: 'Hub' },
+        { id: 'users', icon: Users, label: 'User' },
+        { id: 'tickets', icon: Lifebuoy, label: 'Supp' },
+        { id: 'governance', icon: ShieldCheckered, label: 'Gov' },
         { id: 'system', icon: Gear, label: 'Sys' }
       ] as item}
         {@const Icon = item.icon}
+        {@const badgeCount = item.id === 'tickets' ? supportTickets.filter(t => t.status === 'open').length : 0}
         <button 
           onclick={() => activeTab = item.id}
-          class="flex-1 flex flex-col items-center gap-1.5 py-4 transition-all {item.id !== 'system' ? 'border-r border-white/5' : ''} {activeTab === item.id ? 'text-primary-400 bg-primary-500/5' : 'text-slate-600 hover:text-white'} rounded-none"
+          class="flex-1 flex flex-col items-center justify-center gap-1.5 transition-all relative {activeTab === item.id ? 'text-primary-400 bg-primary-500/5' : 'text-slate-600'}"
         >
-          <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={20} />
+          {#if activeTab === item.id}
+            <div class="absolute top-0 left-0 right-0 h-1 bg-primary-500" in:fade></div>
+          {/if}
+          
+          <div class="relative">
+            <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={24} />
+            {#if badgeCount > 0}
+              <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border border-[#02040a] animate-pulse"></div>
+            {/if}
+          </div>
           <span class="text-[8px] font-mono font-black uppercase tracking-widest">{item.label}</span>
         </button>
       {/each}
@@ -1066,6 +1181,16 @@
   :global(.pointer-interactions) {
     cursor: pointer;
     user-select: none;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 2px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
   }
 </style>
 
