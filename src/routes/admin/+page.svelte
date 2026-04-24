@@ -14,6 +14,7 @@
   import { toast } from '$lib/stores/toast';
   import { uiStore } from '$lib/stores/uiStore';
   import { appStore } from '$lib/stores/appStore';
+  import { systemConfig } from '$lib/stores/configStore';
   
   // Icons
   import { 
@@ -80,7 +81,6 @@
   let lobbySuggestions = $state<any[]>([]);
   let supportTickets = $state<any[]>([]);
   let activities = $state<any[]>([]);
-  let maintenanceMode = $state(false);
   let isLoading = $state(true);
   let isSaving = $state(false);
   let isSidebarOpen = $state(false); // Mobile sidebar state
@@ -179,9 +179,7 @@
 
   onMount(async () => {
     try {
-      const config = await adminApi.getMaintenanceStatus();
-      maintenanceMode = config.maintenanceMode;
-
+      // maintenanceMode is now handled by systemConfig store
       startRealTimeMonitoring();
 
       refreshStats();
@@ -324,14 +322,13 @@
   }
 
   async function handleToggleMaintenance() {
-    const next = !maintenanceMode;
-    maintenanceMode = next;
+    const next = !$systemConfig.maintenanceMode;
+    // Optimistic UI could be done here, but let's wait for firestore sync
     try {
       await adminApi.toggleMaintenanceMode(next);
       toast.success($t('admin.system.maintenance_toggle_success'));
     } catch (e) {
       toast.error($t('admin.broadcast.error'));
-      maintenanceMode = !next;
     }
   }
 
@@ -747,13 +744,13 @@
                         <div class="bg-black/40 border border-white/5 p-6 space-y-6">
                           <div class="flex items-center justify-between">
                             <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest italic">SECURITY_PROTOCOL</span>
-                            <div class="w-2 h-2 rounded-full {maintenanceMode ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-emerald-500 shadow-[0_0_10px_#10b981]'}"></div>
+                            <div class="w-2 h-2 rounded-full {$systemConfig.maintenanceMode ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-emerald-500 shadow-[0_0_10px_#10b981]'}"></div>
                           </div>
                           <button 
                             onclick={handleToggleMaintenance}
-                            class="w-full py-4 border {maintenanceMode ? 'bg-red-500 text-white border-red-400' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'} text-[10px] font-mono font-black uppercase tracking-widest transition-all"
+                            class="w-full py-4 border {$systemConfig.maintenanceMode ? 'bg-red-500 text-white border-red-400' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'} text-[10px] font-mono font-black uppercase tracking-widest transition-all"
                           >
-                            {maintenanceMode ? 'DESACTIVAR MANTENIMIENTO' : 'ACTIVAR MANTENIMIENTO'}
+                            {$systemConfig.maintenanceMode ? 'DESACTIVAR MANTENIMIENTO' : 'ACTIVAR MANTENIMIENTO'}
                           </button>
                         </div>
 
@@ -953,7 +950,7 @@
                   
                   <SystemConsole 
                     logs={systemLogs}
-                    {maintenanceMode}
+                    maintenanceMode={$systemConfig.maintenanceMode}
                     onToggleMaintenance={handleToggleMaintenance}
                     onRepairData={handleRepairUsers}
                     onClearLogs={() => systemLogs = []}
@@ -965,7 +962,7 @@
                 onRepairIntegrity={handleRepairUsers}
                 onRepairEconomy={handleRepairEconomy}
                 onToggleMaintenance={handleToggleMaintenance}
-                {maintenanceMode}
+                maintenanceMode={$systemConfig.maintenanceMode}
                 {isSaving}
               />
             {/if}

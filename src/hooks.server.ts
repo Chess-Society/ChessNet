@@ -18,10 +18,11 @@ export const handle: Handle = async ({ event, resolve }) => {
                     event.url.pathname.startsWith('/favicon') || 
                     event.url.pathname.includes('.');
     const isAdminRoute = event.url.pathname.startsWith('/admin');
+    const isAuthRoute = event.url.pathname.startsWith('/login') || event.url.pathname.startsWith('/auth');
     
     const isDev = process.env.NODE_ENV === 'development';
     
-    if (!isAsset && !isAdminRoute && !isDev) {
+    if (!isAsset && !isAdminRoute && !isAuthRoute && !isDev) {
         try {
             const now = Date.now();
             let isMaintenance: boolean;
