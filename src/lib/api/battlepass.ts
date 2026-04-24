@@ -1,5 +1,6 @@
 import { db } from "$lib/firebase";
 import { doc, updateDoc, increment, arrayUnion, runTransaction, serverTimestamp } from "firebase/firestore";
+import { XP_PER_TIER, possibleRewards } from "$lib/data/economy";
 
 export const battlepassApi = {
   /**
@@ -36,8 +37,7 @@ export const battlepassApi = {
       let newXp = (bp.currentXp || 0) + xpAmount;
       let newTier = bp.currentTier || 1;
       
-      // Calculate new tier (e.g., 2000 XP per tier)
-      const XP_PER_TIER = 2000;
+      // Calculate new tier
       const expectedTier = Math.floor(newXp / XP_PER_TIER) + 1;
       
       if (expectedTier > newTier) {
@@ -65,9 +65,12 @@ export const battlepassApi = {
       const data = userDoc.data();
       const bp = data?.economy?.battlePass;
       const claimedTiers = bp?.claimedTiers || [];
-      
       if (claimedTiers.includes(tierLevel)) {
         throw new Error("Tier already claimed");
+      }
+      
+      if (tierLevel > (bp?.currentTier || 1)) {
+        throw new Error("Tier not reached yet");
       }
 
       const updates: Record<string, any> = {
@@ -120,10 +123,12 @@ export const battlepassApi = {
   /**
    * Opens a crate, deducting nets and adding the item to collection.
    */
-  async openCrate(userId: string, cost: number, reward: { type: string, value: any }): Promise<void> {
+  async openCrate(userId: string, cost: number, crateType: string): Promise<any> {
     if (!userId) throw new Error("No user ID provided");
     const userRef = doc(db, 'users', userId);
     
+    let finalWinner: any = null;
+
     await runTransaction(db, async (transaction) => {
       const userDoc = await transaction.get(userRef);
       if (!userDoc.exists()) throw new Error("User not found");
@@ -137,7 +142,22 @@ export const battlepassApi = {
         'economy.netsBalance': increment(-cost)
       };
 
-      const { type, value } = reward;
+      // --- Secure RNG Server-Side (or Transaction-side) ---
+      // We must determine the reward securely here instead of trusting the client
+      let winner;
+      if (crateType === 'epic') {
+        winner = possibleRewards.find(r => r.rarity === 'Legendary') || possibleRewards[4];
+      } else if (crateType === 'rare') {
+        winner = possibleRewards.find(r => r.rarity === 'Rare') || possibleRewards[5];
+      } else {
+        winner = possibleRewards.find(r => r.rarity === 'Uncommon') || possibleRewards[0];
+      }
+      
+      finalWinner = winner;
+
+      const type = winner.type;
+      const value = winner.name;
+      
       const collectionKey = `economy.collection.${type}s`; // e.g. emotes, fonts, colors
       
       // Special case for types that don't end in 's' or have different mapping
@@ -153,6 +173,8 @@ export const battlepassApi = {
 
       transaction.update(userRef, updates);
     });
+
+    return finalWinner;
   },
 
   /**

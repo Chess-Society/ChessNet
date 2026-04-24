@@ -35,6 +35,15 @@
   import { battlepassApi } from '$lib/api/battlepass';
   import { user } from '$lib/stores/auth';
   import { toast } from '$lib/stores/toast';
+  import { 
+    XP_PER_TIER, 
+    RARITY_STYLES, 
+    frameStyles, 
+    nameColorStyles, 
+    nameFontStyles, 
+    shopItems as baseShopItems, 
+    possibleRewards as basePossibleRewards 
+  } from '$lib/data/economy';
 
   // Sub-navigation state
   let currentTab = $state('battlepass');
@@ -86,7 +95,6 @@
       : defaultWeekly) as Challenge[]
   );
   
-  const XP_PER_TIER = 7500;
   
   const season = $derived({
     number: 1,
@@ -158,50 +166,20 @@
     }
   }
 
-  const frameStyles: Record<string, string> = {
-    'Acero': 'border-zinc-400 shadow-[0_0_10px_rgba(161,161,170,0.3)]',
-    'Amatista': 'border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.5)]',
-    'Eléctrico': 'border-blue-400 shadow-[0_0_20px_rgba(96,165,250,0.6)] animate-pulse',
-    'Maestro': 'border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.8)] border-[3px]',
-    'Neón Violeta': 'border-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]',
-    'Dorado Real': 'border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]',
-    'Cian Cyber': 'border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]',
-    'Esmeralda': 'border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]',
-    'Rojo Sangre': 'border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]'
+
+
+  const iconMap: Record<string, any> = {
+    'color': PaintBrush,
+    'frame': ImageSquare,
+    'font': TextT,
+    'emote': Smiley,
+    'title': Trophy
   };
 
-  const nameColorStyles: Record<string, string> = {
-    'Esmeralda': 'text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.3)]',
-    'Violeta Neón': 'text-violet-400 drop-shadow-[0_0_8px_rgba(167,139,250,0.5)]',
-    'Oro Puro': 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)] font-black',
-    'Gris Piedra': 'text-zinc-500',
-    'Violeta': 'text-violet-400',
-    'Dorado': 'text-amber-400',
-    'Cian': 'text-cyan-400',
-    'Rojo': 'text-red-500',
-    'Fucsia': 'text-fuchsia-400'
-  };
-
-  const nameFontStyles: Record<string, string> = {
-    'Retro': 'font-mono tracking-tighter',
-    'Elegante': 'italic font-serif',
-    'Maestro': 'uppercase tracking-[0.2em] font-black',
-    'Cyber': 'font-cyber',
-    'Inter Tight': 'font-inter-tight',
-    'Monospace Pro': 'font-mono'
-  };
-
-
-
-  const shopItems = [
-    { name: 'Fucsia', type: 'color', price: 1500, rarity: 'Legendary', icon: PaintBrush, desc: 'Un color fucsia neón que destaca en cualquier publicación.' },
-    { name: 'Cian Cyber', type: 'frame', price: 2500, rarity: 'Legendary', icon: ImageSquare, desc: 'Marco tecnológico con efectos de pulso cian.' },
-    { name: 'Monospace Pro', type: 'font', price: 800, rarity: 'Epic', icon: TextT, desc: 'Tipografía de terminal para un look más técnico.' },
-    { name: 'Rojo Sangre', type: 'frame', price: 3000, rarity: 'Epic', icon: ImageSquare, desc: 'Marco agresivo para los jugadores más competitivos.' },
-    { name: 'Dorado', type: 'color', price: 5000, rarity: 'Mythic', icon: PaintBrush, desc: 'El color de los reyes del tablero.' },
-    { name: 'Esmeralda', type: 'frame', price: 1200, rarity: 'Rare', icon: ImageSquare, desc: 'Marco natural y elegante.' },
-  ];
-
+  const shopItems = baseShopItems.map(item => ({
+    ...item,
+    icon: iconMap[item.type] || Package
+  }));
   async function handleBuyItem(item: any) {
     if (!$user) return;
     if (netsBalance < item.price) {
@@ -287,25 +265,10 @@
   let crateResult = $state<any>(null);
   let crateType = $state('');
   
-  // Rarity system: Common=zinc, Uncommon=green, Rare=blue, Epic=violet, Legendary=amber, Mythic=red
-  const RARITY_STYLES: Record<string, { color: string, border: string, glow: string, bg: string, label: string }> = {
-    'Common':     { color: 'text-zinc-400',    border: 'border-zinc-600',    glow: 'rgba(161,161,170,0.3)',   bg: 'bg-zinc-800/30',    label: 'Común' },
-    'Uncommon':   { color: 'text-emerald-400', border: 'border-emerald-500', glow: 'rgba(52,211,153,0.4)',    bg: 'bg-emerald-900/20', label: 'Infrecuente' },
-    'Rare':       { color: 'text-blue-400',    border: 'border-blue-500',    glow: 'rgba(96,165,250,0.5)',    bg: 'bg-blue-900/20',    label: 'Raro' },
-    'Epic':       { color: 'text-violet-400',  border: 'border-violet-500',  glow: 'rgba(139,92,246,0.6)',    bg: 'bg-violet-900/20',  label: 'Épico' },
-    'Legendary':  { color: 'text-amber-400',   border: 'border-amber-500',   glow: 'rgba(251,191,36,0.7)',    bg: 'bg-amber-900/20',   label: 'Legendario' },
-    'Mythic':     { color: 'text-red-400',     border: 'border-red-500',     glow: 'rgba(248,113,113,0.7)',   bg: 'bg-red-900/20',     label: 'Mítico' },
-  };
-
-  const possibleRewards = [
-    { name: 'Wave 👋',      type: 'Emote',  rarity: 'Common',    icon: Smiley },
-    { name: 'Thinking 🤔',  type: 'Emote',  rarity: 'Uncommon',  icon: Smiley },
-    { name: 'Cyber',        type: 'Fuente', rarity: 'Rare',      icon: TextT },
-    { name: 'Cian',         type: 'Color',  rarity: 'Rare',      icon: PaintBrush },
-    { name: 'Neón Violeta', type: 'Marco',  rarity: 'Epic',      icon: ImageSquare },
-    { name: 'Dorado Real',  type: 'Marco',  rarity: 'Legendary', icon: ImageSquare },
-    { name: 'Fucsia Mítico',type: 'Color',  rarity: 'Mythic',    icon: PaintBrush },
-  ].map(r => ({ ...r, ...RARITY_STYLES[r.rarity] }));
+  const possibleRewards = basePossibleRewards.map(r => ({
+    ...r,
+    icon: iconMap[r.type.toLowerCase()] || Package
+  }));
 
   let rouletteItems = $state<any[]>([]);
 
@@ -321,33 +284,27 @@
     
     rouletteItems = Array(40).fill(0).map(() => possibleRewards[Math.floor(Math.random() * possibleRewards.length)]);
     
-    let winner;
-    if (type === 'epic') {
-      winner = possibleRewards.find(r => r.rarity === 'Legendary') || possibleRewards[4];
-    } else if (type === 'rare') {
-      winner = possibleRewards.find(r => r.rarity === 'Rare') || possibleRewards[5];
-    } else {
-      winner = possibleRewards.find(r => r.rarity === 'Uncommon') || possibleRewards[0];
-    }
-    
-    rouletteItems[35] = winner;
-    crateResult = winner;
-    
-    rouletteOffset = 0;
-    setTimeout(() => { rouletteOffset = -(35 * 176 + 80); }, 50);
+    try {
+      const winnerData = await battlepassApi.openCrate($user.uid, price, type);
+      
+      let winner = possibleRewards.find(r => r.name === winnerData.name) || possibleRewards[0];
+      
+      rouletteItems[35] = winner;
+      crateResult = winner;
+      
+      rouletteOffset = 0;
+      setTimeout(() => { rouletteOffset = -(35 * 176 + 80); }, 50);
 
-    setTimeout(async () => {
-      try {
-        const typeMap: Record<string, string> = { 'Emote': 'emote', 'Fuente': 'font', 'Color': 'color', 'Marco': 'frame', 'Tema': 'theme', 'Tablero': 'theme', 'Badge': 'badge' };
-        const rewardObj = { type: typeMap[winner.type] || winner.type.toLowerCase(), value: winner.name };
-        await battlepassApi.openCrate($user.uid, price, rewardObj);
+      setTimeout(() => {
         triggerPulse();
         showCrateResult = true;
-      } catch (e) {
-        console.error(e);
-        isOpeningCrate = false;
-      }
-    }, 4500);
+      }, 4500);
+
+    } catch (e) {
+      console.error(e);
+      isOpeningCrate = false;
+      toast.error('Error al abrir la caja');
+    }
   }
 
   function closeCrate() {
@@ -402,26 +359,30 @@
       </div>
     </div>
     <!-- Tab row -->
-    <div class="flex items-center bg-[#0d0d0f] border-b border-white/5 overflow-x-auto no-scrollbar">
-      {#each tabs as tab}
-        <button
-          onclick={() => currentTab = tab.id}
-          class="flex items-center gap-2.5 px-6 py-4 text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap neon-trace
-            {currentTab === tab.id ? 'text-white bg-white/5' : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/5'}"
-        >
-          <tab.icon
-            size={16}
-            weight={currentTab === tab.id ? 'fill' : 'regular'}
-            class="{currentTab === tab.id
-              ? (tab.id === 'battlepass' ? 'text-amber-400'
-                : tab.id === 'crates' ? 'text-emerald-400'
-                : tab.id === 'shop' ? 'text-blue-400'
-                : 'text-violet-400')
-              : 'text-zinc-600'} transition-colors"
-          />
-          {tab.label}
-        </button>
-      {/each}
+    <div class="bg-[#0d0d0f] border-b border-white/5 p-2 px-4 sm:px-6">
+      <div class="max-w-2xl mx-auto flex p-1 bg-black/40 border border-white/5 relative overflow-hidden">
+        {#each tabs as tab}
+          <button
+            onclick={() => currentTab = tab.id}
+            class="flex-1 flex items-center justify-center gap-2.5 py-3 text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all relative z-10 whitespace-nowrap
+              {currentTab === tab.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}"
+          >
+            <tab.icon
+              size={14}
+              weight={currentTab === tab.id ? 'fill' : 'bold'}
+              class="transition-colors {currentTab === tab.id ? 'text-violet-400' : 'text-zinc-600'}"
+            />
+            <span class="hidden xs:inline">{tab.label}</span>
+          </button>
+        {/each}
+        
+        <!-- Sliding Indicator -->
+        {@const activeIndex = tabs.findIndex(t => t.id === currentTab)}
+        <div 
+          class="absolute top-1 bottom-1 left-1 bg-white/5 border border-white/10 transition-all duration-300 ease-out z-0"
+          style="width: calc((100% - 8px) / {tabs.length}); transform: translateX(calc({activeIndex} * 100%))"
+        ></div>
+      </div>
     </div>
   </div>
 
@@ -791,7 +752,7 @@
       <div class="space-y-2">
         <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-zinc-500 bg-black/40 p-2.5 border border-white/5 group/bal">
           <span class="flex items-center gap-2 transition-colors group-hover/bal:text-white"><Coins size={14} weight="fill" class="text-amber-500" /> Balance Nets</span>
-          <span class="text-white font-mono text-xs">{netsBalance}</span>
+          <span class="text-white font-mono text-xs">{(netsBalance ?? 0).toLocaleString()}</span>
         </div>
         <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-zinc-500 bg-black/40 p-2.5 border border-white/5 group/col">
           <span class="flex items-center gap-2 transition-colors group-hover/col:text-white"><Cube size={14} weight="fill" class="text-violet-500" /> Objetos</span>

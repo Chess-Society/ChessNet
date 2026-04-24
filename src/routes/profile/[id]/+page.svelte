@@ -121,7 +121,7 @@
           <div class="stat-box nets">
             <div class="label">Saldo de Nets</div>
             <div class="value">
-              {profile.economy?.netsBalance || 0}
+              {(profile.economy?.netsBalance ?? 0).toLocaleString()}
               <span class="unit">NTS</span>
             </div>
             <div class="icon-bg">

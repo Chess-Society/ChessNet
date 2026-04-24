@@ -40,7 +40,7 @@
   import SystemConsole from '$lib/components/admin/SystemConsole.svelte';
   import LiveActivityFeed from '$lib/components/admin/LiveActivityFeed.svelte';
   import TicketManager from '$lib/components/admin/TicketManager.svelte';
-  import SocialFeed from '$lib/components/social/SocialFeed.svelte';
+  import LobbyManager from '$lib/components/admin/LobbyManager.svelte';
   import LichessPulse from '$lib/components/admin/LichessPulse.svelte';
   import StripeSimulator from '$lib/components/StripeSimulator.svelte';
   import UpdatePill from '$lib/components/common/UpdatePill.svelte';
@@ -244,6 +244,22 @@
     }
   }
 
+  async function handleMintNets(amount: number) {
+    if (!selectedUser || !amount) return;
+    try {
+      isSaving = true;
+      await adminApi.mintNets(selectedUser.id, amount);
+      toast.success('Nets acuñados correctamente');
+      // Refrescar detalles para ver el nuevo balance
+      const details = await adminApi.getUserDetails(selectedUser.id);
+      userDetails = { ...userDetails, ...details };
+    } catch (e) {
+      toast.error($t('admin.broadcast.error'));
+    } finally {
+      isSaving = false;
+    }
+  }
+
   async function handleRevokePremium(userId: string) {
     const confirmed = await uiStore.confirm({
       title: $t('admin.msg.revoke_premium_confirm'),
@@ -403,7 +419,7 @@
 
       <PrestigeBadge 
         nets={$appStore.settings.economy?.netsBalance || 0} 
-        prestige={0}
+        prestige={$appStore.settings.economy?.prestige || 0}
         variant="ghost" 
       />
       
@@ -756,10 +772,7 @@
               </div>
 
             {:else if activeTab === 'lobby'}
-               <div class="h-[70vh] overflow-y-auto custom-scrollbar">
-                 <SocialFeed />
-               </div>
-
+               <LobbyManager suggestions={lobbySuggestions} />
             {:else if activeTab === 'system'}
                <div class="space-y-12">
                   <div class="flex items-center gap-6">
@@ -868,7 +881,26 @@
                   {$t('admin.modal.revoke_privileges')}
                  </button>
               {/if}
-           </div>
+            </div>
+
+            <!-- Economy Control -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <Star weight="duotone" class="w-4 h-4 text-emerald-500" />
+                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">Gestión de Nets (MINT)</p>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/10 border border-white/10">
+                 {#each [100, 500, 1000, 5000] as amount}
+                   <button 
+                    onclick={() => handleMintNets(amount)}
+                    disabled={isSaving}
+                    class="py-4 bg-[#02040a] text-[10px] font-mono font-black uppercase tracking-widest transition-all hover:bg-emerald-500/10 hover:text-emerald-400 disabled:opacity-50 text-slate-400 cursor-pointer rounded-none"
+                   >
+                    +{amount}
+                   </button>
+                 {/each}
+              </div>
+            </div>
 
             <!-- Badge Command -->
             <div class="space-y-6">

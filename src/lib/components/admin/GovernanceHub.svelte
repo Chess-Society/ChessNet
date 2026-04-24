@@ -686,7 +686,12 @@
                <div class="flex-1">
                   <div class="flex items-center justify-between mb-1">
                     <p class="text-[11px] font-black text-white uppercase italic tracking-tight">{log.action || 'Operación Sistema'}</p>
-                    <span class="text-[7px] font-black text-zinc-700 font-mono uppercase">{new Date(log.timestamp?.toDate ? log.timestamp.toDate() : log.timestamp).toLocaleTimeString()}</span>
+                    <span class="text-[7px] font-black text-zinc-700 font-mono uppercase">
+                      {(() => {
+                        const ts = log.timestamp?.toDate ? log.timestamp.toDate() : log.timestamp;
+                        return ts ? new Date(ts).toLocaleTimeString() : '---';
+                      })()}
+                    </span>
                   </div>
                   <p class="text-[9px] text-zinc-500 uppercase tracking-tight leading-relaxed line-clamp-2">{log.message || log.details}</p>
                </div>

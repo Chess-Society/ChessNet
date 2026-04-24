@@ -326,7 +326,7 @@
           {#if post.tipsTotal > 0}
              <div class="hidden sm:flex items-center gap-1.5 text-[9px] font-black text-amber-500 px-2 py-1 bg-amber-500/10 border border-amber-500/20">
                 <ChartLineUp size={12} weight="bold" />
-                {post.tipsTotal}
+                {(post.tipsTotal ?? 0).toLocaleString()}
              </div>
           {/if}
           <button 

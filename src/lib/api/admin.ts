@@ -750,5 +750,12 @@ export const adminApi = {
         photoURL: doc.data().photoURL
       })).filter(u => u.prestige > 0);
     }
+  },
+
+  /**
+   * Concede Nets directamente a un usuario.
+   */
+  async mintNets(userId: string, amount: number) {
+    return this.addNets(userId, amount, 'Concesión administrativa de Nets (MINT)');
   }
 };

@@ -9,7 +9,8 @@ import {
   doc, 
   updateDoc, 
   runTransaction,
-  serverTimestamp
+  serverTimestamp,
+  increment
 } from "firebase/firestore";
 import type { PredictionMarket, PredictionBet } from "$lib/types/governance";
 
@@ -62,10 +63,16 @@ export const predictionApi = {
   async placeBet(userId: string, marketId: string, optionId: string, amount: number): Promise<void> {
     const marketRef = doc(db, "prediction_markets", marketId);
     const userRef = doc(db, "users", userId);
+    // ID Determinístico para la apuesta para permitir lectura transaccional sin Query
+    const betId = `bet_${marketId}_${userId}_${optionId}`;
+    const betRef = doc(db, "prediction_bets", betId);
 
     await runTransaction(db, async (transaction) => {
-      const marketSnap = await transaction.get(marketRef);
-      const userSnap = await transaction.get(userRef);
+      const [marketSnap, userSnap, betSnap] = await Promise.all([
+        transaction.get(marketRef),
+        transaction.get(userRef),
+        transaction.get(betRef)
+      ]);
 
       if (!marketSnap.exists()) throw new Error("Hito no encontrado");
       if (!userSnap.exists()) throw new Error("Usuario no encontrado");
@@ -96,24 +103,14 @@ export const predictionApi = {
       });
 
       // Registrar o actualizar la posición del usuario
-      // (Buscamos si ya tiene una posición para este mercado/opción)
-      const positionQuery = query(
-        collection(db, "prediction_bets"),
-        where("marketId", "==", marketId),
-        where("userId", "==", userId),
-        where("optionId", "==", optionId)
-      );
-      const positionSnap = await getDocs(positionQuery);
-      
-      if (!positionSnap.empty) {
-        const posDoc = positionSnap.docs[0];
-        transaction.update(posDoc.ref, {
-          amount: (posDoc.data().amount || 0) + amount,
-          sharesOwned: (posDoc.data().sharesOwned || 0) + sharesToBuy,
+      if (betSnap.exists()) {
+        const betData = betSnap.data();
+        transaction.update(betRef, {
+          amount: (betData.amount || 0) + amount,
+          sharesOwned: (betData.sharesOwned || 0) + sharesToBuy,
           updatedAt: new Date().toISOString()
         });
       } else {
-        const betRef = doc(collection(db, "prediction_bets"));
         transaction.set(betRef, {
           marketId,
           userId,
@@ -126,7 +123,7 @@ export const predictionApi = {
 
       // Actualizar balance del usuario
       transaction.update(userRef, {
-        "economy.netsBalance": (userData.economy.netsBalance || 0) - amount,
+        "economy.netsBalance": (userData.economy?.netsBalance || 0) - amount,
         "economy.lastEconomyUpdate": new Date().toISOString()
       });
 
@@ -144,23 +141,24 @@ export const predictionApi = {
   async sellPosition(userId: string, marketId: string, optionId: string, sharesToSell: number): Promise<void> {
     const marketRef = doc(db, "prediction_markets", marketId);
     const userRef = doc(db, "users", userId);
+    const betId = `bet_${marketId}_${userId}_${optionId}`;
+    const betRef = doc(db, "prediction_bets", betId);
 
     await runTransaction(db, async (transaction) => {
-      const marketSnap = await transaction.get(marketRef);
-      const userSnap = await transaction.get(userRef);
+      const [marketSnap, userSnap, betSnap] = await Promise.all([
+        transaction.get(marketRef),
+        transaction.get(userRef),
+        transaction.get(betRef)
+      ]);
+
+      if (!betSnap.exists()) {
+         // Fallback por si hay apuestas con ID antiguo (legacy)
+         // Nota: En producción esto debería manejarse con una migración, 
+         // pero por ahora lanzamos error para forzar consistencia.
+         throw new Error("No tienes un pronóstico registrado con este ID transaccional");
+      }
       
-      const positionQuery = query(
-        collection(db, "prediction_bets"),
-        where("marketId", "==", marketId),
-        where("userId", "==", userId),
-        where("optionId", "==", optionId)
-      );
-      const positionSnap = await getDocs(positionQuery);
-
-      if (positionSnap.empty) throw new Error("No tienes un pronóstico en este hito");
-      const posDoc = positionSnap.docs[0];
-      const posData = posDoc.data();
-
+      const posData = betSnap.data();
       if ((posData.sharesOwned || 0) < sharesToSell) throw new Error("No tienes suficientes Nets comprometidos");
       
       const marketData = marketSnap.data() as PredictionMarket;
@@ -187,9 +185,9 @@ export const predictionApi = {
 
       // Actualizar posición del usuario
       if (posData.sharesOwned === sharesToSell) {
-        transaction.delete(posDoc.ref);
+        transaction.delete(betRef);
       } else {
-        transaction.update(posDoc.ref, {
+        transaction.update(betRef, {
           sharesOwned: posData.sharesOwned - sharesToSell,
           amount: Math.max(0, posData.amount - netsToReturn)
         });
@@ -267,6 +265,10 @@ export const predictionApi = {
       );
       const betsSnap = await getDocs(betsQuery);
       
+      if (betsSnap.size > 150) {
+        throw new Error(`El mercado tiene demasiadas apuestas (${betsSnap.size}) para ser procesado automáticamente. Contacte con soporte técnico.`);
+      }
+      
       // Liquidar a los ganadores (1 Net por acción)
       for (const betDoc of betsSnap.docs) {
         const bet = betDoc.data();
@@ -275,13 +277,10 @@ export const predictionApi = {
           
           if (payout > 0) {
             const winnerRef = doc(db, "users", bet.userId);
-            const winnerSnap = await transaction.get(winnerRef);
-            
-            if (winnerSnap.exists()) {
-              transaction.update(winnerRef, {
-                "economy.netsBalance": (winnerSnap.data().economy?.netsBalance || 0) + payout,
-                "economy.lastEconomyUpdate": new Date().toISOString()
-              });
+            transaction.update(winnerRef, {
+              "economy.netsBalance": increment(payout),
+              "economy.lastEconomyUpdate": new Date().toISOString()
+            });
 
               // Registrar transacción
               const transRef = doc(collection(db, "nets_transactions"));
@@ -294,12 +293,11 @@ export const predictionApi = {
               });
             }
           }
+          transaction.delete(betDoc.ref);
         }
-        transaction.delete(betDoc.ref);
-      }
 
-      // Cerrar definitivamente
-      transaction.update(marketRef, {
+        // Cerrar definitivamente
+        transaction.update(marketRef, {
         status: 'RESOLVED',
         resultOptionId,
         resolvedAt: new Date().toISOString()

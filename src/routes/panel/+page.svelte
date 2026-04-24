@@ -774,7 +774,7 @@
                   <div class="space-y-3">
                     <div class="flex flex-col gap-2">
                       <div class="flex justify-between text-[9px] font-black">
-                        <span class="text-emerald-400">{yesOpt?.text || 'SI'}</span>
+                        <span class="text-emerald-400">{yesOpt?.text || 'SÍ'}</span>
                         <span class="text-white">{yPct}%</span>
                       </div>
                       <div class="h-1.5 bg-zinc-900 overflow-hidden">
