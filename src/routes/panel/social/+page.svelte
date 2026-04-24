@@ -57,11 +57,11 @@
   <header class="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8" in:fade={{ duration: 800 }}>
     <div class="relative">
       <div class="flex items-center gap-3 mb-4">
-        <span class="px-3 py-1 bg-violet-600 text-[11px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(139,92,246,0.3)]">Social System</span>
+        <span class="px-3 py-1 bg-violet-600 text-[11px] font-black text-white uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(139,92,246,0.3)]">SISTEMA SOCIAL</span>
         <div class="h-[1px] w-24 bg-white/10"></div>
       </div>
       <h1 class="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter italic leading-none">
-        Social <span class="text-violet-500">Feed</span>
+        MURO <span class="text-violet-500">SOCIAL</span>
       </h1>
       <p class="text-zinc-500 text-sm mt-6 max-w-xl font-medium leading-relaxed">
         Comparte conocimientos, posiciones tácticas y análisis con la comunidad de profesores de <span class="text-white">ChessNet</span>. Un espacio para el crecimiento profesional colectivo.
@@ -73,7 +73,7 @@
         <span class="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 mb-1">Actividad Global</span>
         <div class="flex items-baseline gap-2 justify-end">
           <span class="text-3xl font-black text-white">{$appStore.posts.length}</span>
-          <span class="text-[10px] font-black uppercase text-violet-500/70 tracking-widest">Posts</span>
+          <span class="text-[10px] font-black uppercase text-violet-500/70 tracking-widest">PUBLICACIONES</span>
         </div>
       </div>
     </div>
@@ -126,7 +126,7 @@
             <Plus size={24} weight="bold" />
           </div>
           <div class="text-center">
-            <span class="block text-[11px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1">Director Tools</span>
+            <span class="block text-[11px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1">HERRAMIENTAS_DIRECTOR</span>
             <span class="block text-lg font-black text-white uppercase italic tracking-tighter">Lanzar Reto</span>
           </div>
         </button>
@@ -147,7 +147,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         </div>
-        <p class="text-zinc-500 font-black uppercase tracking-[0.3em] text-xs">Zero activity detected</p>
+        <p class="text-zinc-500 font-black uppercase tracking-[0.3em] text-xs">SIN ACTIVIDAD DETECTADA</p>
         <p class="text-zinc-700 text-[10px] uppercase tracking-widest mt-2">Inicia la conversación compartiendo la primera publicación</p>
       </div>
     {:else}

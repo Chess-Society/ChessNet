@@ -782,7 +782,8 @@ export const adminApi = {
           colors: [],
           badges: [],
           frames: [],
-          themes: []
+          themes: [],
+          effects: []
         },
         battlePass: {
           seasonId: 'season-1',
