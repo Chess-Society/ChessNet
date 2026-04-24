@@ -33,9 +33,13 @@ export const handle: Handle = async ({ event, resolve }) => {
             if (now < maintenanceCacheExpiry) {
                 isMaintenance = maintenanceCacheValue;
             } else {
-                // Refrescar caché desde Firestore
+                // Refrescar caché desde Firestore con Timeout para evitar bloqueos
                 const configRef = adminDb.collection("system").doc("config");
-                const configSnap = await configRef.get();
+                const configSnap = await Promise.race([
+                    configRef.get(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 2500))
+                ]) as any;
+                
                 isMaintenance = configSnap.exists && configSnap.data()?.maintenanceMode === true;
                 maintenanceCacheValue = isMaintenance;
                 maintenanceCacheExpiry = now + MAINTENANCE_CACHE_TTL_MS;
