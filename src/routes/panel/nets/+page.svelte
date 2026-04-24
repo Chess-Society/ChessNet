@@ -54,6 +54,8 @@
     { id: 'collection', label: 'Personalizar', icon: UserCircle }
   ];
 
+  let activeIndex = $derived(tabs.findIndex(t => t.id === currentTab));
+
   // DB State
   let bpData = $derived($appStore.settings?.economy?.battlePass);
   let currentTier = $derived(bpData?.currentTier || 1);
@@ -377,7 +379,6 @@
         {/each}
         
         <!-- Sliding Indicator -->
-        {@const activeIndex = tabs.findIndex(t => t.id === currentTab)}
         <div 
           class="absolute top-1 bottom-1 left-1 bg-white/5 border border-white/10 transition-all duration-300 ease-out z-0"
           style="width: calc((100% - 8px) / {tabs.length}); transform: translateX(calc({activeIndex} * 100%))"
