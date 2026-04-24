@@ -128,7 +128,7 @@
   </div>
 
   <!-- Operational Grid -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 border border-white/10">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 border border-white/10">
     {#each secondaryCards as card, i}
       {@const Icon = card.icon}
       <div class="relative bg-[#02040a] p-8 group transition-all hover:bg-white/[0.01]" in:fade={{ delay: 300 + (i * 100) }}>

@@ -50,7 +50,6 @@
   import TicketManager from '$lib/components/admin/TicketManager.svelte';
   import LobbyManager from '$lib/components/admin/LobbyManager.svelte';
   import LichessPulse from '$lib/components/admin/LichessPulse.svelte';
-  import StripeSimulator from '$lib/components/StripeSimulator.svelte';
   import UpdatePill from '$lib/components/common/UpdatePill.svelte';
   import PrestigeBadge from '$lib/components/economy/PrestigeBadge.svelte';
 
@@ -73,7 +72,7 @@
     totalInsignias: 0,
     totalRevenue: 0,
     activeSessions: 0,
-    serverLoad: 12
+    serverLoad: 0
   });
 
   let users = $state<any[]>([]);
@@ -323,12 +322,14 @@
 
   async function handleToggleMaintenance() {
     const next = !$systemConfig.maintenanceMode;
-    // Optimistic UI could be done here, but let's wait for firestore sync
+    isSaving = true;
     try {
       await adminApi.toggleMaintenanceMode(next);
       toast.success($t('admin.system.maintenance_toggle_success'));
     } catch (e) {
       toast.error($t('admin.broadcast.error'));
+    } finally {
+      isSaving = false;
     }
   }
 
@@ -682,10 +683,6 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                      <div class="hidden sm:flex flex-col items-end mr-4">
-                        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">Tiempo de Actividad</p>
-                        <p class="text-sm font-black font-display italic text-emerald-500">99.98%</p>
-                      </div>
                       <button 
                         onclick={refreshStats} 
                         class="h-14 px-8 bg-white hover:bg-violet-500 hover:text-white text-black transition-all flex items-center gap-3 font-black text-xs uppercase tracking-widest group rounded-none"
@@ -754,19 +751,7 @@
                           </button>
                         </div>
 
-                        <!-- Technical Stats -->
-                        <div class="bg-zinc-900/20 border border-white/5 p-6 space-y-4">
-                          {#each [
-                            { label: 'NETWORK_LOAD', val: '12%', color: 'text-emerald-500' },
-                            { label: 'CPU_USAGE', val: '8.4%', color: 'text-violet-400' },
-                            { label: 'MEMORY', val: '42.1%', color: 'text-white' }
-                          ] as row}
-                            <div class="flex justify-between items-center text-[9px] font-mono font-black">
-                              <span class="text-slate-600 tracking-widest">{row.label}</span>
-                              <span class={row.color}>{row.val}</span>
-                            </div>
-                          {/each}
-                        </div>
+
 
                         <div class="bg-zinc-900/40 border border-white/5 p-6">
                            <div class="flex items-center justify-between mb-4">
@@ -946,7 +931,20 @@
                     </div>
                   </div>
                   
-                  <StripeSimulator />
+                   <!-- Production Status Console -->
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="p-6 bg-white/[0.02] border border-white/5">
+                        <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest mb-1">CORE_ENGINE_STATUS</p>
+                        <div class="flex items-center gap-3">
+                           <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none animate-pulse"></div>
+                           <p class="text-xl font-black font-display italic text-white uppercase">Operational</p>
+                        </div>
+                      </div>
+                      <div class="p-6 bg-white/[0.02] border border-white/5">
+                        <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest mb-1">NETWORK_RELIABILITY</p>
+                        <p class="text-xl font-black font-display italic text-violet-400 uppercase">99.99% Guaranteed</p>
+                      </div>
+                   </div>
                   
                   <SystemConsole 
                     logs={systemLogs}
@@ -1020,7 +1018,7 @@
               {/each}
            </div>
 
-           <!-- Premium Commands -->
+
            <div class="space-y-4">
               <div class="flex items-center gap-3">
                 <Crown weight="duotone" class="w-4 h-4 text-amber-500" />

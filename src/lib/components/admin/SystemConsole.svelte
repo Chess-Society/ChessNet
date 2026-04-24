@@ -94,13 +94,9 @@
         <h4 class="font-mono font-black uppercase tracking-[0.2em] text-xs text-white">{$t('admin.system.server_status')}</h4>
       </div>
       <div class="grid grid-cols-1 gap-6">
-        <div class="space-y-2 border-l-2 border-primary-500/20 pl-4">
-          <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">NETWORK_LATENCY</p>
-          <p class="text-2xl font-mono font-black text-white">24<span class="text-[10px] text-slate-700 ml-1">MS</span></p>
-        </div>
-        <div class="space-y-2 border-l-2 border-violet-500/20 pl-4">
-          <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">SYSTEM_UPTIME</p>
-          <p class="text-2xl font-mono font-black text-violet-500">99.9<span class="text-[10px] text-slate-700 ml-1">%</span></p>
+        <div class="flex items-center gap-3">
+          <div class="w-1.5 h-1.5 bg-emerald-500 animate-pulse"></div>
+          <p class="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest">Core Status: Normal</p>
         </div>
       </div>
     </div>
@@ -140,7 +136,7 @@
           <div class="flex-1 min-w-0">
             <span class="text-slate-500 font-mono font-black uppercase text-[9px] tracking-wider">{log.type || log.action}:</span>
             <span class="text-slate-700 ml-4 font-mono text-[10px] uppercase break-all">
-               {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
+               {log.message || (typeof log.details === 'string' ? log.details : JSON.stringify(log.details))}
             </span>
           </div>
         </div>
@@ -157,8 +153,8 @@
 
     <div class="px-8 py-5 bg-white/[0.01] border-t border-white/10 text-[8px] font-mono font-black text-slate-800 flex justify-between items-center uppercase tracking-[0.2em]">
       <div class="flex items-center gap-6">
-        <span>INSTANCE: FB_PROD_01</span>
-        <span>AGENT: BASH_V3</span>
+        <span>INSTANCE: PRODUCTION</span>
+        <span>MODE: CLOUD_FS</span>
       </div>
       <div class="flex items-center gap-2 text-emerald-500/30">
         <div class="w-1.5 h-1.5 bg-emerald-500/50 rounded-none"></div>

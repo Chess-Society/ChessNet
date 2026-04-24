@@ -57,8 +57,8 @@ export const adminApi = {
         recentUsers: recentSnap.data().count,
         totalInsignias: insigniasSnap.data().count,
         totalRevenue,
-        activeSessions: Math.floor(Math.random() * 40) + 10, // Simulated for now
-        serverLoad: Math.floor(Math.random() * 15) + 5 // Simulated for now
+        activeSessions: 0, 
+        serverLoad: 0
       };
     } catch (error) {
       console.error("[AdminAPI] Error getting global stats:", error);
