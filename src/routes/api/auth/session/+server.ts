@@ -46,7 +46,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
 
     try {
-      const sessionCookie = await adminAuth.createSessionCookie(token, { expiresIn });
+      // Enforce timeout to prevent hanging
+      const sessionCookie = await Promise.race([
+        adminAuth.createSessionCookie(token, { expiresIn }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase Admin timeout')), 8000))
+      ]) as string;
+
 
       cookies.set('__session', sessionCookie, {
         path: '/',

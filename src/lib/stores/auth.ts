@@ -54,11 +54,16 @@ export const initAuth = () => {
             if (!resolved) {
                 try {
                     const idToken = await firebaseUser.getIdToken();
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000);
+                    
                     const res = await fetch('/api/auth/session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token: idToken })
+                        body: JSON.stringify({ token: idToken }),
+                        signal: controller.signal
                     });
+                    clearTimeout(timeoutId);
                     if (res.ok) cookieSynced.set(true);
                 } catch (e) {}
             }

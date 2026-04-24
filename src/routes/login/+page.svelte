@@ -32,11 +32,15 @@
         
         try {
           const idToken = await user.getIdToken();
-          await fetch('/api/auth/session', {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          
+          fetch('/api/auth/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: idToken })
-          });
+            body: JSON.stringify({ token: idToken }),
+            signal: controller.signal
+          }).catch(() => {}).finally(() => clearTimeout(timeoutId));
         } catch (e) {
         }
 
