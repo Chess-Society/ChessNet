@@ -89,14 +89,14 @@
   }
 
   const defaultDaily: Challenge[] = [
-    { id: 'd1', title: 'Analista Nato', description: 'Analiza 3 de tus partidas hoy.', progress: 1, target: 3, rewardXp: 500, completed: false },
-    { id: 'd2', title: 'Resolución Letal', description: 'Completa 5 puzzles sin fallar.', progress: 5, target: 5, rewardXp: 750, completed: true },
-    { id: 'd3', title: 'Socializador', description: 'Publica 2 mensajes en el feed.', progress: 0, target: 2, rewardXp: 300, completed: false }
+    { id: 'd1', title: 'Analista de Mercados', description: 'Analiza 3 mercados de predicción hoy.', progress: 1, target: 3, rewardXp: 500, completed: false },
+    { id: 'd2', title: 'Voto Crítico', description: 'Vota en una propuesta de gobernanza.', progress: 1, target: 1, rewardXp: 750, completed: true },
+    { id: 'd3', title: 'Socializador', description: 'Publica 2 mensajes en el feed social.', progress: 0, target: 2, rewardXp: 300, completed: false }
   ];
 
   const defaultWeekly: Challenge[] = [
-    { id: 'w1', title: 'Veterano Semanal', description: 'Gana 10 partidas clasificatorias.', progress: 4, target: 10, rewardXp: 2500, completed: false },
-    { id: 'w2', title: 'Mente Brillante', description: 'Consigue una precisión de +90% en 3 juegos.', progress: 1, target: 3, rewardXp: 1500, completed: false }
+    { id: 'w1', title: 'Oráculo Semanal', description: 'Acierta 5 predicciones esta semana.', progress: 2, target: 5, rewardXp: 2500, completed: false },
+    { id: 'w2', title: 'Magnate de Nets', description: 'Consigue +100 Nets en el mercado.', progress: 45, target: 100, rewardXp: 1500, completed: false }
   ];
 
   let dailyChallengesDb = $derived<Challenge[]>(
@@ -505,7 +505,7 @@
           </div>
           <div class="relative z-10">
         <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Misiones Diarias</h2>
-            <p class="text-sm text-zinc-400 max-w-lg mb-6">Completa tus partidas diarias para desbloquear cofres gratuitos. Los cofres contienen gestos exclusivos, insignias y efectos de chat.</p>
+            <p class="text-sm text-zinc-400 max-w-lg mb-6">Completa tus actividades diarias en el ecosistema para desbloquear cofres gratuitos. Los cofres contienen gestos exclusivos, insignias y efectos de chat.</p>
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="bg-black/40 border border-white/5 p-4 flex items-center gap-4 group hover:border-emerald-500/30 transition-colors">
@@ -513,7 +513,7 @@
                   <Play size={20} weight="fill" />
                 </div>
                 <div>
-                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Jugar 3 Partidas</div>
+                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Predicción Activa</div>
                   <div class="text-xs font-mono text-white">2 / 3</div>
                 </div>
               </div>
@@ -522,7 +522,7 @@
                   <Sword size={20} weight="fill" />
                 </div>
                 <div>
-                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ganar 1 Partida</div>
+                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Analizar Mercado</div>
                   <div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic animate-pulse">COMPLETADO</div>
                 </div>
               </div>
