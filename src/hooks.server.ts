@@ -5,7 +5,7 @@ import { ADMIN_EMAILS } from '$lib/constants';
 import { json } from '@sveltejs/kit';
 
 // Cache de mantenimiento en memoria — evita consultar Firestore en cada request SSR
-const MAINTENANCE_CACHE_TTL_MS = 60_000; // 60 segundos
+const MAINTENANCE_CACHE_TTL_MS = 5_000; // 5 segundos
 let maintenanceCacheValue: boolean = false;
 let maintenanceCacheExpiry: number = 0;
 

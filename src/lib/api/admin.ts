@@ -14,7 +14,8 @@ import {
   setDoc,
   deleteDoc,
   addDoc,
-  writeBatch
+  writeBatch,
+  startAfter
 } from "firebase/firestore";
 
 export const adminApi = {
@@ -830,7 +831,6 @@ export const adminApi = {
    */
   async resetGlobalEconomy() {
     try {
-      const usersSnap = await getDocs(collection(db, "users"));
       const timestamp = new Date().toISOString();
       const initialEconomy = {
         netsBalance: 100,
@@ -864,69 +864,69 @@ export const adminApi = {
         }
       };
 
-      console.log(`[AdminAPI] Iniciando reinicio global para ${usersSnap.size} usuarios...`);
+      console.log(`[AdminAPI] Iniciando reinicio global...`);
 
-      // Procesar usuarios en batches de 400
-      let currentBatch = writeBatch(db);
-      let count = 0;
-      let totalProcessed = 0;
+      // 1. Reiniciar Economía de Usuarios (Paginado)
+      let totalReset = 0;
+      let lastVisible = null;
+      const CHUNK_SIZE = 400;
 
-      for (const uDoc of usersSnap.docs) {
-        currentBatch.update(doc(db, "users", uDoc.id), {
-          economy: initialEconomy,
-          "settings.updatedAt": timestamp
-        });
-        count++;
-        totalProcessed++;
-
-        if (count === 400) {
-          await currentBatch.commit();
-          console.log(`[AdminAPI] Batch de usuarios completado: ${totalProcessed}/${usersSnap.size}`);
-          currentBatch = writeBatch(db);
-          count = 0;
+      while (true) {
+        let q = query(collection(db, "users"), limit(CHUNK_SIZE));
+        if (lastVisible) {
+          q = query(collection(db, "users"), startAfter(lastVisible), limit(CHUNK_SIZE));
         }
+
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) break;
+
+        const batch = writeBatch(db);
+        snapshot.docs.forEach(uDoc => {
+          batch.update(uDoc.ref, {
+            economy: initialEconomy,
+            "settings.updatedAt": timestamp
+          });
+        });
+
+        await batch.commit();
+        totalReset += snapshot.size;
+        lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        console.log(`[AdminAPI] Economía reiniciada para ${totalReset} usuarios...`);
       }
 
-      if (count > 0) {
-        await currentBatch.commit();
-        console.log(`[AdminAPI] Último batch de usuarios completado.`);
-      }
-
-      // Purge Global Collections: prediction_markets, nets_transactions
+      // 2. Purgar Colecciones Globales: prediction_markets, nets_transactions (Paginado)
       const collectionsToPurge = ['prediction_markets', 'nets_transactions'];
       
       for (const collName of collectionsToPurge) {
         console.log(`[AdminAPI] Purgando colección: ${collName}...`);
-        const snap = await getDocs(collection(db, collName));
-        let pBatch = writeBatch(db);
-        let pCount = 0;
-        let pTotal = 0;
+        let purgedCount = 0;
+        
+        while (true) {
+          // No usamos pagination normal aquí porque estamos eliminando los documentos que encontramos
+          const q = query(collection(db, collName), limit(CHUNK_SIZE));
+          const snapshot = await getDocs(q);
+          if (snapshot.empty) break;
 
-        for (const pDoc of snap.docs) {
-          pBatch.delete(pDoc.ref);
-          pCount++;
-          pTotal++;
-          if (pCount === 400) {
-            await pBatch.commit();
-            pBatch = writeBatch(db);
-            pCount = 0;
-          }
+          const batch = writeBatch(db);
+          snapshot.docs.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+          
+          purgedCount += snapshot.size;
+          console.log(`[AdminAPI] Eliminados ${purgedCount} docs de ${collName}...`);
         }
-        if (pCount > 0) await pBatch.commit();
-        console.log(`[AdminAPI] Purga de ${collName} completada: ${pTotal} documentos eliminados.`);
       }
 
-      // Final log
+      // 3. Registrar Log del Sistema
       await addDoc(collection(db, "system_logs"), {
         type: 'global_economy_reset',
         category: 'ECONOMY',
         action: 'Reinicio Global',
-        message: `Economía global reiniciada para ${usersSnap.size} usuarios por un administrador`,
+        message: `Economía global reiniciada para ${totalReset} usuarios por un administrador`,
         timestamp,
         status: 'danger'
       });
 
-      return { totalReset: usersSnap.size };
+      return { totalReset };
     } catch (error) {
       console.error("[AdminAPI] Error resetting global economy:", error);
       throw error;

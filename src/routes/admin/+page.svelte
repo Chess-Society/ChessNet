@@ -360,7 +360,7 @@
   async function handleUpdateSuggestionStatus(id: string, status: string) {
     try {
       await adminApi.updateSuggestionStatus(id, status);
-      toast.success($t('admin.system.maintenance_toggle_success'));
+      toast.success('Estado actualizado correctamente');
     } catch (e) {
       toast.error($t('admin.broadcast.error'));
     }
@@ -1145,13 +1145,19 @@
         { id: 'dashboard', icon: SquaresFour, label: 'Dash' },
         { id: 'users', icon: Users, label: 'User' },
         { id: 'tickets', icon: Lifebuoy, label: 'Supp' },
-        { id: 'governance', icon: ShieldCheckered, label: 'Gov' },
-        { id: 'system', icon: Gear, label: 'Sys' }
+        { id: 'system', icon: Gear, label: 'Sys' },
+        { id: 'exit', icon: ArrowArcLeft, label: 'Exit' }
       ] as item}
         {@const Icon = item.icon}
         {@const badgeCount = item.id === 'tickets' ? supportTickets.filter(t => t.status === 'open').length : 0}
         <button 
-          onclick={() => activeTab = item.id}
+          onclick={() => {
+            if (item.id === 'exit') {
+              window.location.href = '/panel';
+            } else {
+              activeTab = item.id;
+            }
+          }}
           class="flex-1 flex flex-col items-center justify-center gap-1.5 transition-all relative {activeTab === item.id ? 'text-primary-400 bg-primary-500/5' : 'text-slate-600'}"
         >
           {#if activeTab === item.id}

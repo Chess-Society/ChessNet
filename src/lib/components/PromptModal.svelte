@@ -105,6 +105,7 @@
 
             <!-- Input Box -->
             <div class="w-full relative z-10">
+              <!-- svelte-ignore a11y_autofocus -->
               <input 
                 type="text" 
                 bind:value={inputValue}
@@ -115,7 +116,6 @@
                     dialog.onConfirm(inputValue);
                   }
                 }}
-                <!-- svelte-ignore a11y_autofocus -->
                 autofocus
               />
             </div>
