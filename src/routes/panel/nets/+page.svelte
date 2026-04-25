@@ -497,7 +497,6 @@
         ></div>
       </div>
     </div>
-  </div>
 
   <div class="grid xl:grid-cols-4 gap-8 p-3 sm:p-4 lg:p-8">
     <div class="xl:col-span-3">
@@ -1122,6 +1121,8 @@
         {/each}
     </div>
     </div>
+  </div>
+</div>
 </div>
 
 {#if isOpeningCrate}
