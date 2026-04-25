@@ -418,45 +418,39 @@
 </svelte:head>
 
 <div class="max-w-[1400px] mx-auto min-h-screen">
-  <!-- Top Bar (Corrected) -->
-  <div class="sticky top-0 z-40 bg-[#080808]/90 backdrop-blur-xl border-b border-white/5 {showPulse ? 'electric-pulse' : ''}" in:fade={{ duration: 300 }}>
-    <!-- Header Row -->
-    <div class="flex items-center justify-between px-4 sm:px-8 py-4">
+  <div class="sticky top-0 z-40 bg-[#080808]/90 backdrop-blur-xl border-b border-white/5 py-4 px-4 sm:px-8 mb-6" in:fade={{ duration: 300 }}>
+    <div class="max-w-[1600px] mx-auto flex items-center justify-between">
       <div class="flex items-center gap-6">
-        <h1 class="text-xl font-black text-white uppercase tracking-tighter italic flex items-center gap-3">
-          <div class="w-8 h-8 bg-emerald-500 flex items-center justify-center rotate-3 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-            <Package size={18} weight="fill" class="text-black" />
+        <h1 class="text-xl font-black text-white italic tracking-tighter uppercase">Nets</h1>
+        
+        <div class="hidden lg:flex items-center gap-4 border-l border-white/10 pl-6">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Nivel de Cuenta</span>
+              <span class="text-[9px] font-black text-violet-400">XP: {totalXp.toLocaleString()}</span>
+            </div>
+            <div class="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+              <div 
+                class="h-full bg-gradient-to-r from-violet-600 to-violet-400 shadow-[0_0_10px_rgba(139,92,246,0.3)] transition-all duration-1000"
+                style="width: {xpProgress}%"
+              ></div>
+            </div>
           </div>
-          CHESS<span class="text-emerald-400">NETS</span>
-          <span class="hidden lg:inline-block px-2 py-0.5 bg-white/5 border border-white/10 text-[8px] font-black tracking-widest text-zinc-500 rounded-sm ml-2">SEASON 01 // GENESIS</span>
-        </h1>
-      </div>
-
-      <div class="flex items-center gap-4 sm:gap-8">
-        <!-- XP Progress -->
-        <div class="hidden md:flex flex-col items-end gap-1.5 w-48">
-          <div class="flex items-center justify-between mb-1 w-full">
-            <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Nivel de Cuenta</span>
-            <span class="text-[10px] font-black text-primary-500 uppercase">{($appStore.settings?.economy?.xp || 0)}/1000 XP</span>
-          </div>
-          <div class="h-1 bg-primary-500/20 rounded-full overflow-hidden w-full">
-            <div class="h-full bg-primary-500 transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.5)]" style="width: {(($appStore.settings?.economy?.xp || 0) / 1000) * 100}%"></div>
-          </div>
-        </div>
-
-        <!-- Account Level Badge -->
-        <div class="flex items-center gap-3 px-4 py-2 bg-zinc-900 border border-white/10 relative group">
-          <div class="absolute -inset-[1px] bg-gradient-to-r from-primary-500 to-blue-500 opacity-20 group-hover:opacity-40 transition-opacity"></div>
           <div class="flex flex-col items-center leading-none">
             <span class="text-[8px] font-black text-zinc-500 uppercase mb-0.5">Nivel</span>
             <span class="text-lg font-black text-white italic">{accountLevel}</span>
           </div>
-          <div class="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-black flex items-center justify-center relative">
-             {#if $user?.photoURL}
-               <img src={$user.photoURL} alt="User" class="w-full h-full object-cover" />
-             {:else}
-               <UserCircle size={24} weight="bold" class="text-zinc-700" />
-             {/if}
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+          <div class="w-8 h-8 rounded-full border border-white/10 overflow-hidden bg-black flex items-center justify-center relative">
+            {#if $user?.photoURL}
+              <img src={$user.photoURL} alt="User" class="w-full h-full object-cover" />
+            {:else}
+              <UserCircle size={18} weight="bold" class="text-zinc-700" />
+            {/if}
           </div>
           <div class="hidden sm:flex flex-col">
             <span class="text-[10px] font-black text-white truncate max-w-[80px]">{$user?.displayName || 'Usuario'}</span>
@@ -468,6 +462,7 @@
         </div>
       </div>
     </div>
+  </div>
 
     <!-- Navigation Tabs -->
     <div class="px-4 sm:px-8 pb-3">
@@ -508,7 +503,7 @@
             <Target size={120} weight="fill" class="text-emerald-500" />
           </div>
           <div class="relative z-10">
-            <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Misiones Diarias</h2>
+        <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2 text-violet-500">Misiones Diarias</h2>
             <p class="text-sm text-zinc-400 max-w-lg mb-6">Completa tus partidas diarias para desbloquear cofres gratuitos. Los cofres contienen gestos exclusivos, insignias y efectos de chat.</p>
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -543,8 +538,7 @@
           </div>
         </div>
 
-    {#if currentTab === 'crates'}
-      <div in:fade={{ duration: 400 }} class="space-y-8">
+        <!-- Protocolo de Suministros -->
         <!-- Welcome Quest / Info Bar -->
         <div class="p-8 bg-zinc-900 border border-white/5 relative overflow-hidden">
           <div class="absolute top-0 right-0 p-8 opacity-5 rotate-12">
@@ -815,6 +809,7 @@
                    <div class="px-3 py-1 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest italic animate-pulse">COMPLETADO</div>
                    <div class="px-3 py-1 bg-emerald-500/5 text-[9px] font-black text-emerald-500/40 uppercase tracking-widest border border-emerald-500/10">SYNC_OK</div>
                 </div>
+              </div>
               </div>
             </div>
 
@@ -1120,9 +1115,7 @@
           </div>
         {/each}
     </div>
-    </div>
   </div>
-</div>
 </div>
 
 {#if isOpeningCrate}
