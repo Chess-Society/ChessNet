@@ -430,11 +430,13 @@
               <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Nivel de Cuenta</span>
               <span class="text-[9px] font-black text-violet-400">XP: {totalXp.toLocaleString()}</span>
             </div>
-            <div class="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+            <div class="w-48 h-2 bg-white/5 rounded-full overflow-hidden border border-white/5 relative group/xp">
               <div 
-                class="h-full bg-gradient-to-r from-violet-600 to-violet-400 shadow-[0_0_10px_rgba(139,92,246,0.3)] transition-all duration-1000"
+                class="h-full bg-gradient-to-r from-violet-600 via-violet-400 to-emerald-400 shadow-[0_0_20px_rgba(139,92,246,0.5)] transition-all duration-1000 relative"
                 style="width: {xpProgress}%"
-              ></div>
+              >
+                <div class="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.4)_50%,transparent_100%)] animate-[shimmer_2s_infinite]"></div>
+              </div>
             </div>
           </div>
           <div class="flex flex-col items-center leading-none">
@@ -477,11 +479,11 @@
             <tab.icon
               size={14}
               weight={currentTab === tab.id ? 'fill' : 'bold'}
-              class="transition-colors {currentTab === tab.id ? 'text-emerald-400' : 'text-zinc-600'}"
+              class="transition-colors {currentTab === tab.id ? 'text-violet-400' : 'text-zinc-600'}"
             />
             <span class="hidden xs:inline">{tab.label}</span>
             {#if currentTab === tab.id}
-              <div class="absolute bottom-0 left-1/4 right-1/4 h-px bg-emerald-500 shadow-[0_0_10px_#10b981]" in:fade></div>
+              <div class="absolute bottom-0 left-1/4 right-1/4 h-[2px] bg-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.6)]" in:fade></div>
             {/if}
           </button>
         {/each}
@@ -498,112 +500,177 @@
     <div class="xl:col-span-3">
     {#if currentTab === 'crates'}
       <div in:fade={{ duration: 400 }}>
-        <!-- Welcome Quest / Info Bar -->
-        <div class="mb-8 p-6 bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/20 relative overflow-hidden">
-          <div class="absolute top-0 right-0 p-8 opacity-10 rotate-12">
-            <Target size={120} weight="fill" class="text-emerald-500" />
+       <div in:fade={{ duration: 400 }}>
+        <!-- Consolidated Header Card: User Stats & Active Quests -->
+        <div class="mb-8 bg-zinc-900/40 backdrop-blur-md border border-white/5 relative overflow-hidden group">
+          <!-- Animated Background Elements -->
+          <div class="absolute inset-0 opacity-20">
+            <div class="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-violet-500 to-transparent animate-[pulse_3s_infinite]"></div>
+            <div class="absolute top-0 left-2/4 w-px h-full bg-gradient-to-b from-transparent via-emerald-500 to-transparent animate-[pulse_4s_infinite] delay-700"></div>
+            <div class="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-violet-500 to-transparent animate-[pulse_3.5s_infinite] delay-300"></div>
           </div>
-          <div class="relative z-10">
-        <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Misiones Diarias</h2>
-            <p class="text-sm text-zinc-400 max-w-lg mb-6">Completa tus actividades diarias en el ecosistema para desbloquear cofres gratuitos. Los cofres contienen gestos exclusivos, insignias y efectos de chat.</p>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div class="bg-black/40 border border-white/5 p-4 flex items-center gap-4 group hover:border-emerald-500/30 transition-colors">
-                <div class="w-10 h-10 bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                  <Play size={20} weight="fill" />
-                </div>
-                <div>
-                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Predicción Activa</div>
-                  <div class="text-xs font-mono text-white">2 / 3</div>
-                </div>
-              </div>
-              <div class="bg-black/40 border border-white/5 p-4 flex items-center gap-4 group hover:border-emerald-500/30 transition-colors">
-                <div class="w-10 h-10 bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                  <Sword size={20} weight="fill" />
-                </div>
-                <div>
-                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Analizar Mercado</div>
-                  <div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic animate-pulse">COMPLETADO</div>
-                </div>
-              </div>
-              <div class="bg-black/40 border border-white/5 p-4 flex items-center gap-4 group hover:border-emerald-500/30 transition-colors">
-                <div class="w-10 h-10 bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                  <UserPlus size={20} weight="fill" />
-                </div>
-                <div>
-                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Invitar Amigo</div>
-                  <div class="text-xs font-mono text-white">0 / 1</div>
-                </div>
-              </div>
+
+          <div class="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-white/5 relative z-10">
+            <!-- Left: Call to Action -->
+            <div class="p-8 lg:w-2/5 bg-gradient-to-br from-violet-500/10 to-transparent relative overflow-hidden">
+               <div class="absolute top-0 right-0 p-8 opacity-10 rotate-12 group-hover:rotate-45 transition-transform duration-1000">
+                  <Target size={140} weight="fill" class="text-violet-500" />
+               </div>
+               <div class="relative z-10">
+                 <div class="flex items-center gap-2 mb-4">
+                   <span class="px-2 py-0.5 bg-violet-500/20 text-violet-400 border border-violet-500/30 text-[9px] font-black uppercase tracking-[0.3em]">Operación Génesis</span>
+                   <span class="w-1 h-1 rounded-full bg-violet-500 animate-pulse"></span>
+                   <span class="text-[9px] text-zinc-500 font-bold tracking-widest uppercase italic">Nivel {accountLevel}</span>
+                 </div>
+                 <h2 class="text-4xl font-black text-white italic uppercase tracking-tighter mb-4 leading-none">Tu Destino,<br/>Tu Estrategia.</h2>
+                 <p class="text-[11px] text-zinc-400 leading-relaxed max-w-xs uppercase font-bold tracking-wider mb-6">Completa objetivos en el ecosistema para desbloquear tecnología exclusiva y rangos de prestigio.</p>
+                 
+                 <div class="flex items-center gap-6">
+                    <div class="flex flex-col">
+                       <span class="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-1">Nets Actuales</span>
+                       <div class="flex items-center gap-2">
+                          <Coins size={18} class="text-amber-400" weight="duotone" />
+                          <span class="text-2xl font-black text-white italic">{netsBalance.toLocaleString()}</span>
+                       </div>
+                    </div>
+                    <div class="w-px h-10 bg-white/10"></div>
+                    <div class="flex flex-col">
+                       <span class="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-1">Pase de Batalla</span>
+                       <div class="flex items-center gap-2">
+                          <Star size={18} class="text-violet-400" weight="duotone" />
+                          <span class="text-2xl font-black text-white italic">{currentTier} <span class="text-xs text-zinc-500 not-italic">/ 20</span></span>
+                       </div>
+                    </div>
+                 </div>
+               </div>
+            </div>
+
+            <!-- Right: Active Quick Missions -->
+            <div class="p-8 lg:flex-1 bg-zinc-950/20">
+               <div class="flex justify-between items-center mb-6">
+                 <h3 class="text-[11px] font-black text-white uppercase tracking-[0.4em] flex items-center gap-3 italic">
+                    <Lightning size={18} weight="fill" class="text-emerald-500 animate-pulse" /> Protocolo de Actividad
+                 </h3>
+                 <span class="text-[9px] font-mono text-emerald-500/60 uppercase tracking-widest">Estado: En Curso</span>
+               </div>
+
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {#each dailyChallengesDb.slice(0, 2) as challenge}
+                    <div class="bg-black/40 border border-white/5 p-4 flex items-center justify-between group/m transition-all hover:border-emerald-500/30">
+                       <div class="flex items-center gap-4">
+                          <div class="w-10 h-10 bg-zinc-900 border border-white/10 flex items-center justify-center relative">
+                             <Target size={20} class="text-zinc-600 group-hover/m:text-emerald-500 transition-colors" />
+                             {#if challenge.completed}
+                               <div class="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center">
+                                 <Check size={8} weight="bold" class="text-black" />
+                               </div>
+                             {/if}
+                          </div>
+                          <div>
+                             <div class="text-[10px] font-black text-white uppercase tracking-widest mb-0.5">{challenge.title}</div>
+                             <div class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest leading-none">{challenge.description}</div>
+                          </div>
+                       </div>
+                       <div class="text-right">
+                          <div class="text-[10px] font-mono {challenge.completed ? 'text-emerald-500' : 'text-zinc-500'}">{challenge.progress} / {challenge.target}</div>
+                          {#if challenge.completed && !challenge.claimed}
+                            <div class="text-[8px] font-black text-emerald-500 uppercase italic mt-1">Listo</div>
+                          {/if}
+                       </div>
+                    </div>
+                  {/each}
+                  <button 
+                    onclick={() => currentTab = 'battlepass'}
+                    class="bg-emerald-500/5 border border-emerald-500/20 p-4 flex items-center justify-center gap-3 group/b hover:bg-emerald-500/10 transition-all cursor-pointer"
+                  >
+                     <span class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] italic">Ver Todos los Retos</span>
+                     <ArrowRight size={14} class="text-emerald-500 group-hover/b:translate-x-1 transition-transform" />
+                  </button>
+               </div>
             </div>
           </div>
         </div>
 
-        <!-- Protocolo de Suministros -->
-        <!-- Welcome Quest / Info Bar -->
-        <div class="p-8 bg-zinc-900 border border-white/5 relative overflow-hidden">
-          <div class="absolute top-0 right-0 p-8 opacity-5 rotate-12">
-            <Target size={140} weight="fill" class="text-emerald-500" />
-          </div>
-          <div class="relative z-10">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-black uppercase tracking-[0.3em]">Misiones Activas</div>
-              <span class="text-[9px] text-zinc-600 font-bold tracking-widest uppercase">Completa retos para ganar cajas gratis</span>
+        <!-- Protocolo de Suministros (Crates Section) -->
+        {#if currentTab === 'crates'}
+          <div in:fade={{ duration: 400 }} class="space-y-8">
+            <div class="p-1 w-full bg-zinc-900 border border-white/5 relative overflow-hidden group">
+               <!-- Header info -->
+               <div class="flex items-center justify-between p-6 border-b border-white/5 bg-zinc-950/50">
+                  <div class="flex items-center gap-4">
+                     <div class="w-12 h-12 bg-violet-500/10 flex items-center justify-center text-violet-500 border border-violet-500/20 perspective-1000">
+                        <Package size={28} weight="duotone" class="float-animation" />
+                     </div>
+                     <div>
+                        <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter leading-none">Módulos de Suministros</h2>
+                        <p class="text-[9px] text-zinc-600 font-bold tracking-[0.2em] uppercase mt-1">Nivel de Acceso: {accountLevel >= 10 ? 'ALTO' : 'ESTÁNDAR'}</p>
+                     </div>
+                  </div>
+                  <div class="hidden sm:flex items-center gap-8 text-right">
+                     <div>
+                        <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Cajas Abiertas</div>
+                        <div class="text-xl font-black text-white italic">12</div>
+                     </div>
+                     <div class="w-px h-8 bg-white/5"></div>
+                     <div>
+                        <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Items Únicos</div>
+                        <div class="text-xl font-black text-emerald-500 italic">42</div>
+                     </div>
+                  </div>
+               </div>
             </div>
-            <h2 class="text-4xl font-black text-white italic uppercase tracking-tighter mb-6">Protocolo de Suministros</h2>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {#each dailyChallengesDb.slice(0, 3) as challenge}
-                <div class="bg-black/40 border border-white/5 p-5 group hover:border-emerald-500/30 transition-all">
-                  <div class="flex justify-between items-start mb-4">
-                    <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{challenge.title}</span>
-                    <span class="text-[10px] font-mono text-emerald-500">{challenge.progress}/{challenge.target}</span>
-                  </div>
-                  <div class="h-1 bg-zinc-800 w-full overflow-hidden">
-                    <div class="h-full bg-emerald-500 transition-all duration-500" style="width: {(challenge.progress / challenge.target) * 100}%"></div>
-                  </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {#each [
+                { id: 'daily',   label: 'Caja Diaria',   price: 0,    rarity: 'Infrecuente', icon: Package,  color: 'text-emerald-500', glow: 'emerald', desc: 'Suministro estándar para usuarios activos.' },
+                { id: 'weekly',  label: 'Caja Semanal',  price: 500,  rarity: 'Épico',       icon: Package,  color: 'text-blue-500',    glow: 'blue',    desc: 'Mayor probabilidad de componentes raros.' },
+                { id: 'monthly', label: 'Caja Maestra',  price: 2500, rarity: 'Mítico',      icon: Package,  color: 'text-amber-500',   glow: 'amber',   desc: 'Contiene el hardware más premium del nexo.' }
+              ] as crate}
+                <div class="bg-black/60 border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all flex flex-col">
+                   <!-- Rarity Header -->
+                   <div class="px-4 py-2 bg-white/5 flex justify-between items-center">
+                      <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{crate.rarity}</span>
+                      <div class="flex gap-1">
+                         <div class="w-1 h-1 rounded-full bg-{crate.glow}-500"></div>
+                         <div class="w-1 h-1 rounded-full bg-{crate.glow}-500/30"></div>
+                      </div>
+                   </div>
+
+                   <div class="p-8 flex flex-col items-center flex-1">
+                      <div class="w-32 h-32 mb-8 relative flex items-center justify-center">
+                         <div class="absolute inset-0 bg-{crate.glow}-500/5 blur-3xl group-hover:blur-[60px] transition-all duration-1000"></div>
+                         <crate.icon size={80} weight="duotone" class="{crate.color} relative z-10 group-hover:scale-110 transition-transform duration-700 float-animation" />
+                      </div>
+                      
+                      <div class="text-center mb-6">
+                         <h3 class="text-xl font-black text-white italic uppercase tracking-tighter mb-2">{crate.label}</h3>
+                         <p class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider leading-relaxed px-4">{crate.desc}</p>
+                      </div>
+
+                      <div class="w-full pt-6 border-t border-white/5 mt-auto">
+                        <button
+                          onclick={() => openCrate(crate)}
+                          disabled={netsBalance < crate.price}
+                          class="w-full py-4 bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-{crate.glow}-500 hover:text-white transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2 group/btn"
+                        >
+                          {#if crate.price === 0}
+                            ABRIR GRATIS
+                          {:else}
+                            <div class="flex items-center justify-center gap-2">
+                              <Coins size={14} weight="fill" />
+                              {crate.price.toLocaleString()} NETS
+                            </div>
+                          {/if}
+                          <ArrowRight size={14} class="group-hover/btn:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+                   </div>
                 </div>
               {/each}
-            </div>
-          </div>
-        </div>
-
-        <!-- Crates Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {#each [
-            { id: 'daily',   label: 'Caja Diaria',   price: 0,    rarity: 'Infrecuente', icon: Package,  color: 'text-emerald-500', glow: 'emerald', desc: 'Suministro estándar para usuarios activos.' },
-            { id: 'weekly',  label: 'Caja Semanal',  price: 500,  rarity: 'Épico',       icon: Package,  color: 'text-blue-500',    glow: 'blue',    desc: 'Mayor probabilidad de componentes raros.' },
-            { id: 'monthly', label: 'Caja Maestra',  price: 2500, rarity: 'Mítico',      icon: Package,  color: 'text-amber-500',   glow: 'amber',   desc: 'Contiene el hardware más premium del nexo.' }
-          ] as crate}
-            <div class="bg-zinc-900 border border-white/5 p-1 relative overflow-hidden group hover:border-white/10 transition-all">
-              <div class="p-8 flex flex-col items-center h-full">
-                <div class="w-32 h-32 mb-8 relative flex items-center justify-center">
-                  <div class="absolute inset-0 bg-{crate.glow}-500/10 blur-3xl group-hover:blur-[60px] transition-all"></div>
-                  <crate.icon size={100} weight="duotone" class="{crate.color} relative z-10 group-hover:scale-110 transition-transform duration-700" />
-                </div>
-                
-                <div class="text-center flex-1 mb-8">
-                  <h3 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">{crate.label}</h3>
-                  <p class="text-[10px] text-zinc-600 uppercase font-bold tracking-widest leading-relaxed px-4">{crate.desc}</p>
-                </div>
-
-                <button
-                  onclick={() => openCrate(crate)}
-                  disabled={netsBalance < crate.price}
-                  class="w-full py-4 bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-{crate.glow}-500 hover:text-white transition-all disabled:opacity-30 disabled:grayscale"
-                >
-                  {#if crate.price === 0}
-                    ABRIR GRATIS
-                  {:else}
-                    <div class="flex items-center justify-center gap-2">
-                      <Coins size={14} weight="fill" />
-                      {crate.price.toLocaleString()} NETS
-                    </div>
-                  {/if}
-                </button>
-              </div>
-            </div>
-          {/each}
+           </div>
         </div>
       </div>
 
@@ -1023,53 +1090,64 @@
         <div class="overflow-hidden">
           <div class="flex items-center gap-2 mb-1">
              {#if activeBadge !== 'none'}
-               <Badge size={14} weight="fill" class="text-primary-500" />
+               <Badge size={14} weight="fill" class="text-violet-500" />
              {/if}
              <h4 class="text-sm font-black text-white uppercase italic tracking-tighter truncate {nameColorStyles[activeColor] || 'text-white'} {nameFontStyles[activeFont] || ''}">
                {$user?.displayName || 'USUARIO'}
              </h4>
           </div>
-          <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">Season Pass Rank #{(season.currentTier * 123) % 1000}</span>
+          <div class="flex items-center gap-2">
+             <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">Season Rank #{((season?.currentTier || 1) * 123) % 1000}</span>
+             <span class="w-1 h-1 rounded-full bg-zinc-800"></span>
+             <span class="text-[9px] font-mono text-violet-500/80 uppercase">Online</span>
+          </div>
         </div>
       </div>
 
-      <div class="space-y-3">
-        <div class="flex justify-between items-center p-4 bg-black/40 border border-white/5 group/bal hover:border-emerald-500/20 transition-all">
-          <div class="flex items-center gap-3">
-            <Coins size={18} weight="fill" class="text-amber-400 group-hover/bal:scale-110 transition-transform" />
-            <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Nets</span>
+      <div class="grid grid-cols-2 gap-2 mt-8">
+        <div class="p-3 bg-black/40 border border-white/5 flex flex-col items-center group/col hover:border-blue-500/20 transition-all">
+          <span class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Colección</span>
+          <div class="flex items-center gap-2">
+            <Cube size={14} weight="fill" class="text-blue-400" />
+            <span class="text-xs font-mono text-white font-black">
+              {(collection.emotes?.length || 0) + (collection.frames?.length || 0) + (collection.colors?.length || 0)}
+            </span>
           </div>
-          <span class="text-sm font-mono text-white font-black">{netsBalance.toLocaleString()}</span>
         </div>
-        <div class="flex justify-between items-center p-4 bg-black/40 border border-white/5 group/col hover:border-blue-500/20 transition-all">
-          <div class="flex items-center gap-3">
-            <Cube size={18} weight="fill" class="text-blue-400 group-hover/col:scale-110 transition-transform" />
-            <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Objetos</span>
+        <div class="p-3 bg-black/40 border border-white/5 flex flex-col items-center group/col hover:border-violet-500/20 transition-all">
+          <span class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Estatus</span>
+          <div class="flex items-center gap-2">
+            <Star size={14} weight="fill" class="text-violet-400" />
+            <span class="text-xs font-mono text-white font-black">{currentTier}</span>
           </div>
-          <span class="text-sm font-mono text-white font-black">
-            {(collection.emotes?.length || 0) + (collection.frames?.length || 0) + (collection.colors?.length || 0)}
-          </span>
         </div>
       </div>
     </div>
 
     <!-- Daily Streak -->
-    <div class="bg-zinc-900 border border-white/5 p-8 shadow-xl relative overflow-hidden">
-       <div class="absolute top-0 right-0 p-8 opacity-5">
-          <Flame size={100} weight="fill" class="text-orange-500" />
+    <div class="bg-zinc-900 border border-white/5 p-6 shadow-xl relative overflow-hidden group">
+       <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+          <Flame size={80} weight="fill" class="text-orange-500" />
        </div>
-       <h4 class="text-[11px] font-black text-white uppercase tracking-[0.3em] mb-6 flex items-center gap-3 relative z-10">
-          <Flame size={20} weight="fill" class="text-orange-500" /> Racha Semanal
-       </h4>
-       <div class="flex gap-2 relative z-10">
+       <div class="flex justify-between items-center mb-4">
+          <h4 class="text-[9px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3 relative z-10">
+             <Flame size={16} weight="fill" class="text-orange-500 animate-pulse" /> Racha Semanal
+          </h4>
+          <span class="text-[9px] font-mono text-orange-500 font-bold">DIA 3</span>
+       </div>
+       <div class="flex gap-1.5 relative z-10">
           {#each Array(7) as _, i}
-            <div class="flex-1 aspect-square bg-black border border-white/5 flex items-center justify-center {i < 3 ? 'bg-orange-500/10 border-orange-500/30 text-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.1)]' : 'text-zinc-800'}">
-               <span class="text-[11px] font-black">{i + 1}</span>
+            <div class="flex-1 h-1.5 bg-black border border-white/5 relative overflow-hidden">
+               {#if i < 3}
+                 <div class="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.4)]"></div>
+               {/if}
             </div>
           {/each}
        </div>
-       <p class="text-[9px] text-zinc-600 mt-6 font-bold tracking-widest uppercase leading-relaxed relative z-10">Inicia sesión mañana para obtener +50 XP de racha.</p>
-      </div>
+       <p class="text-[8px] text-zinc-600 mt-4 font-bold tracking-widest uppercase leading-relaxed relative z-10">
+          Próxima recompensa: <span class="text-orange-400">+100 NETS</span> en 2 días.
+       </p>
+    </div>
 
 
     <!-- Challenges Section -->
@@ -1228,12 +1306,17 @@
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); filter: brightness(1); }
   }
 
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
   .float-animation {
     animation: floating 4s ease-in-out infinite;
   }
 
   @keyframes floating {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-15px) rotate(1deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
   }
 </style>
