@@ -37,5 +37,8 @@ export interface UserEconomy {
 	activeColor?: string;
 	activeFrame?: string;
 	activeFont?: string;
+	activeBadge?: string;
+	xp?: number;
+	totalXp?: number;
 	lastUpdated?: Date | any;
 }

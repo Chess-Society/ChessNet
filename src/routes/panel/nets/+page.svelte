@@ -31,7 +31,11 @@
     Cube,
     ListChecks,
     Palette,
-    IdentificationCard
+    IdentificationCard,
+    Play,
+    Sword,
+    UserPlus,
+    SealCheck as Badge
   } from 'phosphor-svelte';
 
   import { battlepassApi } from '$lib/api/battlepass';
@@ -433,10 +437,10 @@
         <div class="hidden md:flex flex-col items-end gap-1.5 w-48">
           <div class="flex items-center justify-between mb-1 w-full">
             <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Nivel de Cuenta</span>
-            <span class="text-[10px] font-black text-primary-500 uppercase">{$appStore.settings.economy.xp}/1000 XP</span>
+            <span class="text-[10px] font-black text-primary-500 uppercase">{($appStore.settings?.economy?.xp || 0)}/1000 XP</span>
           </div>
           <div class="h-1 bg-primary-500/20 rounded-full overflow-hidden w-full">
-            <div class="h-full bg-primary-500 transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.5)]" style="width: {($appStore.settings.economy.xp / 1000) * 100}%"></div>
+            <div class="h-full bg-primary-500 transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.5)]" style="width: {(($appStore.settings?.economy?.xp || 0) / 1000) * 100}%"></div>
           </div>
         </div>
 
@@ -1068,7 +1072,8 @@
           {/each}
        </div>
        <p class="text-[9px] text-zinc-600 mt-6 font-bold tracking-widest uppercase leading-relaxed relative z-10">Inicia sesión mañana para obtener +50 XP de racha.</p>
-    </div>
+      </div>
+
 
     <!-- Challenges Section -->
     <div class="space-y-4">
@@ -1115,10 +1120,8 @@
              </div>
           </div>
         {/each}
-      </div>
     </div>
-  </div>
-</div>
+    </div>
 </div>
 
 {#if isOpeningCrate}
@@ -1192,7 +1195,6 @@
        <span class="text-amber-400 text-xs font-black uppercase tracking-[0.5em] mt-4 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]">Pulso Eléctrico</span>
        <div class="absolute -inset-8 border-4 border-white/30 animate-ping opacity-50"></div>
      </div>
-  </div>
   </div>
 {/if}
 
