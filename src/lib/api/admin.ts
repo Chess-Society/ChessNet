@@ -544,8 +544,8 @@ export const adminApi = {
     try {
       const userRef = doc(db, "users", userId);
       const economyData = {
-        netsBalance: 100, // Bono inicial
-        totalNetsEarned: 100,
+        netsBalance: 0, // Inicializado a 0
+        totalNetsEarned: 0,
         tier: 'BRONZE',
         lastEconomyUpdate: new Date().toISOString()
       };
@@ -556,9 +556,9 @@ export const adminApi = {
 
       await addDoc(collection(db, "nets_transactions"), {
         userId,
-        amount: 100,
+        amount: 0,
         type: 'EARN',
-        reason: 'Bono de bienvenida ChessNet OS',
+        reason: 'Cuenta inicializada ChessNet OS',
         createdAt: new Date().toISOString()
       });
 
@@ -772,8 +772,8 @@ export const adminApi = {
       const timestamp = new Date().toISOString();
 
       const initialEconomy = {
-        netsBalance: 100,
-        totalNetsEarned: 100,
+        netsBalance: 0,
+        totalNetsEarned: 0,
         tier: 'BRONZE',
         prestige: 0,
         lastEconomyUpdate: timestamp,
@@ -833,8 +833,8 @@ export const adminApi = {
     try {
       const timestamp = new Date().toISOString();
       const initialEconomy = {
-        netsBalance: 100,
-        totalNetsEarned: 100,
+        netsBalance: 0,
+        totalNetsEarned: 0,
         tier: 'BRONZE',
         prestige: 0,
         lastEconomyUpdate: timestamp,

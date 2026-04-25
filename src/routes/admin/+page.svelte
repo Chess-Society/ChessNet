@@ -90,26 +90,26 @@
       title: 'MONITOR',
       items: [
         { id: 'dashboard', label: 'Consola Central', icon: SquaresFour },
-        { id: 'system', label: 'Consola Sistema', icon: ListDashes }
+        { id: 'system', label: 'Logs del Sistema', icon: ListDashes }
       ]
     },
     {
-      title: 'USUARIOS',
+      title: 'GESTIÓN',
       items: [
-        { id: 'users', label: 'Gestión Base', icon: Users }
+        { id: 'users', label: 'Usuarios', icon: Users },
+        { id: 'governance', label: 'Gobernanza', icon: ShieldCheckered },
+        { id: 'lobby', label: 'Social & Feed', icon: ChatTeardropDots }
       ]
     },
     {
-      title: 'COMUNIDAD',
+      title: 'COMUNICACIÓN',
       items: [
-        { id: 'governance', label: 'Gobernanza Hub', icon: ShieldCheckered },
         { id: 'broadcast', label: 'Avisos Globales', icon: Globe },
-        { id: 'tickets', label: 'Soporte Directo', icon: Lifebuoy, badge: () => supportTickets.filter(t => t.status === 'open').length },
-        { id: 'lobby', label: 'Feed & Social', icon: ChatTeardropDots }
+        { id: 'tickets', label: 'Soporte', icon: Lifebuoy, badge: () => supportTickets.filter(t => t.status === 'open').length }
       ]
     },
     {
-      title: 'SISTEMA',
+      title: 'MOTOR',
       items: [
         { id: 'danger', label: 'Zona Crítica', icon: Warning }
       ]
@@ -696,149 +696,63 @@
                   <LichessPulse />
                   
                   <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-                     <!-- Quick Monitoring -->
-                     <div class="xl:col-span-8 space-y-8">
-                        <StatsGrid {stats} />
-                        
-                        <div class="bg-black/40 border border-white/5 p-8 relative overflow-hidden">
-                           <div class="flex items-center justify-between mb-6">
-                             <div class="flex items-center gap-3">
-                               <Shield weight="fill" class="text-violet-500" />
-                               <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">{$t('admin.guard.title')}</h3>
-                             </div>
-                             <span class="text-[8px] font-mono text-slate-600 uppercase tracking-widest">SYSTEM_INTEGRITY_LEVEL: OMEGA</span>
-                           </div>
-                           
-                           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <button 
-                                 onclick={handleRepairUsers}
-                                 class="flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 text-slate-400 hover:border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-400 transition-all group"
-                              >
-                                 <div class="text-left">
-                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">Sincronizar Base</p>
-                                   <p class="text-xs font-black uppercase italic">Reparar Estructura</p>
-                                 </div>
-                                 <ArrowArcLeft class="w-4 h-4 group-hover:rotate-180 transition-transform" />
-                              </button>
-                              
-                              <button 
-                                 onclick={handleRepairEconomy}
-                                 class="flex items-center justify-between p-6 bg-white/[0.03] border border-white/10 text-slate-400 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all group"
-                              >
-                                 <div class="text-left">
-                                   <p class="text-[9px] font-mono font-black uppercase tracking-widest opacity-60 mb-1">Economía Nets</p>
-                                   <p class="text-xs font-black uppercase italic">Normalizar Carteras</p>
-                                 </div>
-                                 <Star class="w-4 h-4 group-hover:scale-125 transition-transform" />
-                              </button>
-                           </div>
-                        </div>
-                     </div>
+                      <!-- Monitoring Feed -->
+                      <div class="xl:col-span-8 space-y-8">
+                         <StatsGrid {stats} />
+                         
+                         <!-- Recent Activity Preview -->
+                         <div class="bg-black/40 border border-white/5 p-8">
+                            <div class="flex items-center justify-between mb-6">
+                               <div class="flex items-center gap-3">
+                                 <ChartBar weight="fill" class="text-primary-500" />
+                                 <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">ÚLTIMA ACTIVIDAD</h3>
+                               </div>
+                               <button onclick={() => activeTab = 'system'} class="text-[8px] font-mono text-primary-400 uppercase tracking-widest hover:underline">Ver todos los logs</button>
+                            </div>
+                            <LiveActivityFeed activities={activities.slice(0, 10)} />
+                         </div>
+                      </div>
 
-                     <!-- Quick Controls Sidebar -->
+                     <!-- Environment Info -->
                      <div class="xl:col-span-4 space-y-8">
-                        <!-- Maintenance Widget -->
-                        <div class="bg-black/40 border border-white/5 p-6 space-y-6">
-                          <div class="flex items-center justify-between">
-                            <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest italic">SECURITY_PROTOCOL</span>
-                            <div class="w-2 h-2 rounded-full {$systemConfig.maintenanceMode ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-emerald-500 shadow-[0_0_10px_#10b981]'}"></div>
-                          </div>
-                          <button 
-                            onclick={handleToggleMaintenance}
-                            class="w-full py-4 border {$systemConfig.maintenanceMode ? 'bg-red-500 text-white border-red-400' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'} text-[10px] font-mono font-black uppercase tracking-widest transition-all"
-                          >
-                            {$systemConfig.maintenanceMode ? 'DESACTIVAR MANTENIMIENTO' : 'ACTIVAR MANTENIMIENTO'}
-                          </button>
-                        </div>
-
-
-
                         <div class="bg-zinc-900/40 border border-white/5 p-6">
                            <div class="flex items-center justify-between mb-4">
-                              <h4 class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest">METADATOS_ENTORNO</h4>
-                              <span class="text-[8px] font-black bg-violet-500 px-1.5 py-0.5">PROD</span>
+                              <h4 class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest">ESTADO_ENTORNO</h4>
+                              <span class="text-[8px] font-black bg-emerald-500 px-1.5 py-0.5 text-black">ONLINE</span>
                            </div>
-                           <div class="space-y-2">
+                           <div class="space-y-4">
                              <div class="flex justify-between text-[10px] font-mono font-black">
-                               <span class="text-slate-700">NODE_VER</span>
-                               <span class="text-slate-400 italic">v20.11.0</span>
+                               <span class="text-slate-700">VERSION</span>
+                               <span class="text-slate-400">v1.2.0-STABLE</span>
                              </div>
                              <div class="flex justify-between text-[10px] font-mono font-black">
-                               <span class="text-slate-700">REGION</span>
-                               <span class="text-slate-400 italic">eu-west3</span>
+                               <span class="text-slate-700">MANTENIMIENTO</span>
+                               <span class="{$systemConfig.maintenanceMode ? 'text-red-500' : 'text-emerald-500'} italic">
+                                 {$systemConfig.maintenanceMode ? 'ACTIVO' : 'INACTIVO'}
+                               </span>
+                             </div>
+                             <div class="flex justify-between text-[10px] font-mono font-black">
+                               <span class="text-slate-700">REGIÓN</span>
+                               <span class="text-slate-400 italic">eu-west-3</span>
                              </div>
                            </div>
+                        </div>
+
+                        <div class="p-6 bg-primary-500/5 border border-primary-500/20">
+                          <p class="text-[8px] font-mono font-black text-primary-400 uppercase tracking-widest mb-2">REVENUE ESTIMADO</p>
+                          <p class="text-2xl font-black font-display italic text-white">${(stats.totalRevenue ?? 0).toLocaleString()}</p>
+                          <div class="mt-4 pt-4 border-t border-primary-500/10">
+                            <p class="text-[8px] font-mono font-black text-slate-500 uppercase tracking-widest mb-1">CONVERSIÓN PREMIUM</p>
+                            <p class="text-lg font-black font-display italic text-primary-300">
+                              {((stats.premiumUsers / (stats.totalUsers || 1)) * 100).toFixed(1)}%
+                            </p>
+                          </div>
                         </div>
                      </div>
                   </div>
                </div>
 
-            {:else if activeTab === 'pulse'}
-               <div class="space-y-12">
-                  <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
-                      02
-                    </div>
-                    <div>
-                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Lichess Pulse</h2>
-                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
-                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-none animate-pulse"></span>
-                         Monitoreo en tiempo real del Oráculo de Lichess
-                       </p>
-                    </div>
-                  </div>
-                  <LichessPulse />
-               </div>
 
-            {:else if activeTab === 'activity'}
-               <div class="space-y-12">
-                  <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
-                      03
-                    </div>
-                    <div>
-                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Feed Actividad</h2>
-                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
-                         <span class="w-1.5 h-1.5 bg-violet-500 rounded-none"></span>
-                         Registro de eventos en vivo de la plataforma
-                       </p>
-                    </div>
-                  </div>
-                  <div class="bg-zinc-900/40 border border-white/5 p-4 sm:p-8 relative overflow-hidden group">
-                     <LiveActivityFeed {activities} />
-                  </div>
-               </div>
-
-            {:else if activeTab === 'economy_stats'}
-               <div class="space-y-12">
-                  <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
-                      04
-                    </div>
-                    <div>
-                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Métricas Nets</h2>
-                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
-                         <span class="w-1.5 h-1.5 bg-amber-500 rounded-none animate-pulse"></span>
-                         Análisis de flujos económicos y ranking global
-                       </p>
-                    </div>
-                  </div>
-                  
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                     <div class="p-8 bg-zinc-900/40 border border-white/5">
-                        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-2">BALANCE TOTAL PROYECTADO</p>
-                        <p class="text-4xl font-black font-display italic text-amber-500">{((stats.totalRevenue ?? 0) * 100).toLocaleString()} <span class="text-xs">NETS</span></p>
-                     </div>
-                     <div class="p-8 bg-zinc-900/40 border border-white/5">
-                        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-2">REVENUE ESTIMADO</p>
-                        <p class="text-4xl font-black font-display italic text-emerald-500">${(stats.totalRevenue ?? 0).toLocaleString()}</p>
-                     </div>
-                     <div class="p-8 bg-zinc-900/40 border border-white/5">
-                        <p class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest mb-2">RATIO CONVERSIÓN</p>
-                        <p class="text-4xl font-black font-display italic text-violet-400">{((stats.premiumUsers / (stats.totalUsers || 1)) * 100).toFixed(1)}%</p>
-                     </div>
-                  </div>
-               </div>
 
             {:else if activeTab === 'users'}
                <div class="space-y-12">
