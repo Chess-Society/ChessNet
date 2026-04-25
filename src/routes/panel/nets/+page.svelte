@@ -927,7 +927,6 @@
             </div>
           </div>
         </div>
-      </div>
 
     {:else if currentTab === 'shop'}
       <div in:fade={{ duration: 400 }} class="space-y-8">
@@ -1116,6 +1115,8 @@
         {/each}
     </div>
   </div>
+</div>
+</div>
 </div>
 
 {#if isOpeningCrate}
