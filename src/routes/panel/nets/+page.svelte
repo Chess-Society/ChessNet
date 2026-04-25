@@ -75,6 +75,7 @@
   const XP_PER_ACCOUNT_LEVEL = 10000;
   let accountLevel = $derived(Math.floor(totalXp / XP_PER_ACCOUNT_LEVEL) + 1);
   let accountXpProgress = $derived(totalXp % XP_PER_ACCOUNT_LEVEL);
+  let xpProgress = $derived((accountXpProgress / XP_PER_ACCOUNT_LEVEL) * 100);
   
   interface Challenge {
     id: string;
@@ -503,7 +504,7 @@
             <Target size={120} weight="fill" class="text-emerald-500" />
           </div>
           <div class="relative z-10">
-        <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2 text-violet-500">Misiones Diarias</h2>
+        <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Misiones Diarias</h2>
             <p class="text-sm text-zinc-400 max-w-lg mb-6">Completa tus partidas diarias para desbloquear cofres gratuitos. Los cofres contienen gestos exclusivos, insignias y efectos de chat.</p>
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -823,6 +824,7 @@
                 <div class="grid grid-cols-4 gap-2">
                   <button 
                     onclick={() => handleEquipItem('frame', 'none')}
+                    aria-label="Quitar marco"
                     class="aspect-square bg-zinc-800 border {activeFrame === 'none' ? 'border-white' : 'border-white/5'} transition-all flex items-center justify-center opacity-50 hover:opacity-100"
                   >
                     <div class="w-6 h-6 border-2 border-dashed border-zinc-600"></div>
@@ -851,6 +853,7 @@
                 <div class="grid grid-cols-4 gap-2">
                   <button 
                     onclick={() => handleEquipItem('color', 'default')}
+                    aria-label="Color predeterminado"
                     class="aspect-square bg-zinc-800 border {activeColor === 'default' ? 'border-white' : 'border-white/5'} transition-all flex items-center justify-center"
                   >
                     <div class="w-6 h-6 bg-white rounded-full"></div>
@@ -905,6 +908,7 @@
                 <div class="grid grid-cols-4 gap-2">
                   <button 
                     onclick={() => handleEquipItem('badge', 'none')}
+                    aria-label="Quitar insignia"
                     class="aspect-square bg-zinc-800 border {activeBadge === 'none' ? 'border-white' : 'border-white/5'} transition-all flex items-center justify-center opacity-50 hover:opacity-100"
                   >
                     <LockKey size={16} />
