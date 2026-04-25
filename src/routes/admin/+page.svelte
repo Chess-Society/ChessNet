@@ -560,13 +560,22 @@
       </div>
       <span class="text-xs font-mono font-black text-white uppercase tracking-widest">ADMIN_OS</span>
     </div>
-    
-    <button 
-      onclick={() => isSidebarOpen = !isSidebarOpen}
-      class="p-2 text-white hover:bg-white/5 transition-colors"
-    >
-      <List size={24} />
-    </button>
+
+    <div class="flex items-center gap-4">
+      <button 
+        onclick={() => window.location.href = '/panel'}
+        class="px-4 py-2 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest text-slate-400 hover:bg-white hover:text-black transition-all"
+      >
+        SALIR
+      </button>
+      
+      <button 
+        onclick={() => isSidebarOpen = !isSidebarOpen}
+        class="p-2 text-white hover:bg-white/5 transition-colors"
+      >
+        <List size={24} />
+      </button>
+    </div>
   </header>
 
   <!-- Mobile Navigation Drawer -->
@@ -1033,7 +1042,7 @@
                  <div class="space-y-4">
                     <p class="text-[10px] font-black text-white uppercase italic">PROTOCOL: FULL_RECONSTRUCTION</p>
                     <p class="text-[8px] font-mono text-slate-500 uppercase leading-relaxed">
-                      Esta operación restablecerá todos los Nets a 100, eliminará el inventario completo y reseteará el progreso del Battle Pass para este usuario.
+                      Esta operación restablecerá todos los Nets a 0, eliminará el inventario completo y reseteará el progreso del Battle Pass para este usuario.
                     </p>
                     <button 
                       onclick={() => handleResetEconomy(selectedUser?.id)}

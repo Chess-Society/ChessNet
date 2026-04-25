@@ -10,18 +10,41 @@ export const RARITY_STYLES: Record<string, { color: string, border: string, glow
 };
 
 export const possibleRewards = [
-  { name: 'Saludo 👋',      type: 'emote',  rarity: 'Común' },
+  // Emotes
+  { name: 'Pissed 💢',      type: 'emote',  rarity: 'Común' },
+  { name: 'Disgusted 🤢',   type: 'emote',  rarity: 'Infrecuente' },
+  { name: 'Sick 🤮',         type: 'emote',  rarity: 'Infrecuente' },
+  { name: 'Azure 💙',        type: 'emote',  rarity: 'Raro' },
+  { name: 'Celebration 🥳',  type: 'emote',  rarity: 'Épico' },
+  { name: 'Shwompy 🐸',      type: 'emote',  rarity: 'Legendario' },
+  { name: 'Giga Chad 🗿',    type: 'emote',  rarity: 'Mítico' },
   { name: 'Pensativo 🤔',    type: 'emote',  rarity: 'Infrecuente' },
-  { name: 'Cyber Mono',     type: 'font',   rarity: 'Raro' },
-  { name: 'Azul Ártico',    type: 'color',  rarity: 'Raro' },
-  { name: 'Neón Violeta',   type: 'frame',  rarity: 'Épico' },
-  { name: 'Plasma Rojo',    type: 'color',  rarity: 'ÉPICO' },
-  { name: 'Dorado Real',    type: 'frame',  rarity: 'Legendario' },
-  { name: 'Sombra Negra',   type: 'color',  rarity: 'Legendary' },
-  { name: 'Fucsia Mítico',  type: 'color',  rarity: 'Mítico' },
-  { name: 'Corona Nexo',    type: 'frame',  rarity: 'Mítico' },
   { name: 'Victoria 🏆',     type: 'emote',  rarity: 'Épico' },
-  { name: 'Error 404',      type: 'font',   rarity: 'Legendary' },
+  
+  // Fonts
+  { name: 'Cyber Mono',     type: 'font',   rarity: 'Raro' },
+  { name: 'Monospace Pro',  type: 'font',   rarity: 'Raro' },
+  { name: 'Error 404',      type: 'font',   rarity: 'Legendario' },
+  
+  // Colors
+  { name: 'Azul Ártico',    type: 'color',  rarity: 'Raro' },
+  { name: 'Plasma Rojo',    type: 'color',  rarity: 'Épico' },
+  { name: 'Sombra Negra',   type: 'color',  rarity: 'Legendario' },
+  { name: 'Fucsia Mítico',  type: 'color',  rarity: 'Mítico' },
+  
+  // Frames
+  { name: 'Neón Violeta',   type: 'frame',  rarity: 'Épico' },
+  { name: 'Dorado Real',    type: 'frame',  rarity: 'Legendario' },
+  { name: 'Corona Nexo',    type: 'frame',  rarity: 'Mítico' },
+
+  // Effects
+  { name: 'Trueno Cyber',   type: 'effect', rarity: 'Épico' },
+  { name: 'Llamarada',      type: 'effect', rarity: 'Legendario' },
+  
+  // Badges
+  { name: 'Fundador',       type: 'badge',  rarity: 'Mítico' },
+  { name: 'Verificado',     type: 'badge',  rarity: 'Raro' },
+  { name: 'OG',             type: 'badge',  rarity: 'Legendario' },
 ].map(r => ({ ...r, ...RARITY_STYLES[r.rarity] }));
 
 export const frameStyles: Record<string, string> = {
@@ -64,9 +87,9 @@ export const nameFontStyles: Record<string, string> = {
 
 export const shopItems = [
   { name: 'Plasma Rojo', type: 'color', price: 800, rarity: 'Épico', desc: 'Un color rojo intenso que parece fluir por tu nombre.' },
-  { name: 'Cian Cyber', type: 'frame', price: 1200, rarity: 'Legendary', desc: 'Marco tecnológico con efectos de pulso cian.' },
-  { name: 'Error 404', type: 'font', price: 1500, rarity: 'Legendary', desc: 'Tipografía corrupta para quienes rompen el sistema.' },
+  { name: 'Cian Cyber', type: 'frame', price: 1200, rarity: 'Legendario', desc: 'Marco tecnológico con efectos de pulso cian.' },
+  { name: 'Error 404', type: 'font', price: 1500, rarity: 'Legendario', desc: 'Tipografía corrupta para quienes rompen el sistema.' },
   { name: 'Corona Nexo', type: 'frame', price: 5000, rarity: 'Mítico', desc: 'El artefacto definitivo de la red.' },
-  { name: 'Dorado Real', type: 'frame', price: 2500, rarity: 'Legendary', desc: 'El marco de los campeones del circuito.' },
-  { name: 'Sombra Negra', type: 'color', price: 3000, rarity: 'Legendary', desc: 'Presencia absoluta en el chat.' },
+  { name: 'Dorado Real', type: 'frame', price: 2500, rarity: 'Legendario', desc: 'El marco de los campeones del circuito.' },
+  { name: 'Sombra Negra', type: 'color', price: 3000, rarity: 'Legendario', desc: 'Presencia absoluta en el chat.' },
 ];

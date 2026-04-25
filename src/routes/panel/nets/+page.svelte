@@ -48,12 +48,13 @@
   } from '$lib/data/economy';
 
   // Sub-navigation state
-  let currentTab = $state('battlepass');
+  let currentTab = $state('crates');
   const tabs = [
-    { id: 'battlepass', label: 'Pase de Batalla', icon: Star },
     { id: 'crates', label: 'Cajas', icon: Package },
-    { id: 'shop', label: 'Tienda', icon: Storefront },
-    { id: 'collection', label: 'Personalizar', icon: UserCircle }
+    { id: 'battlepass', label: 'Pase', icon: Star },
+    { id: 'collection', label: 'Colección', icon: Smiley },
+    { id: 'loadout', label: 'Equipamiento', icon: PaintBrush },
+    { id: 'shop', label: 'Tienda', icon: Storefront }
   ];
 
   let activeIndex = $derived(tabs.findIndex(t => t.id === currentTab));
@@ -62,8 +63,14 @@
   let bpData = $derived($appStore.settings?.economy?.battlePass);
   let currentTier = $derived(bpData?.currentTier || 1);
   let currentXp = $derived(bpData?.currentXp || 0);
+  let totalXp = $derived($appStore.settings?.economy?.totalXp || currentXp);
   let isPremium = $derived(bpData?.isPremium || false);
   let claimedTiers = $derived(bpData?.claimedTiers || []);
+  
+  // Account Level Calculation (Kick-style, separate from BP)
+  const XP_PER_ACCOUNT_LEVEL = 10000;
+  let accountLevel = $derived(Math.floor(totalXp / XP_PER_ACCOUNT_LEVEL) + 1);
+  let accountXpProgress = $derived(totalXp % XP_PER_ACCOUNT_LEVEL);
   
   interface Challenge {
     id: string;
@@ -178,7 +185,7 @@
     { level: 6,  type: 'premium', reward: 'Módulo Gamma',    category: 'crate',     icon: Package,   color: 'text-violet-400', rarity: 'ÉPICO' },
     { level: 7,  type: 'free',    reward: 'Marco Acero',     category: 'frame',     icon: IdentificationCard, color: 'text-zinc-300', rarity: 'COMÚN' },
     { level: 8,  type: 'premium', reward: '30 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'ÉPICO' },
-    { level: 9,  type: 'free',    reward: 'Módulo Beta',     category: 'crate',     icon: Package,   color: 'text-blue-400',   rarity: 'RARO' },
+    { level: 9,  type: 'free',    reward: 'Shwompy 🐸',      category: 'emote',     icon: Smiley,    color: 'text-emerald-400', rarity: 'LEGENDARIO' },
     { level: 10, type: 'premium', reward: 'Esmeralda',       category: 'nameColor', icon: Palette,   color: 'text-emerald-400', rarity: 'INFRECUENTE' },
     { level: 11, type: 'free',    reward: '20 NETS',         category: 'nets',      icon: Coins,     color: 'text-amber-400',  rarity: 'BÁSICO' },
     { level: 12, type: 'premium', reward: 'Tipografía Retro', category: 'font',      icon: TextT,     color: 'text-zinc-200',   rarity: 'RARO' },
@@ -239,7 +246,8 @@
     'font': 'INTERFAZ_TIPOGRÁFICA',
     'effect': 'PROTOCOLO_VISUAL',
     'emote': 'REACCIÓN_HOLOGRÁFICA',
-    'title': 'RANGO_DE_PRESTIGIO'
+    'title': 'RANGO_DE_PRESTIGIO',
+    'badge': 'INSIGNIA_SOCIAL'
   };
 
   const iconMap: Record<string, any> = {
@@ -250,13 +258,15 @@
     'font': TextT,
     'effect': Lightning,
     'emote': Smiley,
-    'title': Trophy
+    'title': Trophy,
+    'badge': Sparkle
   };
 
   const shopItems = baseShopItems.map(item => ({
     ...item,
     icon: iconMap[item.type] || Package
   }));
+  
   async function handleBuyItem(item: any) {
     if (!$user) return;
     if (netsBalance < item.price) {
@@ -308,13 +318,15 @@
     fonts: [],
     colors: [],
     themes: [],
-    frames: []
+    frames: [],
+    effects: []
   });
 
   let netsBalance = $derived($appStore.settings?.economy?.netsBalance || 0);
   let activeColor = $derived($appStore.settings?.economy?.activeColor || 'none');
   let activeFrame = $derived($appStore.settings?.economy?.activeFrame || 'none');
   let activeFont = $derived($appStore.settings?.economy?.activeFont || 'none');
+  let activeBadge = $derived($appStore.settings?.economy?.activeBadge || 'none');
 
   let showPulse = $state(false);
   let showElectricOverlay = $state(false);
@@ -327,10 +339,10 @@
     }, 600);
   }
 
-  async function handleEquipItem(type: 'color' | 'frame' | 'font', value: string) {
+  async function handleEquipItem(type: 'color' | 'frame' | 'font' | 'badge', value: string) {
     if (!$user) return;
     try {
-      await battlepassApi.equipItem($user.uid, type, value);
+      await battlepassApi.equipItem($user.uid, type as any, value);
       triggerPulse();
     } catch (e) {
       console.error(e);
@@ -395,10 +407,6 @@
   }
 
   let rouletteOffset = $state(0);
-
-
-
-
 </script>
 
 <svelte:head>
@@ -406,549 +414,710 @@
 </svelte:head>
 
 <div class="max-w-[1400px] mx-auto min-h-screen">
-  <!-- KickCrates-style top bar -->
-  <div class="sticky top-20 z-30 bg-[#0a0a0a] border-b border-white/5 {showPulse ? 'electric-pulse' : ''}" in:fade={{ duration: 300 }}>
-    <!-- Brand row -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
-      <h1 class="text-xl font-black text-white uppercase tracking-tighter italic flex items-center gap-3">
-        <div class="w-7 h-7 bg-violet-500 flex items-center justify-center rotate-3 shadow-[0_0_15px_rgba(139,92,246,0.5)]">
-          <Package size={16} weight="fill" class="text-black" />
+  <!-- Top Bar (Corrected) -->
+  <div class="sticky top-0 z-40 bg-[#080808]/90 backdrop-blur-xl border-b border-white/5 {showPulse ? 'electric-pulse' : ''}" in:fade={{ duration: 300 }}>
+    <!-- Header Row -->
+    <div class="flex items-center justify-between px-4 sm:px-8 py-4">
+      <div class="flex items-center gap-6">
+        <h1 class="text-xl font-black text-white uppercase tracking-tighter italic flex items-center gap-3">
+          <div class="w-8 h-8 bg-emerald-500 flex items-center justify-center rotate-3 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+            <Package size={18} weight="fill" class="text-black" />
+          </div>
+          CHESS<span class="text-emerald-400">NETS</span>
+          <span class="hidden lg:inline-block px-2 py-0.5 bg-white/5 border border-white/10 text-[8px] font-black tracking-widest text-zinc-500 rounded-sm ml-2">SEASON 01 // GENESIS</span>
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-4 sm:gap-8">
+        <!-- XP Progress -->
+        <div class="hidden md:flex flex-col items-end gap-1.5 w-48">
+          <div class="flex items-center justify-between mb-1 w-full">
+            <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Nivel de Cuenta</span>
+            <span class="text-[10px] font-black text-primary-500 uppercase">{$appStore.settings.economy.xp}/1000 XP</span>
+          </div>
+          <div class="h-1 bg-primary-500/20 rounded-full overflow-hidden w-full">
+            <div class="h-full bg-primary-500 transition-all duration-1000 shadow-[0_0_10px_rgba(139,92,246,0.5)]" style="width: {($appStore.settings.economy.xp / 1000) * 100}%"></div>
+          </div>
         </div>
-        CHESS<span class="text-violet-400">NETS</span>
-        <span class="text-[9px] font-black text-zinc-600 normal-case tracking-widest italic ml-1 hidden sm:inline-block">Recompensas · Batallas · Rangos</span>
-      </h1>
-      <div class="flex items-center gap-3 px-4 py-2 bg-violet-500/10 border border-violet-500/20">
-        <Coins size={14} weight="fill" class="text-amber-400" />
-        <span class="text-[11px] font-black text-white font-mono">{(netsBalance ?? 0).toLocaleString()}</span>
-        <span class="text-[9px] text-zinc-500 font-black uppercase">NETS</span>
+
+        <!-- Account Level Badge -->
+        <div class="flex items-center gap-3 px-4 py-2 bg-zinc-900 border border-white/10 relative group">
+          <div class="absolute -inset-[1px] bg-gradient-to-r from-primary-500 to-blue-500 opacity-20 group-hover:opacity-40 transition-opacity"></div>
+          <div class="flex flex-col items-center leading-none">
+            <span class="text-[8px] font-black text-zinc-500 uppercase mb-0.5">Nivel</span>
+            <span class="text-lg font-black text-white italic">{accountLevel}</span>
+          </div>
+          <div class="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-black flex items-center justify-center relative">
+             {#if $user?.photoURL}
+               <img src={$user.photoURL} alt="User" class="w-full h-full object-cover" />
+             {:else}
+               <UserCircle size={24} weight="bold" class="text-zinc-700" />
+             {/if}
+          </div>
+          <div class="hidden sm:flex flex-col">
+            <span class="text-[10px] font-black text-white truncate max-w-[80px]">{$user?.displayName || 'Usuario'}</span>
+            <div class="flex items-center gap-1">
+               <Coins size={10} weight="fill" class="text-amber-400" />
+               <span class="text-[9px] font-mono text-amber-400 font-black">{netsBalance.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <!-- Tab row -->
-    <div class="bg-[#0d0d0f] border-b border-white/5 p-2 px-4 sm:px-6">
-      <div class="max-w-2xl mx-auto flex p-1 bg-black/40 border border-white/5 relative overflow-hidden">
+
+    <!-- Navigation Tabs -->
+    <div class="px-4 sm:px-8 pb-3">
+      <div class="flex items-center gap-1 sm:gap-2 p-1 bg-black/40 border border-white/5 relative overflow-hidden max-w-2xl mx-auto">
         {#each tabs as tab}
           <button
             onclick={() => currentTab = tab.id}
-            class="flex-1 flex items-center justify-center gap-2.5 py-3 text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all relative z-10 whitespace-nowrap
+            class="flex-1 flex items-center justify-center gap-2.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all relative z-10 whitespace-nowrap
               {currentTab === tab.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}"
           >
             <tab.icon
               size={14}
               weight={currentTab === tab.id ? 'fill' : 'bold'}
-              class="transition-colors {currentTab === tab.id ? 'text-violet-400' : 'text-zinc-600'}"
+              class="transition-colors {currentTab === tab.id ? 'text-emerald-400' : 'text-zinc-600'}"
             />
             <span class="hidden xs:inline">{tab.label}</span>
+            {#if currentTab === tab.id}
+              <div class="absolute bottom-0 left-1/4 right-1/4 h-px bg-emerald-500 shadow-[0_0_10px_#10b981]" in:fade></div>
+            {/if}
           </button>
         {/each}
         
-        <!-- Sliding Indicator -->
+        <!-- Sliding Indicator Background -->
         <div 
-          class="absolute top-1 bottom-1 left-1 bg-white/5 border border-white/10 transition-all duration-300 ease-out z-0"
+          class="absolute inset-y-1 left-1 bg-white/5 border border-white/10 transition-all duration-300 ease-out z-0"
           style="width: calc((100% - 8px) / {tabs.length}); transform: translateX(calc({activeIndex} * 100%))"
         ></div>
       </div>
     </div>
   </div>
 
-  <div class="p-3 sm:p-4 lg:p-8">
-
-  <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 sm:gap-8">
-    <div class="xl:col-span-3 order-2 xl:order-1">
-
-  {#if currentTab === 'battlepass'}
-    <div class="flex flex-col gap-8" in:fade={{ duration: 400 }}>
-      <!-- Main Battle Pass Header & Reward Preview -->
-      <div class="bg-[#0a0a0b] border border-white/5 relative overflow-hidden flex flex-col min-h-[500px] sm:min-h-[550px] shadow-2xl">
-        <!-- Top Indicators -->
-        <div class="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20">
-          <div class="flex items-center gap-3">
-            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-              <div class="w-1 h-1 bg-emerald-400 rounded-full animate-pulse"></div>
-              Temporada {season.number} disponible
-            </span>
-            <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-              <Clock size={14} /> {season.timeLeft}
-            </span>
+  <div class="grid xl:grid-cols-4 gap-8 p-3 sm:p-4 lg:p-8">
+    <div class="xl:col-span-3">
+    {#if currentTab === 'crates'}
+      <div in:fade={{ duration: 400 }}>
+        <!-- Welcome Quest / Info Bar -->
+        <div class="mb-8 p-6 bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/20 relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-8 opacity-10 rotate-12">
+            <Target size={120} weight="fill" class="text-emerald-500" />
           </div>
-          <div class="flex items-center gap-4">
-             <div class="flex items-center gap-2 px-3 py-1 bg-zinc-900/80 border border-white/10">
-               <div class="space-y-1">
-              <span class="block text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">SEASON_TIMESTAMP</span>
-              <span class="block text-xs font-mono font-black text-white">{seasonRange}</span>
-            </div>
-             </div>
-             <div class="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20">
-               <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-               <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">ACTIVO</span>
-             </div>
-          </div>
-        </div>
-
-        <!-- Reward Preview Center -->
-        <div class="flex-1 flex flex-col items-center justify-center relative z-10 p-6 pt-24 pb-32">
-          <!-- Season Title -->
-          <div class="absolute top-24 left-8 text-left">
-            <h3 class="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em] mb-1">TEMPORADA {season.number}</h3>
-            <h2 class="text-2xl font-black text-white uppercase tracking-tighter italic">{season.name}</h2>
-          </div>
-
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-current opacity-[0.1] blur-[100px] pointer-events-none {selectedTier.color}"></div>
-          
-          <div class="w-48 h-48 flex items-center justify-center mb-10 relative group float-animation">
-            <div class="absolute inset-0 bg-white/5 rounded-full scale-150 blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-            <selectedTier.icon size={120} weight="duotone" class="{selectedTier.color} drop-shadow-[0_0_50px_currentColor] transition-transform duration-700 group-hover:scale-110" />
-          </div>
-
-          <div class="text-center space-y-4 max-w-md">
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-[9px] font-black uppercase tracking-[0.3em] {selectedTier.color}">✦ {selectedTier.rarity} {categoryLabels[selectedTier.category] || 'RECOMPENSA'}</span>
-              <h2 class="text-3xl sm:text-5xl font-black text-white uppercase tracking-tighter italic drop-shadow-sm">{selectedTier.reward}</h2>
-            </div>
+          <div class="relative z-10">
+            <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Misiones Diarias</h2>
+            <p class="text-sm text-zinc-400 max-w-lg mb-6">Completa tus partidas diarias para desbloquear cofres gratuitos. Los cofres contienen gestos exclusivos, insignias y efectos de chat.</p>
             
-            <div class="pt-6 flex items-center justify-center gap-4">
-              {#if selectedTier.claimed}
-                <div class="px-8 py-3 bg-zinc-900 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Check size={16} weight="bold" /> RECLAMADO
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="bg-black/40 border border-white/5 p-4 flex items-center gap-4 group hover:border-emerald-500/30 transition-colors">
+                <div class="w-10 h-10 bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                  <Play size={20} weight="fill" />
                 </div>
-                <div class="px-4 py-3 bg-zinc-900/50 border border-white/5 text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                  TIER {selectedTier.level}
+                <div>
+                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Jugar 3 Partidas</div>
+                  <div class="text-xs font-mono text-white">2 / 3</div>
                 </div>
-              {:else if selectedTier.level <= season.currentTier}
-                 <button 
-                  onclick={() => handleClaimTier(selectedTier)}
-                  class="px-10 py-4 bg-emerald-500 text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                 >
-                   RECLAMAR TIER {selectedTier.level}
-                 </button>
-              {:else}
-                <button class="px-8 py-3 bg-zinc-900/80 border border-white/10 text-white/40 text-[10px] font-black uppercase tracking-[0.2em] cursor-not-allowed flex items-center gap-2">
-                   <LockKey size={14} /> DESBLOQUEAR AL NIVEL {selectedTier.level}
-                </button>
-                <div class="px-4 py-3 bg-zinc-900/50 border border-white/5 text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                  TIER {selectedTier.level}
+              </div>
+              <div class="bg-black/40 border border-white/5 p-4 flex items-center gap-4 group hover:border-emerald-500/30 transition-colors">
+                <div class="w-10 h-10 bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                  <Sword size={20} weight="fill" />
                 </div>
-              {/if}
+                <div>
+                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ganar 1 Partida</div>
+                  <div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic animate-pulse">COMPLETADO</div>
+                </div>
+              </div>
+              <div class="bg-black/40 border border-white/5 p-4 flex items-center gap-4 group hover:border-emerald-500/30 transition-colors">
+                <div class="w-10 h-10 bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                  <UserPlus size={20} weight="fill" />
+                </div>
+                <div>
+                  <div class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Invitar Amigo</div>
+                  <div class="text-xs font-mono text-white">0 / 1</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Horizontal Tier Selector -->
-        <div class="absolute bottom-0 left-0 right-0 h-28 bg-[#0d0d0f]/90 backdrop-blur-md border-t border-white/5 p-4 flex items-center gap-4 z-20">
-           <button onclick={() => scrollTimeline('left')} class="w-12 h-full text-zinc-600 hover:text-white transition-colors bg-black/20 flex items-center justify-center"><CaretLeft size={24} /></button>
-           <div bind:this={scrollContainer} class="flex-1 flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth py-2 px-4">
-              {#each tiers as tier, i}
-                <button 
-                  onclick={() => selectedTierLevel = tier.level} 
-                  class="relative shrink-0 flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110 active:scale-95 {selectedTierLevel === tier.level ? 'scale-110 z-10' : 'opacity-40 hover:opacity-100 hover:scale-105'}"
+    {#if currentTab === 'crates'}
+      <div in:fade={{ duration: 400 }} class="space-y-8">
+        <!-- Welcome Quest / Info Bar -->
+        <div class="p-8 bg-zinc-900 border border-white/5 relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-8 opacity-5 rotate-12">
+            <Target size={140} weight="fill" class="text-emerald-500" />
+          </div>
+          <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-black uppercase tracking-[0.3em]">Misiones Activas</div>
+              <span class="text-[9px] text-zinc-600 font-bold tracking-widest uppercase">Completa retos para ganar cajas gratis</span>
+            </div>
+            <h2 class="text-4xl font-black text-white italic uppercase tracking-tighter mb-6">Protocolo de Suministros</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {#each dailyChallengesDb.slice(0, 3) as challenge}
+                <div class="bg-black/40 border border-white/5 p-5 group hover:border-emerald-500/30 transition-all">
+                  <div class="flex justify-between items-start mb-4">
+                    <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{challenge.title}</span>
+                    <span class="text-[10px] font-mono text-emerald-500">{challenge.progress}/{challenge.target}</span>
+                  </div>
+                  <div class="h-1 bg-zinc-800 w-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 transition-all duration-500" style="width: {(challenge.progress / challenge.target) * 100}%"></div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </div>
+        </div>
+
+        <!-- Crates Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {#each [
+            { id: 'daily',   label: 'Caja Diaria',   price: 0,    rarity: 'Infrecuente', icon: Package,  color: 'text-emerald-500', glow: 'emerald', desc: 'Suministro estándar para usuarios activos.' },
+            { id: 'weekly',  label: 'Caja Semanal',  price: 500,  rarity: 'Épico',       icon: Package,  color: 'text-blue-500',    glow: 'blue',    desc: 'Mayor probabilidad de componentes raros.' },
+            { id: 'monthly', label: 'Caja Maestra',  price: 2500, rarity: 'Mítico',      icon: Package,  color: 'text-amber-500',   glow: 'amber',   desc: 'Contiene el hardware más premium del nexo.' }
+          ] as crate}
+            <div class="bg-zinc-900 border border-white/5 p-1 relative overflow-hidden group hover:border-white/10 transition-all">
+              <div class="p-8 flex flex-col items-center h-full">
+                <div class="w-32 h-32 mb-8 relative flex items-center justify-center">
+                  <div class="absolute inset-0 bg-{crate.glow}-500/10 blur-3xl group-hover:blur-[60px] transition-all"></div>
+                  <crate.icon size={100} weight="duotone" class="{crate.color} relative z-10 group-hover:scale-110 transition-transform duration-700" />
+                </div>
+                
+                <div class="text-center flex-1 mb-8">
+                  <h3 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">{crate.label}</h3>
+                  <p class="text-[10px] text-zinc-600 uppercase font-bold tracking-widest leading-relaxed px-4">{crate.desc}</p>
+                </div>
+
+                <button
+                  onclick={() => openCrate(crate)}
+                  disabled={netsBalance < crate.price}
+                  class="w-full py-4 bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-{crate.glow}-500 hover:text-white transition-all disabled:opacity-30 disabled:grayscale"
                 >
-                  <div class="w-14 h-14 border-2 flex items-center justify-center transition-all duration-300 {selectedTierLevel === tier.level ? `border-current ${tier.color} bg-white/10` : 'border-white/5 bg-zinc-950'}">
-                    <tier.icon size={20} weight={tier.claimed ? "fill" : "bold"} class={tier.claimed ? "text-emerald-400" : "text-zinc-600"} />
-                    {#if tier.claimed}
-                      <div class="absolute -top-1 -right-1 bg-emerald-500 text-black rounded-full p-0.5 border-2 border-[#0d0d0f]">
-                        <Check size={8} weight="bold" />
-                      </div>
+                  {#if crate.price === 0}
+                    ABRIR GRATIS
+                  {:else}
+                    <div class="flex items-center justify-center gap-2">
+                      <Coins size={14} weight="fill" />
+                      {crate.price.toLocaleString()} NETS
+                    </div>
+                  {/if}
+                </button>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+
+    {:else if currentTab === 'battlepass'}
+      <div class="flex flex-col gap-8" in:fade={{ duration: 400 }}>
+        <!-- Battle Pass Main Stage -->
+        <div class="bg-zinc-900 border border-white/5 relative overflow-hidden flex flex-col min-h-[550px] shadow-2xl">
+          <!-- Ambient Background Glow -->
+          <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-1/4 -right-1/4 w-[600px] h-[600px] bg-emerald-500/10 blur-[120px] rounded-full"></div>
+            <div class="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] {selectedTier.color.replace('text-', 'bg-')}/5 blur-[120px] rounded-full"></div>
+          </div>
+
+          <!-- Top HUD -->
+          <div class="absolute top-0 left-0 right-0 p-8 flex justify-between items-start z-20">
+            <div class="space-y-1">
+              <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-black uppercase tracking-[0.3em] inline-flex items-center gap-2">
+                <div class="w-1 h-1 bg-emerald-400 rounded-full animate-pulse"></div>
+                TEMPORADA 01: GENESIS
+              </span>
+              <div class="flex items-center gap-3 mt-2">
+                <Clock size={14} class="text-zinc-500" />
+                <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Finaliza en {seasonTimeLeft}</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-end">
+              <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Tu Progreso</span>
+              <div class="flex items-center gap-3 bg-black/40 border border-white/5 px-4 py-2">
+                <div class="text-right leading-none">
+                  <span class="block text-[8px] font-black text-zinc-600 uppercase">TIER</span>
+                  <span class="text-lg font-black text-white italic">{season.currentTier}</span>
+                </div>
+                <div class="w-px h-6 bg-white/10"></div>
+                <div class="text-[10px] font-mono text-zinc-400">{currentXp.toLocaleString()} <span class="text-zinc-700">/ {XP_PER_TIER.toLocaleString()} XP</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reward Spotlight -->
+          <div class="flex-1 flex flex-col items-center justify-center relative z-10 p-6 pt-32 pb-32">
+            <div class="w-64 h-64 flex items-center justify-center relative group float-animation">
+              <div class="absolute inset-0 bg-white/5 rounded-full scale-150 blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+              <div class="absolute inset-4 bg-scanlines opacity-5 rounded-full pointer-events-none z-20"></div>
+
+              <selectedTier.icon 
+                size={160} 
+                weight="duotone" 
+                class="{selectedTier.color} drop-shadow-[0_0_60px_currentColor] transition-transform duration-700 group-hover:scale-110" 
+              />
+            </div>
+
+            <div class="text-center space-y-4 max-w-md mt-8">
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-[10px] font-black uppercase tracking-[0.4em] {selectedTier.color}">✦ {selectedTier.rarity} {categoryLabels[selectedTier.category] || 'RECOMPENSA'}</span>
+                <h2 class="text-4xl sm:text-6xl font-black text-white uppercase tracking-tighter italic drop-shadow-2xl">{selectedTier.reward}</h2>
+              </div>
+              
+              <div class="pt-8 flex items-center justify-center gap-4">
+                {#if selectedTier.claimed}
+                  <div class="px-10 py-4 bg-zinc-900 border border-emerald-500/30 text-emerald-400 text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-3">
+                    <CheckCircle size={18} weight="fill" /> RECLAMADO
+                  </div>
+                {:else if selectedTier.level <= season.currentTier}
+                   <button 
+                    onclick={() => handleClaimTier(selectedTier)}
+                    class="px-12 py-5 bg-emerald-500 text-black text-[12px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-[0_0_30px_rgba(16,185,129,0.4)] relative overflow-hidden group/claim"
+                   >
+                     <span class="relative z-10">RECLAMAR RECOMPENSA</span>
+                     <div class="absolute inset-0 bg-white opacity-0 group-hover/claim:opacity-20 transition-opacity"></div>
+                   </button>
+                {:else}
+                  <div class="flex flex-col items-center gap-4">
+                    <div class="px-8 py-3 bg-zinc-950/80 border border-white/5 text-white/30 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3">
+                       <LockKey size={16} /> DESBLOQUEA AL NIVEL {selectedTier.level}
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            </div>
+          </div>
+
+          <!-- Tier Navigator -->
+          <div class="absolute bottom-0 left-0 right-0 h-32 bg-black/80 backdrop-blur-xl border-t border-white/5 flex items-center z-20">
+             <button onclick={() => scrollTimeline('left')} class="w-16 h-full text-zinc-600 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center border-r border-white/5">
+               <CaretLeft size={32} weight="bold" />
+             </button>
+             
+             <div bind:this={scrollContainer} class="flex-1 flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth px-8 py-4">
+                {#each tiers as tier}
+                  <button 
+                    onclick={() => selectedTierLevel = tier.level} 
+                    class="relative shrink-0 flex flex-col items-center gap-3 transition-all duration-500 {selectedTierLevel === tier.level ? 'scale-110 z-10' : 'opacity-30 hover:opacity-100'}"
+                  >
+                    <div class="w-16 h-16 border-2 flex items-center justify-center transition-all duration-500 relative
+                      {selectedTierLevel === tier.level ? `border-current ${tier.color} bg-white/10 shadow-[0_0_20px_currentColor]` : 'border-white/5 bg-zinc-950 hover:border-white/20'}">
+                      
+                      <tier.icon size={28} weight={tier.claimed ? "fill" : "duotone"} class={tier.claimed ? "text-emerald-400" : "text-zinc-500"} />
+                      
+                      {#if tier.claimed}
+                        <div class="absolute -top-2 -right-2 bg-emerald-500 text-black rounded-full p-1 border-2 border-black shadow-lg">
+                          <Check size={10} weight="bold" />
+                        </div>
+                      {/if}
+
+                      {#if tier.level > season.currentTier}
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                          <LockKey size={14} class="text-zinc-600" />
+                        </div>
+                      {/if}
+                    </div>
+                    <span class="text-[10px] font-black {selectedTierLevel === tier.level ? 'text-white' : 'text-zinc-700'}">Lvl {tier.level}</span>
+                  </button>
+                {/each}
+             </div>
+             
+             <button onclick={() => scrollTimeline('right')} class="w-16 h-full text-zinc-600 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center border-l border-white/5">
+               <CaretRight size={32} weight="bold" />
+             </button>
+          </div>
+        </div>
+      </div>
+
+    {:else if currentTab === 'collection'}
+      <div in:fade={{ duration: 400 }} class="space-y-12">
+        <div class="flex items-end justify-between px-1">
+          <h3 class="text-xs font-black text-white uppercase tracking-[0.4em] flex items-center gap-3">
+            <Smiley size={18} class="text-emerald-500" /> Mi Colección
+          </h3>
+          <span class="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">
+            {collection.emotes?.length || 0} GESTOS DESBLOQUEADOS
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-6">
+          {#each (collection.emotes || []) as emote}
+            <div class="aspect-square bg-zinc-900 border border-white/5 p-6 flex flex-col items-center justify-center gap-4 group hover:border-emerald-500/30 transition-all relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-t from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <Smiley size={48} weight="duotone" class="text-zinc-500 group-hover:text-emerald-400 transition-colors group-hover:scale-110 duration-500" />
+              <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest group-hover:text-white transition-colors text-center">{emote}</span>
+            </div>
+          {/each}
+          
+          {#if (collection.emotes?.length || 0) === 0}
+            {#each Array(6) as _, i}
+              <div class="aspect-square bg-zinc-900/50 border border-dashed border-white/5 flex items-center justify-center opacity-20">
+                <LockKey size={24} class="text-zinc-800" />
+              </div>
+            {/each}
+          {/if}
+        </div>
+      </div>
+
+    {:else if currentTab === 'loadout'}
+      <div in:fade={{ duration: 400 }} class="space-y-12">
+        <!-- Personalization Header with Preview -->
+        <div class="bg-zinc-900 border border-white/5 p-10 relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-10 opacity-[0.03] rotate-12">
+            <PaintBrush size={180} weight="fill" />
+          </div>
+          
+          <div class="flex flex-col lg:flex-row gap-16 items-center">
+            <!-- Identity Preview (THE WOW COMPONENT) -->
+            <div class="w-full lg:w-2/5 flex flex-col items-center gap-8">
+              <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] mb-2 flex items-center gap-2">
+                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                VISUALIZADOR DE IDENTIDAD
+              </div>
+              
+              <div class="w-full bg-black/80 border border-white/5 p-10 rounded-sm shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative overflow-hidden group border-b-emerald-500/30">
+                <div class="absolute inset-0 bg-scanlines opacity-10 pointer-events-none"></div>
+                <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-transparent to-blue-500/5 opacity-50"></div>
+                
+                <div class="flex items-center gap-6 relative z-10">
+                  <div class="w-20 h-20 bg-zinc-900 relative flex items-center justify-center border border-white/10 group-hover:scale-105 transition-transform duration-700">
+                    {#if $user?.photoURL}
+                      <img src={$user.photoURL} alt="Avatar" class="w-full h-full object-cover" />
+                    {:else}
+                      <UserCircle size={40} weight="bold" class="text-zinc-800" />
+                    {/if}
+                    {#if activeFrame !== 'none'}
+                      <div class="absolute inset-0 border-[4px] pointer-events-none {frameStyles[activeFrame] || ''}"></div>
                     {/if}
                   </div>
-                  <span class="text-[9px] font-black {selectedTierLevel === tier.level ? 'text-white' : 'text-zinc-700'}">{tier.level}</span>
+                  
+                  <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-3">
+                      {#if activeBadge !== 'none'}
+                        <div class="p-1 bg-white/5 border border-white/10 rounded-sm">
+                           <Badge size={16} weight="fill" class="text-emerald-500" />
+                        </div>
+                      {/if}
+                      <span class="text-2xl font-black italic uppercase tracking-tighter {nameColorStyles[activeColor] || 'text-white'} {nameFontStyles[activeFont] || ''}">
+                        {$user?.displayName || 'Usuario'}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                       <span class="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">Módulo de Chat Activo</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-8 pt-8 border-t border-white/5 flex gap-4">
+                   <div class="px-3 py-1 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest italic animate-pulse">COMPLETADO</div>
+                   <div class="px-3 py-1 bg-emerald-500/5 text-[9px] font-black text-emerald-500/40 uppercase tracking-widest border border-emerald-500/10">SYNC_OK</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selection Controls -->
+            <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+              <!-- Marcos -->
+              <div class="space-y-4">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <ImageSquare size={16} /> Marco de Avatar
+                </label>
+                <div class="grid grid-cols-4 gap-2">
+                  <button 
+                    onclick={() => handleEquipItem('frame', 'none')}
+                    class="aspect-square bg-zinc-800 border {activeFrame === 'none' ? 'border-white' : 'border-white/5'} transition-all flex items-center justify-center opacity-50 hover:opacity-100"
+                  >
+                    <div class="w-6 h-6 border-2 border-dashed border-zinc-600"></div>
+                  </button>
+                  {#each (collection.frames || []) as frame}
+                    <button 
+                      onclick={() => handleEquipItem('frame', frame)}
+                      class="aspect-square bg-zinc-950 border transition-all relative overflow-hidden group {activeFrame === frame ? 'border-emerald-500 ring-1 ring-emerald-500/50' : 'border-white/5 hover:border-white/20'}"
+                    >
+                      <div class="absolute inset-0 border-[2px] {frameStyles[frame]} opacity-40"></div>
+                      {#if activeFrame === frame}
+                        <div class="absolute inset-0 bg-emerald-500/10 flex items-center justify-center">
+                          <Check size={16} weight="bold" class="text-emerald-500" />
+                        </div>
+                      {/if}
+                    </button>
+                  {/each}
+                </div>
+              </div>
+
+              <!-- Colores -->
+              <div class="space-y-4">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <Palette size={16} /> Color de Nombre
+                </label>
+                <div class="grid grid-cols-4 gap-2">
+                  <button 
+                    onclick={() => handleEquipItem('color', 'default')}
+                    class="aspect-square bg-zinc-800 border {activeColor === 'default' ? 'border-white' : 'border-white/5'} transition-all flex items-center justify-center"
+                  >
+                    <div class="w-6 h-6 bg-white rounded-full"></div>
+                  </button>
+                  {#each (collection.colors || []) as color}
+                    <button 
+                      onclick={() => handleEquipItem('color', color)}
+                      class="aspect-square bg-zinc-950 border transition-all relative group flex items-center justify-center {activeColor === color ? 'border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-white/5 hover:border-white/20'}"
+                    >
+                      <div class="w-8 h-8 rounded-full" style="background-color: {color === 'Esmeralda' ? '#10b981' : color === 'Oro Puro' ? '#fbbf24' : color === 'Violeta Neón' ? '#8b5cf6' : '#fff'}"></div>
+                      {#if activeColor === color}
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <Check size={16} weight="bold" class="text-white" />
+                        </div>
+                      {/if}
+                    </button>
+                  {/each}
+                </div>
+              </div>
+
+              <!-- Tipografía -->
+              <div class="space-y-4">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <TextT size={16} /> Estilo de Texto
+                </label>
+                <div class="space-y-2">
+                  <button 
+                    onclick={() => handleEquipItem('font', 'none')}
+                    class="w-full py-3 px-4 bg-zinc-800 border {activeFont === 'none' ? 'border-white' : 'border-white/5'} text-[10px] font-black uppercase text-left tracking-widest transition-all"
+                  >
+                    Predeterminado
+                  </button>
+                  {#each (collection.fonts || []) as font}
+                    <button 
+                      onclick={() => handleEquipItem('font', font)}
+                      class="w-full py-3 px-4 bg-zinc-950 border transition-all text-left group flex justify-between items-center {activeFont === font ? 'border-emerald-500 bg-emerald-500/5' : 'border-white/5 hover:border-white/10'}"
+                    >
+                      <span class="text-sm font-black uppercase {nameFontStyles[font]}">{font}</span>
+                      {#if activeFont === font}
+                        <Check size={14} weight="bold" class="text-emerald-500" />
+                      {/if}
+                    </button>
+                  {/each}
+                </div>
+              </div>
+
+              <!-- Insignias -->
+              <div class="space-y-4">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <Star size={16} /> Insignia de Perfil
+                </label>
+                <div class="grid grid-cols-4 gap-2">
+                  <button 
+                    onclick={() => handleEquipItem('badge', 'none')}
+                    class="aspect-square bg-zinc-800 border {activeBadge === 'none' ? 'border-white' : 'border-white/5'} transition-all flex items-center justify-center opacity-50 hover:opacity-100"
+                  >
+                    <LockKey size={16} />
+                  </button>
+                  {#each (collection.badges || []) as badge}
+                    <button 
+                      onclick={() => handleEquipItem('badge', badge)}
+                      class="aspect-square bg-zinc-950 border transition-all relative flex items-center justify-center group {activeBadge === badge ? 'border-emerald-500 bg-emerald-500/5' : 'border-white/5 hover:border-white/20'}"
+                    >
+                      <Badge size={24} weight="fill" class="text-emerald-500" />
+                      {#if activeBadge === badge}
+                        <div class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-black flex items-center justify-center rounded-full border-2 border-black">
+                           <Check size={10} weight="bold" />
+                        </div>
+                      {/if}
+                    </button>
+                  {/each}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {:else if currentTab === 'shop'}
+      <div in:fade={{ duration: 400 }} class="space-y-8">
+        <!-- Featured Shop Card -->
+        <div class="bg-gradient-to-br from-violet-600/20 to-transparent border border-violet-500/30 p-10 relative overflow-hidden group shadow-2xl">
+          <div class="absolute top-0 right-0 p-10 opacity-10 rotate-12 group-hover:rotate-[20deg] transition-transform duration-700">
+            <Lightning size={200} weight="fill" class="text-violet-500" />
+          </div>
+          <div class="relative z-10 flex flex-col md:flex-row items-center gap-12">
+            <div class="w-56 h-56 bg-zinc-900 border border-white/5 flex items-center justify-center relative rotate-3 group-hover:rotate-0 transition-transform duration-500">
+               <div class="absolute inset-0 bg-violet-500/20 blur-3xl rounded-full scale-125 animate-pulse"></div>
+               <Rocket size={100} weight="duotone" class="text-violet-400 relative z-10" />
+            </div>
+            <div class="flex-1 text-center md:text-left space-y-4">
+               <span class="px-3 py-1 bg-violet-500/20 text-violet-400 border border-violet-500/30 text-[10px] font-black uppercase tracking-[0.3em] inline-block">Novedad Estacional</span>
+               <h2 class="text-5xl font-black text-white uppercase italic tracking-tighter drop-shadow-lg">Protocolo Trueno</h2>
+               <p class="text-zinc-500 max-w-lg text-sm">Desbloquea el set visual completo de la temporada Génesis. Incluye marco animado, efecto de trueno y gesticulador legendario.</p>
+               <button class="px-12 py-5 bg-white text-black text-[12px] font-black uppercase tracking-[0.2em] hover:bg-violet-500 hover:text-white transition-all shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+                 COMPRAR PACK // 12.500 NETS
+               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shop Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {#each shopItems as item}
+            {@const style = RARITY_STYLES[item.rarity] || RARITY_STYLES['Común']}
+            <div class="bg-zinc-950 border {style.border} p-8 group transition-all relative overflow-hidden flex flex-col h-full scanline">
+              <div class="absolute inset-0 {style.bg} opacity-5"></div>
+              <div class="flex justify-between items-start relative z-10 mb-8">
+                <span class="text-[9px] font-black uppercase tracking-widest px-2 py-1 {style.color} border {style.border}">{item.rarity}</span>
+                <div class="flex items-center gap-2 text-amber-500 font-black text-xs bg-amber-500/5 px-2 py-1">
+                   <Coins size={14} weight="fill" />
+                   {item.price.toLocaleString()}
+                </div>
+              </div>
+
+              <div class="flex-1 flex items-center justify-center mb-10 relative z-10">
+                 <div class="absolute inset-0 blur-3xl opacity-20" style="background: radial-gradient(circle, {style.glow} 0%, transparent 70%)"></div>
+                 <item.icon size={80} weight="duotone" class="{style.color} transition-transform duration-700 group-hover:scale-110" />
+              </div>
+
+              <div class="relative z-10 text-center sm:text-left">
+                <h4 class="text-lg font-black text-white uppercase italic tracking-tighter mb-2">{item.name}</h4>
+                <p class="text-xs text-zinc-600 font-medium leading-relaxed mb-8">{item.desc}</p>
+                <button
+                  onclick={() => handleBuyItem(item)}
+                  disabled={netsBalance < item.price}
+                  class="w-full py-4 border {style.border} {style.color} text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white hover:text-black hover:border-white transition-all disabled:opacity-30 disabled:grayscale"
+                >
+                  {#if netsBalance < item.price}
+                    BLOQUEADO
+                  {:else}
+                    ADQUIRIR
+                  {/if}
                 </button>
-              {/each}
-           </div>
-           <button onclick={() => scrollTimeline('right')} class="w-12 h-full text-zinc-600 hover:text-white transition-colors bg-black/20 flex items-center justify-center"><CaretRight size={24} /></button>
-           
-           <!-- Jump to tier button -->
-           <div class="pl-4 border-l border-white/5 h-full hidden lg:flex items-center">
-             <button class="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[9px] font-black uppercase tracking-widest whitespace-nowrap hover:bg-amber-500 hover:text-black transition-all flex items-center gap-2">
-                <ArrowUp size={14} weight="bold" /> IR AL NIVEL {season.currentTier + 1}
-             </button>
-           </div>
-        </div>
-      </div>
-
-      <!-- Bottom Progress Bar -->
-      <div class="bg-[#0a0a0b] border border-white/5 p-4 sm:p-8 shadow-lg">
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-0">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-zinc-900 border-2 border-amber-500 flex items-center justify-center text-amber-500 font-black text-xl italic">
-                {season.currentTier}
-              </div>
-              <div>
-                <h4 class="text-sm font-black text-white uppercase tracking-wider">Tier {season.currentTier} <span class="text-zinc-600">/ 30</span></h4>
-                <p class="text-[10px] font-mono text-zinc-500 tracking-widest">{currentXp} / 7500 XP</p>
               </div>
             </div>
-            <div class="text-right">
-              <span class="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">{7500 - currentXp} XP PARA EL NIVEL {season.currentTier + 1}</span>
-            </div>
-          </div>
-          <div class="h-2 bg-zinc-900 w-full overflow-hidden relative xp-wave">
-             <div class="absolute inset-0 bg-amber-500/10 animate-pulse"></div>
-             <div class="h-full bg-amber-500 transition-all duration-1000 shadow-[0_0_10px_#f59e0b]" style="width: {(currentXp / 7500) * 100}%"></div>
-          </div>
+          {/each}
         </div>
       </div>
+    {/if}
     </div>
-  {:else if currentTab === 'shop'}
-    <div class="flex flex-col gap-8" in:fade={{ duration: 400 }}>
-      <!-- Featured Rotation -->
-      <div class="bg-violet-950/10 border border-violet-500/20 p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
-        <div class="absolute top-0 right-0 p-4">
-           <span class="text-[10px] font-black text-violet-400 uppercase tracking-[0.3em] flex items-center gap-2">
-             <Lightning size={14} weight="fill" /> Rotación en: {dailyTimeLeft}
-           </span>
-        </div>
-        <div class="w-48 h-48 bg-zinc-900 border border-white/5 flex items-center justify-center relative group">
-           <div class="absolute inset-0 bg-violet-500/20 blur-3xl group-hover:blur-[50px] transition-all"></div>
-           <Star size={100} weight="duotone" class="text-violet-500 relative z-10" />
-        </div>
-        <div class="flex-1 space-y-4 text-center md:text-left">
-           <div>
-             <span class="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest">OFERTA DEL DÍA</span>
-             <h3 class="text-3xl font-black text-white uppercase tracking-tighter italic mt-2">Pack Orígenes</h3>
-           </div>
-           <p class="text-xs text-zinc-500 max-w-md">Incluye el Marco "Génesis", el Color "Ultra Violeta" y una Caja Épica garantizada.</p>
-           <button class="px-10 py-4 bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-violet-500 hover:text-white transition-all flex items-center justify-center md:justify-start gap-3">
-             <Coins size={18} weight="fill" /> 10.000 Nets
-           </button>
-        </div>
-      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {#each shopItems as item}
-          {@const rs = RARITY_STYLES[item.rarity] || RARITY_STYLES['Common']}
-          <div class="bg-zinc-950 border {rs.border} p-4 sm:p-6 group transition-all flex flex-col relative overflow-hidden scanline {item.rarity === 'Legendary' || item.rarity === 'Mythic' ? 'shimmer-premium' : ''}">
-            <div class="absolute inset-0 {rs.bg} opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div class="flex justify-between items-start mb-6 relative z-10">
-              <span class="text-[9px] font-black uppercase px-2 py-0.5 border {rs.border} {rs.color} tracking-widest {rs.bg}">
-                {rs.label}
-              </span>
-              <div class="flex items-center gap-1 text-[11px] font-black text-amber-400 bg-amber-500/10 px-2 py-1">
-                <Coins size={14} weight="fill" />
-                {item.price}
-              </div>
-            </div>
-            <div class="flex-1 flex items-center justify-center mb-6 relative py-8 z-10">
-               <div class="absolute inset-0 blur-2xl opacity-30" style="background: radial-gradient(circle, {rs.glow} 0%, transparent 70%)"></div>
-               <item.icon size={80} weight="duotone" class="{rs.color} relative z-10 group-hover:scale-110 transition-transform duration-500" />
-            </div>
-            <div class="relative z-10">
-              <h4 class="text-sm font-black text-white uppercase tracking-widest mb-1">{item.name}</h4>
-              <p class="text-xs text-zinc-500 mb-6 line-clamp-2">{item.desc}</p>
-              <button
-                onclick={() => handleBuyItem(item)}
-                disabled={netsBalance < item.price}
-                class="w-full py-3 border {rs.border} {rs.color} text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black hover:border-white transition-all disabled:opacity-30 flex items-center justify-center gap-2"
-              >
-                {#if netsBalance < item.price}
-                  <LockKey size={14} /> Bloqueado
-                {:else}
-                  <Storefront size={14} /> Adquirir
-                {/if}
-              </button>
-            </div>
-          </div>
-        {/each}
-      </div>
-    </div>
-  {:else if currentTab === 'crates'}
-    {@const crateData = [
-      { type: 'season', label: 'Módulo Estacional', price: 1000, frequency: 'TEMPORADA', rarity: 'Legendary', desc: 'Suministros exclusivos de la temporada actual. Protocolo de tiempo limitado.', borderCls: 'border-amber-500/50', glowCls: 'bg-amber-500/5', iconCls: 'text-amber-500', btnCls: 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-500', ready: false, timer: seasonTimeLeft },
-      { type: 'daily',  label: 'Módulo Diario',     price: 100,  frequency: 'DIARIA',    rarity: 'Uncommon',  desc: 'Suministro estándar disponible cada 24 horas.',   borderCls: 'border-emerald-500',    glowCls: 'bg-emerald-500/10', iconCls: 'text-emerald-500', btnCls: 'bg-emerald-500 hover:bg-white text-black', ready: true, timer: dailyTimeLeft },
-      { type: 'weekly', label: 'Módulo Semanal',    price: 250,  frequency: 'SEMANAL',   rarity: 'Rare',      desc: 'Probabilidad aumentada de obtener componentes raros.',       borderCls: 'border-blue-500/50',    glowCls: 'bg-blue-500/5',    iconCls: 'text-blue-500',    btnCls: 'bg-blue-500/80 hover:bg-white text-black', ready: true, timer: weeklyTimeLeft },
-      { type: 'monthly',label: 'Módulo Mensual',    price: 500,  frequency: 'MENSUAL',   rarity: 'Legendary', desc: 'Hardware premium garantizado. El ciclo de carga más largo.',         borderCls: 'border-amber-500/50',   glowCls: 'bg-amber-500/5',   iconCls: 'text-amber-500',   btnCls: 'bg-amber-500/80 hover:bg-white text-black', ready: true, timer: monthlyTimeLeft },
-    ]}
-    <div class="space-y-8" in:fade={{ duration: 400 }}>
-      <div class="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Cajas Disponibles</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {#each crateData as crate}
-          <div class="bg-[#0a0a0b] border {crate.borderCls} p-8 flex flex-col items-center group transition-all relative overflow-hidden h-full">
-            <div class="absolute top-0 left-0 p-3">
-              <span class="text-[8px] font-black text-zinc-600 uppercase tracking-widest">{crate.frequency}</span>
-            </div>
-            
-            <div class="w-24 h-24 my-6 relative flex items-center justify-center">
-              <div class="absolute inset-0 {crate.glowCls} blur-2xl rounded-full"></div>
-              <Package size={80} weight="duotone" class="{crate.iconCls} relative z-10 group-hover:scale-110 transition-transform duration-500" />
-            </div>
 
-            <div class="flex-1 text-center mb-6">
-              <h3 class="text-sm font-black text-white uppercase tracking-wider mb-2">{crate.label}</h3>
-              <p class="text-[10px] text-zinc-500 leading-relaxed mb-4">{crate.desc}</p>
-              
-              <div class="flex flex-col gap-1 items-center">
-                <span class="text-[9px] text-zinc-600 uppercase font-bold tracking-widest">Se reinicia en:</span>
-                <span class="text-[10px] font-mono text-white">{crate.timer}</span>
-              </div>
-            </div>
-
-              <button
-                onclick={() => crate.ready && openCrate(crate)}
-              class="w-full py-3.5 {crate.btnCls} text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30"
-              disabled={!crate.ready && netsBalance < crate.price}
-            >
-              {#if crate.ready}
-                ABRIR CAJA
-              {:else}
-                NO DISPONIBLE
-              {/if}
-            </button>
-          </div>
-        {/each}
-      </div>
-    </div>
-  {:else if currentTab === 'collection'}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" in:fade={{ duration: 400 }}>
-       <!-- Frames Section -->
-       <div class="space-y-6">
-          <h3 class="text-xs font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
-            <ImageSquare size={16} /> Marcos de Avatar
-          </h3>
-          <div class="grid grid-cols-2 gap-4">
-            {#each (collection.frames || []) as frame}
-              <button 
-                onclick={() => handleEquipItem('frame', frame)}
-                class="p-4 bg-zinc-950 border transition-all flex flex-col items-center gap-3 {activeFrame === frame ? 'border-violet-500 bg-violet-500/5' : 'border-white/5 hover:border-white/20'}"
-              >
-                <div class="w-12 h-12 bg-zinc-900 border border-white/10 flex items-center justify-center relative">
-                   <User size={24} weight="bold" class="text-zinc-700" />
-                   {#if activeFrame === frame}
-                     <div class="absolute -top-1 -right-1 w-4 h-4 bg-violet-500 text-black flex items-center justify-center rounded-full">
-                        <CheckCircle size={10} weight="fill" />
-                     </div>
-                   {/if}
-                </div>
-                <span class="text-[10px] font-black text-white uppercase tracking-tighter">{frame}</span>
-              </button>
-            {/each}
-            {#if (collection.frames?.length || 0) === 0}
-               <div class="col-span-2 py-12 text-center border border-dashed border-white/5">
-                  <p class="text-[10px] text-zinc-600 uppercase font-black tracking-widest">Sin Marcos</p>
-               </div>
-            {/if}
-          </div>
-       </div>
-
-       <!-- Colors Section -->
-       <div class="space-y-6">
-          <h3 class="text-xs font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
-            <PaintBrush size={16} /> Colores de Nombre
-          </h3>
-          <div class="grid grid-cols-2 gap-4">
-            {#each (collection.colors || []) as color}
-              <button 
-                onclick={() => handleEquipItem('color', color)}
-                class="p-4 bg-zinc-950 border transition-all flex flex-col items-center gap-3 {activeColor === color ? 'border-violet-500 bg-violet-500/5' : 'border-white/5 hover:border-white/20'}"
-              >
-                <div class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center">
-                   <div class="w-6 h-6 rounded-full" style="background-color: currentColor"></div>
-                </div>
-                <span class="text-[10px] font-black text-white uppercase tracking-tighter">{color}</span>
-              </button>
-            {/each}
-            {#if (collection.colors?.length || 0) === 0}
-               <div class="col-span-2 py-12 text-center border border-dashed border-white/5">
-                  <p class="text-[10px] text-zinc-600 uppercase font-black tracking-widest">Sin Colores</p>
-               </div>
-            {/if}
-          </div>
-       </div>
-
-       <!-- Fonts Section -->
-       <div class="space-y-6">
-          <h3 class="text-xs font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
-            <TextT size={16} /> Tipografías
-          </h3>
-          <div class="grid grid-cols-2 gap-4">
-            {#each (collection.fonts || []) as font}
-              <button 
-                onclick={() => handleEquipItem('font', font)}
-                class="p-4 bg-zinc-950 border transition-all flex flex-col items-center gap-3 {activeFont === font ? 'border-violet-500 bg-violet-500/5' : 'border-white/5 hover:border-white/20'}"
-              >
-                <div class="w-full h-12 flex items-center justify-center text-xl font-bold">Aa</div>
-                <span class="text-[10px] font-black text-white uppercase tracking-tighter">{font}</span>
-              </button>
-            {/each}
-            {#if (collection.fonts?.length || 0) === 0}
-               <div class="col-span-2 py-12 text-center border border-dashed border-white/5">
-                  <p class="text-[10px] text-zinc-600 uppercase font-black tracking-widest">Sin Fuentes</p>
-               </div>
-            {/if}
-          </div>
-       </div>
-    </div>
-  {/if}
-</div>
-
-<!-- Sidebar: Profile Preview -->
-<div class="flex flex-col gap-6 order-1 xl:order-2">
-  <!-- Sidebar: Profile & Challenges -->
-  <div class="flex flex-col gap-6" in:fade={{ duration: 400, delay: 200 }}>
-    <!-- Profile Identity Card -->
-    <div class="bg-[#0a0a0b] border border-white/5 p-6 relative overflow-hidden group shadow-xl">
-      <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
+  <!-- Sidebar: Challenges & Streaks -->
+  <div class="xl:col-span-1 order-1 xl:order-2 space-y-8">
+    <!-- Premium Profile Card -->
+    <div class="bg-zinc-900 border border-white/5 p-8 relative overflow-hidden group shadow-2xl">
+      <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
       
-      <div class="flex items-center gap-4 mb-6">
-        <div class="relative">
-          <div class="absolute -inset-1 bg-amber-500/20 rounded-none blur opacity-0 group-hover:opacity-100 transition duration-700"></div>
-          <div class="w-16 h-16 bg-zinc-900 relative flex items-center justify-center border border-white/10 overflow-hidden">
+      <div class="flex items-center gap-5 mb-8">
+        <div class="relative shrink-0">
+          <div class="w-16 h-16 bg-black border border-white/10 flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
             {#if $user?.photoURL}
-              <img src={$user.photoURL} alt="Avatar" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              <img src={$user.photoURL} alt="Avatar" class="w-full h-full object-cover" />
             {:else}
-              <User size={30} weight="bold" class="text-zinc-700" />
+              <UserCircle size={32} weight="fill" class="text-zinc-800" />
             {/if}
             {#if activeFrame !== 'none'}
               <div class="absolute inset-0 border-[3px] pointer-events-none {frameStyles[activeFrame] || ''}"></div>
             {/if}
           </div>
+          <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-500 text-white flex items-center justify-center font-black text-[10px] italic border-2 border-black">
+            {accountLevel}
+          </div>
         </div>
         
-        <div class="flex-1 overflow-hidden">
-          <h3 class="text-sm font-black uppercase tracking-tighter italic truncate">
-            <span class="{nameColorStyles[activeColor] || 'text-white'} {nameFontStyles[activeFont] || ''}">
-              {$user?.displayName || 'USUARIO'}
-            </span>
-          </h3>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="text-[9px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-1.5 py-0.5 border border-amber-500/20">LEVEL {season.currentTier}</span>
-            <span class="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">{currentXp % 7500} / 7500 XP</span>
+        <div class="overflow-hidden">
+          <div class="flex items-center gap-2 mb-1">
+             {#if activeBadge !== 'none'}
+               <Badge size={14} weight="fill" class="text-primary-500" />
+             {/if}
+             <h4 class="text-sm font-black text-white uppercase italic tracking-tighter truncate {nameColorStyles[activeColor] || 'text-white'} {nameFontStyles[activeFont] || ''}">
+               {$user?.displayName || 'USUARIO'}
+             </h4>
           </div>
+          <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">Season Pass Rank #{(season.currentTier * 123) % 1000}</span>
         </div>
       </div>
 
-      <div class="space-y-2">
-        <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-zinc-500 bg-black/40 p-2.5 border border-white/5 group/bal">
-          <span class="flex items-center gap-2 transition-colors group-hover/bal:text-white"><Coins size={14} weight="fill" class="text-amber-500" /> Balance Nets</span>
-          <span class="text-white font-mono text-xs">{(netsBalance ?? 0).toLocaleString()}</span>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center p-4 bg-black/40 border border-white/5 group/bal hover:border-emerald-500/20 transition-all">
+          <div class="flex items-center gap-3">
+            <Coins size={18} weight="fill" class="text-amber-400 group-hover/bal:scale-110 transition-transform" />
+            <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Nets</span>
+          </div>
+          <span class="text-sm font-mono text-white font-black">{netsBalance.toLocaleString()}</span>
         </div>
-        <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-zinc-500 bg-black/40 p-2.5 border border-white/5 group/col">
-          <span class="flex items-center gap-2 transition-colors group-hover/col:text-white"><Cube size={14} weight="fill" class="text-violet-500" /> Objetos</span>
-          <span class="text-white font-mono text-xs">
-            {(collection.badges?.length || 0) + (collection.emotes?.length || 0) + (collection.fonts?.length || 0) + (collection.colors?.length || 0) + (collection.frames?.length || 0)}
+        <div class="flex justify-between items-center p-4 bg-black/40 border border-white/5 group/col hover:border-blue-500/20 transition-all">
+          <div class="flex items-center gap-3">
+            <Cube size={18} weight="fill" class="text-blue-400 group-hover/col:scale-110 transition-transform" />
+            <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Objetos</span>
+          </div>
+          <span class="text-sm font-mono text-white font-black">
+            {(collection.emotes?.length || 0) + (collection.frames?.length || 0) + (collection.colors?.length || 0)}
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Challenges Section (Only for Battle Pass) -->
-    {#if currentTab === 'battlepass'}
-      <div class="flex flex-col gap-4" in:slide={{ duration: 400 }}>
-        <!-- Section Header -->
-        <div class="flex justify-between items-end mb-2">
-           <h4 class="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
-             <Target size={16} class="text-emerald-500" /> RETOS DIARIOS
-           </h4>
-           <span class="text-[9px] font-mono text-zinc-600 tracking-widest">REINICIO EN {dailyTimeLeft}</span>
-        </div>
-
-        <div class="space-y-3">
-          {#each dailyChallengesDb as challenge}
-            <div class="bg-[#0a0a0b] border border-white/5 p-3 sm:p-4 relative group hover:border-emerald-500/30 transition-all duration-300">
-              <div class="flex justify-between items-start mb-3 gap-2">
-                <div class="flex-1">
-                  <h5 class="text-[10px] font-black text-zinc-300 uppercase tracking-widest leading-tight group-hover:text-white transition-colors">{challenge.title}</h5>
-                  <p class="text-[9px] text-zinc-600 mt-1 font-medium">{challenge.description}</p>
-                </div>
-                <div class="flex flex-col items-end gap-1">
-                  <div class="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20">
-                    <span class="text-[9px] font-black text-amber-500">+{challenge.rewardXp}</span>
-                    <Lightning size={10} weight="fill" class="text-amber-500" />
-                  </div>
-                  {#if challenge.claimed}
-                    <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1">
-                      <Check size={10} weight="bold" /> RECLAMADO
-                    </span>
-                  {:else if challenge.completed}
-                    <button 
-                      onclick={() => handleClaimChallenge(challenge, 'daily')}
-                      class="px-2 py-1 bg-emerald-500 text-black text-[8px] font-black uppercase tracking-widest hover:bg-white transition-all flex items-center gap-1"
-                    >
-                      <Check size={10} weight="bold" /> RECLAMAR
-                    </button>
-                  {/if}
-                </div>
-              </div>
-
-              <!-- Progress Bar -->
-              <div class="relative h-1 bg-zinc-900 overflow-hidden">
-                <div 
-                  class="absolute h-full transition-all duration-1000 {challenge.claimed ? 'bg-zinc-800' : (challenge.completed ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-zinc-600 group-hover:bg-zinc-400')}" 
-                  style="width: {Math.min((challenge.progress / challenge.target) * 100, 100)}%"
-                ></div>
-              </div>
-              <div class="flex justify-between mt-2">
-                 <span class="text-[8px] font-mono text-zinc-700 tracking-widest uppercase italic">{challenge.progress} / {challenge.target}</span>
-              </div>
+    <!-- Daily Streak -->
+    <div class="bg-zinc-900 border border-white/5 p-8 shadow-xl relative overflow-hidden">
+       <div class="absolute top-0 right-0 p-8 opacity-5">
+          <Flame size={100} weight="fill" class="text-orange-500" />
+       </div>
+       <h4 class="text-[11px] font-black text-white uppercase tracking-[0.3em] mb-6 flex items-center gap-3 relative z-10">
+          <Flame size={20} weight="fill" class="text-orange-500" /> Racha Semanal
+       </h4>
+       <div class="flex gap-2 relative z-10">
+          {#each Array(7) as _, i}
+            <div class="flex-1 aspect-square bg-black border border-white/5 flex items-center justify-center {i < 3 ? 'bg-orange-500/10 border-orange-500/30 text-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.1)]' : 'text-zinc-800'}">
+               <span class="text-[11px] font-black">{i + 1}</span>
             </div>
           {/each}
-        </div>
+       </div>
+       <p class="text-[9px] text-zinc-600 mt-6 font-bold tracking-widest uppercase leading-relaxed relative z-10">Inicia sesión mañana para obtener +50 XP de racha.</p>
+    </div>
 
-        <!-- Weekly Challenges -->
-        <div class="mt-4 flex justify-between items-end mb-2">
-           <h4 class="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
-             <Trophy size={16} class="text-amber-500" /> RETOS SEMANALES
-           </h4>
-        </div>
-        
-        <div class="space-y-3">
-          {#each weeklyChallengesDb as challenge}
-            <div class="bg-[#0a0a0b] border border-white/5 p-3 sm:p-4 relative group hover:border-violet-500/30 transition-all duration-300">
-              <div class="flex justify-between items-start mb-3 gap-2">
-                <div class="flex-1">
-                  <h5 class="text-[10px] font-black text-zinc-300 uppercase tracking-widest leading-tight group-hover:text-white transition-colors">{challenge.title}</h5>
-                  <p class="text-[9px] text-zinc-600 mt-1 font-medium">{challenge.description}</p>
-                </div>
-                <div class="flex flex-col items-end gap-1">
-                  <div class="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20">
-                    <span class="text-[9px] font-black text-amber-500">+{challenge.rewardXp}</span>
-                    <Lightning size={10} weight="fill" class="text-amber-500" />
-                  </div>
-                  {#if challenge.claimed}
-                    <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-1">
-                      <Check size={10} weight="bold" /> RECLAMADO
-                    </span>
-                  {:else if challenge.completed}
-                    <button 
-                      onclick={() => handleClaimChallenge(challenge, 'weekly')}
-                      class="px-2 py-1 bg-violet-500 text-white text-[8px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-1"
-                    >
-                      <Check size={10} weight="bold" /> RECLAMAR
-                    </button>
-                  {/if}
-                </div>
-              </div>
+    <!-- Challenges Section -->
+    <div class="space-y-4">
+      <div class="flex justify-between items-end px-1">
+        <h4 class="text-[11px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+          <Target size={20} class="text-emerald-500" /> Objetivos
+        </h4>
+        <span class="text-[9px] font-mono text-zinc-700 tracking-widest uppercase">{dailyTimeLeft} RESTANTE</span>
+      </div>
 
-              <!-- Progress Bar -->
-              <div class="relative h-1 bg-zinc-900 overflow-hidden">
-                <div 
-                  class="absolute h-full transition-all duration-1000 {challenge.claimed ? 'bg-zinc-800' : (challenge.completed ? 'bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]' : 'bg-zinc-600 group-hover:bg-zinc-400')}" 
-                  style="width: {Math.min((challenge.progress / challenge.target) * 100, 100)}%"
-                ></div>
-              </div>
-              <div class="flex justify-between mt-2">
-                 <span class="text-[8px] font-mono text-zinc-700 tracking-widest uppercase italic">{challenge.progress} / {challenge.target}</span>
-              </div>
-            </div>
-          {/each}
-        </div>
+      <div class="space-y-3">
+        {#each dailyChallengesDb as challenge}
+          <div class="bg-zinc-900 border border-white/5 p-5 group hover:border-emerald-500/30 transition-all relative overflow-hidden">
+             {#if challenge.claimed}
+               <div class="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center z-10">
+                 <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-2">
+                   <Check size={14} weight="bold" /> COMPLETADO
+                 </span>
+               </div>
+             {/if}
+
+             <div class="flex justify-between items-start mb-4 relative z-10">
+               <div class="flex-1">
+                 <h5 class="text-[11px] font-black text-zinc-300 uppercase tracking-widest group-hover:text-white transition-colors leading-tight">{challenge.title}</h5>
+                 <p class="text-[9px] text-zinc-600 mt-1 font-bold">{challenge.description}</p>
+               </div>
+               <div class="text-[11px] font-black text-emerald-500">+{challenge.rewardXp} XP</div>
+             </div>
+
+             <div class="h-1 bg-black w-full overflow-hidden relative rounded-full">
+               <div class="absolute inset-y-0 left-0 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000" style="width: {(challenge.progress / challenge.target) * 100}%"></div>
+             </div>
+             
+             <div class="flex justify-between mt-3 relative z-10">
+               <span class="text-[9px] font-mono text-zinc-700 font-bold tracking-widest">{challenge.progress} / {challenge.target}</span>
+               {#if challenge.completed && !challenge.claimed}
+                 <button 
+                  onclick={() => handleClaimChallenge(challenge, 'daily')}
+                  class="text-[9px] font-black text-primary-500 uppercase tracking-widest hover:text-white transition-colors"
+                 >
+                   RECLAMAR RECOMPENSA
+                 </button>
+               {/if}
+             </div>
+          </div>
+        {/each}
       </div>
-    {:else}
-      <!-- Daily Streak (Visible on other tabs) -->
-      <div class="bg-zinc-950/50 border border-white/5 p-6 shadow-lg">
-         <h4 class="text-[10px] font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">
-            <Flame size={16} weight="fill" class="text-orange-500" /> Racha Diaria
-         </h4>
-         <div class="flex gap-2">
-            {#each Array(7) as _, i}
-              <div class="flex-1 aspect-square bg-zinc-900 border border-white/5 flex items-center justify-center {i < 3 ? 'bg-orange-500/20 border-orange-500/30 text-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.1)]' : 'text-zinc-800'}">
-                 <span class="text-[10px] font-black">{i + 1}</span>
-              </div>
-            {/each}
-         </div>
-      </div>
-    {/if}
+    </div>
   </div>
-  </div>
-</div>
 </div>
 </div>
 
@@ -1024,146 +1193,46 @@
        <div class="absolute -inset-8 border-4 border-white/30 animate-ping opacity-50"></div>
      </div>
   </div>
+  </div>
 {/if}
 
 <style>
-  .electric-pulse {
-    animation: electricPulse 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
 
-  @keyframes electricPulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); filter: brightness(1); }
-    30% { transform: scale(1.02); box-shadow: 0 0 40px 20px rgba(139, 92, 246, 0.3); filter: brightness(1.5); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); filter: brightness(1); }
-  }
-
-  /* Premium Micro-interactions */
-  .shimmer-premium {
-    position: relative;
-    overflow: hidden;
-  }
-  .shimmer-premium::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-      45deg,
-      transparent 0%,
-      transparent 40%,
-      rgba(255, 255, 255, 0.1) 50%,
-      transparent 60%,
-      transparent 100%
-    );
-    animation: shimmer 3s infinite linear;
-  }
-
-  @keyframes shimmer {
-    0% { transform: translate(-30%, -30%) rotate(0deg); }
-    100% { transform: translate(30%, 30%) rotate(0deg); }
-  }
-
-  .float-animation {
-    animation: floating 3s ease-in-out infinite;
-  }
-
-  @keyframes floating {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-10px) rotate(2deg); }
-  }
-
-  .neon-trace {
-    position: relative;
-  }
-  .neon-trace::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
-    background-size: 200% 100%;
-    animation: trace 2s linear infinite;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .neon-trace:hover::before {
-    opacity: 1;
-  }
-
-  @keyframes trace {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-
-  .xp-wave {
-    position: relative;
-    overflow: hidden;
-  }
-  .xp-wave::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transform: translateX(-100%);
-    animation: wave 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @keyframes wave {
-    100% { transform: translateX(100%); }
-  }
-
-  .roulette-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 4px;
-    background: #8b5cf6;
-    box-shadow: 0 0 20px #8b5cf6;
-    z-index: 50;
-    transform: translateX(-50%);
-  }
-  
   :global(body) {
     background-color: #050505;
     background-image: 
-      radial-gradient(at 50% 0%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.02) 0px, transparent 50%);
+      radial-gradient(at 50% 0%, rgba(16, 185, 129, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.02) 0px, transparent 50%);
+  }
+
+  /* Scanline effect for shop items */
+  .bg-scanlines {
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.2) 50%
+    );
+    background-size: 100% 4px;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
   }
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  /* Scanline effect for shop items */
-  .scanline {
-    position: relative;
-  }
-  .scanline::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      rgba(18, 16, 16, 0) 50%,
-      rgba(0, 0, 0, 0.1) 50%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(255, 0, 0, 0.02),
-      rgba(0, 255, 0, 0.01),
-      rgba(0, 0, 255, 0.02)
-    );
-    background-size: 100% 2px, 3px 100%;
-    pointer-events: none;
-    opacity: 0.3;
+  @keyframes electricPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); filter: brightness(1); }
+    30% { transform: scale(1.02); box-shadow: 0 0 40px 20px rgba(16, 185, 129, 0.3); filter: brightness(1.5); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); filter: brightness(1); }
   }
 
-  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+  .float-animation {
+    animation: floating 4s ease-in-out infinite;
+  }
+
+  @keyframes floating {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(1deg); }
+  }
 </style>

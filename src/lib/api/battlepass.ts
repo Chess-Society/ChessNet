@@ -189,14 +189,15 @@ export const battlepassApi = {
   /**
    * Equips a cosmetic item from the collection.
    */
-  async equipItem(userId: string, type: 'color' | 'frame' | 'font', value: string): Promise<void> {
+  async equipItem(userId: string, type: 'color' | 'frame' | 'font' | 'badge', value: string): Promise<void> {
     if (!userId) throw new Error("No user ID provided");
     const userRef = doc(db, 'users', userId);
     
     const fieldMap = {
       color: 'economy.activeColor',
       frame: 'economy.activeFrame',
-      font: 'economy.activeFont'
+      font: 'economy.activeFont',
+      badge: 'economy.activeBadge'
     };
 
     await updateDoc(userRef, {

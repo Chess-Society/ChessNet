@@ -298,6 +298,15 @@
   }
 
   const socPoints = "20,110 50,90 80,100 110,70 140,85 170,40 200,60 230,30 280,45";
+
+  const statsRibbon = $derived([
+    { label: 'Hitos Activos', val: markets.filter(m => m.status === 'OPEN').length, icon: Target, color: 'text-amber-400', bg: 'bg-amber-400/5', border: 'border-amber-400/20' },
+    { label: 'Volumen Global', val: markets.reduce((acc, m) => acc + (m.totalPool || 0), 0), icon: Coins, color: 'text-primary-400', bg: 'bg-primary-400/5', border: 'border-primary-400/20' },
+    { label: 'Ratio Participación', val: '84.2%', icon: Layout, color: 'text-blue-400', bg: 'bg-blue-400/5', border: 'border-blue-400/20' },
+    { label: 'Nets en Circulación', val: '12.8k', icon: HandCoins, color: 'text-emerald-400', bg: 'bg-emerald-400/5', border: 'border-emerald-400/20' }
+  ]);
+
+  const nodeId = Date.now().toString(16).toUpperCase();
 </script>
 
 <div class="space-y-8 selection:bg-primary-500/30" in:fade>
@@ -322,38 +331,39 @@
             <span class="text-[8px] font-black text-zinc-600 uppercase tracking-[0.1em] font-mono">v1.2.0-PRO</span>
         </div>
         <div class="text-[9px] font-black text-zinc-700 uppercase tracking-[0.1em] font-mono">
-          NODE_ID: {new Date().getTime().toString(16).toUpperCase()}
+          NODE_ID: {nodeId}
         </div>
     </div>
   </div>
 
+  <div class="space-y-12">
   <!-- Stats Ribbon -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    {#each [
-      { label: 'Hitos Activos', val: markets.filter(m => m.status === 'OPEN').length, icon: Target, color: 'text-amber-400', bg: 'bg-amber-400/5', border: 'border-amber-400/20' },
-      { label: 'Volumen Global', val: markets.reduce((acc, m) => acc + (m.totalPool || 0), 0), icon: Coins, color: 'text-primary-400', bg: 'bg-primary-400/5', border: 'border-primary-400/20' },
-      { label: 'Ratio Participación', val: '84.2%', icon: Layout, color: 'text-blue-400', bg: 'bg-blue-400/5', border: 'border-blue-400/20' },
-      { label: 'Nets en Circulación', val: '12.8k', icon: HandCoins, color: 'text-emerald-400', bg: 'bg-emerald-400/5', border: 'border-emerald-400/20' }
-    ] as s, i}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 border border-white/10 overflow-hidden shadow-2xl">
+    {#each statsRibbon as s, i}
       <div 
-        class="bento-card group p-5 flex items-center justify-between {s.bg} {s.border} hover:bg-zinc-900/40 transition-all duration-500"
+        class="relative bg-[#02040a] p-8 group overflow-hidden"
         in:fly={{ y: 20, delay: i * 100 }}
       >
-        <div class="relative z-10">
-          <p class="text-[9px] font-black text-zinc-500 uppercase tracking-[0.15em] mb-1.5 opacity-60 group-hover:opacity-100 transition-opacity">{s.label}</p>
-          <div class="flex items-baseline gap-1.5">
-            <p class="text-3xl font-black text-white tracking-tighter font-outfit uppercase">{s.val}</p>
-            {#if s.label.includes('Volumen')}
-              <span class="text-[8px] font-black text-zinc-600 uppercase tracking-tighter">NETS</span>
-            {/if}
+        <div class="relative z-10 flex items-center justify-between">
+          <div>
+            <p class="text-[8px] font-mono font-black text-slate-500 uppercase tracking-[0.3em] mb-2">{s.label}</p>
+            <h4 class="text-3xl font-black font-display italic text-white leading-none">
+              {typeof s.val === 'number' ? s.val.toLocaleString() : s.val}
+            </h4>
+          </div>
+          
+          <div class="relative">
+            <div class="absolute inset-0 {(s.color || '').replace('text-', 'bg-')} blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
+            <div class="w-10 h-10 flex items-center justify-center bg-white/[0.03] border border-white/10 group-hover:border-white/20 transition-all">
+              {#if s.icon}
+                <s.icon class="w-5 h-5 {s.color || ''} group-hover:scale-110 transition-transform duration-500" weight="duotone" />
+              {/if}
+            </div>
           </div>
         </div>
         
-        <div class="relative shrink-0">
-          <div class="absolute inset-0 {s.color.replace('text-', 'bg-')} blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
-          <div class="w-10 h-10 flex items-center justify-center bg-white/[0.03] border border-white/10 group-hover:border-white/20 transition-all">
-            <s.icon class="w-5 h-5 {s.color} group-hover:scale-110 transition-transform duration-500" weight="duotone" />
-          </div>
+        <div class="absolute bottom-0 left-0 w-full h-0.5 bg-white/[0.02]">
+          <div class="h-full {s.bg} w-0 group-hover:w-full transition-all duration-1000"></div>
         </div>
       </div>
     {/each}
@@ -739,6 +749,7 @@
         </div>
       </section>
     </div>
+  </div>
   </div>
 </div>
 

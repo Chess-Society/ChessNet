@@ -108,6 +108,15 @@ export const handle: Handle = async ({ event, resolve }) => {
                     });
                 }
             }
+            
+            // Si el sistema está en mantenimiento, nos aseguramos de que la respuesta no se cachee
+            if (isMaintenance) {
+                const response = await resolve(event);
+                response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+                response.headers.set('Pragma', 'no-cache');
+                response.headers.set('Expires', '0');
+                return response;
+            }
         } catch (error) {
             console.error('Error checking maintenance mode:', error);
             // Si falla la base de datos (ej: sin inicializar), permitimos la carga de la web
