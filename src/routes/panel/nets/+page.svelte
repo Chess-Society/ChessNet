@@ -500,7 +500,6 @@
     <div class="xl:col-span-3">
     {#if currentTab === 'crates'}
       <div in:fade={{ duration: 400 }}>
-       <div in:fade={{ duration: 400 }}>
         <!-- Consolidated Header Card: User Stats & Active Quests -->
         <div class="mb-8 bg-zinc-900/40 backdrop-blur-md border border-white/5 relative overflow-hidden group">
           <!-- Animated Background Elements -->
@@ -592,85 +591,83 @@
         </div>
 
         <!-- Protocolo de Suministros (Crates Section) -->
-        {#if currentTab === 'crates'}
-          <div in:fade={{ duration: 400 }} class="space-y-8">
-            <div class="p-1 w-full bg-zinc-900 border border-white/5 relative overflow-hidden group">
-               <!-- Header info -->
-               <div class="flex items-center justify-between p-6 border-b border-white/5 bg-zinc-950/50">
-                  <div class="flex items-center gap-4">
-                     <div class="w-12 h-12 bg-violet-500/10 flex items-center justify-center text-violet-500 border border-violet-500/20 perspective-1000">
-                        <Package size={28} weight="duotone" class="float-animation" />
-                     </div>
-                     <div>
-                        <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter leading-none">Módulos de Suministros</h2>
-                        <p class="text-[9px] text-zinc-600 font-bold tracking-[0.2em] uppercase mt-1">Nivel de Acceso: {accountLevel >= 10 ? 'ALTO' : 'ESTÁNDAR'}</p>
-                     </div>
-                  </div>
-                  <div class="hidden sm:flex items-center gap-8 text-right">
-                     <div>
-                        <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Cajas Abiertas</div>
-                        <div class="text-xl font-black text-white italic">12</div>
-                     </div>
-                     <div class="w-px h-8 bg-white/5"></div>
-                     <div>
-                        <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Items Únicos</div>
-                        <div class="text-xl font-black text-emerald-500 italic">42</div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-6">
-           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {#each [
-                { id: 'daily',   label: 'Caja Diaria',   price: 0,    rarity: 'Infrecuente', icon: Package,  color: 'text-emerald-500', glow: 'emerald', desc: 'Suministro estándar para usuarios activos.' },
-                { id: 'weekly',  label: 'Caja Semanal',  price: 500,  rarity: 'Épico',       icon: Package,  color: 'text-blue-500',    glow: 'blue',    desc: 'Mayor probabilidad de componentes raros.' },
-                { id: 'monthly', label: 'Caja Maestra',  price: 2500, rarity: 'Mítico',      icon: Package,  color: 'text-amber-500',   glow: 'amber',   desc: 'Contiene el hardware más premium del nexo.' }
-              ] as crate}
-                <div class="bg-black/60 border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all flex flex-col">
-                   <!-- Rarity Header -->
-                   <div class="px-4 py-2 bg-white/5 flex justify-between items-center">
-                      <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{crate.rarity}</span>
-                      <div class="flex gap-1">
-                         <div class="w-1 h-1 rounded-full bg-{crate.glow}-500"></div>
-                         <div class="w-1 h-1 rounded-full bg-{crate.glow}-500/30"></div>
-                      </div>
+        <div class="space-y-8">
+          <div class="p-1 w-full bg-zinc-900 border border-white/5 relative overflow-hidden group">
+             <!-- Header info -->
+             <div class="flex items-center justify-between p-6 border-b border-white/5 bg-zinc-950/50">
+                <div class="flex items-center gap-4">
+                   <div class="w-12 h-12 bg-violet-500/10 flex items-center justify-center text-violet-500 border border-violet-500/20 perspective-1000">
+                      <Package size={28} weight="duotone" class="float-animation" />
                    </div>
-
-                   <div class="p-8 flex flex-col items-center flex-1">
-                      <div class="w-32 h-32 mb-8 relative flex items-center justify-center">
-                         <div class="absolute inset-0 bg-{crate.glow}-500/5 blur-3xl group-hover:blur-[60px] transition-all duration-1000"></div>
-                         <crate.icon size={80} weight="duotone" class="{crate.color} relative z-10 group-hover:scale-110 transition-transform duration-700 float-animation" />
-                      </div>
-                      
-                      <div class="text-center mb-6">
-                         <h3 class="text-xl font-black text-white italic uppercase tracking-tighter mb-2">{crate.label}</h3>
-                         <p class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider leading-relaxed px-4">{crate.desc}</p>
-                      </div>
-
-                      <div class="w-full pt-6 border-t border-white/5 mt-auto">
-                        <button
-                          onclick={() => openCrate(crate)}
-                          disabled={netsBalance < crate.price}
-                          class="w-full py-4 bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-{crate.glow}-500 hover:text-white transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2 group/btn"
-                        >
-                          {#if crate.price === 0}
-                            ABRIR GRATIS
-                          {:else}
-                            <div class="flex items-center justify-center gap-2">
-                              <Coins size={14} weight="fill" />
-                              {crate.price.toLocaleString()} NETS
-                            </div>
-                          {/if}
-                          <ArrowRight size={14} class="group-hover/btn:translate-x-1 transition-transform" />
-                        </button>
-                      </div>
+                   <div>
+                      <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter leading-none">Módulos de Suministros</h2>
+                      <p class="text-[9px] text-zinc-600 font-bold tracking-[0.2em] uppercase mt-1">Nivel de Acceso: {accountLevel >= 10 ? 'ALTO' : 'ESTÁNDAR'}</p>
                    </div>
                 </div>
-              {/each}
-           </div>
+                <div class="hidden sm:flex items-center gap-8 text-right">
+                   <div>
+                      <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Cajas Abiertas</div>
+                      <div class="text-xl font-black text-white italic">12</div>
+                   </div>
+                   <div class="w-px h-8 bg-white/5"></div>
+                   <div>
+                      <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Items Únicos</div>
+                      <div class="text-xl font-black text-emerald-500 italic">42</div>
+                   </div>
+                </div>
+             </div>
+
+             <div class="p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                   {#each [
+                     { id: 'daily',   label: 'Caja Diaria',   price: 0,    rarity: 'Infrecuente', icon: Package,  color: 'text-emerald-500', glow: 'emerald', desc: 'Suministro estándar para usuarios activos.' },
+                     { id: 'weekly',  label: 'Caja Semanal',  price: 500,  rarity: 'Épico',       icon: Package,  color: 'text-blue-500',    glow: 'blue',    desc: 'Mayor probabilidad de componentes raros.' },
+                     { id: 'monthly', label: 'Caja Maestra',  price: 2500, rarity: 'Mítico',      icon: Package,  color: 'text-amber-500',   glow: 'amber',   desc: 'Contiene el hardware más premium del nexo.' }
+                   ] as crate}
+                     <div class="bg-black/60 border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all flex flex-col">
+                        <!-- Rarity Header -->
+                        <div class="px-4 py-2 bg-white/5 flex justify-between items-center">
+                           <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{crate.rarity}</span>
+                           <div class="flex gap-1">
+                              <div class="w-1 h-1 rounded-full bg-{crate.glow}-500"></div>
+                              <div class="w-1 h-1 rounded-full bg-{crate.glow}-500/30"></div>
+                           </div>
+                        </div>
+
+                        <div class="p-8 flex flex-col items-center flex-1">
+                           <div class="w-32 h-32 mb-8 relative flex items-center justify-center">
+                              <div class="absolute inset-0 bg-{crate.glow}-500/5 blur-3xl group-hover:blur-[60px] transition-all duration-1000"></div>
+                              <crate.icon size={80} weight="duotone" class="{crate.color} relative z-10 group-hover:scale-110 transition-transform duration-700 float-animation" />
+                           </div>
+                           
+                           <div class="text-center mb-6">
+                              <h3 class="text-xl font-black text-white italic uppercase tracking-tighter mb-2">{crate.label}</h3>
+                              <p class="text-[10px] text-zinc-500 font-medium uppercase tracking-wider leading-relaxed px-4">{crate.desc}</p>
+                           </div>
+
+                           <div class="w-full pt-6 border-t border-white/5 mt-auto">
+                             <button
+                               onclick={() => openCrate(crate)}
+                               disabled={netsBalance < crate.price}
+                               class="w-full py-4 bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-{crate.glow}-500 hover:text-white transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2 group/btn"
+                             >
+                               {#if crate.price === 0}
+                                 ABRIR GRATIS
+                               {:else}
+                                 <div class="flex items-center justify-center gap-2">
+                                   <Coins size={14} weight="fill" />
+                                   {crate.price.toLocaleString()} NETS
+                                 </div>
+                               {/if}
+                               <ArrowRight size={14} class="group-hover/btn:translate-x-1 transition-transform" />
+                             </button>
+                           </div>
+                        </div>
+                     </div>
+                   {/each}
+                </div>
+             </div>
+          </div>
         </div>
       </div>
 
