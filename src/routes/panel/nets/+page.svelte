@@ -81,7 +81,7 @@
     }
   }) as any;
 
-  const { form: eqForm, enhance: enhanceEQ } = superForm(data.equipItemSchema as any, {
+  const { form: eqForm, enhance: enhanceEQ } = superForm(data.equipItemForm as any, {
     validators: zod(equipItemSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
@@ -92,8 +92,8 @@
 
   const { form: crateForm, enhance: enhanceCrate } = superForm(data.openCrateForm as any, {
     validators: zod(openCrateSchema as any),
-    onUpdated({ form, result }) {
-      if (form.valid && result.type === 'success') {
+    onResult({ result }) {
+      if (result.type === 'success') {
         const winner = (result.data as any)?.winner;
         if (winner) {
           crateResult = winner;
@@ -355,6 +355,7 @@
   let showCrateResult = $state(false);
   let crateResult = $state<any>(null);
   let crateType = $state('');
+  let rouletteItems = $state<any[]>([]);
   
   const possibleRewards = basePossibleRewards.map(r => ({
     ...r,
@@ -400,6 +401,16 @@
     isOpeningCrate = true;
     showCrateResult = false;
     crateType = type;
+
+    // Populate roulette items based on rarity
+    const pool = possibleRewards.filter(r => {
+      if (type === 'legendary') return ['Épico', 'Legendario', 'Mítico'].includes(r.rarity);
+      if (type === 'premium') return ['Raro', 'Épico'].includes(r.rarity);
+      return ['Común', 'Infrecuente', 'Raro'].includes(r.rarity);
+    });
+
+    // Generate a sequence for the animation (e.g., 50 items)
+    rouletteItems = Array.from({ length: 60 }, () => pool[Math.floor(Math.random() * pool.length)]);
     
     // Start animation
     rouletteOffset = 0;
@@ -648,9 +659,9 @@
              <div class="p-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                    {#each [
-                     { id: 'daily',   label: 'Caja Diaria',   price: 0,    rarity: 'Infrecuente', icon: Package,  color: 'text-emerald-500', glow: 'emerald', desc: 'Suministro estándar para usuarios activos.' },
-                     { id: 'weekly',  label: 'Caja Semanal',  price: 500,  rarity: 'Épico',       icon: Package,  color: 'text-blue-500',    glow: 'blue',    desc: 'Mayor probabilidad de componentes raros.' },
-                     { id: 'monthly', label: 'Caja Maestra',  price: 2500, rarity: 'Mítico',      icon: Package,  color: 'text-amber-500',   glow: 'amber',   desc: 'Contiene el hardware más premium del nexo.' }
+                     { id: 'basic',   label: 'Caja Diaria',   price: 0,    rarity: 'Infrecuente', icon: Package,  color: 'text-emerald-500', glow: 'emerald', desc: 'Suministro estándar para usuarios activos.' },
+                     { id: 'premium',  label: 'Caja Semanal',  price: 500,  rarity: 'Épico',       icon: Package,  color: 'text-blue-500',    glow: 'blue',    desc: 'Mayor probabilidad de componentes raros.' },
+                     { id: 'legendary', label: 'Caja Maestra',  price: 2500, rarity: 'Mítico',      icon: Package,  color: 'text-amber-500',   glow: 'amber',   desc: 'Contiene el hardware más premium del nexo.' }
                    ] as crate}
                      <div class="bg-black/60 border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all flex flex-col">
                         <!-- Rarity Header -->
@@ -675,7 +686,7 @@
 
                            <div class="w-full pt-6 border-t border-white/5 mt-auto">
                              <button
-                               onclick={() => openCrate(crate)}
+                               onclick={() => openCrate(crate.id as any)}
                                disabled={netsBalance < crate.price}
                                class="w-full py-4 bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-{crate.glow}-500 hover:text-white transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2 group/btn"
                              >
@@ -761,7 +772,7 @@
                   </div>
                 {:else if selectedTier.level <= season.currentTier}
                    <button 
-                    onclick={() => handleClaimTier(selectedTier)}
+                    onclick={() => handleClaimTier(selectedTier.level)}
                     class="px-12 py-5 bg-emerald-500 text-black text-[12px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-[0_0_30px_rgba(16,185,129,0.4)] relative overflow-hidden group/claim"
                    >
                      <span class="relative z-10">RECLAMAR RECOMPENSA</span>

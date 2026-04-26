@@ -36,8 +36,7 @@
 
   const { form, errors, enhance, delayed, isTainted } = superForm(data.form as any, {
     validators: zodClient(skillSchema as any),
-    dataType: 'json',
-    action: '?/update'
+    dataType: 'json'
   });
 
   const categories = $derived($appStore.categories.length > 0 

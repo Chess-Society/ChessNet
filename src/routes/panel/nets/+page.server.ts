@@ -210,9 +210,9 @@ export const actions: Actions = {
 
         // Simple server-side RNG
         const itemsPool = possibleRewards.filter(r => {
-          if (crateType === 'legendary') return ['Epic', 'Legendary', 'Mythic'].includes(r.rarity);
-          if (crateType === 'premium') return ['Rare', 'Epic'].includes(r.rarity);
-          return ['Common', 'Uncommon', 'Rare'].includes(r.rarity);
+          if (crateType === 'legendary') return ['Épico', 'Legendario', 'Mítico'].includes(r.rarity);
+          if (crateType === 'premium') return ['Raro', 'Épico'].includes(r.rarity);
+          return ['Común', 'Infrecuente', 'Raro'].includes(r.rarity);
         });
 
         winner = itemsPool[Math.floor(Math.random() * itemsPool.length)];
