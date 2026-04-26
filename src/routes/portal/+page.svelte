@@ -24,6 +24,19 @@
     });
   };
 
+  const commonEmojis = ['👍', '❤️', '👏', '🔥'];
+
+  const handleReaction = async (annId: string, emoji: string) => {
+    try {
+      const { communicationApi } = await import('$lib/api/communication');
+      const userId = data.user.email;
+      await communicationApi.reactToAnnouncement(annId, emoji, userId);
+      const { invalidateAll } = await import('$app/navigation');
+      invalidateAll();
+    } catch (err) {
+      console.error('Error reacting:', err);
+    }
+  };
 </script>
 
 <svelte:head>
@@ -146,9 +159,27 @@
               <p class="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
                 {ann.content}
               </p>
-              <button class="text-[10px] font-black text-blue-400 uppercase tracking-widest hover:underline pt-2 flex items-center gap-1">
+              <div class="flex flex-wrap items-center gap-1.5 pt-2">
+                {#each commonEmojis as emoji}
+                  {@const users = ann.reactions?.[emoji] || []}
+                  {@const hasReacted = users.includes(data.user.email)}
+                  <button 
+                    onclick={(e) => { e.preventDefault(); handleReaction(ann.id, emoji); }}
+                    class="px-2 py-1 rounded-lg border transition-all flex items-center gap-1
+                      {hasReacted 
+                        ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' 
+                        : 'bg-white/5 border-white/5 text-zinc-500 hover:border-white/20 hover:text-white'}"
+                  >
+                    <span class="text-xs">{emoji}</span>
+                    {#if users.length > 0}
+                      <span class="text-[8px] font-black">{users.length}</span>
+                    {/if}
+                  </button>
+                {/each}
+              </div>
+              <a href="/portal/announcements" class="text-[10px] font-black text-blue-400 uppercase tracking-widest hover:underline pt-2 flex items-center gap-1">
                 Leer más <CaretRight size={12} />
-              </button>
+              </a>
             </div>
           </div>
         {:else}

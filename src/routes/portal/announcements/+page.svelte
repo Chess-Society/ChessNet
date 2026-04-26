@@ -13,6 +13,21 @@
       year: 'numeric'
     });
   };
+
+  const commonEmojis = ['👍', '❤️', '👏', '🔥'];
+
+  const handleReaction = async (annId: string, emoji: string) => {
+    try {
+      const { communicationApi } = await import('$lib/api/communication');
+      const userId = data.user.email;
+      await communicationApi.reactToAnnouncement(annId, emoji, userId);
+      // We should ideally use a store or re-fetch data, but for now we'll do a simple local update or invalidation
+      const { invalidateAll } = await import('$app/navigation');
+      invalidateAll();
+    } catch (err) {
+      console.error('Error reacting:', err);
+    }
+  };
 </script>
 
 <svelte:head>
@@ -60,8 +75,34 @@
             </div>
           </div>
 
+          <div class="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-white/5">
+            <div class="flex flex-wrap items-center gap-2">
+              {#each commonEmojis as emoji}
+                {@const users = ann.reactions?.[emoji] || []}
+                {@const hasReacted = users.includes(data.user.email)}
+                <button 
+                  onclick={() => handleReaction(ann.id, emoji)}
+                  class="px-3 py-1.5 rounded-xl border transition-all flex items-center gap-2
+                    {hasReacted 
+                      ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' 
+                      : 'bg-white/5 border-white/5 text-zinc-500 hover:border-white/20 hover:text-white'}"
+                >
+                  <span class="text-sm">{emoji}</span>
+                  {#if users.length > 0}
+                    <span class="text-[10px] font-black">{users.length}</span>
+                  {/if}
+                </button>
+              {/each}
+            </div>
+
+            <button class="flex items-center gap-2 text-xs font-black text-blue-400 uppercase tracking-widest hover:text-blue-300 transition-colors">
+              Ver detalle completo
+              <CaretRight size={14} />
+            </button>
+          </div>
+
           {#if ann.author}
-            <div class="pt-6 border-t border-white/5 flex items-center gap-3">
+            <div class="pt-4 flex items-center gap-3">
               <div class="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center">
                 <Info size={14} weight="duotone" class="text-zinc-500" />
               </div>

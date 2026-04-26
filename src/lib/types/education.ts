@@ -100,6 +100,7 @@ export interface Announcement {
   expiresAt?: string;
   createdBy: string;
   createdAt: string;
+  reactions?: Record<string, string[]>;
   updatedAt: string;
 }
 

@@ -20,8 +20,8 @@ export async function getUserRole(email: string): Promise<UserRole> {
         return 'teacher';
     }
 
-    // 3. Check if Parent
-    // Look for students that have this email as parentEmail
+    // 3. Check if Parent (Free Access)
+    // Parent access is free as it is for informational purposes only.
     const studentsAsParent = await adminDb.collection('students')
         .where('parentEmail', '==', cleanEmail)
         .limit(1)

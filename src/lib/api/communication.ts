@@ -209,4 +209,32 @@ export const communicationApi = {
     const docSnap = await getDoc(docRef);
     return toData<any>(docSnap);
   },
+
+  /**
+   * Añade o quita una reacción a un anuncio.
+   */
+  async reactToAnnouncement(announcementId: string, emoji: string, userId: string): Promise<void> {
+    const docRef = doc(db, "announcements", announcementId);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) throw new Error("Anuncio no encontrado");
+    
+    const data = docSnap.data();
+    const reactions = data.reactions || {};
+    const users = reactions[emoji] || [];
+    
+    let newUsers;
+    if (users.includes(userId)) {
+      newUsers = users.filter((id: string) => id !== userId);
+    } else {
+      newUsers = [...users, userId];
+    }
+    
+    const newReactions = { ...reactions, [emoji]: newUsers };
+    
+    await updateDoc(docRef, { 
+      reactions: newReactions,
+      updatedAt: new Date().toISOString()
+    });
+  },
 };
