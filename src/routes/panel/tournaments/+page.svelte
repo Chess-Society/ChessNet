@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
   import { 
     Trophy, 
     Plus, 
@@ -56,6 +57,10 @@
     tournaments.filter(t => (t.name || '').toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  let tournamentToDelete = $state<{id: string, name: string} | null>(null);
+  let deleteForm = $state<HTMLFormElement | null>(null);
+  let importForm = $state<HTMLFormElement | null>(null);
+
   const deleteTournament = async (id: string, name: string) => {
     const confirmed = await uiStore.confirm({
       title: $t('tournaments.delete_title'),
@@ -64,13 +69,10 @@
       confirmText: $t('common.delete')
     });
 
-    if (confirmed) {
-      try {
-        await appStore.removeLocalTournament(id);
-        showToast.success($t('common.delete_success'));
-      } catch (error) {
-        showError(error);
-      }
+    if (confirmed && deleteForm) {
+      tournamentToDelete = { id, name };
+      await tick();
+      deleteForm.requestSubmit();
     }
   };
 
@@ -115,19 +117,33 @@
       confirmText: $t('common.confirm')
     });
 
-    if (confirmed) {
+    if (confirmed && importForm) {
       isImporting = true;
-      try {
-        await appStore.importTournamentTemplates(TOURNAMENT_TEMPLATES);
-        showToast.success($t('tournaments.import_success'));
-      } catch (error) {
-        showError(error);
-      } finally {
-        isImporting = false;
-      }
+      await tick();
+      importForm.requestSubmit();
     }
   };
 </script>
+
+<form method="POST" action="?/delete" use:enhance={() => {
+  return async ({ result }) => {
+    if (result.type === 'success') {
+      showToast.success($t('common.delete_success'));
+    }
+    tournamentToDelete = null;
+  };
+}} bind:this={deleteForm} class="hidden">
+  <input type="hidden" name="id" value={tournamentToDelete?.id} />
+</form>
+
+<form method="POST" action="?/importTemplates" use:enhance={() => {
+  return async ({ result }) => {
+    isImporting = false;
+    if (result.type === 'success') {
+      showToast.success($t('tournaments.import_success'));
+    }
+  };
+}} bind:this={importForm} class="hidden"></form>
 
 <svelte:head>
   <title>{$t('tournaments.list_title')} - ChessNet</title>

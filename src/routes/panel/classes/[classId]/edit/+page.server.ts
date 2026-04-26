@@ -1,50 +1,18 @@
-import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { classSchema } from '$lib/schemas/class';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  
   if (!locals.user) {
-    throw error(401, 'User not authenticated');
+    throw redirect(302, '/login');
   }
 
   const uid = locals.user.uid;
   const classId = params.classId;
-
-  const suggestedSchedules = {
-    beginner: [
-      'Lunes y Miércoles 10:00-11:00',
-      'Martes y Jueves 16:00-17:00',
-      'Viernes 17:00-18:00',
-      'Sábados 10:00-11:30'
-    ],
-    intermediate: [
-      'Lunes y Miércoles 17:00-18:30',
-      'Martes y Jueves 17:00-18:30',
-      'Viernes 18:00-19:30',
-      'Sábados 11:30-13:00'
-    ],
-    advanced: [
-      'Lunes y Miércoles 18:30-20:00',
-      'Martes y Jueves 18:30-20:00',
-      'Viernes 19:30-21:00',
-      'Sábados 09:00-11:00'
-    ],
-    mixed: [
-      'Miércoles 20:00-21:30',
-      'Viernes 20:00-21:30',
-      'Sábados 16:00-17:30',
-      'Domingos 10:00-11:30'
-    ]
-  };
-
-  const suggestedCapacities = {
-    beginner: { min: 8, max: 15, recommended: 12 },
-    intermediate: { min: 6, max: 12, recommended: 10 },
-    advanced: { min: 4, max: 10, recommended: 8 },
-    mixed: { min: 8, max: 20, recommended: 15 }
-  };
 
   try {
     const [classSnap, schoolsSnap] = await Promise.all([
@@ -61,17 +29,54 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       throw error(403, 'No tienes permiso para editar esta clase');
     }
 
+    const schools = schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+    
+    // Support legacy field names in form initialization
+    const form = await superValidate({
+      ...classData,
+      maxStudents: classData.maxStudents || classData.max_students || 15,
+      schoolId: classData.schoolId || classData.school_id || ''
+    }, zod(classSchema as any)) as any;
+
     return {
       user: locals.user,
       class: serializeRecord(classData),
-      schools: serializeRecord(schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }))),
-      suggestedSchedules,
-      suggestedCapacities
+      schools: serializeRecord(schools),
+      form
     };
 
   } catch (err: any) {
     console.error('❌ Error in edit class page load:', err);
     if (err.status) throw err;
     throw error(500, 'Error al cargar los datos de la clase');
+  }
+};
+
+export const actions: Actions = {
+  update: async (event) => {
+    const { locals, params } = event;
+    if (!locals.user) return fail(401);
+
+    const form = await superValidate(event, zod(classSchema as any)) as any;
+    if (!form.valid) return fail(400, { form });
+
+    try {
+      const classRef = adminDb.collection('classes').doc(params.classId);
+      const classSnap = await classRef.get();
+
+      if (!classSnap.exists) return fail(404, { form, error: 'Not found' });
+      if (classSnap.data()?.owner_id !== locals.user.uid) return fail(403, { form, error: 'Unauthorized' });
+
+      await classRef.update({
+        ...form.data,
+        updated_at: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      return { form, success: true };
+    } catch (err: any) {
+      console.error('Error updating class:', err);
+      return fail(500, { form, error: err.message });
+    }
   }
 };

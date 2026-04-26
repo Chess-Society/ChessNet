@@ -1,6 +1,9 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation';
   import { page } from '$app/stores';
+  import { t } from '$lib/i18n';
+  import { showToast, showError } from '$lib/stores/toast';
+  import { fade, fly, scale } from 'svelte/transition';
   import { 
     ArrowLeft,
     CheckCircle,
@@ -27,29 +30,30 @@
     Check,
     SelectionBackground
   } from 'phosphor-svelte';
-  import type { PageData } from './$types';
+  import { superForm } from 'sveltekit-superforms';
+  import { zod } from 'sveltekit-superforms/adapters';
+  import { studentSchema } from '$lib/schemas/student';
   import { appStore } from '$lib/stores/appStore';
-  import { fade, fly, scale } from 'svelte/transition';
-  import { t } from '$lib/i18n';
-  import { showToast, showError } from '$lib/stores/toast';
+  import type { PageData } from './$types';
   
   let { data } = $props<{ data: PageData }>();
+
+  const { form, errors, constraints, enhance, delayed, message } = superForm(data.form as any, {
+    validators: zod(studentSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        showToast.success($t('students.toast_create_success'));
+        setTimeout(() => handleGoBack(), 400);
+      }
+    },
+    onError({ result }) {
+      showError(result.error);
+    }
+  });
 
   let plan = $derived($appStore.settings.plan || 'free');
   let studentsCount = $derived($appStore.students.length);
   let isLimitReached = $derived(plan === 'free' && studentsCount >= 10);
-
-  let formData = $state({
-    firstName: '',
-    lastName: '',
-    notes: '',
-    schoolId: '',
-    classId: '',
-    lichessUsername: ''
-  });
-
-  let isSubmitting = $state(false);
-  let errors = $state<Record<string, string>>({});
 
   // Data mapping
   const schools = $derived(data.schools || []);
@@ -62,62 +66,14 @@
   const isFromClass = $derived(!!classIdFromUrl);
 
   $effect(() => {
-    if (schoolIdFromUrl) formData.schoolId = schoolIdFromUrl;
-    if (classIdFromUrl) formData.classId = classIdFromUrl;
+    if (schoolIdFromUrl && !$form.schoolId) $form.schoolId = schoolIdFromUrl;
+    if (classIdFromUrl && !$form.classId) $form.classId = classIdFromUrl;
   });
 
   const handleGoBack = () => {
     if (returnTo) goto(returnTo);
     else if (isFromClass && classIdFromUrl) goto(`/panel/classes/${classIdFromUrl}`);
     else goto('/panel/students');
-  };
-
-  const validateForm = () => {
-    errors = {};
-    if (!formData.firstName.trim()) errors.firstName = $t('students.full_name_required');
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (isLimitReached) {
-      goto('/panel/upgrade');
-      return;
-    }
-    if (!validateForm() || isSubmitting) return;
-
-    try {
-      isSubmitting = true;
-      const studentData = {
-        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        notes: formData.notes.trim(),
-        schoolId: formData.schoolId,
-        classId: formData.classId,
-        lichessUsername: formData.lichessUsername.trim()
-      };
-      
-      const newStudent = await appStore.addStudent(studentData);
-      
-      if (formData.classId && newStudent) {
-        try {
-          await appStore.enrollStudent(formData.classId, newStudent.id);
-        } catch (e) {
-          console.warn('Auto-enroll failed', e);
-        }
-      }
-      
-      showToast.success($t('students.toast_create_success'));
-      await invalidateAll();
-      setTimeout(() => {
-        goto(returnTo || (isFromClass ? `/panel/classes/${classIdFromUrl}` : '/panel/students'));
-      }, 400);
-
-    } catch (error) {
-      showError(error);
-    } finally {
-      isSubmitting = false;
-    }
   };
 </script>
 
@@ -141,8 +97,14 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-4">
+    <form 
+      method="POST" 
+      action="?/create" 
+      use:enhance 
+      class="flex items-center gap-4"
+    >
       <button 
+        type="button"
         onclick={handleGoBack}
         class="hidden md:flex items-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-none text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
       >
@@ -150,18 +112,18 @@
         {$t('common.cancel')}
       </button>
       <button 
-        onclick={handleSubmit}
-        disabled={isSubmitting || isLimitReached}
+        type="submit"
+        disabled={$delayed || isLimitReached}
         class="flex items-center gap-3 px-8 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-none text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-violet-600/20 active:scale-95 disabled:opacity-50 group"
       >
-        {#if isSubmitting}
+        {#if $delayed}
           <CircleNotch weight="bold" class="w-4 h-4 animate-spin" />
         {:else}
           <FloppyDisk weight="bold" class="w-4 h-4 group-hover:scale-110 transition-transform" />
         {/if}
-        {isSubmitting ? $t('common.saving') : $t('students.confirm_registration')}
+        {$delayed ? $t('common.saving') : $t('students.confirm_registration')}
       </button>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -222,14 +184,16 @@
                 <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
                 <input
                   id="firstName"
+                  name="firstName"
                   type="text"
-                  bind:value={formData.firstName}
+                  bind:value={$form.firstName}
                   placeholder={$t('students.first_name_placeholder')}
                   class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
-                  required
+                  aria-invalid={$errors.firstName ? 'true' : undefined}
+                  {...$constraints.firstName}
                 />
               </div>
-              {#if errors.firstName}<p class="text-red-500 text-[10px] font-bold uppercase mt-1">{errors.firstName}</p>{/if}
+              {#if $errors.firstName}<p class="text-red-500 text-[10px] font-bold uppercase mt-1">{$errors.firstName}</p>{/if}
             </div>
 
             <div class="space-y-3">
@@ -238,10 +202,12 @@
                 <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
                 <input
                   id="lastName"
+                  name="lastName"
                   type="text"
-                  bind:value={formData.lastName}
+                  bind:value={$form.lastName}
                   placeholder={$t('students.last_name_placeholder')}
                   class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
+                  {...$constraints.lastName}
                 />
               </div>
             </div>
@@ -252,10 +218,12 @@
                 <Sparkle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-sky-500 transition-colors pointer-events-none" />
                 <input
                   id="lichessUsername"
+                  name="lichessUsername"
                   type="text"
-                  bind:value={formData.lichessUsername}
+                  bind:value={$form.lichessUsername}
                   placeholder="Ej: drnykterstein"
                   class="glass-input pl-16 pr-8 w-full focus:ring-sky-500/20 focus:border-sky-500 bg-zinc-950/50 italic"
+                  {...$constraints.lichessUsername}
                 />
               </div>
             </div>
@@ -264,18 +232,19 @@
           <div class="space-y-6 pt-6 border-t border-white/5">
             <span class="glass-label mb-2 block">{$t('students.educational_school')}</span>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input type="hidden" name="schoolId" bind:value={$form.schoolId} />
               <button
                 type="button"
-                onclick={() => { formData.schoolId = ''; formData.classId = ''; }}
-                class="selection-card small {formData.schoolId === '' ? 'active' : ''}"
+                onclick={() => { $form.schoolId = ''; $form.classId = ''; }}
+                class="selection-card small {$form.schoolId === '' ? 'active' : ''}"
               >
                 <div class="card-icon">
-                  <Sparkle weight={formData.schoolId === '' ? "fill" : "duotone"} />
+                  <Sparkle weight={$form.schoolId === '' ? "fill" : "duotone"} />
                 </div>
                 <div class="card-content">
                   <span class="card-title">{$t('students.independent_student')}</span>
                 </div>
-                {#if formData.schoolId === ''}
+                {#if $form.schoolId === ''}
                   <div class="card-check" in:scale>
                     <Check size={12} weight="bold" />
                   </div>
@@ -285,16 +254,16 @@
               {#each schools as school}
                 <button
                   type="button"
-                  onclick={() => { formData.schoolId = school.id; formData.classId = ''; }}
-                  class="selection-card small {formData.schoolId === school.id ? 'active' : ''}"
+                  onclick={() => { $form.schoolId = school.id; $form.classId = ''; }}
+                  class="selection-card small {$form.schoolId === school.id ? 'active' : ''}"
                 >
                   <div class="card-icon">
-                    <Buildings weight={formData.schoolId === school.id ? "fill" : "duotone"} />
+                    <Buildings weight={$form.schoolId === school.id ? "fill" : "duotone"} />
                   </div>
                   <div class="card-content">
                     <span class="card-title">{school.name}</span>
                   </div>
-                  {#if formData.schoolId === school.id}
+                  {#if $form.schoolId === school.id}
                     <div class="card-check" in:scale>
                       <Check size={12} weight="bold" />
                     </div>
@@ -307,37 +276,38 @@
           <div class="space-y-6 pt-6 border-t border-white/5">
             <span class="glass-label mb-2 block">{$t('students.group_label')}</span>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input type="hidden" name="classId" bind:value={$form.classId} />
               <button
                 type="button"
-                onclick={() => formData.classId = ''}
-                class="selection-card small {formData.classId === '' ? 'active' : ''}"
+                onclick={() => $form.classId = ''}
+                class="selection-card small {$form.classId === '' ? 'active' : ''}"
               >
                 <div class="card-icon">
-                  <IdentificationBadge weight={formData.classId === '' ? "fill" : "duotone"} />
+                  <IdentificationBadge weight={$form.classId === '' ? "fill" : "duotone"} />
                 </div>
                 <div class="card-content">
                   <span class="card-title">{$t('students.individual_class')}</span>
                 </div>
-                {#if formData.classId === ''}
+                {#if $form.classId === ''}
                   <div class="card-check" in:scale>
                     <Check size={12} weight="bold" />
                   </div>
                 {/if}
               </button>
 
-              {#each classes.filter((c: any) => !formData.schoolId || c.schoolId === formData.schoolId) as c}
+              {#each classes.filter((c: any) => !$form.schoolId || c.schoolId === $form.schoolId) as c}
                 <button
                   type="button"
-                  onclick={() => formData.classId = c.id}
-                  class="selection-card small {formData.classId === c.id ? 'active' : ''}"
+                  onclick={() => $form.classId = c.id}
+                  class="selection-card small {$form.classId === c.id ? 'active' : ''}"
                 >
                   <div class="card-icon">
-                    <BookOpen weight={formData.classId === c.id ? "fill" : "duotone"} />
+                    <BookOpen weight={$form.classId === c.id ? "fill" : "duotone"} />
                   </div>
                   <div class="card-content">
                     <span class="card-title">{c.name}</span>
                   </div>
-                  {#if formData.classId === c.id}
+                  {#if $form.classId === c.id}
                     <div class="card-check" in:scale>
                       <Check size={12} weight="bold" />
                     </div>
@@ -365,10 +335,12 @@
           <label for="notes" class="glass-label">{$t('students.notes_label')}</label>
           <textarea
             id="notes"
-            bind:value={formData.notes}
+            name="notes"
+            bind:value={$form.notes}
             placeholder={$t('students.notes_placeholder')}
             rows="5"
             class="glass-input w-full px-6 py-5 resize-none bg-zinc-950/50"
+            {...$constraints.notes}
           ></textarea>
         </div>
       </section>
@@ -386,11 +358,11 @@
             <div class="flex flex-col items-center">
               <div class="w-24 h-24 bg-violet-600/20 border border-violet-500/30 rounded-none flex items-center justify-center text-violet-400 shadow-2xl shadow-violet-500/20 transition-transform group-hover:scale-110 duration-700">
                 <span class="text-4xl font-outfit font-black uppercase">
-                  {formData.firstName ? formData.firstName.charAt(0) : '?'}
+                  {$form.firstName ? $form.firstName.charAt(0) : '?'}
                 </span>
               </div>
               <h4 class="text-2xl font-outfit font-black text-white mt-6 uppercase italic tracking-tighter truncate w-full px-4">
-                {formData.firstName || $t('common.new')} {formData.lastName || ''}
+                {$form.firstName || $t('common.new')} {$form.lastName || ''}
               </h4>
               <span class="px-4 py-1.5 bg-zinc-950/50 border border-zinc-800 rounded-none text-[9px] font-black uppercase tracking-widest text-zinc-500 mt-2 shadow-inner">
                 {$t('students.preview_label')}

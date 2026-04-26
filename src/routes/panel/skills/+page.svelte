@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
   import { 
     Target, 
     Plus, 
@@ -118,6 +119,17 @@
     hours: skills.reduce((acc, s) => acc + (Number(s.estimatedHours) || 0), 0)
   });
 
+  let skillToDelete = $state<{id: string, name: string} | null>(null);
+  let deleteForm = $state<HTMLFormElement | null>(null);
+  let deleteMultipleForm = $state<HTMLFormElement | null>(null);
+  let clearSyllabusForm = $state<HTMLFormElement | null>(null);
+  let importCurriculumForm = $state<HTMLFormElement | null>(null);
+  let reorderForm = $state<HTMLFormElement | null>(null);
+
+  let reorderingsData = $state<string>('[]');
+  let importData = $state<string>('');
+  let importAIForm = $state<HTMLFormElement | null>(null);
+
   const deleteSkill = async (id: string, name: string) => {
     const confirmed = await uiStore.confirm({
       title: $t('skills.delete_title'),
@@ -126,17 +138,10 @@
       confirmText: $t('common.delete')
     });
     
-    if (confirmed) {
-      uiStore.setLoading(true);
-      try {
-        await appStore.removeSkill(id);
-        toast.success($t('common.delete_success') || 'Deleted successfully');
-      } catch (err) {
-        console.error(err);
-        toast.error($t('skills.delete_error') || 'Error deleting skill');
-      } finally {
-        uiStore.setLoading(false);
-      }
+    if (confirmed && deleteForm) {
+      skillToDelete = { id, name };
+      await tick();
+      deleteForm.requestSubmit();
     }
   };
 
@@ -147,17 +152,11 @@
       confirmText: $t('common.confirm')
     });
 
-    if (confirmed) {
+    if (confirmed && importCurriculumForm) {
       isImporting = true;
-      try {
-        await appStore.importCurriculum(CHESS_SYLLABUS_PRESETS);
-        toast.success($t('skills.import_success') || 'Syllabus imported');
-      } catch (err) {
-        console.error(err);
-        toast.error($t('skills.import_error') || 'Error importing syllabus');
-      } finally {
-        isImporting = false;
-      }
+      importData = JSON.stringify(CHESS_SYLLABUS_PRESETS);
+      await tick();
+      importCurriculumForm.requestSubmit();
     }
   };
 
@@ -167,61 +166,24 @@
   };
 
   const extractFromPDF = async (file: File) => {
-    const state = $appStore;
-    const isPremium = state.settings?.plan === 'premium';
+    const isPremium = data.user?.plan === 'premium';
     
     if (!isPremium) {
       toast.error($t('pricing.premium.required'));
       return;
     }
 
-    isExtractingAI = true;
-    extractionProgress = 20;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('/api/skills/import-ai', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to extract syllabus');
+    if (importAIForm) {
+      // Need to manually set the file input since we're using a hidden form for submission
+      // but we can also just use a normal form for this one since it's a file upload.
+      // However, to keep it consistent with the "hidden form" pattern:
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      const input = importAIForm.querySelector('input[type="file"]') as HTMLInputElement;
+      if (input) {
+        input.files = dataTransfer.files;
+        importAIForm.requestSubmit();
       }
-
-      const { skills: extractedSkills } = await response.json();
-      
-      if (!extractedSkills || extractedSkills.length === 0) {
-        throw new Error('No skills were extracted from the document');
-      }
-
-      // Update progress for visual feedback
-      extractionProgress = 80;
-
-      await appStore.importCurriculum(extractedSkills);
-      extractionProgress = 100;
-      
-      setTimeout(() => {
-        isExtractingAI = false;
-        toast.success($t('skills.ui.extraction_complete'));
-      }, 600);
-      
-    } catch (err: any) {
-      console.error('AI Import Error:', err);
-      isExtractingAI = false;
-      
-      // Explicit feedback for common errors
-      let errorMsg = err.message || $t('skills.process_error') || 'Error processing PDF';
-      if (errorMsg.includes('JSON')) {
-        errorMsg = 'IA error: No se pudo generar una estructura válida. Intenta con otro PDF.';
-      } else if (errorMsg.includes('fetch')) {
-        errorMsg = 'Error de conexión con el servidor. Reintenta en unos instantes.';
-      }
-      
-      toast.error(errorMsg, { duration: 5000 });
     }
   };
 
@@ -285,19 +247,9 @@
       confirmText: $t('common.delete')
     });
 
-    if (confirmed) {
-      uiStore.setLoading(true);
-      try {
-        await appStore.removeMultipleSkills(selectedIds);
-        selectedIds = [];
-        isSelectionMode = false;
-        toast.success($t('common.delete_success') || 'Deleted successfully');
-      } catch (err) {
-        console.error(err);
-        toast.error($t('skills.delete_error') || 'Error deleting skills');
-      } finally {
-        uiStore.setLoading(false);
-      }
+    if (confirmed && deleteMultipleForm) {
+      await tick();
+      deleteMultipleForm.requestSubmit();
     }
   };
 
@@ -311,19 +263,9 @@
       confirmText: $t('common.delete')
     });
 
-    if (confirmed) {
-      uiStore.setLoading(true);
-      try {
-        await appStore.clearSyllabus();
-        selectedIds = [];
-        isSelectionMode = false;
-        toast.success($t('common.delete_success') || 'Syllabus deleted');
-      } catch (err) {
-        console.error(err);
-        toast.error($t('skills.delete_error') || 'Error deleting syllabus');
-      } finally {
-        uiStore.setLoading(false);
-      }
+    if (confirmed && clearSyllabusForm) {
+      await tick();
+      clearSyllabusForm.requestSubmit();
     }
   };
 
@@ -362,23 +304,16 @@
     }
 
     // Prepare reordering payload
-    // We use the current index in the full list as the new order
     const orderedList = categoryId === 'all' ? newItems : [...skillsState].sort((a,b) => (a.order || 0) - (b.order || 0)); 
-    
-    // Better strategy: just update the orders for the items that changed
     const reorderings = orderedList.map((item: any, index: number) => ({
       id: item.id,
       order: index
     }));
 
-    try {
-      await appStore.reorderSkills(reorderings);
-      toast.success($t('skills.reorder_success') || 'Sort order updated');
-    } catch (err) {
-      console.error(err);
-      toast.error($t('skills.reorder_error') || 'Error reordering skills');
-      // Revert state on error?
-      isDragging = false;
+    if (reorderForm) {
+      reorderingsData = JSON.stringify(reorderings);
+      await tick();
+      reorderForm.requestSubmit();
     }
   };
 
@@ -394,6 +329,90 @@
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   });
+</script>
+
+<form method="POST" action="?/delete" use:enhance={() => {
+  uiStore.setLoading(true);
+  return async ({ result }) => {
+    uiStore.setLoading(false);
+    if (result.type === 'success') {
+      toast.success($t('common.delete_success') || 'Deleted successfully');
+    }
+    skillToDelete = null;
+  };
+}} bind:this={deleteForm} class="hidden">
+  <input type="hidden" name="id" value={skillToDelete?.id} />
+</form>
+
+<form method="POST" action="?/deleteMultiple" use:enhance={() => {
+  uiStore.setLoading(true);
+  return async ({ result }) => {
+    uiStore.setLoading(false);
+    if (result.type === 'success') {
+      selectedIds = [];
+      isSelectionMode = false;
+      toast.success($t('common.delete_success') || 'Deleted successfully');
+    }
+  };
+}} bind:this={deleteMultipleForm} class="hidden">
+  <input type="hidden" name="ids" value={JSON.stringify(selectedIds)} />
+</form>
+
+<form method="POST" action="?/clearSyllabus" use:enhance={() => {
+  uiStore.setLoading(true);
+  return async ({ result }) => {
+    uiStore.setLoading(false);
+    if (result.type === 'success') {
+      selectedIds = [];
+      isSelectionMode = false;
+      toast.success($t('common.delete_success') || 'Syllabus deleted');
+    }
+  };
+}} bind:this={clearSyllabusForm} class="hidden"></form>
+
+<form method="POST" action="?/importCurriculum" use:enhance={() => {
+  isImporting = true;
+  return async ({ result }) => {
+    isImporting = false;
+    if (result.type === 'success') {
+      toast.success($t('skills.import_success') || 'Syllabus imported');
+    }
+  };
+}} bind:this={importCurriculumForm} class="hidden">
+  <input type="hidden" name="curriculum" value={importData} />
+</form>
+
+<form method="POST" action="?/reorder" use:enhance={() => {
+  return async ({ result }) => {
+    if (result.type === 'success') {
+      toast.success($t('skills.reorder_success') || 'Sort order updated');
+    }
+  };
+}} bind:this={reorderForm} class="hidden">
+  <input type="hidden" name="reorderings" value={reorderingsData} />
+</form>
+
+<form 
+  method="POST" 
+  action="?/importAI" 
+  enctype="multipart/form-data" 
+  use:enhance={() => {
+    isExtractingAI = true;
+    extractionProgress = 20;
+    return async ({ result }) => {
+      isExtractingAI = false;
+      if (result.type === 'success') {
+        toast.success($t('skills.ui.extraction_complete'));
+      } else if (result.type === 'failure') {
+        toast.error(result.data?.message || $t('common.error.generic'));
+      }
+    };
+  }} 
+  bind:this={importAIForm} 
+  class="hidden"
+>
+  <input type="file" name="file" />
+</form>
 </script>
 
 <svelte:head>

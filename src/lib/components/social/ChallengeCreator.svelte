@@ -3,68 +3,35 @@
   import { fade, slide } from 'svelte/transition';
   import { user } from '$lib/stores/auth';
   import { appStore } from '$lib/stores/appStore';
-  import { predictionApi } from '$lib/api/predictions';
   import { toast } from '$lib/stores/toast';
+  import { superForm } from 'sveltekit-superforms';
+  import { zod } from 'sveltekit-superforms/adapters';
+  import { challengeSchema } from '$lib/schemas/challenge';
 
   interface Props {
+    form: any;
     onClose: () => void;
   }
 
-  let { onClose }: Props = $props();
+  let { form: serverForm, onClose }: Props = $props();
 
-  let mode = $state<'MANUAL' | 'SYSTEM' | 'LICHESS'>('MANUAL');
-  let question = $state('');
-  let description = $state('');
-  let endDate = $state('');
-  let externalId = $state('');
-  let loading = $state(false);
+  const { form, errors, enhance, submitting } = superForm(serverForm as any, {
+    validators: zod(challengeSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        toast.success("¡Reto lanzado con éxito al muro!");
+        onClose();
+      }
+    }
+  }) as any;
+
+  let loading = $derived($submitting);
 
   // Opciones predeterminadas para SÍ/NO
   const defaultOptions = [
     { id: 'yes', text: 'SÍ', totalStaked: 0, totalShares: 0 },
     { id: 'no', text: 'NO', totalStaked: 0, totalShares: 0 }
   ];
-
-  async function handleCreate() {
-    if (!$user?.uid || !question || !endDate) {
-      toast.error("Por favor, rellena todos los campos obligatorios.");
-      return;
-    }
-
-    loading = true;
-    try {
-      const activeSchool = appStore.school;
-      if (!activeSchool) throw new Error("No hay una escuela activa seleccionada");
-      
-      // Validador de fecha defensivo
-      const finalEndDate = endDate ? new Date(endDate).toISOString() : new Date(Date.now() + 3600000).toISOString();
-
-      const marketData = {
-        schoolId: activeSchool.id,
-        creatorId: $user?.uid || 'ANONYMOUS',
-        question,
-        description,
-        endDate: finalEndDate,
-        options: defaultOptions,
-        oracleType: mode,
-        oracleConfig: {
-          ...(mode === 'LICHESS' && externalId ? { externalId: externalId.trim(), tournamentId: externalId.trim() } : {}),
-          validationSource: mode === 'LICHESS' ? 'LICHESS_API' : mode === 'SYSTEM' ? 'SYSTEM_DATA' : 'MANUAL'
-        }
-      };
-
-      console.log("[Social] Creating challenge:", marketData);
-      await predictionApi.createMarket(marketData);
-
-      toast.success("¡Reto lanzado con éxito al muro!");
-      onClose();
-    } catch (e: any) {
-      console.error("[Social] Creation failure:", e);
-      toast.error(e.message || "Error al crear el reto");
-    } finally {
-      loading = false;
-    }
-  }
 </script>
 
 <div 
@@ -76,14 +43,18 @@
   tabindex="0"
   aria-label="Cerrar modal"
 >
-  <div 
-    class="creator-modal pro-card p-0 overflow-hidden" 
-    onclick={e => e.stopPropagation()}
-    onkeydown={e => e.stopPropagation()}
-    role="dialog"
-    aria-modal="true"
-    tabindex="-1"
-  >
+    <form 
+      method="POST"
+      action="?/createChallenge"
+      use:enhance
+      class="creator-modal pro-card p-0 overflow-hidden" 
+      onclick={e => e.stopPropagation()}
+      onkeydown={e => e.stopPropagation()}
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
+      <input type="hidden" name="mode" bind:value={$form.mode} />
     <!-- Header -->
     <div class="p-6 border-b border-white/5 flex items-center justify-between bg-zinc-950">
       <div class="flex items-center gap-3">
@@ -103,24 +74,27 @@
     <!-- Mode Selector -->
     <div class="grid grid-cols-3 border-b border-white/5">
       <button 
-        class="flex flex-col items-center p-6 gap-2 transition-all {mode === 'MANUAL' ? 'bg-amber-500/10 text-amber-500' : 'text-zinc-500 hover:bg-white/5'}"
-        onclick={() => mode = 'MANUAL'}
+        type="button"
+        class="flex flex-col items-center p-6 gap-2 transition-all {$form.mode === 'MANUAL' ? 'bg-amber-500/10 text-amber-500' : 'text-zinc-500 hover:bg-white/5'}"
+        onclick={() => $form.mode = 'MANUAL'}
       >
-        <Trophy size={20} weight={mode === 'MANUAL' ? 'fill' : 'bold'} />
+        <Trophy size={20} weight={$form.mode === 'MANUAL' ? 'fill' : 'bold'} />
         <span class="text-[10px] font-black uppercase tracking-widest">Manual</span>
       </button>
       <button 
-        class="flex flex-col items-center p-6 gap-2 transition-all {mode === 'SYSTEM' ? 'bg-emerald-500/10 text-emerald-500' : 'text-zinc-500 hover:bg-white/5'}"
-        onclick={() => mode = 'SYSTEM'}
+        type="button"
+        class="flex flex-col items-center p-6 gap-2 transition-all {$form.mode === 'SYSTEM' ? 'bg-emerald-500/10 text-emerald-500' : 'text-zinc-500 hover:bg-white/5'}"
+        onclick={() => $form.mode = 'SYSTEM'}
       >
-        <Database size={20} weight={mode === 'SYSTEM' ? 'fill' : 'bold'} />
+        <Database size={20} weight={$form.mode === 'SYSTEM' ? 'fill' : 'bold'} />
         <span class="text-[10px] font-black uppercase tracking-widest">Hito Datos</span>
       </button>
       <button 
-        class="flex flex-col items-center p-6 gap-2 transition-all {mode === 'LICHESS' ? 'bg-blue-500/10 text-blue-500' : 'text-zinc-500 hover:bg-white/5'}"
-        onclick={() => mode = 'LICHESS'}
+        type="button"
+        class="flex flex-col items-center p-6 gap-2 transition-all {$form.mode === 'LICHESS' ? 'bg-blue-500/10 text-blue-500' : 'text-zinc-500 hover:bg-white/5'}"
+        onclick={() => $form.mode = 'LICHESS'}
       >
-        <Globe size={20} weight={mode === 'LICHESS' ? 'fill' : 'bold'} />
+        <Globe size={20} weight={$form.mode === 'LICHESS' ? 'fill' : 'bold'} />
         <span class="text-[10px] font-black uppercase tracking-widest">Lichess</span>
       </button>
     </div>
@@ -131,10 +105,12 @@
         <label for="market-question" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pregunta del Reto</label>
         <input 
           id="market-question"
-          bind:value={question}
-          placeholder={mode === 'MANUAL' ? '¿Vendrá el GM invitado?' : mode === 'SYSTEM' ? '¿Llegaremos a 100 check-ins?' : '¿Ganaremos la Team Battle?'}
+          name="question"
+          bind:value={$form.question}
+          placeholder={$form.mode === 'MANUAL' ? '¿Vendrá el GM invitado?' : $form.mode === 'SYSTEM' ? '¿Llegaremos a 100 check-ins?' : '¿Ganaremos la Team Battle?'}
           class="w-full bg-black border border-white/10 p-4 text-white font-bold placeholder:text-zinc-700 focus:border-amber-500/50 outline-none transition-all"
         />
+        {#if $errors.question}<p class="text-[8px] text-red-500 uppercase tracking-widest">{$errors.question}</p>{/if}
       </div>
 
       <!-- Description -->
@@ -142,23 +118,27 @@
         <label for="market-description" class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Contexto (Opcional)</label>
         <textarea 
           id="market-description"
-          bind:value={description}
+          name="description"
+          bind:value={$form.description}
           placeholder="Explica los detalles del hito para que los profes puedan evaluar su pronóstico..."
           class="w-full bg-black border border-white/10 p-4 text-white font-medium placeholder:text-zinc-700 focus:border-amber-500/50 outline-none transition-all h-24 resize-none"
         ></textarea>
+        {#if $errors.description}<p class="text-[8px] text-red-500 uppercase tracking-widest">{$errors.description}</p>{/if}
       </div>
 
       <!-- Lichess ID (Conditional) -->
-      {#if mode === 'LICHESS'}
+      {#if $form.mode === 'LICHESS'}
         <div class="space-y-2" transition:slide>
           <label for="lichess-id" class="text-[10px] font-black text-blue-500 uppercase tracking-widest">ID del Torneo Lichess</label>
           <input 
             id="lichess-id"
-            bind:value={externalId}
+            name="externalId"
+            bind:value={$form.externalId}
             placeholder="Ej: qS7W9zR4"
             class="w-full bg-black border border-blue-500/20 p-4 text-white font-bold placeholder:text-zinc-700 focus:border-blue-500/50 outline-none transition-all"
           />
           <p class="text-[9px] text-zinc-500 italic">Copia el código final de la URL del torneo (ej: lichess.org/tournament/XXXXX)</p>
+          {#if $errors.externalId}<p class="text-[8px] text-red-500 uppercase tracking-widest">{$errors.externalId}</p>{/if}
         </div>
       {/if}
 
@@ -170,9 +150,11 @@
             <input 
               id="end-date"
               type="datetime-local"
-              bind:value={endDate}
+              name="endDate"
+              bind:value={$form.endDate}
               class="w-full bg-black border border-white/10 p-4 text-white font-bold focus:border-amber-500/50 outline-none transition-all"
             />
+            {#if $errors.endDate}<p class="text-[8px] text-red-500 uppercase tracking-widest">{$errors.endDate}</p>{/if}
           </div>
         </div>
 
@@ -180,10 +162,10 @@
         <div class="space-y-2">
           <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Validación</span>
           <div class="p-4 bg-white/5 border border-white/10 flex items-center gap-3">
-            {#if mode === 'MANUAL'}
+            {#if $form.mode === 'MANUAL'}
               <Trophy size={16} class="text-amber-500" />
               <span class="text-[10px] font-bold text-zinc-400 uppercase">Por el Director</span>
-            {:else if mode === 'SYSTEM'}
+            {:else if $form.mode === 'SYSTEM'}
               <Database size={16} class="text-emerald-500" />
               <span class="text-[10px] font-bold text-zinc-400 uppercase">Auto por Datos</span>
             {:else}
@@ -204,14 +186,14 @@
         Cancelar
       </button>
       <button 
+        type="submit"
         class="px-8 py-3 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={loading || !question || !endDate}
-        onclick={handleCreate}
+        disabled={loading || !$form.question || !$form.endDate}
       >
         {loading ? 'Lanzando...' : 'Publicar Reto'}
       </button>
     </div>
-  </div>
+  </form>
 </div>
 
 <style>

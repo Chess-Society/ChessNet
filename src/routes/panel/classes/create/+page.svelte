@@ -38,55 +38,27 @@
   import type { PageData } from './$types';
   import { page } from '$app/stores';
 
+  import { superForm } from 'sveltekit-superforms';
+  import { zod } from 'sveltekit-superforms/adapters';
+  import { classSchema } from '$lib/schemas/class';
+  
   let { data } = $props<{ data: PageData }>();
+
+  const { form, errors, constraints, enhance, delayed, reset } = superForm(data.form as any, {
+    validators: zod(classSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        showToast.success($t('classes.create_success'));
+        setTimeout(() => goto('/panel/classes'), 400);
+      }
+    },
+    onError({ result }) {
+      showError(result.error);
+    }
+  });
+
   let schools = $derived(data.schools || []);
   const schoolIdFromUrl = $derived($page.url.searchParams.get('schoolId'));
-  
-  let formData = $state({
-    name: '',
-    school_id: '',
-    level: 'beginner',
-    schedule: '',
-    max_students: 15,
-    price: 0,
-    description: ''
-  });
-
-  $effect(() => {
-    if (schoolIdFromUrl && schools.length > 0) {
-      const schoolExists = (schools as any[]).find(s => s.id === schoolIdFromUrl);
-      if (schoolExists) formData.school_id = schoolIdFromUrl;
-    }
-  });
-
-  let isSubmitting = $state(false);
-
-  const handleSubmit = async () => {
-    if (isSubmitting) return;
-
-    if (!formData.name.trim() || !formData.schedule.trim()) {
-      showToast.error($t('common.error_form'));
-      return;
-    }
-
-    try {
-      isSubmitting = true;
-      
-      await appStore.addClass({
-        ...formData
-      });
-
-      showToast.success($t('classes.create_success'));
-      await invalidateAll();
-      setTimeout(() => {
-        goto('/panel/classes');
-      }, 400);
-    } catch (error) {
-      showError(error);
-    } finally {
-      isSubmitting = false;
-    }
-  };
 
   const getLevelInfo = (l: string) => {
     switch(l) {
@@ -103,45 +75,54 @@
   <title>{$t('classes.new_title')} - ChessNet</title>
 </svelte:head>
 
-<!-- Premium Sticky Header -->
-<div class="sticky top-0 z-[100] bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12">
-  <div class="max-w-[1400px] mx-auto flex items-center justify-between">
-    <div class="flex items-center gap-6">
-      <button 
-        onclick={() => goto('/panel/classes')}
-        class="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-zinc-400 hover:text-white hover:border-primary-500/50 transition-all active:scale-95 group"
-      >
-        <ArrowLeft weight="bold" class="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-      </button>
-      <div>
-        <h1 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('classes.new_title')}</h1>
-        <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{$t('classes.new_subtitle')}</p>
+<form 
+  method="POST" 
+  action="?/create" 
+  use:enhance
+  class="min-h-screen bg-zinc-950"
+>
+
+  <!-- Premium Sticky Header -->
+  <div class="sticky top-0 z-[100] bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12">
+    <div class="max-w-[1400px] mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <button 
+          type="button"
+          onclick={() => goto('/panel/classes')}
+          class="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-zinc-400 hover:text-white hover:border-primary-500/50 transition-all active:scale-95 group"
+        >
+          <ArrowLeft weight="bold" class="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+        </button>
+        <div>
+          <h1 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('classes.new_title')}</h1>
+          <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">{$t('classes.new_subtitle')}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button 
+          type="button"
+          onclick={() => goto('/panel/classes')}
+          class="hidden md:flex items-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-none text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
+        >
+          <X weight="bold" class="w-4 h-4" />
+          {$t('common.cancel')}
+        </button>
+        <button 
+          type="submit"
+          disabled={$delayed}
+          class="flex items-center gap-3 px-8 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-none text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary-600/20 active:scale-95 disabled:opacity-50 group"
+        >
+          {#if $delayed}
+            <ArrowsClockwise weight="bold" class="w-4 h-4 animate-spin" />
+          {:else}
+            <FloppyDisk weight="bold" class="w-4 h-4 group-hover:scale-110 transition-transform" />
+          {/if}
+          {$t('classes.create_btn')}
+        </button>
       </div>
     </div>
-
-    <div class="flex items-center gap-4">
-      <button 
-        onclick={() => goto('/panel/classes')}
-        class="hidden md:flex items-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-none text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
-      >
-        <X weight="bold" class="w-4 h-4" />
-        {$t('common.cancel')}
-      </button>
-      <button 
-        onclick={handleSubmit}
-        disabled={isSubmitting}
-        class="flex items-center gap-3 px-8 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-none text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary-600/20 active:scale-95 disabled:opacity-50 group"
-      >
-        {#if isSubmitting}
-          <ArrowsClockwise weight="bold" class="w-4 h-4 animate-spin" />
-        {:else}
-          <FloppyDisk weight="bold" class="w-4 h-4 group-hover:scale-110 transition-transform" />
-        {/if}
-        {$t('classes.create_btn')}
-      </button>
-    </div>
   </div>
-</div>
 
 <div class="max-w-[1400px] mx-auto px-6 md:px-12 py-12" in:fade={{ duration: 300 }}>
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -171,32 +152,38 @@
                <ChalkboardTeacher weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-primary-500 transition-colors pointer-events-none" />
                <input 
                 id="c-name"
+                name="name"
                 type="text" 
-                bind:value={formData.name}
+                bind:value={$form.name}
                 required
                 placeholder={$t('classes.name_placeholder')}
-                class="glass-input pl-16 pr-8 w-full focus:ring-primary-500/20 focus:border-primary-500 bg-zinc-950/50"
+                class="glass-input pl-16 pr-8 w-full focus:ring-primary-500/20 focus:border-primary-500 bg-zinc-950/50 {$errors.name ? 'border-red-500/50 ring-red-500/20' : ''}"
+                {...$constraints.name}
               />
             </div>
+            {#if $errors.name}
+              <p class="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">{$errors.name}</p>
+            {/if}
           </div>
 
           <!-- School Selection -->
           <div class="space-y-6">
+            <input type="hidden" name="schoolId" bind:value={$form.schoolId} />
             <span class="glass-label">{$t('classes.school_label')}</span>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 type="button"
-                onclick={() => formData.school_id = ''}
-                class="selection-card {!formData.school_id ? 'active' : ''}"
+                onclick={() => $form.schoolId = ''}
+                class="selection-card {!$form.schoolId ? 'active' : ''}"
               >
                 <div class="card-icon">
-                  <Sparkle weight={!formData.school_id ? "fill" : "duotone"} />
+                  <Sparkle weight={!$form.schoolId ? "fill" : "duotone"} />
                 </div>
                 <div class="card-content">
                   <span class="card-title">{$t('classes.independent')}</span>
                   <p class="text-[9px] font-bold opacity-30 uppercase tracking-widest mt-1">{$t('classes.academy_direct')}</p>
                 </div>
-                {#if !formData.school_id}
+                {#if !$form.schoolId}
                   <div class="card-check" in:scale>
                     <Check size={14} weight="bold" />
                   </div>
@@ -207,17 +194,17 @@
                 <button
                   type="button"
                   disabled={!!schoolIdFromUrl && schoolIdFromUrl !== school.id}
-                  onclick={() => formData.school_id = school.id}
-                  class="selection-card {formData.school_id === school.id ? 'active' : ''}"
+                  onclick={() => $form.schoolId = school.id}
+                  class="selection-card {$form.schoolId === school.id ? 'active' : ''}"
                 >
                   <div class="card-icon">
-                    <Buildings weight={formData.school_id === school.id ? "fill" : "duotone"} />
+                    <Buildings weight={$form.schoolId === school.id ? "fill" : "duotone"} />
                   </div>
                   <div class="card-content">
                     <span class="card-title">{school.name}</span>
                     <p class="text-[9px] font-bold opacity-30 uppercase tracking-widest mt-1">{school.city}</p>
                   </div>
-                  {#if formData.school_id === school.id}
+                  {#if $form.schoolId === school.id}
                     <div class="card-check" in:scale>
                       <Check size={14} weight="bold" />
                     </div>
@@ -225,6 +212,9 @@
                 </button>
               {/each}
             </div>
+            {#if $errors.schoolId}
+              <p class="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">{$errors.schoolId}</p>
+            {/if}
           </div>
 
           <!-- Description -->
@@ -232,10 +222,12 @@
             <label for="c-desc" class="glass-label">{$t('classes.description')}</label>
             <textarea 
               id="c-desc"
-              bind:value={formData.description}
+              name="description"
+              bind:value={$form.description}
               placeholder={$t('classes.description_placeholder')}
               rows="4"
               class="glass-input w-full px-6 py-5 resize-none bg-zinc-950/50"
+              {...$constraints.description}
             ></textarea>
           </div>
         </div>
@@ -260,32 +252,38 @@
               <CalendarBlank weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-primary-500 transition-colors pointer-events-none" />
               <input 
                 id="c-schedule"
+                name="schedule"
                 type="text" 
-                bind:value={formData.schedule}
+                bind:value={$form.schedule}
                 required
                 placeholder={$t('classes.schedule_placeholder')}
-                class="glass-input pl-16 pr-8 w-full focus:ring-primary-500/20 focus:border-primary-500 bg-zinc-950/50"
+                class="glass-input pl-16 pr-8 w-full focus:ring-primary-500/20 focus:border-primary-500 bg-zinc-950/50 {$errors.schedule ? 'border-red-500/50 ring-red-500/20' : ''}"
+                {...$constraints.schedule}
               />
             </div>
+            {#if $errors.schedule}
+              <p class="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">{$errors.schedule}</p>
+            {/if}
           </div>
 
           <div class="space-y-6">
+            <input type="hidden" name="level" bind:value={$form.level} />
             <span class="glass-label">{$t('common.level')}</span>
             <div class="grid grid-cols-2 gap-4">
               {#each ['beginner', 'intermediate', 'advanced', 'mixed'] as level}
                 {@const levelInfo = getLevelInfo(level)}
                 <button
                   type="button"
-                  onclick={() => formData.level = level}
-                  class="selection-card small {formData.level === level ? 'active' : ''}"
+                  onclick={() => $form.level = level as any}
+                  class="selection-card small {$form.level === level ? 'active' : ''}"
                 >
                   <div class="card-icon">
-                    <levelInfo.icon weight={formData.level === level ? "fill" : "duotone"} />
+                    <levelInfo.icon weight={$form.level === level ? "fill" : "duotone"} />
                   </div>
                   <div class="card-content">
                     <span class="card-title">{levelInfo.label}</span>
                   </div>
-                  {#if formData.level === level}
+                  {#if $form.level === level}
                     <div class="card-check" in:scale>
                       <Check size={12} weight="bold" />
                     </div>
@@ -301,9 +299,11 @@
                 <UsersThree weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-primary-500 transition-colors pointer-events-none" />
                 <input 
                   id="c-max"
+                  name="maxStudents"
                   type="number" 
-                  bind:value={formData.max_students}
+                  bind:value={$form.maxStudents}
                   class="glass-input pl-16 pr-8 w-full focus:ring-primary-500/20 focus:border-primary-500 bg-zinc-950/50 font-bold"
+                  {...$constraints.maxStudents}
                 />
             </div>
           </div>
@@ -314,9 +314,11 @@
                 <Coins weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-primary-500 transition-colors pointer-events-none" />
                 <input 
                   id="c-price"
+                  name="price"
                   type="number" 
-                  bind:value={formData.price}
+                  bind:value={$form.price}
                   class="glass-input pl-16 pr-8 w-full focus:ring-primary-500/20 focus:border-primary-500 bg-zinc-950/50 text-primary-400 font-black"
+                  {...$constraints.price}
                 />
             </div>
           </div>
@@ -345,7 +347,7 @@
           <div class="space-y-6">
             <div class="bg-zinc-950/50 p-6 rounded-none border border-white/5 shadow-inner">
               <h4 class="text-2xl font-outfit font-black text-white leading-tight uppercase truncate tracking-tighter italic">
-                {formData.name || $t('classes.fallback_name')}
+                {$form.name || $t('classes.fallback_name')}
               </h4>
             </div>
 
@@ -356,7 +358,7 @@
                   <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('classes.schedule')}</span>
                 </div>
                 <span class="text-[10px] font-bold text-white uppercase text-right truncate max-w-[120px]">
-                  {formData.schedule || $t('classes.flexible_schedule')}
+                  {$form.schedule || $t('classes.flexible_schedule')}
                 </span>
               </div>
               <div class="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-none">
@@ -364,14 +366,14 @@
                   <GraduationCap weight="duotone" class="w-5 h-5 text-primary-400" />
                   <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('common.level')}</span>
                 </div>
-                <span class="text-[10px] font-bold text-primary-400 uppercase">{getLevelInfo(formData.level).label}</span>
+                <span class="text-[10px] font-bold text-primary-400 uppercase">{getLevelInfo($form.level).label}</span>
               </div>
               <div class="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-none">
                 <div class="flex items-center gap-3">
                   <UsersThree weight="duotone" class="w-5 h-5 text-primary-400" />
                   <span class="text-[10px] font-black text-zinc-500 uppercase">{$t('classes.capacity')}</span>
                 </div>
-                <span class="text-[10px] font-bold text-zinc-200 uppercase">{formData.max_students} {$t('classes.students_short')}</span>
+                <span class="text-[10px] font-bold text-zinc-200 uppercase">{$form.maxStudents} {$t('classes.students_short')}</span>
               </div>
             </div>
           </div>
@@ -408,9 +410,10 @@
         </div>
 
       </div>
+      </div>
     </div>
   </div>
-</div>
+</form>
 
 <style>
   textarea::-webkit-scrollbar {

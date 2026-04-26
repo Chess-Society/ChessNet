@@ -1,71 +1,44 @@
 <script lang="ts">
   import { fade, scale, slide } from 'svelte/transition';
   import { X, Globe, Trophy, CheckCircle, WarningCircle, Calendar, Tag, TextT, Info } from 'phosphor-svelte';
-  import { predictionApi } from '$lib/api/predictions';
+  import { superForm } from 'sveltekit-superforms';
+  import { zod } from 'sveltekit-superforms/adapters';
+  import { predictionMarketSchema } from '$lib/schemas/prediction';
   import { appStore } from '$lib/stores/appStore';
   import { toast } from '$lib/stores/toast';
 
   interface Props {
+    form: any;
     show: boolean;
     onClose: () => void;
     onSuccess?: () => void;
     editMarket?: any;
   }
 
-  let { show = $bindable(), onClose, onSuccess, editMarket }: Props = $props();
+  let { form: serverForm, show = $bindable(), onClose, onSuccess, editMarket }: Props = $props();
 
-  let loading = $state(false);
-  let marketData = $state<{
-    question: string;
-    description: string;
-    category: string;
-    endDate: string;
-    options: { id: string; text: string; totalStaked: number; totalShares: number; }[];
-    oracleType: 'MANUAL' | 'LICHESS' | 'SYSTEM';
-    oracleConfig: { tournamentId: string; };
-  }>({
-    question: '',
-    description: '',
-    category: 'Torneos',
-    endDate: '',
-    options: [
-      { id: 'yes', text: 'Sí', totalStaked: 0, totalShares: 0 },
-      { id: 'no', text: 'No', totalStaked: 0, totalShares: 0 }
-    ],
-    oracleType: 'MANUAL',
-    oracleConfig: {
-        tournamentId: ''
+  const { form, errors, enhance, submitting, reset } = superForm(serverForm as any, {
+    validators: zod(predictionMarketSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        toast.success(editMarket ? 'Hito actualizado' : 'Hito publicado');
+        if (onSuccess) onSuccess();
+        onClose();
+      }
     }
-  });
+  }) as any;
 
   $effect(() => {
     if (editMarket) {
-      marketData = {
-        question: editMarket.question || '',
-        description: editMarket.description || '',
-        category: editMarket.category || 'Torneos',
-        endDate: editMarket.endDate ? new Date(editMarket.endDate).toISOString().slice(0, 16) : '',
-        options: editMarket.options || [
-          { id: 'yes', text: 'Sí', totalStaked: 0, totalShares: 0 },
-          { id: 'no', text: 'No', totalStaked: 0, totalShares: 0 }
-        ],
-        oracleType: (editMarket.oracleType as 'MANUAL' | 'LICHESS' | 'SYSTEM') || 'MANUAL',
-        oracleConfig: editMarket.oracleConfig || { tournamentId: '' }
-      };
+      $form.id = editMarket.id;
+      $form.question = editMarket.question || '';
+      $form.description = editMarket.description || '';
+      $form.category = editMarket.category || 'Torneos';
+      $form.endDate = editMarket.endDate ? new Date(editMarket.endDate).toISOString().slice(0, 16) : '';
+      $form.oracleType = editMarket.oracleType || 'MANUAL';
+      $form.externalId = editMarket.oracleConfig?.externalId || '';
     } else {
-      // Reset to defaults
-      marketData = {
-        question: '',
-        description: '',
-        category: 'Torneos',
-        endDate: '',
-        options: [
-          { id: 'yes', text: 'Sí', totalStaked: 0, totalShares: 0 },
-          { id: 'no', text: 'No', totalStaked: 0, totalShares: 0 }
-        ],
-        oracleType: 'MANUAL',
-        oracleConfig: { tournamentId: '' }
-      };
+      reset();
     }
   });
 
@@ -76,64 +49,7 @@
     { id: 'Academia', label: 'Academia', icon: CheckCircle, color: 'text-purple-400' }
   ];
 
-  async function handleSubmit() {
-    if (!marketData.question || !marketData.endDate) {
-      toast.error('Completa los campos obligatorios');
-      return;
-    }
-
-    loading = true;
-    try {
-      // Get correct school ID from store
-      const schoolId = appStore.school?.id || $appStore.schools?.[0]?.id || 'default';
-      
-      const finalEndDate = new Date(marketData.endDate).toISOString();
-      
-      const payload = {
-        question: marketData.question,
-        description: marketData.description,
-        category: marketData.category,
-        endDate: finalEndDate,
-        options: marketData.options,
-        oracleType: marketData.oracleType,
-        oracleConfig: {
-          ...(marketData.oracleConfig.tournamentId ? { externalId: marketData.oracleConfig.tournamentId, tournamentId: marketData.oracleConfig.tournamentId } : {}),
-          validationSource: marketData.oracleType === 'LICHESS' ? 'LICHESS_API' : 'MANUAL'
-        },
-        schoolId
-      };
-
-      if (editMarket) {
-        await predictionApi.updateMarket(editMarket.id, payload as any);
-        toast.success('Hito actualizado correctamente');
-      } else {
-        console.log("[Modal] Creating market:", payload);
-        await predictionApi.createMarket(payload as any);
-        toast.success('Hito de pronóstico publicado con éxito');
-      }
-      
-      if (onSuccess) onSuccess();
-      onClose();
-      // Reset form
-      marketData = {
-        question: '',
-        description: '',
-        category: 'Torneos',
-        endDate: '',
-        options: [
-          { id: 'yes', text: 'Sí', totalStaked: 0, totalShares: 0 },
-          { id: 'no', text: 'No', totalStaked: 0, totalShares: 0 }
-        ],
-        oracleType: 'MANUAL' as 'MANUAL',
-        oracleConfig: { tournamentId: '' }
-      };
-    } catch (e: any) {
-      console.error("[Modal] Submission error:", e);
-      toast.error('Error: ' + (e.message || 'Error al procesar la solicitud'));
-    } finally {
-      loading = false;
-    }
-  }
+  let loading = $derived($submitting);
 </script>
 
 {#if show}
@@ -152,10 +68,15 @@
     ></div>
 
     <!-- Modal Content -->
-    <div 
+    <form 
+      method="POST"
+      action="?/upsertMarket"
+      use:enhance
       class="relative w-full max-w-2xl bg-zinc-900 border border-white/5 rounded-none shadow-3xl overflow-hidden flex flex-col max-h-[95vh]"
       transition:scale={{ duration: 400, start: 0.9, opacity: 0 }}
     >
+      <input type="hidden" name="id" bind:value={$form.id} />
+      <input type="hidden" name="schoolId" bind:value={$form.schoolId} />
       <!-- Header -->
       <div class="p-10 border-b border-white/5 flex items-center justify-between bg-zinc-900/80">
         <div class="flex items-center gap-6">
@@ -188,15 +109,18 @@
             <input 
               id="market-question"
               type="text" 
-              bind:value={marketData.question}
+              name="question"
+              bind:value={$form.question}
               placeholder="Ej: ¿El equipo A ganará el torneo inter-clubes?"
               class="w-full bg-white/[0.03] border border-white/10 p-6 pl-16 text-white font-bold text-xl focus:border-white/40 focus:bg-white/[0.05] outline-none transition-all placeholder:text-zinc-800"
             />
           </div>
+          {#if $errors.question}<p class="text-[10px] text-red-500 uppercase font-black px-1">{$errors.question}</p>{/if}
           <textarea 
             id="market-description"
+            name="description"
             placeholder="Descripción adicional u objetivos específicos (opcional)..."
-            bind:value={marketData.description}
+            bind:value={$form.description}
             rows="2"
             class="w-full bg-white/[0.02] border border-white/5 p-6 text-sm text-zinc-400 font-medium focus:border-white/20 outline-none transition-all resize-none placeholder:text-zinc-800 italic"
           ></textarea>
@@ -211,12 +135,13 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {#each categories as cat}
               <button 
-                onclick={() => marketData.category = cat.id}
-                class="flex flex-col items-center gap-3 p-6 border transition-all relative overflow-hidden group {marketData.category === cat.id ? 'bg-white border-white text-black' : 'bg-white/5 border-white/5 text-zinc-500 hover:border-white/20'}"
+                type="button"
+                onclick={() => $form.category = cat.id as any}
+                class="flex flex-col items-center gap-3 p-6 border transition-all relative overflow-hidden group {$form.category === cat.id ? 'bg-white border-white text-black' : 'bg-white/5 border-white/5 text-zinc-500 hover:border-white/20'}"
               >
-                <cat.icon size={24} weight={marketData.category === cat.id ? 'bold' : 'duotone'} class={marketData.category === cat.id ? 'text-black' : cat.color} />
+                <cat.icon size={24} weight={$form.category === cat.id ? 'bold' : 'duotone'} class={$form.category === cat.id ? 'text-black' : cat.color} />
                 <span class="text-[10px] font-black uppercase tracking-wider">{cat.label}</span>
-                {#if marketData.category === cat.id}
+                {#if $form.category === cat.id}
                    <div class="absolute -right-2 -top-2 opacity-10">
                      <cat.icon size={48} weight="bold" />
                    </div>
@@ -238,10 +163,12 @@
                     <input 
                         id="market-end-date"
                         type="datetime-local" 
-                        bind:value={marketData.endDate}
+                        name="endDate"
+                        bind:value={$form.endDate}
                         class="w-full bg-white/[0.03] border border-white/10 p-6 pl-16 text-white font-black uppercase text-xs focus:border-white/40 focus:bg-white/[0.05] outline-none transition-all [color-scheme:dark]"
                     />
                 </div>
+                {#if $errors.endDate}<p class="text-[10px] text-red-500 uppercase font-black px-1">{$errors.endDate}</p>{/if}
                 <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-tighter italic">Pasada esta hora, no se podrán realizar más pronósticos.</p>
             </div>
 
@@ -282,7 +209,8 @@
                 </div>
                 <select 
                     id="oracle-type"
-                    bind:value={marketData.oracleType}
+                    name="oracleType"
+                    bind:value={$form.oracleType}
                     class="bg-zinc-950 border border-white/10 p-3 text-[10px] text-white font-black uppercase outline-none focus:border-white transition-all appearance-none px-6"
                 >
                     <option value="MANUAL">Resolución Manual</option>
@@ -290,13 +218,14 @@
                 </select>
             </div>
 
-            {#if marketData.oracleType === 'LICHESS'}
+            {#if $form.oracleType === 'LICHESS'}
                 <div class="pt-6 border-t border-white/5 space-y-4" transition:slide>
                     <label for="lichess-tournament-id" class="text-[10px] font-black text-zinc-500 uppercase tracking-wider">ID de Torneo Lichess</label>
                     <input 
                         id="lichess-tournament-id"
                         type="text" 
-                        bind:value={marketData.oracleConfig.tournamentId}
+                        name="externalId"
+                        bind:value={$form.externalId}
                         placeholder="Ej: nP8zXUvW"
                         class="w-full bg-zinc-950 border border-white/10 p-5 text-sm text-white font-bold outline-none focus:border-white transition-all"
                     />
@@ -308,13 +237,7 @@
       <!-- Footer -->
       <div class="p-10 border-t border-white/5 bg-zinc-900/90 flex justify-between items-center">
         <button 
-          onclick={onClose}
-          class="text-xs font-black text-zinc-600 uppercase tracking-wider hover:text-white transition-all underline underline-offset-8 decoration-zinc-800 hover:decoration-white"
-        >
-          Descartar Cambios
-        </button>
-        <button 
-          onclick={handleSubmit}
+          type="submit"
           disabled={loading}
           class="px-16 py-6 bg-white text-black text-xs font-black uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 shadow-3xl relative group overflow-hidden"
         >
@@ -322,7 +245,7 @@
           <div class="absolute inset-0 bg-zinc-100 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
         </button>
       </div>
-    </div>
+    </form>
   </div>
 {/if}
 

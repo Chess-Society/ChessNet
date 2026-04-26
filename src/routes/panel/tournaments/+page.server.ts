@@ -1,7 +1,58 @@
+import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import { checkPlanGating } from '$lib/server/plans';
+import { TOURNAMENT_TEMPLATES } from '$lib/constants/chess-presets';
+
+export const actions: Actions = {
+  delete: async ({ request, locals }) => {
+    if (!locals.user) return fail(401);
+    const data = await request.formData();
+    const id = data.get('id') as string;
+
+    if (!id) return fail(400, { message: 'Missing tournament ID' });
+
+    try {
+      const doc = await adminDb.collection('local_tournaments').doc(id).get();
+      if (!doc.exists || doc.data()?.owner_id !== locals.user.uid) {
+        return fail(403, { message: 'Unauthorized' });
+      }
+
+      await adminDb.collection('local_tournaments').doc(id).delete();
+      return { success: true };
+    } catch (err) {
+      console.error('Error deleting tournament:', err);
+      return fail(500, { message: 'Internal Server Error' });
+    }
+  },
+
+  importTemplates: async ({ locals }) => {
+    if (!locals.user) return fail(401);
+
+    try {
+      const uid = locals.user.uid;
+      const batch = adminDb.batch();
+      
+      TOURNAMENT_TEMPLATES.forEach(template => {
+        const ref = adminDb.collection('local_tournaments').doc();
+        batch.set(ref, {
+          ...template,
+          owner_id: uid,
+          status: 'upcoming',
+          created_at: new Date().toISOString(),
+          players_registered: 0
+        });
+      });
+
+      await batch.commit();
+      return { success: true };
+    } catch (err) {
+      console.error('Error importing templates:', err);
+      return fail(500, { message: 'Internal Server Error' });
+    }
+  }
+};
 
 export const load: PageServerLoad = async (event) => {
   const { locals } = event;

@@ -1,93 +1,100 @@
-import type { PageServerLoad } from './$types';
+import { fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { attendanceSchema } from '$lib/schemas/attendance';
 import { adminDb } from '$lib/server/firebase-admin';
-import { serializeRecord } from '$lib/server/serialize';
+import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
+  const session = await locals.auth();
+  if (!session?.user) throw redirect(303, '/auth/login');
 
-  if (!locals.user) {
-    return {
-      user: null,
-      attendanceData: {
-        todayStats: { totalClasses: 0, classesWithAttendance: 0, totalStudents: 0, presentStudents: 0, absentStudents: 0, attendanceRate: 0 },
-        centersWithClasses: [],
-        recentAttendance: [],
-        upcomingClasses: []
-      }
-    };
-  }
+  const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0];
+  const classId = url.searchParams.get('classId');
 
-  const uid = locals.user.uid;
-  try {
-    const [schoolsSnap, studentsSnap] = await Promise.all([
-      adminDb.collection('schools').where('owner_id', '==', uid).get(),
-      adminDb.collection('students').where('owner_id', '==', uid).get()
-    ]);
+  // Load students and classes for the teacher
+  const [studentsSnap, classesSnap, attendanceSnap] = await Promise.all([
+    adminDb.collection('students').where('teacherId', '==', session.user.id).get(),
+    adminDb.collection('classes').where('teacherId', '==', session.user.id).get(),
+    adminDb.collection('attendance').where('owner_id', '==', session.user.id).get()
+  ]);
 
-    const schools = schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
-    const allStudents = studentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+  const students = studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+  const classes = classesSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+  const allAttendance = attendanceSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+  
+  const currentAttendance = allAttendance.filter((a: any) => 
+    a.classId === classId && a.date === date
+  );
 
-    const centersWithClasses = await Promise.all(schools.map(async (school: any) => {
-      const classesSnap = await adminDb.collection('classes')
-        .where('owner_id', '==', uid)
-        .where('school_id', '==', school.id)
-        .get();
-      
-      const classes = classesSnap.docs.map((d: any) => ({
-        id: d.id,
-        name: d.data().name,
-        time: d.data().schedule || 'Sin horario',
-        students: allStudents.filter((s: any) => s.class_id === d.id).length,
-        present: 0,
-        absent: 0,
-        attendanceRate: 0,
-        attendanceTaken: false,
-        lastAttendance: null
-      }));
-
-      const schoolStudents = allStudents.filter((s: any) => s.school_id === school.id);
-
+  // Initialize form with existing records or defaults
+  const initialRecords = classId ? students
+    .filter((s: any) => s.classId === classId)
+    .map((s: any) => {
+      const existing = currentAttendance.find((r: any) => r.studentId === s.id);
       return {
-        id: school.id,
-        name: school.name,
-        city: school.city,
-        totalClasses: classes.length,
-        classesToday: 0,
-        totalStudents: schoolStudents.length,
-        attendanceRate: 0,
-        nextClass: null,
-        classes
+        studentId: s.id,
+        status: existing ? existing.status : 'unmarked'
       };
-    }));
+    }) : [];
 
-    const attendanceData = {
-      todayStats: {
-        totalClasses: centersWithClasses.reduce((sum: number, s: any) => sum + s.totalClasses, 0),
-        classesWithAttendance: 0,
-        totalStudents: allStudents.length,
-        presentStudents: 0,
-        absentStudents: 0,
-        attendanceRate: 0
-      },
-      centersWithClasses: serializeRecord(centersWithClasses),
-      recentAttendance: [],
-      upcomingClasses: []
-    };
+  const form = await superValidate(
+    { classId: classId || '', date, records: initialRecords },
+    zod(attendanceSchema as any)
+  );
 
-    return {
-      user: locals.user,
-      attendanceData
-    };
+  return {
+    form,
+    students,
+    classes,
+    allAttendance,
+    selectedDate: date,
+    selectedClassId: classId
+  };
+};
 
-  } catch (err: any) {
-    console.error('❌ Error loading attendance data:', err);
-    return {
-      user: locals.user,
-      attendanceData: {
-        todayStats: { totalClasses: 0, classesWithAttendance: 0, totalStudents: 0, presentStudents: 0, absentStudents: 0, attendanceRate: 0 },
-        centersWithClasses: [],
-        recentAttendance: [],
-        upcomingClasses: []
-      }
-    };
+export const actions: Actions = {
+  update: async ({ request, locals }) => {
+    const session = await locals.auth();
+    if (!session?.user) return fail(401);
+
+    const form = await superValidate(request, zod(attendanceSchema as any));
+    if (!form.valid) return fail(400, { form });
+
+    const { classId, date, records } = form.data as any;
+    const batch = adminDb.batch();
+
+    for (const record of records) {
+      if (record.status === 'unmarked') continue;
+
+      const attendanceId = `${record.studentId}_${classId}_${date}`;
+      const docRef = adminDb.collection('attendance').doc(attendanceId);
+      
+      batch.set(docRef, {
+        id: attendanceId,
+        studentId: record.studentId,
+        classId,
+        date,
+        status: record.status,
+        owner_id: session.user.id,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    }
+
+    // Reward teacher for taking attendance (consistent with legacy logic)
+    // We add a transaction record for the teacher
+    const netsRef = adminDb.collection('nets_transactions').doc();
+    batch.set(netsRef, {
+      userId: session.user.id,
+      amount: 10,
+      type: 'EARN',
+      reason: `Asistencia: ${date} (${classId})`,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+
+    await batch.commit();
+
+    return { form };
   }
 };

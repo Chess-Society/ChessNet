@@ -29,6 +29,9 @@
   import type { PageData } from './$types';
   import { fade, fly, scale, slide } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';
+  import { enhance } from '$app/forms';
+
+  import { tick } from 'svelte';
 
   let { data } = $props<{ data: PageData }>();
   
@@ -40,7 +43,7 @@
     difficulty: 'beginner' | 'intermediate' | 'advanced';
     created_at?: string;
     assigned_at?: string;
-    order?: number;
+    orderIndex?: number;
     assignment_id?: string;
     skill?: {
       name: string;
@@ -62,15 +65,11 @@
   }
 
   let classData = $derived(data.class as unknown as LocalClass);
-  let assignedSkills = $state<ExtendedSkill[]>([]);
-  let availableSkillsByCategory = $state<Record<string, ExtendedSkill[]>>({});
-  let stats = $state({ assigned: 0, available: 0, byCategory: {} as Record<string, number> });
+  let assignedSkills = $derived((data.assignedSkills as unknown as ExtendedSkill[]) || []);
+  let availableSkillsByCategory = $derived((data.availableSkillsByCategory as unknown as Record<string, ExtendedSkill[]>) || {});
+  let stats = $derived(data.stats || { assigned: 0, available: 0, byCategory: {} as Record<string, number> });
 
   $effect(() => {
-    assignedSkills = (data.assignedSkills as unknown as ExtendedSkill[]) || [];
-    availableSkillsByCategory = (data.availableSkillsByCategory as unknown as Record<string, ExtendedSkill[]>) || {};
-    stats = data.stats || { assigned: 0, available: 0, byCategory: {} as Record<string, number> };
-    
     // Expand categories by default
     Object.keys(availableSkillsByCategory).forEach(category => {
       if (expandedCategories[category] === undefined) {
@@ -129,69 +128,16 @@
     goto(`/panel/classes/${classData?.id}`);
   };
 
-  const handleAssignSkill = async (skillId: string) => {
-    try {
-      isAssigning = true;
-      
-      const response = await fetch('/api/class-skills', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          class_id: classData?.id,
-          skill_id: skillId
-        })
-      });
+  let skillFormEl = $state<HTMLFormElement>();
+  let selectedSkillId = $state('');
+  let skillFormAction = $state('?/assign');
+  let reorderData = $state('');
 
-      if (response.ok) {
-        let skillToMove = null;
-        let categoryToUpdate = '';
-        
-        for (const [category, skills] of Object.entries(availableSkillsByCategory || {})) {
-          const skill = skills.find(s => s.id === skillId);
-          if (skill) {
-            skillToMove = skill;
-            categoryToUpdate = category;
-            break;
-          }
-        }
-        
-        if (skillToMove) {
-          const newAssignedSkill = {
-            ...skillToMove,
-            assigned_at: new Date().toISOString(),
-            order: assignedSkills.length + 1,
-            assignment_id: `csk-${Date.now()}`
-          };
-          
-          assignedSkills = [...assignedSkills, newAssignedSkill];
-          
-          availableSkillsByCategory[categoryToUpdate] = availableSkillsByCategory[categoryToUpdate]
-            .filter(s => s.id !== skillId);
-          
-          if (availableSkillsByCategory[categoryToUpdate].length === 0) {
-            delete availableSkillsByCategory[categoryToUpdate];
-          }
-          
-          stats.assigned += 1;
-          stats.available -= 1;
-          if (!stats.byCategory[skillToMove.category]) {
-            stats.byCategory[skillToMove.category] = 0;
-          }
-          stats.byCategory[skillToMove.category]++;
-        }
-        
-        showToast.success($t('common.success.action'));
-      } else {
-        const error = await response.json();
-        showToast.error(error.error || 'Error assigning skill');
-      }
-    } catch (error: any) {
-      showToast.error('Error assigning skill');
-    } finally {
-      isAssigning = false;
-    }
+  const handleAssignSkill = async (skillId: string) => {
+    selectedSkillId = skillId;
+    skillFormAction = '?/assign';
+    await tick();
+    skillFormEl?.requestSubmit();
   };
 
   const handleUnassignSkill = async (skillId: string) => {
@@ -205,72 +151,61 @@
     
     if (!confirmed) return;
 
-    try {
-      const response = await fetch(`/api/class-skills?class_id=${classData?.id}&skill_id=${skillId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        if (skill) {
-          const { assigned_at, order, assignment_id, ...skillData } = skill;
-          
-          if (!availableSkillsByCategory[skill.category]) {
-            availableSkillsByCategory[skill.category] = [];
-          }
-          availableSkillsByCategory[skill.category].push(skillData);
-          
-          assignedSkills = assignedSkills.filter(s => s.id !== skillId);
-          
-          stats.assigned -= 1;
-          stats.available += 1;
-          stats.byCategory[skill.category]--;
-          if (stats.byCategory[skill.category] === 0) {
-            delete stats.byCategory[skill.category];
-          }
-        }
-        
-        showToast.success($t('common.success.action'));
-      } else {
-        const error = await response.json();
-        showToast.error(error.error || 'Error removing skill');
-      }
-    } catch (error: any) {
-      showToast.error('Error removing skill');
-    }
+    selectedSkillId = skillId;
+    skillFormAction = '?/unassign';
+    await tick();
+    skillFormEl?.requestSubmit();
   };
 
   const toggleCategory = (category: string) => {
     expandedCategories[category] = !expandedCategories[category];
   };
 
-  const moveSkillUp = (index: number) => {
+  const moveSkillUp = async (index: number) => {
     if (index > 0) {
-      const newAssignedSkills = [...assignedSkills];
-      [newAssignedSkills[index - 1], newAssignedSkills[index]] = 
-      [newAssignedSkills[index], newAssignedSkills[index - 1]];
-      
-      newAssignedSkills.forEach((skill, i) => {
-        skill.order = i + 1;
-      });
-      
-      assignedSkills = newAssignedSkills;
+      const newSkills = [...assignedSkills];
+      [newSkills[index - 1], newSkills[index]] = [newSkills[index], newSkills[index - 1]];
+      await triggerReorder(newSkills);
     }
   };
 
-  const moveSkillDown = (index: number) => {
+  const moveSkillDown = async (index: number) => {
     if (index < assignedSkills.length - 1) {
-      const newAssignedSkills = [...assignedSkills];
-      [newAssignedSkills[index], newAssignedSkills[index + 1]] = 
-      [newAssignedSkills[index + 1], newAssignedSkills[index]];
-      
-      newAssignedSkills.forEach((skill, i) => {
-        skill.order = i + 1;
-      });
-      
-      assignedSkills = newAssignedSkills;
+      const newSkills = [...assignedSkills];
+      [newSkills[index], newSkills[index + 1]] = [newSkills[index + 1], newSkills[index]];
+      await triggerReorder(newSkills);
     }
   };
+
+  async function triggerReorder(newSkills: ExtendedSkill[]) {
+    const reorderings = newSkills.map((s, i) => ({ skillId: s.id, order: i }));
+    reorderData = JSON.stringify(reorderings);
+    skillFormAction = '?/reorder';
+    await tick();
+    skillFormEl?.requestSubmit();
+  }
 </script>
+
+<form 
+  method="POST" 
+  action={skillFormAction} 
+  use:enhance={() => {
+    isAssigning = true;
+    return async ({ result }) => {
+      isAssigning = false;
+      if (result.type === 'success') {
+        showToast.success($t('common.success.action'));
+      } else if (result.type === 'failure') {
+        showToast.error(result.data?.message || $t('common.error.generic'));
+      }
+    };
+  }} 
+  bind:this={skillFormEl} 
+  class="hidden"
+>
+  <input type="hidden" name="skillId" value={selectedSkillId} />
+  <input type="hidden" name="reorderings" value={reorderData} />
+</form>
 
 <svelte:head>
   <title>Syllabus - {classData?.name || 'Class'} - ChessNet</title>

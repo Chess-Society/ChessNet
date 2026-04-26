@@ -23,9 +23,10 @@
   interface Props {
     post: SocialPost;
     onDelete?: (id: string) => void;
+    onEdit?: (post: SocialPost) => void;
   }
   
-  let { post, onDelete }: Props = $props();
+  let { post, onDelete, onEdit }: Props = $props();
   
   let showTipModal = $state(false);
   let isReacting = $state(false);
@@ -212,30 +213,35 @@
         </div>
         
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {#if isAdmin}
+          {#if isAdmin || isAuthor}
             <div class="flex items-center gap-1">
-              <button 
-                onclick={handleToggleFeature}
-                class="p-1.5 transition-colors flex items-center gap-1 {post.isFeatured ? 'text-violet-400' : 'text-zinc-700 hover:text-violet-400'}"
-                title="Destacar Post"
-              >
-                <Trophy size={14} weight={post.isFeatured ? "fill" : "bold"} />
-              </button>
-              <button 
-                onclick={handleAdminDelete}
-                class="p-1.5 text-red-500/50 hover:text-red-500 transition-colors flex items-center gap-1"
-                title="Eliminar como Administrador"
-              >
-                <Trash size={14} />
-              </button>
+              {#if isAdmin}
+                <button 
+                  onclick={handleToggleFeature}
+                  class="p-1.5 transition-colors flex items-center gap-1 {post.isFeatured ? 'text-violet-400' : 'text-zinc-700 hover:text-violet-400'}"
+                  title="Destacar Post"
+                >
+                  <Trophy size={14} weight={post.isFeatured ? "fill" : "bold"} />
+                </button>
+              {/if}
+              
+              {#if isAuthor || isAdmin}
+                <button 
+                  onclick={() => onEdit?.(post)}
+                  class="p-1.5 text-zinc-700 hover:text-white transition-colors"
+                  title="Editar Publicación"
+                >
+                  <ArrowSquareOut size={14} weight="bold" />
+                </button>
+                <button 
+                  onclick={isAdmin && !isAuthor ? handleAdminDelete : handleDelete}
+                  class="p-1.5 text-zinc-700 hover:text-red-500 transition-colors"
+                  title="Eliminar Publicación"
+                >
+                  <Trash size={14} />
+                </button>
+              {/if}
             </div>
-          {:else if isAuthor && onDelete}
-            <button 
-              onclick={handleDelete}
-              class="p-1.5 text-zinc-700 hover:text-red-500 transition-colors"
-            >
-              <Trash size={14} />
-            </button>
           {/if}
           <button class="p-1.5 text-zinc-700 hover:text-white transition-colors">
             <DotsThreeVertical size={16} weight="bold" />

@@ -4,6 +4,7 @@ declare global {
   namespace App {
     // interface Error {}
     interface Locals {
+      auth(): Promise<any>;
       user: any | null;
       isAdmin: boolean;
       impersonateEmail: string | null;

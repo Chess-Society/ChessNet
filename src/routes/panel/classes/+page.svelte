@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
   import { 
     GraduationCap, 
     Plus, 
@@ -35,6 +36,7 @@
   import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
 
   let showDeleteModal = $state(false);
+  let showDeleteAllModal = $state(false);
   let classToDelete = $state<{id: string, name: string} | null>(null);
 
   let searchQuery = $state('');
@@ -78,27 +80,32 @@
     }
   };
 
-  const confirmDelete = () => {
-    if (classToDelete) {
-      appStore.removeClass(classToDelete.id);
+  let deleteForm = $state<HTMLFormElement | null>(null);
+  let purgeForm = $state<HTMLFormElement | null>(null);
+
+  const confirmDelete = async () => {
+    if (classToDelete && deleteForm) {
+      await tick();
+      deleteForm.requestSubmit();
       showDeleteModal = false;
       classToDelete = null;
     }
   };
 
-  let showDeleteAllModal = $state(false);
-
   const confirmDeleteAll = async () => {
-    try {
-      await appStore.removeAllClasses();
-      toast.success($t('classes.toast_all_deleted') || 'Todas las clases han sido eliminadas');
-    } catch (err) {
-      toast.error($t('common.error_occurred') || 'Ha ocurrido un error');
-    } finally {
+    if (purgeForm) {
+      await tick();
+      purgeForm.requestSubmit();
       showDeleteAllModal = false;
     }
   };
 </script>
+
+<form method="POST" action="?/delete" use:enhance bind:this={deleteForm} class="hidden">
+  <input type="hidden" name="id" value={classToDelete?.id} />
+</form>
+
+<form method="POST" action="?/purge" use:enhance bind:this={purgeForm} class="hidden"></form>
 
 <svelte:head>
   <title>{$t('classes.title')} - ChessNet</title>

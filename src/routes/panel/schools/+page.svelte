@@ -21,9 +21,14 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
+  import { enhance } from '$app/forms';
+  import { tick } from 'svelte';
 
   let showDeleteModal = $state(false);
   let schoolToDelete = $state<{id: string, name: string} | null>(null);
+
+  let deleteForm: HTMLFormElement;
+  let purgeForm: HTMLFormElement;
 
   let searchQuery = $state('');
 
@@ -63,11 +68,8 @@
 
   const confirmDelete = async () => {
     if (schoolToDelete) {
-      try {
-        await appStore.removeSchool(schoolToDelete.id);
-      } catch (e) {
-        console.error('Delete school failed:', e);
-      }
+      await tick();
+      deleteForm.requestSubmit();
       showDeleteModal = false;
       schoolToDelete = null;
     }
@@ -76,14 +78,8 @@
   let showDeleteAllModal = $state(false);
 
   const confirmDeleteAll = async () => {
-    try {
-      await appStore.removeAllSchools();
-      toast.success($t('schools.toast_all_deleted') || 'Todos los centros han sido eliminados');
-    } catch (err) {
-      toast.error($t('common.error_occurred') || 'Ha ocurrido un error');
-    } finally {
-      showDeleteAllModal = false;
-    }
+    purgeForm.requestSubmit();
+    showDeleteAllModal = false;
   };
 </script>
 
@@ -92,6 +88,41 @@
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-6 pb-12" transition:fade>
+  
+  <!-- Programmatic Forms for Deletions -->
+  <form 
+    method="POST" 
+    action="?/delete" 
+    use:enhance={() => {
+      return async ({ result }) => {
+        if (result.type === 'success') {
+          toast.success($t('schools.toast_update_success') || 'Centro eliminado');
+        } else {
+          toast.error($t('common.error_occurred'));
+        }
+      };
+    }} 
+    bind:this={deleteForm} 
+    class="hidden"
+  >
+    <input type="hidden" name="id" value={schoolToDelete?.id} />
+  </form>
+
+  <form 
+    method="POST" 
+    action="?/purge" 
+    use:enhance={() => {
+      return async ({ result }) => {
+        if (result.type === 'success') {
+          toast.success($t('schools.toast_all_deleted') || 'Todos los centros eliminados');
+        } else {
+          toast.error($t('common.error_occurred'));
+        }
+      };
+    }} 
+    bind:this={purgeForm} 
+    class="hidden"
+  />
   
   <!-- Header Section -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 pt-12">

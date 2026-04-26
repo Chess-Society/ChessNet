@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fade, fly, slide } from 'svelte/transition';
+  import { tick } from 'svelte';
   import { appStore } from '$lib/stores/appStore';
   import { 
     Package, 
@@ -37,6 +38,70 @@
     UserPlus,
     SealCheck as Badge
   } from 'phosphor-svelte';
+
+  import { superForm } from 'sveltekit-superforms';
+  import { zod } from 'sveltekit-superforms/adapters';
+  import { 
+    claimTierSchema, 
+    buyItemSchema, 
+    claimChallengeSchema, 
+    equipItemSchema, 
+    openCrateSchema 
+  } from '$lib/schemas/nets';
+
+  let { data } = $props();
+
+  // Superforms Initialization
+  const { form: ctForm, enhance: enhanceCT } = superForm(data.claimTierForm as any, {
+    validators: zod(claimTierSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        showElectricOverlay = true;
+        setTimeout(() => showElectricOverlay = false, 2000);
+        toast.success('¡Recompensa reclamada!');
+      }
+    }
+  }) as any;
+
+  const { form: buyForm, enhance: enhanceBuy } = superForm(data.buyItemForm as any, {
+    validators: zod(buyItemSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        toast.success('¡Objeto adquirido!');
+      }
+    }
+  }) as any;
+
+  const { form: ccForm, enhance: enhanceCC } = superForm(data.claimChallengeForm as any, {
+    validators: zod(claimChallengeSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        toast.success('¡Desafío reclamado!');
+      }
+    }
+  }) as any;
+
+  const { form: eqForm, enhance: enhanceEQ } = superForm(data.equipItemSchema as any, {
+    validators: zod(equipItemSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        toast.success('Configuración actualizada');
+      }
+    }
+  }) as any;
+
+  const { form: crateForm, enhance: enhanceCrate } = superForm(data.openCrateForm as any, {
+    validators: zod(openCrateSchema as any),
+    onUpdated({ form, result }) {
+      if (form.valid && result.type === 'success') {
+        const winner = (result.data as any)?.winner;
+        if (winner) {
+          crateResult = winner;
+          showCrateResult = true;
+        }
+      }
+    }
+  }) as any;
 
   import { battlepassApi } from '$lib/api/battlepass';
   import { user } from '$lib/stores/auth';
@@ -215,33 +280,9 @@
     { id: 'daily-3', title: 'Expresivo', description: 'Usa 3 emotes en el feed.', xp: 100, total: 3 },
   ];
 
-  async function handleClaimTier(tier: any) {
-    if (!$user) return;
-    if (claimedTiers.includes(tier.level)) {
-      toast.error('Este nivel ya ha sido reclamado');
-      return;
-    }
-    if (currentTier < tier.level) {
-      toast.error('Nivel insuficiente para reclamar');
-      return;
-    }
-    
-    try {
-      let rewardObj: { type: string, value: any } = { type: tier.category, value: tier.reward };
-      
-      if (tier.category === 'nets') {
-        rewardObj.value = parseInt(tier.reward.replace(/\D/g, ''));
-      } else if (tier.category === 'crate') {
-        const r = tier.reward.toLowerCase();
-        rewardObj.value = r.includes('gamma') ? 'epic' : (r.includes('beta') ? 'rare' : 'basic');
-      }
-      
-      await battlepassApi.claimTier($user.uid, tier.level, rewardObj);
-      triggerPulse();
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  const handleClaimTier = (tierId: number) => {
+    $ctForm.tierId = tierId;
+  };
 
   const categoryLabels: Record<string, string> = {
     'nets': 'NETS',
@@ -272,22 +313,9 @@
     icon: iconMap[item.type] || Package
   }));
   
-  async function handleBuyItem(item: any) {
-    if (!$user) return;
-    if (netsBalance < item.price) {
-      toast.error('Nets insuficientes');
-      return;
-    }
-
-    try {
-      await battlepassApi.buyShopItem($user.uid, item);
-      triggerPulse();
-      toast.success(`¡Has comprado ${item.name}!`);
-    } catch (e) {
-      console.error(e);
-      toast.error('Error al realizar la compra');
-    }
-  }
+  const handleBuyItem = (item: any) => {
+    $buyForm.itemId = item.id;
+  };
 
   let scrollContainer = $state<HTMLDivElement | null>(null);
   function scrollTimeline(dir: 'left' | 'right') {
@@ -296,26 +324,10 @@
     }
   }
 
-  async function handleClaimChallenge(challenge: any, type: 'daily'|'weekly') {
-    if (!$user) return;
-    if (challenge.claimed) {
-      toast.error('Este reto ya ha sido reclamado');
-      return;
-    }
-    if (!challenge.completed) {
-      toast.error('El reto no ha sido completado');
-      return;
-    }
-
-    try {
-      await battlepassApi.claimChallenge($user.uid, challenge.id, type, challenge.xp || challenge.rewardXp);
-      triggerPulse();
-      toast.success('¡Recompensa reclamada!');
-    } catch (e) {
-      console.error(e);
-      toast.error('Error al reclamar el reto');
-    }
-  }
+  const handleClaimChallenge = (challenge: any, type: 'daily' | 'weekly') => {
+    $ccForm.challengeId = challenge.id;
+    $ccForm.challengeType = type;
+  };
 
   let collection = $derived($appStore.settings?.economy?.collection || {
     badges: [],
@@ -344,15 +356,10 @@
     }, 600);
   }
 
-  async function handleEquipItem(type: 'color' | 'frame' | 'font' | 'badge', value: string) {
-    if (!$user) return;
-    try {
-      await battlepassApi.equipItem($user.uid, type as any, value);
-      triggerPulse();
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  const handleEquipItem = (type: 'color' | 'frame' | 'font' | 'badge' | 'emote', value: string) => {
+    $eqForm.type = type;
+    $eqForm.value = value;
+  };
 
   let isOpeningCrate = $state(false);
   let showCrateResult = $state(false);
@@ -364,46 +371,55 @@
     icon: iconMap[r.type.toLowerCase()] || Package
   }));
 
-  let rouletteItems = $state<any[]>([]);
+  // Form Elements for programmatic submission
+  let ctFormEl: HTMLFormElement;
+  let buyFormEl: HTMLFormElement;
+  let ccFormEl: HTMLFormElement;
+  let eqFormEl: HTMLFormElement;
+  let crateFormEl: HTMLFormElement;
 
-  async function openCrate(crate: any) {
-    if (isOpeningCrate || !$user) return;
-    if (netsBalance < crate.price) {
-      toast.error('Nets insuficientes');
-      return;
-    }
+  const handleClaimTier = async (tierId: number) => {
+    $ctForm.tierId = tierId;
+    await tick();
+    ctFormEl.requestSubmit();
+  };
 
-    crateType = crate.type;
+  const handleBuyItem = async (item: any) => {
+    $buyForm.itemId = item.id;
+    await tick();
+    buyFormEl.requestSubmit();
+  };
+
+  const handleClaimChallenge = async (challenge: any, type: 'daily' | 'weekly') => {
+    $ccForm.challengeId = challenge.id;
+    $ccForm.challengeType = type;
+    await tick();
+    ccFormEl.requestSubmit();
+  };
+
+  const handleEquipItem = async (type: 'color' | 'frame' | 'font' | 'badge' | 'emote', value: string) => {
+    $eqForm.type = type;
+    $eqForm.value = value;
+    await tick();
+    eqFormEl.requestSubmit();
+  };
+
+  const openCrate = async (type: 'basic' | 'premium' | 'legendary') => {
+    $crateForm.crateType = type;
+    
     isOpeningCrate = true;
     showCrateResult = false;
-    crateResult = null;
+    crateType = type;
     
-    rouletteItems = Array(40).fill(0).map(() => possibleRewards[Math.floor(Math.random() * possibleRewards.length)]);
-    
-    try {
-      // Map UI types to API types
-      const apiType = crate.type === 'monthly' ? 'epic' : (crate.type === 'weekly' ? 'rare' : 'basic');
-      const winnerData = await battlepassApi.openCrate($user.uid, crate.price, apiType);
-      
-      let winner = possibleRewards.find(r => r.name === winnerData.name) || possibleRewards[0];
-      
-      rouletteItems[35] = winner;
-      crateResult = winner;
-      
-      rouletteOffset = 0;
-      setTimeout(() => { rouletteOffset = -(35 * 176 + 80); }, 50);
+    // Start animation
+    rouletteOffset = 0;
+    setTimeout(() => {
+      rouletteOffset = -((rouletteItems.length - 10) * 160);
+    }, 100);
 
-      setTimeout(() => {
-        triggerPulse();
-        showCrateResult = true;
-      }, 4500);
-
-    } catch (e) {
-      console.error(e);
-      isOpeningCrate = false;
-      toast.error('Error al abrir la caja');
-    }
-  }
+    await tick();
+    crateFormEl.requestSubmit();
+  };
 
   function closeCrate() {
     isOpeningCrate = false;
@@ -413,6 +429,28 @@
 
   let rouletteOffset = $state(0);
 </script>
+
+<form method="POST" action="?/claimTier" use:enhanceCT bind:this={ctFormEl} class="hidden">
+  <input type="hidden" name="tierId" bind:value={$ctForm.tierId} />
+</form>
+
+<form method="POST" action="?/buyItem" use:enhanceBuy bind:this={buyFormEl} class="hidden">
+  <input type="hidden" name="itemId" bind:value={$buyForm.itemId} />
+</form>
+
+<form method="POST" action="?/claimChallenge" use:enhanceCC bind:this={ccFormEl} class="hidden">
+  <input type="hidden" name="challengeId" bind:value={$ccForm.challengeId} />
+  <input type="hidden" name="challengeType" bind:value={$ccForm.challengeType} />
+</form>
+
+<form method="POST" action="?/equipItem" use:enhanceEQ bind:this={eqFormEl} class="hidden">
+  <input type="hidden" name="type" bind:value={$eqForm.type} />
+  <input type="hidden" name="value" bind:value={$eqForm.value} />
+</form>
+
+<form method="POST" action="?/openCrate" use:enhanceCrate bind:this={crateFormEl} class="hidden">
+  <input type="hidden" name="crateType" bind:value={$crateForm.crateType} />
+</form>
 
 <svelte:head>
   <title>Economía & Pase | ChessNet</title>

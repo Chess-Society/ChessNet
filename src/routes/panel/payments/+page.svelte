@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t } from '$lib/i18n';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { 
     Plus, 
     MagnifyingGlass, 
@@ -34,10 +34,20 @@
   import { uiStore } from '$lib/stores/uiStore';
   import { showError, toast } from '$lib/stores/toast';
   import { fade, fly, scale } from 'svelte/transition';
+  import { superForm } from 'sveltekit-superforms';
+  import { zod } from 'sveltekit-superforms/adapters';
+  import { paymentSchema } from '$lib/schemas/payment';
+
+  let { data } = $props();
 
   // Auth & Access Control
-  // Data derived from AppStore
-  let payments = $derived($appStore.payments || []);
+  const plan = $derived($appStore?.settings?.plan || 'free');
+  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+
+  // Data from Server Load
+  let payments = $derived(data.payments || []);
+  let students = $derived(data.students || []);
+  let schools = $derived(data.schools || []);
 
   onMount(() => {
     if (plan === 'free' && !isAdmin) {
@@ -47,14 +57,6 @@
   });
 
   let searchQuery = $state('');
-  
-  // Auth & Access Control
-  const plan = $derived($appStore?.settings?.plan || 'free');
-  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
-  
-  // Related data
-  let students = $derived($appStore.students || []);
-  let schools = $derived($appStore.schools || []);
 
   const getEntityName = (id: string, type: 'student' | 'school' = 'student') => {
     if (type === 'school') {
@@ -107,58 +109,37 @@
       .sort((a,b) => (b.paidDate || b.createdAt || '').localeCompare(a.paidDate || a.createdAt || ''))
   );
 
-  // Modal & Actions state
+  // Modal & Superform state
   let showModal = $state(false);
   let editMode = $state(false);
   let isDeleting = $state<string | null>(null);
+  let deleteForm = $state<HTMLFormElement | null>(null);
+  let deleteId = $state<string>('');
 
-  let formState = $state({
-    id: '',
-    studentId: '',
-    amount: 0,
-    paidDate: new Date().toISOString().split('T')[0],
-    concept: 'monthly_fee' as any,
-    status: 'paid' as any,
-    paymentType: 'student' as 'student' | 'school',
-    paymentMethod: 'transfer' as any
+  const { form, errors, enhance, reset, constraints, message } = superForm(data.form, {
+    validators: zod(paymentSchema),
+    dataType: 'json',
+    onUpdated({ form }) {
+      if (form.valid) {
+        toast.success(editMode ? $t('payments.update_success') : $t('payments.add_success'));
+        showModal = false;
+        reset();
+      }
+    },
+    onError({ result }) {
+      toast.error(result.error.message || $t('payments.error_action'));
+    }
   });
 
-  const resetForm = () => {
-    formState = { 
-    id: '',
-    studentId: '', 
-    amount: 0, 
-    paidDate: new Date().toISOString().split('T')[0], 
-    concept: 'monthly_fee' as any, 
-    status: 'paid' as any,
-    paymentType: 'student',
-    paymentMethod: 'transfer'
-    };
+  const openNew = () => {
+    reset();
+    $form.paidDate = new Date().toISOString().split('T')[0];
     editMode = false;
-  };
-
-  const addPayment = async () => {
-    if (!formState.studentId || formState.amount <= 0) return;
-    
-    try {
-      if (editMode && formState.id) {
-        await appStore.updatePayment(formState);
-        toast.success($t('payments.update_success'));
-      } else {
-        const { id, ...data } = formState;
-        await appStore.addPayment(data);
-        toast.success($t('payments.add_success'));
-      }
-      showModal = false;
-      resetForm();
-    } catch (err: any) {
-      console.error('Error in payment action:', err);
-      showError(err, $t('payments.error_action'));
-    }
+    showModal = true;
   };
 
   const openEdit = (payment: any) => {
-    formState = { ...payment };
+    $form = { ...payment };
     editMode = true;
     showModal = true;
   };
@@ -174,16 +155,9 @@
 
     if (!confirmed) return;
 
-    isDeleting = id;
-    try {
-      await appStore.removePayment(id);
-      toast.success($t('payments.delete_success'));
-    } catch (err: any) {
-      console.error('Error deleting payment:', err);
-      showError(err, $t('payments.error_delete'));
-    } finally {
-      isDeleting = null;
-    }
+    deleteId = id;
+    await tick();
+    deleteForm?.requestSubmit();
   };
 
   const exportToCSV = () => {
@@ -222,6 +196,7 @@
     }).format(amount);
   };
 
+
 </script>
 
 <svelte:head>
@@ -249,7 +224,7 @@
         <FileArrowDown size={20} />
         <span class="desktop-only text-xs font-bold uppercase tracking-widest">CSV</span>
       </button>
-      <button class="glass-btn primary" onclick={() => { resetForm(); showModal = true; }}>
+      <button class="glass-btn primary" onclick={openNew}>
         <Plus size={20} weight="bold" />
         <span>{$t('payments.new_payment')}</span>
       </button>
@@ -427,25 +402,27 @@
           <button class="close-x" onclick={() => showModal = false}><X size={24} /></button>
         </div>
 
-        <form onsubmit={(e) => { e.preventDefault(); addPayment(); }} class="ledger-form">
+        <form method="POST" action="?/upsert" use:enhance class="ledger-form">
+          <input type="hidden" name="id" bind:value={$form.id} />
           <div class="form-section">
             <span class="label">{$t('payments.entity_category')}</span>
             <div class="toggle-group">
-              <button type="button" class:active={formState.paymentType === 'student'} onclick={() => formState.paymentType = 'student'}>
+              <button type="button" class:active={$form.paymentType === 'student'} onclick={() => $form.paymentType = 'student'}>
                 <User size={18} /> {$t('common.student')}
               </button>
-              <button type="button" class:active={formState.paymentType === 'school'} onclick={() => formState.paymentType = 'school'}>
+              <button type="button" class:active={$form.paymentType === 'school'} onclick={() => $form.paymentType = 'school'}>
                 <Buildings size={18} /> {$t('common.school')}
               </button>
             </div>
+            <input type="hidden" name="paymentType" value={$form.paymentType} />
           </div>
 
           <div class="field-group">
-            <label for="entity-select">{$t('payments.select_entity', { type: formState.paymentType === 'school' ? $t('common.school') : $t('common.student') })}</label>
+            <label for="entity-select">{$t('payments.select_entity', { type: $form.paymentType === 'school' ? $t('common.school') : $t('common.student') })}</label>
             <div class="select-input">
-              <select id="entity-select" bind:value={formState.studentId} required>
+              <select id="entity-select" name="studentId" bind:value={$form.studentId} required>
                 <option value="" disabled selected>{$t('common.select_option')}...</option>
-                {#if formState.paymentType === 'school'}
+                {#if $form.paymentType === 'school'}
                   {#each schools as school}
                     <option value={school.id}>{school.name}</option>
                   {/each}
@@ -456,23 +433,26 @@
                 {/if}
               </select>
             </div>
+            {#if $errors.studentId}<span class="text-red-500 text-[10px]">{$errors.studentId}</span>{/if}
           </div>
 
           <div class="grid-2">
             <div class="field-group">
               <label for="amount-input">{$t('payments.amount')} (€)</label>
-              <input id="amount-input" type="number" step="0.01" bind:value={formState.amount} required />
+              <input id="amount-input" name="amount" type="number" step="0.01" bind:value={$form.amount} required />
+              {#if $errors.amount}<span class="text-red-500 text-[10px]">{$errors.amount}</span>{/if}
             </div>
             <div class="field-group">
               <label for="date-input">{$t('payments.operation_date')}</label>
-              <input id="date-input" type="date" bind:value={formState.paidDate} required />
+              <input id="date-input" name="paidDate" type="date" bind:value={$form.paidDate} required />
+              {#if $errors.paidDate}<span class="text-red-500 text-[10px]">{$errors.paidDate}</span>{/if}
             </div>
           </div>
 
           <div class="grid-2">
             <div class="field-group">
               <label for="concept-select">{$t('payments.concept')}</label>
-              <select id="concept-select" bind:value={formState.concept} required>
+              <select id="concept-select" name="concept" bind:value={$form.concept} required>
                 <option value="monthly_fee">{$t('payments.concepts.monthly_fee')}</option>
                 <option value="registration">{$t('payments.concepts.registration')}</option>
                 <option value="tournament">{$t('payments.concepts.tournament')}</option>
@@ -482,7 +462,7 @@
             </div>
             <div class="field-group">
               <label for="status-select">{$t('common.status')}</label>
-              <select id="status-select" bind:value={formState.status} required>
+              <select id="status-select" name="status" bind:value={$form.status} required>
                 <option value="paid">{$t('payments.status_paid')}</option>
                 <option value="pending">{$t('payments.status_pending')}</option>
                 <option value="overdue">{$t('payments.status_overdue')}</option>
@@ -494,11 +474,12 @@
              <span class="label">{$t('payments.payment_method')}</span>
              <div class="method-pills">
                {#each ['transfer', 'cash', 'card'] as m}
-                 <button type="button" class:selected={formState.paymentMethod === m} onclick={() => formState.paymentMethod = m}>
+                 <button type="button" class:selected={$form.paymentMethod === m} onclick={() => $form.paymentMethod = m}>
                    {$t(`payments.method_${m}`)}
                  </button>
                {/each}
              </div>
+             <input type="hidden" name="paymentMethod" value={$form.paymentMethod} />
           </div>
 
           <div class="form-footer flex gap-3 mt-4">
@@ -507,8 +488,8 @@
                 type="button" 
                 class="flex-1 p-4 bg-red-500/10 text-red-500 rounded-none font-bold uppercase text-xs tracking-widest hover:bg-red-500/20 transition-colors"
                 onclick={() => {
-                  if (formState.id) {
-                    deletePayment(formState.id);
+                  if ($form.id) {
+                    deletePayment($form.id);
                     showModal = false;
                   }
                 }}

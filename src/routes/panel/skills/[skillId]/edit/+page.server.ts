@@ -1,56 +1,129 @@
-import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
-import { db } from '$lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { error, fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import { skillSchema } from '$lib/schemas/skill';
+import { adminDb } from '$lib/server/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  const skillId = params.skillId;
-  
-  if (!locals.user) {
-    throw error(401, 'User not authenticated');
-  }
+  if (!locals.user) throw redirect(303, '/login');
+
+  const { skillId } = params;
 
   try {
-    const skillRef = doc(db, "skills", skillId);
-    const skillSnap = await getDoc(skillRef);
+    const skillSnap = await adminDb.collection("skills").doc(skillId).get();
 
-    if (!skillSnap.exists() || skillSnap.data().owner_id !== locals.user.uid) {
+    if (!skillSnap.exists || skillSnap.data()?.owner_id !== locals.user.uid) {
       throw error(404, 'Skill not found');
     }
 
-    const skill = { id: skillSnap.id, ...skillSnap.data() };
+    const data = skillSnap.data();
+    
+    // Map DB to Schema
+    const initialData = {
+      name: data?.name || '',
+      description: data?.description || '',
+      categoryId: data?.category_id || data?.categoryId || '',
+      difficulty: data?.difficulty || 1,
+      estimatedHours: data?.estimated_hours || data?.estimatedHours || 1,
+      prerequisites: data?.prerequisites || [],
+      learningObjectives: data?.learning_objectives || data?.learningObjectives || [],
+      assessmentCriteria: data?.assessment_criteria || data?.assessmentCriteria || [],
+      resources: data?.resources || [],
+      icon: data?.icon || '🎯',
+      resourceLink: data?.resource_link || data?.resourceLink || '',
+      orderIndex: data?.order_index !== undefined ? data?.order_index : (data?.orderIndex || 0),
+      active: data?.active !== undefined ? data?.active : true
+    };
 
-    // Categories
-    const qCategories = query(
-      collection(db, "categories"),
-      where("owner_id", "==", locals.user.uid),
-      where("active", "==", true),
-      orderBy("order_index")
-    );
-    const categoriesSnap = await getDocs(qCategories);
-    const categories = categoriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const form = await superValidate(initialData, zod(skillSchema as any)) as any;
 
-    // Prerequisites
-    const qPrereqs = query(
-      collection(db, "skills"),
-      where("owner_id", "==", locals.user.uid),
-      where("active", "==", true)
-    );
-    const prereqsSnap = await getDocs(qPrereqs);
-    const availablePrerequisites = prereqsSnap.docs
-      .map(doc => ({ id: doc.id, name: (doc.data() as any).name, difficulty: (doc.data() as any).difficulty }))
+    // Load available prerequisites
+    const skillsSnap = await adminDb.collection("skills")
+      .where("owner_id", "==", locals.user.uid)
+      .get();
+    
+    const availablePrerequisites = (skillsSnap?.docs || [])
+      .map((doc: any) => serializeRecord({
+        id: doc.id,
+        name: doc.data().name,
+        difficulty: doc.data().difficulty
+      }))
       .filter(s => s.id !== skillId);
 
     return {
-      user: locals.user,
-      skill,
-      categories,
-      availablePrerequisites
+      form,
+      availablePrerequisites,
+      skillId,
+      user: locals.user
     };
+  } catch (e: any) {
+    console.error("Error loading skill for edit:", e);
+    if (e.status) throw e;
+    throw error(500, 'Internal Server Error');
+  }
+};
 
-  } catch (err: any) {
-    console.error('❌ Error in edit skill page:', err);
-    if (err.status) throw err;
-    throw error(500, 'Internal server error');
+export const actions: Actions = {
+  update: async ({ request, locals, params }) => {
+    if (!locals.user) throw redirect(303, '/login');
+    const { skillId } = params;
+
+    const form = await superValidate(request, zod(skillSchema as any)) as any;
+
+    if (!form.valid) {
+      return fail(400, { form });
+    }
+
+    try {
+      const skillRef = adminDb.collection('skills').doc(skillId);
+      const skillSnap = await skillRef.get();
+
+      if (!skillSnap.exists || skillSnap.data()?.owner_id !== locals.user.uid) {
+        return fail(403, { form, error: 'Unauthorized' });
+      }
+
+      const updateData = {
+        ...form.data,
+        updated_at: new Date(),
+        // Legacy mapping for backward compatibility
+        category_id: form.data.categoryId,
+        estimated_hours: form.data.estimatedHours,
+        learning_objectives: form.data.learningObjectives.filter(v => v.trim() !== ''),
+        assessment_criteria: form.data.assessmentCriteria.filter(v => v.trim() !== ''),
+        order_index: form.data.orderIndex,
+        resource_link: form.data.resourceLink,
+        resources: form.data.resources.filter(v => v.trim() !== '')
+      };
+
+      await skillRef.update(updateData);
+    } catch (error) {
+      console.error('Error updating skill:', error);
+      return fail(500, { form, error: 'Failed to update skill' });
+    }
+
+    throw redirect(303, '/panel/skills');
+  },
+
+  delete: async ({ locals, params }) => {
+    if (!locals.user) throw redirect(303, '/login');
+    const { skillId } = params;
+
+    try {
+      const skillRef = adminDb.collection('skills').doc(skillId);
+      const skillSnap = await skillRef.get();
+
+      if (!skillSnap.exists || skillSnap.data()?.owner_id !== locals.user.uid) {
+        throw error(403, 'Unauthorized');
+      }
+
+      await skillRef.delete();
+    } catch (error) {
+      console.error('Error deleting skill:', error);
+      throw error(500, 'Failed to delete skill');
+    }
+
+    throw redirect(303, '/panel/skills');
   }
 };

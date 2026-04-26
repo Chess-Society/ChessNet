@@ -27,6 +27,8 @@
   import { toast } from '$lib/stores/toast';
   import { uiStore } from '$lib/stores/uiStore';
   import StudentReportModal from '$lib/components/admin/StudentReportModal.svelte';
+  import { enhance } from '$app/forms';
+  import { tick } from 'svelte';
 
   // Filters & State
   let searchQuery = $state('');
@@ -34,10 +36,14 @@
   let isDeleting = $state<string | null>(null);
   let reportingStudentId = $state<string | null>(null);
 
+  let deleteForm: HTMLFormElement;
+  let purgeForm: HTMLFormElement;
+  let studentIdToDelete = $state('');
+
   // Reactive data from store
-  let students = $derived($appStore.students || []);
-  let schools = $derived($appStore.schools || []);
-  let classes = $derived($appStore.classes || []);
+  let students = $derived(($appStore.students as any[]) || []);
+  let schools = $derived(($appStore.schools as any[]) || []);
+  let classes = $derived(($appStore.classes as any[]) || []);
 
   const metrics = $derived.by(() => {
     const activeCount = students.length; // Future: filter by active status if implemented
@@ -76,20 +82,10 @@
     });
 
     if (confirmed) {
-      isDeleting = id;
-      try {
-        await appStore.removeStudent(id);
-        toast.success($t('students.toast_update_success'));
-      } catch (err) {
-        toast.error($t('students.toast_update_error'));
-      } finally {
-        isDeleting = null;
-      }
+      studentIdToDelete = id;
+      await tick();
+      deleteForm.requestSubmit();
     }
-  };
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
   const handleDeleteAll = async () => {
@@ -104,13 +100,12 @@
     });
 
     if (confirmed) {
-      try {
-        await appStore.removeAllStudents();
-        toast.success($t('students.toast_all_deleted'));
-      } catch (err) {
-        toast.error($t('common.error_occurred'));
-      }
+      purgeForm.requestSubmit();
     }
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 </script>
 
@@ -119,6 +114,43 @@
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-6 py-12" in:fade={{ duration: 400 }}>
+  
+  <!-- Programmatic Forms for Deletions -->
+  <form 
+    method="POST" 
+    action="?/delete" 
+    use:enhance={() => {
+      isDeleting = studentIdToDelete;
+      return async ({ result }) => {
+        isDeleting = null;
+        if (result.type === 'success') {
+          toast.success($t('students.toast_update_success'));
+        } else {
+          toast.error($t('students.toast_update_error'));
+        }
+      };
+    }} 
+    bind:this={deleteForm} 
+    class="hidden"
+  >
+    <input type="hidden" name="id" bind:value={studentIdToDelete} />
+  </form>
+
+  <form 
+    method="POST" 
+    action="?/purge" 
+    use:enhance={() => {
+      return async ({ result }) => {
+        if (result.type === 'success') {
+          toast.success($t('students.toast_all_deleted'));
+        } else {
+          toast.error($t('common.error_occurred'));
+        }
+      };
+    }} 
+    bind:this={purgeForm} 
+    class="hidden"
+  />
   
   <!-- Header & Title Area -->
   <div class="flex flex-col lg:flex-row items-center justify-between gap-8 mb-12 lg:mb-16">

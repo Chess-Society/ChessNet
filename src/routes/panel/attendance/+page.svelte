@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t } from '$lib/i18n';
-  import { onMount, untrack } from 'svelte';
+  import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { 
@@ -29,112 +29,103 @@
     ArrowCircleUpRight,
     Fingerprint,
     ShieldCheck,
-    Pulse
+    Pulse,
+    FloppyDisk,
+    Warning
   } from 'phosphor-svelte';
-  import { appStore } from '$lib/stores/appStore';
+  import { superForm } from 'sveltekit-superforms';
+  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { attendanceSchema } from '$lib/schemas/attendance';
   import VisualAttendanceCalendar from '$lib/components/Attendance/VisualAttendanceCalendar.svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { showToast, showError } from '$lib/stores/toast';
 
-  import { auth } from '$lib/firebase';
+  import type { PageData } from './$types';
+  import type { AttendanceSchema } from '$lib/schemas/attendance';
 
-  let selectedClassId = $state($page.url.searchParams.get('classId') || '');
-  let selectedDate = $state(new Date().toISOString().split('T')[0]);
+  let { data }: { data: PageData } = $props();
+
+  const { form, enhance, delayed, message, tainted } = superForm(data.form as any, {
+    validators: zodClient(attendanceSchema as any),
+    dataType: 'json',
+    onUpdated({ form }) {
+      if (form.valid) {
+        showToast.success($t('attendance.record_success'));
+      }
+    },
+    onError({ result }) {
+      showError(result.error.message);
+    }
+  });
+
   let viewMode = $state('list'); // 'list' | 'calendar'
-  let isProcessing = $state(false);
   let searchQuery = $state('');
   
-  // El appStore maneja la sincronización global de asistencia
-  
-  // Datos reactivos
-  let classes = $derived($appStore.classes || []);
-  let selectedClass = $derived(classes.find(c => c.id === selectedClassId));
-  let students = $derived($appStore.students || []);
+  // Derived data from server load
+  let classes = $derived(data.classes || []);
+  let students = $derived(data.students || []);
+  let allAttendance = $derived(data.allAttendance || []);
+
+  let selectedClassId = $derived($form.classId);
+  let selectedDate = $derived($form.date);
+  let selectedClass = $derived(classes.find((c: any) => c.id === selectedClassId));
   
   // Alumnos inscritos en la clase seleccionada
   let classStudents = $derived.by(() => {
     let filtered;
     if (selectedClassId === 'independent') {
-      filtered = students.filter(s => !s.classId);
+      filtered = students.filter((s: any) => !s.classId);
     } else {
       if (!selectedClass) return [];
-      filtered = students.filter(s => 
+      filtered = students.filter((s: any) => 
         s.classId === selectedClassId || 
-        selectedClass.studentIds?.includes(s.id)
+        (selectedClass as any).studentIds?.includes(s.id)
       );
     }
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(s => s.name.toLowerCase().includes(q));
+      filtered = filtered.filter((s: any) => s.name.toLowerCase().includes(q));
     }
     return filtered;
   });
 
-  // Registro de asistencia actual
-  let currentAttendance = $derived(
-    ($appStore.attendance || []).filter(a => a.classId === selectedClassId && a.date === selectedDate)
-  );
-
-  const setStatus = async (studentId: string, status: string) => {
-    if (!selectedClassId || isProcessing) return;
+  const handleParamChange = () => {
+    const params = new URLSearchParams($page.url.searchParams);
+    if ($form.classId) params.set('classId', $form.classId);
+    else params.delete('classId');
     
-    const record = currentAttendance.find(r => r.studentId === studentId);
-    if (record?.status === status) return;
+    if ($form.date) params.set('date', $form.date);
+    
+    goto(`?${params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true });
+  };
 
-    try {
-      isProcessing = true;
-      await appStore.saveAttendance({
-        id: record?.id,
-        studentId: studentId,
-        classId: selectedClassId,
-        date: selectedDate,
-        status: status
-      });
-      // La reactividad del store se encarga del resto
-    } catch (error) {
-      showError(error);
-    } finally {
-      isProcessing = false;
+  const setStatus = (studentId: string, status: 'P' | 'A') => {
+    const index = $form.records.findIndex(r => r.studentId === studentId);
+    if (index === -1) {
+      $form.records = [...$form.records, { studentId, status }];
+    } else {
+      $form.records[index].status = status;
     }
   };
 
   const getStatus = (studentId: string) => {
-    const record = currentAttendance.find(r => r.studentId === studentId);
+    const record = $form.records.find((r: any) => r.studentId === studentId);
     if (!record) return 'unmarked';
-    return record.status === 'P' ? 'present' : 'absent';
+    return (record as any).status === 'P' ? 'present' : (record as any).status === 'A' ? 'absent' : 'unmarked';
   };
 
-  const markAllPresent = async () => {
-    if (!selectedClassId || isProcessing) return;
-    try {
-      isProcessing = true;
-      const targetStudents = classStudents;
-      for (const student of targetStudents) {
-        const record = currentAttendance.find(r => r.studentId === student.id);
-        if (record?.status !== 'P') {
-          await appStore.saveAttendance({
-            id: record?.id,
-            studentId: student.id,
-            classId: selectedClassId,
-            date: selectedDate,
-            status: 'P'
-          });
-        }
-      }
-      showToast.success($t('attendance.record_success'));
-    } catch (error) {
-      showError(error);
-    } finally {
-      isProcessing = false;
-    }
+  const markAllPresent = () => {
+    classStudents.forEach(student => {
+      setStatus(student.id, 'P');
+    });
   };
 
   const stats = $derived.by(() => {
-    const records = currentAttendance;
-    const present = records.filter(r => r.status === 'P').length;
-    const absent = records.filter(r => r.status === 'A').length;
+    const records = $form.records;
+    const present = records.filter((r: any) => r.status === 'P').length;
+    const absent = records.filter((r: any) => r.status === 'A').length;
     const total = classStudents.length;
     return { 
       present, 
@@ -157,7 +148,11 @@
   <title>{$t('attendance.title')} - ChessNet</title>
 </svelte:head>
 
-<div class="max-w-[1440px] mx-auto px-6 pb-24" in:fade>
+<form method="POST" action="?/update" use:enhance class="max-w-[1440px] mx-auto px-6 pb-32" in:fade>
+  <!-- Hidden inputs for mapping -->
+  <input type="hidden" name="classId" bind:value={$form.classId} />
+  <input type="hidden" name="date" bind:value={$form.date} />
+
   <!-- Ambient Background -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
     <div class="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-primary-500/5 rounded-none blur-[120px] animate-pulse"></div>
@@ -195,6 +190,7 @@
 
     <div class="flex items-center gap-2 bg-zinc-900/40 p-1.5 rounded-none border border-white/5 backdrop-blur-xl">
       <button 
+        type="button"
         onclick={() => viewMode = 'list'}
         class="flex items-center gap-2.5 px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all font-outfit
         {viewMode === 'list' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-zinc-500 hover:text-white hover:bg-white/5'}"
@@ -203,6 +199,7 @@
         {$t('attendance.view.take')}
       </button>
       <button 
+        type="button"
         onclick={() => viewMode = 'calendar'}
         class="flex items-center gap-2.5 px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all font-outfit
         {viewMode === 'calendar' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-zinc-500 hover:text-white hover:bg-white/5'}"
@@ -227,7 +224,8 @@
             <div class="relative group">
               <select 
                 id="class-select"
-                bind:value={selectedClassId}
+                bind:value={$form.classId}
+                onchange={handleParamChange}
                 class="w-full bg-zinc-900 border border-white/5 rounded-none px-6 py-4 text-white focus:border-primary-500/50 outline-none transition-all appearance-none cursor-pointer text-sm font-bold font-jakarta"
               >
                 <option value="">{$t('attendance.select_placeholder')}</option>
@@ -250,7 +248,8 @@
               <input 
                 id="date-select"
                 type="date"
-                bind:value={selectedDate}
+                bind:value={$form.date}
+                onchange={handleParamChange}
                 class="w-full bg-zinc-900 border border-white/5 rounded-none px-6 py-4 text-white focus:border-primary-500/50 outline-none transition-all cursor-pointer text-sm font-bold font-jakarta [color-scheme:dark]"
               />
             </div>
@@ -279,8 +278,9 @@
       </div>
 
       <button 
+        type="button"
         onclick={markAllPresent}
-        disabled={!selectedClassId || isProcessing}
+        disabled={!selectedClassId || $delayed}
         class="mt-8 bg-white text-black py-4.5 rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-primary-500 hover:text-white transition-all shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-30 disabled:grayscale font-outfit"
       >
         <CheckCircleIcon weight="fill" size={18} />
@@ -335,6 +335,7 @@
         </div>
         {#if selectedClassId !== 'independent'}
           <button 
+            type="button"
             onclick={() => goto(`/panel/classes/${selectedClassId}`)}
             class="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-outfit font-black text-[10px] uppercase tracking-[0.4em] rounded-none border border-white/10 transition-all flex items-center gap-6 mx-auto group"
           >
@@ -370,10 +371,6 @@
                     class="w-full bg-zinc-900/50 border border-white/5 rounded-none pl-14 pr-6 py-4 text-sm font-jakarta font-medium text-white focus:border-primary-500/50 outline-none transition-all placeholder:text-zinc-700 backdrop-blur-md"
                   />
                 </div>
-                <div class="flex items-center gap-3 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] font-outfit bg-white/5 px-4 py-2 rounded-none border border-white/5 whitespace-nowrap">
-                   <div class="w-1.5 h-1.5 rounded-none bg-primary-500 shadow-glow-primary"></div>
-                   {$t('attendance.synced')}
-                </div>
              </div>
           </div>
 
@@ -404,8 +401,9 @@
 
                 <div class="flex items-center gap-2 w-full sm:w-auto">
                   <button 
+                    type="button"
                     onclick={() => setStatus(student.id, 'P')}
-                    disabled={isProcessing}
+                    disabled={$delayed}
                     class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3.5 rounded-none border transition-all font-outfit font-black text-[9px] uppercase tracking-widest min-w-[110px]
                     {getStatus(student.id) === 'present' 
                       ? 'bg-primary-500 text-white border-primary-500 shadow-lg shadow-primary-500/20' 
@@ -415,8 +413,9 @@
                     {$t('attendance.present')}
                   </button>
                   <button 
+                    type="button"
                     onclick={() => setStatus(student.id, 'A')}
-                    disabled={isProcessing}
+                    disabled={$delayed}
                     class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3.5 rounded-none border transition-all font-outfit font-black text-[9px] uppercase tracking-widest min-w-[110px]
                     {getStatus(student.id) === 'absent' 
                       ? 'bg-red-500 text-white border-red-500 shadow-lg shadow-red-500/20' 
@@ -433,16 +432,6 @@
           <!-- Bottom Summary -->
           <div class="bento-card p-10 bg-zinc-900/30 backdrop-blur-3xl border border-white/5 rounded-none flex flex-wrap items-center justify-between gap-12 mt-12">
             <div class="flex items-center gap-12 flex-wrap">
-              <div class="space-y-2">
-                <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">{$t('attendance.auto_save')}</p>
-                <div class="flex items-center gap-3 text-primary-400">
-                   <div class="w-2 h-2 rounded-none bg-primary-500 animate-pulse"></div>
-                   <span class="text-xs font-black uppercase tracking-[0.3em]">Session Sync Active</span>
-                </div>
-              </div>
-
-               <div class="h-10 w-px bg-white/5 hidden md:block"></div>
-
                <div class="flex gap-10">
                   <div class="text-center md:text-left">
                     <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Total Present</p>
@@ -491,9 +480,10 @@
 
              <VisualAttendanceCalendar 
                {selectedClassId} 
-               attendance={$appStore.attendance || []} 
+               attendance={allAttendance} 
                onDateSelect={(date: string) => {
-                 selectedDate = date;
+                 $form.date = date;
+                 handleParamChange();
                  viewMode = 'list';
                }}
              />
@@ -502,7 +492,52 @@
       {/if}
     {/if}
   </div>
-</div>
+
+  <!-- Floating Save Bar -->
+  {#if tainted && selectedClassId && viewMode === 'list'}
+    <div 
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-2xl"
+      transition:fly={{ y: 50, duration: 600, easing: cubicOut }}
+    >
+      <div class="bg-zinc-950/80 backdrop-blur-2xl border border-primary-500/30 p-4 shadow-2xl shadow-primary-500/20 flex items-center justify-between gap-6">
+        <div class="flex items-center gap-4 ml-2">
+          <div class="w-10 h-10 bg-primary-500/10 rounded-none flex items-center justify-center text-primary-400 border border-primary-500/20">
+            <Warning size={20} weight="duotone" class="animate-pulse" />
+          </div>
+          <div>
+            <p class="text-[10px] font-black text-white uppercase tracking-widest">Protocolo Pendiente</p>
+            <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">Sincronización manual requerida</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <button 
+            type="button"
+            onclick={() => {
+              $form.records = [...data.form.data.records];
+            }}
+            class="px-6 py-3 rounded-none text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors"
+          >
+            {$t('common.cancel')}
+          </button>
+          <button 
+            type="submit"
+            disabled={$delayed}
+            class="bg-primary-500 hover:bg-primary-400 text-white px-8 py-3 rounded-none text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-500/20 flex items-center gap-3 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale font-outfit"
+          >
+            {#if $delayed}
+              <Hourglass size={16} class="animate-spin" />
+              Sincronizando...
+            {:else}
+              <FloppyDisk size={16} weight="bold" />
+              Sincronizar Protocolo
+            {/if}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
+</form>
 
 <style lang="postcss">
   :global(input[type="date"]::-webkit-calendar-picker-indicator) {
@@ -513,4 +548,3 @@
 
   .shadow-glow-primary { box-shadow: 0 0 20px -5px rgba(139, 92, 246, 0.5); }
 </style>
-

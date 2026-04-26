@@ -24,6 +24,7 @@
 
   import BroadcastBanner from '$lib/components/BroadcastBanner.svelte';
   import SocialNotificationListener from '$lib/components/social/SocialNotificationListener.svelte';
+  import { Toaster } from 'svelte-sonner';
 
   let { children } = $props();
   let maintenanceMode = $derived($systemConfig.maintenanceMode);
@@ -203,6 +204,7 @@
   <PromptModal />
   <SocialNotificationListener />
   <Toast />
+  <Toaster position="top-right" expand={true} richColors theme="dark" />
   <CookieBanner />
 </main>
 

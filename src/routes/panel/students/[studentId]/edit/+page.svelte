@@ -21,52 +21,39 @@
     UserCircle,
     BookOpen
   } from 'phosphor-svelte';
+  import { superForm } from 'sveltekit-superforms';
+  import { zod } from 'sveltekit-superforms/adapters';
+  import { studentSchema } from '$lib/schemas/student';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import { showToast, showError } from '$lib/stores/toast';
   import { appStore } from '$lib/stores/appStore';
 
-  let { data } = $props<{ data: PageData }>();
+  let { data }: { data: any } = $props();
 
-  let studentData = $derived($appStore.students?.find(s => s.id === data.student.id) || data.student);
-  let schools = $derived(data.schools || []);
-  let classes = $derived(data.classes || []);
-
-  let formData = $state({
-    name: '',
-    firstName: '',
-    lastName: '',
-    schoolId: '',
-    classId: '',
-    notes: '',
-    lichessUsername: ''
-  });
-
-  let isInitialized = $state(false);
-  $effect(() => {
-    if (studentData && !isInitialized) {
-      formData = {
-        name: studentData.name || '',
-        firstName: studentData.firstName || '',
-        lastName: studentData.lastName || '',
-        schoolId: studentData.schoolId || '',
-        classId: studentData.classId || '',
-        notes: studentData.notes || '',
-        lichessUsername: studentData.lichessUsername || ''
-      };
-      isInitialized = true;
+  const { form, errors, constraints, enhance, delayed, reset, isTainted } = superForm(data.form as any, {
+    validators: zod(studentSchema as any),
+    onUpdated({ form }) {
+      if (form.valid) {
+        showToast.success($t('students.toast_update_success'));
+        setTimeout(() => goto(`/panel/students/${data.student.id}`), 400);
+      }
+    },
+    onError({ result }) {
+      showError(result.error);
     }
-  });
+  }) as any;
 
-  let isSubmitting = $state(false);
-  let errors = $state<Record<string, string>>({});
+  let studentData = $derived(($appStore.students as any[])?.find(s => s.id === data.student.id) || data.student);
+  let schools = $derived((data.schools as any[]) || []);
+  let classes = $derived((data.classes as any[]) || []);
 
   let isVerifyingLichess = $state(false);
   let lichessStatus = $state<'idle' | 'valid' | 'invalid'>('idle');
 
   async function verifyLichessUser() {
-    const user = formData.lichessUsername.trim();
+    const user = $form.lichessUsername.trim();
     if (!user) {
       lichessStatus = 'idle';
       return;
@@ -82,56 +69,10 @@
     }
   }
 
-  const validateForm = () => {
-    errors = {};
-    if (!formData.name.trim()) errors.name = $t('students.full_name_required');
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm() || isSubmitting) return;
-    try {
-      isSubmitting = true;
-      
-      await appStore.updateStudent({
-        id: studentData.id,
-        ...formData
-      });
-
-      const returnTo = $page.url.searchParams.get('return_to');
-      showToast.success($t('students.toast_update_success'));
-      await invalidateAll();
-      setTimeout(() => {
-        goto(returnTo || `/panel/students/${studentData.id}`);
-      }, 400);
-    } catch (error) {
-      showError(error);
-    } finally {
-      isSubmitting = false;
-    }
-  };
-
-  const hasChanges = $derived(
-    formData.name !== (studentData?.name || '') ||
-    formData.firstName !== (studentData?.firstName || '') ||
-    formData.lastName !== (studentData?.lastName || '') ||
-    formData.schoolId !== (studentData?.schoolId || '') ||
-    formData.classId !== (studentData?.classId || '') ||
-    formData.notes !== (studentData?.notes || '') ||
-    formData.lichessUsername !== (studentData?.lichessUsername || '')
-  );
+  const hasChanges = $derived(isTainted());
 
   const resetToOriginal = () => {
-    formData = {
-      name: studentData?.name || '',
-      firstName: studentData?.firstName || '',
-      lastName: studentData?.lastName || '',
-      schoolId: studentData?.schoolId || '',
-      classId: studentData?.classId || '',
-      notes: studentData?.notes || '',
-      lichessUsername: studentData?.lichessUsername || ''
-    };
-    errors = {};
+    reset();
   };
 </script>
 
@@ -139,65 +80,73 @@
   <title>{$t('students.edit_title')} - {studentData?.name} - ChessNet</title>
 </svelte:head>
 
-<div class="page-container" in:fade>
-  <div class="glow-bg"></div>
+<form 
+  method="POST" 
+  action="?/update" 
+  use:enhance
+  class="min-h-screen bg-zinc-950 text-zinc-100 font-outfit pb-20"
+>
+  <div class="page-container" in:fade>
+    <div class="glow-bg"></div>
 
-  <!-- Header Section -->
-  <!-- Premium Sticky Header -->
-  <header class="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/50 mb-12">
-    <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <button 
-          onclick={() => goto(`/panel/students/${studentData.id}`)}
-          class="w-10 h-10 rounded-none bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all"
-        >
-          <CaretLeft weight="bold" class="w-5 h-5" />
-        </button>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg font-black uppercase tracking-widest italic flex items-center gap-2">
-              <Pencil weight="bold" class="w-4 h-4 text-violet-500" />
-              {$t('students.edit_title')}
-            </h1>
-            {#if hasChanges}
-              <span class="px-2 py-0.5 rounded-none bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-widest animate-pulse border border-amber-500/20">{$t('skills.ui.unsaved')}</span>
-            {/if}
-          </div>
-          <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">{$t('students.edit_subtitle')}</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3">
-        {#if hasChanges}
+    <!-- Header Section -->
+    <!-- Premium Sticky Header -->
+    <header class="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/50 mb-12">
+      <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
           <button 
-            class="px-5 py-2.5 rounded-none text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all flex items-center gap-2" 
-            onclick={resetToOriginal}
-            in:scale
+            type="button"
+            onclick={() => goto(`/panel/students/${studentData?.id}`)}
+            class="w-10 h-10 rounded-none bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all"
           >
-            <ArrowCounterClockwise size={20} weight="bold" />
-            <span class="font-outfit font-bold">{$t('students.discard')}</span>
+            <CaretLeft weight="bold" class="w-5 h-5" />
           </button>
-        {/if}
-        <button 
-          class="px-8 py-2.5 rounded-none bg-violet-600 text-white shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:-translate-y-0.5 transition-all text-xs font-black tracking-widest uppercase flex items-center gap-2 disabled:opacity-50" 
-          onclick={handleSubmit}
-          disabled={isSubmitting || !hasChanges}
-        >
-          {#if isSubmitting}
-            <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-none animate-spin"></div>
-          {:else}
-            <FloppyDisk size={20} weight="bold" />
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-lg font-black uppercase tracking-widest italic flex items-center gap-2">
+                <Pencil weight="bold" class="w-4 h-4 text-violet-500" />
+                {$t('students.edit_title')}
+              </h1>
+              {#if hasChanges}
+                <span class="px-2 py-0.5 rounded-none bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-widest animate-pulse border border-amber-500/20">{$t('skills.ui.unsaved')}</span>
+              {/if}
+            </div>
+            <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">{$t('students.edit_subtitle')}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          {#if hasChanges}
+            <button 
+              type="button"
+              class="px-5 py-2.5 rounded-none text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all flex items-center gap-2" 
+              onclick={resetToOriginal}
+              in:scale
+            >
+              <ArrowCounterClockwise size={20} weight="bold" />
+              <span class="font-outfit font-bold">{$t('students.discard')}</span>
+            </button>
           {/if}
-          <span class="font-outfit font-bold">{$t('students.save_changes')}</span>
-        </button>
+
+          <button 
+            type="submit"
+            disabled={$delayed}
+            class="flex items-center gap-3 px-8 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-none text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-violet-600/20 active:scale-95 disabled:opacity-50 group"
+          >
+            {#if $delayed}
+              <ArrowCounterClockwise weight="bold" class="w-4 h-4 animate-spin" />
+            {:else}
+              <FloppyDisk weight="bold" class="w-4 h-4 group-hover:scale-110 transition-transform" />
+            {/if}
+            {$t('common.save')}
+          </button>
+        </div>
       </div>
     </div>
   </header>
 
-  <div class="max-w-[1400px] mx-auto px-6">
-
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <!-- Left Column: Primary Information -->
+  <div class="max-w-[1400px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12">
+    <!-- Left Column -->
     <div class="lg:col-span-8 space-y-8">
       <section class="bento-card !p-10 space-y-10 relative overflow-hidden group">
         <div class="absolute -right-16 -top-16 w-64 h-64 bg-violet-600/5 blur-3xl rounded-none"></div>
@@ -215,14 +164,16 @@
               <div class="input-wrapper">
                 <input
                   id="name"
+                  name="name"
                   type="text"
-                  bind:value={formData.name}
+                  bind:value={$form.name}
                   placeholder={$t('students.full_name_placeholder')}
-                  class="glass-input {errors.name ? 'error' : ''}"
+                  class="glass-input {$errors.name ? 'error' : ''}"
+                  {...$constraints.name}
                 />
               </div>
-              {#if errors.name}
-                <p class="error-msg">{errors.name}</p>
+              {#if $errors.name}
+                <p class="error-msg">{$errors.name}</p>
               {/if}
            </div>
 
@@ -232,9 +183,11 @@
                  <div class="input-wrapper">
                     <input
                       id="firstName"
+                      name="firstName"
                       type="text"
-                      bind:value={formData.firstName}
+                      bind:value={$form.firstName}
                       class="glass-input"
+                      {...$constraints.firstName}
                     />
                  </div>
               </div>
@@ -243,9 +196,11 @@
                  <div class="input-wrapper">
                     <input
                       id="lastName"
+                      name="lastName"
                       type="text"
-                      bind:value={formData.lastName}
+                      bind:value={$form.lastName}
                       class="glass-input"
+                      {...$constraints.lastName}
                     />
                  </div>
               </div>
@@ -266,9 +221,11 @@
            <div class="input-wrapper">
               <textarea
                 id="notes"
-                bind:value={formData.notes}
+                name="notes"
+                bind:value={$form.notes}
                 placeholder={$t('students.notes_placeholder')}
                 class="glass-textarea"
+                {...$constraints.notes}
               ></textarea>
            </div>
         </div>
@@ -293,12 +250,14 @@
             <div class="input-wrapper relative">
               <input
                 id="lichessUsername"
+                name="lichessUsername"
                 type="text"
-                bind:value={formData.lichessUsername}
+                bind:value={$form.lichessUsername}
                 onblur={verifyLichessUser}
                 oninput={() => lichessStatus = 'idle'}
                 placeholder={$t('students.lichess_placeholder')}
                 class="glass-input !bg-sky-500/5 focus:!border-sky-400 focus:!ring-sky-500/20 pr-12 {lichessStatus === 'invalid' ? '!border-red-500/50 focus:!ring-red-500/20' : ''} {lichessStatus === 'valid' ? '!border-emerald-500/50 focus:!ring-emerald-500/20' : ''}"
+                {...$constraints.lichessUsername}
               />
             <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
                 {#if isVerifyingLichess}
@@ -328,12 +287,13 @@
 
           <div class="space-y-4">
              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input type="hidden" name="schoolId" bind:value={$form.schoolId} />
                 <button 
                   type="button"
-                  class="selection-card {!formData.schoolId ? 'active' : ''}"
+                  class="selection-card {!$form.schoolId ? 'active' : ''}"
                   onclick={() => {
-                    formData.schoolId = '';
-                    formData.classId = '';
+                    $form.schoolId = '';
+                    $form.classId = '';
                   }}
                 >
                   <div class="card-icon">
@@ -342,7 +302,7 @@
                   <div class="card-content">
                     <span class="card-title">{$t('classes.independent')}</span>
                   </div>
-                  {#if !formData.schoolId}
+                  {#if !$form.schoolId}
                     <div class="card-check" in:scale>
                       <CheckCircle size={20} weight="fill" />
                     </div>
@@ -352,11 +312,11 @@
                 {#each schools as school}
                   <button 
                     type="button"
-                    class="selection-card {formData.schoolId === school.id ? 'active' : ''}"
+                    class="selection-card {$form.schoolId === school.id ? 'active' : ''}"
                     onclick={() => {
-                      if (formData.schoolId !== school.id) {
-                        formData.schoolId = school.id;
-                        formData.classId = '';
+                      if ($form.schoolId !== school.id) {
+                        $form.schoolId = school.id;
+                        $form.classId = '';
                       }
                     }}
                   >
@@ -367,7 +327,7 @@
                       <span class="card-title">{school.name}</span>
                       <span class="text-[10px] font-medium text-zinc-500">{school.city || ''}</span>
                     </div>
-                    {#if formData.schoolId === school.id}
+                    {#if $form.schoolId === school.id}
                       <div class="card-check" in:scale>
                         <CheckCircle size={20} weight="fill" />
                       </div>
@@ -392,10 +352,11 @@
   
           <div class="space-y-4">
              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <input type="hidden" name="classId" bind:value={$form.classId} />
                  <button 
                   type="button"
-                  class="selection-card {!formData.classId ? 'active' : ''}"
-                  onclick={() => formData.classId = ''}
+                  class="selection-card {!$form.classId ? 'active' : ''}"
+                  onclick={() => $form.classId = ''}
                 >
                   <div class="card-icon">
                     <UserCircle weight="duotone" />
@@ -403,18 +364,18 @@
                   <div class="card-content">
                     <span class="card-title">{$t('classes.independent')}</span>
                   </div>
-                  {#if !formData.classId}
+                  {#if !$form.classId}
                     <div class="card-check" in:scale>
                       <CheckCircle size={20} weight="fill" />
                     </div>
                   {/if}
                 </button>
 
-                {#each classes.filter((c: any) => !formData.schoolId || c.schoolId === formData.schoolId) as cls}
+                {#each classes.filter((c: any) => !$form.schoolId || c.schoolId === $form.schoolId) as cls}
                   <button 
                     type="button"
-                    class="selection-card {formData.classId === cls.id ? 'active' : ''}"
-                    onclick={() => formData.classId = cls.id}
+                    class="selection-card {$form.classId === cls.id ? 'active' : ''}"
+                    onclick={() => $form.classId = cls.id}
                   >
                     <div class="card-icon">
                       <BookOpen weight="duotone" />
@@ -423,7 +384,7 @@
                       <span class="card-title">{cls.name}</span>
                       <span class="text-[10px] font-medium text-zinc-500">{cls.schedule || ''}</span>
                     </div>
-                    {#if formData.classId === cls.id}
+                    {#if $form.classId === cls.id}
                       <div class="card-check" in:scale>
                         <CheckCircle size={20} weight="fill" />
                       </div>
@@ -444,10 +405,10 @@
           
           <div class="preview-mini">
              <div class="avatar-sm">
-                {formData.name ? formData.name.charAt(0).toUpperCase() : '?'}
+                {$form.name ? $form.name.charAt(0).toUpperCase() : '?'}
              </div>
              <div class="min-w-0">
-                <p class="text-base font-outfit font-bold text-white uppercase tracking-tight truncate">{formData.name || $t('students.unnamed')}</p>
+                <p class="text-base font-outfit font-bold text-white uppercase tracking-tight truncate">{$form.name || $t('students.unnamed')}</p>
                 <div class="flex items-center gap-2 mt-1">
                    <div class="w-1.5 h-1.5 rounded-none bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                    <p class="text-[10px] font-outfit font-bold text-slate-500 uppercase tracking-widest leading-none">{$t('students.status_sync')}</p>
@@ -458,6 +419,7 @@
     </div>
     </div>
   </div>
+  </form>
 </div>
 
 <style lang="postcss">

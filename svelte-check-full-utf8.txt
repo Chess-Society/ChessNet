@@ -1,0 +1,2071 @@
+﻿
+> chessnet-sveltekit@1.0.0 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+
+====================================
+Loading svelte-check in workspace: c:\Users\tomih\Desktop\ChessNet
+Getting Svelte diagnostics...
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.server.ts[39m:9:32
+[31mError[39m: Property 'auth' does not exist on type 'Locals'. 
+[36mexport const load: PageServerLoad = async ({ locals, url }) => {
+  const session = await locals.[35mauth[36m();
+  if (!session?.user) throw redirect(303, '/auth/login');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.server.ts[39m:22:42
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m
+  const students = studentsSnap.docs.map([35mdoc[36m => ({ id: doc.id, ...doc.data() }));
+  const classes = classesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.server.ts[39m:23:40
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m  const students = studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const classes = classesSnap.docs.map([35mdoc[36m => ({ id: doc.id, ...doc.data() }));
+  const allAttendance = attendanceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.server.ts[39m:24:49
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m  const classes = classesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const allAttendance = attendanceSnap.docs.map([35mdoc[36m => ({ id: doc.id, ...doc.data() }));
+  
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.server.ts[39m:43:9
+[31mError[39m: Argument of type 'ZodObject<{ classId: ZodString; date: ZodString; records: ZodArray<ZodObject<{ studentId: ZodString; status: ZodEnum<{ P: "P"; A: "A"; unmarked: "unmarked"; }>; }, $strip>>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ classId: ZodString; date: ZodString; records: ZodArray<ZodObject<{ studentId: ZodString; status: ZodEnum<{ P: "P"; A: "A"; unmarked: "unmarked"; }>; }, $strip>>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    { classId: classId || '', date, records: initialRecords },
+    zod([35mattendanceSchema[36m)
+  );
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.server.ts[39m:58:34
+[31mError[39m: Property 'auth' does not exist on type 'Locals'. 
+[36m  update: async ({ request, locals }) => {
+    const session = await locals.[35mauth[36m();
+    if (!session?.user) return fail(401);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.server.ts[39m:61:51
+[31mError[39m: Argument of type 'ZodObject<{ classId: ZodString; date: ZodString; records: ZodArray<ZodObject<{ studentId: ZodString; status: ZodEnum<{ P: "P"; A: "A"; unmarked: "unmarked"; }>; }, $strip>>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ classId: ZodString; date: ZodString; records: ZodArray<ZodObject<{ studentId: ZodString; status: ZodEnum<{ P: "P"; A: "A"; unmarked: "unmarked"; }>; }, $strip>>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35mattendanceSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.server.ts[39m:67:26
+[31mError[39m: 'records' is of type 'unknown'. 
+[36m
+    for (const record of [35mrecords[36m) {
+      if (record.status === 'unmarked') continue;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\+page.server.ts[39m:31:36
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      
+      enrollmentsSnap.docs.forEach([35mdoc[36m => {
+        batch.delete(doc.ref);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\+page.server.ts[39m:54:32
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      
+      classesSnap.docs.forEach([35mdoc[36m => {
+        batch.delete(doc.ref);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\+page.server.ts[39m:62:36
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      
+      enrollmentsSnap.docs.forEach([35mdoc[36m => {
+        batch.delete(doc.ref);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\attendance\+page.server.ts[39m:28:50
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m    
+    const enrolledIds = enrollmentsSnap.docs.map([35mdoc[36m => doc.data().student_id);
+    
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\attendance\+page.server.ts[39m:36:40
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m        .get();
+      students = studentsSnap.docs.map([35mdoc[36m => ({ id: doc.id, ...doc.data() }));
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\attendance\+page.server.ts[39m:47:51
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m    
+    const rawAttendance = attendanceSnap.docs.map([35mdoc[36m => ({ id: doc.id, ...doc.data() }));
+    
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\attendance\+page.server.ts[39m:126:37
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      const existingMap = new Map();
+      existingSnapshot.docs.forEach([35mdoc[36m => existingMap.set(doc.data().studentId, doc.id));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\edit\+page.server.ts[39m:39:12
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m      schoolId: classData.schoolId || classData.school_id || ''
+    }, zod([35mclassSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\edit\+page.server.ts[39m:60:49
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(event, zod([35mclassSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\skills\+page.server.ts[39m:30:46
+[31mError[39m: Parameter 'd' implicitly has an 'any' type. 
+[36m    const classData = { id: classSnap.id, ...classSnap.data() };
+    const allSkills = allSkillsSnap.docs.map([35md[36m => ({ id: d.id, ...d.data() }));
+    const assignedDocs = assignedSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\skills\+page.server.ts[39m:31:48
+[31mError[39m: Parameter 'd' implicitly has an 'any' type. 
+[36m    const allSkills = allSkillsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const assignedDocs = assignedSnap.docs.map([35md[36m => ({ id: d.id, ...d.data() }));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\skills\+page.server.ts[39m:38:44
+[31mError[39m: Parameter 's' implicitly has an 'any' type. 
+[36m      .map((ad: any) => {
+        const skillDetail = allSkills.find([35ms[36m => s.id === ad.skillId);
+        return {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\skills\+page.server.ts[39m:45:14
+[31mError[39m: Parameter 'a' implicitly has an 'any' type. 
+[36m      })
+      .sort(([35ma[36m, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\skills\+page.server.ts[39m:45:17
+[31mError[39m: Parameter 'b' implicitly has an 'any' type. 
+[36m      })
+      .sort((a, [35mb[36m) => (a.orderIndex || 0) - (b.orderIndex || 0));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\skills\+page.server.ts[39m:48:46
+[31mError[39m: Parameter 's' implicitly has an 'any' type. 
+[36m    // Available skills grouped by category
+    const availableSkills = allSkills.filter([35ms[36m => !assignedSkillIds.has(s.id));
+    const availableSkillsByCategory = availableSkills.reduce((acc: any, skill: any) => {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\skills\+page.server.ts[39m:127:25
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      const batch = adminDb.batch();
+      snap.docs.forEach([35mdoc[36m => {
+        batch.update(doc.ref, { active: false, unassignedAt: new Date().toISOString() });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\skills\+page.server.ts[39m:153:25
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      const batch = adminDb.batch();
+      snap.docs.forEach([35mdoc[36m => {
+        const data = doc.data();
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\students\+page.server.ts[39m:29:50
+[31mError[39m: Parameter 'd' implicitly has an 'any' type. 
+[36m    const classData = { id: classSnap.id, ...classSnap.data() };
+    const allStudents = allStudentsSnap.docs.map([35md[36m => ({ id: d.id, ...d.data() }));
+    const enrolledDocs = enrolledSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\students\+page.server.ts[39m:30:48
+[31mError[39m: Parameter 'd' implicitly has an 'any' type. 
+[36m    const allStudents = allStudentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const enrolledDocs = enrolledSnap.docs.map([35md[36m => ({ id: d.id, ...d.data() }));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\students\+page.server.ts[39m:37:46
+[31mError[39m: Parameter 's' implicitly has an 'any' type. 
+[36m      const sId = ed.studentId || ed.student_id;
+      const studentDetail = allStudents.find([35ms[36m => s.id === sId);
+      return {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\students\+page.server.ts[39m:43:15
+[31mError[39m: Parameter 's' implicitly has an 'any' type. 
+[36m      };
+    }).filter([35ms[36m => s.id); // Ensure we found the student detail
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\students\+page.server.ts[39m:47:50
+[31mError[39m: Parameter 's' implicitly has an 'any' type. 
+[36m    const schoolId = (classData as any).schoolId || (classData as any).school_id;
+    const availableStudents = allStudents.filter([35ms[36m => {
+      const isEnrolled = enrolledStudentIds.has(s.id);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\students\+page.server.ts[39m:142:30
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      const batch = adminDb.batch();
+      snapshot.docs.forEach(([35mdoc[36m) => batch.delete(doc.ref));
+      
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\create\+page.server.ts[39m:27:11
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m      schools.length === 1 ? { schoolId: schools[0].id } : {},
+      zod([35mclassSchema[36m)
+    );
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\create\+page.server.ts[39m:40:37
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m      schools: [],
+      form: await superValidate(zod([35mclassSchema[36m))
+    };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\create\+page.server.ts[39m:50:49
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(event, zod([35mclassSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\lobby\+page.server.ts[39m:10:41
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; question: ZodString; description: ZodOptional<ZodString>; category: ZodEnum<{ Torneos: "Torneos"; Mejoras: "Mejoras"; Docencia: "Docencia"; Academia: "Academia"; }>; endDate: ZodString; oracleType: ZodEnum<...>; externalId: ZodOptional<...>; schoolId: ZodOptional<...>; }, $str...' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; question: ZodString; description: ZodOptional<ZodString>; category: ZodEnum<{ Torneos: "Torneos"; Mejoras: "Mejoras"; Docencia: "Docencia"; Academia: "Academia"; }>; endDate: ZodString; oracleType: ZodEnum<...>; externalId: ZodOptional<...>; schoolId: ZodOptional<...>; }, $str...' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  return {
+    marketForm: await superValidate(zod([35mpredictionMarketSchema[36m))
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\lobby\+page.server.ts[39m:20:51
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; question: ZodString; description: ZodOptional<ZodString>; category: ZodEnum<{ Torneos: "Torneos"; Mejoras: "Mejoras"; Docencia: "Docencia"; Academia: "Academia"; }>; endDate: ZodString; oracleType: ZodEnum<...>; externalId: ZodOptional<...>; schoolId: ZodOptional<...>; }, $str...' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; question: ZodString; description: ZodOptional<ZodString>; category: ZodEnum<{ Torneos: "Torneos"; Mejoras: "Mejoras"; Docencia: "Docencia"; Academia: "Academia"; }>; endDate: ZodString; oracleType: ZodEnum<...>; externalId: ZodOptional<...>; schoolId: ZodOptional<...>; }, $str...' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    
+    const form = await superValidate(request, zod([35mpredictionMarketSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:23:49
+[31mError[39m: Argument of type 'ZodObject<{ tierId: ZodNumber; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ tierId: ZodNumber; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  // Initialize all forms
+  const claimTierForm = await superValidate(zod([35mclaimTierSchema[36m));
+  const buyItemForm = await superValidate(zod(buyItemSchema));
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:24:47
+[31mError[39m: Argument of type 'ZodObject<{ itemId: ZodString; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ itemId: ZodString; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  const claimTierForm = await superValidate(zod(claimTierSchema));
+  const buyItemForm = await superValidate(zod([35mbuyItemSchema[36m));
+  const claimChallengeForm = await superValidate(zod(claimChallengeSchema));
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:25:54
+[31mError[39m: Argument of type 'ZodObject<{ challengeId: ZodString; challengeType: ZodEnum<{ daily: "daily"; weekly: "weekly"; }>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ challengeId: ZodString; challengeType: ZodEnum<{ daily: "daily"; weekly: "weekly"; }>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  const buyItemForm = await superValidate(zod(buyItemSchema));
+  const claimChallengeForm = await superValidate(zod([35mclaimChallengeSchema[36m));
+  const equipItemForm = await superValidate(zod(equipItemSchema));
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:26:49
+[31mError[39m: Argument of type 'ZodObject<{ type: ZodEnum<{ frame: "frame"; color: "color"; font: "font"; badge: "badge"; emote: "emote"; }>; value: ZodString; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ type: ZodEnum<{ frame: "frame"; color: "color"; font: "font"; badge: "badge"; emote: "emote"; }>; value: ZodString; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  const claimChallengeForm = await superValidate(zod(claimChallengeSchema));
+  const equipItemForm = await superValidate(zod([35mequipItemSchema[36m));
+  const openCrateForm = await superValidate(zod(openCrateSchema));
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:27:49
+[31mError[39m: Argument of type 'ZodObject<{ crateType: ZodEnum<{ premium: "premium"; basic: "basic"; legendary: "legendary"; }>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ crateType: ZodEnum<{ premium: "premium"; basic: "basic"; legendary: "legendary"; }>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  const equipItemForm = await superValidate(zod(equipItemSchema));
+  const openCrateForm = await superValidate(zod([35mopenCrateSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:41:51
+[31mError[39m: Argument of type 'ZodObject<{ tierId: ZodNumber; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ tierId: ZodNumber; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    if (!locals.user) return fail(401);
+    const form = await superValidate(request, zod([35mclaimTierSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:48:43
+[31mError[39m: Parameter 'transaction' implicitly has an 'any' type. 
+[36m    try {
+      await adminDb.runTransaction(async ([35mtransaction[36m) => {
+        const userDoc = await transaction.get(userRef);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:57:13
+[31mError[39m: 'tierId' is of type 'unknown'. 
+[36m        if (claimedTiers.includes(tierId)) throw new Error("Tier already claimed");
+        if ([35mtierId[36m > (bp?.currentTier || 1)) throw new Error("Tier not reached yet");
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:89:51
+[31mError[39m: Argument of type 'ZodObject<{ itemId: ZodString; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ itemId: ZodString; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    if (!locals.user) return fail(401);
+    const form = await superValidate(request, zod([35mbuyItemSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:96:43
+[31mError[39m: Parameter 'transaction' implicitly has an 'any' type. 
+[36m    try {
+      await adminDb.runTransaction(async ([35mtransaction[36m) => {
+        const userDoc = await transaction.get(userRef);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:127:51
+[31mError[39m: Argument of type 'ZodObject<{ challengeId: ZodString; challengeType: ZodEnum<{ daily: "daily"; weekly: "weekly"; }>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ challengeId: ZodString; challengeType: ZodEnum<{ daily: "daily"; weekly: "weekly"; }>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    if (!locals.user) return fail(401);
+    const form = await superValidate(request, zod([35mclaimChallengeSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:134:43
+[31mError[39m: Parameter 'transaction' implicitly has an 'any' type. 
+[36m    try {
+      await adminDb.runTransaction(async ([35mtransaction[36m) => {
+        const userDoc = await transaction.get(userRef);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:139:87
+[31mError[39m: Type 'unknown' cannot be used as an index type. 
+[36m        const data = userDoc.data();
+        const challenge = data?.economy?.battlePass?.[`${challengeType}Challenges`]?.[[35mchallengeId[36m];
+        
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:163:51
+[31mError[39m: Argument of type 'ZodObject<{ type: ZodEnum<{ frame: "frame"; color: "color"; font: "font"; badge: "badge"; emote: "emote"; }>; value: ZodString; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ type: ZodEnum<{ frame: "frame"; color: "color"; font: "font"; badge: "badge"; emote: "emote"; }>; value: ZodString; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    if (!locals.user) return fail(401);
+    const form = await superValidate(request, zod([35mequipItemSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:179:19
+[31mError[39m: Type 'unknown' cannot be used as an index type. 
+[36m      await userRef.update({
+        [fieldMap[[35mtype[36m]]: value
+      });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:189:51
+[31mError[39m: Argument of type 'ZodObject<{ crateType: ZodEnum<{ premium: "premium"; basic: "basic"; legendary: "legendary"; }>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ crateType: ZodEnum<{ premium: "premium"; basic: "basic"; legendary: "legendary"; }>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    if (!locals.user) return fail(401);
+    const form = await superValidate(request, zod([35mopenCrateSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:203:43
+[31mError[39m: Parameter 'transaction' implicitly has an 'any' type. 
+[36m      let winner: any = null;
+      await adminDb.runTransaction(async ([35mtransaction[36m) => {
+        const userDoc = await transaction.get(userRef);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.server.ts[39m:207:28
+[31mError[39m: Type 'unknown' cannot be used as an index type. 
+[36m        const nets = data?.economy?.netsBalance || 0;
+        const cost = costs[[35mcrateType[36m];
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.server.ts[39m:15:40
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; studentId: ZodString; amount: ZodNumber; paidDate: ZodString; concept: ZodDefault<ZodEnum<{ monthly_fee: "monthly_fee"; registration: "registration"; tournament: "tournament"; material: "material"; other: "other"; }>>; status: ZodDefault<...>; paymentType: ZodDefault<...>; pay...' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; studentId: ZodString; amount: ZodNumber; paidDate: ZodString; concept: ZodDefault<ZodEnum<{ monthly_fee: "monthly_fee"; registration: "registration"; tournament: "tournament"; material: "material"; other: "other"; }>>; status: ZodDefault<...>; paymentType: ZodDefault<...>; pay...' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  const uid = locals.user.uid;
+  const form = await superValidate(zod([35mpaymentSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.server.ts[39m:51:51
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; studentId: ZodString; amount: ZodNumber; paidDate: ZodString; concept: ZodDefault<ZodEnum<{ monthly_fee: "monthly_fee"; registration: "registration"; tournament: "tournament"; material: "material"; other: "other"; }>>; status: ZodDefault<...>; paymentType: ZodDefault<...>; pay...' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; studentId: ZodString; amount: ZodNumber; paidDate: ZodString; concept: ZodDefault<ZodEnum<{ monthly_fee: "monthly_fee"; registration: "registration"; tournament: "tournament"; material: "material"; other: "other"; }>>; status: ZodDefault<...>; paymentType: ZodDefault<...>; pay...' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35mpaymentSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\+page.server.ts[39m:76:25
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      const batch = adminDb.batch();
+      snap.docs.forEach([35mdoc[36m => batch.delete(doc.ref));
+      await batch.commit();
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\[schoolId]\edit\+page.server.ts[39m:45:12
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m      sharedWith: schoolData.sharedWith || []
+    }, zod([35mschoolSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\[schoolId]\edit\+page.server.ts[39m:64:51
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    
+    const form = await superValidate(request, zod([35mschoolSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\create\+page.server.ts[39m:13:40
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+  const form = await superValidate(zod([35mschoolSchema[36m));
+  
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\create\+page.server.ts[39m:26:49
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(event, zod([35mschoolSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.server.ts[39m:19:40
+[31mError[39m: Parameter 'd' implicitly has an 'any' type. 
+[36m  const schoolsSnap = await adminDb.collection('schools').where('owner_id', '==', uid).get();
+  const schools = schoolsSnap.docs.map([35md[36m => ({ id: d.id, ...d.data() }));
+  
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.server.ts[39m:22:38
+[31mError[39m: Parameter 's' implicitly has an 'any' type. 
+[36m  const currentSchoolId = settings.schoolId || schools[0]?.id;
+  const currentSchool = schools.find([35ms[36m => s.id === currentSchoolId) || schools[0];
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.server.ts[39m:32:10
+[31mError[39m: Argument of type 'ZodObject<{ teacherName: ZodString; teacherAvatar: ZodUnion<[ZodOptional<ZodString>, ZodLiteral<"">]>; teacherEmail: ZodOptional<ZodString>; featuredInsignias: ZodArray<...>; socialEnabled: ZodOptional<...>; economyEnabled: ZodOptional<...>; schoolId: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ teacherName: ZodString; teacherAvatar: ZodUnion<[ZodOptional<ZodString>, ZodLiteral<"">]>; teacherEmail: ZodOptional<ZodString>; featuredInsignias: ZodArray<...>; socialEnabled: ZodOptional<...>; economyEnabled: ZodOptional<...>; schoolId: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    schoolId: currentSchool?.id
+  }, zod([35msettingsSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.server.ts[39m:46:51
+[31mError[39m: Argument of type 'ZodObject<{ teacherName: ZodString; teacherAvatar: ZodUnion<[ZodOptional<ZodString>, ZodLiteral<"">]>; teacherEmail: ZodOptional<ZodString>; featuredInsignias: ZodArray<...>; socialEnabled: ZodOptional<...>; economyEnabled: ZodOptional<...>; schoolId: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ teacherName: ZodString; teacherAvatar: ZodUnion<[ZodOptional<ZodString>, ZodLiteral<"">]>; teacherEmail: ZodOptional<ZodString>; featuredInsignias: ZodArray<...>; socialEnabled: ZodOptional<...>; economyEnabled: ZodOptional<...>; schoolId: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35msettingsSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:40:55
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(initialData, zod([35mskillSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:53:15
+[31mError[39m: Parameter 's' implicitly has an 'any' type. 
+[36m      }))
+      .filter([35ms[36m => s.id !== skillId);
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:73:51
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35mskillSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:93:30
+[31mError[39m: 'form.data.learningObjectives' is of type 'unknown'. 
+[36m        estimated_hours: form.data.estimatedHours,
+        learning_objectives: [35mform.data.learningObjectives[36m.filter(v => v.trim() !== ''),
+        assessment_criteria: form.data.assessmentCriteria.filter(v => v.trim() !== ''),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:93:66
+[31mError[39m: Parameter 'v' implicitly has an 'any' type. 
+[36m        estimated_hours: form.data.estimatedHours,
+        learning_objectives: form.data.learningObjectives.filter([35mv[36m => v.trim() !== ''),
+        assessment_criteria: form.data.assessmentCriteria.filter(v => v.trim() !== ''),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:94:30
+[31mError[39m: 'form.data.assessmentCriteria' is of type 'unknown'. 
+[36m        learning_objectives: form.data.learningObjectives.filter(v => v.trim() !== ''),
+        assessment_criteria: [35mform.data.assessmentCriteria[36m.filter(v => v.trim() !== ''),
+        order_index: form.data.orderIndex,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:94:66
+[31mError[39m: Parameter 'v' implicitly has an 'any' type. 
+[36m        learning_objectives: form.data.learningObjectives.filter(v => v.trim() !== ''),
+        assessment_criteria: form.data.assessmentCriteria.filter([35mv[36m => v.trim() !== ''),
+        order_index: form.data.orderIndex,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:97:20
+[31mError[39m: 'form.data.resources' is of type 'unknown'. 
+[36m        resource_link: form.data.resourceLink,
+        resources: [35mform.data.resources[36m.filter(v => v.trim() !== '')
+      };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:97:47
+[31mError[39m: Parameter 'v' implicitly has an 'any' type. 
+[36m        resource_link: form.data.resourceLink,
+        resources: form.data.resources.filter([35mv[36m => v.trim() !== '')
+      };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.server.ts[39m:124:13
+[31mError[39m: 'error' is of type 'unknown'. 
+[36m      console.error('Error deleting skill:', error);
+      throw [35merror[36m(500, 'Failed to delete skill');
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.server.ts[39m:12:40
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+  const form = await superValidate(zod([35mskillSchema[36m));
+  let availablePrerequisites = [];
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.server.ts[39m:40:51
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35mskillSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.server.ts[39m:55:30
+[31mError[39m: 'form.data.learningObjectives' is of type 'unknown'. 
+[36m        estimated_hours: form.data.estimatedHours,
+        learning_objectives: [35mform.data.learningObjectives[36m.filter(v => v.trim() !== ''),
+        assessment_criteria: form.data.assessmentCriteria.filter(v => v.trim() !== ''),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.server.ts[39m:55:66
+[31mError[39m: Parameter 'v' implicitly has an 'any' type. 
+[36m        estimated_hours: form.data.estimatedHours,
+        learning_objectives: form.data.learningObjectives.filter([35mv[36m => v.trim() !== ''),
+        assessment_criteria: form.data.assessmentCriteria.filter(v => v.trim() !== ''),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.server.ts[39m:56:30
+[31mError[39m: 'form.data.assessmentCriteria' is of type 'unknown'. 
+[36m        learning_objectives: form.data.learningObjectives.filter(v => v.trim() !== ''),
+        assessment_criteria: [35mform.data.assessmentCriteria[36m.filter(v => v.trim() !== ''),
+        order_index: form.data.orderIndex,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.server.ts[39m:56:66
+[31mError[39m: Parameter 'v' implicitly has an 'any' type. 
+[36m        learning_objectives: form.data.learningObjectives.filter(v => v.trim() !== ''),
+        assessment_criteria: form.data.assessmentCriteria.filter([35mv[36m => v.trim() !== ''),
+        order_index: form.data.orderIndex,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.server.ts[39m:59:20
+[31mError[39m: 'form.data.resources' is of type 'unknown'. 
+[36m        resource_link: form.data.resourceLink,
+        resources: [35mform.data.resources[36m.filter(v => v.trim() !== '')
+      };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.server.ts[39m:59:47
+[31mError[39m: Parameter 'v' implicitly has an 'any' type. 
+[36m        resource_link: form.data.resourceLink,
+        resources: form.data.resources.filter([35mv[36m => v.trim() !== '')
+      };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\social\+page.server.ts[39m:11:39
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; title: ZodString; content: ZodString; type: ZodEnum<{ GAME_ANALYSIS: "GAME_ANALYSIS"; EXERCISE: "EXERCISE"; ACHIEVEMENT: "ACHIEVEMENT"; SCHOOL_UPDATE: "SCHOOL_UPDATE"; }>; fen: ZodNullable<...>; lichessUrl: ZodUnion<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; title: ZodString; content: ZodString; type: ZodEnum<{ GAME_ANALYSIS: "GAME_ANALYSIS"; EXERCISE: "EXERCISE"; ACHIEVEMENT: "ACHIEVEMENT"; SCHOOL_UPDATE: "SCHOOL_UPDATE"; }>; fen: ZodNullable<...>; lichessUrl: ZodUnion<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  return {
+    postForm: await superValidate(zod([35mpostSchema[36m)),
+    challengeForm: await superValidate(zod(challengeSchema))
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\social\+page.server.ts[39m:12:44
+[31mError[39m: Argument of type 'ZodObject<{ question: ZodString; description: ZodUnion<[ZodNullable<ZodOptional<ZodString>>, ZodLiteral<"">]>; endDate: ZodString; mode: ZodEnum<...>; externalId: ZodUnion<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ question: ZodString; description: ZodUnion<[ZodNullable<ZodOptional<ZodString>>, ZodLiteral<"">]>; endDate: ZodString; mode: ZodEnum<...>; externalId: ZodUnion<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    postForm: await superValidate(zod(postSchema)),
+    challengeForm: await superValidate(zod([35mchallengeSchema[36m))
+  };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\social\+page.server.ts[39m:20:51
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; title: ZodString; content: ZodString; type: ZodEnum<{ GAME_ANALYSIS: "GAME_ANALYSIS"; EXERCISE: "EXERCISE"; ACHIEVEMENT: "ACHIEVEMENT"; SCHOOL_UPDATE: "SCHOOL_UPDATE"; }>; fen: ZodNullable<...>; lichessUrl: ZodUnion<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; title: ZodString; content: ZodString; type: ZodEnum<{ GAME_ANALYSIS: "GAME_ANALYSIS"; EXERCISE: "EXERCISE"; ACHIEVEMENT: "ACHIEVEMENT"; SCHOOL_UPDATE: "SCHOOL_UPDATE"; }>; fen: ZodNullable<...>; lichessUrl: ZodUnion<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    
+    const form = await superValidate(request, zod([35mpostSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\social\+page.server.ts[39m:54:51
+[31mError[39m: Argument of type 'ZodObject<{ question: ZodString; description: ZodUnion<[ZodNullable<ZodOptional<ZodString>>, ZodLiteral<"">]>; endDate: ZodString; mode: ZodEnum<...>; externalId: ZodUnion<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ question: ZodString; description: ZodUnion<[ZodNullable<ZodOptional<ZodString>>, ZodLiteral<"">]>; endDate: ZodString; mode: ZodEnum<...>; externalId: ZodUnion<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m    
+    const form = await superValidate(request, zod([35mchallengeSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\+page.server.ts[39m:81:25
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m      const batch = adminDb.batch();
+      snap.docs.forEach([35mdoc[36m => batch.delete(doc.ref));
+      await batch.commit();
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\[studentId]\edit\+page.server.ts[39m:34:55
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(studentData, zod([35mstudentSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\[studentId]\edit\+page.server.ts[39m:40:53
+[31mError[39m: Parameter 'd' implicitly has an 'any' type. 
+[36m      student: serializeRecord({ id: studentSnap.id, ...studentData }), 
+      schools: serializeRecord(schoolsSnap.docs.map([35md[36m => ({ id: d.id, ...d.data() }))),
+      classes: serializeRecord(classesSnap.docs.map(d => ({ id: d.id, ...d.data() })))
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\[studentId]\edit\+page.server.ts[39m:41:53
+[31mError[39m: Parameter 'd' implicitly has an 'any' type. 
+[36m      schools: serializeRecord(schoolsSnap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      classes: serializeRecord(classesSnap.docs.map([35md[36m => ({ id: d.id, ...d.data() })))
+    };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\[studentId]\edit\+page.server.ts[39m:56:51
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35mstudentSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\create\+page.server.ts[39m:10:40
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36mexport const load: PageServerLoad = async ({ locals }) => {
+  const form = await superValidate(zod([35mstudentSchema[36m));
+  
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\create\+page.server.ts[39m:51:51
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35mstudentSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.server.ts[39m:35:42
+[31mError[39m: Parameter 'd' implicitly has an 'any' type. 
+[36m
+    const schools = schoolsSnap.docs.map([35md[36m => ({ id: d.id, ...d.data() }));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.server.ts[39m:70:54
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(tournament, zod([35mtournamentSchema[36m));
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.server.ts[39m:90:51
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35mtournamentSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.server.ts[39m:140:34
+[31mError[39m: Parameter 'doc' implicitly has an 'any' type. 
+[36m        const relatedSnap = await adminDb.collection(coll).where('tournamentId', '==', tournamentId).get();
+        relatedSnap.docs.forEach([35mdoc[36m => batch.delete(doc.ref));
+      }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\create\+page.server.ts[39m:15:40
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m  const uid = locals.user.uid;
+  const form = await superValidate(zod([35mtournamentSchema[36m));
+  form.data.startAt = new Date().toISOString().slice(0, 16);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\create\+page.server.ts[39m:60:51
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. 
+[36m
+    const form = await superValidate(request, zod([35mtournamentSchema[36m));
+    if (!form.valid) return fail(400, { form });
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\components\social\CreateMarketModal.svelte[39m:20:66
+[33mWarn[39m: This reference only captures the initial value of `serverForm`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, submitting, reset } = superForm([35mserverForm[36m, {
+    validators: zod(predictionMarketSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\components\social\CreateMarketModal.svelte[39m:21:21
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; question: ZodString; description: ZodOptional<ZodString>; category: ZodEnum<{ Torneos: "Torneos"; Mejoras: "Mejoras"; Docencia: "Docencia"; Academia: "Academia"; }>; endDate: ZodString; oracleType: ZodEnum<...>; externalId: ZodOptional<...>; schoolId: ZodOptional<...>; }, $str...' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; question: ZodString; description: ZodOptional<ZodString>; category: ZodEnum<{ Torneos: "Torneos"; Mejoras: "Mejoras"; Docencia: "Docencia"; Academia: "Academia"; }>; endDate: ZodString; oracleType: ZodEnum<...>; externalId: ZodOptional<...>; schoolId: ZodOptional<...>; }, $str...' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, submitting, reset } = superForm(serverForm, {
+    validators: zod([35mpredictionMarketSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\components\admin\GovernanceHub.svelte[39m:757:4
+[31mError[39m: Property 'form' is missing in type '{ show: true; onClose: () => void; onSuccess: () => Promise<void>; editMarket: any; }' but required in type 'Props'. (ts)
+[36m{#if showCreateMarketModal}
+  <[35mCreateMarketModal[36m 
+    bind:show={showCreateMarketModal} 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\components\social\ChallengeCreator.svelte[39m:11:9
+[31mError[39m: Expected token }
+https://svelte.dev/e/expected_token (svelte)
+[36m  interface Props {
+    form[35m[36m: any;
+    onClose: () => void;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\components\social\ChallengeCreator.svelte[39m:11:9
+[31mError[39m: Expected token }
+https://svelte.dev/e/expected_token (js)
+[36m  interface Props {
+    form[35m[36m: any;
+    onClose: () => void;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\components\social\PostCreator.svelte[39m:13:9
+[31mError[39m: Expected token }
+https://svelte.dev/e/expected_token (svelte)
+[36m  interface Props {
+    form[35m[36m: any;
+    post?: SocialPost | null;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\components\social\PostCreator.svelte[39m:13:9
+[31mError[39m: Expected token }
+https://svelte.dev/e/expected_token (js)
+[36m  interface Props {
+    form[35m[36m: any;
+    post?: SocialPost | null;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\lib\components\social\EditPostModal.svelte[39m:4:27
+[31mError[39m: File 'c:/Users/tomih/Desktop/ChessNet/src/lib/components/social/PostCreator.svelte' is not a module. (ts)
+[36m  import { X } from 'phosphor-svelte';
+  import PostCreator from [35m'./PostCreator.svelte'[36m;
+  import type { SocialPost } from '$lib/types';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:49:66
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, enhance, delayed, message, tainted } = superForm([35mdata[36m.form, {
+    validators: zodClient(attendanceSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:50:27
+[31mError[39m: Argument of type 'ZodObject<{ classId: ZodString; date: ZodString; records: ZodArray<ZodObject<{ studentId: ZodString; status: ZodEnum<{ P: "P"; A: "A"; unmarked: "unmarked"; }>; }, $strip>>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ classId: ZodString; date: ZodString; records: ZodArray<ZodObject<{ studentId: ZodString; status: ZodEnum<{ P: "P"; A: "A"; unmarked: "unmarked"; }>; }, $strip>>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, enhance, delayed, message, tainted } = superForm(data.form, {
+    validators: zodClient([35mattendanceSchema[36m),
+    dataType: 'json',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:96:46
+[31mError[39m: Argument of type '{}' is not assignable to parameter of type 'string'. (ts)
+[36m    const params = new URLSearchParams($page.url.searchParams);
+    if ($form.classId) params.set('classId', [35m$form.classId[36m);
+    else params.delete('classId');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:99:40
+[31mError[39m: Argument of type '{}' is not assignable to parameter of type 'string'. (ts)
+[36m    
+    if ($form.date) params.set('date', [35m$form.date[36m);
+    
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:105:19
+[31mError[39m: '$form.records' is of type 'unknown'. (ts)
+[36m  const setStatus = (studentId: string, status: 'P' | 'A') => {
+    const index = [35m$form.records[36m.findIndex(r => r.studentId === studentId);
+    if (index === -1) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:105:43
+[31mError[39m: Parameter 'r' implicitly has an 'any' type. (ts)
+[36m  const setStatus = (studentId: string, status: 'P' | 'A') => {
+    const index = $form.records.findIndex([35mr[36m => r.studentId === studentId);
+    if (index === -1) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:107:27
+[31mError[39m: Type 'unknown' must have a '[Symbol.iterator]()' method that returns an iterator. (ts)
+[36m    if (index === -1) {
+      $form.records = [...[35m$form.records[36m, { studentId, status }];
+    } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:109:7
+[31mError[39m: '$form.records' is of type 'unknown'. (ts)
+[36m    } else {
+      [35m$form.records[36m[index].status = status;
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:114:20
+[31mError[39m: '$form.records' is of type 'unknown'. (ts)
+[36m  const getStatus = (studentId: string) => {
+    const record = [35m$form.records[36m.find((r: any) => r.studentId === studentId);
+    if (!record) return 'unmarked';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:120:27
+[31mError[39m: Parameter 'student' implicitly has an 'any' type. (ts)
+[36m  const markAllPresent = () => {
+    classStudents.forEach([35mstudent[36m => {
+      setStatus(student.id, 'P');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:127:21
+[31mError[39m: 'records' is of type 'unknown'. (ts)
+[36m    const records = $form.records;
+    const present = [35mrecords[36m.filter((r: any) => r.status === 'P').length;
+    const absent = records.filter((r: any) => r.status === 'A').length;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:128:20
+[31mError[39m: 'records' is of type 'unknown'. (ts)
+[36m    const present = records.filter((r: any) => r.status === 'P').length;
+    const absent = [35mrecords[36m.filter((r: any) => r.status === 'A').length;
+    const total = classStudents.length;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:482:17
+[31mError[39m: Type '{}' is not assignable to type 'string'. (ts)
+[36m             <VisualAttendanceCalendar 
+               {[35mselectedClassId[36m} 
+               attendance={allAttendance} 
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\attendance\+page.svelte[39m:517:35
+[31mError[39m: Type 'unknown' must have a '[Symbol.iterator]()' method that returns an iterator. (ts)
+[36m            onclick={() => {
+              $form.records = [...[35mdata.form.data.records[36m];
+            }}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\+page.svelte[39m:536:14
+[31mError[39m: Can only bind to state or props
+https://svelte.dev/e/bind_invalid_value (svelte)
+[36m<ConfirmModal
+  bind:show={[35mshowDeleteAllModal[36m}
+  title={$t('classes.delete_btn')}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\+page.svelte[39m:98:7
+[31mError[39m: Cannot find name 'showDeleteAllModal'. Did you mean 'showDeleteModal'? (ts)
+[36m      purgeForm.requestSubmit();
+      [35mshowDeleteAllModal[36m = false;
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\+page.svelte[39m:176:26
+[31mError[39m: Cannot find name 'showDeleteAllModal'. Did you mean 'showDeleteModal'? (ts)
+[36m        <button 
+          onclick={() => [35mshowDeleteAllModal[36m = true}
+          class="h-[60px] w-[60px] rounded-none bg-red-900/20 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center active:scale-95"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\+page.svelte[39m:536:14
+[31mError[39m: Cannot find name 'showDeleteAllModal'. Did you mean 'showDeleteModal'? (ts)
+[36m<ConfirmModal
+  bind:show={[35mshowDeleteAllModal[36m}
+  title={$t('classes.delete_btn')}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\edit\+page.svelte[39m:39:76
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, delayed, message, isTainted } = superForm([35mdata[36m.form, {
+    validators: zod(classSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\[classId]\edit\+page.svelte[39m:40:21
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodString; schoolId: ZodString; description: ZodDefault<ZodOptional<ZodString>>; ... 4 more ...; price: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form, {
+    validators: zod([35mclassSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\create\+page.svelte[39m:80:3
+[31mError[39m: `<svelte:head>` tags cannot be inside elements or blocks
+https://svelte.dev/e/svelte_meta_invalid_placement (svelte)
+[36m>
+  [35m[36m<svelte:head>
+    <title>{$t('classes.new_title')} - ChessNet</title>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\classes\create\+page.svelte[39m:80:3
+[31mError[39m: `<svelte:head>` tags cannot be inside elements or blocks
+https://svelte.dev/e/svelte_meta_invalid_placement (ts)
+[36m>
+  [35m[36m<svelte:head>
+    <title>{$t('classes.new_title')} - ChessNet</title>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\lobby\+page.svelte[39m:46:48
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { enhance: enhanceDelete } = superForm([35mdata[36m.marketForm, {
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:381:9
+[31mError[39m: Identifier 'handleClaimTier' has already been declared
+https://svelte.dev/e/js_parse_error (svelte)
+[36m
+  const [35m[36mhandleClaimTier = async (tierId: number) => {
+    $ctForm.tierId = tierId;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:56:21
+[31mError[39m: Argument of type 'ZodObject<{ tierId: ZodNumber; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ tierId: ZodNumber; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form: ctForm, enhance: enhanceCT } = superForm(data.claimTierForm, {
+    validators: zod([35mclaimTierSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:67:21
+[31mError[39m: Argument of type 'ZodObject<{ itemId: ZodString; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ itemId: ZodString; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form: buyForm, enhance: enhanceBuy } = superForm(data.buyItemForm, {
+    validators: zod([35mbuyItemSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:76:21
+[31mError[39m: Argument of type 'ZodObject<{ challengeId: ZodString; challengeType: ZodEnum<{ daily: "daily"; weekly: "weekly"; }>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ challengeId: ZodString; challengeType: ZodEnum<{ daily: "daily"; weekly: "weekly"; }>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form: ccForm, enhance: enhanceCC } = superForm(data.claimChallengeForm, {
+    validators: zod([35mclaimChallengeSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:84:63
+[31mError[39m: Property 'equipItemSchema' does not exist on type '{ user: any; isAdmin: boolean; impersonateEmail: string | null; impersonateId: string | null; claimTierForm: SuperValidated<Record<string, unknown>, any, Record<string, unknown>>; buyItemForm: SuperValidated<...>; claimChallengeForm: SuperValidated<...>; equipItemForm: SuperValidated<...>; openCrateForm: SuperValida...'. (ts)
+[36m
+  const { form: eqForm, enhance: enhanceEQ } = superForm(data.[35mequipItemSchema[36m, {
+    validators: zod(equipItemSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:85:21
+[31mError[39m: Argument of type 'ZodObject<{ type: ZodEnum<{ frame: "frame"; color: "color"; font: "font"; badge: "badge"; emote: "emote"; }>; value: ZodString; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ type: ZodEnum<{ frame: "frame"; color: "color"; font: "font"; badge: "badge"; emote: "emote"; }>; value: ZodString; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form: eqForm, enhance: enhanceEQ } = superForm(data.equipItemSchema, {
+    validators: zod([35mequipItemSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:94:21
+[31mError[39m: Argument of type 'ZodObject<{ crateType: ZodEnum<{ premium: "premium"; basic: "basic"; legendary: "legendary"; }>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ crateType: ZodEnum<{ premium: "premium"; basic: "basic"; legendary: "legendary"; }>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form: crateForm, enhance: enhanceCrate } = superForm(data.openCrateForm, {
+    validators: zod([35mopenCrateSchema[36m),
+    onUpdated({ form, result }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:95:23
+[31mError[39m: Property 'result' does not exist on type '{ form: Readonly<SuperValidated<Record<string, unknown>, any, Record<string, unknown>>>; }'. (ts)
+[36m    validators: zod(openCrateSchema),
+    onUpdated({ form, [35mresult[36m }) {
+      if (form.valid && result.type === 'success') {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:283:9
+[31mError[39m: Cannot redeclare block-scoped variable 'handleClaimTier'. (ts)
+[36m
+  const [35mhandleClaimTier[36m = (tierId: number) => {
+    $ctForm.tierId = tierId;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:316:9
+[31mError[39m: Cannot redeclare block-scoped variable 'handleBuyItem'. (ts)
+[36m  
+  const [35mhandleBuyItem[36m = (item: any) => {
+    $buyForm.itemId = item.id;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:327:9
+[31mError[39m: Cannot redeclare block-scoped variable 'handleClaimChallenge'. (ts)
+[36m
+  const [35mhandleClaimChallenge[36m = (challenge: any, type: 'daily' | 'weekly') => {
+    $ccForm.challengeId = challenge.id;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:359:9
+[31mError[39m: Cannot redeclare block-scoped variable 'handleEquipItem'. (ts)
+[36m
+  const [35mhandleEquipItem[36m = (type: 'color' | 'frame' | 'font' | 'badge' | 'emote', value: string) => {
+    $eqForm.type = type;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:381:9
+[31mError[39m: Cannot redeclare block-scoped variable 'handleClaimTier'. (ts)
+[36m
+  const [35mhandleClaimTier[36m = async (tierId: number) => {
+    $ctForm.tierId = tierId;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:387:9
+[31mError[39m: Cannot redeclare block-scoped variable 'handleBuyItem'. (ts)
+[36m
+  const [35mhandleBuyItem[36m = async (item: any) => {
+    $buyForm.itemId = item.id;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:393:9
+[31mError[39m: Cannot redeclare block-scoped variable 'handleClaimChallenge'. (ts)
+[36m
+  const [35mhandleClaimChallenge[36m = async (challenge: any, type: 'daily' | 'weekly') => {
+    $ccForm.challengeId = challenge.id;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:400:9
+[31mError[39m: Cannot redeclare block-scoped variable 'handleEquipItem'. (ts)
+[36m
+  const [35mhandleEquipItem[36m = async (type: 'color' | 'frame' | 'font' | 'badge' | 'emote', value: string) => {
+    $eqForm.type = type;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:417:27
+[31mError[39m: Cannot find name 'rouletteItems'. (ts)
+[36m    setTimeout(() => {
+      rouletteOffset = -(([35mrouletteItems[36m.length - 10) * 160);
+    }, 100);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:688:57
+[31mError[39m: Argument of type '{ id: string; label: string; price: number; rarity: string; icon: Component<IconComponentProps, {}, "">; color: string; glow: string; desc: string; }' is not assignable to parameter of type '"premium" | "basic" | "legendary"'. (ts)
+[36m                             <button
+                               onclick={() => openCrate([35mcrate[36m)}
+                               disabled={netsBalance < crate.price}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:774:52
+[31mError[39m: Argument of type '{ claimed: boolean; level: number; type: string; reward: string; category: string; icon: Component<IconComponentProps, {}, "">; color: string; rarity: string; }' is not assignable to parameter of type 'number'. (ts)
+[36m                   <button 
+                    onclick={() => handleClaimTier([35mselectedTier[36m)}
+                    class="px-12 py-5 bg-emerald-500 text-black text-[12px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-[0_0_30px_rgba(16,185,129,0.4)] relative overflow-hidden group/claim"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\nets\+page.svelte[39m:1256:20
+[31mError[39m: Cannot find name 'rouletteItems'. (ts)
+[36m          >
+            {#each [35mrouletteItems[36m as item}
+              <div class="w-32 sm:w-40 h-28 sm:h-32 bg-zinc-900 border {item.border} flex flex-col items-center justify-center gap-2 shrink-0">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:119:76
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, reset, constraints, message } = superForm([35mdata[36m.form, {
+    validators: zod(paymentSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:63:30
+[31mError[39m: Property 'find' does not exist on type '{}'. (ts)
+[36m    if (type === 'school') {
+      const school = schools.[35mfind[36m(s => s.id === id);
+      return school?.name || $t('common.unknown');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:63:35
+[31mError[39m: Parameter 's' implicitly has an 'any' type. (ts)
+[36m    if (type === 'school') {
+      const school = schools.find([35ms[36m => s.id === id);
+      return school?.name || $t('common.unknown');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:66:30
+[31mError[39m: Property 'find' does not exist on type '{}'. (ts)
+[36m    }
+    const student = students.[35mfind[36m(s => s.id === id);
+    return student?.name || $t('payments.unknown_student');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:66:35
+[31mError[39m: Parameter 's' implicitly has an 'any' type. (ts)
+[36m    }
+    const student = students.find([35ms[36m => s.id === id);
+    return student?.name || $t('payments.unknown_student');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:72:37
+[31mError[39m: Property 'reduce' does not exist on type '{}'. (ts)
+[36m  const metrics = $derived.by(() => {
+    const totalPotential = payments.[35mreduce[36m((acc, p) => acc + (p.amount || 0), 0);
+    const realizedRevenue = payments
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:72:45
+[31mError[39m: Parameter 'acc' implicitly has an 'any' type. (ts)
+[36m  const metrics = $derived.by(() => {
+    const totalPotential = payments.reduce(([35macc[36m, p) => acc + (p.amount || 0), 0);
+    const realizedRevenue = payments
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:72:50
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m  const metrics = $derived.by(() => {
+    const totalPotential = payments.reduce((acc, [35mp[36m) => acc + (p.amount || 0), 0);
+    const realizedRevenue = payments
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:74:8
+[31mError[39m: Property 'filter' does not exist on type '{}'. (ts)
+[36m    const realizedRevenue = payments
+      .[35mfilter[36m(p => p.status === 'paid')
+      .reduce((acc, p) => acc + (p.amount || 0), 0);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:74:15
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m    const realizedRevenue = payments
+      .filter([35mp[36m => p.status === 'paid')
+      .reduce((acc, p) => acc + (p.amount || 0), 0);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:75:16
+[31mError[39m: Parameter 'acc' implicitly has an 'any' type. (ts)
+[36m      .filter(p => p.status === 'paid')
+      .reduce(([35macc[36m, p) => acc + (p.amount || 0), 0);
+    const accountsReceivable = payments
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:75:21
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m      .filter(p => p.status === 'paid')
+      .reduce((acc, [35mp[36m) => acc + (p.amount || 0), 0);
+    const accountsReceivable = payments
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:77:8
+[31mError[39m: Property 'filter' does not exist on type '{}'. (ts)
+[36m    const accountsReceivable = payments
+      .[35mfilter[36m(p => p.status === 'pending' || p.status === 'overdue')
+      .reduce((acc, p) => acc + (p.amount || 0), 0);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:77:15
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m    const accountsReceivable = payments
+      .filter([35mp[36m => p.status === 'pending' || p.status === 'overdue')
+      .reduce((acc, p) => acc + (p.amount || 0), 0);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:78:16
+[31mError[39m: Parameter 'acc' implicitly has an 'any' type. (ts)
+[36m      .filter(p => p.status === 'pending' || p.status === 'overdue')
+      .reduce(([35macc[36m, p) => acc + (p.amount || 0), 0);
+    
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:78:21
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m      .filter(p => p.status === 'pending' || p.status === 'overdue')
+      .reduce((acc, [35mp[36m) => acc + (p.amount || 0), 0);
+    
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:86:28
+[31mError[39m: Property 'length' does not exist on type '{}'. (ts)
+[36m      efficiency: efficiency.toFixed(1),
+      totalCount: payments.[35mlength[36m,
+      paidCount: payments.filter(p => p.status === 'paid').length,
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:87:27
+[31mError[39m: Property 'filter' does not exist on type '{}'. (ts)
+[36m      totalCount: payments.length,
+      paidCount: payments.[35mfilter[36m(p => p.status === 'paid').length,
+      pendingCount: payments.filter(p => p.status !== 'paid').length
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:87:34
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m      totalCount: payments.length,
+      paidCount: payments.filter([35mp[36m => p.status === 'paid').length,
+      pendingCount: payments.filter(p => p.status !== 'paid').length
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:88:30
+[31mError[39m: Property 'filter' does not exist on type '{}'. (ts)
+[36m      paidCount: payments.filter(p => p.status === 'paid').length,
+      pendingCount: payments.[35mfilter[36m(p => p.status !== 'paid').length
+    };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:88:37
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m      paidCount: payments.filter(p => p.status === 'paid').length,
+      pendingCount: payments.filter([35mp[36m => p.status !== 'paid').length
+    };
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:98:8
+[31mError[39m: Property 'filter' does not exist on type '{}'. (ts)
+[36m    payments
+      .[35mfilter[36m(p => {
+        const studentName = getEntityName(p.studentId || '', p.paymentType || 'student').toLowerCase();
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:98:15
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m    payments
+      .filter([35mp[36m => {
+        const studentName = getEntityName(p.studentId || '', p.paymentType || 'student').toLowerCase();
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:109:14
+[31mError[39m: Parameter 'a' implicitly has an 'any' type. (ts)
+[36m      })
+      .sort(([35ma[36m,b) => (b.paidDate || b.createdAt || '').localeCompare(a.paidDate || a.createdAt || ''))
+  );
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:109:16
+[31mError[39m: Parameter 'b' implicitly has an 'any' type. (ts)
+[36m      })
+      .sort((a,[35mb[36m) => (b.paidDate || b.createdAt || '').localeCompare(a.paidDate || a.createdAt || ''))
+  );
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:120:21
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; studentId: ZodString; amount: ZodNumber; paidDate: ZodString; concept: ZodDefault<ZodEnum<{ monthly_fee: "monthly_fee"; registration: "registration"; tournament: "tournament"; material: "material"; other: "other"; }>>; status: ZodDefault<...>; paymentType: ZodDefault<...>; pay...' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; studentId: ZodString; amount: ZodNumber; paidDate: ZodString; concept: ZodDefault<ZodEnum<{ monthly_fee: "monthly_fee"; registration: "registration"; tournament: "tournament"; material: "material"; other: "other"; }>>; status: ZodDefault<...>; paymentType: ZodDefault<...>; pay...' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, reset, constraints, message } = superForm(data.form, {
+    validators: zod([35mpaymentSchema[36m),
+    dataType: 'json',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:171:39
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m    ];
+    const rows = filteredPayments.map([35mp[36m => [
+      getEntityName(p.studentId || '', p.paymentType),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:426:26
+[31mError[39m: Argument of type '{}' is not assignable to parameter of type 'ArrayLike<unknown> | Iterable<unknown>'. (ts)
+[36m                {#if $form.paymentType === 'school'}
+                  {#each [35mschools[36m as school}
+                    <option value={school.id}>{school.name}</option>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:427:36
+[31mError[39m: 'school' is of type 'unknown'. (ts)
+[36m                  {#each schools as school}
+                    <option value={[35mschool[36m.id}>{school.name}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:427:48
+[31mError[39m: 'school' is of type 'unknown'. (ts)
+[36m                  {#each schools as school}
+                    <option value={school.id}>{[35mschool[36m.name}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:430:26
+[31mError[39m: Argument of type '{}' is not assignable to parameter of type 'ArrayLike<unknown> | Iterable<unknown>'. (ts)
+[36m                {:else}
+                  {#each [35mstudents[36m as student}
+                    <option value={student.id}>{student.name}</option>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:431:36
+[31mError[39m: 'student' is of type 'unknown'. (ts)
+[36m                  {#each students as student}
+                    <option value={[35mstudent[36m.id}>{student.name}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:431:49
+[31mError[39m: 'student' is of type 'unknown'. (ts)
+[36m                  {#each students as student}
+                    <option value={student.id}>{[35mstudent[36m.name}</option>
+                  {/each}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\payments\+page.svelte[39m:492:35
+[31mError[39m: Argument of type '{}' is not assignable to parameter of type 'string'. (ts)
+[36m                  if ($form.id) {
+                    deletePayment([35m$form.id[36m);
+                    showModal = false;
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\+page.svelte[39m:111:3
+[33mWarn[39m: Self-closing HTML tags for non-void elements are ambiguous ÔÇö use `<form ...></form>` rather than `<form ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+[36m
+  [35m<form 
+    method="POST" 
+    action="?/purge" 
+    use:enhance={() => {
+      return async ({ result }) => {
+        if (result.type === 'success') {
+          toast.success($t('schools.toast_all_deleted') || 'Todos los centros eliminados');
+        } else {
+          toast.error($t('common.error_occurred'));
+        }
+      };
+    }} 
+    bind:this={purgeForm} 
+    class="hidden"
+  />[36m
+  
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\[schoolId]\edit\+page.svelte[39m:40:76
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, delayed, message, isTainted } = superForm([35mdata[36m.form, {
+    validators: zod(schoolSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\[schoolId]\edit\+page.svelte[39m:41:21
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form, {
+    validators: zod([35mschoolSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\[schoolId]\edit\+page.svelte[39m:79:48
+[31mError[39m: Parameter 'id' implicitly has an 'any' type. (ts)
+[36m  const removeDirector = (uid: string) => {
+    $form.sharedWith = $form.sharedWith.filter([35mid[36m => id !== uid);
+    showToast.success('Acceso revocado');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\create\+page.svelte[39m:31:76
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, delayed, message, isTainted } = superForm([35mdata[36m.form, {
+    validators: zod(schoolSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\create\+page.svelte[39m:32:21
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; city: ZodDefault<ZodOptional<ZodString>>; country: ZodDefault<ZodOptional<ZodString>>; ... 7 more ...; sharedWith: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form, {
+    validators: zod([35mschoolSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\schools\create\+page.svelte[39m:307:18
+[31mError[39m: Cannot find name 'CurrencyEur'. (ts)
+[36m              <div class="flex items-center gap-4">
+                <[35mCurrencyEur[36m size={24} weight="duotone" class="text-emerald-400" />
+                <div class="flex flex-col">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:34:65
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, message, delayed } = superForm([35mdata[36m.form, {
+    validators: zod(settingsSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:257:15
+[33mWarn[39m: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+[36m              </div>
+              [35m<button 
+                type="button"
+                onclick={() => $form.socialEnabled = !$form.socialEnabled}
+                class="w-12 h-6 {$form.socialEnabled ? 'bg-emerald-600' : 'bg-zinc-800'} rounded-none relative transition-colors shadow-lg"
+              >
+                <div class="absolute {$form.socialEnabled ? 'right-1' : 'left-1'} top-1 w-4 h-4 bg-white rounded-none transition-all"></div>
+              </button>[36m
+            </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:272:15
+[33mWarn[39m: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+[36m              </div>
+              [35m<button 
+                type="button"
+                onclick={() => $form.economyEnabled = !$form.economyEnabled}
+                class="w-12 h-6 {$form.economyEnabled ? 'bg-amber-600' : 'bg-zinc-800'} rounded-none relative transition-colors shadow-lg"
+              >
+                <div class="absolute {$form.economyEnabled ? 'right-1' : 'left-1'} top-1 w-4 h-4 bg-white rounded-none transition-all"></div>
+              </button>[36m
+            </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:35:21
+[31mError[39m: Argument of type 'ZodObject<{ teacherName: ZodString; teacherAvatar: ZodUnion<[ZodOptional<ZodString>, ZodLiteral<"">]>; teacherEmail: ZodOptional<ZodString>; featuredInsignias: ZodArray<...>; socialEnabled: ZodOptional<...>; economyEnabled: ZodOptional<...>; schoolId: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ teacherName: ZodString; teacherAvatar: ZodUnion<[ZodOptional<ZodString>, ZodLiteral<"">]>; teacherEmail: ZodOptional<ZodString>; featuredInsignias: ZodArray<...>; socialEnabled: ZodOptional<...>; economyEnabled: ZodOptional<...>; schoolId: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, message, delayed } = superForm(data.form, {
+    validators: zod([35msettingsSchema[36m),
+    dataType: 'json',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:61:42
+[31mError[39m: Property 'find' does not exist on type '{}'. (ts)
+[36m  const schools = $derived(data.schools || []);
+  const currentSchool = $derived(schools.[35mfind[36m(s => s.id === $form.schoolId) || schools[0]);
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:61:47
+[31mError[39m: Parameter 's' implicitly has an 'any' type. (ts)
+[36m  const schools = $derived(data.schools || []);
+  const currentSchool = $derived(schools.find([35ms[36m => s.id === $form.schoolId) || schools[0]);
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:61:80
+[31mError[39m: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{}'.
+  Property '0' does not exist on type '{}'. (ts)
+[36m  const schools = $derived(data.schools || []);
+  const currentSchool = $derived(schools.find(s => s.id === $form.schoolId) || [35mschools[0][36m);
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:65:7
+[31mError[39m: 'data.unlockedAchievements' is of type 'unknown'. (ts)
+[36m    INSIGNIAS.filter(insignia => 
+      [35mdata.unlockedAchievements[36m.some((a: any) => a.id === insignia.id)
+    )
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:70:9
+[31mError[39m: '$form.featuredInsignias' is of type 'unknown'. (ts)
+[36m  const toggleInsignia = (id: string) => {
+    if ([35m$form.featuredInsignias[36m.includes(id)) {
+      $form.featuredInsignias = $form.featuredInsignias.filter(i => i !== id);
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:71:33
+[31mError[39m: '$form.featuredInsignias' is of type 'unknown'. (ts)
+[36m    if ($form.featuredInsignias.includes(id)) {
+      $form.featuredInsignias = [35m$form.featuredInsignias[36m.filter(i => i !== id);
+    } else if ($form.featuredInsignias.length < 3) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:71:64
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m    if ($form.featuredInsignias.includes(id)) {
+      $form.featuredInsignias = $form.featuredInsignias.filter([35mi[36m => i !== id);
+    } else if ($form.featuredInsignias.length < 3) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:72:16
+[31mError[39m: '$form.featuredInsignias' is of type 'unknown'. (ts)
+[36m      $form.featuredInsignias = $form.featuredInsignias.filter(i => i !== id);
+    } else if ([35m$form.featuredInsignias[36m.length < 3) {
+      $form.featuredInsignias = [...$form.featuredInsignias, id];
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:73:37
+[31mError[39m: Type 'unknown' must have a '[Symbol.iterator]()' method that returns an iterator. (ts)
+[36m    } else if ($form.featuredInsignias.length < 3) {
+      $form.featuredInsignias = [...[35m$form.featuredInsignias[36m, id];
+    }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:122:22
+[31mError[39m: Type '{}' is not assignable to type 'string'. (ts)
+[36m              {#if $form.teacherAvatar}
+                <img [35msrc[36m={$form.teacherAvatar} alt="Avatar" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+              {:else}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:218:20
+[31mError[39m: '$form.featuredInsignias' is of type 'unknown'. (ts)
+[36m              <InsigniaBadge {insignia} unlocked={true} size="md" />
+              {#if [35m$form.featuredInsignias[36m.includes(insignia.id)}
+                <div class="absolute -top-1 -right-1 w-8 h-8 bg-violet-600 rounded-none flex items-center justify-center border-4 border-[#09090b] shadow-xl z-20" transition:scale>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:223:21
+[31mError[39m: '$form.featuredInsignias' is of type 'unknown'. (ts)
+[36m              {/if}
+              {#if ![35m$form.featuredInsignias[36m.includes(insignia.id) && $form.featuredInsignias.length >= 3}
+                <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-none z-10"></div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\settings\+page.svelte[39m:223:70
+[31mError[39m: '$form.featuredInsignias' is of type 'unknown'. (ts)
+[36m              {/if}
+              {#if !$form.featuredInsignias.includes(insignia.id) && [35m$form.featuredInsignias[36m.length >= 3}
+                <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-none z-10"></div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\+page.svelte[39m:416:1
+[31mError[39m: `</script>` attempted to close an element that was not open
+https://svelte.dev/e/element_invalid_closing_tag (svelte)
+[36m</form>
+[35m[36m</script>
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\+page.svelte[39m:416:1
+[31mError[39m: `</script>` attempted to close an element that was not open
+https://svelte.dev/e/element_invalid_closing_tag (ts)
+[36m</form>
+[35m[36m</script>
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:597:5
+[31mError[39m: `</div>` attempted to close an element that was not open
+https://svelte.dev/e/element_invalid_closing_tag (svelte)
+[36m      </div>
+    [35m[36m</div>
+  </main>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:657:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input-wrapper {
+    [35m@apply[36m relative;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:661:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .glass-input {
+    [35m@apply[36m w-full bg-zinc-950/50 border border-zinc-800/50 rounded-none px-5 py-4 text-sm text-white focus:border-amber-500/50 focus:bg-zinc-900/50 outline-none transition-all placeholder:text-zinc-700 font-medium shadow-inner;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:665:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .glass-label {
+    [35m@apply[36m text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1 block;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:669:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card {
+    [35m@apply[36m relative flex flex-col gap-3 p-5 bg-zinc-950/30 border border-zinc-800/50 rounded-none text-left transition-all hover:bg-zinc-900/50 hover:border-zinc-700;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:673:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.small {
+    [35m@apply[36m p-4 flex-row items-center gap-4;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:677:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.active {
+    [35m@apply[36m bg-amber-600/10 border-amber-500/50 ring-1 ring-amber-500/20 shadow-lg shadow-amber-600/5;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:681:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-icon {
+    [35m@apply[36m w-10 h-10 flex items-center justify-center bg-zinc-900 text-zinc-500 border border-zinc-800 rounded-none transition-all;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:685:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.active .card-icon {
+    [35m@apply[36m bg-amber-600 text-white border-amber-400 shadow-lg shadow-amber-600/20;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:689:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-title {
+    [35m@apply[36m text-[11px] font-black uppercase tracking-widest text-zinc-400 transition-colors;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:693:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.active .card-title {
+    [35m@apply[36m text-white;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:697:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-check {
+    [35m@apply[36m absolute top-3 right-3 w-5 h-5 bg-amber-600 text-white rounded-none flex items-center justify-center shadow-lg;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:701:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.small .card-check {
+    [35m@apply[36m top-1/2 -translate-y-1/2 right-4;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\[skillId]\edit\+page.svelte[39m:597:5
+[31mError[39m: `</div>` attempted to close an element that was not open
+https://svelte.dev/e/element_invalid_closing_tag (ts)
+[36m      </div>
+    [35m[36m</div>
+  </main>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:34:67
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, delayed, isTainted } = superForm([35mdata[36m.form, {
+    validators: zodClient(skillSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:618:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .input-wrapper {
+    [35m@apply[36m relative;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:622:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .glass-input {
+    [35m@apply[36m w-full bg-zinc-950/50 border border-zinc-800/50 rounded-none px-5 py-4 text-sm text-white focus:border-violet-500/50 focus:bg-zinc-900/50 outline-none transition-all placeholder:text-zinc-700 font-medium shadow-inner;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:626:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .glass-label {
+    [35m@apply[36m text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1 block;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:630:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card {
+    [35m@apply[36m relative flex flex-col gap-3 p-5 bg-zinc-950/30 border border-zinc-800/50 rounded-none text-left transition-all hover:bg-zinc-900/50 hover:border-zinc-700;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:634:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.small {
+    [35m@apply[36m p-4 flex-row items-center gap-4;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:638:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.active {
+    [35m@apply[36m bg-violet-600/10 border-violet-500/50 ring-1 ring-violet-500/20 shadow-lg shadow-violet-600/5;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:642:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-icon {
+    [35m@apply[36m w-10 h-10 flex items-center justify-center bg-zinc-900 text-zinc-500 border border-zinc-800 rounded-none transition-all;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:646:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.active .card-icon {
+    [35m@apply[36m bg-violet-600 text-white border-violet-400 shadow-lg shadow-violet-600/20;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:650:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-title {
+    [35m@apply[36m text-[11px] font-black uppercase tracking-widest text-zinc-400 transition-colors;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:654:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.active .card-title {
+    [35m@apply[36m text-white;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:658:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-check {
+    [35m@apply[36m absolute top-3 right-3 w-5 h-5 bg-violet-600 text-white rounded-none flex items-center justify-center shadow-lg;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:662:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.small .card-check {
+    [35m@apply[36m top-1/2 -translate-y-1/2 right-4;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:35:27
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; description: ZodDefault<ZodOptional<ZodString>>; categoryId: ZodString; difficulty: ZodDefault<ZodNumber>; ... 8 more ...; active: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, delayed, isTainted } = superForm(data.form, {
+    validators: zodClient([35mskillSchema[36m),
+    dataType: 'json',
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:74:37
+[31mError[39m: Parameter '_' implicitly has an 'any' type. (ts)
+[36m  function removeItem(key: 'learningObjectives' | 'assessmentCriteria' | 'resources', index: number) {
+    $form[key] = $form[key].filter(([35m_[36m, i) => i !== index);
+    if ($form[key].length === 0) $form[key] = [''];
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:74:40
+[31mError[39m: Parameter 'i' implicitly has an 'any' type. (ts)
+[36m  function removeItem(key: 'learningObjectives' | 'assessmentCriteria' | 'resources', index: number) {
+    $form[key] = $form[key].filter((_, [35mi[36m) => i !== index);
+    if ($form[key].length === 0) $form[key] = [''];
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\skills\create\+page.svelte[39m:80:56
+[31mError[39m: Parameter 'p' implicitly has an 'any' type. (ts)
+[36m    if ($form.prerequisites.includes(id)) {
+      $form.prerequisites = $form.prerequisites.filter([35mp[36m => p !== id);
+    } else {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\social\+page.svelte[39m:7:27
+[31mError[39m: File 'c:/Users/tomih/Desktop/ChessNet/src/lib/components/social/PostCreator.svelte' is not a module. (ts)
+[36m  import PostCard from '$lib/components/social/PostCard.svelte';
+  import PostCreator from [35m'$lib/components/social/PostCreator.svelte'[36m;
+  import ChallengeCreator from '$lib/components/social/ChallengeCreator.svelte';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\social\+page.svelte[39m:8:32
+[31mError[39m: File 'c:/Users/tomih/Desktop/ChessNet/src/lib/components/social/ChallengeCreator.svelte' is not a module. (ts)
+[36m  import PostCreator from '$lib/components/social/PostCreator.svelte';
+  import ChallengeCreator from [35m'$lib/components/social/ChallengeCreator.svelte'[36m;
+  import { Trophy, Plus } from 'phosphor-svelte';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\+page.svelte[39m:139:3
+[33mWarn[39m: Self-closing HTML tags for non-void elements are ambiguous ÔÇö use `<form ...></form>` rather than `<form ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+[36m
+  [35m<form 
+    method="POST" 
+    action="?/purge" 
+    use:enhance={() => {
+      return async ({ result }) => {
+        if (result.type === 'success') {
+          toast.success($t('students.toast_all_deleted'));
+        } else {
+          toast.error($t('common.error_occurred'));
+        }
+      };
+    }} 
+    bind:this={purgeForm} 
+    class="hidden"
+  />[36m
+  
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\[studentId]\edit\+page.svelte[39m:146:3
+[31mError[39m: `</header>` attempted to close an element that was not open
+https://svelte.dev/e/element_invalid_closing_tag (svelte)
+[36m    </div>
+  [35m[36m</header>
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\[studentId]\edit\+page.svelte[39m:146:3
+[31mError[39m: `</header>` attempted to close an element that was not open
+https://svelte.dev/e/element_invalid_closing_tag (ts)
+[36m    </div>
+  [35m[36m</header>
+
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\create\+page.svelte[39m:41:78
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, constraints, enhance, delayed, message } = superForm([35mdata[36m.form, {
+    validators: zod(studentSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\students\create\+page.svelte[39m:42:21
+[31mError[39m: Argument of type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ id: ZodOptional<ZodString>; name: ZodOptional<ZodString>; firstName: ZodString; lastName: ZodString; ... 7 more ...; avatar: ZodDefault<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, constraints, enhance, delayed, message } = superForm(data.form, {
+    validators: zod([35mstudentSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:43:74
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, delayed, message, tainted } = superForm([35mdata[36m.form, {
+    validators: zodClient(tournamentSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:675:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card {
+    [35m@apply[36m relative p-6 bg-zinc-900/50 border border-zinc-800 transition-all text-left flex items-center gap-5 hover:border-violet-500/30 hover:bg-zinc-800/50;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:679:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.active {
+    [35m@apply[36m border-violet-500 bg-violet-500/10;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:683:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .selection-card.small {
+    [35m@apply[36m p-4 gap-3;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:687:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-icon {
+    [35m@apply[36m w-10 h-10 bg-zinc-950 flex items-center justify-center text-zinc-600 transition-colors shrink-0;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:691:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .active .card-icon {
+    [35m@apply[36m text-violet-400 bg-violet-500/20;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:695:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-title {
+    [35m@apply[36m text-[10px] font-black uppercase tracking-widest text-zinc-400;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:699:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .active .card-title {
+    [35m@apply[36m text-white;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:703:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .card-check {
+    [35m@apply[36m absolute top-3 right-3 text-violet-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:707:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .glass-input {
+    [35m@apply[36m h-14 bg-zinc-900/50 border border-zinc-800 rounded-none text-white text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:711:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .glass-label {
+    [35m@apply[36m text-[10px] font-black text-zinc-500 uppercase tracking-widest;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:715:5
+[33mWarn[39m: Unknown at rule @apply (css)
+[36m  .bento-card {
+    [35m@apply[36m bg-zinc-900/30 backdrop-blur-md border border-white/5 rounded-none p-6 hover:border-white/10 transition-all;
+  }
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:44:27
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, delayed, message, tainted } = superForm(data.form, {
+    validators: zodClient([35mtournamentSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:71:11
+[31mError[39m: '$form.sharedWith' is of type 'unknown'. (ts)
+[36m      
+      if ([35m$form.sharedWith[36m.includes(user.uid)) {
+        toast.error('Este director ya tiene acceso');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:74:32
+[31mError[39m: Type 'unknown' must have a '[Symbol.iterator]()' method that returns an iterator. (ts)
+[36m      } else {
+        $form.sharedWith = [...[35m$form.sharedWith[36m, user.uid];
+        newDirectorEmail = '';
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:86:24
+[31mError[39m: '$form.sharedWith' is of type 'unknown'. (ts)
+[36m  const removeDirector = (uid: string) => {
+    $form.sharedWith = [35m$form.sharedWith[36m.filter(id => id !== uid);
+    toast.success('Acceso revocado');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:86:48
+[31mError[39m: Parameter 'id' implicitly has an 'any' type. (ts)
+[36m  const removeDirector = (uid: string) => {
+    $form.sharedWith = $form.sharedWith.filter([35mid[36m => id !== uid);
+    toast.success('Acceso revocado');
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:128:115
+[31mError[39m: Type 'unknown' cannot be used as an index type. (ts)
+[36m              <h1 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('tournaments.manage_title')}</h1>
+              <span class="px-2 py-0.5 rounded-none text-[8px] font-black uppercase border {(statusColors as any)[[35m$form.status[36m]}">
+                {$t(`tournaments.status_${$form.status}`)}
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:431:55
+[31mError[39m: Property 'length' does not exist on type '{}'. (ts)
+[36m
+            {#if $form.sharedWith && $form.sharedWith.[35mlength[36m > 0}
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:433:24
+[31mError[39m: Argument of type '{}' is not assignable to parameter of type 'ArrayLike<unknown> | Iterable<unknown>'. (ts)
+[36m              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {#each [35m$form.sharedWith[36m as uid}
+                  <div class="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-none group/item">
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:437:26
+[31mError[39m: 'uid' is of type 'unknown'. (ts)
+[36m                      <div class="w-8 h-8 bg-violet-500/20 flex items-center justify-center text-violet-400 font-black text-[10px]">
+                        {[35muid[36m.substring(0, 2).toUpperCase()}
+                      </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:443:53
+[31mError[39m: Argument of type 'unknown' is not assignable to parameter of type 'string'. (ts)
+[36m                      type="button"
+                      onclick={() => removeDirector([35muid[36m)}
+                      class="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:557:104
+[31mError[39m: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type '{}' is not assignable to parameter of type 'string | number'. (ts)
+[36m                    </div>
+                    <span class="text-[10px] font-bold text-white uppercase">{$form.startAt ? new Date([35m$form.startAt[36m).toLocaleDateString() : 'TBD'}</span>
+                  </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\[tournamentId]\edit\+page.svelte[39m:564:99
+[31mError[39m: Argument of type 'unknown' is not assignable to parameter of type 'string'. (ts)
+[36m                    </div>
+                    <span class="text-[10px] font-bold text-violet-400 uppercase">{getFormatLabel([35m$form.format[36m)}</span>
+                  </div>
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\create\+page.svelte[39m:33:74
+[33mWarn[39m: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+[36m
+  const { form, errors, enhance, delayed, message, tainted } = superForm([35mdata[36m.form, {
+    validators: zodClient(tournamentSchema),
+[39m
+
+c:\Users\tomih\Desktop\ChessNet\[32msrc\routes\panel\tournaments\create\+page.svelte[39m:34:27
+[31mError[39m: Argument of type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is not assignable to parameter of type 'ZodObjectType'.
+  Type 'ZodObject<{ name: ZodString; startAt: ZodString; endAt: ZodDefault<ZodOptional<ZodString>>; registrationDeadline: ZodDefault<ZodOptional<ZodString>>; ... 15 more ...; updatedAt: ZodOptional<...>; }, $strip>' is missing the following properties from type 'ZodType<Record<string, unknown>, ZodTypeDef, Record<string, unknown> | undefined>': _type, _parse, _getType, _getOrReturnCtx, and 7 more. (ts)
+[36m  const { form, errors, enhance, delayed, message, tainted } = superForm(data.form, {
+    validators: zodClient([35mtournamentSchema[36m),
+    onUpdated({ form }) {
+[39m
+
+====================================
+[31msvelte-check found 224 errors and 51 warnings in 47 files
+[39m

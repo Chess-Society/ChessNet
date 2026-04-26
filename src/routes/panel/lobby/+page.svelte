@@ -22,7 +22,8 @@
   import { toast } from '$lib/stores/toast';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
+  import { superForm } from 'sveltekit-superforms';
   import { ADMIN_EMAILS } from '$lib/constants';
   import { INSIGNIAS } from '$lib/constants/insignias';
   import { uiStore } from '$lib/stores/uiStore';
@@ -33,13 +34,25 @@
   import CreateMarketModal from '$lib/components/social/CreateMarketModal.svelte';
   import { predictionApi } from '$lib/api/predictions';
 
-  // State
+  let { data } = $props();
+
   let showCreateMarketModal = $state(false);
   let marketToEdit = $state<any>(null);
   let markets = $state<any[]>([]);
   let selectedCategory = $state('Todos');
   const categories = ['Todos', 'Torneos', 'Mejoras', 'Docencia', 'Academia'];
   let filteredMarkets = $derived(selectedCategory === 'Todos' ? markets : markets.filter(m => m.category === selectedCategory));
+
+  const { enhance: enhanceDelete } = superForm(data.marketForm as any, {
+    onUpdated({ form }) {
+      if (form.valid) {
+        toast.success($t('common.deleted_success'));
+      }
+    }
+  }) as any;
+
+  let deleteFormEl: HTMLFormElement;
+  let deleteId = $state('');
 
 
   
@@ -92,12 +105,9 @@
     });
     if (!confirmed) return;
     
-    try {
-      await deleteDoc(doc(db, collectionName, id));
-      toast.success($t('common.deleted_success'));
-    } catch (err: any) {
-      toast.error($t('common.error_deleting') + ": " + err.message);
-    }
+    deleteId = id;
+    await tick();
+    deleteFormEl.requestSubmit();
   }
 
 
@@ -216,8 +226,13 @@
 
 
 
+<form method="POST" action="?/deleteMarket" use:enhanceDelete bind:this={deleteFormEl} class="hidden">
+  <input type="hidden" name="id" bind:value={deleteId} />
+</form>
+
 <CreateMarketModal 
   show={showCreateMarketModal} 
+  form={data.marketForm}
   onClose={() => { showCreateMarketModal = false; marketToEdit = null; }}
   editMarket={marketToEdit}
 />

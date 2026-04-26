@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
   import { 
     CaretLeft,
     CalendarBlank,
@@ -101,30 +102,22 @@
     }
   });
 
+  let saveForm = $state<HTMLFormElement | null>(null);
+  let recordsData = $state<string>('[]');
+
   const handleSubmitAttendance = async () => {
     if (isSubmitting) return;
-    try {
-      isSubmitting = true;
-      const records: AttendanceRecord[] = students.map(student => ({
-        studentId: student.id,
-        studentName: student.name,
-        status: currentAttendance[student.id]?.status || 'P',
-        notes: currentAttendance[student.id]?.notes || ''
-      }));
+    
+    const records: AttendanceRecord[] = students.map(student => ({
+      studentId: student.id,
+      studentName: student.name,
+      status: currentAttendance[student.id]?.status || 'P',
+      notes: currentAttendance[student.id]?.notes || ''
+    }));
 
-      const response = await fetch('/api/attendance', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ classId: classData.id, date: selectedDate, records })
-      });
-
-      if (!response.ok) throw new Error('Error saving attendance');
-      showToast.success($t('attendance.save_success'));
-    } catch (error) {
-      showError(error);
-    } finally {
-      isSubmitting = false;
-    }
+    recordsData = JSON.stringify(records);
+    await tick();
+    saveForm?.requestSubmit();
   };
 
   const statusThemes = {
@@ -477,6 +470,19 @@
     </div>
   {/if}
 </div>
+
+<form method="POST" action="?/save" use:enhance={() => {
+  isSubmitting = true;
+  return async ({ result }) => {
+    isSubmitting = false;
+    if (result.type === 'success') {
+      showToast.success($t('attendance.save_success'));
+    }
+  };
+}} bind:this={saveForm} class="hidden">
+  <input type="hidden" name="date" value={selectedDate} />
+  <input type="hidden" name="records" value={recordsData} />
+</form>
 
 <style lang="postcss">
   :global(.animate-fade-in) {

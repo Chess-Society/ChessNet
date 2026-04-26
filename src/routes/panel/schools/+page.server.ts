@@ -50,3 +50,35 @@ export const load: PageServerLoad = async ({ locals }) => {
     };
   }
 };
+
+export const actions = {
+  delete: async ({ request, locals }) => {
+    if (!locals.user) return { success: false, error: 'Unauthorized' };
+    const data = await request.formData();
+    const id = data.get('id') as string;
+
+    try {
+      await adminDb.collection('schools').doc(id).delete();
+      return { success: true };
+    } catch (err) {
+      console.error('Delete school failed:', err);
+      return { success: false, error: 'Delete failed' };
+    }
+  },
+
+  purge: async ({ locals }) => {
+    if (!locals.user) return { success: false, error: 'Unauthorized' };
+    const uid = locals.user.uid;
+
+    try {
+      const snap = await adminDb.collection('schools').where('owner_id', '==', uid).get();
+      const batch = adminDb.batch();
+      snap.docs.forEach((doc: any) => batch.delete(doc.ref));
+      await batch.commit();
+      return { success: true };
+    } catch (err) {
+      console.error('Purge schools failed:', err);
+      return { success: false, error: 'Purge failed' };
+    }
+  }
+};

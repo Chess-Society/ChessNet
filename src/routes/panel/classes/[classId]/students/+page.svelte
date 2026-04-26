@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
+  import { enhance } from '$app/forms';
   import { 
     Users, 
     CaretLeft,
@@ -44,22 +45,16 @@
   let { data } = $props<{ data: PageData }>();
 
   let classData = $derived(data.class as any);
-  let enrolledStudents = $state<any[]>([]);
-  let availableStudents = $state<any[]>([]);
-  let stats = $state<any>({ enrolled: 0, available: 0, capacity: 0, occupancyRate: 0 });
-
-  $effect(() => {
-    enrolledStudents = data.enrolledStudents || [];
-    availableStudents = data.availableStudents || [];
-    stats = data.stats || { enrolled: 0, available: 0, capacity: 0, occupancyRate: 0 };
-  });
+  let enrolledStudents = $derived(data.enrolledStudents || []);
+  let availableStudents = $derived(data.availableStudents || []);
+  let stats = $derived(data.stats || { enrolled: 0, available: 0, capacity: 0, occupancyRate: 0 });
   
   let searchQuery = $state('');
   let isEnrolling = $state(false);
 
   // Filter available students by search query
   let filteredAvailableStudents = $derived(
-    availableStudents.filter(student =>
+    availableStudents.filter((student: any) =>
       (student.firstName + ' ' + student.lastName).toLowerCase().includes(searchQuery.toLowerCase()) ||
       (student.email || '').toLowerCase().includes(searchQuery.toLowerCase())
     )
@@ -105,16 +100,18 @@
       
       const newStudent = await appStore.addStudent(studentData);
       if (newStudent?.id) {
-        await appStore.enrollStudent(classData.id, newStudent.id);
+        selectedStudentId = newStudent.id;
+        enrollFormAction = '?/enroll';
+        await tick();
+        enrollFormEl?.requestSubmit();
+        
         quickName = '';
         quickLichess = '';
         showQuickAdd = false;
-        
-        // Refresh local state or reload
-        window.location.reload();
       }
     } catch (e) {
       console.error(e);
+      showError($t('common.error_occurred'));
     } finally {
       isAdding = false;
     }
@@ -149,54 +146,20 @@
     return age;
   };
 
+  let enrollFormEl = $state<HTMLFormElement>();
+  let selectedStudentId = $state('');
+  let enrollFormAction = $state('?/enroll');
+
   const handleEnrollStudent = async (studentId: string) => {
     if (stats.available <= 0) {
       showError($t('classes.max_capacity_reached'));
       return;
     }
 
-    try {
-      isEnrolling = true;
-      
-      const classId = classData?.id;
-      if (!classId) {
-        showError($t('common.error_occurred'));
-        return;
-      }
-
-      const response = await fetch('/api/class-students', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          classId: classId,
-          studentId: studentId
-        })
-      });
-
-      if (response.ok) {
-        const student = availableStudents.find(s => s.id === studentId);
-        if (student) {
-          enrolledStudents = [...enrolledStudents, { ...student, enrolledAt: new Date().toISOString() }];
-          availableStudents = availableStudents.filter(s => s.id !== studentId);
-          
-          stats.enrolled += 1;
-          stats.available -= 1;
-          stats.occupancyRate = Math.round((stats.enrolled / stats.capacity) * 100);
-        }
-        
-        showToast.success($t('students.enroll_success', { name: `${student?.firstName} ${student?.lastName}` }));
-      } else {
-        const error = await response.json();
-        showError(error.error || $t('common.error_occurred'));
-      }
-    } catch (error) {
-      console.error('Error enrolling student:', error);
-      showError($t('common.error_occurred'));
-    } finally {
-      isEnrolling = false;
-    }
+    selectedStudentId = studentId;
+    enrollFormAction = '?/enroll';
+    await tick();
+    enrollFormEl?.requestSubmit();
   };
 
   const handleEditStudent = (studentId: string) => {
@@ -206,7 +169,7 @@
   };
 
   const handleUnenrollStudent = async (studentId: string) => {
-    const student = enrolledStudents.find(s => s.id === studentId);
+    const student = enrolledStudents.find((s: any) => s.id === studentId);
     const confirmed = await uiStore.confirm({
       title: $t('students.unenroll_title'),
       message: $t('students.unenroll_confirm', { name: `${student?.firstName} ${student?.lastName}` }),
@@ -216,37 +179,10 @@
     
     if (!confirmed) return;
 
-    try {
-      const classId = classData?.id;
-      if (!classId) {
-        showError($t('common.error_occurred'));
-        return;
-      }
-
-      const response = await fetch(`/api/class-students?classId=${classId}&studentId=${studentId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        if (student) {
-          const { enrolledAt, ...studentData } = student;
-          availableStudents = [...availableStudents, studentData];
-          enrolledStudents = enrolledStudents.filter(s => s.id !== studentId);
-          
-          stats.enrolled -= 1;
-          stats.available += 1;
-          stats.occupancyRate = Math.round((stats.enrolled / stats.capacity) * 100);
-        }
-        
-        showToast.success($t('students.unenroll_success', { name: `${student?.firstName} ${student?.lastName}` }));
-      } else {
-        const error = await response.json();
-        showError(error.error || $t('common.error_occurred'));
-      }
-    } catch (error) {
-      console.error('Error unenrolling student:', error);
-      showError($t('common.error_occurred'));
-    }
+    selectedStudentId = studentId;
+    enrollFormAction = '?/unenroll';
+    await tick();
+    enrollFormEl?.requestSubmit();
   };
 </script>
 
@@ -559,6 +495,27 @@
       {/if}
     </div>
   </div>
+
+  <!-- Hidden Enrollment Form -->
+  <form 
+    method="POST" 
+    action={enrollFormAction} 
+    use:enhance={() => {
+      isEnrolling = true;
+      return async ({ result }) => {
+        isEnrolling = false;
+        if (result.type === 'success') {
+          showToast.success($t('common.success') || 'Operación completada');
+        } else if (result.type === 'failure') {
+          showError($t('common.error_occurred'));
+        }
+      };
+    }} 
+    bind:this={enrollFormEl} 
+    class="hidden"
+  >
+    <input type="hidden" name="studentId" value={selectedStudentId} />
+  </form>
 </div>
 
 <style lang="postcss">

@@ -1,15 +1,23 @@
 <script lang="ts">
   import { appStore } from '$lib/stores/appStore';
   import { t } from '$lib/i18n';
+  import { tick } from 'svelte';
+  import { enhance } from '$app/forms';
   import PostCard from '$lib/components/social/PostCard.svelte';
   import PostCreator from '$lib/components/social/PostCreator.svelte';
   import ChallengeCreator from '$lib/components/social/ChallengeCreator.svelte';
   import { Trophy, Plus } from 'phosphor-svelte';
   import { fade, fly } from 'svelte/transition';
   import { flip } from 'svelte/animate';
+  interface Props {
+    data: any;
+  }
+  let { data }: Props = $props();
+
   let selectedType = $state('ALL');
   let searchQuery = $state('');
   let showChallengeCreator = $state(false);
+  let postToEdit = $state<any>(null);
   const isDirector = $derived($appStore.settings?.role === 'director' || $appStore.settings?.role === 'admin');
 
   // Sort and filter posts
@@ -28,14 +36,14 @@
     })
   );
 
+  let deleteForm = $state<HTMLFormElement | null>(null);
+  let deleteId = $state<string>('');
+
   async function handleDeletePost(id: string) {
     if (confirm("¿Estás seguro de que quieres eliminar esta publicación?")) {
-      try {
-        await appStore.removePost(id);
-        // Toast is handled in appStore
-      } catch (e) {
-        console.error("Error deleting post:", e);
-      }
+      deleteId = id;
+      await tick();
+      deleteForm?.requestSubmit();
     }
   }
 
@@ -124,7 +132,11 @@
   <section in:fly={{ y: 30, duration: 800, delay: 200 }}>
     <div class="flex flex-col md:flex-row gap-6 mb-8">
       <div class="flex-1">
-        <PostCreator onComplete={() => { /* Opción para cerrar modal si lo hubiera */ }} />
+        <PostCreator 
+          form={data.postForm} 
+          post={postToEdit}
+          onComplete={() => postToEdit = null} 
+        />
       </div>
       
       {#if isDirector}
@@ -148,7 +160,7 @@
   </section>
 
   {#if showChallengeCreator}
-    <ChallengeCreator onClose={() => showChallengeCreator = false} />
+    <ChallengeCreator form={data.challengeForm} onClose={() => showChallengeCreator = false} />
   {/if}
 
   <!-- Feed Section -->
@@ -166,13 +178,32 @@
     {:else}
       {#each sortedPosts as post (post.id)}
         <div in:fly={{ y: 40, duration: 600 }} animate:flip={{ duration: 400 }}>
-          <PostCard {post} onDelete={handleDeletePost} />
+          <PostCard 
+            {post} 
+            onDelete={handleDeletePost} 
+            onEdit={(p) => {
+              postToEdit = p;
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         </div>
       {/each}
     {/if}
   </section>
 </div>
 </div>
+
+<form method="POST" action="?/deletePost" use:enhance={() => {
+  return async ({ result }) => {
+    if (result.type === 'success') {
+      // The store is reactive to firestore subscriptions usually, 
+      // but since we are using server actions, we might need to rely on the server refresh
+      // or the local store will update if it's subscribed.
+    }
+  };
+}} bind:this={deleteForm} class="hidden">
+  <input type="hidden" name="id" value={deleteId} />
+</form>
 
 <style>
   :global(body) {
