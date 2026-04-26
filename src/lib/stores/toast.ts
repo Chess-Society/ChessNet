@@ -25,7 +25,6 @@ function createToastStore() {
     achievement: (insigniaId: string, customMessage?: string) => {
         sonnerToast(customMessage || '¡Nueva insignia desbloqueada!', {
             description: 'Has ganado un nuevo reconocimiento en ChessNet.',
-            duration: 6000,
             duration: 6000
         });
     },
