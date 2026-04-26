@@ -413,7 +413,6 @@
 >
   <input type="file" name="file" />
 </form>
-</script>
 
 <svelte:head>
   <title>{$t('skills.title')} - ChessNet</title>

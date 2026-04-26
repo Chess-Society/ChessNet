@@ -142,8 +142,7 @@
           </button>
         </div>
       </div>
-    </div>
-  </header>
+    </header>
 
   <div class="max-w-[1400px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12">
     <!-- Left Column -->
@@ -417,10 +416,9 @@
           </div>
        </section>
     </div>
-    </div>
   </div>
-  </form>
 </div>
+</form>
 
 <style lang="postcss">
   .input-label {

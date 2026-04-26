@@ -280,9 +280,7 @@
     { id: 'daily-3', title: 'Expresivo', description: 'Usa 3 emotes en el feed.', xp: 100, total: 3 },
   ];
 
-  const handleClaimTier = (tierId: number) => {
-    $ctForm.tierId = tierId;
-  };
+
 
   const categoryLabels: Record<string, string> = {
     'nets': 'NETS',
@@ -313,9 +311,7 @@
     icon: iconMap[item.type] || Package
   }));
   
-  const handleBuyItem = (item: any) => {
-    $buyForm.itemId = item.id;
-  };
+
 
   let scrollContainer = $state<HTMLDivElement | null>(null);
   function scrollTimeline(dir: 'left' | 'right') {
@@ -324,10 +320,7 @@
     }
   }
 
-  const handleClaimChallenge = (challenge: any, type: 'daily' | 'weekly') => {
-    $ccForm.challengeId = challenge.id;
-    $ccForm.challengeType = type;
-  };
+
 
   let collection = $derived($appStore.settings?.economy?.collection || {
     badges: [],
@@ -356,10 +349,7 @@
     }, 600);
   }
 
-  const handleEquipItem = (type: 'color' | 'frame' | 'font' | 'badge' | 'emote', value: string) => {
-    $eqForm.type = type;
-    $eqForm.value = value;
-  };
+
 
   let isOpeningCrate = $state(false);
   let showCrateResult = $state(false);
