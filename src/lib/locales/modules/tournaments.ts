@@ -250,4 +250,12 @@ export const es = {
     'tournaments.import_confirm': '¿Estás seguro de que quieres importar las plantillas de torneo predeterminadas?',
     'tournaments.import_success': 'Plantillas importadas con éxito',
     'tournaments.quote': '"El ajedrez es un campo en el que la organización es tan vital como el ataque."',
+    'tournaments.director_access': 'Acceso Directores',
+    'tournaments.director_access_desc': 'Comparte este torneo con directores de clubes',
+    'tournaments.director_access_info': 'Introduce el email del director para permitirle ver este torneo y sus resultados. Solo podrá ver los datos creados por ti.',
+    'tournaments.no_directors_shared': 'No se ha compartido con ningún director',
+    'tournaments.director_already_has_access': 'Este director ya tiene acceso',
+    'tournaments.director_added_success': 'Director añadido correctamente',
+    'tournaments.access_revoked': 'Acceso revocado',
+    'tournaments.status_reset_success': 'Estado del torneo reiniciado. Guarda los cambios para aplicar.',
 };

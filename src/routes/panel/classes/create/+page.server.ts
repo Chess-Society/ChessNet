@@ -51,14 +51,17 @@ export const actions: Actions = {
     if (!form.valid) return message(form, 'Datos inválidos. Por favor revisa el formulario.', { status: 400 });
 
     try {
+      const now = new Date().toISOString();
       const classData = {
         ...form.data,
         owner_id: locals.user.uid,
-        ownerId: locals.user.uid, // Support both formats
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        ownerId: locals.user.uid,
+        school_id: form.data.schoolId, // Ensure snake_case for compatibility
+        schoolId: form.data.schoolId,
+        created_at: now,
+        updated_at: now,
+        createdAt: now,
+        updatedAt: now
       };
 
       const docRef = await adminDb.collection('classes').add(classData);

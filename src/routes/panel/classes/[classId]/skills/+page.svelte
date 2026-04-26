@@ -23,7 +23,7 @@
     ArrowsDownUp,
     FolderSimple
   } from 'phosphor-svelte';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { uiStore } from '$lib/stores/uiStore';
   import { t } from '$lib/i18n';
   import type { PageData } from './$types';
@@ -194,9 +194,9 @@
     return async ({ result }) => {
       isAssigning = false;
       if (result.type === 'success') {
-        showToast.success($t('common.success.action'));
+        toast.success($t('common.success.action'));
       } else if (result.type === 'failure') {
-        showToast.error(result.data?.message || $t('common.error.generic'));
+        toast.error(result.data?.message || $t('common.error.generic'));
       }
     };
   }} 

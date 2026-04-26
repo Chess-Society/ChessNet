@@ -24,7 +24,7 @@
   import type { AttendanceStatus, AttendanceRecord } from '$lib/types';
   import { fade, fly, scale } from 'svelte/transition';
   import { t, locale } from '$lib/i18n';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
 
   const locale_map: Record<string, string> = { en: 'en-US', es: 'es-ES' };
   const getLocaleDate = (date: Date, options: Intl.DateTimeFormatOptions) => {
@@ -476,7 +476,9 @@
   return async ({ result }) => {
     isSubmitting = false;
     if (result.type === 'success') {
-      showToast.success($t('attendance.save_success'));
+      toast.success($t('attendance.save_success'));
+    } else if (result.type === 'failure') {
+      toast.error($t('common.error_occurred'));
     }
   };
 }} bind:this={saveForm} class="hidden">

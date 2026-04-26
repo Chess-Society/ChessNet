@@ -36,12 +36,10 @@
   import { uiStore } from '$lib/stores/uiStore';
   import { auth } from '$lib/firebase';
   import { appStore } from '$lib/stores/appStore';
-  import { user as authUser } from '$lib/stores/auth';
-  import { ADMIN_EMAILS } from '$lib/constants';
-  import { showToast, showError } from '$lib/stores/toast';
   import { t } from '$lib/i18n';
   import { getLocalTournamentsApi } from '$lib/api/local-tournaments';
   import { fade, fly, scale } from 'svelte/transition';
+  import { toast } from '$lib/stores/toast';
   import TournamentBracket from '$lib/components/tournaments/TournamentBracket.svelte';
   import TournamentCrosstable from '$lib/components/tournaments/TournamentCrosstable.svelte';
 
@@ -115,13 +113,13 @@
         } else {
             await api.addPlayer(tournamentId, selectedStudentId);
         }
-        showToast.success($t('tournaments.player_registered'));
+        toast.success($t('tournaments.player_registered'));
         showRegModal = false;
         selectedStudentId = '';
         manualPlayerName = '';
     } catch (error: any) {
         console.error("Error registering player:", error);
-        showError(error.message || $t('tournaments.error_registering_player'));
+        toast.error(error.message || $t('tournaments.error_registering_player'));
     } finally {
         isProcessing = false;
     }
@@ -230,10 +228,10 @@
         const api = await getLocalTournamentsApi();
         await api.updateTournament(tournamentId, { currentRound: nextRoundNo });
         await api.generatePairings(tournamentId, nextRoundNo);
-        showToast.success($t('tournaments.round_generated'));
+        toast.success($t('tournaments.round_generated'));
     } catch (error) {
         console.error("Error generating next round:", error);
-        showError($t('tournaments.error_generating_round'));
+        toast.error($t('tournaments.error_generating_round'));
     } finally {
         isProcessing = false;
     }
@@ -245,7 +243,7 @@
     try {
         const api = await getLocalTournamentsApi();
         await api.updateTournament(tournamentId, { status: 'completed' });
-        showToast.success($t('tournaments.status_completed'));
+        toast.success($t('tournaments.status_completed'));
         activeTab = 'standings';
     } catch (error) {
         console.error("Error finishing tournament:", error);
@@ -271,10 +269,10 @@
     try {
         const api = await getLocalTournamentsApi();
         await api.resetRound(tournamentId, currentRoundNo);
-        showToast.success($t('tournaments.round_reset_success'));
+        toast.success($t('tournaments.round_reset_success'));
     } catch (error) {
         console.error("Error resetting round:", error);
-        showError($t('tournaments.error_resetting_round'));
+        toast.error($t('tournaments.error_resetting_round'));
     } finally {
         isProcessing = false;
     }
@@ -291,7 +289,7 @@
         } else {
              await api.withdrawPlayer(tournamentId, studentId);
         }
-        showToast.success(!isWithdrawn ? $t('tournaments.player_withdrawn') : $t('tournaments.player_reactivated'));
+        toast.success(!isWithdrawn ? $t('tournaments.player_withdrawn') : $t('tournaments.player_reactivated'));
     } catch (error) {
         console.error("Error updating player status:", error);
     }
@@ -311,10 +309,10 @@
       try {
           const api = await getLocalTournamentsApi();
           await api.removePlayer(tournamentId, studentId);
-          showToast.success($t('tournaments.player_removed'));
+          toast.success($t('tournaments.player_removed'));
       } catch (error) {
           console.error("Error removing player:", error);
-          showError(error);
+          toast.error(error.message || $t('tournaments.error_removing_player'));
       }
   };
 

@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { Chess } from 'chess.js';
   import ChessBoard from './ChessBoard.svelte';
-  import { showToast } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { Lightbulb, RotateCcw, CheckCircle, XCircle, Target } from 'lucide-svelte';
   import type { ChessExercise } from '$lib/types';
   import { t } from '$lib/i18n';
@@ -57,12 +57,12 @@
         isCorrect = true;
         const timeSpent = Math.floor((Date.now() - startTime) / 1000);
         
-        showToast.success($t('simulator.exercise.completed'));
+        toast.success($t('simulator.exercise.completed'));
         onComplete?.(true, timeSpent);
       }
     } else {
       // Move is incorrect
-      showToast.error($t('simulator.exercise.incorrect'));
+      toast.error($t('simulator.exercise.incorrect'));
       resetExercise();
     }
   }
@@ -90,7 +90,7 @@
     isCorrect = false;
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
     
-    showToast.warning($t('simulator.exercise.abandoned'));
+    toast.warning($t('simulator.exercise.abandoned'));
     onComplete?.(false, timeSpent);
   }
 

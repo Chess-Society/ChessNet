@@ -101,4 +101,8 @@ export const es = {
     'schools.delete_all_confirm': '¿Eliminar todos los centros?',
     'schools.delete_all_warning': 'Esta acción eliminará todos los centros y sus datos asociados de forma permanente. No se puede deshacer.',
     'schools.toast_all_deleted': 'Todos los centros han sido eliminados correctamente.',
+    'schools.director_added': 'Director añadido correctamente',
+    'schools.director_removed': 'Acceso revocado',
+    'schools.director_already_exists': 'Este director ya tiene acceso',
+    'schools.director_not_found': 'Usuario no encontrado o error de servidor',
 };

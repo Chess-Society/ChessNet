@@ -26,7 +26,7 @@
     ArrowCircleRight,
     ArrowCircleUpRight
   } from 'phosphor-svelte';
-  import { showToast } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
@@ -42,10 +42,10 @@
     validators: zod(classSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success($t('classes.update_success'));
+        toast.success($t('classes.update_success'));
         setTimeout(() => goto(`/panel/classes/${data.class.id}`), 500);
       } else if (form.message) {
-        showToast.error(form.message);
+        toast.error(form.message);
       }
     }
   }) as any;

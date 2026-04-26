@@ -7,7 +7,7 @@ export { default as LegalLayout } from './components/ui/LegalLayout.svelte';
 
 // Componentes Comunes
 export { default as Logo } from './components/Logo.svelte';
-export { default as Toast } from './components/Toast.svelte';
+
 export { default as LoadingSpinner } from './components/LoadingSpinner.svelte';
 export { default as SkeletonLoader } from './components/SkeletonLoader.svelte';
 export { default as ChessBoard } from './components/ChessBoard.svelte';

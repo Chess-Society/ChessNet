@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       active: data?.active !== undefined ? data?.active : true
     };
 
-    const form = await superValidate(initialData, zod(skillSchema as any)) as any;
+    const form = await superValidate(initialData, zod(skillSchema as any));
 
     // Load available prerequisites
     const skillsSnap = await adminDb.collection("skills")
@@ -70,7 +70,7 @@ export const actions: Actions = {
     if (!locals.user) throw redirect(303, '/login');
     const { skillId } = params;
 
-    const form = await superValidate(request, zod(skillSchema as any)) as any;
+    const form = await superValidate(request, zod(skillSchema as any));
 
     if (!form.valid) {
       return message(form, 'Revisa los errores del formulario', { status: 400 });

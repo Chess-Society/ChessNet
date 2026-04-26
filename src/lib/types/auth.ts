@@ -4,6 +4,7 @@ export interface User {
   full_name?: string;
   avatar_url?: string;
   created_at?: string;
+  isAdmin?: boolean;
 }
 
 export interface Profile {

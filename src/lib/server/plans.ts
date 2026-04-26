@@ -1,6 +1,6 @@
 import { adminDb, adminAuth, isFirebaseAdminInitialized } from '$lib/server/firebase-admin';
 import { error, redirect } from '@sveltejs/kit';
-import { ADMIN_EMAILS } from '$lib/constants';
+
 
 export async function getUserPlan(uid: string) {
     try {
@@ -13,7 +13,7 @@ export async function getUserPlan(uid: string) {
 
         try {
             const userRecord = await adminAuth.getUser(uid);
-            if (userRecord.email && ADMIN_EMAILS.includes(userRecord.email.toLowerCase())) {
+            if (userRecord.customClaims?.admin === true) {
                 return 'premium';
             }
         } catch (authErr) {

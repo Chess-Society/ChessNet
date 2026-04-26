@@ -30,7 +30,7 @@
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
-  import { showToast } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
   import { schoolSchema } from '$lib/schemas/school';
@@ -43,10 +43,10 @@
     validators: zod(schoolSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success($t('schools.toast_success'));
+        toast.success($t('schools.toast_success'));
         setTimeout(() => goto(`/panel/schools/${data.school.id}`), 400);
       } else if (form.message) {
-        showToast.error(form.message);
+        toast.error(form.message);
       }
     }
   });
@@ -60,18 +60,18 @@
     try {
       isResolvingEmail = true;
       const res = await fetch(`/api/users/resolve-email?email=${encodeURIComponent(newDirectorEmail)}`);
-      if (!res.ok) throw new Error('Usuario no encontrado o error de servidor');
+      if (!res.ok) throw new Error($t('schools.director_not_found'));
       const user = await res.json();
       
       if ($form.sharedWith.includes(user.uid)) {
-        showToast.error('Este director ya tiene acceso');
+        toast.error($t('schools.director_already_exists'));
       } else {
         $form.sharedWith = [...$form.sharedWith, user.uid];
         newDirectorEmail = '';
-        showToast.success('Director añadido correctamente');
+        toast.success($t('schools.director_added'));
       }
     } catch (e: any) {
-      showToast.error(e.message);
+      toast.error(e.message);
     } finally {
       isResolvingEmail = false;
     }
@@ -79,7 +79,7 @@
 
   const removeDirector = (uid: string) => {
     $form.sharedWith = $form.sharedWith.filter((id: string) => id !== uid);
-    showToast.success('Acceso revocado');
+    toast.success($t('schools.director_removed'));
   };
 
   let searchQuery = $state('');

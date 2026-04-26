@@ -31,12 +31,19 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const classData = { ...(classSnap.data() as ClassData), id: classSnap.id };
 
     // Enrolled students
-    const enrollmentsSnap = await adminDb.collection("class_students")
+    let enrollmentsSnap = await adminDb.collection("class_students")
       .where("owner_id", "==", locals.user.uid)
       .where("class_id", "==", classId)
       .get();
       
-    const studentIds = enrollmentsSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data().student_id);
+    if (enrollmentsSnap.empty) {
+      enrollmentsSnap = await adminDb.collection("class_students")
+        .where("ownerId", "==", locals.user.uid)
+        .where("classId", "==", classId)
+        .get();
+    }
+      
+    const studentIds = enrollmentsSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data().student_id || doc.data().studentId);
     
     let students: (ClassData & { id: string })[] = [];
     if (studentIds.length > 0) {
@@ -51,10 +58,17 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }
     
     // Class skills
-    const classSkillsSnap = await adminDb.collection("class_skills")
+    let classSkillsSnap = await adminDb.collection("class_skills")
       .where("owner_id", "==", locals.user.uid)
       .where("class_id", "==", classId)
       .get();
+      
+    if (classSkillsSnap.empty) {
+      classSkillsSnap = await adminDb.collection("class_skills")
+        .where("ownerId", "==", locals.user.uid)
+        .where("classId", "==", classId)
+        .get();
+    }
       
     const skillIds = classSkillsSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data().skill_id);
     
@@ -81,10 +95,17 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }).sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
 
     // Fetch attendance records for stats
-    const attendanceSnap = await adminDb.collection("attendance")
+    let attendanceSnap = await adminDb.collection("attendance")
       .where("owner_id", "==", locals.user.uid)
       .where("class_id", "==", classId)
       .get();
+      
+    if (attendanceSnap.empty) {
+      attendanceSnap = await adminDb.collection("attendance")
+        .where("ownerId", "==", locals.user.uid)
+        .where("classId", "==", classId)
+        .get();
+    }
 
     // Attendance stats calculation
     const attendanceRecords = attendanceSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data());

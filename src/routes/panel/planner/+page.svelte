@@ -19,12 +19,12 @@
   import { goto } from '$app/navigation';
   import { appStore } from '$lib/stores/appStore';
   import { user as authUser } from '$lib/stores/auth';
-  import { ADMIN_EMAILS } from '$lib/constants';
+
   import { t, locale } from '$lib/i18n';
   import { onMount } from 'svelte';
 
   const plan = $derived($appStore?.settings?.plan || 'free');
-  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+  const isAdmin = $derived($authUser?.isAdmin === true);
 
   onMount(() => {
     if (plan === 'free' && !isAdmin) {

@@ -27,8 +27,9 @@ export const load: PageServerLoad = async ({ locals }) => {
     // Calcular estadísticas
     const schoolCounts: Record<string, number> = {};
     students.forEach((s: any) => {
-      if (s.school_id) {
-        schoolCounts[s.school_id] = (schoolCounts[s.school_id] || 0) + 1;
+      const sId = s.school_id || s.schoolId;
+      if (sId) {
+        schoolCounts[sId] = (schoolCounts[sId] || 0) + 1;
       }
     });
 

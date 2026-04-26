@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { toast as sonnerToast } from 'svelte-sonner';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -11,42 +11,26 @@ export interface Toast {
 }
 
 function createToastStore() {
-  const { subscribe, update } = writable<Toast[]>([]);
-
-  function add(message: string, type: ToastType | 'insignia' = 'success', duration = 3000, insigniaId?: string) {
-    const id = crypto.randomUUID();
-    update(all => [{ id, message, type, duration, insigniaId }, ...all]);
-
-    if (duration > 0) {
-      setTimeout(() => remove(id), duration);
-    }
-  }
-
-  function remove(id: string) {
-    update(all => all.filter(t => t.id !== id));
-  }
-
   return {
-    subscribe,
-    success: (m: string) => add(m, 'success'),
-    error: (m: string) => add(m, 'error'),
-    info: (m: string) => add(m, 'info'),
-    warning: (m: string) => add(m, 'warning'),
-    achievement: (insigniaId: string, customMessage?: string) => add(customMessage || '¡Nueva insignia desbloqueada!', 'insignia', 6000, insigniaId),
-    remove
+    // Sonner doesn't need a manual subscribe/store for our use case anymore
+    // but we keep the structure for compatibility
+    subscribe: (fn: (v: any[]) => void) => {
+        fn([]); // Return empty list to prevent crashes in legacy components
+        return () => {};
+    },
+    success: (m: string) => sonnerToast.success(m),
+    error: (m: string) => sonnerToast.error(m),
+    info: (m: string) => sonnerToast.info(m),
+    warning: (m: string) => sonnerToast.warning(m),
+    achievement: (insigniaId: string, customMessage?: string) => {
+        sonnerToast(customMessage || '¡Nueva insignia desbloqueada!', {
+            description: 'Has ganado un nuevo reconocimiento en ChessNet.',
+            duration: 6000,
+            duration: 6000
+        });
+    },
+    remove: (id: string) => sonnerToast.dismiss(id)
   };
 }
 
 export const toast = createToastStore();
-
-// Compatibility layer for legacy utils/toast.ts imports
-export const toasts = toast;
-export const showToast = toast;
-export const removeToast = toast.remove;
-export const showError = (
-  error: any,
-  defaultMessage: string = "Ha ocurrido un error",
-) => {
-  const message = error?.message || error?.error_description || defaultMessage;
-  toast.error(typeof error === 'string' ? error : message);
-};

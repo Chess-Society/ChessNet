@@ -1,15 +1,12 @@
 import { adminDb } from './firebase-admin';
-import { ADMIN_EMAILS } from '$lib/constants';
+
 
 export type UserRole = 'admin' | 'teacher' | 'parent' | 'student' | 'none';
 
 export async function getUserRole(email: string): Promise<UserRole> {
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Check if Admin
-    if (ADMIN_EMAILS.map(e => e.trim().toLowerCase()).includes(cleanEmail)) {
-        return 'admin';
-    }
+
 
     // 2. Check if Teacher/Director
     // Teachers are in the 'users' collection

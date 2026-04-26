@@ -27,7 +27,7 @@
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { appStore } from '$lib/stores/appStore';
 
   let { data }: { data: any } = $props();
@@ -37,14 +37,14 @@
     validators: zod(studentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success($t('students.toast_update_success'));
+        toast.success($t('students.toast_update_success'));
         setTimeout(() => goto(`/panel/students/${data.student.id}`), 400);
       } else if (form.message) {
-        showToast.error(form.message);
+        toast.error(form.message);
       }
     },
     onError({ result }) {
-      showError(result.error);
+      toast.error(result.error.message || $t('common.error.unexpected'));
     }
   }) as any;
 

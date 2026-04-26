@@ -44,18 +44,30 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }
 
     // Obtener clases vinculadas y su ocupación
-    const classesSnap = await adminDb.collection("classes")
+    let classesSnap = await adminDb.collection("classes")
       .where("school_id", "==", schoolId)
       .where("owner_id", "==", uid)
       .get();
     
+    if (classesSnap.empty) {
+      classesSnap = await adminDb.collection("classes")
+        .where("schoolId", "==", schoolId)
+        .where("ownerId", "==", uid)
+        .get();
+    }
+    
     const schoolClasses = await Promise.all(classesSnap.docs.map(async (doc: any) => {
       const classData = { id: doc.id, ...doc.data() as any };
       // Contar alumnos inscritos en esta clase
-      const enrollmentsSnap = await adminDb.collection("class_students")
+      let enrollmentsSnap = await adminDb.collection("class_students")
         .where("class_id", "==", classData.id)
-        .where("status", "==", "active")
         .get();
+      
+      if (enrollmentsSnap.empty) {
+        enrollmentsSnap = await adminDb.collection("class_students")
+          .where("classId", "==", classData.id)
+          .get();
+      }
       
       return {
         ...classData,
@@ -64,10 +76,17 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }));
 
     // Obtener alumnos vinculados
-    const studentsSnap = await adminDb.collection("students")
+    let studentsSnap = await adminDb.collection("students")
       .where("school_id", "==", schoolId)
       .where("owner_id", "==", uid)
       .get();
+    
+    if (studentsSnap.empty) {
+      studentsSnap = await adminDb.collection("students")
+        .where("schoolId", "==", schoolId)
+        .where("ownerId", "==", uid)
+        .get();
+    }
     
     const schoolStudents = studentsSnap.docs.map((doc: any) => ({
       id: doc.id,

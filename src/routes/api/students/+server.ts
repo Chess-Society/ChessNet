@@ -56,8 +56,15 @@ export const POST: RequestHandler = async (event) => {
     const studentData = {
       ...body,
       owner_id: user.uid,
+      ownerId: user.uid,
+      school_id: body.schoolId || body.school_id || null,
+      schoolId: body.schoolId || body.school_id || null,
+      class_id: body.classId || body.class_id || null,
+      classId: body.classId || body.class_id || null,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     
     // Support legacy field names in outgoing data for a graceful transition
@@ -68,13 +75,16 @@ export const POST: RequestHandler = async (event) => {
     const studentId = docRef.id;
 
     // Sincronizar con classStudents si se proporcionó una clase
-    if (body.classId || body.class_id) {
-      const classId = body.classId || body.class_id;
+    if (studentData.classId) {
       const enrollmentData = {
-        classId,
+        classId: studentData.classId,
+        class_id: studentData.classId,
         studentId,
+        student_id: studentId,
         owner_id: user.uid,
-        enrolledAt: new Date().toISOString()
+        ownerId: user.uid,
+        enrolledAt: new Date().toISOString(),
+        enrolled_at: new Date().toISOString()
       };
       await adminDb.collection("class_students").add(enrollmentData);
     }
@@ -111,7 +121,12 @@ export const PUT: RequestHandler = async (event) => {
 
     const updateData = {
       ...body,
-      updatedAt: new Date().toISOString()
+      school_id: body.schoolId || body.school_id || oldData.school_id || oldData.schoolId,
+      schoolId: body.schoolId || body.school_id || oldData.schoolId || oldData.school_id,
+      class_id: body.classId || body.class_id || oldData.class_id || oldData.classId,
+      classId: body.classId || body.class_id || oldData.classId || oldData.class_id,
+      updatedAt: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     delete updateData.id;
     delete updateData.owner_id;
@@ -124,23 +139,37 @@ export const PUT: RequestHandler = async (event) => {
     // Sincronizar con class_students si la clase cambió
     const newClassId = updateData.classId || updateData.class_id;
     if (newClassId !== undefined && newClassId !== oldClassId) {
-      // 1. Eliminar inscripciones anteriores (debería haber solo una, pero usamos batch por seguridad)
+      // 1. Eliminar inscripciones anteriores
       const enrollmentsq = await adminDb.collection("class_students")
         .where("studentId", "==", id)
         .where("owner_id", "==", user.uid)
         .get();
+
+      // Fallback para legacy
+      let docs = enrollmentsq.docs;
+      if (docs.length === 0) {
+        const legacyq = await adminDb.collection("class_students")
+          .where("student_id", "==", id)
+          .where("owner_id", "==", user.uid)
+          .get();
+        docs = legacyq.docs;
+      }
       
       const batch = adminDb.batch();
-      enrollmentsq.docs.forEach((doc: any) => batch.delete(doc.ref));
+      docs.forEach((doc: any) => batch.delete(doc.ref));
       await batch.commit();
 
       // 2. Crear nueva inscripción si hay un nuevo classId
       if (newClassId) {
         await adminDb.collection("class_students").add({
           classId: newClassId,
+          class_id: newClassId,
           studentId: id,
+          student_id: id,
           owner_id: user.uid,
-          enrolledAt: new Date().toISOString()
+          ownerId: user.uid,
+          enrolledAt: new Date().toISOString(),
+          enrolled_at: new Date().toISOString()
         });
       }
     }

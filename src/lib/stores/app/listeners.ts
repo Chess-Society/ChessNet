@@ -13,7 +13,7 @@ import {
   updateDoc,
   or
 } from 'firebase/firestore';
-import { ADMIN_EMAILS } from '$lib/constants';
+
 import { initialState, type AppState } from './types';
 import type { Writable } from 'svelte/store';
 import type { Query, QuerySnapshot, DocumentSnapshot, QueryDocumentSnapshot } from 'firebase/firestore';
@@ -61,7 +61,7 @@ export function setupListeners(store: Writable<AppState>, user: any) {
             ...(data.settings || {}),
             teacherEmail: userEmail
           };
-          if (ADMIN_EMAILS.includes(userEmail)) settings.plan = 'premium';
+          if (user.isAdmin) settings.plan = 'premium';
           return { ...currentState, settings, dashboardLayout: data.dashboardLayout || [], initialized: true };
         });
       } catch (err) {

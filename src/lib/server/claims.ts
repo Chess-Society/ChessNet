@@ -3,16 +3,14 @@
  *
  * Utilidades para gestionar Firebase Custom Claims.
  *
- * STATUS: Preparado para futura migración (SEC-01).
+ * STATUS: Migración completada (SEC-01).
  *
- * MIGRACIÓN A CUSTOM CLAIMS (cuando esté listo):
+ * MIGRACIÓN A CUSTOM CLAIMS:
  * ─────────────────────────────────────────────────────────────────────────
- * 1. Ejecutar `setAdminClaim(uid)` para cada admin existente en ADMIN_EMAILS
- * 2. Actualizar `firestore.rules`: cambiar `isSuperAdmin()` a usar
- *    `request.auth.token.admin == true` en lugar de la lista de emails
- * 3. Actualizar `hooks.server.ts` `authenticate()`: leer
- *    `decodedToken.admin === true` en lugar de comparar con ADMIN_EMAILS
- * 4. Eliminar ADMIN_EMAILS de constants.ts (solo mantener como fallback)
+ * ✅ 1. Uso de Firebase Custom Claims (admin: true) como fuente de verdad.
+ * ✅ 2. firestore.rules actualizado para usar request.auth.token.admin.
+ * ✅ 3. hooks.server.ts actualizado para leer decodedToken.admin.
+ * ✅ 4. Eliminada la lista ADMIN_EMAILS de constants.ts.
  * ─────────────────────────────────────────────────────────────────────────
  *
  * USO ACTUAL (API admin):
@@ -61,8 +59,7 @@ export async function getUserClaims(uid: string): Promise<Record<string, unknown
 }
 
 /**
- * Verifica si un usuario tiene el claim de admin sin consultar la lista estática.
- * Usar esto en el futuro en lugar de ADMIN_EMAILS.includes(email).
+ * Verifica si un usuario tiene el claim de admin.
  */
 export async function hasAdminClaim(uid: string): Promise<boolean> {
     try {

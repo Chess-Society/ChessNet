@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
+import { getUserPlan } from '$lib/server/plans';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const { studentId } = params;
@@ -38,21 +39,30 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     // 2. Cargar centro si está asignado
     let school = null;
-    if (student.school_id) {
-     const schoolSnap = await adminDb.collection("schools").doc(student.school_id).get();
-     if (schoolSnap.exists) {
-       school = { id: schoolSnap.id, ...schoolSnap.data() };
-     }
+    const sId = student.school_id || student.schoolId;
+    if (sId) {
+      const schoolSnap = await adminDb.collection("schools").doc(sId).get();
+      if (schoolSnap.exists) {
+        school = { id: schoolSnap.id, ...schoolSnap.data() };
+      }
     }
 
     let enrolledClasses: any[] = [];
     
     const enrollmentsSnap = await adminDb.collection("class_students")
-      .where("owner_id", "==", uid)
       .where("student_id", "==", studentId)
       .get();
       
-    const classIds = enrollmentsSnap.docs.map((doc: any) => doc.data().class_id);
+    // Fallback if none found with student_id (for legacy data)
+    let enrollments = enrollmentsSnap.docs.map((doc: any) => doc.data());
+    if (enrollments.length === 0) {
+      const legacySnap = await adminDb.collection("class_students")
+        .where("studentId", "==", studentId)
+        .get();
+      enrollments = legacySnap.docs.map((doc: any) => doc.data());
+    }
+      
+    const classIds = enrollments.map((data: any) => data.class_id || data.classId);
     
     if (classIds.length > 0) {
       // Obtenemos detalles de las clases
@@ -94,6 +104,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     // Removed achievements loading
     return {
       user: locals.user,
+      userPlan: await getUserPlan(locals.user.uid),
       student: serializeRecord(student),
       school: serializeRecord(school),
       enrolledClasses: serializeRecord(enrolledClasses),

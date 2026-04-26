@@ -67,7 +67,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         rules: rawData.rules || ''
     };
 
-    const form = await superValidate(tournament, zod(tournamentSchema as any)) as any;
+    const form = await superValidate(tournament, zod(tournamentSchema as any));
 
     return {
       form,
@@ -87,7 +87,7 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
     const { tournamentId } = params;
 
-    const form = await superValidate(request, zod(tournamentSchema as any)) as any;
+    const form = await superValidate(request, zod(tournamentSchema as any));
     if (!form.valid) return message(form, 'Revisa los errores del formulario', { status: 400 });
 
     try {

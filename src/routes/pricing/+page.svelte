@@ -7,7 +7,7 @@
   import { onAuthStateChanged, type User } from 'firebase/auth';
   import Logo from '$lib/components/Logo.svelte';
 
-  import { toast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { t, locale } from '$lib/i18n';
 
   let currentUser = $state<User | null>(null);
@@ -35,7 +35,7 @@
         toast.error(result.error || 'Error starting subscription');
       }
     } catch (e) {
-      showError(e, 'Connection error');
+      toast.error(e.message || 'Connection error');
     }
   }
 

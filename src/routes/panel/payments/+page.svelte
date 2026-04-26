@@ -29,7 +29,7 @@
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { user as authUser } from '$lib/stores/auth';
-  import { ADMIN_EMAILS } from '$lib/constants';
+
   import { goto } from '$app/navigation';
   import { uiStore } from '$lib/stores/uiStore';
   import { toast } from '$lib/stores/toast';
@@ -43,7 +43,7 @@
 
   // Auth & Access Control
   const plan = $derived($appStore?.settings?.plan || 'free');
-  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+  const isAdmin = $derived($authUser?.isAdmin === true);
 
   // Data from Server Load
   let payments = $derived((data.payments as any[]) || []);

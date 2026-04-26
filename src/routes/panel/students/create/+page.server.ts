@@ -54,14 +54,22 @@ export const actions: Actions = {
     try {
       const { ...studentData } = form.data;
       const uid = locals.user.uid;
+      const now = new Date().toISOString();
 
       // Add audit fields
       const studentToCreate = {
         ...studentData,
         name: `${studentData.firstName} ${studentData.lastName}`.trim(),
         owner_id: uid,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        ownerId: uid,
+        school_id: studentData.schoolId || null,
+        schoolId: studentData.schoolId || null,
+        class_id: studentData.classId || null,
+        classId: studentData.classId || null,
+        createdAt: now,
+        updatedAt: now,
+        created_at: now,
+        updated_at: now
       };
 
       const docRef = await adminDb.collection('students').add(studentToCreate);
@@ -70,11 +78,16 @@ export const actions: Actions = {
       if (studentData.classId) {
         const enrollment = {
           studentId: docRef.id,
+          student_id: docRef.id,
           classId: studentData.classId,
-          enrolledAt: new Date().toISOString(),
-          owner_id: uid
+          class_id: studentData.classId,
+          enrolledAt: now,
+          enrolled_at: now,
+          owner_id: uid,
+          ownerId: uid
         };
-        await adminDb.collection('enrollments').add(enrollment);
+        // Use class_students as it is the standard in the view pages
+        await adminDb.collection('class_students').add(enrollment);
       }
 
       return message(form, '¡Estudiante creado con éxito!');

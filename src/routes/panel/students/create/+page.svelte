@@ -2,7 +2,7 @@
   import { goto, invalidateAll } from '$app/navigation';
   import { page } from '$app/stores';
   import { t } from '$lib/i18n';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { fade, fly, scale } from 'svelte/transition';
   import { 
     ArrowLeft,
@@ -43,14 +43,14 @@
     validators: zod(studentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success(form.message || $t('students.toast_create_success'));
+        toast.success(form.message || $t('students.toast_create_success'));
         handleGoBack();
       } else if (form.message) {
-        showToast.error(form.message);
+        toast.error(form.message);
       }
     },
     onError({ result }) {
-      showError(result.error);
+      toast.error(result.error?.message || $t('common.error'));
     }
   });
 
@@ -216,7 +216,7 @@
             </div>
 
             <div class="space-y-3">
-              <label for="lichessUsername" class="glass-label">Usuario de Lichess</label>
+              <label for="lichessUsername" class="glass-label">{$t('students.lichess_integration')}</label>
               <div class="relative group">
                 <Sparkle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-sky-500 transition-colors pointer-events-none" />
                 <input
@@ -224,7 +224,7 @@
                   name="lichessUsername"
                   type="text"
                   bind:value={$form.lichessUsername}
-                  placeholder="Ej: drnykterstein"
+                  placeholder={$t('students.lichess_placeholder')}
                   class="glass-input pl-16 pr-8 w-full focus:ring-sky-500/20 focus:border-sky-500 bg-zinc-950/50 italic"
                   {...$constraints.lichessUsername}
                 />

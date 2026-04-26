@@ -34,14 +34,12 @@
 
   let { data }: { data: PageData } = $props();
 
-  // svelte-ignore state_referenced_locally
-  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form as any, {
-    validators: zod(skillSchema as any),
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form, {
+    validators: zod(skillSchema),
     dataType: 'json',
     onUpdated({ form }) {
       if (form.valid) {
-        // The server redirects on success, but we can show a toast just in case or if no redirect
-        // showToast.success('Habilidad actualizada');
+        // The server redirects on success
       } else if (form.message) {
         import('$lib/stores/toast').then(m => m.toast.error(form.message as string));
       }
@@ -70,21 +68,23 @@
   ];
 
   const getDifficultyInfo = $derived(
-    difficultyLevels.find((l: any) => l.value === $form.difficulty) || difficultyLevels[0]
+    difficultyLevels.find((l) => l.value === $form.difficulty) || difficultyLevels[0]
   );
 
-  function addItem(key: 'learningObjectives' | 'assessmentCriteria' | 'resources') {
-    ($form as any)[key] = [...($form as any)[key], ''];
+  type ListKey = 'learningObjectives' | 'assessmentCriteria' | 'resources';
+
+  function addItem(key: ListKey) {
+    $form[key] = [...$form[key], ''];
   }
 
-  function removeItem(key: 'learningObjectives' | 'assessmentCriteria' | 'resources', index: number) {
-    ($form as any)[key] = ($form as any)[key].filter((_: any, i: number) => i !== index);
-    if (($form as any)[key].length === 0) ($form as any)[key] = [''];
+  function removeItem(key: ListKey, index: number) {
+    $form[key] = $form[key].filter((_, i) => i !== index);
+    if ($form[key].length === 0) $form[key] = [''];
   }
 
   function togglePrerequisite(id: string) {
-    if (($form.prerequisites as string[]).includes(id)) {
-      $form.prerequisites = ($form.prerequisites as string[]).filter(p => p !== id);
+    if ($form.prerequisites.includes(id)) {
+      $form.prerequisites = $form.prerequisites.filter(p => p !== id);
     } else {
       $form.prerequisites = [...$form.prerequisites, id];
     }

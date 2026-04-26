@@ -11,8 +11,12 @@
     IdentificationBadge,
     CheckCircle,
     GraduationCap,
-    CaretLeft
+    CaretLeft,
+    MagicWand,
+    Sparkle,
+    CircleNotch
   } from 'phosphor-svelte';
+import { marked } from 'marked';
   import { fade, fly } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import type { PageData } from './$types';
@@ -58,6 +62,31 @@
       console.error('Error fetching Lichess data:', e);
     } finally {
       isFetchingLichess = false;
+    }
+  }
+
+  let aiAnalysis = $state('');
+  let isAnalyzing = $state(false);
+  let aiError = $state('');
+
+  async function generateAIAnalysis() {
+    if (isAnalyzing) return;
+    isAnalyzing = true;
+    aiError = '';
+    try {
+      const res = await fetch(`/api/students/${student.id}/analyze`, {
+        method: 'POST'
+      });
+      const result = await res.json();
+      if (res.ok) {
+        aiAnalysis = result.analysis;
+      } else {
+        aiError = result.error || 'Error al generar el análisis';
+      }
+    } catch (e) {
+      aiError = 'Error de conexión con el servidor';
+    } finally {
+      isAnalyzing = false;
     }
   }
 
@@ -172,6 +201,68 @@
           </div>
         </div>
       </section>
+
+      <!-- AI Analysis Section (Premium) -->
+      {#if data.userPlan === 'premium' || data.user?.isAdmin}
+      <section class="bento-card !p-0 overflow-hidden border-2 border-violet-500/20 relative group/ai">
+        <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-fuchsia-600/5 to-transparent opacity-50"></div>
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-violet-500/10 blur-[100px] rounded-full"></div>
+        
+        <div class="p-8 md:p-10 relative z-10">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-8 mb-8">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-white shadow-lg shadow-violet-500/20 group-hover/ai:scale-110 transition-transform">
+                <MagicWand size={28} weight="fill" />
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">Análisis DeepSeek IA</h2>
+                  <span class="px-2 py-0.5 bg-violet-500/20 text-violet-300 text-[10px] font-black uppercase tracking-widest border border-violet-500/30 rounded-full">Premium</span>
+                </div>
+                <p class="text-xs text-slate-400 font-jakarta mt-1">Inteligencia artificial aplicada al progreso de tus alumnos</p>
+              </div>
+            </div>
+
+            <button 
+              onclick={generateAIAnalysis}
+              disabled={isAnalyzing || !student?.lichessUsername}
+              class="glass-btn primary !bg-violet-600 hover:!bg-violet-500 !border-violet-400/50 min-w-[200px] relative overflow-hidden group/btn"
+            >
+              {#if isAnalyzing}
+                <CircleNotch size={20} class="animate-spin" />
+                <span>Analizando datos...</span>
+              {:else}
+                <Sparkle size={20} weight="fill" class="group-hover/btn:animate-pulse" />
+                <span>Generar Informe IA</span>
+              {/if}
+            </button>
+          </div>
+
+          {#if aiAnalysis}
+            <div class="ai-response-container bg-zinc-950/50 rounded-2xl border border-white/5 p-8 md:p-10" in:fade>
+              <div class="prose prose-invert prose-violet max-w-none font-jakarta text-slate-300 leading-relaxed">
+                {@html marked.parse(aiAnalysis)}
+              </div>
+            </div>
+          {:else if !student?.lichessUsername}
+             <div class="p-8 text-center bg-zinc-900/30 rounded-2xl border border-dashed border-white/10">
+                <p class="text-slate-400 font-jakarta italic">Vincula una cuenta de Lichess para que la IA pueda analizar el progreso del alumno.</p>
+             </div>
+          {:else if aiError}
+            <div class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-xl">
+              {aiError}
+            </div>
+          {:else}
+            <div class="flex flex-col items-center justify-center py-12 text-center space-y-4 opacity-50">
+              <MagicWand size={48} weight="thin" class="text-violet-400" />
+              <p class="text-sm text-slate-400 font-jakarta max-w-md">
+                Haz clic en el botón para generar un informe detallado basado en el rendimiento real del alumno en Lichess.
+              </p>
+            </div>
+          {/if}
+        </div>
+      </section>
+      {/if}
 
       <!-- Observations & Notes -->
       <section class="bento-card !p-10 space-y-10">

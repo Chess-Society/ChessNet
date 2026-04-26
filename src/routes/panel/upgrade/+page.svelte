@@ -22,7 +22,7 @@
   } from 'phosphor-svelte';
   import { initiateUpgrade } from '$lib/api/subscriptions';
   import { t } from '$lib/i18n';
-  import { toast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { fade, fly, scale } from 'svelte/transition';
   import { auth } from '$lib/firebase';
 
@@ -55,7 +55,7 @@
         toast.error(result.error || 'Error starting the upgrade process');
       }
     } catch (error) {
-      showError(error, 'Unexpected error. Please try again.');
+      toast.error(error.message || 'Unexpected error. Please try again.');
     } finally {
       isUpgrading = false;
       selectedPlan = '';

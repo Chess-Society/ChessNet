@@ -1,7 +1,7 @@
 import { authenticate } from '$lib/server/auth';
 import type { Handle } from '@sveltejs/kit';
 import { adminDb } from '$lib/server/firebase-admin';
-import { ADMIN_EMAILS } from '$lib/constants';
+
 import { json } from '@sveltejs/kit';
 
 // Cache de mantenimiento en memoria — evita consultar Firestore en cada request SSR

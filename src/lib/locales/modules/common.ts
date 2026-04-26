@@ -116,6 +116,7 @@ export const es = {
     'common.loading': 'Cargando...',
     'common.error': 'Ha ocurrido un error',
     'common.success': 'Éxito',
+    'common.error.user_not_found': 'Usuario no encontrado o error de servidor',
     'common.currency': '€',
     'common.currency_symbol': '€',
     'common.level': 'Nivel',

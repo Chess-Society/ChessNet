@@ -14,9 +14,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   try {
     const [classSnap, allStudentsSnap, enrolledSnap] = await Promise.all([
       adminDb.collection('classes').doc(classId).get(),
-      adminDb.collection('students').get(), // Fetching all for filtering later (could be optimized)
+      adminDb.collection('students').get(), 
       adminDb.collection('class_students')
-        .where('classId', '==', classId)
+        .where('class_id', '==', classId) // Try both or ensure creation saves both
         .get()
     ]);
 
@@ -113,9 +113,13 @@ export const actions: Actions = {
       
       const enrollmentData = {
         classId,
+        class_id: classId,
         studentId,
+        student_id: studentId,
         owner_id: uid,
-        enrolledAt: new Date().toISOString()
+        ownerId: uid,
+        enrolledAt: new Date().toISOString(),
+        enrolled_at: new Date().toISOString()
       };
 
       const enrollmentRef = adminDb.collection("class_students").doc();
@@ -153,11 +157,17 @@ export const actions: Actions = {
     if (!studentId) return fail(400);
 
     try {
-      const snapshot = await adminDb.collection("class_students")
-        .where("classId", "==", classId)
-        .where("studentId", "==", studentId)
-        .where("owner_id", "==", uid)
+      let snapshot = await adminDb.collection("class_students")
+        .where("class_id", "==", classId)
+        .where("student_id", "==", studentId)
         .get();
+        
+      if (snapshot.empty) {
+        snapshot = await adminDb.collection("class_students")
+          .where("classId", "==", classId)
+          .where("studentId", "==", studentId)
+          .get();
+      }
         
       if (snapshot.empty) return fail(404);
 

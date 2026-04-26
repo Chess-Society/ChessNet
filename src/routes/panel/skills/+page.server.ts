@@ -5,12 +5,12 @@ import { error } from '@sveltejs/kit';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 import { serializeRecord } from '$lib/server/serialize';
-import { checkPlanGating } from '$lib/server/plans';
+import { checkPlanGating, getUserPlan } from '$lib/server/plans';
 import { CHESS_SYLLABUS_PRESETS } from '$lib/constants/chess-presets';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '$env/dynamic/private';
 import { dev } from '$app/environment';
 import { createRequire } from 'module';
+import { askDeepSeek } from '$lib/server/deepseek';
 
 const require = createRequire(import.meta.url);
 let pdf: any;
@@ -24,8 +24,6 @@ try {
     }
 }
 
-let genAI: GoogleGenerativeAI | null = null;
-
 export const actions: Actions = {
   delete: async ({ request, locals }) => {
     if (!locals.user) return fail(401);
@@ -36,7 +34,7 @@ export const actions: Actions = {
 
     try {
       const doc = await adminDb.collection('skills').doc(id).get();
-      if (!doc.exists || doc.data()?.owner_id !== locals.user.uid) {
+      if (!doc.exists || (doc.data()?.owner_id !== locals.user.uid && doc.data()?.ownerId !== locals.user.uid)) {
         return fail(403);
       }
       await adminDb.collection('skills').doc(id).delete();
@@ -59,7 +57,7 @@ export const actions: Actions = {
       for (const id of ids) {
         const docRef = adminDb.collection('skills').doc(id);
         const doc = await docRef.get();
-        if (doc.exists && doc.data()?.owner_id === locals.user.uid) {
+        if (doc.exists && (doc.data()?.owner_id === locals.user.uid || doc.data()?.ownerId === locals.user.uid)) {
           batch.delete(docRef);
         }
       }
@@ -75,9 +73,13 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
     try {
       const uid = locals.user.uid;
-      const snap = await adminDb.collection('skills').where('owner_id', '==', uid).get();
+      // Clear both formats
+      const snap1 = await adminDb.collection('skills').where('owner_id', '==', uid).get();
+      const snap2 = await adminDb.collection('skills').where('ownerId', '==', uid).get();
+      
       const batch = adminDb.batch();
-      snap.docs.forEach((doc: QueryDocumentSnapshot) => batch.delete(doc.ref));
+      snap1.docs.forEach((doc: QueryDocumentSnapshot) => batch.delete(doc.ref));
+      snap2.docs.forEach((doc: QueryDocumentSnapshot) => batch.delete(doc.ref));
       await batch.commit();
       return { success: true };
     } catch (err) {
@@ -100,7 +102,9 @@ export const actions: Actions = {
         batch.set(ref, {
           ...skill,
           owner_id: uid,
+          ownerId: uid,
           created_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
           order: index
         });
       });
@@ -121,7 +125,6 @@ export const actions: Actions = {
       const batch = adminDb.batch();
       for (const r of reorderings) {
         const ref = adminDb.collection('skills').doc(r.id);
-        // We could add a check here, but for performance in bulk we'll assume valid IDs
         batch.update(ref, { order: r.order });
       }
       await batch.commit();
@@ -132,16 +135,14 @@ export const actions: Actions = {
     }
   },
 
-  importAI: async ({ request, locals }) => {
+  importAI: async (event) => {
+    const { locals, request } = event;
     if (!locals.user) return fail(401);
 
-    const apiKey = env.GOOGLE_AI_API_KEY;
-    if (!apiKey) {
-      return fail(500, { message: 'Configuración de IA no disponible (API Key missing)' });
-    }
-
-    if (!genAI) {
-      genAI = new GoogleGenerativeAI(apiKey);
+    // check premium
+    const plan = await getUserPlan(locals.user.uid);
+    if (plan !== 'premium' && !locals.isAdmin) {
+      return fail(403, { message: 'Esta funcionalidad es exclusiva para usuarios Premium' });
     }
 
     try {
@@ -190,13 +191,6 @@ export const actions: Actions = {
           return fail(400, { message: 'No se pudo leer el PDF: ' + pdfError.message });
       }
 
-      const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-flash",
-          generationConfig: {
-              responseMimeType: "application/json"
-          }
-      });
-
       const systemPrompt = `
         Eres un experto coordinador académico de ajedrez. Tu tarea es extraer el temario de un documento PDF.
         
@@ -217,13 +211,9 @@ export const actions: Actions = {
 
       const userPrompt = `Texto extraído del PDF:\n\n${pdfText.substring(0, 30000)}`;
 
-      const result = await model.generateContent([
-          { text: systemPrompt },
-          { text: userPrompt }
-      ]);
+      const resultText = await askDeepSeek(systemPrompt, userPrompt);
       
-      const response = await result.response;
-      let cleanedJson = response.text().trim();
+      let cleanedJson = resultText.trim();
       if (cleanedJson.startsWith('```')) {
           cleanedJson = cleanedJson.replace(/```(json)?|```/g, '').trim();
       }
@@ -248,8 +238,11 @@ export const actions: Actions = {
               orderIndex: idx,
               resources: Array.isArray(s.resources) ? s.resources : [],
               owner_id: locals.user.uid,
+              ownerId: locals.user.uid,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
               active: true
           };
           batch.set(ref, skillData);

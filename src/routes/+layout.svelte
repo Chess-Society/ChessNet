@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Toast from '$lib/components/Toast.svelte';
+
   import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
   import PromptModal from '$lib/components/PromptModal.svelte';
   import { uiStore } from '$lib/stores/uiStore';
@@ -15,7 +15,7 @@
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import { db } from '$lib/firebase';
   import { doc, onSnapshot } from 'firebase/firestore';
-  import { ADMIN_EMAILS } from '$lib/constants';
+
   import { Settings, Crown, Trophy, ChevronRight } from 'lucide-svelte';
   import { t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
@@ -36,7 +36,7 @@
   // Admin access logic with local bypass for Antigravity/Development
   const isAdmin = $derived(
     (dev && $user) || // Full access in local dev if logged in
-    ($user?.email && ADMIN_EMAILS.map(e => e.toLowerCase()).includes($user.email.toLowerCase()))
+    ($user?.isAdmin === true)
   );
   const isMaintenanceExempt = $derived(
     ['/admin', '/login', '/maintenance', '/api/auth', '/api/stripe'].some(path => $page.url.pathname.startsWith(path)) || 
@@ -196,7 +196,7 @@
     onCancel={$uiStore.confirmDialog?.onCancel || (() => uiStore.closeConfirm())}
   />
   <PromptModal />
-  <Toast />
+
   <Toaster position="top-right" expand={true} richColors theme="dark" />
   <CookieBanner />
 </main>

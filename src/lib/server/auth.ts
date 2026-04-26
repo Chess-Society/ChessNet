@@ -1,6 +1,6 @@
 import { adminAuth, isFirebaseAdminInitialized } from '$lib/server/firebase-admin';
 import { redirect, type RequestEvent } from '@sveltejs/kit';
-import { ADMIN_EMAILS } from '$lib/constants';
+
 import { dev } from '$app/environment';
 import { env as privateEnv } from '$env/dynamic/private';
 
@@ -57,13 +57,8 @@ export async function authenticate(event: RequestEvent) {
             picture: decodedClaims.picture
         };
 
-        // SEC-01: Priorizar Custom Claims sobre lista estática
-        const isClaimAdmin = decodedClaims.admin === true;
-        const isEmailAdmin = userEmail 
-            ? ADMIN_EMAILS.map(e => e.trim().toLowerCase()).includes(userEmail) 
-            : false;
-        
-        event.locals.isAdmin = isClaimAdmin || isEmailAdmin;
+        // SEC-01: Usar exclusivamente Custom Claims para privilegios de administrador
+        event.locals.isAdmin = decodedClaims.admin === true;
 
         // Fetch role from DB/Logic
         if (userEmail) {

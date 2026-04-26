@@ -1,10 +1,19 @@
 import { writable } from "svelte/store";
 import { auth } from "$lib/firebase";
-import { onAuthStateChanged, type User } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { browser } from "$app/environment";
 
+export interface AuthUser {
+    uid: string;
+    email: string | null;
+    displayName: string | null;
+    photoURL: string | null;
+    emailVerified: boolean;
+    isAdmin: boolean;
+}
+
 // Store simplificado para UI
-export const user = writable<User | null>(null);
+export const user = writable<AuthUser | null>(null);
 export const loading = writable<boolean>(true);
 export const authInitialized = writable<boolean>(false);
 export const cookieSynced = writable<boolean>(false);
@@ -23,7 +32,8 @@ export const initAuth = () => {
             uid: 'antigravity-dev-worker',
             email: 'tomih@chess-society.com',
             displayName: 'Antigravity (Dev Mode)',
-            photoURL: ''
+            photoURL: '',
+            isAdmin: true
         } as any);
         loading.set(false);
         authInitialized.set(true);
@@ -38,16 +48,21 @@ export const initAuth = () => {
         
         // If we have a firebaseUser, we always trust it
         if (firebaseUser) {
+            // Fetch custom claims to check for admin status
+            const tokenResult = await firebaseUser.getIdTokenResult();
+            const isAdmin = tokenResult.claims.admin === true;
+
             const userToStore = {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 displayName: firebaseUser.displayName,
                 photoURL: firebaseUser.photoURL,
-                emailVerified: firebaseUser.emailVerified
+                emailVerified: firebaseUser.emailVerified,
+                isAdmin: isAdmin
             };
             
-            // Only update if UID changed to avoid redundant store triggers
-            if (currentUser?.uid !== firebaseUser.uid) {
+            // Only update if UID or Admin status changed to avoid redundant store triggers
+            if (currentUser?.uid !== firebaseUser.uid || (currentUser as any)?.isAdmin !== isAdmin) {
                 user.set(userToStore as any);
             }
             

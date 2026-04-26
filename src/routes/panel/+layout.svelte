@@ -46,7 +46,7 @@
   import { user as authUser, loading as authLoading, authInitialized } from '$lib/stores/auth';
   import { uiStore } from '$lib/stores/uiStore';
   import { globalAnnouncements as globalAnnouncementsStore } from '$lib/stores/configStore';
-  import { ADMIN_EMAILS } from '$lib/constants';
+  
   import type { LayoutData } from './$types';
   
   let { data, children } = $props<{ data: LayoutData, children: any }>();
@@ -143,7 +143,7 @@
   $effect(() => {
     const list = $appStore.reports || [];
     if (list.length > 0) {
-      const isAdmin = $authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase());
+      const isAdmin = data.isAdmin;
       
       if (isAdmin) {
         // Admin: dot en /admin si hay tickets abiertos sin revisar

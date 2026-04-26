@@ -23,14 +23,14 @@
   import { t, locale } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
   import { user as authUser } from '$lib/stores/auth';
-  import { ADMIN_EMAILS } from '$lib/constants';
+
   import { uiStore } from '$lib/stores/uiStore';
-  import { showToast, showError, toast } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { fade, fly } from 'svelte/transition';
   import { TOURNAMENT_TEMPLATES } from '$lib/constants/chess-presets';
 
   const plan = $derived($appStore?.settings?.plan || 'free');
-  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+  const isAdmin = $derived($authUser?.isAdmin === true);
 
   const tournaments = $derived($appStore?.localTournaments || []);
   const players = $derived($appStore?.localTournamentPlayers || []);
@@ -128,7 +128,7 @@
 <form method="POST" action="?/delete" use:enhance={() => {
   return async ({ result }) => {
     if (result.type === 'success') {
-      showToast.success($t('common.delete_success'));
+      toast.success($t('common.delete_success'));
     }
     tournamentToDelete = null;
   };
@@ -140,7 +140,7 @@
   return async ({ result }) => {
     isImporting = false;
     if (result.type === 'success') {
-      showToast.success($t('tournaments.import_success'));
+      toast.success($t('tournaments.import_success'));
     }
   };
 }} bind:this={importForm} class="hidden"></form>

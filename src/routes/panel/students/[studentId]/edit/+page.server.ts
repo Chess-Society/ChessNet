@@ -70,8 +70,13 @@ export const actions: Actions = {
 
       await docRef.update({
         ...studentData,
+        school_id: studentData.schoolId || null,
+        schoolId: studentData.schoolId || null,
+        class_id: studentData.classId || null,
+        classId: studentData.classId || null,
         name: `${studentData.firstName} ${studentData.lastName}`.trim(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       });
 
       return { form };

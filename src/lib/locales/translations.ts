@@ -21,6 +21,8 @@ import * as roadmap from './modules/roadmap';
 import * as attendance from './modules/attendance';
 import * as payments from './modules/payments';
 import * as director from './modules/director';
+import * as lessons from './modules/lessons';
+
 
 export const translations = {
     es: {
@@ -47,6 +49,8 @@ export const translations = {
         ...attendance.es,
         ...payments.es,
         ...director.es,
+        ...lessons.es,
     }
+
 };
 

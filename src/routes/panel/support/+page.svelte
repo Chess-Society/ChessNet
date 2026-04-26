@@ -22,7 +22,7 @@
   import { toast } from '$lib/stores/toast';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { ADMIN_EMAILS } from '$lib/constants';
+
   import { uiStore } from '$lib/stores/uiStore';
   import { formatDate } from '$lib/utils/date';
 
@@ -39,7 +39,7 @@
     teachers: ''
   });
 
-  const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
+  const isAdmin = $derived($authUser?.isAdmin === true);
   
   onMount(() => {
     // Initial check for plan/auth if needed

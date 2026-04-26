@@ -36,14 +36,12 @@
   import { superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
   import { tournamentSchema } from '$lib/schemas/tournament';
-  import { toast } from 'svelte-french-toast';
+  import { toast } from '$lib/stores/toast';
   
   let { data }: { data: PageData } = $props();
   
-  // svelte-ignore state_referenced_locally
-  const initialForm = data.form;
-  const { form, errors, enhance, delayed, message, tainted } = superForm(initialForm as any, {
-    validators: zod(tournamentSchema as any),
+  const { form, errors, enhance, delayed, message, tainted } = superForm(data.form, {
+    validators: zod(tournamentSchema),
     onUpdated({ form }) {
       if (form.valid) {
         toast.success($t('tournaments.updates.success') || 'Tournament updated successfully');
@@ -52,7 +50,7 @@
         toast.error(form.message);
       }
     }
-  }) as any;
+  });
 
   let showDeleteConfirm = $state(false);
   let showResetConfirm = $state(false);
@@ -67,15 +65,15 @@
     try {
       isResolvingEmail = true;
       const res = await fetch(`/api/users/resolve-email?email=${encodeURIComponent(newDirectorEmail)}`);
-      if (!res.ok) throw new Error('Usuario no encontrado o error de servidor');
+      if (!res.ok) throw new Error($t('common.error.user_not_found'));
       const user = await res.json();
       
       if ($form.sharedWith.includes(user.uid)) {
-        toast.error('Este director ya tiene acceso');
+        toast.error($t('tournaments.director_already_has_access'));
       } else {
         $form.sharedWith = [...$form.sharedWith, user.uid];
         newDirectorEmail = '';
-        toast.success('Director añadido correctamente');
+        toast.success($t('tournaments.director_added_success'));
       }
     } catch (e: any) {
       toast.error(e.message);
@@ -86,7 +84,7 @@
 
   const removeDirector = (uid: string) => {
     $form.sharedWith = ($form.sharedWith as string[]).filter((id: string) => id !== uid);
-    toast.success('Acceso revocado');
+    toast.success($t('tournaments.access_revoked'));
   };
 
   const getFormatLabel = (f: string) => {
@@ -395,15 +393,15 @@
               <Users weight="duotone" class="w-8 h-8" />
             </div>
             <div>
-              <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Acceso Directores</h3>
-              <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Comparte este torneo con directores de clubes</p>
+              <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('tournaments.director_access')}</h3>
+              <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('tournaments.director_access_desc')}</p>
             </div>
           </div>
 
           <div class="space-y-8 relative z-10">
             <div class="space-y-4">
               <p class="text-xs text-zinc-400 font-jakarta leading-relaxed">
-                Introduce el email del director para permitirle ver este torneo y sus resultados. Solo podrá ver los datos creados por ti.
+                {$t('tournaments.director_access_info')}
               </p>
               
               <div class="flex gap-3">
@@ -423,7 +421,7 @@
                   disabled={!newDirectorEmail || isResolvingEmail}
                   class="px-8 bg-violet-600 hover:bg-violet-500 text-white font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50"
                 >
-                  {isResolvingEmail ? '...' : 'Añadir'}
+                  {isResolvingEmail ? '...' : $t('common.add')}
                 </button>
               </div>
             </div>
@@ -452,7 +450,7 @@
               </div>
             {:else}
               <div class="p-8 border border-dashed border-white/5 text-center">
-                <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-widest italic">No se ha compartido con ningún director</p>
+                <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-widest italic">{$t('tournaments.no_directors_shared')}</p>
               </div>
             {/if}
           </div>
@@ -643,7 +641,7 @@
           onclick={() => {
             $form.status = 'upcoming';
             showResetConfirm = false;
-            toast.success('Estado del torneo reiniciado. Guarda los cambios para aplicar.');
+            toast.success($t('tournaments.status_reset_success'));
           }}
           class="h-14 rounded-none bg-violet-600 text-white font-black uppercase text-[11px] tracking-widest hover:bg-violet-500 transition-all shadow-xl shadow-violet-500/40 active:scale-95"
         >

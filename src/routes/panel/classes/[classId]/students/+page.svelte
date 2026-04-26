@@ -34,7 +34,7 @@
     Shapes,
     ChartPie
   } from 'phosphor-svelte';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { uiStore } from '$lib/stores/uiStore';
   import { t } from '$lib/i18n';
   import type { PageData } from './$types';
@@ -111,7 +111,7 @@
       }
     } catch (e) {
       console.error(e);
-      showError($t('common.error_occurred'));
+      toast.error($t('common.error_occurred'));
     } finally {
       isAdding = false;
     }
@@ -152,7 +152,7 @@
 
   const handleEnrollStudent = async (studentId: string) => {
     if (stats.available <= 0) {
-      showError($t('classes.max_capacity_reached'));
+      toast.error($t('classes.max_capacity_reached'));
       return;
     }
 
@@ -505,9 +505,9 @@
       return async ({ result }) => {
         isEnrolling = false;
         if (result.type === 'success') {
-          showToast.success($t('common.success') || 'Operación completada');
+          toast.success($t('common.success') || 'Operación completada');
         } else if (result.type === 'failure') {
-          showError($t('common.error_occurred'));
+          toast.error($t('common.error_occurred'));
         }
       };
     }} 

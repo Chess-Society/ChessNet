@@ -1,7 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { goto } from '$app/navigation';
-  import { showToast } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { 
     CaretLeft, 
     Buildings, 
@@ -35,10 +35,10 @@
     validators: zod(schoolSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success(form.message || $t('schools.create_success'));
+        toast.success(form.message || $t('schools.create_success'));
         goto('/panel/schools');
       } else if (form.message) {
-        showToast.error(form.message);
+        toast.error(form.message);
       }
     }
   });
