@@ -6,6 +6,7 @@ export const load: LayoutServerLoad = async (event) => {
   return {
     user: event.locals.user,
     isAdmin: event.locals.isAdmin,
+    role: event.locals.role,
     impersonateEmail: event.cookies.get('impersonate_email') || null
   };
 };

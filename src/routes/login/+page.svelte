@@ -158,7 +158,7 @@
       <h1 class="text-4xl font-display font-black tracking-tighter text-white uppercase italic">
         Chess<span class="text-primary-500">Net</span>
       </h1>
-      <p class="text-surface-400 text-sm mt-1 font-medium tracking-wide">{$t('auth.login_subtitle')}</p>
+      <p class="text-surface-400 text-sm mt-1 font-medium tracking-wide">Acceso para Profesores, Escuelas y Familias</p>
     </div>
 
     <div class="bento-card !p-0 overflow-hidden shadow-2xl shadow-black/50 border-white/10 bg-[#121214]/60 backdrop-blur-xl">

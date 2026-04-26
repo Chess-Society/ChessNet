@@ -7,6 +7,7 @@ declare global {
       auth(): Promise<any>;
       user: any | null;
       isAdmin: boolean;
+      role: import('$lib/server/roles').UserRole;
       impersonateEmail: string | null;
       impersonateId?: string | null;
     }

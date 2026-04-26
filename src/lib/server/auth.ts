@@ -4,6 +4,8 @@ import { ADMIN_EMAILS } from '$lib/constants';
 import { dev } from '$app/environment';
 import { env as privateEnv } from '$env/dynamic/private';
 
+import { getUserRole, type UserRole } from './roles';
+
 export async function authenticate(event: RequestEvent) {
     // Local AI Access Bypass (Development Only)
     // HIGH-01: Secret desde env var — nunca hardcodeado en código fuente
@@ -19,6 +21,7 @@ export async function authenticate(event: RequestEvent) {
                 picture: ''
             };
             event.locals.isAdmin = true;
+            event.locals.role = 'admin';
             return event.locals;
         }
     }
@@ -31,6 +34,7 @@ export async function authenticate(event: RequestEvent) {
     if (!sessionCookie) {
         event.locals.user = null;
         event.locals.isAdmin = false;
+        event.locals.role = 'none';
         return event.locals;
     }
 
@@ -38,32 +42,42 @@ export async function authenticate(event: RequestEvent) {
         if (!dev) console.warn('⚠️ [Auth] Admin SDK not initialized. Skipping session verification.');
         event.locals.user = null;
         event.locals.isAdmin = false;
+        event.locals.role = 'none';
         return event.locals;
     }
 
     try {
         const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
+        const userEmail = decodedClaims.email?.trim().toLowerCase();
+        
         event.locals.user = {
             uid: decodedClaims.uid,
-            email: decodedClaims.email,
+            email: userEmail || '',
             name: decodedClaims.name,
             picture: decodedClaims.picture
         };
 
         // SEC-01: Priorizar Custom Claims sobre lista estática
         const isClaimAdmin = decodedClaims.admin === true;
-        const userEmail = decodedClaims.email?.trim().toLowerCase();
         const isEmailAdmin = userEmail 
             ? ADMIN_EMAILS.map(e => e.trim().toLowerCase()).includes(userEmail) 
             : false;
         
         event.locals.isAdmin = isClaimAdmin || isEmailAdmin;
 
+        // Fetch role from DB/Logic
+        if (userEmail) {
+            event.locals.role = await getUserRole(userEmail);
+        } else {
+            event.locals.role = 'none';
+        }
+
     } catch (err) {
         console.error('Auth helper error:', err);
         event.cookies.delete('__session', { path: '/' });
         event.locals.user = null;
         event.locals.isAdmin = false;
+        event.locals.role = 'none';
     }
 
     return event.locals;

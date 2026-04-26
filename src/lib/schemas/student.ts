@@ -12,7 +12,9 @@ export const studentSchema = z.object({
   chessComUsername: z.string().optional().default(''),
   elo: z.number().int().min(0).default(0),
   active: z.boolean().default(true),
-  avatar: z.string().optional().default('')
+  avatar: z.string().optional().default(''),
+  parentEmail: z.string().email('Email del tutor no válido').optional().or(z.literal('')),
+  parentName: z.string().optional().default('')
 });
 
 export type StudentSchema = typeof studentSchema;

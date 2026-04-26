@@ -232,6 +232,48 @@
            </div>
         </div>
       </section>
+
+      <section class="bento-card !p-10 space-y-10 relative overflow-hidden group">
+        <div class="absolute -left-16 -top-16 w-64 h-64 bg-blue-600/5 blur-3xl rounded-none"></div>
+        <div class="flex items-center gap-4 border-b border-white/5 pb-8 relative z-10">
+           <div class="p-3 bg-blue-600/10 rounded-none text-blue-400">
+              <UserCircle size={24} weight="duotone" />
+           </div>
+           <h2 class="text-2xl font-outfit font-bold text-white tracking-tight uppercase">{$t('students.parent_data')}</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+           <div class="space-y-4">
+              <label for="parentEmail" class="input-label">{$t('students.parent_email')}</label>
+              <div class="input-wrapper">
+                 <input
+                   id="parentEmail"
+                   name="parentEmail"
+                   type="email"
+                   bind:value={$form.parentEmail}
+                   class="glass-input"
+                   placeholder={$t('students.parent_email_placeholder')}
+                   {...$constraints.parentEmail}
+                 />
+              </div>
+              <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-tight italic pl-2">{$t('students.portal_access_tip')}</p>
+           </div>
+           <div class="space-y-4">
+              <label for="parentName" class="input-label">{$t('students.parent_name')}</label>
+              <div class="input-wrapper">
+                 <input
+                   id="parentName"
+                   name="parentName"
+                   type="text"
+                   bind:value={$form.parentName}
+                   class="glass-input"
+                   placeholder={$t('students.parent_name_placeholder')}
+                   {...$constraints.parentName}
+                 />
+              </div>
+           </div>
+        </div>
+      </section>
     </div>
 
     <!-- Right Column: Institutional & Context -->

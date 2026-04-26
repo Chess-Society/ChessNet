@@ -322,6 +322,60 @@
         </div>
       </section>
 
+      <!-- Section: Parent/Tutor Contact -->
+      <section class="bento-card !p-10 relative overflow-hidden group">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-100"></div>
+        
+        <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">
+          <div class="w-14 h-14 bg-blue-600/20 border border-blue-500/30 rounded-none flex items-center justify-center text-blue-400 shadow-xl shadow-blue-500/10">
+            <UserCircle weight="duotone" class="w-8 h-8" />
+          </div>
+          <div>
+            <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('students.parent_data')}</h3>
+            <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('students.parent_data_desc')}</p>
+          </div>
+        </div>
+
+        <div class="space-y-10 relative z-10">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="space-y-3">
+              <label for="parentEmail" class="glass-label">{$t('students.parent_email')}</label>
+              <div class="relative group">
+                <SelectionBackground weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
+                <input
+                  id="parentEmail"
+                  name="parentEmail"
+                  type="email"
+                  bind:value={$form.parentEmail}
+                  placeholder={$t('students.parent_email_placeholder')}
+                  class="glass-input pl-16 pr-8 w-full focus:ring-blue-500/20 focus:border-blue-500 bg-zinc-950/50"
+                  aria-invalid={$errors.parentEmail ? 'true' : undefined}
+                  {...$constraints.parentEmail}
+                />
+              </div>
+              {#if $errors.parentEmail}<p class="text-red-500 text-[10px] font-bold uppercase mt-1">{$errors.parentEmail}</p>{/if}
+              <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-tight italic">{$t('students.portal_access_tip')}</p>
+            </div>
+
+            <div class="space-y-3">
+              <label for="parentName" class="glass-label">{$t('students.parent_name')}</label>
+              <div class="relative group">
+                <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
+                <input
+                  id="parentName"
+                  name="parentName"
+                  type="text"
+                  bind:value={$form.parentName}
+                  placeholder={$t('students.parent_name_placeholder')}
+                  class="glass-input pl-16 pr-8 w-full focus:ring-blue-500/20 focus:border-blue-500 bg-zinc-950/50"
+                  {...$constraints.parentName}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Section: Observations -->
       <section class="bento-card !p-10 relative overflow-hidden group">
         <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">

@@ -108,4 +108,11 @@ export const es = {
     'students.delete_all_confirm': '¿Eliminar todos los alumnos?',
     'students.delete_all_warning': 'Esta acción eliminará todos los alumnos y sus inscripciones de forma permanente. No se puede deshacer.',
     'students.toast_all_deleted': 'Todos los alumnos han sido eliminados correctamente.',
+    'students.parent_data': 'Contacto del Tutor (Acceso Portal)',
+    'students.parent_data_desc': 'Información para el acceso de padres y envío de comunicados.',
+    'students.parent_email': 'Email del Tutor / Alumno Adulto',
+    'students.parent_email_placeholder': 'ej: tutor@email.com',
+    'students.parent_name': 'Nombre del Tutor',
+    'students.parent_name_placeholder': 'ej: Nombre del Padre/Madre',
+    'students.portal_access_tip': 'Este email permitirá al tutor acceder al portal de familias para ver el progreso y comunicados.',
 };
