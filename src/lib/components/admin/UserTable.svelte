@@ -72,7 +72,6 @@
         <thead>
           <tr class="bg-white/[0.02] border-b border-white/10">
             <th class="px-10 py-6 text-[10px] font-mono font-black text-slate-600 uppercase tracking-wider">{$t('admin.tech.identity')}</th>
-            <th class="px-10 py-6 text-[10px] font-mono font-black text-slate-600 uppercase tracking-wider">{$t('admin.tech.achievements')}</th>
             <th class="px-10 py-6 text-[10px] font-mono font-black text-slate-600 uppercase tracking-wider">{$t('admin.tech.plan')}</th>
             <th class="px-10 py-6 text-[10px] font-mono font-black text-slate-600 uppercase tracking-wider">{$t('admin.tech.timestamp')}</th>
             <th class="px-10 py-6 text-[10px] font-mono font-black text-slate-600 uppercase tracking-wider text-right">{$t('admin.tech.operations')}</th>
@@ -110,18 +109,7 @@
                   </div>
                 </div>
               </td>
-              <td class="px-10 py-6">
-                {#if user.badgesCount > 0}
-                  <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-violet-500/10 rounded-none border border-violet-500/20">
-                      <Medal weight="fill" class="w-4 h-4 text-violet-400" />
-                    </div>
-                    <span class="text-xs font-mono font-black text-violet-300 italic">x{user.badgesCount}</span>
-                  </div>
-                {:else}
-                  <span class="text-[9px] font-mono font-black text-slate-800 uppercase tracking-widest italic opacity-50">UNRANKED</span>
-                {/if}
-              </td>
+
               <td class="px-10 py-6">
                 {#if getPlanStatus(user) === 'pro'}
                   <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-black rounded-none text-[9px] font-mono font-black uppercase tracking-widest">

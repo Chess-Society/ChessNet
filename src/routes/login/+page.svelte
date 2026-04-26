@@ -118,7 +118,7 @@
           </div>
 
           <div class="grid grid-cols-1 gap-1">
-            {#each ['auth_node_sync', 'academy_data_load', 'social_pulse_connect', 'ops_center_ready'] as step, i}
+            {#each ['auth_node_sync', 'academy_data_load', 'crm_engine_ready', 'ops_center_ready'] as step, i}
               <div class="flex items-center gap-3 py-1 opacity-40 animate-[step-in_0.5s_ease-out_forwards]" style="animation-delay: {i * 0.2}s">
                 <div class="w-1.5 h-1.5 bg-primary-500/50"></div>
                 <span class="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">{step.replace(/_/g, ' ')}</span>

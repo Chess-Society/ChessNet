@@ -7,5 +7,4 @@ export * from './local-tournament';
 export * from './education';
 export * from './subscription';
 export * from './crm';
-export * from './social';
 export * from './governance';

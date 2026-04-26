@@ -20,7 +20,8 @@
     Crown,
     PencilSimple,
     CaretRight,
-    Pulse
+    Pulse,
+    Megaphone
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { toast } from '$lib/stores/toast';
@@ -160,6 +161,105 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
   
+  {#if data.role === 'parent'}
+    <!-- PARENT VIEW -->
+    <div class="pt-10 space-y-12">
+      <header class="space-y-4">
+        <div class="flex items-center gap-2">
+          <div class="h-[2px] w-8 bg-primary-500"></div>
+          <h2 class="text-primary-400 text-[10px] font-black uppercase tracking-[0.4em]">Panel de Padres</h2>
+        </div>
+        <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-[0.9]">
+          Hola, {data.user?.name?.split(' ')[0] || 'Familia'}<br/>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">Sigue el progreso de tus hijos</span>
+        </h1>
+      </header>
+
+      <!-- Children Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {#each data.children || [] as child}
+          <div class="bento-card !p-8 group hover:border-primary-500/30 transition-all">
+             <div class="flex items-start justify-between mb-8">
+               <div class="flex items-center gap-6">
+                 <div class="w-20 h-20 bg-zinc-950 border border-white/10 flex items-center justify-center text-primary-400 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-primary-500/5 group-hover:scale-110 transition-transform"></div>
+                    <GraduationCap size={40} weight="duotone" class="relative z-10" />
+                 </div>
+                 <div>
+                   <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight italic">{child.name}</h3>
+                   <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">
+                     {child.level || 'Nivel inicial'} • {child.school_name || 'Sin escuela asignada'}
+                   </p>
+                 </div>
+               </div>
+               <div class="px-4 py-2 bg-zinc-950 border border-white/5 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                 ID: {child.id.slice(0,6)}
+               </div>
+             </div>
+
+             <div class="grid grid-cols-3 gap-4 mb-8">
+               <div class="p-4 bg-zinc-950/50 border border-white/5 rounded-none">
+                 <p class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Elo FIDE/Local</p>
+                 <p class="text-xl font-outfit font-black text-white">{child.elo || 0}</p>
+               </div>
+               <div class="p-4 bg-zinc-950/50 border border-white/5 rounded-none">
+                 <p class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Clases totales</p>
+                 <p class="text-xl font-outfit font-black text-white">{child.totalClasses || 0}</p>
+               </div>
+               <div class="p-4 bg-zinc-950/50 border border-white/5 rounded-none">
+                 <p class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Asistencia</p>
+                 <p class="text-xl font-outfit font-black text-primary-400">100%</p>
+               </div>
+             </div>
+
+             <button class="w-full h-14 border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all flex items-center justify-center gap-3">
+               <ChartBar size={18} />
+               Ver Informe de Progreso
+             </button>
+          </div>
+        {/each}
+      </div>
+
+      <!-- Announcements for Parents -->
+      <div class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <Megaphone size={24} weight="duotone" class="text-primary-400" />
+            <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Comunicados Recientes</h3>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          {#each data.announcements || [] as ann}
+            <div class="bento-card !p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:border-primary-500/20 transition-all">
+              <div class="flex items-start gap-6">
+                <div class="w-12 h-12 bg-zinc-950 border border-white/5 flex flex-col items-center justify-center shrink-0">
+                  <span class="text-[8px] font-black text-zinc-600 uppercase">{new Date(ann.createdAt).toLocaleDateString('es', { month: 'short' })}</span>
+                  <span class="text-lg font-black text-white">{new Date(ann.createdAt).getDate()}</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[8px] font-black px-2 py-0.5 bg-primary-500/10 text-primary-400 uppercase border border-primary-500/20">{ann.priority}</span>
+                  </div>
+                  <h4 class="text-lg font-outfit font-black text-white uppercase italic tracking-tight">{ann.title}</h4>
+                  <p class="text-zinc-500 text-sm line-clamp-1">{ann.content}</p>
+                </div>
+              </div>
+              <button class="px-6 h-12 border border-white/5 hover:border-primary-500/50 text-[9px] font-black text-zinc-400 uppercase tracking-widest transition-all">
+                Leer comunicado
+              </button>
+            </div>
+          {/each}
+          {#if !data.announcements?.length}
+            <div class="p-12 text-center border border-dashed border-white/10 opacity-50">
+              <p class="text-zinc-500 font-bold uppercase tracking-widest italic">No hay comunicados nuevos</p>
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+  {:else}
+    <!-- TEACHER / ADMIN VIEW -->
   <div class="grid grid-cols-1 mb-12 pt-10 items-end">
     <div class="space-y-6" in:fly={{y: 20, duration: 800}}>
       <div class="space-y-3">
@@ -510,7 +610,7 @@
       </a>
     </div>
   </div>
-  
+  {/if}
 </div>
 
 <style>

@@ -83,12 +83,14 @@ export const communicationApi = {
     targetId?: string,
     priority: "low" | "normal" | "high" | "urgent" = "normal",
     isPublished: boolean = false,
+    ownerId?: string,
     expiresAt?: string,
   ): Promise<Announcement> {
-    const ownerId = await getOwnerId();
+    const finalOwnerId = ownerId || await getOwnerId();
 
     const data = {
-      owner_id: ownerId,
+      owner_id: finalOwnerId,
+      ownerId: finalOwnerId,
       schoolId: schoolId,
       title,
       content,

@@ -11,8 +11,6 @@ export interface School {
   createdAt: string;
   updatedAt: string;
   sharedWith?: string[];
-  socialEnabled?: boolean;
-  economyEnabled?: boolean;
 }
 
 export interface Category {
@@ -43,8 +41,6 @@ export interface Class {
   createdAt: string;
   updatedAt: string;
   sharedWith?: string[];
-  socialEnabled?: boolean;
-  economyEnabled?: boolean;
 }
 
 export interface Student {
@@ -71,8 +67,6 @@ export interface Student {
   createdAt: string;
   updatedAt: string;
   sharedWith?: string[];
-  socialEnabled?: boolean;
-  economyEnabled?: boolean;
 }
 
 export interface Skill {

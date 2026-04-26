@@ -34,7 +34,6 @@ export const adminApi = {
         classesSnap,
         premiumSnap,
         recentSnap,
-        insigniasSnap,
         paymentsSnap
       ] = await Promise.all([
         getCountFromServer(collection(db, "users")),
@@ -43,7 +42,6 @@ export const adminApi = {
         getCountFromServer(collection(db, "classes")),
         getCountFromServer(query(collection(db, "users"), where("settings.plan", "==", "premium"))),
         getCountFromServer(query(collection(db, "users"), where("createdAt", ">=", sevenDaysAgo.toISOString()))),
-        getCountFromServer(collection(db, "achievements")),
         getDocs(query(collection(db, "payments"), limit(500))) // Limit to prevent crash/slowdown
       ]);
 
@@ -56,7 +54,6 @@ export const adminApi = {
         totalClasses: classesSnap.data().count,
         premiumUsers: premiumSnap.data().count,
         recentUsers: recentSnap.data().count,
-        totalInsignias: insigniasSnap.data().count,
         totalRevenue,
         activeSessions: 0, 
         serverLoad: 0
@@ -284,22 +281,8 @@ export const adminApi = {
         needsUpdate = true;
       }
 
-      // 2. Calcular insignias reales
-      const q = query(collection(db, "achievements"), where("owner_id", "==", docSnap.id));
-      const achievementsSnap = await getDocs(q);
-      const actualCount = achievementsSnap.size;
+      // 2. Calcular insignias reales (Ya no es necesario, se omite)
 
-      if (data.badgesCount !== actualCount) {
-        updates.badgesCount = actualCount;
-        needsUpdate = true;
-      }
-
-      // 3. Marcar insignias antiguas como notificadas para evitar spam de popups
-      const unnotified = achievementsSnap.docs.filter(d => !d.data().notified);
-      if (unnotified.length > 0) {
-        const resetPromises = unnotified.map(d => updateDoc(doc(db, "achievements", d.id), { notified: true }));
-        await Promise.all(resetPromises);
-      }
 
       // 3. Migrar/Limpiar plan legacy
       const legacyPlan = data.config?.settings?.subscription?.plan;

@@ -70,7 +70,7 @@
   // Lobby & Support Notifications state
   let lobbyPulse = $state(false);
   let supportPulse = $state(false);
-  let adminPulse = $state(false); // Separado: dot rojo en link Admin (tickets abiertos sin revisar)
+  let adminPulse = $state(false);
   let unsubs: (() => void)[] = [];
 
   // Scroll logic for mobile nav
@@ -130,12 +130,10 @@
     }
   });
 
-  // BUG-06: Auto-resetear lobbyPulse al entrar en /panel/lobby
+  // Reset pulse when in announcements
   $effect(() => {
-    if (currentRoute.startsWith('/panel/lobby')) {
+    if (currentRoute.startsWith('/panel/announcements')) {
       lobbyPulse = false;
-      const colName = data.isAdmin ? 'lobby_suggestions' : 'lobby_announcements';
-      localStorage.setItem(`last_viewed_${colName}`, Date.now().toString());
       localStorage.setItem('last_viewed_announcements_global', Date.now().toString());
     }
   });
@@ -209,10 +207,8 @@
       'attendance': 'nav.attendance',
       'leads': 'nav.leads',
       'planner': 'planner.title',
-      'lobby': 'nav.lobby',
-      'social': 'nav.social',
-      'nets': 'nav.nets',
-      'support': 'support.title'
+      'support': 'support.title',
+      'announcements': 'nav.announcements'
     };
 
     let items = [];
@@ -400,48 +396,56 @@
             <span class="text-xs uppercase tracking-widest">{$t('nav.changelog')}</span>
           </a>
 
-          <div class="h-px bg-white/5 my-2 mx-4"></div>
-          <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.management') || 'Gestión'}</p>
+          {#if data.role !== 'parent'}
+            <div class="h-px bg-white/5 my-2 mx-4"></div>
+            <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.management') || 'Gestión'}</p>
 
-          <a href="/panel/schools" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <Buildings weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.schools')}</span>
-          </a>
-          <a href="/panel/classes" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <Chalkboard weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.classes')}</span>
-          </a>
-          <a href="/panel/students" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <Users weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.students')}</span>
-          </a>
-          <a href="/panel/attendance" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <ListChecks weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.attendance')}</span>
-          </a>
+            <a href="/panel/schools" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+              <Buildings weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.schools')}</span>
+            </a>
+            <a href="/panel/classes" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+              <Chalkboard weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.classes')}</span>
+            </a>
+            <a href="/panel/students" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+              <Users weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.students')}</span>
+            </a>
+            <a href="/panel/attendance" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+              <ListChecks weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.attendance')}</span>
+            </a>
+          {/if}
 
 
 
           <div class="h-px bg-white/5 my-2 mx-4"></div>
           <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.premium_features') || 'Avanzado'}</p>
 
-          <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <div class="flex items-center gap-4">
-              <Wallet weight="duotone" size={20} />
-              <span class="text-xs uppercase tracking-widest">{$t('nav.payments')}</span>
-            </div>
-            {#if plan !== 'premium'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
-          </a>
-          <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <div class="flex items-center gap-4">
-              <Trophy weight="duotone" size={20} />
-              <span class="text-xs uppercase tracking-widest">{$t('nav.tournaments')}</span>
-            </div>
-            {#if plan !== 'premium'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
-          </a>
-          <a href="/panel/skills" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/skills') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <BookOpen weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.skills') || 'Temario'}</span>
+          {#if data.role !== 'parent'}
+            <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+              <div class="flex items-center gap-4">
+                <Wallet weight="duotone" size={20} />
+                <span class="text-xs uppercase tracking-widest">{$t('nav.payments')}</span>
+              </div>
+              {#if plan !== 'premium'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
+            </a>
+            <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+              <div class="flex items-center gap-4">
+                <Trophy weight="duotone" size={20} />
+                <span class="text-xs uppercase tracking-widest">{$t('nav.tournaments')}</span>
+              </div>
+              {#if plan !== 'premium'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
+            </a>
+            <a href="/panel/skills" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/skills') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+              <BookOpen weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.skills') || 'Temario'}</span>
+            </a>
+          {/if}
+          <a href="/panel/announcements" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/announcements') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <Megaphone weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('nav.announcements') || 'Comunicados'}</span>
           </a>
 
         </nav>
@@ -489,50 +493,63 @@
         </nav>
 
         <!-- Quick Module Switcher (Teachers only) -->
-        <div class="hidden lg:flex items-center gap-0.5 bg-white/[0.03] p-1 rounded-none border border-white/10 flex-shrink backdrop-blur-xl">
-          <a href="/panel/schools" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
-             title={$t('nav.schools')}>
-            <Buildings size={20} weight={currentRoute.includes('/schools') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-          </a>
-          <a href="/panel/classes" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
-             title={$t('nav.classes')}>
-            <Chalkboard size={20} weight={currentRoute.includes('/classes') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-          </a>
-          <a href="/panel/students" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
-             title={$t('nav.students')}>
-            <Users size={20} weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-          </a>
-          <div class="w-px h-6 bg-white/5 mx-1"></div>
-          <a href="/panel/attendance" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
-             title={$t('nav.attendance')}>
-            <ListChecks size={20} weight={currentRoute.includes('/attendance') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-          </a>
-          <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
-             title={$t('nav.payments')}>
-            <Wallet size={20} weight={currentRoute.includes('/payments') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-            {#if plan !== 'premium'}
-              <div class="absolute -top-1 -right-1">
-                <Crown weight="fill" size={10} class="text-violet-400 animate-pulse" />
-              </div>
-            {/if}
-          </a>
-          <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
-             title={$t('nav.tournaments')}>
-            <Trophy size={20} weight={currentRoute.includes('/tournaments') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-            {#if plan !== 'premium'}
-              <div class="absolute -top-1 -right-1">
-                <Crown weight="fill" size={10} class="text-violet-400 animate-pulse" />
-              </div>
-            {/if}
-          </a>
-
-        </div>
+        {#if data.role !== 'parent'}
+          <div class="hidden lg:flex items-center gap-0.5 bg-white/[0.03] p-1 rounded-none border border-white/10 flex-shrink backdrop-blur-xl">
+            <a href="/panel/schools" 
+               class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+               title={$t('nav.schools')}>
+              <Buildings size={20} weight={currentRoute.includes('/schools') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+            </a>
+            <a href="/panel/classes" 
+               class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/classes') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+               title={$t('nav.classes')}>
+              <Chalkboard size={20} weight={currentRoute.includes('/classes') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+            </a>
+            <a href="/panel/students" 
+               class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/students') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+               title={$t('nav.students')}>
+              <Users size={20} weight={currentRoute.includes('/students') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+            </a>
+            <div class="w-px h-6 bg-white/5 mx-1"></div>
+            <a href="/panel/attendance" 
+               class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/attendance') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+               title={$t('nav.attendance')}>
+              <ListChecks size={20} weight={currentRoute.includes('/attendance') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+            </a>
+            <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} 
+               class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
+               title={$t('nav.payments')}>
+              <Wallet size={20} weight={currentRoute.includes('/payments') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+              {#if plan !== 'premium'}
+                <div class="absolute -top-1 -right-1">
+                  <Crown weight="fill" size={10} class="text-violet-400 animate-pulse" />
+                </div>
+              {/if}
+            </a>
+            <a href={plan === 'premium' ? '/panel/tournaments' : '/pricing'} 
+               class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/tournaments') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} relative group/nav" 
+               title={$t('nav.tournaments')}>
+              <Trophy size={20} weight={currentRoute.includes('/tournaments') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+              {#if plan !== 'premium'}
+                <div class="absolute -top-1 -right-1">
+                  <Crown weight="fill" size={10} class="text-violet-400 animate-pulse" />
+                </div>
+              {/if}
+            </a>
+            <a href="/panel/announcements" 
+               class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/announcements') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+               title={$t('nav.announcements') || 'Comunicados'}>
+              <Megaphone size={20} weight={currentRoute.includes('/announcements') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+            </a>
+          </div>
+        {:else}
+           <div class="hidden lg:flex items-center gap-4 px-6 py-2 bg-white/5 border border-white/10">
+             <a href="/panel/announcements" class="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest {currentRoute.includes('/announcements') ? 'text-primary-400' : 'text-zinc-500 hover:text-white'}">
+               <Megaphone size={18} />
+               Comunicados
+             </a>
+           </div>
+        {/if}
       </div>
 
       <div class="flex items-center gap-4 flex-shrink-0">

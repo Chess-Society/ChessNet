@@ -11,7 +11,50 @@ export const load: PageServerLoad = async (event) => {
   }
 
   const uid = user.uid;
+  const role = event.locals.role;
+  const isAdmin = event.locals.isAdmin;
 
+  if (role === 'parent') {
+    try {
+      // 1. Fetch children
+      const childrenSnap = await adminDb.collection("students")
+        .where("parentEmail", "==", user.email?.toLowerCase())
+        .get();
+      
+      const children = childrenSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+      
+      // 2. Fetch relevant announcements
+      const schoolIds = [...new Set(children.map((c: any) => c.school_id || c.schoolId).filter(Boolean))];
+      const classIds = [...new Set(children.map((c: any) => c.class_id || c.classId).filter(Boolean))];
+      
+      const announcementsSnap = await adminDb.collection("announcements")
+        .where("isPublished", "==", true)
+        .orderBy("createdAt", "desc")
+        .limit(20)
+        .get();
+      
+      const allAnnouncements = announcementsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+      
+      // Filter announcements for this parent
+      const announcements = allAnnouncements.filter((a: any) => {
+        if (a.targetType === 'all') return true;
+        if (a.targetType === 'school' && schoolIds.includes(a.targetId)) return true;
+        if (a.targetType === 'class' && classIds.includes(a.targetId)) return true;
+        if (a.targetType === 'student' && children.some(c => c.id === a.targetId)) return true;
+        return false;
+      });
+
+      return serializeRecord({
+        user,
+        role: 'parent',
+        children,
+        announcements
+      });
+    } catch (err) {
+      console.error('Error loading parent dashboard:', err);
+      return { user, role: 'parent', children: [], announcements: [] };
+    }
+  }
   try {
     console.time('📊 Dashboard Load Queries');
     const [schoolsSnap, studentsSnap, classesSnap, paymentsSnap, attendanceSnap] = await Promise.all([
@@ -85,6 +128,8 @@ export const load: PageServerLoad = async (event) => {
 
     return serializeRecord({
       user,
+      role: role || 'teacher',
+      isAdmin,
       dashboardStats,
       centersWithStats,
       featuredClasses: classes.slice(0, 3),

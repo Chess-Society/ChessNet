@@ -447,48 +447,6 @@
           </div>
         </section>
 
-        <!-- Advanced Config (Social/Economy) -->
-        <section class="bento-card !p-10 relative overflow-hidden group">
-          <div class="flex items-center gap-5 mb-10 relative z-10 border-b border-white/5 pb-8">
-            <div class="w-14 h-14 bg-zinc-800 border border-zinc-700 rounded-none flex items-center justify-center text-zinc-500">
-              <Sparkle weight="duotone" class="w-8 h-8" />
-            </div>
-            <div>
-              <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">{$t('common.advanced_settings')}</h3>
-              <p class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('schools.advanced_desc')}</p>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <label class="flex items-center justify-between p-6 bg-zinc-950/50 border border-white/5 cursor-pointer hover:bg-white/5 transition-colors">
-              <div class="flex items-center gap-4">
-                <Globe size={24} weight="duotone" class="text-primary-400" />
-                <div class="flex flex-col">
-                  <span class="text-xs font-black text-white uppercase tracking-widest">{$t('common.social_system')}</span>
-                  <span class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{$t('common.public_profile')}</span>
-                </div>
-              </div>
-              <input type="checkbox" name="socialEnabled" bind:checked={$form.socialEnabled} class="hidden" />
-              <div class="w-10 h-6 bg-zinc-800 border border-white/10 relative transition-colors {$form.socialEnabled ? 'bg-primary-500/20 border-primary-500/50' : ''}">
-                <div class="absolute top-1 left-1 w-4 h-4 bg-zinc-600 transition-all {$form.socialEnabled ? 'left-5 bg-primary-400 shadow-[0_0_10px_rgba(139,92,246,0.5)]' : ''}"></div>
-              </div>
-            </label>
-
-            <label class="flex items-center justify-between p-6 bg-zinc-950/50 border border-white/5 cursor-pointer hover:bg-white/5 transition-colors">
-              <div class="flex items-center gap-4">
-                <CurrencyEur size={24} weight="duotone" class="text-emerald-400" />
-                <div class="flex flex-col">
-                  <span class="text-xs font-black text-white uppercase tracking-widest">{$t('common.economy_system')}</span>
-                  <span class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{$t('common.virtual_currency')}</span>
-                </div>
-              </div>
-              <input type="checkbox" name="economyEnabled" bind:checked={$form.economyEnabled} class="hidden" />
-              <div class="w-10 h-6 bg-zinc-800 border border-white/10 relative transition-colors {$form.economyEnabled ? 'bg-emerald-500/20 border-emerald-500/50' : ''}">
-                <div class="absolute top-1 left-1 w-4 h-4 bg-zinc-600 transition-all {$form.economyEnabled ? 'left-5 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : ''}"></div>
-              </div>
-            </label>
-          </div>
-        </section>
       </div>
 
       <!-- Right: Sticky Sidebar (4 Columns) -->

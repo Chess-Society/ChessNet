@@ -20,7 +20,6 @@
       totalClasses: number;
       premiumUsers: number;
       recentUsers: number;
-      totalInsignias: number;
       totalRevenue: number;
     };
   }
@@ -58,13 +57,6 @@
       icon: Student,
       color: 'from-fuchsia-500 to-pink-600',
       sub: $t('admin.stats.students_sub')
-    },
-    {
-      label: $t('admin.stats.insignias'),
-      value: stats.totalInsignias || 0,
-       icon: Crown,
-      color: 'from-amber-400 to-orange-500',
-      sub: $t('admin.stats.insignias_sub')
     },
     {
       label: $t('admin.stats.schools'),

@@ -39,8 +39,6 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       email: schoolData.email || '',
       website: schoolData.website || '',
       location: schoolData.location || '',
-      socialEnabled: schoolData.socialEnabled ?? schoolData.social_enabled ?? true,
-      economyEnabled: schoolData.economyEnabled ?? schoolData.economy_enabled ?? true,
       sharedWith: schoolData.sharedWith || []
     }, zod(schoolSchema as any));
 
@@ -78,10 +76,7 @@ export const actions: Actions = {
       const updateData = {
         ...form.data,
         updatedAt: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        // Keep legacy field names for compatibility
-        social_enabled: (form.data as any).socialEnabled,
-        economy_enabled: (form.data as any).economyEnabled
+        updated_at: new Date().toISOString()
       };
 
       await schoolRef.update(updateData);

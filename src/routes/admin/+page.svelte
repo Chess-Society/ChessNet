@@ -48,7 +48,6 @@
   import SystemConsole from '$lib/components/admin/SystemConsole.svelte';
   import LiveActivityFeed from '$lib/components/admin/LiveActivityFeed.svelte';
 
-  import LichessPulse from '$lib/components/admin/LichessPulse.svelte';
   import UpdatePill from '$lib/components/common/UpdatePill.svelte';
 
   import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
@@ -63,7 +62,6 @@
     totalClasses: 0,
     premiumUsers: 0,
     recentUsers: 0,
-    totalInsignias: 0,
     totalRevenue: 0,
     activeSessions: 0,
     serverLoad: 0
@@ -531,7 +529,7 @@
                     </div>
                   </div>
 
-                  <LichessPulse />
+
                   
                   <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
                       <!-- Monitoring Feed -->
@@ -644,7 +642,7 @@
                       </div>
                    </div>
                   
-                  <SystemConsole 
+                   <SystemConsole 
                     logs={systemLogs}
                     maintenanceMode={$systemConfig.maintenanceMode}
                     onToggleMaintenance={handleToggleMaintenance}
@@ -652,12 +650,47 @@
                     onClearLogs={() => systemLogs = []}
                   />
                </div>
-              <DangerZone 
-                onRepairIntegrity={handleRepairUsers}
-                onToggleMaintenance={handleToggleMaintenance}
-                maintenanceMode={$systemConfig.maintenanceMode}
-                {isSaving}
-              />
+
+            {:else if activeTab === 'broadcast'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      04
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">{$t('admin.broadcast.title')}</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-primary-500 rounded-none animate-pulse"></span>
+                         ENVÍO DE COMUNICACIONES GLOBALES
+                       </p>
+                    </div>
+                  </div>
+                  
+                  <BroadcastCenter />
+               </div>
+
+            {:else if activeTab === 'danger'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-red-600 text-white flex items-center justify-center font-display italic font-black text-3xl">
+                      !!
+                    </div>
+                    <div>
+                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">ZONA CRÍTICA</h2>
+                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
+                         <span class="w-1.5 h-1.5 bg-red-500 rounded-none animate-bounce"></span>
+                         OPERACIONES DE ALTO RIESGO
+                       </p>
+                    </div>
+                  </div>
+
+                  <DangerZone 
+                    onRepairIntegrity={handleRepairUsers}
+                    onToggleMaintenance={handleToggleMaintenance}
+                    maintenanceMode={$systemConfig.maintenanceMode}
+                    {isSaving}
+                  />
+               </div>
             {/if}
           </div>
           {/each}

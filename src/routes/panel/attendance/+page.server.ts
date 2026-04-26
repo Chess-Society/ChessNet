@@ -6,17 +6,17 @@ import { adminDb } from '$lib/server/firebase-admin';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-  const session = await locals.auth();
-  if (!session?.user) throw redirect(303, '/auth/login');
+  if (!locals.user) throw redirect(303, '/login');
+  const sessionUser = locals.user;
 
   const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0];
   const classId = url.searchParams.get('classId');
 
   // Load students and classes for the teacher
   const [studentsSnap, classesSnap, attendanceSnap] = await Promise.all([
-    adminDb.collection('students').where('teacherId', '==', session.user.id).get(),
-    adminDb.collection('classes').where('teacherId', '==', session.user.id).get(),
-    adminDb.collection('attendance').where('owner_id', '==', session.user.id).get()
+    adminDb.collection('students').where('teacherId', '==', sessionUser.uid).get(),
+    adminDb.collection('classes').where('teacherId', '==', sessionUser.uid).get(),
+    adminDb.collection('attendance').where('owner_id', '==', sessionUser.uid).get()
   ]);
 
   const students = studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
@@ -55,8 +55,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 export const actions: Actions = {
   update: async ({ request, locals }) => {
-    const session = await locals.auth();
-    if (!session?.user) return fail(401);
+    if (!locals.user) return fail(401);
+    const sessionUser = locals.user;
 
     const form = await superValidate(request, zod(attendanceSchema as any));
     if (!form.valid) return message(form, 'Revisa los errores de asistencia', { status: 400 });
@@ -76,7 +76,7 @@ export const actions: Actions = {
         classId,
         date,
         status: record.status,
-        owner_id: session.user.id,
+        owner_id: sessionUser.uid,
         updatedAt: new Date().toISOString()
       }, { merge: true });
     }

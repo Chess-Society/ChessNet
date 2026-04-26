@@ -14,9 +14,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   try {
     const [classSnap, allStudentsSnap, enrolledSnap] = await Promise.all([
       adminDb.collection('classes').doc(classId).get(),
-      adminDb.collection('students').where('owner_id', '==', uid).get(),
+      adminDb.collection('students').get(), // Fetching all for filtering later (could be optimized)
       adminDb.collection('class_students')
-        .where('owner_id', '==', uid)
         .where('classId', '==', classId)
         .get()
     ]);
@@ -26,7 +25,17 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }
 
     const classData = { id: classSnap.id, ...classSnap.data() };
-    const allStudents = allStudentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
+    const schoolId = (classData as any).schoolId || (classData as any).school_id;
+    
+    // Filter students by owner OR school
+    const filteredStudents = allStudentsSnap.docs
+      .map((d: any) => ({ id: d.id, ...d.data() }))
+      .filter((s: any) => {
+        const isOwner = s.owner_id === uid || s.ownerId === uid;
+        const inSchool = schoolId && (s.school_id === schoolId || s.schoolId === schoolId);
+        return isOwner || inSchool;
+      });
+
     const enrolledDocs = enrolledSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
 
     const enrolledStudentIds = new Set(enrolledDocs.map((ed: any) => ed.studentId || ed.student_id));
@@ -34,20 +43,18 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     // Students already in this class
     const enrolledStudents = enrolledDocs.map((ed: any) => {
       const sId = ed.studentId || ed.student_id;
-      const studentDetail = allStudents.find((s: any) => s.id === sId);
+      const studentDetail = filteredStudents.find((s: any) => s.id === sId);
       return {
         ...studentDetail,
         ...ed,
         enrolledAt: ed.enrolledAt || ed.enrolled_at
       };
-    }).filter((s: any) => s.id); // Ensure we found the student detail
+    }).filter((s: any) => s.id);
 
-    // Available students in the same school (or just all owner's students if no schoolId)
-    const schoolId = (classData as any).schoolId || (classData as any).school_id;
-    const availableStudents = allStudents.filter((s: any) => {
+    // Available students
+    const availableStudents = filteredStudents.filter((s: any) => {
       const isEnrolled = enrolledStudentIds.has(s.id);
-      const sameSchool = schoolId ? ((s as any).schoolId || (s as any).school_id) === schoolId : true;
-      return !isEnrolled && sameSchool;
+      return !isEnrolled;
     });
 
     const capacity = (classData as any).capacity || (classData as any).max_students || 20;
@@ -86,13 +93,21 @@ export const actions: Actions = {
     if (!studentId) return fail(400);
 
     try {
+      // Check if already enrolled in this class (regardless of owner_id to avoid duplicates)
       const existingSnap = await adminDb.collection("class_students")
         .where("classId", "==", classId)
         .where("studentId", "==", studentId)
-        .where("owner_id", "==", uid)
         .get();
         
       if (!existingSnap.empty) return fail(409, { message: 'Already enrolled' });
+
+      // Check snake_case version just in case
+      const existingSnapSnake = await adminDb.collection("class_students")
+        .where("class_id", "==", classId)
+        .where("student_id", "==", studentId)
+        .get();
+
+      if (!existingSnapSnake.empty) return fail(409, { message: 'Already enrolled' });
 
       const batch = adminDb.batch();
       
@@ -106,9 +121,17 @@ export const actions: Actions = {
       const enrollmentRef = adminDb.collection("class_students").doc();
       batch.set(enrollmentRef, enrollmentData);
       
-      // Sync to student record
-      batch.update(adminDb.collection("students").doc(studentId), {
+      // Sync to student record (Handle both studentId and student_id)
+      const studentRef = adminDb.collection("students").doc(studentId);
+      const studentSnap = await studentRef.get();
+      
+      if (!studentSnap.exists) {
+        throw new Error(`Student ${studentId} not found`);
+      }
+
+      batch.update(studentRef, {
         classId: classId,
+        class_id: classId, // Update both for compatibility
         updatedAt: new Date().toISOString()
       });
 

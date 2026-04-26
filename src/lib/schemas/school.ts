@@ -9,8 +9,6 @@ export const schoolSchema = z.object({
   email: z.string().email('Email no válido').optional().or(z.literal('')).default(''),
   website: z.string().url('Web no válida').optional().or(z.literal('')).default(''),
   location: z.string().optional().default(''),
-  socialEnabled: z.boolean().default(true),
-  economyEnabled: z.boolean().default(true),
   sharedWith: z.array(z.string()).default([]),
 });
 
