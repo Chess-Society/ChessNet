@@ -32,8 +32,9 @@
   import { ADMIN_EMAILS } from '$lib/constants';
   import { goto } from '$app/navigation';
   import { uiStore } from '$lib/stores/uiStore';
-  import { showError, toast } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { fade, fly, scale } from 'svelte/transition';
+  import { enhance as sEnhance } from '$app/forms';
   import { superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
   import { paymentSchema } from '$lib/schemas/payment';
@@ -45,9 +46,9 @@
   const isAdmin = $derived($authUser?.email && ADMIN_EMAILS.includes($authUser.email.toLowerCase()));
 
   // Data from Server Load
-  let payments = $derived(data.payments || []);
-  let students = $derived(data.students || []);
-  let schools = $derived(data.schools || []);
+  let payments = $derived((data.payments as any[]) || []);
+  let students = $derived((data.students as any[]) || []);
+  let schools = $derived((data.schools as any[]) || []);
 
   onMount(() => {
     if (plan === 'free' && !isAdmin) {
@@ -69,13 +70,13 @@
 
   // Financial metrics (Accounting Ledger style)
   const metrics = $derived.by(() => {
-    const totalPotential = payments.reduce((acc, p) => acc + (p.amount || 0), 0);
+    const totalPotential = payments.reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
     const realizedRevenue = payments
-      .filter(p => p.status === 'paid')
-      .reduce((acc, p) => acc + (p.amount || 0), 0);
+      .filter((p: any) => p.status === 'paid')
+      .reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
     const accountsReceivable = payments
-      .filter(p => p.status === 'pending' || p.status === 'overdue')
-      .reduce((acc, p) => acc + (p.amount || 0), 0);
+      .filter((p: any) => p.status === 'pending' || p.status === 'overdue')
+      .reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
     
     const efficiency = totalPotential > 0 ? (realizedRevenue / totalPotential) * 100 : 100;
 
@@ -84,8 +85,8 @@
       accountsReceivable, 
       efficiency: efficiency.toFixed(1),
       totalCount: payments.length,
-      paidCount: payments.filter(p => p.status === 'paid').length,
-      pendingCount: payments.filter(p => p.status !== 'paid').length
+      paidCount: payments.filter((p: any) => p.status === 'paid').length,
+      pendingCount: payments.filter((p: any) => p.status !== 'paid').length
     };
   });
 
@@ -95,7 +96,7 @@
   
   const filteredPayments = $derived(
     payments
-      .filter(p => {
+      .filter((p: any) => {
         const studentName = getEntityName(p.studentId || '', p.paymentType || 'student').toLowerCase();
         const concept = (p.concept || '').toLowerCase();
         const query = searchQuery.toLowerCase();
@@ -106,7 +107,7 @@
         
         return matchesSearch && matchesStatus && matchesType;
       })
-      .sort((a,b) => (b.paidDate || b.createdAt || '').localeCompare(a.paidDate || a.createdAt || ''))
+      .sort((a: any,b: any) => (b.paidDate || b.createdAt || '').localeCompare(a.paidDate || a.createdAt || ''))
   );
 
   // Modal & Superform state
@@ -116,18 +117,21 @@
   let deleteForm = $state<HTMLFormElement | null>(null);
   let deleteId = $state<string>('');
 
-  const { form, errors, enhance, reset, constraints, message } = superForm(data.form, {
-    validators: zod(paymentSchema),
+  // svelte-ignore state_referenced_locally
+  const { form, errors, enhance: paymentEnhance, reset, constraints, message, tainted, delayed } = superForm(data.form as any, {
+    validators: zod(paymentSchema as any),
     dataType: 'json',
     onUpdated({ form }) {
       if (form.valid) {
-        toast.success(editMode ? $t('payments.update_success') : $t('payments.add_success'));
+        toast.success((form.message as string) || (editMode ? $t('payments.update_success') : $t('payments.add_success')));
         showModal = false;
         reset();
+      } else if (form.message) {
+        toast.error(form.message as string);
       }
     },
     onError({ result }) {
-      toast.error(result.error.message || $t('payments.error_action'));
+      toast.error((result as any).error?.message || $t('payments.error_action'));
     }
   });
 
@@ -168,7 +172,7 @@
       $t('payments.amount'),
       $t('common.status')
     ];
-    const rows = filteredPayments.map(p => [
+    const rows = filteredPayments.map((p: any) => [
       getEntityName(p.studentId || '', p.paymentType),
       $t(`payments.concepts.${p.concept}`) || p.concept,
       p.paidDate || p.createdAt,
@@ -402,7 +406,7 @@
           <button class="close-x" onclick={() => showModal = false}><X size={24} /></button>
         </div>
 
-        <form method="POST" action="?/upsert" use:enhance class="ledger-form">
+        <form method="POST" action="?/upsert" use:paymentEnhance class="ledger-form">
           <input type="hidden" name="id" bind:value={$form.id} />
           <div class="form-section">
             <span class="label">{$t('payments.entity_category')}</span>
@@ -552,6 +556,20 @@
     </div>
   {/if}
 
+  <!-- Hidden Delete Form -->
+  <form method="POST" action="?/delete" use:sEnhance={() => {
+    isDeleting = deleteId;
+    return async ({ result }: { result: any }) => {
+      isDeleting = null;
+      if (result.type === 'success') {
+        toast.success(result.data?.message || 'Pago eliminado');
+      } else if (result.type === 'failure') {
+        toast.error(result.data?.message || 'Error al eliminar');
+      }
+    };
+  }} bind:this={deleteForm} class="hidden">
+    <input type="hidden" name="id" bind:value={deleteId} />
+  </form>
 </div>
 
 <style>

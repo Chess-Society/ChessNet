@@ -34,28 +34,31 @@
     Warning
   } from 'phosphor-svelte';
   import { superForm } from 'sveltekit-superforms';
-  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { zod } from 'sveltekit-superforms/adapters';
   import { attendanceSchema } from '$lib/schemas/attendance';
   import VisualAttendanceCalendar from '$lib/components/Attendance/VisualAttendanceCalendar.svelte';
   import { fade, fly, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
 
   import type { PageData } from './$types';
   import type { AttendanceSchema } from '$lib/schemas/attendance';
 
   let { data }: { data: PageData } = $props();
 
+  // svelte-ignore state_referenced_locally
   const { form, enhance, delayed, message, tainted } = superForm(data.form as any, {
-    validators: zodClient(attendanceSchema as any),
+    validators: zod(attendanceSchema as any),
     dataType: 'json',
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success($t('attendance.record_success'));
+        toast.success((form.message as string) || $t('attendance.record_success'));
+      } else if (form.message) {
+        toast.error(form.message as string);
       }
     },
     onError({ result }) {
-      showError(result.error.message);
+      toast.error((result as any).error?.message || $t('common.error_occurred'));
     }
   });
 
@@ -102,11 +105,12 @@
   };
 
   const setStatus = (studentId: string, status: 'P' | 'A') => {
-    const index = $form.records.findIndex(r => r.studentId === studentId);
+    const records = $form.records as Array<{studentId: string; status: string}>;
+    const index = records.findIndex((r) => r.studentId === studentId);
     if (index === -1) {
-      $form.records = [...$form.records, { studentId, status }];
+      $form.records = [...records, { studentId, status }];
     } else {
-      $form.records[index].status = status;
+      ($form.records as any)[index].status = status;
     }
   };
 
@@ -117,7 +121,7 @@
   };
 
   const markAllPresent = () => {
-    classStudents.forEach(student => {
+    classStudents.forEach((student: any) => {
       setStatus(student.id, 'P');
     });
   };
@@ -514,7 +518,7 @@
           <button 
             type="button"
             onclick={() => {
-              $form.records = [...data.form.data.records];
+              $form.records = [...((data.form as any).data?.records || [])];
             }}
             class="px-6 py-3 rounded-none text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-white transition-colors"
           >

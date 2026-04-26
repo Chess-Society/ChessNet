@@ -122,7 +122,7 @@
     }} 
     bind:this={purgeForm} 
     class="hidden"
-  />
+  ></form>
   
   <!-- Header Section -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 pt-12">

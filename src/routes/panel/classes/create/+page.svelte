@@ -33,7 +33,7 @@
   import { t, locale } from '$lib/i18n';
   import { goto, invalidateAll } from '$app/navigation';
   import { fade, scale, fly } from 'svelte/transition';
-  import { showToast, showError } from '$lib/stores/toast';
+  import { toast } from '$lib/stores/toast';
   import { appStore } from '$lib/stores/appStore';
   import type { PageData } from './$types';
   import { page } from '$app/stores';
@@ -43,17 +43,21 @@
   import { classSchema } from '$lib/schemas/class';
   
   let { data } = $props<{ data: PageData }>();
+  // svelte-ignore state_referenced_locally
+  let { form: dataForm } = data;
 
-  const { form, errors, constraints, enhance, delayed, reset } = superForm(data.form as any, {
+  const { form, errors, constraints, enhance, delayed, message, tainted } = superForm(dataForm as any, {
     validators: zod(classSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success($t('classes.create_success'));
-        setTimeout(() => goto('/panel/classes'), 400);
+        toast.success((form.message as string) || $t('classes.create_success'));
+        goto('/panel/classes');
+      } else if (form.message) {
+        toast.error(form.message as string);
       }
     },
     onError({ result }) {
-      showError(result.error);
+      toast.error((result as any).error?.message || 'Error al crear clase');
     }
   });
 

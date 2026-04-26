@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
+import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { schoolSchema } from '$lib/schemas/school';
 import { adminDb } from '$lib/server/firebase-admin';
@@ -24,7 +24,7 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
 
     const form = await superValidate(event, zod(schoolSchema as any));
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Datos inválidos. Por favor revisa el formulario.', { status: 400 });
 
     try {
       const schoolRef = adminDb.collection('schools').doc();
@@ -42,10 +42,10 @@ export const actions: Actions = {
 
       await schoolRef.set(schoolData);
 
-      return { form, success: true };
+      return message(form, '¡Escuela creada con éxito!');
     } catch (err: any) {
       console.error('Error creating school:', err);
-      return fail(500, { form, error: err.message });
+      return message(form, err.message || 'Error desconocido al crear la escuela', { status: 500 });
     }
   }
 };

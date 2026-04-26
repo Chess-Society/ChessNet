@@ -19,9 +19,7 @@
     Lock
   } from "lucide-svelte";
   import Logo from "$lib/components/Logo.svelte";
-  import InsigniaBadge from "$lib/components/ui/InsigniaBadge.svelte";
   import { t, locale } from '$lib/i18n';
-  import { INSIGNIAS } from '$lib/constants/insignias';
 
   let { data } = $props();
   let scrollY = $state(0);

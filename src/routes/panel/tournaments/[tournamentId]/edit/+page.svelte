@@ -34,20 +34,22 @@
   import type { PageData } from './$types';
   import { fade, slide, fly, scale } from 'svelte/transition';
   import { superForm } from 'sveltekit-superforms';
-  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { zod } from 'sveltekit-superforms/adapters';
   import { tournamentSchema } from '$lib/schemas/tournament';
   import { toast } from 'svelte-french-toast';
   
   let { data }: { data: PageData } = $props();
-
-  const { form, errors, enhance, delayed, message, tainted } = superForm(data.form as any, {
-    validators: zodClient(tournamentSchema as any),
+  
+  // svelte-ignore state_referenced_locally
+  const initialForm = data.form;
+  const { form, errors, enhance, delayed, message, tainted } = superForm(initialForm as any, {
+    validators: zod(tournamentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
         toast.success($t('tournaments.updates.success') || 'Tournament updated successfully');
         goto(`/panel/tournaments/${data.tournamentId}`);
-      } else if (form.message?.error) {
-        toast.error(form.message.error);
+      } else if (form.message) {
+        toast.error(form.message);
       }
     }
   }) as any;
@@ -83,7 +85,7 @@
   };
 
   const removeDirector = (uid: string) => {
-    $form.sharedWith = $form.sharedWith.filter(id => id !== uid);
+    $form.sharedWith = ($form.sharedWith as string[]).filter((id: string) => id !== uid);
     toast.success('Acceso revocado');
   };
 
@@ -659,7 +661,7 @@
   </div>
 {/if}
 
-<style>
+<style lang="postcss">
   textarea::-webkit-scrollbar {
     width: 6px;
   }

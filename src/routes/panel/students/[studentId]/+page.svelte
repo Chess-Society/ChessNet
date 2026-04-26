@@ -7,7 +7,6 @@
     FileText, 
     Calendar,
     Pulse,
-    Medal,
     TrendUp,
     IdentificationBadge,
     CheckCircle,
@@ -345,40 +344,6 @@
           </div>
        </section>
 
-       <section class="bento-card !p-8 relative overflow-hidden group">
-          <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-amber-500/5 blur-3xl rounded-none"></div>
-          
-          <div class="flex items-center gap-4 mb-8 relative z-10">
-             <div class="p-2.5 bg-amber-500/10 rounded-none border border-amber-500/20">
-                <Medal size={20} weight="duotone" class="text-amber-400" />
-             </div>
-             <h3 class="text-sm font-outfit font-black text-white uppercase tracking-widest">{$t('students.achievements')}</h3>
-          </div>
-          
-          <div class="space-y-4 relative z-10">
-             {#if (data.achievements || []).length > 0}
-               {#each (data.achievements || []) as achievement}
-                 <div class="achievement-card">
-                    <div class="badge-orb">
-                       <Medal size={24} weight="duotone" />
-                    </div>
-                    <div class="min-w-0">
-                       <p class="text-xs font-outfit font-black text-white uppercase tracking-tight truncate">
-                         {$t(`achievements.${achievement.type}.title`) || achievement.type}
-                       </p>
-                       <p class="text-[10px] font-jakarta font-bold text-slate-500 uppercase tracking-widest mt-0.5 truncate">
-                         {new Date(achievement.timestamp).toLocaleDateString()}
-                       </p>
-                    </div>
-                 </div>
-               {/each}
-             {:else}
-               <div class="text-center p-6 bg-zinc-900/50 rounded-none border border-white/5 opacity-50">
-                 <p class="text-[10px] font-outfit font-black uppercase tracking-widest text-slate-600">{$t('students.no_achievements') || 'SIN LOGROS'}</p>
-               </div>
-             {/if}
-          </div>
-       </section>
     </div>
   </div>
   {:else}
@@ -572,30 +537,6 @@
 
   .progress-fill.gold { background: linear-gradient(90deg, #7c3aed, #a78bfa); box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
   .progress-fill.blue { background: linear-gradient(90deg, #3b82f6, #60a5fa); box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
-
-  .achievement-card {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    padding: 1.25rem;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.03);
-    border-radius: 0;
-    transition: all 0.3s;
-  }
-
-  .achievement-card:hover { border-color: rgba(245, 158, 11, 0.3); background: rgba(0,0,0,0.4); }
-
-  .badge-orb {
-    width: 48px;
-    height: 48px;
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-    border-radius: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 
   .loader-overlay {
     height: 60vh;

@@ -36,7 +36,6 @@
   import { fade, fly } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
   import { appStore } from '$lib/stores/appStore';
-  import { INSIGNIAS } from '$lib/constants/insignias';
   import { t, locale } from '$lib/i18n';
   import { auth, signOut } from '$lib/firebase';
   import { onMount, onDestroy } from 'svelte';
@@ -63,8 +62,7 @@
   
   let currentRoute = $derived($page.url.pathname);
 
-  // Economía del profesor
-  let netsBalance = $derived($appStore?.settings?.economy?.netsBalance || 0);
+
 
   // Impersonation state
   let isImpersonating = $derived(!!data.impersonateEmail);
@@ -253,7 +251,6 @@
                 else if (prevPart === 'students') entity = $appStore?.students?.find(s => s.id === part);
                 else if (prevPart === 'tournaments') entity = $appStore?.localTournaments?.find(t => t.id === part) || $appStore?.tournaments?.find(t => t.id === part);
                 else if (prevPart === 'leads') entity = $appStore?.leads?.find(l => l.id === part);
-                else if (prevPart === 'achievements' || prevPart === 'badges') entity = $appStore?.badges?.find(b => b.id === part);
                 
                 if (entity) {
                     const e = entity as any;
@@ -317,12 +314,7 @@
     </button>
     
     <div class="flex items-center gap-3 pointer-events-auto">
-       <div class="flex items-center gap-1.5 mr-1">
-         <div class="px-2 py-1 bg-white/5 border border-white/10 backdrop-blur-md flex items-center gap-1">
-           <ChartPieSlice weight="fill" size={12} class="text-primary-400" />
-           <span class="text-[9px] font-black text-white">{(netsBalance ?? 0).toLocaleString()}</span>
-         </div>
-       </div>
+
        <button 
          type="button"
          onclick={() => showMobileMenu = true}
@@ -428,21 +420,7 @@
             <span class="text-xs uppercase tracking-widest">{$t('nav.attendance')}</span>
           </a>
 
-          <div class="h-px bg-white/5 my-2 mx-4"></div>
-          <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">Comunidad y Economía</p>
 
-          <a href="/panel/social" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/social') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <ChatTeardropDots weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.social')}</span>
-          </a>
-          <a href="/panel/nets" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/nets') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <ChartPieSlice weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.nets')}</span>
-          </a>
-          <a href="/panel/lobby" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/lobby') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <ChatCircleDots weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.lobby')}</span>
-          </a>
 
           <div class="h-px bg-white/5 my-2 mx-4"></div>
           <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.premium_features') || 'Avanzado'}</p>
@@ -465,10 +443,7 @@
             <BookOpen weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.skills') || 'Temario'}</span>
           </a>
-          <a href="/panel/achievements" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/achievements') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <Medal weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.achievements')}</span>
-          </a>
+
         </nav>
 
         <div class="p-6 border-t border-white/5">
@@ -556,17 +531,7 @@
               </div>
             {/if}
           </a>
-          <div class="w-px h-6 bg-white/5 mx-1"></div>
-          <a href="/panel/social" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/social') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
-             title={$t('nav.social')}>
-            <ChatTeardropDots size={20} weight={currentRoute.includes('/social') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-          </a>
-          <a href="/panel/nets" 
-             class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/nets') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
-             title={$t('nav.nets')}>
-            <ChartPieSlice size={20} weight={currentRoute.includes('/nets') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-          </a>
+
         </div>
       </div>
 
@@ -576,17 +541,7 @@
         
 
 
-        <!-- Economy Capsules -->
-        <div class="hidden lg:flex items-center gap-3 flex-shrink-0">
-          <div class="flex items-center gap-3 px-4 py-2.5 bg-white/[0.03] border border-white/10 backdrop-blur-3xl group hover:border-primary-500/40 transition-all duration-500 hover:bg-primary-500/[0.02] hover:shadow-[0_0_20px_rgba(139,92,246,0.1)] relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-r from-primary-500/0 via-primary-500/5 to-primary-500/0 -translate-x-full group-hover:animate-shimmer"></div>
-            <ChartPieSlice weight="fill" size={16} class="text-primary-400 group-hover:scale-110 transition-transform duration-500" />
-            <div class="flex flex-col relative z-10">
-              <span class="text-[8px] font-black text-zinc-500 uppercase leading-none mb-1 tracking-widest">Saldo Nets</span>
-              <span class="text-[12px] font-black text-white tracking-[0.1em] uppercase leading-none group-hover:text-primary-300 transition-colors">{(netsBalance ?? 0).toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
+
         
         <div class="relative group">
           <button type="button" class="flex items-center gap-3 hover:bg-white/[0.03] p-1.5 rounded-none transition-all border border-transparent hover:border-white/10 group-hover:shadow-[0_0_30px_rgba(139,92,246,0.05)]" aria-label="User account menu">
@@ -601,17 +556,6 @@
             <div class="text-left hidden sm:block pr-2">
               <div class="flex items-center gap-2">
                 <p class="text-sm font-outfit font-black text-white leading-tight tracking-tight group-hover:text-violet-300 transition-colors">{teacherName}</p>
-                {#if $appStore?.settings?.featuredInsignias && $appStore.settings.featuredInsignias.length > 0}
-                  <div class="flex items-center gap-1.5">
-                    {#each $appStore.settings.featuredInsignias as insId}
-                      {@const ins = INSIGNIAS.find(i => i.id === insId)}
-                      {#if ins}
-                        {@const Icon = ins.icon}
-                        <Icon size={12} weight="fill" class="{ins.color} drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]" />
-                      {/if}
-                    {/each}
-                  </div>
-                {/if}
               </div>
               <div class="flex flex-col gap-0.5 pt-0.5">
                 <div class="flex items-center gap-1.5">
@@ -661,23 +605,7 @@
             </div>
             
             <div class="p-2 space-y-1">
-              <!-- Main Section: Grid for primary actions -->
-              <div class="grid grid-cols-3 gap-1 mb-2">
-                <a href="/panel/social" class="flex flex-col items-center justify-center gap-2 py-4 hover:bg-violet-500/10 transition-all group/item text-slate-500 hover:text-violet-400">
-                  <ChatTeardropDots weight="duotone" size={20} class="group-hover/item:scale-110 transition-transform" />
-                  <span class="text-[9px] font-black uppercase tracking-widest">Feed</span>
-                </a>
-                <a href="/panel/nets" class="flex flex-col items-center justify-center gap-2 py-4 hover:bg-violet-500/10 transition-all group/item text-slate-500 hover:text-violet-400">
-                  <ChartPieSlice weight="duotone" size={20} class="group-hover/item:scale-110 transition-transform" />
-                  <span class="text-[9px] font-black uppercase tracking-widest">Nets</span>
-                </a>
-                <a href="/panel/lobby" class="flex flex-col items-center justify-center gap-2 py-4 hover:bg-violet-500/10 transition-all group/item text-slate-500 hover:text-violet-400">
-                  <ChatCircleDots weight="duotone" size={20} class="group-hover/item:scale-110 transition-transform" />
-                  <span class="text-[9px] font-black uppercase tracking-widest">Salas</span>
-                </a>
-              </div>
 
-              <div class="h-px bg-white/5 mx-2 my-1"></div>
 
               <!-- Secondary Section: Management & Account -->
               <div class="space-y-0.5">
@@ -691,13 +619,7 @@
                   </a>
                 {/if}
                 
-                <a href="/panel/nets" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-violet-500/10 hover:text-violet-300 transition-all group/item">
-                  <div class="flex items-center gap-3">
-                    <UserCircle weight="duotone" size={18} class="group-hover/item:text-violet-400 transition-colors" /> 
-                    <span>Mi Perfil &amp; Colección</span>
-                  </div>
-                  <CaretRight size={14} class="opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-1 transition-all" />
-                </a>
+
 
                 <a href="/panel/settings" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-white/5 hover:text-white transition-all group/item">
                   <div class="flex items-center gap-3">
@@ -793,10 +715,7 @@
           <span class="text-[8px] font-black uppercase tracking-widest leading-none">PANEL</span>
         </a>
         
-        <a href="/panel/social" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/social') ? 'text-violet-400' : 'text-slate-500'}">
-          <ShareNetwork weight={currentRoute.includes('/social') ? 'fill' : 'duotone'} size={20} />
-          <span class="text-[8px] font-black uppercase tracking-widest leading-none">COMUNIDAD</span>
-        </a>
+
  
         <!-- Center Action Button (Support Menu) -->
         <div class="relative -top-5">
@@ -813,13 +732,7 @@
           </button>
         </div>
 
-        <a href="/panel/lobby" class="relative flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/lobby') ? 'text-violet-400' : 'text-slate-500'}">
-          <ChatCircleDots weight={currentRoute.includes('/lobby') ? 'fill' : 'duotone'} size={20} />
-          <span class="text-[8px] font-black uppercase tracking-widest leading-none">SALAS</span>
-          {#if lobbyPulse && plan === 'premium'}
-            <div class="absolute top-0 right-1 w-1.5 h-1.5 bg-violet-500 rounded-none animate-pulse ring-2 ring-zinc-900"></div>
-          {/if}
-        </a>
+
 
         <a href="/panel/settings" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/settings') ? 'text-violet-400' : 'text-slate-500'}">
           <GearSix weight={currentRoute.includes('/settings') ? 'fill' : 'duotone'} size={20} />

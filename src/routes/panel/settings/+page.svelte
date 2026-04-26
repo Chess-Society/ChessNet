@@ -17,20 +17,19 @@
     Medal,
     Warning
   } from 'phosphor-svelte';
-  import { INSIGNIAS } from '$lib/constants/insignias';
-  import { t } from '$lib/i18n';
-  import { appStore } from '$lib/stores/appStore';
-  import { uiStore } from '$lib/stores/uiStore';
   import { auth } from '$lib/firebase';
   import { toast } from '$lib/stores/toast';
-  import InsigniaBadge from '$lib/components/ui/InsigniaBadge.svelte';
   import { superForm } from 'sveltekit-superforms';
   import { zod } from 'sveltekit-superforms/adapters';
   import { settingsSchema } from '$lib/schemas/settings';
   import { goto } from '$app/navigation';
+  import { t } from '$lib/i18n';
+  import { appStore } from '$lib/stores/appStore';
+  import { uiStore } from '$lib/stores/uiStore';
 
   let { data } = $props();
 
+  // svelte-ignore state_referenced_locally
   const { form, errors, enhance, message, delayed } = superForm(data.form as any, {
     validators: zod(settingsSchema as any),
     dataType: 'json',
@@ -57,22 +56,10 @@
   });
 
   const isDirector = $derived($appStore.settings.role === 'director' || $appStore.settings.role === 'admin');
-  const schools = $derived(data.schools || []);
-  const currentSchool = $derived(schools.find(s => s.id === $form.schoolId) || schools[0]);
+  const schools = $derived((data.schools as any[]) || []);
+  const currentSchool = $derived(schools.length ? (schools.find((s: any) => s.id === $form.schoolId) || schools[0]) : null);
 
-  const availableInsignias = $derived(
-    INSIGNIAS.filter(insignia => 
-      data.unlockedAchievements.some((a: any) => a.id === insignia.id)
-    )
-  );
 
-  const toggleInsignia = (id: string) => {
-    if ($form.featuredInsignias.includes(id)) {
-      $form.featuredInsignias = $form.featuredInsignias.filter(i => i !== id);
-    } else if ($form.featuredInsignias.length < 3) {
-      $form.featuredInsignias = [...$form.featuredInsignias, id];
-    }
-  };
 
   let deleteForm = $state<HTMLFormElement | null>(null);
 
@@ -197,96 +184,7 @@
         </div>
       </div>
 
-      <!-- Featured Insignias Section -->
-      <div class="bento-card p-6 sm:p-10">
-        <h2 class="text-lg sm:text-xl font-outfit font-bold text-white mb-6 sm:mb-8 flex items-center gap-3">
-          <Medal weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-violet-500" />
-          {$t('settings.featured_insignias_title')}
-        </h2>
-        <p class="text-[11px] sm:text-xs text-slate-500 mb-6 sm:mb-8 max-w-lg leading-relaxed">
-          {$t('settings.featured_insignias_desc')}
-        </p>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-          {#each availableInsignias as insignia}
-            <button 
-              type="button"
-              class="relative transition-all hover:scale-105 active:scale-95"
-              onclick={() => toggleInsignia(insignia.id)}
-            >
-              <InsigniaBadge {insignia} unlocked={true} size="md" />
-              {#if $form.featuredInsignias.includes(insignia.id)}
-                <div class="absolute -top-1 -right-1 w-8 h-8 bg-violet-600 rounded-none flex items-center justify-center border-4 border-[#09090b] shadow-xl z-20" transition:scale>
-                  <Check weight="bold" class="w-4 h-4 text-white" />
-                </div>
-              {/if}
-              {#if !$form.featuredInsignias.includes(insignia.id) && $form.featuredInsignias.length >= 3}
-                <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-none z-10"></div>
-              {/if}
-            </button>
-          {/each}
-        </div>
-        
-        {#if availableInsignias.length === 0}
-          <div class="p-8 text-center border border-dashed border-white/5 rounded-none bg-black/20">
-            <p class="text-xs text-slate-500">{$t('settings.no_insignias')} <a href="/panel/achievements" class="text-violet-400 hover:underline">{$t('settings.insignia_hub_link')}</a></p>
-          </div>
-        {/if}
-      </div>
-
-      <!-- Governance Section (Only for Directors) -->
-      {#if isDirector && currentSchool}
-        <div class="bento-card p-6 sm:p-10 border-amber-500/10" in:fade>
-          <div class="flex items-center justify-between mb-8">
-            <h2 class="text-lg sm:text-xl font-outfit font-bold text-white flex items-center gap-3">
-              <Shield weight="duotone" class="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
-              Gobernanza de Academia
-            </h2>
-            <div class="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-[10px] font-black text-amber-500 uppercase tracking-widest">
-              Control Maestro
-            </div>
-          </div>
-          
-          <div class="space-y-6">
-            <!-- Social Switch -->
-            <div class="flex items-center justify-between p-6 bg-zinc-950/30 rounded-none border border-white/5 group hover:border-violet-500/30 transition-all">
-              <div class="max-w-md">
-                <p class="text-sm font-outfit font-bold text-white mb-1">Muro Social de Profesores</p>
-                <p class="text-[11px] text-slate-500 font-plus-jakarta leading-relaxed">Permite a los profesores compartir posts, análisis y retos en el feed global de la escuela.</p>
-              </div>
-              <button 
-                type="button"
-                onclick={() => $form.socialEnabled = !$form.socialEnabled}
-                class="w-12 h-6 {$form.socialEnabled ? 'bg-emerald-600' : 'bg-zinc-800'} rounded-none relative transition-colors shadow-lg"
-              >
-                <div class="absolute {$form.socialEnabled ? 'right-1' : 'left-1'} top-1 w-4 h-4 bg-white rounded-none transition-all"></div>
-              </button>
-            </div>
-
-            <!-- Economy Switch -->
-            <div class="flex items-center justify-between p-6 bg-zinc-950/30 rounded-none border border-white/5 group hover:border-amber-500/30 transition-all">
-              <div class="max-w-md">
-                <p class="text-sm font-outfit font-bold text-white mb-1">Economía de Reconocimiento (Nets)</p>
-                <p class="text-[11px] text-slate-500 font-plus-jakarta leading-relaxed">Activa el sistema de hitos, pronósticos académicos y recompensas en Nets para la escuela.</p>
-              </div>
-              <button 
-                type="button"
-                onclick={() => $form.economyEnabled = !$form.economyEnabled}
-                class="w-12 h-6 {$form.economyEnabled ? 'bg-amber-600' : 'bg-zinc-800'} rounded-none relative transition-colors shadow-lg"
-              >
-                <div class="absolute {$form.economyEnabled ? 'right-1' : 'left-1'} top-1 w-4 h-4 bg-white rounded-none transition-all"></div>
-              </button>
-            </div>
-          </div>
-
-          <div class="mt-8 p-4 bg-amber-500/5 border border-amber-500/10 flex items-start gap-3">
-            <Warning size={16} class="text-amber-500 shrink-0 mt-0.5" />
-            <p class="text-[10px] text-zinc-500 leading-relaxed uppercase font-bold tracking-tight">
-              Nota: Estos cambios afectan a toda la escuela. Los profesores y alumnos dejarán de ver las funcionalidades sociales o económicas instantáneamente si se desactivan.
-            </p>
-          </div>
-        </div>
-      {/if}
 
       <!-- Danger Zone Section -->
       <div class="bento-card p-6 sm:p-10 border-red-500/10 hover:border-red-500/20">
@@ -314,9 +212,6 @@
     </div>
 
     <!-- Hidden form fields -->
-    <input type="hidden" name="featuredInsignias" value={JSON.stringify($form.featuredInsignias)} />
-    <input type="hidden" name="socialEnabled" value={$form.socialEnabled} />
-    <input type="hidden" name="economyEnabled" value={$form.economyEnabled} />
     <input type="hidden" name="schoolId" value={$form.schoolId} />
 
     <!-- Floating Save Bar -->

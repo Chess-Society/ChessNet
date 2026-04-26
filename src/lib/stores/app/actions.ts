@@ -255,15 +255,8 @@ export function createActions(store: Writable<AppState>) {
           createdAt: new Date().toISOString() 
         }, { merge: true });
       }
-
-      // Generar Nets automáticos (en proceso de validación)
-      try {
-        await adminApi.addNets(user.uid, 10, `Asistencia: ${record.date}`, 'pending');
-      } catch (e) {
-        console.error("Error generating automatic nets:", e);
-      }
     },
-    
+
     // PAYMENTS
     addPayment: async (payment: any) => {
       const result = await apiFetch('/api/payments', {
@@ -415,20 +408,6 @@ export function createActions(store: Writable<AppState>) {
       return true;
     },
     
-    // ACHIEVEMENTS
-    markAchievementAsNotified: async (achievementId: string) => {
-      const user = get(authStoreUser);
-      if (!user) return;
-      const docRef = doc(db, 'achievements', achievementId);
-      await setDoc(docRef, { notified: true, updatedAt: new Date().toISOString() }, { merge: true });
-      
-      update(s => ({
-        ...s,
-        pendingAchievementIds: s.pendingAchievementIds.filter(id => id !== achievementId)
-      }));
-    },
-
-    // ACCOUNT
     deleteAccount: async () => {
       const user = auth.currentUser;
       if (!user) throw new Error('No user found');
@@ -438,53 +417,6 @@ export function createActions(store: Writable<AppState>) {
       
       // 2. Delete Auth User
       await user.delete();
-    },
-
-    // POSTS
-    addPost: async (post: any) => {
-      const user = get(authStoreUser);
-      if (!user) throw new Error("No authenticated user");
-      const collRef = collection(db, 'faculty_stream');
-      const docRef = await addDoc(collRef, { 
-        ...post, 
-        authorId: user.uid,
-        authorName: user.displayName || 'Profesor',
-        authorPhotoUrl: user.photoURL || '',
-        reactions: {},
-        votes: { up: [], down: [] },
-        tipsTotal: 0,
-        createdAt: new Date().toISOString() 
-      });
-      return docRef.id;
-    },
-    removePost: async (id: string) => {
-      await deleteDoc(doc(db, 'faculty_stream', id));
-      toast.success('Publicación eliminada');
-    },
-    updatePost: async (id: string, updates: any) => {
-      const docRef = doc(db, 'faculty_stream', id);
-      await updateDoc(docRef, { 
-        ...updates, 
-        updatedAt: new Date().toISOString() 
-      });
-    },
-    reactToPost: async (postId: string, emoji: string) => {
-      const user = get(authStoreUser);
-      if (!user) return;
-      
-      const state = get(store);
-      const post = state.posts.find(p => p.id === postId);
-      if (!post) return;
-
-      const userReactions = post.reactions[emoji] || [];
-      const hasReacted = userReactions.includes(user.uid);
-      
-      const docRef = doc(db, 'faculty_stream', postId);
-      const updatePath = `reactions.${emoji}`;
-      
-      await updateDoc(docRef, {
-        [updatePath]: hasReacted ? arrayRemove(user.uid) : arrayUnion(user.uid)
-      });
     }
   };
 }

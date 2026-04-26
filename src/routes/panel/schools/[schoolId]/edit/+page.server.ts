@@ -62,17 +62,17 @@ export const actions: Actions = {
     if (!locals.user) throw error(401);
     
     const form = await superValidate(request, zod(schoolSchema as any));
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Por favor, revisa los errores del formulario', { status: 400 });
 
     try {
       const schoolRef = adminDb.collection('schools').doc(params.schoolId);
       const schoolSnap = await schoolRef.get();
       
-      if (!schoolSnap.exists) return fail(404, { form, message: 'Centro no encontrado' });
+      if (!schoolSnap.exists) return message(form, 'Centro no encontrado', { status: 404 });
       
       const schoolData = schoolSnap.data()!;
       if (schoolData.owner_id !== locals.user.uid) {
-        return fail(403, { form, message: 'No tienes permisos' });
+        return message(form, 'No tienes permisos para editar este centro', { status: 403 });
       }
 
       const updateData = {
@@ -80,8 +80,8 @@ export const actions: Actions = {
         updatedAt: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         // Keep legacy field names for compatibility
-        social_enabled: form.data.socialEnabled,
-        economy_enabled: form.data.economyEnabled
+        social_enabled: (form.data as any).socialEnabled,
+        economy_enabled: (form.data as any).economyEnabled
       };
 
       await schoolRef.update(updateData);

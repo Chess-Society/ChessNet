@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { superForm } from 'sveltekit-superforms';
-  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { superForm, message as messageHelper } from 'sveltekit-superforms';
+  import { zod } from 'sveltekit-superforms/adapters';
   import { skillSchema } from '$lib/schemas/skill';
   import { t } from '$lib/i18n';
   import { 
@@ -34,9 +34,18 @@
 
   let { data }: { data: PageData } = $props();
 
-  const { form, errors, enhance, delayed, isTainted } = superForm(data.form as any, {
-    validators: zodClient(skillSchema as any),
-    dataType: 'json'
+  // svelte-ignore state_referenced_locally
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form as any, {
+    validators: zod(skillSchema as any),
+    dataType: 'json',
+    onUpdated({ form }) {
+      if (form.valid) {
+        // The server redirects on success, but we can show a toast just in case or if no redirect
+        // showToast.success('Habilidad actualizada');
+      } else if (form.message) {
+        import('$lib/stores/toast').then(m => m.toast.error(form.message as string));
+      }
+    }
   });
 
   const categories = $derived($appStore.categories.length > 0 
@@ -639,7 +648,7 @@
   </div>
 {/if}
 
-<style>
+<style lang="postcss">
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

@@ -32,12 +32,15 @@
 
   let { data }: { data: any } = $props();
 
-  const { form, errors, constraints, enhance, delayed, reset, isTainted } = superForm(data.form as any, {
+  // svelte-ignore state_referenced_locally
+  const { form, errors, constraints, enhance, delayed, reset, message, isTainted } = superForm(data.form as any, {
     validators: zod(studentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
         showToast.success($t('students.toast_update_success'));
         setTimeout(() => goto(`/panel/students/${data.student.id}`), 400);
+      } else if (form.message) {
+        showToast.error(form.message);
       }
     },
     onError({ result }) {

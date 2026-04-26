@@ -47,18 +47,12 @@
   import UserTable from '$lib/components/admin/UserTable.svelte';
   import SystemConsole from '$lib/components/admin/SystemConsole.svelte';
   import LiveActivityFeed from '$lib/components/admin/LiveActivityFeed.svelte';
-  import TicketManager from '$lib/components/admin/TicketManager.svelte';
-  import LobbyManager from '$lib/components/admin/LobbyManager.svelte';
+
   import LichessPulse from '$lib/components/admin/LichessPulse.svelte';
   import UpdatePill from '$lib/components/common/UpdatePill.svelte';
-  import PrestigeBadge from '$lib/components/economy/PrestigeBadge.svelte';
 
-  import GovernanceHub from '$lib/components/admin/GovernanceHub.svelte';
   import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
   import DangerZone from '$lib/components/admin/DangerZone.svelte';
-
-  // Constants
-  import { INSIGNIAS } from '$lib/constants/insignias';
 
   // --- State (Svelte 5) ---
   let activeTab = $state('dashboard');
@@ -77,8 +71,6 @@
 
   let users = $state<any[]>([]);
   let systemLogs = $state<any[]>([]);
-  let lobbySuggestions = $state<any[]>([]);
-  let supportTickets = $state<any[]>([]);
   let activities = $state<any[]>([]);
   let isLoading = $state(true);
   let isSaving = $state(false);
@@ -96,16 +88,13 @@
     {
       title: 'GESTIÓN',
       items: [
-        { id: 'users', label: 'Usuarios', icon: Users },
-        { id: 'governance', label: 'Gobernanza', icon: ShieldCheckered },
-        { id: 'lobby', label: 'Social & Feed', icon: ChatTeardropDots }
+        { id: 'users', label: 'Usuarios', icon: Users }
       ]
     },
     {
       title: 'COMUNICACIÓN',
       items: [
-        { id: 'broadcast', label: 'Avisos Globales', icon: Globe },
-        { id: 'tickets', label: 'Soporte', icon: Lifebuoy, badge: () => supportTickets.filter(t => t.status === 'open').length }
+        { id: 'broadcast', label: 'Avisos Globales', icon: Globe }
       ]
     },
     {
@@ -119,14 +108,13 @@
   // Derive activities from logs and users
   $effect(() => {
     const rawLogs = systemLogs.map(l => {
-      const isAchievement = l.type === 'insignia_awarded' || l.type === 'achievement_unlocked';
       return {
         id: l.id,
-        type: isAchievement ? 'insignia_unlocked' : 'system_log',
-        title: isAchievement ? $t('common.achievement') : (l.type || l.action),
+        type: 'system_log',
+        title: (l.type || l.action),
         subtitle: typeof l.details === 'string' ? l.details : JSON.stringify(l.details),
         timestamp: l.timestamp,
-        status: isAchievement ? 'premium' : (l.status || 'info')
+        status: (l.status || 'info')
       };
     });
 
@@ -148,7 +136,6 @@
   let selectedUser = $state<any>(null);
   let showEditModal = $state(false);
   let userDetails = $state<any>(null);
-  let userInsignias = $state<any[]>([]);
   let isLoadingDetails = $state(false);
 
   // Scroll logic for mobile nav
@@ -215,21 +202,7 @@
       }
     );
 
-    const lobbyUnsub = onSnapshot(
-      query(collection(db, "lobby_suggestions"), orderBy("createdAt", "desc"), limit(50)),
-      (snap) => {
-        lobbySuggestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      }
-    );
-
-    const ticketsUnsub = onSnapshot(
-      query(collection(db, "lobby_reports"), orderBy("createdAt", "desc"), limit(50)),
-      (snap) => {
-        supportTickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      }
-    );
-
-    unsubscribes.push(usersUnsub, logsUnsub, lobbyUnsub, ticketsUnsub);
+    unsubscribes.push(usersUnsub, logsUnsub);
   }
 
   async function refreshStats() {
@@ -258,12 +231,8 @@
     showEditModal = true;
     isLoadingDetails = true;
     try {
-      const [details, insignias] = await Promise.all([
-        adminApi.getUserDetails(user.id),
-        adminApi.getUserInsignias(user.id)
-      ]);
+      const details = await adminApi.getUserDetails(user.id);
       userDetails = details;
-      userInsignias = insignias;
     } catch (err) {
       toast.error($t('admin.broadcast.error'));
     } finally {
@@ -276,22 +245,6 @@
     try {
       await adminApi.grantTrial(userId, days);
       toast.success($t('admin.users.grant_success'));
-    } catch (e) {
-      toast.error($t('admin.broadcast.error'));
-    } finally {
-      isSaving = false;
-    }
-  }
-
-  async function handleMintNets(amount: number) {
-    if (!selectedUser || !amount) return;
-    try {
-      isSaving = true;
-      await adminApi.mintNets(selectedUser.id, amount);
-      toast.success('Nets acuñados correctamente');
-      // Refrescar detalles para ver el nuevo balance
-      const details = await adminApi.getUserDetails(selectedUser.id);
-      userDetails = { ...userDetails, ...details };
     } catch (e) {
       toast.error($t('admin.broadcast.error'));
     } finally {
@@ -345,45 +298,6 @@
     }
   }
 
-  async function handleRepairEconomy() {
-    isSaving = true;
-    try {
-      const res = await adminApi.repairEconomyData();
-      toast.success(`Economía sincronizada: ${res.initializedCount} carteras inicializadas.`);
-    } catch (e) {
-      toast.error($t('admin.broadcast.error'));
-    } finally {
-      isSaving = false;
-    }
-  }
-
-  async function handleUpdateSuggestionStatus(id: string, status: string) {
-    try {
-      await adminApi.updateSuggestionStatus(id, status);
-      toast.success('Estado actualizado correctamente');
-    } catch (e) {
-      toast.error($t('admin.broadcast.error'));
-    }
-  }
-
-  async function handleDeleteSuggestion(id: string) {
-    const confirmed = await uiStore.confirm({
-      title: $t('admin.msg.delete_suggestion_confirm'),
-      message: $t('common.undone_action'),
-      type: 'danger',
-      confirmText: $t('common.delete'),
-      cancelText: $t('common.cancel')
-    });
-
-    if (!confirmed) return;
-    try {
-      await adminApi.deleteSuggestion(id);
-      toast.success($t('admin.lobby.delete'));
-    } catch (e) {
-      toast.error($t('admin.broadcast.error'));
-    }
-  }
-
   async function handleImpersonate(user: any) {
     const confirmed = await uiStore.confirm({
       title: $t('admin.msg.impersonate_confirm', { email: user.email }),
@@ -405,79 +319,6 @@
       }, 1000);
     } catch (e) {
       toast.error($t('admin.broadcast.error'));
-    }
-  }
-
-  async function handleAwardInsignia(insigniaId: string) {
-    if (!selectedUser) return;
-    try {
-      await adminApi.awardInsignia(selectedUser.id, insigniaId);
-      userInsignias = await adminApi.getUserInsignias(selectedUser.id);
-      toast.success($t('admin.modal.award_insignias'));
-    } catch (e) {
-      toast.error($t('admin.broadcast.error'));
-    }
-  }
-
-  async function handleRevokeInsignia(insigniaId: string) {
-    if (!selectedUser) return;
-    try {
-      await adminApi.revokeInsignia(selectedUser.id, insigniaId);
-      userInsignias = await adminApi.getUserInsignias(selectedUser.id);
-      toast.success($t('admin.modal.award_insignias'));
-    } catch (e) {
-      toast.error($t('admin.broadcast.error'));
-    }
-  }
-
-  async function handleResetEconomy(userId: string) {
-    const userInput = await uiStore.prompt({
-      title: '¡REINICIO DE ECONOMÍA!',
-      message: 'Esta acción reseteará Nets, Battle Pass e Inventario de este usuario. Escribe "RESET" para confirmar.',
-      placeholder: 'Escribe RESET aquí',
-      confirmText: 'EJECUTAR REINICIO',
-      cancelText: 'CANCELAR'
-    });
-
-    if (userInput !== 'RESET') return;
-
-    isSaving = true;
-    try {
-      await adminApi.resetUserEconomy(userId);
-      toast.success('Economía del usuario restablecida');
-      // Actualizar detalles
-      const details = await adminApi.getUserDetails(userId);
-      userDetails = { ...userDetails, ...details };
-    } catch (e: any) {
-      toast.error(e.message || $t('admin.broadcast.error'));
-    } finally {
-      isSaving = false;
-    }
-  }
-
-  async function handleResetGlobalEconomy() {
-    const userInput = await uiStore.prompt({
-      title: '¡ALERTA DE PURGADO GLOBAL!',
-      message: 'Esta acción REINICIARÁ LA ECONOMÍA DE TODOS LOS USUARIOS. Escribe "RESET" para confirmar.',
-      placeholder: 'Escribe RESET aquí',
-      confirmText: 'EJECUTAR PURGADO GLOBAL',
-      cancelText: 'CANCELAR'
-    });
-
-    if (userInput !== 'RESET') {
-      if (userInput !== null) toast.error('Confirmación incorrecta');
-      return;
-    }
-
-    isSaving = true;
-    try {
-      const res = await adminApi.resetGlobalEconomy();
-      toast.success(`Economía global reiniciada para ${res.totalReset} usuarios`);
-      refreshStats();
-    } catch (e: any) {
-      toast.error(e.message || $t('admin.broadcast.error'));
-    } finally {
-      isSaving = false;
     }
   }
 
@@ -523,12 +364,6 @@
                 {/if}
                 <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={18} />
                 <span class="text-[10px] font-mono font-black uppercase tracking-[0.2em]">{item.label}</span>
-                
-                {#if item.badge && item.badge() > 0}
-                  <div class="ml-auto bg-primary-500 text-black text-[7px] font-black px-1.5 py-0.5 rounded-none animate-pulse">
-                    {item.badge()}
-                  </div>
-                {/if}
               </button>
             {/each}
           </div>
@@ -621,12 +456,6 @@
                   >
                     <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={18} />
                     <span class="text-[10px] font-mono font-black uppercase tracking-widest">{item.label}</span>
-
-                    {#if item.badge && item.badge() > 0}
-                      <div class="ml-auto bg-primary-500 text-black text-[7px] font-black px-1.5 py-0.5 rounded-none">
-                        {item.badge()}
-                      </div>
-                    {/if}
                   </button>
                 {/each}
               </div>
@@ -785,60 +614,6 @@
                      onSearch={handleSearchUsers}
                   />
                </div>
-
-            {:else if activeTab === 'governance'}
-               <div class="space-y-12">
-                  <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
-                      03
-                    </div>
-                    <div>
-                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Centro de Gobernanza</h2>
-                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
-                         <span class="w-1.5 h-1.5 bg-primary-500 rounded-none animate-pulse"></span>
-                         Gobernanza de Hitos y Distribución de Nets
-                       </p>
-                    </div>
-                  </div>
-                  <GovernanceHub />
-               </div>
-
-            {:else if activeTab === 'broadcast'}
-               <div class="space-y-12">
-                  <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
-                      04
-                    </div>
-                    <div>
-                       <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Avisos Globales</h2>
-                       <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
-                         <span class="w-1.5 h-1.5 bg-primary-500 rounded-none animate-pulse"></span>
-                         Comunicaciones prioritarias para toda la red
-                       </p>
-                    </div>
-                  </div>
-                  <BroadcastCenter />
-               </div>
-
-            {:else if activeTab === 'tickets'}
-              <div class="space-y-12">
-                <div class="flex items-center gap-6">
-                  <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
-                    05
-                  </div>
-                  <div>
-                     <h2 class="text-5xl font-black font-display uppercase italic tracking-tighter text-white leading-none">Centro de Soporte</h2>
-                     <p class="text-slate-500 text-[10px] font-mono font-black uppercase tracking-[0.3em] mt-3 flex items-center gap-2">
-                       <span class="w-1.5 h-1.5 bg-amber-500 rounded-none animate-pulse"></span>
-                       Gestión de Incidencias y Tickets
-                     </p>
-                  </div>
-                </div>
-                <TicketManager tickets={supportTickets} />
-              </div>
-
-            {:else if activeTab === 'lobby'}
-               <LobbyManager suggestions={lobbySuggestions} />
             {:else if activeTab === 'system'}
                <div class="space-y-12">
                   <div class="flex items-center gap-6">
@@ -877,11 +652,8 @@
                     onClearLogs={() => systemLogs = []}
                   />
                </div>
-            {:else if activeTab === 'danger'}
               <DangerZone 
-                onResetGlobal={handleResetGlobalEconomy}
                 onRepairIntegrity={handleRepairUsers}
-                onRepairEconomy={handleRepairEconomy}
                 onToggleMaintenance={handleToggleMaintenance}
                 maintenanceMode={$systemConfig.maintenanceMode}
                 {isSaving}
@@ -967,93 +739,6 @@
                  </button>
               {/if}
             </div>
-
-            <!-- Economy Control -->
-            <div class="space-y-4">
-              <div class="flex items-center gap-3">
-                <Star weight="duotone" class="w-4 h-4 text-emerald-500" />
-                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">ACUÑAR MONEDA (NETS)</p>
-              </div>
-              <div class="grid grid-cols-4 gap-2">
-                  {#each [25, 100, 250, 500] as amount}
-                    <button 
-                      onclick={() => handleMintNets(amount)}
-                      disabled={isSaving}
-                      class="py-1 px-2 bg-zinc-900 border border-white/5 hover:border-amber-500/50 hover:bg-amber-500/10 text-[10px] font-mono text-zinc-400 hover:text-amber-500 transition-all disabled:opacity-50"
-                    >
-                      +{amount}
-                    </button>
-                  {/each}
-                </div>
-            </div>
-
-            <!-- Badge Command -->
-            <div class="space-y-6">
-               <div class="flex items-center gap-3">
-                 <Star weight="duotone" class="w-4 h-4 text-violet-500" />
-                 <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">{$t('admin.modal.award_insignias')}</p>
-               </div>
-               
-               <div class="space-y-4">
-                 <!-- Special / Admin Badges -->
-                 <div>
-                   <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mb-3 italic">Especiales / Manuales</p>
-                   <div class="flex flex-wrap gap-1.5">
-                     {#each INSIGNIAS.filter(b => b.type === 'special') as badge}
-                        {@const isOwned = userInsignias.some(ui => ui.id === badge.id)}
-                        <button 
-                         onclick={() => isOwned ? handleRevokeInsignia(badge.id) : handleAwardInsignia(badge.id)}
-                         class="flex items-center gap-2 px-3 py-2.5 border transition-all {isOwned ? 'bg-violet-500 border-violet-400 text-white' : 'bg-white/[0.02] border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-300'} cursor-pointer rounded-none group/badge"
-                        >
-                         <badge.icon weight="fill" class="w-3.5 h-3.5 {isOwned ? 'text-white' : 'group-hover/badge:text-violet-400'}" />
-                         <span class="text-[9px] font-mono font-black uppercase tracking-widest">{$t(badge.titleKey)}</span>
-                        </button>
-                     {/each}
-                   </div>
-                 </div>
-
-                 <!-- Automatic Badges -->
-                 <div>
-                   <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest mb-3 italic">Progreso Automático (Fuerza Bruta)</p>
-                   <div class="flex flex-wrap gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
-                     {#each INSIGNIAS.filter(b => b.type === 'automatic') as badge}
-                        {@const isOwned = userInsignias.some(ui => ui.id === badge.id)}
-                        <button 
-                         onclick={() => isOwned ? handleRevokeInsignia(badge.id) : handleAwardInsignia(badge.id)}
-                         class="flex items-center gap-2 px-2.5 py-2 border transition-all {isOwned ? 'bg-zinc-700 border-zinc-600 text-white' : 'bg-white/[0.01] border-white/5 text-slate-600 hover:border-white/20 hover:text-slate-400'} cursor-pointer rounded-none"
-                        >
-                         <badge.icon weight="fill" class="w-2.5 h-2.5" />
-                         <span class="text-[8px] font-mono font-black uppercase tracking-widest">{$t(badge.titleKey)}</span>
-                        </button>
-                     {/each}
-                   </div>
-                 </div>
-               </div>
-            </div>
-
-            <!-- Danger Zone -->
-            <div class="pt-8 border-t border-red-500/20 space-y-6">
-               <div class="flex items-center gap-3">
-                 <Shield weight="duotone" class="w-4 h-4 text-red-500" />
-                 <p class="text-[9px] font-mono font-black text-red-500 uppercase tracking-[0.3em]">Zona de Peligro</p>
-               </div>
-               
-               <div class="p-6 bg-red-500/5 border border-red-500/20 space-y-4">
-                 <div class="space-y-4">
-                    <p class="text-[10px] font-black text-white uppercase italic">PROTOCOL: FULL_RECONSTRUCTION</p>
-                    <p class="text-[8px] font-mono text-slate-500 uppercase leading-relaxed">
-                      Esta operación restablecerá todos los Nets a 0, eliminará el inventario completo y reseteará el progreso del Battle Pass para este usuario.
-                    </p>
-                    <button 
-                      onclick={() => handleResetEconomy(selectedUser?.id)}
-                      disabled={isSaving}
-                      class="w-full py-4 bg-red-600 hover:bg-red-500 text-white text-[10px] font-mono font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50"
-                    >
-                      EJECUTAR_RESET_ECONOMIA
-                    </button>
-                 </div>
-               </div>
-            </div>
         </div>
       </div>
     </div>
@@ -1067,12 +752,10 @@
       {#each [
         { id: 'dashboard', icon: SquaresFour, label: 'Dash' },
         { id: 'users', icon: Users, label: 'User' },
-        { id: 'tickets', icon: Lifebuoy, label: 'Supp' },
         { id: 'system', icon: Gear, label: 'Sys' },
         { id: 'exit', icon: ArrowArcLeft, label: 'Exit' }
       ] as item}
         {@const Icon = item.icon}
-        {@const badgeCount = item.id === 'tickets' ? supportTickets.filter(t => t.status === 'open').length : 0}
         <button 
           onclick={() => {
             if (item.id === 'exit') {
@@ -1089,9 +772,6 @@
           
           <div class="relative">
             <Icon weight={activeTab === item.id ? 'fill' : 'bold'} size={24} />
-            {#if badgeCount > 0}
-              <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border border-[#02040a] animate-pulse"></div>
-            {/if}
           </div>
           <span class="text-[8px] font-mono font-black uppercase tracking-widest">{item.label}</span>
         </button>

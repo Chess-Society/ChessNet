@@ -37,13 +37,16 @@
   import type { PageData } from './$types';
   
   let { data } = $props<{ data: PageData }>();
-
-  const { form, errors, constraints, enhance, delayed, message } = superForm(data.form as any, {
+  
+  // svelte-ignore state_referenced_locally
+  const { form, errors, constraints, enhance, delayed, message, tainted } = superForm(data.form, {
     validators: zod(studentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success($t('students.toast_create_success'));
-        setTimeout(() => handleGoBack(), 400);
+        showToast.success(form.message || $t('students.toast_create_success'));
+        handleGoBack();
+      } else if (form.message) {
+        showToast.error(form.message);
       }
     },
     onError({ result }) {

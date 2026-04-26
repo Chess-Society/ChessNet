@@ -12,29 +12,15 @@
     ChartBar,
     CurrencyEur,
     CalendarBlank,
-    Books,
-    Medal,
     DotsSixVertical,
-    GearSix,
-    Pulse,
     TrendUp,
-    TrendDown,
-    Plus,
-    Clock,
     Lightning,
     Buildings,
-    Coins,
-    Student,
     CreditCard,
-    ChatCircleDots,
     Crown,
     PencilSimple,
     CaretRight,
-    ChartPieSlice,
-    UserCircle,
-    ArrowRight,
-    Sword,
-    HandCoins
+    Pulse
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { toast } from '$lib/stores/toast';
@@ -57,8 +43,7 @@
     { id: 'attendance', title: $t('actions.attendance.title'), desc: $t('actions.attendance.desc'), icon: CheckCircle, color: 'text-pink-400', link: '/panel/attendance' },
     { id: 'reports', title: $t('actions.reports.title'), desc: $t('actions.reports.desc'), icon: ChartBar, color: 'text-cyan-400', link: '/panel/reports', premium: true },
     { id: 'payments', title: $t('actions.payments.title'), desc: $t('actions.payments.desc'), icon: CreditCard, color: 'text-primary-400', link: '/panel/payments', badge: 'BETA', premium: true },
-    { id: 'planner', title: $t('actions.planner.title'), desc: $t('actions.planner.desc'), icon: CalendarBlank, color: 'text-indigo-400', link: '/panel/planner', badge: 'NEW', premium: true },
-    { id: 'achievements', title: $t('actions.achievements.title'), desc: $t('actions.achievements.desc'), icon: Medal, color: 'text-amber-400', link: '/panel/achievements' }
+    { id: 'planner', title: $t('actions.planner.title'), desc: $t('actions.planner.desc'), icon: CalendarBlank, color: 'text-indigo-400', link: '/panel/planner', badge: 'NEW', premium: true }
   ];
 
   let editMode = $state(false);
@@ -104,62 +89,6 @@
   const hasClasses = $derived($appStore.classes.length > 0);
   const hasStudents = $derived($appStore.students.length > 0);
   const isFullyBoarded = $derived(hasClasses && hasStudents);
-
-  // Social Pulse dinÃ¡mico (Mezcla de actividad social y operativa)
-  let socialPulse = $derived(() => {
-    const activities: any[] = [];
-    
-    // 1. Actividad de Estudiantes
-    $appStore.students.slice(-2).reverse().forEach((s: any) => {
-      activities.push({ 
-        message: `${$t('dashboard.activity.new_student')}: ${s.name}`, 
-        time: $t('dashboard.activity.recent'), 
-        icon: UsersFour, 
-        color: 'text-violet-400',
-        type: 'OPERATIVE',
-        timestamp: parseDate(s.createdAt).getTime()
-      });
-    });
-
-    // 2. Actividad de Pagos
-    $appStore.payments.slice(-2).reverse().forEach(p => {
-      const student = $appStore.students.find(s => s.id === p.studentId);
-      activities.push({ 
-        message: `${$t('dashboard.activity.payment')}: ${p.amount}${$t('common.currency')} - ${student?.name || $t('common.unknown')}`, 
-        time: $t('dashboard.activity.recent'), 
-        icon: CurrencyEur, 
-        color: 'text-primary-400',
-        type: 'OPERATIVE',
-        timestamp: parseDate(p.paidDate || p.dueDate || p.createdAt).getTime()
-      });
-    });
-
-    // 3. Actividad Social Real (Posts)
-    $appStore.posts.slice(0, 5).forEach(post => {
-      activities.push({
-        message: `${post.authorName}: ${post.content.substring(0, 40)}${post.content.length > 40 ? '...' : ''}`,
-        time: 'Social',
-        icon: ChatCircleDots,
-        color: 'text-primary-400',
-        type: 'SOCIAL',
-        timestamp: parseDate(post.createdAt).getTime()
-      });
-    });
-
-    // 4. Retos Activos (Markets)
-    $appStore.markets.slice(0, 3).forEach(market => {
-      activities.push({
-        message: `NUEVO RETO: ${market.question}`,
-        time: 'ACTIVO',
-        icon: Sword,
-        color: 'text-violet-400',
-        type: 'COMMUNITY',
-        timestamp: parseDate(market.createdAt).getTime()
-      });
-    });
-
-    return activities.sort((a,b) => b.timestamp - a.timestamp).slice(0, 8);
-  });
 
   // LOGICA DRAG & DROP
   const toggleEditMode = () => {
@@ -220,47 +149,8 @@
       const d = new Date();
       d.setMonth(d.getMonth() - (5 - i));
       return d.toLocaleDateString($locale === 'es' ? 'es-ES' : 'en-US', { month: 'short' });
-    }),
-    social: Array.from({ length: 6 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (5 - i));
-      const day = d.getDate();
-      const month = d.getMonth();
-      const year = d.getFullYear();
-      
-      // Contar posts del dÃ­a
-      return $appStore.posts.filter(p => {
-        const pd = parseDate(p.createdAt);
-        return pd.getDate() === day && pd.getMonth() === month && pd.getFullYear() === year;
-      }).length * 10 || (10 + Math.random() * 20); // Base + posts
     })
   });
-
-  const maxSoc = 100;
-  let socPoints = $derived(chartData.social.map((v, i) => `${20 + i * 52},${130 - (v / maxSoc) * 110}`).join(' '));
-
-  // Rank logic
-  const tierNames = {
-    'BRONZE': 'BRONCE',
-    'SILVER': 'PLATA',
-    'GOLD': 'ORO',
-    'PLATINUM': 'PLATINO',
-    'DIAMOND': 'DIAMANTE'
-  };
-
-  const nextTierNets = {
-    'BRONZE': 1500,
-    'SILVER': 5000,
-    'GOLD': 15000,
-    'PLATINUM': 50000,
-    'DIAMOND': 100000
-  };
-
-  const userEconomy = $derived($appStore?.settings?.economy || { netsBalance: 0, tier: 'BRONZE' });
-  const currentTier = $derived(userEconomy.tier || 'BRONZE');
-  const netsToNext = $derived(nextTierNets[currentTier as keyof typeof nextTierNets] - userEconomy.netsBalance);
-  const progressToNext = $derived(Math.min(100, (userEconomy.netsBalance / nextTierNets[currentTier as keyof typeof nextTierNets]) * 100));
-
 
 </script>
 
@@ -270,7 +160,7 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
   
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 pt-10 items-end">
+  <div class="grid grid-cols-1 mb-12 pt-10 items-end">
     <div class="space-y-6" in:fly={{y: 20, duration: 800}}>
       <div class="space-y-3">
         <div class="flex items-center gap-2">
@@ -301,59 +191,6 @@
           <div class="h-px w-12 bg-white/5 hidden sm:block"></div>
           <p class="text-[10px] text-zinc-600 font-black uppercase tracking-widest hidden sm:block">{todayFormat}</p>
         {/if}
-      </div>
-    </div>
-
-    <!-- Nets Rank Widget (Replaces Impact) -->
-    <div class="bento-card p-1 rounded-none bg-zinc-950/40 border border-white/5 group relative overflow-hidden transition-all duration-700 hover:border-violet-500/20" in:fly={{x: 20, duration: 800}}>
-      <div class="absolute -right-12 -top-12 w-64 h-64 bg-violet-600/[0.03] blur-[100px] group-hover:bg-violet-600/10 transition-all duration-700"></div>
-      
-      <div class="flex flex-col md:flex-row items-center gap-8 p-8 relative z-10">
-        <div class="w-28 h-28 bg-zinc-950 border border-white/10 flex items-center justify-center relative shadow-2xl shrink-0 group-hover:border-violet-500/40 transition-all duration-500">
-          <div class="absolute inset-0 bg-gradient-to-tr from-violet-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <ChartPieSlice weight="fill" size={44} class="text-violet-400 drop-shadow-[0_0_15px_rgba(139,92,246,0.3)] group-hover:scale-110 transition-transform duration-500" />
-          <div class="absolute -bottom-2 -right-2 bg-primary-500 text-black text-[8px] font-black px-2 py-1 uppercase tracking-tighter shadow-lg group-hover:bg-white transition-colors">
-            NIVEL {currentTier}
-          </div>
-          <!-- Progress Ring -->
-          <svg class="absolute inset-[-4px] w-[calc(100%+8px)] h-[calc(100%+8px)] -rotate-90">
-            <circle cx="58" cy="58" r="56" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/5" />
-            <circle cx="58" cy="58" r="56" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="351.8" stroke-dashoffset={351.8 - (351.8 * progressToNext) / 100} class="text-primary-400 group-hover:text-violet-400 transition-all duration-1000" />
-          </svg>
-        </div>
-
-        <div class="flex-1 space-y-5 w-full">
-          <div>
-            <div class="flex items-center gap-3 mb-2">
-              <div class="flex items-center gap-1.5 px-2 py-0.5 bg-primary-500/10 border border-primary-500/20">
-                <ChartPieSlice weight="fill" size={12} class="text-primary-400" />
-                <span class="text-[8px] font-black text-primary-300 uppercase tracking-widest">ECONOMÍA CHESSNET</span>
-              </div>
-              <p class="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em]">Progreso de Rango</p>
-            </div>
-            <h3 class="text-2xl font-outfit font-black text-white uppercase tracking-tight leading-none group-hover:text-primary-400 transition-colors">
-              PRÓXIMO RANGO <span class="text-zinc-600 mx-2">/</span> <span class="text-primary-400">{(netsToNext ?? 0) > 0 ? (netsToNext ?? 0).toLocaleString() : 0} NETS</span>
-            </h3>
-            <p class="text-[10px] text-zinc-500 font-bold uppercase mt-3 flex items-center gap-2">
-              <span class="w-1 h-1 bg-primary-500"></span>
-              Sigue participando para subir de nivel y desbloquear beneficios exclusivos.
-            </p>
-          </div>
-          
-          <div class="space-y-4">
-            <div class="h-1.5 w-full bg-zinc-900 border border-white/5 relative overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-violet-600 via-primary-400 to-violet-400 transition-all duration-1000 shadow-[0_0_20px_rgba(139,92,246,0.4)]" style="width: {progressToNext}%">
-                <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:animate-shimmer"></div>
-              </div>
-            </div>
-            <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-[0.2em]">
-              <div class="flex items-center gap-2 px-2 py-1 bg-white/5 border border-white/10">
-                <span class="text-zinc-500">SALDO ACTUAL:</span>
-                <span class="text-white">{(userEconomy.netsBalance ?? 0).toLocaleString()} NTS</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -432,8 +269,8 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-    <div class="lg:col-span-2 space-y-8">
+  <div class="flex flex-col gap-8 mb-10">
+    <div class="space-y-8 w-full">
       
 
       {#if !isFullyBoarded}
@@ -514,7 +351,7 @@
       {/if}
 
       <!-- Stats Cards Row -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bento-card p-6 flex flex-col gap-5 relative overflow-hidden group border-white/[0.05] bg-zinc-950/40 hover:border-violet-500/30 transition-all duration-500" in:fly={{y: 20, delay: 300}}>
           <div class="w-10 h-10 bg-white/[0.03] flex items-center justify-center text-violet-400 border border-white/5 group-hover:bg-violet-500/10 group-hover:text-white transition-all">
             <UsersFour weight="duotone" size={20} />
@@ -565,20 +402,9 @@
           </div>
         </div>
 
-        <div class="bento-card p-6 flex flex-col gap-5 relative overflow-hidden group border-violet-500/20 bg-violet-500/[0.03] hover:border-violet-400 transition-all duration-500" in:fly={{y: 20, delay: 700}}>
-          <div class="w-10 h-10 bg-violet-500/10 flex items-center justify-center text-violet-400 border border-violet-500/10 group-hover:bg-violet-500 group-hover:text-white transition-all">
-            <Coins weight="fill" size={20} />
-          </div>
-          <div>
-            <p class="text-[9px] font-outfit font-black text-zinc-400 uppercase tracking-[0.3em] mb-2 opacity-80">RANGO ACTUAL</p>
-            <div class="flex items-baseline gap-1">
-              <p class="text-4xl font-outfit font-black text-white leading-none tracking-tighter">{currentTier}</p>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Chart 1: Ingresos -->
         <div class="bento-card group border-white/[0.05] bg-zinc-950/40">
           <div class="p-6">
@@ -663,152 +489,8 @@
           </div>
         </div>
 
-        <!-- Chart 3: Social Activity -->
-        <div class="bento-card group border-primary-500/20 bg-primary-500/[0.02]">
-          <div class="p-6">
-            <div class="flex justify-between items-start mb-6">
-              <div>
-                <h3 class="text-primary-400 text-[9px] font-black uppercase tracking-[0.3em] mb-1.5 opacity-80">Actividad Social</h3>
-                <div class="flex items-baseline gap-2 mt-1">
-                  <span class="text-3xl font-black text-white tracking-tighter font-outfit uppercase">90</span>
-                  <span class="text-[8px] font-black text-primary-400 uppercase tracking-widest bg-primary-400/10 px-1.5 py-0.5">NETS / SEMANA</span>
-                </div>
-              </div>
-              <div class="w-10 h-10 bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-400 group-hover:bg-primary-500 group-hover:text-black transition-all">
-                <ChatCircleDots weight="fill" size={20} />
-              </div>
-            </div>
-            
-            <div class="relative h-[130px] w-full mt-4 bg-primary-950/20 border border-primary-500/10 overflow-hidden">
-                <!-- Tech Grid Background -->
-                <div class="absolute inset-0 opacity-[0.05]" style="background-image: radial-gradient(circle, #22d3ee 1px, transparent 1px); background-size: 20px 20px;"></div>
-                
-                <svg class="w-full h-full relative z-10" viewBox="0 0 300 150" preserveAspectRatio="none">
-                    <defs>
-                        <linearGradient id="socGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.2" />
-                            <stop offset="100%" stop-color="#00f2fe" stop-opacity="0" />
-                        </linearGradient>
-                    </defs>
-                    
-                    <path d="M 20,130 {socPoints} 280,130" fill="url(#socGrad)" />
-                    <path d="M 20,130 {socPoints}" fill="none" stroke="#00f2fe" stroke-width="2" stroke-linecap="square" class="drop-shadow-[0_0_12px_rgba(0,242,254,0.6)]" />
-                    
-                    {#each socPoints.split(' ') as point, i}
-                      {@const [x, y] = point.split(',')}
-                      <rect x={parseFloat(x) - 2} y={parseFloat(y) - 2} width="4" height="4" class="fill-white stroke-primary-400 stroke-1" />
-                    {/each}
-                </svg>
-            </div>
-          </div>
-        </div>
       </div>
-    </div>
-    
-    <div class="space-y-6">
-      <div class="bento-card p-8 flex flex-col h-full bg-zinc-950/40 border-white/[0.03]">
-        <div class="flex justify-between items-center mb-8">
-          <div class="space-y-1">
-            <h3 class="text-sm font-outfit font-black text-white uppercase tracking-wider flex items-center gap-2">
-              <Pulse weight="fill" class="text-primary-400 animate-pulse" size={16} /> {$t('dashboard.social_pulse.title')}
-            </h3>
-            <p class="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">ACTIVIDAD EN TIEMPO REAL</p>
-          </div>
-          <button 
-            onclick={() => goto('/panel/social')}
-            class="w-8 h-8 bg-white/5 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-primary-400 hover:border-primary-500/30 transition-all"
-          >
-            <ArrowRight weight="bold" size={14} />
-          </button>
-        </div>
-        
-        <div class="flex-1 overflow-y-auto custom-scrollbar -mx-2 pr-2">
-          {#if socialPulse().length === 0}
-            <div class="p-8 text-center bg-white/[0.03] border border-dashed border-white/10">
-             <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest italic opacity-60">{$t('dashboard.social_pulse.waiting')}</p>
-            </div>
-          {:else}
-            <div class="space-y-0">
-              {#each socialPulse() as activity, i}
-                <div class="flex gap-5 group/act relative" in:fly={{x: 20, delay: 800 + (i * 100)}}>
-                   <div class="absolute left-5 top-10 bottom-0 w-px bg-white/[0.05] group-last/act:hidden"></div>
-                   <div class="w-10 h-10 bg-zinc-950 border border-white/[0.08] flex items-center justify-center text-zinc-500 group-hover:text-primary-400 group-hover:border-primary-500/40 transition-all duration-500 shrink-0 z-10 shadow-xl">
-                     <activity.icon weight="fill" size={18} class="{activity.color} group-hover:scale-110 transition-transform" />
-                   </div>
-                   <div class="flex-1 min-w-0 pb-8 group-last/act:pb-4">
-                     <div class="p-3 bg-white/[0.02] border border-transparent group-hover:border-white/5 group-hover:bg-white/[0.04] transition-all duration-500">
-                       <p class="text-[11px] text-zinc-300 font-bold leading-relaxed tracking-tight">{activity.message}</p>
-                       <div class="flex items-center gap-3 mt-3">
-                         <span class="text-[8px] text-zinc-600 font-black uppercase tracking-[0.2em]">{activity.time}</span>
-                         <div class="h-1 w-1 bg-zinc-800 rounded-none"></div>
-                         <div class="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-900 border border-white/5">
-                           <span class="text-[7px] font-black {activity.type === 'SOCIAL' ? 'text-primary-400' : 'text-violet-400'} uppercase tracking-widest">{activity.type}</span>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                </div>
-              {/each}
-              
-              <!-- Predictive Market Section (Real Data) -->
-              {#if $appStore.markets.length > 0}
-                {@const mainMarket = $appStore.markets[0]}
-                {@const yesOpt = mainMarket.options?.find(o => o.text?.toUpperCase() === 'SÍ' || o.id === 'yes') || mainMarket.options?.[0]}
-                {@const noOpt = mainMarket.options?.find(o => o.text?.toUpperCase() === 'NO' || o.id === 'no') || mainMarket.options?.[1]}
-                {@const totalP = mainMarket.totalPool || 1}
-                {@const yPct = Math.round(((yesOpt?.totalStaked || 0) / totalP) * 100)}
-                {@const nPct = 100 - yPct}
 
-                <div class="p-5 bg-violet-600/5 border border-violet-500/10 relative overflow-hidden group/market">
-                  <div class="absolute top-0 right-0 p-2 opacity-10 group-hover/market:opacity-30 transition-opacity">
-                      <Sword weight="fill" size={32} class="text-violet-500" />
-                  </div>
-                  <div class="flex items-center gap-2 mb-3">
-                    <span class="text-[10px] font-black text-violet-400 uppercase tracking-[0.3em]">Comunidad</span>
-                    <div class="h-px flex-1 bg-violet-500/10"></div>
-                  </div>
-                  <p class="text-[11px] text-white font-bold leading-snug mb-4 uppercase tracking-tight line-clamp-2">
-                    {mainMarket.question}
-                  </p>
-                  
-                  <div class="space-y-3">
-                    <div class="flex flex-col gap-2">
-                      <div class="flex justify-between text-[9px] font-black">
-                        <span class="text-emerald-400">{yesOpt?.text || 'SÍ'}</span>
-                        <span class="text-white">{yPct}%</span>
-                      </div>
-                      <div class="h-1.5 bg-zinc-900 overflow-hidden">
-                        <div class="h-full bg-emerald-500 transition-all duration-1000" style="width: {yPct}%"></div>
-                      </div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                      <div class="flex justify-between text-[9px] font-black">
-                        <span class="text-rose-400">{noOpt?.text || 'NO'}</span>
-                        <span class="text-white">{nPct}%</span>
-                      </div>
-                      <div class="h-1.5 bg-zinc-900 overflow-hidden">
-                        <div class="h-full bg-rose-500 transition-all duration-1000" style="width: {nPct}%"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              {:else}
-                <div class="p-5 bg-zinc-900/50 border border-white/5 text-center">
-                  <p class="text-[9px] font-black text-zinc-600 uppercase tracking-widest">No hay retos activos</p>
-                </div>
-              {/if}
-            </div>
-          {/if}
-        </div>
-
-        <button 
-          onclick={() => goto('/panel/social')}
-          class="mt-8 w-full py-3.5 bg-white/5 border border-white/5 hover:border-violet-500/30 hover:bg-violet-500/5 transition-all text-[10px] font-black text-zinc-500 hover:text-white uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-[0.98]"
-        >
-          {$t('dashboard.social_pulse.view_all')} <Plus size={14} weight="bold" />
-        </button>
-      </div>
-      
       <!-- Support Card (WorldMonitor Command Style) -->
       <a href="/panel/support" class="relative group p-8 bg-zinc-950/40 border border-white/[0.03] overflow-hidden transition-all hover:border-amber-500/40">
           <div class="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>

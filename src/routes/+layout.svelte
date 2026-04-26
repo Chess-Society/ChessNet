@@ -19,11 +19,7 @@
   import { t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
   import { systemConfig, initGlobalConfig } from '$lib/stores/configStore';
-  import { INSIGNIAS } from '$lib/constants/insignias';
-  import BadgeUnlockModal from '$lib/components/ui/BadgeUnlockModal.svelte';
-
   import BroadcastBanner from '$lib/components/BroadcastBanner.svelte';
-  import SocialNotificationListener from '$lib/components/social/SocialNotificationListener.svelte';
   import { Toaster } from 'svelte-sonner';
 
   let { children } = $props();
@@ -188,21 +184,8 @@
     {@render children()}
   {/if}
 
-  {#if $appStore.pendingAchievementIds.length > 0}
-    {@const achievementId = $appStore.pendingAchievementIds[0]}
-    {@const insignia = INSIGNIAS.find(i => i.id === achievementId)}
-    {#if insignia}
-      <BadgeUnlockModal 
-        {insignia} 
-        show={true} 
-        onClose={() => appStore.markAchievementAsNotified(achievementId)} 
-      />
-    {/if}
-  {/if}
-
   <ConfirmModal />
   <PromptModal />
-  <SocialNotificationListener />
   <Toast />
   <Toaster position="top-right" expand={true} richColors theme="dark" />
   <CookieBanner />

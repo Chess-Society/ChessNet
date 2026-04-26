@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { tournamentSchema } from '$lib/schemas/tournament';
 
@@ -88,15 +88,15 @@ export const actions: Actions = {
     const { tournamentId } = params;
 
     const form = await superValidate(request, zod(tournamentSchema as any)) as any;
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Revisa los errores del formulario', { status: 400 });
 
     try {
       const docRef = adminDb.collection('local_tournaments').doc(tournamentId);
       const snap = await docRef.get();
 
-      if (!snap.exists) return fail(404, { form, error: 'Tournament not found' });
+      if (!snap.exists) return message(form, 'Torneo no encontrado', { status: 404 });
       if (snap.data()?.ownerId !== locals.user.uid && snap.data()?.owner_id !== locals.user.uid) {
-          return fail(403, { form, error: 'Unauthorized' });
+          return message(form, 'No tienes permisos para editar este torneo', { status: 403 });
       }
 
       const updates = {
@@ -110,7 +110,7 @@ export const actions: Actions = {
       return { form };
     } catch (err: any) {
       console.error('❌ Error updating tournament:', err);
-      return fail(500, { form, error: err.message });
+      return message(form, 'Error al actualizar el torneo: ' + err.message, { status: 500 });
     }
   },
   delete: async ({ params, locals }) => {

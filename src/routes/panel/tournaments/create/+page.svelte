@@ -22,26 +22,29 @@
   import { t, locale } from '$lib/i18n';
   import { goto } from '$app/navigation';
   import { fade, scale } from 'svelte/transition';
-  import { toast } from 'svelte-french-toast';
+  import { toast } from '$lib/stores/toast';
   import { superForm } from 'sveltekit-superforms';
-  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { zod } from 'sveltekit-superforms/adapters';
   import { tournamentSchema } from '$lib/schemas/tournament';
 
   let { data } = $props<{ data: any }>();
   let schools = $derived((data.schools as any[]) || []);
 
-  const { form, errors, enhance, delayed, message, tainted } = superForm(data.form, {
-    validators: zodClient(tournamentSchema),
+  // svelte-ignore state_referenced_locally
+  const initialForm = data.form;
+  const { form, errors, enhance, delayed, message, tainted } = superForm(initialForm as any, {
+    validators: zod(tournamentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        toast.success($t('tournaments.create_success') || 'Tournament created successfully');
-        if (form.message?.id) {
-           goto(`/panel/tournaments/${form.message.id}`);
+        toast.success((form.message as any)?.text || $t('tournaments.create_success') || 'Tournament created successfully');
+        if ((form.message as any)?.id) {
+          goto(`/panel/tournaments/${(form.message as any).id}`);
         } else {
-           goto('/panel/tournaments');
+          goto('/panel/tournaments');
         }
-      } else if (form.message?.error) {
-        toast.error(form.message.error);
+      } else if (form.message) {
+        const errorMsg = typeof form.message === 'string' ? form.message : ((form.message as any).error || 'Error al crear torneo');
+        toast.error(errorMsg);
       }
     }
   });

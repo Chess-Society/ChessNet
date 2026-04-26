@@ -1,6 +1,6 @@
 <script lang="ts">
   import { superForm } from 'sveltekit-superforms';
-  import { zodClient } from 'sveltekit-superforms/adapters';
+  import { zod } from 'sveltekit-superforms/adapters';
   import { skillSchema } from '$lib/schemas/skill';
   import { t } from '$lib/i18n';
   import { 
@@ -28,15 +28,20 @@
   import { fade, fly, slide, scale } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { appStore } from '$lib/stores/appStore';
+  import { toast } from '$lib/stores/toast';
 
   let { data } = $props<{ data: any }>();
 
-  const { form, errors, enhance, delayed, isTainted } = superForm(data.form, {
-    validators: zodClient(skillSchema),
+  // svelte-ignore state_referenced_locally
+  const { form, errors, enhance, delayed, tainted, message } = superForm(data.form, {
+    validators: zod(skillSchema as any),
     dataType: 'json',
     onUpdated: ({ form }) => {
       if (form.valid) {
-        // Success handling is done by redirect in server action
+        toast.success((form.message as string) || 'Habilidad creada con éxito');
+        goto('/panel/skills');
+      } else if (form.message) {
+        toast.error(form.message as string);
       }
     }
   });
@@ -71,13 +76,13 @@
   }
 
   function removeItem(key: 'learningObjectives' | 'assessmentCriteria' | 'resources', index: number) {
-    $form[key] = $form[key].filter((_, i) => i !== index);
+    $form[key] = ($form[key] as string[]).filter((_: string, i: number) => i !== index);
     if ($form[key].length === 0) $form[key] = [''];
   }
 
   function togglePrerequisite(id: string) {
     if ($form.prerequisites.includes(id)) {
-      $form.prerequisites = $form.prerequisites.filter(p => p !== id);
+      $form.prerequisites = ($form.prerequisites as string[]).filter((p: string) => p !== id);
     } else {
       $form.prerequisites = [...$form.prerequisites, id];
     }
@@ -109,7 +114,7 @@
       </div>
 
       <div class="flex items-center gap-3">
-        {#if isTainted()}
+        {#if $tainted}
           <span class="text-[10px] font-black uppercase tracking-widest text-amber-500 animate-pulse hidden md:block mr-4">
             {$t('common.unsaved_changes')}
           </span>
@@ -601,7 +606,7 @@
   </main>
 </form>
 
-<style>
+<style lang="postcss">
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

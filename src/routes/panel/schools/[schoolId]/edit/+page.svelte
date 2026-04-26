@@ -36,9 +36,11 @@
   import { schoolSchema } from '$lib/schemas/school';
 
   let { data } = $props<{ data: PageData }>();
+  // svelte-ignore state_referenced_locally
+  let { form: dataForm } = data;
 
-  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form, {
-    validators: zod(schoolSchema),
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(dataForm, {
+    validators: zod(schoolSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
         showToast.success($t('schools.toast_success'));
@@ -76,7 +78,7 @@
   };
 
   const removeDirector = (uid: string) => {
-    $form.sharedWith = $form.sharedWith.filter(id => id !== uid);
+    $form.sharedWith = $form.sharedWith.filter((id: string) => id !== uid);
     showToast.success('Acceso revocado');
   };
 

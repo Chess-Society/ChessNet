@@ -17,7 +17,8 @@
     ArrowLeft,
     IdentificationBadge,
     NavigationArrow,
-    SealCheck
+    SealCheck,
+    CurrencyEur
   } from 'phosphor-svelte';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
@@ -27,15 +28,15 @@
   import { schoolSchema } from '$lib/schemas/school';
 
   let { data } = $props<{ data: PageData }>();
+  // svelte-ignore state_referenced_locally
+  let { form: dataForm } = data;
 
-  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form, {
-    validators: zod(schoolSchema),
+  const { form, errors, enhance, delayed, message, tainted } = superForm(dataForm, {
+    validators: zod(schoolSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
-        showToast.success($t('schools.create_success'));
-        // The server action should return the new id if we want to redirect to it
-        // For now, redirect to list or let server handle redirect if implemented
-        setTimeout(() => goto('/panel/schools'), 500);
+        showToast.success(form.message || $t('schools.create_success'));
+        goto('/panel/schools');
       } else if (form.message) {
         showToast.error(form.message);
       }
@@ -90,7 +91,7 @@
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('schools.new_title')}</h1>
-            {#if isTainted()}
+            {#if $tainted}
               <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[8px] font-black uppercase tracking-widest animate-pulse">{$t('common.unsaved_changes')}</span>
             {/if}
           </div>
@@ -234,10 +235,11 @@
                             type="button"
                             class="w-full flex items-center justify-between px-6 py-4 hover:bg-emerald-600/10 transition-colors group/item {$form.country === c.id ? 'bg-emerald-600/20' : ''}"
                             onclick={() => {
-                              $form.country = c.id;
-                              isSelectOpen = false;
-                              searchQuery = '';
-                            }}
+                                $form.country = c.id;
+                                if (c.id !== 'others') customCountry = '';
+                                isSelectOpen = false;
+                                searchQuery = '';
+                              }}
                           >
                             <div class="flex items-center gap-4">
                               <div class="w-8 h-8 flex items-center justify-center {$form.country === c.id ? 'text-emerald-400' : 'text-zinc-600 group-hover/item:text-emerald-500'} transition-colors">

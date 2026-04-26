@@ -45,12 +45,6 @@ function createAppStore() {
       const state = get(store);
       return state.schools[0] || null;
     },
-    get isSocialEnabled() {
-      return (get(store).schools[0]?.socialEnabled !== false);
-    },
-    get isEconomyEnabled() {
-      return (get(store).schools[0]?.economyEnabled !== false);
-    },
     get settings() {
       return get(store).settings;
     }

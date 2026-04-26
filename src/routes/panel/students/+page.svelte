@@ -150,7 +150,7 @@
     }} 
     bind:this={purgeForm} 
     class="hidden"
-  />
+  ></form>
   
   <!-- Header & Title Area -->
   <div class="flex flex-col lg:flex-row items-center justify-between gap-8 mb-12 lg:mb-16">

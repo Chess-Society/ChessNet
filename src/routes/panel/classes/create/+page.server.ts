@@ -1,10 +1,10 @@
-import type { PageServerLoad, Actions } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
-import { serializeRecord } from '$lib/server/serialize';
-import { superValidate } from 'sveltekit-superforms';
+import { fail, redirect } from '@sveltejs/kit';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { classSchema } from '$lib/schemas/class';
-import { fail, redirect } from '@sveltejs/kit';
+import { adminDb } from '$lib/server/firebase-admin';
+import { serializeRecord } from '$lib/server/serialize';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.user) {
@@ -48,7 +48,7 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
 
     const form = await superValidate(event, zod(classSchema as any)) as any;
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Datos inválidos. Por favor revisa el formulario.', { status: 400 });
 
     try {
       const classData = {
@@ -62,10 +62,10 @@ export const actions: Actions = {
       };
 
       const docRef = await adminDb.collection('classes').add(classData);
-      return { form, success: true, id: docRef.id };
+      return message(form, '¡Clase creada con éxito!');
     } catch (err: any) {
       console.error('Error creating class:', err);
-      return fail(500, { form, error: err.message });
+      return message(form, err.message || 'Failed to create class', { status: 500 });
     }
   }
 };

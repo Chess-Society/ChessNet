@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
-import { superValidate } from 'sveltekit-superforms';
+import { message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { studentSchema } from '$lib/schemas/student';
 import { fail, redirect } from '@sveltejs/kit';
@@ -49,7 +49,7 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
 
     const form = await superValidate(request, zod(studentSchema as any)) as any;
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Datos inválidos. Por favor revisa el formulario.', { status: 400 });
 
     try {
       const { ...studentData } = form.data;
@@ -77,10 +77,10 @@ export const actions: Actions = {
         await adminDb.collection('enrollments').add(enrollment);
       }
 
-      return { form };
+      return message(form, '¡Estudiante creado con éxito!');
     } catch (err: any) {
       console.error('❌ Error creating student:', err);
-      return fail(500, { form, error: err.message });
+      return message(form, err.message || 'Error desconocido al crear el estudiante', { status: 500 });
     }
   }
 };

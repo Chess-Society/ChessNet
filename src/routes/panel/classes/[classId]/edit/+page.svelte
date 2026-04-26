@@ -35,8 +35,10 @@
   import { classSchema } from '$lib/schemas/class';
 
   let { data }: { data: any } = $props();
+  // svelte-ignore state_referenced_locally
+  let { form: dataForm } = data;
 
-  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form as any, {
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(dataForm as any, {
     validators: zod(classSchema as any),
     onUpdated({ form }) {
       if (form.valid) {

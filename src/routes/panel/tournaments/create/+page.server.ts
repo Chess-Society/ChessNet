@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { tournamentSchema } from '$lib/schemas/tournament';
 import { fail, redirect } from '@sveltejs/kit';
@@ -12,8 +12,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   const uid = locals.user.uid;
-  const form = await superValidate(zod(tournamentSchema as any));
-  form.data.startAt = new Date().toISOString().slice(0, 16);
+  const form = await superValidate(zod(tournamentSchema as any)) as any;
+  (form.data as any).startAt = new Date().toISOString().slice(0, 16);
 
   try {
     const [studentsSnap, schoolsSnap] = await Promise.all([
@@ -58,7 +58,7 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
 
     const form = await superValidate(request, zod(tournamentSchema as any));
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Datos inválidos. Por favor revisa el formulario.', { status: 400 });
 
     try {
       const tournamentData = {
@@ -75,14 +75,10 @@ export const actions: Actions = {
 
       const docRef = await adminDb.collection('local_tournaments').add(tournamentData);
       
-      return { 
-        form, 
-        success: true, 
-        id: docRef.id 
-      };
+      return message(form, { text: '¡Torneo creado con éxito!', id: docRef.id });
     } catch (err: any) {
       console.error('❌ Error creating tournament:', err);
-      return fail(500, { form, error: err.message });
+      return message(form, err.message || 'Error desconocido al crear el torneo', { status: 500 });
     }
   }
 };

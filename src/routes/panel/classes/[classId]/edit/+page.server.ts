@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { classSchema } from '$lib/schemas/class';
 
@@ -58,14 +58,14 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
 
     const form = await superValidate(event, zod(classSchema as any)) as any;
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Revisa los errores del formulario', { status: 400 });
 
     try {
       const classRef = adminDb.collection('classes').doc(params.classId);
       const classSnap = await classRef.get();
 
-      if (!classSnap.exists) return fail(404, { form, error: 'Not found' });
-      if (classSnap.data()?.owner_id !== locals.user.uid) return fail(403, { form, error: 'Unauthorized' });
+      if (!classSnap.exists) return message(form, 'Clase no encontrada', { status: 404 });
+      if (classSnap.data()?.owner_id !== locals.user.uid) return message(form, 'No tienes permisos para editar esta clase', { status: 403 });
 
       await classRef.update({
         ...form.data,
@@ -76,7 +76,7 @@ export const actions: Actions = {
       return { form, success: true };
     } catch (err: any) {
       console.error('Error updating class:', err);
-      return fail(500, { form, error: err.message });
+      return message(form, 'Error al actualizar la clase: ' + err.message, { status: 500 });
     }
   }
 };

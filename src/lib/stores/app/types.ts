@@ -8,13 +8,8 @@ import type {
   LocalTournament, 
   Payment,
   Lead,
-  Badge,
-  StudentBadge,
-  Attendance,
-  UserEconomy,
-  SocialPost
+  Attendance
 } from '$lib/types';
-import type { PredictionMarket } from '$lib/types/governance';
 
 export interface AppSettings {
   plan: string;
@@ -23,8 +18,6 @@ export interface AppSettings {
   teacherName: string;
   teacherAvatar: string;
   teacherEmail?: string;
-  featuredInsignias?: string[]; // IDs of up to 3 featured insignias
-  economy?: UserEconomy;
   [key: string]: any;
 }
 
@@ -43,17 +36,8 @@ export interface AppState {
   payments: Payment[];
   plans: any[];
   leads: Lead[];
-  badges: Badge[];
-  studentBadges: StudentBadge[];
   studentStats: any[];
   reports: any[];
-  lobbySuggestions: any[];
-  lobbyAnnouncements: any[];
-  communityGroups: any[];
-  unlockedAchievements: any[];
-  pendingAchievementIds: string[]; // Queue for sequential display
-  posts: SocialPost[];
-  markets: PredictionMarket[];
   settings: AppSettings;
   dashboardLayout: string[];
   initialized: boolean;
@@ -74,22 +58,12 @@ export const initialState: AppState = {
   payments: [],
   plans: [],
   leads: [],
-  badges: [],
-  studentBadges: [],
   studentStats: [],
   reports: [],
-  lobbySuggestions: [],
-  lobbyAnnouncements: [],
-  communityGroups: [],
-  unlockedAchievements: [],
-  pendingAchievementIds: [],
-  posts: [],
-  markets: [],
   settings: { 
     plan: 'free',
     teacherName: '',
-    teacherAvatar: '',
-    featuredInsignias: []
+    teacherAvatar: ''
   },
   dashboardLayout: [],
   initialized: false

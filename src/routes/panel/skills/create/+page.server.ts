@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { skillSchema } from '$lib/schemas/skill';
 import { adminDb } from '$lib/server/firebase-admin';
@@ -40,7 +40,7 @@ export const actions: Actions = {
     const form = await superValidate(request, zod(skillSchema as any));
 
     if (!form.valid) {
-      return fail(400, { form });
+      return message(form, 'Datos inválidos. Por favor revisa el formulario.', { status: 400 });
     }
 
     try {
@@ -50,21 +50,20 @@ export const actions: Actions = {
         created_at: new Date(),
         updated_at: new Date(),
         // Legacy mapping
-        category_id: form.data.categoryId,
-        estimated_hours: form.data.estimatedHours,
-        learning_objectives: form.data.learningObjectives.filter(v => v.trim() !== ''),
-        assessment_criteria: form.data.assessmentCriteria.filter(v => v.trim() !== ''),
-        order_index: form.data.orderIndex,
-        resource_link: form.data.resourceLink,
-        resources: form.data.resources.filter(v => v.trim() !== '')
+        category_id: (form.data as any).categoryId,
+        estimated_hours: (form.data as any).estimatedHours,
+        learning_objectives: ((form.data as any).learningObjectives as string[]).filter((v: string) => v.trim() !== ''),
+        assessment_criteria: ((form.data as any).assessmentCriteria as string[]).filter((v: string) => v.trim() !== ''),
+        order_index: (form.data as any).orderIndex,
+        resource_link: (form.data as any).resourceLink,
+        resources: ((form.data as any).resources as string[]).filter((v: string) => v.trim() !== '')
       };
 
       await adminDb.collection('skills').add(skillData);
-    } catch (error) {
+      return message(form, '¡Habilidad creada con éxito!');
+    } catch (error: any) {
       console.error('Error creating skill:', error);
-      return fail(500, { form, error: 'Failed to create skill' });
+      return message(form, error.message || 'Failed to create skill', { status: 500 });
     }
-
-    throw redirect(303, '/panel/skills');
   }
 };

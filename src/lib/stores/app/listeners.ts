@@ -59,9 +59,7 @@ export function setupListeners(store: Writable<AppState>, user: any) {
           const settings = { 
             ...currentState.settings, 
             ...(data.settings || {}),
-            teacherEmail: userEmail,
-            featuredInsignias: data.settings?.featuredInsignias || [],
-            economy: data.economy || null
+            teacherEmail: userEmail
           };
           if (ADMIN_EMAILS.includes(userEmail)) settings.plan = 'premium';
           return { ...currentState, settings, dashboardLayout: data.dashboardLayout || [], initialized: true };
@@ -101,22 +99,6 @@ export function setupListeners(store: Writable<AppState>, user: any) {
       update((s: AppState) => {
         const newState = { ...s } as any;
         newState[key] = docs;
-        
-        if (key === 'unlockedAchievements') {
-          const notifiedIds = docs.filter((d: any) => d.notified).map((d: any) => d.id);
-          const filteredPending = s.pendingAchievementIds.filter((id: string) => !notifiedIds.includes(id));
-          let nextPending = filteredPending;
-          
-          if (!isFirstLoad) {
-            const previouslyUnlocked = s.unlockedAchievements.map((a: any) => a.id);
-            const newlyAdded = docs.filter((d: any) => !d.notified && !previouslyUnlocked.includes(d.id));
-            if (newlyAdded.length > 0) {
-              const freshIds = newlyAdded.map((a: any) => a.id).filter(id => !filteredPending.includes(id));
-              nextPending = [...filteredPending, ...freshIds];
-            }
-          }
-          newState.pendingAchievementIds = nextPending;
-        }
         return newState as AppState;
       });
     }, (error: any) => {
@@ -131,7 +113,6 @@ export function setupListeners(store: Writable<AppState>, user: any) {
     { key: 'students', path: 'students' },
     { key: 'classes', path: 'classes' },
     { key: 'skills', path: 'skills' },
-    { key: 'unlockedAchievements', path: 'achievements' },
     { key: 'localTournaments', path: 'local_tournaments' },
     { key: 'localTournamentPlayers', path: 'local_tournament_players' },
     { key: 'localTournamentRounds', path: 'local_tournament_rounds' },
@@ -141,80 +122,6 @@ export function setupListeners(store: Writable<AppState>, user: any) {
     { key: 'leads', path: 'leads' }
   ];
   personalCollections.forEach(c => setupCollectionListener(c.key, c.path));
-
-  const communityCollections = [
-    { key: 'lobbyAnnouncements', path: 'lobby_announcements' },
-    { key: 'lobbySuggestions', path: 'lobby_suggestions' },
-    { key: 'communityGroups', path: 'community_groups' },
-    { key: 'posts', path: 'faculty_stream' },
-    { key: 'markets', path: 'prediction_markets' }
-  ];
-  communityCollections.forEach(c => {
-    const collRef = collection(db, c.path);
-    const q = query(collRef, orderBy('createdAt', 'desc'), limit(100));
-    
-    const unsub = onSnapshot(q, (snap: QuerySnapshot) => {
-      const isFirstLoad = !initializedCollections.has(c.key);
-      const docs = snap.docs.map((d: QueryDocumentSnapshot) => toData<any>(d));
-      
-      const currentDataAsString = JSON.stringify(docs);
-      if (dataCache[c.key] === currentDataAsString) return;
-
-      // Real implementation for reaction detection
-      if (c.key === 'posts' && !isFirstLoad && dataCache[c.key]) {
-        try {
-          const previousPosts = JSON.parse(dataCache[c.key]);
-          docs.forEach(post => {
-            const prev = previousPosts.find((p: any) => p.id === post.id);
-            if (prev && post.authorId === user.uid) {
-              const currentReactions = post.reactions || {};
-              const previousReactions = prev.reactions || {};
-
-              for (const emoji in currentReactions) {
-                const newUsers = currentReactions[emoji] || [];
-                const oldUsers = previousReactions[emoji] || [];
-                
-                if (newUsers.length > oldUsers.length) {
-                  // Find users that are in newUsers but not in oldUsers
-                  const addedUsers = newUsers.filter((u: string) => !oldUsers.includes(u));
-                  const realAddedUsers = addedUsers.filter((u: string) => u !== user.uid);
-                  
-                  if (realAddedUsers.length > 0) {
-                    toast.info(`Alguien ha reaccionado con ${emoji} a tu publicación`);
-                  }
-                }
-              }
-            }
-          });
-        } catch (e) {
-          console.error('Error parsing previous posts for notifications:', e);
-        }
-      }
-
-      dataCache[c.key] = currentDataAsString;
-      if (isFirstLoad) initializedCollections.add(c.key);
-
-      update((s: AppState) => {
-        const newState = { ...s } as any;
-        newState[c.key] = docs;
-        return newState as AppState;
-      });
-    });
-    unsubscribes.push(unsub);
-  });
-
-  // 4. Reports (Admin specific)
-  const userEmail = user.email?.toLowerCase() || '';
-  const isAdmin = ADMIN_EMAILS.includes(userEmail);
-  const reportsRef = collection(db, 'lobby_reports');
-  const qReports = isAdmin 
-    ? query(reportsRef, orderBy('createdAt', 'desc'))
-    : query(reportsRef, where('authorId', '==', user.uid), orderBy('createdAt', 'desc'));
-
-  unsubscribes.push(onSnapshot(qReports, (snap: QuerySnapshot) => {
-    const docs = snap.docs.map(d => toData<any>(d));
-    update((s: AppState) => ({ ...s, reports: docs }));
-  }));
 
   return () => {
     unsubscribes.forEach(unsub => unsub());

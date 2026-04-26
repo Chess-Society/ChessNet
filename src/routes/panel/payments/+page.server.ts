@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { paymentSchema } from '$lib/schemas/payment';
 import { fail, redirect } from '@sveltejs/kit';
@@ -49,11 +49,11 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
 
     const form = await superValidate(request, zod(paymentSchema as any));
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Revisa los errores del formulario', { status: 400 });
 
     try {
       const uid = locals.user.uid;
-      const { id, ...data } = form.data;
+      const { id, ...data } = form.data as any;
       
       const paymentData = {
         ...data,
@@ -65,16 +65,16 @@ export const actions: Actions = {
 
       if (id) {
         await adminDb.collection('payments').doc(id).update(paymentData);
+        return message(form, 'Pago actualizado con éxito');
       } else {
         (paymentData as any).createdAt = new Date().toISOString();
         (paymentData as any).created_at = new Date().toISOString();
         await adminDb.collection('payments').add(paymentData);
+        return message(form, 'Pago registrado con éxito');
       }
-
-      return { form };
     } catch (err: any) {
       console.error('❌ Error in payment upsert:', err);
-      return fail(500, { form, error: err.message });
+      return message(form, 'Error al procesar el pago: ' + err.message, { status: 500 });
     }
   },
 
@@ -84,14 +84,14 @@ export const actions: Actions = {
     const formData = await request.formData();
     const id = formData.get('id') as string;
 
-    if (!id) return fail(400, { message: 'ID is required' });
+    if (!id) return fail(400, { message: 'ID obligatorio' });
 
     try {
       await adminDb.collection('payments').doc(id).delete();
-      return { success: true };
+      return { success: true, message: 'Pago eliminado' };
     } catch (err: any) {
       console.error('❌ Error deleting payment:', err);
-      return fail(500, { error: err.message });
+      return fail(500, { message: 'Error al eliminar pago' });
     }
   }
 };

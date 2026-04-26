@@ -79,7 +79,8 @@ export const adminDb = new Proxy({} as any, {
         }
         
         const db = getFirestore();
-        return (db as any)[prop];
+        const value = (db as any)[prop];
+        return typeof value === 'function' ? value.bind(db) : value;
     },
     apply(target, thisArg, argumentsList) {
         if (!initialized) initializeAdmin();
@@ -102,7 +103,8 @@ export const adminAuth = new Proxy({} as any, {
         }
         
         const auth = getAuth();
-        return (auth as any)[prop];
+        const value = (auth as any)[prop];
+        return typeof value === 'function' ? value.bind(auth) : value;
     },
     apply(target, thisArg, argumentsList) {
         if (!initialized) initializeAdmin();

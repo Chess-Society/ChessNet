@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { attendanceSchema } from '$lib/schemas/attendance';
 import { adminDb } from '$lib/server/firebase-admin';
@@ -59,7 +59,7 @@ export const actions: Actions = {
     if (!session?.user) return fail(401);
 
     const form = await superValidate(request, zod(attendanceSchema as any));
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Revisa los errores de asistencia', { status: 400 });
 
     const { classId, date, records } = form.data as any;
     const batch = adminDb.batch();
@@ -81,20 +81,9 @@ export const actions: Actions = {
       }, { merge: true });
     }
 
-    // Reward teacher for taking attendance (consistent with legacy logic)
-    // We add a transaction record for the teacher
-    const netsRef = adminDb.collection('nets_transactions').doc();
-    batch.set(netsRef, {
-      userId: session.user.id,
-      amount: 10,
-      type: 'EARN',
-      reason: `Asistencia: ${date} (${classId})`,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    });
 
     await batch.commit();
 
-    return { form };
+    return message(form, 'Protocolo de asistencia sincronizado con éxito');
   }
 };

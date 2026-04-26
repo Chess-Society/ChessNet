@@ -4,8 +4,6 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
   import { quintOut } from 'svelte/easing';
-  import { INSIGNIAS } from '$lib/constants/insignias';
-  import InsigniaBadge from '$lib/components/ui/InsigniaBadge.svelte';
   import { t } from '$lib/i18n';
 
   const getIcon = (type: string) => {
@@ -14,21 +12,12 @@
       case 'error': return WarningCircle;
       case 'warning': return Warning;
       case 'info': return Info;
-      case 'insignia': return Trophy;
       default: return Bell;
     }
   };
 
   const getTheme = (type: string) => {
     switch (type) {
-      case 'insignia': return {
-        border: 'border-amber-400/50',
-        glow: 'from-amber-400/40',
-        icon: 'text-amber-400',
-        bg: 'bg-amber-400/20',
-        title: 'NUEVO LOGRO DESBLOQUEADO',
-        accent: 'bg-amber-400'
-      };
       case 'success': return {
         border: 'border-indigo-500/30',
         glow: 'from-indigo-500/20',
@@ -79,17 +68,7 @@
       <!-- Premium Glass Card -->
       <div class="relative overflow-hidden rounded-none border {theme.border} bg-neutral-950/85 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.7)] transition-all duration-500 hover:shadow-amber-500/20 hover:-translate-y-1">
         
-        <!-- Achievement Extra Flare -->
-        {#if toast.type === 'insignia'}
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(251,191,36,0.15),transparent_70%)] animate-pulse"></div>
-          
-          <!-- Sparkles -->
-          <div class="absolute inset-0 overflow-hidden pointer-events-none">
-             <div class="sparkle s1"></div>
-             <div class="sparkle s2"></div>
-             <div class="sparkle s3"></div>
-          </div>
-        {/if}
+        <!-- Sparkles (removed) -->
         
         <!-- Gradient Background Glow -->
         <div class="absolute inset-0 bg-gradient-to-br {theme.glow} to-transparent opacity-20"></div>
@@ -99,60 +78,26 @@
 
         <div class="relative p-5 flex items-start gap-5">
           <!-- Icon Sleeve or Badge Preview -->
-          {#if toast.type === 'insignia' && toast.insigniaId}
-            {@const insignia = INSIGNIAS.find(i => i.id === toast.insigniaId)}
-            {#if insignia}
-                <div class="flex-shrink-0 animate-float translate-y-1 relative">
-                    <div class="absolute inset-0 bg-amber-400/20 blur-xl rounded-none animate-pulse"></div>
-                    <InsigniaBadge {insignia} unlocked={true} size="xs" />
-                </div>
-            {/if}
-          {:else}
             <div class="flex-shrink-0 w-12 h-12 rounded-none {theme.bg} border {theme.border} flex items-center justify-center {theme.icon} shadow-inner bg-opacity-20 animate-float">
                 <Icon 
                 weight="duotone"
                 size={26} 
                 />
             </div>
-          {/if}
           
           <!-- Content -->
           <div class="flex-1 min-w-0 pt-1">
             <div class="flex items-center justify-between mb-2">
               <span class="text-[9px] font-black uppercase tracking-[0.3em] {theme.icon} font-outfit italic flex items-center gap-2">
-                {#if toast.type === 'insignia'}
-                    <Sparkle size={10} weight="fill" class="animate-spin-slow" />
-                {/if}
                 {theme.title}
               </span>
               <span class="text-[8px] font-black text-white/10 uppercase tracking-widest font-outfit">
                 CHESSNET OPS
               </span>
             </div>
-            {#if toast.type === 'insignia' && toast.insigniaId}
-                {@const insignia = INSIGNIAS.find(i => i.id === toast.insigniaId)}
-                <div class="space-y-1 pr-2">
-                    <p class="text-[18px] font-black leading-tight text-white tracking-tight font-outfit uppercase">
-                        {$t(insignia?.titleKey || 'badges.new_unlocked')}
-                    </p>
-                    <div class="flex items-center gap-2">
-                        <span 
-                          class="px-2 py-0.5 rounded-none text-[8px] font-black text-white uppercase tracking-widest shadow-lg"
-                          style="background: {insignia?.color || '#333'}"
-                        >
-                            {insignia?.tier}
-                        </span>
-                        <span class="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em] flex items-center gap-1">
-                            <LockKey size={8} weight="bold" />
-                            DESBLOQUEADA
-                        </span>
-                    </div>
-                </div>
-            {:else}
-                <p class="text-[14px] font-bold leading-relaxed text-white tracking-tight font-outfit">
-                    {toast.message}
-                </p>
-            {/if}
+            <p class="text-[14px] font-bold leading-relaxed text-white tracking-tight font-outfit">
+                {toast.message}
+            </p>
           </div>
 
           <!-- Close Button -->

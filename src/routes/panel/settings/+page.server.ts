@@ -25,16 +25,12 @@ export const load: PageServerLoad = async ({ locals }) => {
     teacherName: settings.teacherName || userData.displayName || '',
     teacherAvatar: settings.teacherAvatar || userData.photoURL || '',
     teacherEmail: settings.teacherEmail || userData.email || '',
-    featuredInsignias: settings.featuredInsignias || [],
-    socialEnabled: currentSchool?.socialEnabled ?? true,
-    economyEnabled: currentSchool?.economyEnabled ?? true,
     schoolId: currentSchool?.id
   }, zod(settingsSchema as any));
 
   return {
     form,
-    schools: serializeRecord(schools),
-    unlockedAchievements: serializeRecord(userData.unlockedAchievements || [])
+    schools: serializeRecord(schools)
   };
 };
 
@@ -47,7 +43,7 @@ export const actions: Actions = {
     if (!form.valid) return fail(400, { form });
 
     try {
-      const { socialEnabled, economyEnabled, schoolId, ...profileSettings } = form.data;
+      const { schoolId, ...profileSettings } = form.data;
 
       const batch = adminDb.batch();
 
@@ -62,8 +58,6 @@ export const actions: Actions = {
       if (schoolId) {
         const schoolRef = adminDb.collection('schools').doc(schoolId);
         batch.set(schoolRef, {
-          socialEnabled,
-          economyEnabled,
           updatedAt: new Date().toISOString()
         }, { merge: true });
       }

@@ -1,5 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { skillSchema } from '$lib/schemas/skill';
 import { adminDb } from '$lib/server/firebase-admin';
@@ -50,7 +50,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         name: doc.data().name,
         difficulty: doc.data().difficulty
       }))
-      .filter(s => s.id !== skillId);
+      .filter((s: any) => s.id !== skillId);
 
     return {
       form,
@@ -73,7 +73,7 @@ export const actions: Actions = {
     const form = await superValidate(request, zod(skillSchema as any)) as any;
 
     if (!form.valid) {
-      return fail(400, { form });
+      return message(form, 'Revisa los errores del formulario', { status: 400 });
     }
 
     try {
@@ -81,7 +81,7 @@ export const actions: Actions = {
       const skillSnap = await skillRef.get();
 
       if (!skillSnap.exists || skillSnap.data()?.owner_id !== locals.user.uid) {
-        return fail(403, { form, error: 'Unauthorized' });
+        return message(form, 'Habilidad no encontrada o sin permisos', { status: 403 });
       }
 
       const updateData = {
@@ -90,17 +90,17 @@ export const actions: Actions = {
         // Legacy mapping for backward compatibility
         category_id: form.data.categoryId,
         estimated_hours: form.data.estimatedHours,
-        learning_objectives: form.data.learningObjectives.filter(v => v.trim() !== ''),
-        assessment_criteria: form.data.assessmentCriteria.filter(v => v.trim() !== ''),
+        learning_objectives: form.data.learningObjectives.filter((v: string) => v.trim() !== ''),
+        assessment_criteria: form.data.assessmentCriteria.filter((v: string) => v.trim() !== ''),
         order_index: form.data.orderIndex,
         resource_link: form.data.resourceLink,
-        resources: form.data.resources.filter(v => v.trim() !== '')
+        resources: form.data.resources.filter((v: string) => v.trim() !== '')
       };
 
       await skillRef.update(updateData);
-    } catch (error) {
-      console.error('Error updating skill:', error);
-      return fail(500, { form, error: 'Failed to update skill' });
+    } catch (err: any) {
+      console.error('Error updating skill:', err);
+      return message(form, 'Error al actualizar la habilidad: ' + err.message, { status: 500 });
     }
 
     throw redirect(303, '/panel/skills');
@@ -119,8 +119,8 @@ export const actions: Actions = {
       }
 
       await skillRef.delete();
-    } catch (error) {
-      console.error('Error deleting skill:', error);
+    } catch (err: any) {
+      console.error('Error deleting skill:', err);
       throw error(500, 'Failed to delete skill');
     }
 

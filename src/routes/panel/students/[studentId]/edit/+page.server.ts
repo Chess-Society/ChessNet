@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { studentSchema } from '$lib/schemas/student';
 
@@ -54,7 +54,7 @@ export const actions: Actions = {
     const studentId = params.studentId;
 
     const form = await superValidate(request, zod(studentSchema as any)) as any;
-    if (!form.valid) return fail(400, { form });
+    if (!form.valid) return message(form, 'Revisa los errores del formulario', { status: 400 });
 
     try {
       const { ...studentData } = form.data;
@@ -65,7 +65,7 @@ export const actions: Actions = {
       const docSnap = await docRef.get();
       
       if (!docSnap.exists || docSnap.data()?.owner_id !== uid) {
-        return fail(403, { form, error: 'Unauthorized' });
+        return message(form, 'No tienes permisos para editar este estudiante', { status: 403 });
       }
 
       await docRef.update({
@@ -77,7 +77,7 @@ export const actions: Actions = {
       return { form };
     } catch (err: any) {
       console.error('❌ Error updating student:', err);
-      return fail(500, { form, error: err.message });
+      return message(form, 'Error al actualizar el estudiante: ' + err.message, { status: 500 });
     }
   }
 };
