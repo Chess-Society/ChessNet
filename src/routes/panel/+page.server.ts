@@ -40,7 +40,7 @@ export const load: PageServerLoad = async (event) => {
         if (a.targetType === 'all') return true;
         if (a.targetType === 'school' && schoolIds.includes(a.targetId)) return true;
         if (a.targetType === 'class' && classIds.includes(a.targetId)) return true;
-        if (a.targetType === 'student' && children.some(c => c.id === a.targetId)) return true;
+        if (a.targetType === 'student' && children.some((c: any) => c.id === a.targetId)) return true;
         return false;
       });
 

@@ -91,24 +91,18 @@
           Comunicados<span class="text-primary-500">.</span>
         </h1>
         <p class="text-zinc-500 font-medium text-lg mt-2 max-w-xl">
-          {#if data.role === 'parent'}
-            Recibe información directa de los clubes y profesores de tus hijos.
-          {:else}
-            Mantén informados a los padres y alumnos sobre el progreso y novedades.
-          {/if}
+          Mantén informados a los padres y alumnos sobre el progreso y novedades.
         </p>
       </div>
     </div>
 
-    {#if data.role !== 'parent'}
-      <button 
-        onclick={() => isCreating = true}
-        class="h-16 px-10 bg-white text-black font-black hover:bg-primary-500 hover:text-white transition-all flex items-center gap-4 shadow-2xl active:scale-95 uppercase text-[10px] tracking-[0.2em]"
-      >
-        <Plus weight="bold" size={20} />
-        Emitir nuevo aviso
-      </button>
-    {/if}
+    <button 
+      onclick={() => isCreating = true}
+      class="h-16 px-10 bg-white text-black font-black hover:bg-primary-500 hover:text-white transition-all flex items-center gap-4 shadow-2xl active:scale-95 uppercase text-[10px] tracking-[0.2em]"
+    >
+      <Plus weight="bold" size={20} />
+      Emitir nuevo aviso
+    </button>
   </header>
 
   <!-- Announcements List -->
@@ -153,31 +147,25 @@
         </div>
 
         <div class="flex items-center gap-3 w-full lg:w-auto">
-          {#if data.role !== 'parent'}
-            <div class="flex items-center gap-2">
-              {#if !item.isPublished}
-                <form method="POST" action="?/publish" use:enhance>
-                  <input type="hidden" name="id" value={item.id} />
-                  <button class="w-12 h-12 bg-zinc-950 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-primary-400 transition-all" title="Publicar">
-                    <PaperPlaneTilt size={20} />
-                  </button>
-                </form>
-              {/if}
-              <button class="w-12 h-12 bg-zinc-950 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-all" title="Editar">
-                <PencilSimple size={20} />
-              </button>
-              <form method="POST" action="?/delete" use:enhance>
+          <div class="flex items-center gap-2">
+            {#if !item.isPublished}
+              <form method="POST" action="?/publish" use:enhance>
                 <input type="hidden" name="id" value={item.id} />
-                <button class="w-12 h-12 bg-zinc-950 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-red-400 transition-all" title="Eliminar">
-                  <Trash size={20} />
+                <button class="w-12 h-12 bg-zinc-950 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-primary-400 transition-all" title="Publicar">
+                  <PaperPlaneTilt size={20} />
                 </button>
               </form>
-            </div>
-          {:else}
-            <button class="px-6 h-12 border border-white/10 text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-              Marcar como leído
+            {/if}
+            <button class="w-12 h-12 bg-zinc-950 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-all" title="Editar">
+              <PencilSimple size={20} />
             </button>
-          {/if}
+            <form method="POST" action="?/delete" use:enhance>
+              <input type="hidden" name="id" value={item.id} />
+              <button class="w-12 h-12 bg-zinc-950 border border-white/5 flex items-center justify-center text-zinc-500 hover:text-red-400 transition-all" title="Eliminar">
+                <Trash size={20} />
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     {:else}

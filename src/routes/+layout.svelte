@@ -1,7 +1,8 @@
 <script lang="ts">
   import Toast from '$lib/components/Toast.svelte';
-  import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+  import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
   import PromptModal from '$lib/components/PromptModal.svelte';
+  import { uiStore } from '$lib/stores/uiStore';
   import CookieBanner from '$lib/components/CookieBanner.svelte';
   import '../app.css';
 
@@ -184,7 +185,16 @@
     {@render children()}
   {/if}
 
-  <ConfirmModal />
+  <ConfirmModal 
+    show={!!$uiStore.confirmDialog}
+    title={$uiStore.confirmDialog?.title || ''}
+    message={$uiStore.confirmDialog?.message || ''}
+    confirmText={$uiStore.confirmDialog?.confirmText}
+    cancelText={$uiStore.confirmDialog?.cancelText}
+    type={$uiStore.confirmDialog?.type}
+    onConfirm={$uiStore.confirmDialog?.onConfirm}
+    onCancel={$uiStore.confirmDialog?.onCancel || (() => uiStore.closeConfirm())}
+  />
   <PromptModal />
   <Toast />
   <Toaster position="top-right" expand={true} richColors theme="dark" />

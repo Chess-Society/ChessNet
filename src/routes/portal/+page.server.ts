@@ -11,13 +11,13 @@ export const load: PageServerLoad = async (event) => {
         .where('parentEmail', '==', parentEmail)
         .get();
 
-    const students = studentsSnapshot.docs.map(doc => ({
+    const students = studentsSnapshot.docs.map((doc: any) => ({
         id: doc.id,
         ...doc.data()
     }));
 
     // 2. Extract School IDs to fetch specific announcements
-    const schoolIds = [...new Set(students.map(s => s.schoolId).filter(Boolean))];
+    const schoolIds = [...new Set(students.map((s: any) => s.schoolId).filter(Boolean))];
 
     // 3. Fetch Announcements
     // - Global announcements
@@ -30,7 +30,7 @@ export const load: PageServerLoad = async (event) => {
     const announcementsSnapshot = await announcementsQuery.get();
     
     // Filter announcements in memory because Firestore doesn't support complex OR queries easily with orderBy
-    const allAnnouncements = announcementsSnapshot.docs.map(doc => {
+    const allAnnouncements = announcementsSnapshot.docs.map((doc: any) => {
         const d = doc.data();
         return {
             id: doc.id,
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async (event) => {
             createdAt: d.createdAt?.toDate ? d.createdAt.toDate().toISOString() : d.createdAt,
             isGlobal: !!(d.is_global || d.isGlobal)
         };
-    }).filter(ann => {
+    }).filter((ann: any) => {
         if (ann.isGlobal) return true;
         if (ann.schoolId && schoolIds.includes(ann.schoolId)) return true;
         return false;

@@ -10,12 +10,18 @@ export const load: PageServerLoad = async ({ locals }) => {
     throw redirect(302, '/login');
   }
 
-  const form = await superValidate(zod(schoolSchema as any));
-  
-  return {
-    user: locals.user,
-    form
-  };
+  try {
+    const form = await superValidate(zod(schoolSchema as any));
+    
+    return {
+      user: locals.user,
+      form
+    };
+  } catch (err) {
+    console.error('Error loading schools create page:', err);
+    // If it fails, we still want to return something or throw a better error
+    throw err;
+  }
 };
 
 export const actions: Actions = {

@@ -10,8 +10,8 @@ export const load: PageServerLoad = async (event) => {
         .where('parentEmail', '==', parentEmail)
         .get();
 
-    const students = studentsSnapshot.docs.map(doc => doc.data());
-    const schoolIds = [...new Set(students.map(s => s.schoolId).filter(Boolean))];
+    const students = studentsSnapshot.docs.map((doc: any) => doc.data());
+    const schoolIds = [...new Set(students.map((s: any) => s.schoolId).filter(Boolean))];
 
     // Fetch all active announcements
     const announcementsSnapshot = await adminDb.collection('announcements')
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async (event) => {
         .orderBy('createdAt', 'desc')
         .get();
 
-    const announcements = announcementsSnapshot.docs.map(doc => {
+    const announcements = announcementsSnapshot.docs.map((doc: any) => {
         const d = doc.data();
         return {
             id: doc.id,
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async (event) => {
             createdAt: d.createdAt?.toDate ? d.createdAt.toDate().toISOString() : d.createdAt,
             isGlobal: !!(d.is_global || d.isGlobal)
         };
-    }).filter(ann => {
+    }).filter((ann: any) => {
         if (ann.isGlobal) return true;
         if (ann.schoolId && schoolIds.includes(ann.schoolId)) return true;
         return false;

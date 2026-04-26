@@ -2,6 +2,7 @@ import { adminDb } from '$lib/server/firebase-admin';
 import { communicationApi } from '$lib/api/communication';
 import type { PageServerLoad, Actions } from './$types';
 import { serializeRecord } from '$lib/server/serialize';
+import { error, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const user = locals.user;
@@ -10,53 +11,23 @@ export const load: PageServerLoad = async ({ locals }) => {
   const role = locals.role;
   const isAdmin = locals.isAdmin;
 
-  let announcements: any[] = [];
-  let classes: any[] = [];
+  // Teachers/Admins load all or owned
+  const announcementsSnap = await adminDb.collection("announcements")
+    .where("ownerId", "==", user.uid)
+    .orderBy("createdAt", "desc")
+    .get();
+  
+  const announcements = announcementsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
 
-  if (role === 'parent') {
-    // 1. Fetch children to know which announcements are relevant
-    const childrenSnap = await adminDb.collection("students")
-      .where("parentEmail", "==", user.email?.toLowerCase())
-      .get();
-    
-    const children = childrenSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-    const schoolIds = [...new Set(children.map((c: any) => c.school_id || c.schoolId).filter(Boolean))];
-    const classIds = [...new Set(children.map((c: any) => c.class_id || c.classId).filter(Boolean))];
+  const classesSnap = await adminDb.collection("classes").where("owner_id", "==", user.uid).get();
+  const classes = classesSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
 
-    const announcementsSnap = await adminDb.collection("announcements")
-      .where("isPublished", "==", true)
-      .orderBy("createdAt", "desc")
-      .limit(50)
-      .get();
-    
-    const allAnnouncements = announcementsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-    
-    announcements = allAnnouncements.filter((a: any) => {
-      if (a.targetType === 'all') return true;
-      if (a.targetType === 'school' && schoolIds.includes(a.targetId)) return true;
-      if (a.targetType === 'class' && classIds.includes(a.targetId)) return true;
-      if (a.targetType === 'student' && children.some(c => c.id === a.targetId)) return true;
-      return false;
-    });
-  } else {
-    // Teachers/Admins load all or owned
-    const announcementsSnap = await adminDb.collection("announcements")
-      .where("ownerId", "==", user.uid)
-      .orderBy("createdAt", "desc")
-      .get();
-    
-    announcements = announcementsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    const classesSnap = await adminDb.collection("classes").where("owner_id", "==", user.uid).get();
-    classes = classesSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
-  }
-
-  return serializeRecord({
-    announcements,
-    classes,
+  return {
+    announcements: serializeRecord<any[]>(announcements),
+    classes: serializeRecord<any[]>(classes),
     role,
     isAdmin
-  });
+  };
 };
 
 export const actions: Actions = {
@@ -70,7 +41,7 @@ export const actions: Actions = {
     const targetType = data.get('targetType') as string || 'school';
     const schoolId = data.get('schoolId') as string || 'all';
     let targetId = data.get('classId') as string || undefined;
-    const priority = data.get('priority') as string || 'normal';
+    const priority = (data.get('priority') as "low" | "normal" | "high" | "urgent") || 'normal';
     const isPublished = data.get('isPublished') === 'true';
     
     // Si el destino es escuela, el targetId es el schoolId (si no es 'all')
@@ -84,7 +55,7 @@ export const actions: Actions = {
         title,
         content,
         targetType === 'class' ? 'class' : 'general',
-        targetType,
+        targetType as any,
         targetId,
         priority,
         isPublished,

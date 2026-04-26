@@ -16,13 +16,19 @@
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
     "test:report": "playwright show-report",
-    "admin:claims": "tsx scripts/set-admin-claims.ts"
+    "admin:claims": "tsx scripts/set-admin-claims.ts",
+    "package": "svelte-package"
+  },
+  "exports": {
+    ".": "./src/lib/index.ts",
+    "./*": "./src/lib/*"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "@sveltejs/adapter-netlify": "^5.2.3",
     "@sveltejs/enhanced-img": "^0.10.4",
     "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/package": "^2.5.7",
     "@sveltejs/vite-plugin-svelte": "^6.0.0",
     "@types/pdf-parse": "^1.1.5",
     "@typescript-eslint/eslint-plugin": "^7.0.0",

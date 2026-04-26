@@ -30,7 +30,8 @@
     ChartPieSlice,
     Lightning,
     Question,
-    WarningCircle
+    WarningCircle,
+    Megaphone
   } from 'phosphor-svelte';
 
   import { fade, fly } from 'svelte/transition';

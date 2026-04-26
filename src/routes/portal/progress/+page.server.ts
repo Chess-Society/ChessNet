@@ -13,7 +13,7 @@ export const load: PageServerLoad = async (event) => {
         .where('parentEmail', '==', parentEmail)
         .get();
 
-    const students = studentsSnapshot.docs.map(doc => ({
+    const students = studentsSnapshot.docs.map((doc: any) => ({
         id: doc.id,
         ...doc.data()
     }));
@@ -24,7 +24,7 @@ export const load: PageServerLoad = async (event) => {
 
     // 2. Select current student
     const currentStudent = studentId 
-        ? students.find(s => s.id === studentId) 
+        ? students.find((s: any) => s.id === studentId) 
         : students[0];
 
     if (!currentStudent) {
@@ -36,22 +36,22 @@ export const load: PageServerLoad = async (event) => {
         .where('studentId', '==', currentStudent.id)
         .get();
 
-    const studentSkills = skillsSnapshot.docs.map(doc => doc.data());
+    const studentSkills = skillsSnapshot.docs.map((doc: any) => doc.data());
 
     // Fetch Skill definitions to get names/categories
-    const skillIds = studentSkills.map(s => s.skillId);
-    let skillDefinitions = [];
+    const skillIds = studentSkills.map((s: any) => s.skillId);
+    let skillDefinitions: any[] = [];
     if (skillIds.length > 0) {
         // Firestore limit for 'in' query is 30, but let's assume it's small for now
         // If more than 30, we would need to chunk it.
         const skillDefsSnapshot = await adminDb.collection('skills')
             .where('__name__', 'in', skillIds.slice(0, 30))
             .get();
-        skillDefinitions = skillDefsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        skillDefinitions = skillDefsSnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
     }
 
-    const skillsWithData = studentSkills.map(ss => {
-        const def = skillDefinitions.find(d => d.id === ss.skillId);
+    const skillsWithData = studentSkills.map((ss: any) => {
+        const def = skillDefinitions.find((d: any) => d.id === ss.skillId);
         return {
             ...ss,
             name: def?.name || 'Habilidad desconocida',
@@ -66,7 +66,7 @@ export const load: PageServerLoad = async (event) => {
         .limit(20)
         .get();
 
-    const attendance = attendanceSnapshot.docs.map(doc => ({
+    const attendance = attendanceSnapshot.docs.map((doc: any) => ({
         id: doc.id,
         ...doc.data()
     }));
