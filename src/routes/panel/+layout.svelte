@@ -374,12 +374,14 @@
         </div>
 
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-          <a href="/portal" 
-             onclick={() => showMobileMenu = false}
-             class="flex items-center gap-4 px-6 py-4 rounded-none text-blue-400 font-black bg-blue-500/5 border border-blue-500/10 transition-all font-outfit mb-2">
-            <Users weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">Portal Familiar</span>
-          </a>
+          {#if isAdmin || userRole === 'parent' || userRole === 'student'}
+            <a href="/portal" 
+               onclick={() => showMobileMenu = false}
+               class="flex items-center gap-4 px-6 py-4 rounded-none text-blue-400 font-black bg-blue-500/5 border border-blue-500/10 transition-all font-outfit mb-2">
+              <Users weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">Portal Familiar</span>
+            </a>
+          {/if}
 
           <a href="/panel/settings" 
              onclick={() => showMobileMenu = false}
@@ -570,11 +572,13 @@
               <Target size={20} weight={currentRoute.includes('/missions') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
             </a>
             <div class="w-px h-6 bg-white/5 mx-1"></div>
-            <a href="/portal" 
-               class="p-2.5 rounded-none hover:bg-blue-500/10 transition-all duration-300 {currentRoute.includes('/portal') ? 'text-blue-400 bg-blue-500/10 shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
-               title="Portal Familiar">
-              <Users size={20} weight={currentRoute.includes('/portal') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
-            </a>
+            {#if isAdmin || userRole === 'parent' || userRole === 'student'}
+              <a href="/portal" 
+                 class="p-2.5 rounded-none hover:bg-blue-500/10 transition-all duration-300 {currentRoute.includes('/portal') ? 'text-blue-400 bg-blue-500/10 shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+                 title="Portal Familiar">
+                <Users size={20} weight={currentRoute.includes('/portal') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+              </a>
+            {/if}
           </div>
         {:else}
            <div class="hidden lg:flex items-center gap-4 px-6 py-2 bg-white/5 border border-white/10">
