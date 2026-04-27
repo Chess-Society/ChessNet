@@ -61,7 +61,7 @@ export const actions: Actions = {
         return message(form, 'Has alcanzado el límite de 10 alumnos del plan gratuito. Mejora a Premium para alumnos ilimitados.', { status: 403 });
       }
 
-      const { ...studentData } = form.data;
+      const { id, ...studentData } = form.data;
       const now = new Date().toISOString();
 
       // Add audit fields

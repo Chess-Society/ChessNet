@@ -94,7 +94,7 @@
   });
 </script>
 
-<div class="p-8 lg:p-12 space-y-12 max-w-[1600px] mx-auto pb-32">
+<div class="p-4 md:p-12 space-y-12 max-w-[1600px] mx-auto pb-32">
   <header class="flex flex-col md:flex-row md:items-end justify-between gap-8">
     <div class="space-y-4">
       <div class="flex items-center gap-3">
@@ -138,7 +138,7 @@
         >
           <div class="absolute inset-0 bg-primary-500/10 translate-y-full group-hover/sync:translate-y-0 transition-transform duration-300"></div>
           <ArrowsClockwise weight="bold" size={20} class="relative z-10 {isVerifyingAll ? 'animate-spin' : 'group-hover/sync:rotate-180 transition-transform duration-700'}" />
-          <span class="relative z-10">{isVerifyingAll ? 'Sincronizando...' : 'Sincronizar todo'}</span>
+          <span class="relative z-10">{isVerifyingAll ? 'Sinc...' : 'Sincronizar'}</span>
         </button>
       </form>
 
@@ -220,7 +220,7 @@
           </div>
         </div>
       {:else}
-        <div class="col-span-full py-32 flex flex-col items-center justify-center text-center space-y-6 bg-zinc-950/50 border border-dashed border-white/10">
+        <div class="col-span-full py-12 md:py-32 flex flex-col items-center justify-center text-center space-y-6 bg-zinc-950/50 border border-dashed border-white/10">
           <Target size={64} class="text-zinc-800" weight="thin" />
           <div class="space-y-2">
             <h3 class="text-2xl font-outfit font-black text-white uppercase italic">No hay misiones creadas</h3>

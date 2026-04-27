@@ -159,7 +159,7 @@
         <span class="text-[10px] font-outfit font-black text-violet-300 uppercase tracking-widest">{$t('tournaments.competition_engine')}</span>
       </div>
       <div>
-        <h1 class="text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-none">
+        <h1 class="text-4xl md:text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-none">
           <span class="gradient-text">{$t('tournaments.list_title')}</span>
         </h1>
         <p class="text-zinc-500 font-medium text-lg mt-3 font-jakarta">
@@ -237,7 +237,7 @@
   </div>
 
   {#if filteredTournaments.length === 0}
-    <div class="bento-card p-24 text-center flex flex-col items-center gap-10" in:fly={{ y: 20 }}>
+    <div class="bento-card p-8 md:p-24 text-center flex flex-col items-center gap-10" in:fly={{ y: 20 }}>
       <div class="relative">
         <div class="absolute inset-0 bg-violet-500/20 blur-[50px]"></div>
         <div class="w-32 h-32 bg-zinc-800/50 flex items-center justify-center text-zinc-700 shadow-2xl border border-zinc-700/50 relative">

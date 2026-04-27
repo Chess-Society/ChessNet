@@ -67,8 +67,10 @@ export const actions: Actions = {
       if (!classSnap.exists) return message(form, 'Clase no encontrada', { status: 404 });
       if (classSnap.data()?.owner_id !== locals.user.uid) return message(form, 'No tienes permisos para editar esta clase', { status: 403 });
 
+      const { id, ...classData } = form.data;
+
       await classRef.update({
-        ...form.data,
+        ...classData,
         updated_at: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });

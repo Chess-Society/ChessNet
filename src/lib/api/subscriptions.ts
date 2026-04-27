@@ -210,10 +210,10 @@ export const initiateUpgrade = async (planName: string, uid?: string, email?: st
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        plan_name: planName === 'premium' ? 'Maestro Premium' : planName,
-        price_id: 'price_1T6H9xRBnPDD6EfR0BmyYKYf', // ID para 1€/mes (Maestro Premium)
+        planName: planName === 'premium' ? 'Maestro Premium' : planName,
+        priceId: 'price_1T6H9xRBnPDD6EfR0BmyYKYf', // ID para 1€/mes (Maestro Premium)
         uid: uid || auth.currentUser?.uid,
-        user_email: email || auth.currentUser?.email
+        userEmail: email || auth.currentUser?.email
       })
     });
 
@@ -222,7 +222,12 @@ export const initiateUpgrade = async (planName: string, uid?: string, email?: st
       throw new Error(errorData.error || `Error ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return {
+      success: data.success,
+      payment_url: data.paymentUrl,
+      error: data.error
+    };
   } catch (error: any) {
     console.error('❌ Error initiating Stripe upgrade:', error);
     return {

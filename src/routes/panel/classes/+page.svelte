@@ -138,7 +138,7 @@
               </span>
             </div>
           </div>
-          <h1 class="text-5xl md:text-7xl font-outfit font-black text-white tracking-tighter uppercase leading-none">
+          <h1 class="text-4xl md:text-7xl font-outfit font-black text-white tracking-tighter uppercase leading-none">
             {$t('classes.title')}
           </h1>
           <p class="text-slate-400 font-jakarta text-xl font-medium tracking-tight mt-4 opacity-80 max-w-xl">
@@ -186,7 +186,7 @@
 
   <!-- Strategic Metrics Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20 relative z-10">
-    <div class="bento-card group p-10 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-none relative overflow-hidden transition-all duration-700 hover:border-primary-500/30">
+    <div class="bento-card group p-6 md:p-10 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-none relative overflow-hidden transition-all duration-700 hover:border-primary-500/30">
       <div class="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 group-hover:scale-125 group-hover:-rotate-12">
         <GraduationCap size={240} weight="fill" />
       </div>
@@ -204,7 +204,7 @@
       </div>
     </div>
 
-    <div class="bento-card group p-10 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-none relative overflow-hidden transition-all duration-700 hover:border-blue-500/30">
+    <div class="bento-card group p-6 md:p-10 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-none relative overflow-hidden transition-all duration-700 hover:border-blue-500/30">
       <div class="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 group-hover:scale-125 group-hover:-rotate-12">
         <UsersThree size={240} weight="fill" />
       </div>
@@ -222,7 +222,7 @@
       </div>
     </div>
 
-    <div class="bento-card group p-10 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-none relative overflow-hidden transition-all duration-700 hover:border-amber-500/30">
+    <div class="bento-card group p-6 md:p-10 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-none relative overflow-hidden transition-all duration-700 hover:border-amber-500/30">
       <div class="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 group-hover:scale-125 group-hover:-rotate-12">
         <Target size={240} weight="fill" />
       </div>
@@ -242,7 +242,7 @@
       </div>
     </div>
 
-    <div class="bento-card group p-10 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-none relative overflow-hidden transition-all duration-700 hover:border-primary-500/30">
+    <div class="bento-card group p-6 md:p-10 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-none relative overflow-hidden transition-all duration-700 hover:border-primary-500/30">
       <div class="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-700 group-hover:scale-125 group-hover:-rotate-12">
         <CurrencyEur size={240} weight="fill" />
       </div>
@@ -308,7 +308,7 @@
 
   <!-- Content Section -->
   {#if classes.length === 0}
-    <div class="relative z-10 bento-card border-dashed border-white/10 p-32 text-center space-y-12 rounded-none group" in:fade>
+    <div class="relative z-10 bento-card border-dashed border-white/10 p-8 md:p-32 text-center space-y-12 rounded-none group" in:fade>
         <div class="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary-600/5 to-transparent"></div>
         <div class="w-48 h-48 bg-zinc-950 rounded-none flex items-center justify-center mx-auto border border-white/10 text-slate-700 shadow-3xl relative z-10 group-hover:rotate-12 transition-all duration-1000">
             <BookOpen size={100} weight="duotone" class="opacity-20 group-hover:opacity-60 transition-opacity" />
@@ -325,7 +325,7 @@
         </button>
     </div>
   {:else if filteredClasses.length === 0}
-    <div class="relative z-10 bento-card border-dashed border-white/10 p-32 text-center space-y-12 rounded-none" in:fade>
+    <div class="relative z-10 bento-card border-dashed border-white/10 p-8 md:p-32 text-center space-y-12 rounded-none" in:fade>
       <div class="w-48 h-48 bg-zinc-950 rounded-none flex items-center justify-center mx-auto border border-white/10 text-slate-800 shadow-2xl relative z-10 rotate-(-12deg)">
         <MagnifyingGlass size={100} weight="duotone" class="opacity-10" />
       </div>

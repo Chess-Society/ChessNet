@@ -100,6 +100,13 @@ export const adminDb = new Proxy({} as any, {
         }
         
         const db = getFirestore();
+        // Set settings if not already set
+        try {
+            db.settings({ ignoreUndefinedProperties: true });
+        } catch (e) {
+            // Ignore error if already set
+        }
+        
         const value = (db as any)[prop];
         return typeof value === 'function' ? value.bind(db) : value;
     },

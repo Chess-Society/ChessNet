@@ -136,7 +136,7 @@
         </div>
         <div>
           <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-none">
+            <h1 class="text-4xl md:text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-none">
               <span class="gradient-text">{$t('schools.title')}</span>
             </h1>
           </div>

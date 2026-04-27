@@ -15,9 +15,11 @@ export const POST: RequestHandler = async (event) => {
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY || '');
   try {
-    const { planName, priceId } = await request.json();
-    const uid = locals.user.uid;
-    const userEmail = locals.user.email;
+    const body = await request.json();
+    const planName = body.planName || body.plan_name;
+    const priceId = body.priceId || body.price_id;
+    const uid = body.uid || locals.user.uid;
+    const userEmail = body.userEmail || body.user_email || locals.user.email;
 
     if (!priceId) {
       return json({ success: false, error: 'Falta el ID de precio' }, { status: 400 });

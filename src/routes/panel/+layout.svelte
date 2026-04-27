@@ -314,7 +314,7 @@
   <!-- Mobile Header (Premium App Style) -->
   <div class="lg:hidden fixed top-0 left-0 right-0 h-[var(--ios-nav-height)] bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 pt-[env(safe-area-inset-top)] z-[60] transition-transform duration-300" style="transform: translateY(calc(var(--banner-height, 0px) + {isImpersonating ? '40px' : '0px'}))">
     <!-- Logo: min 44x44px para área táctil Apple HIG -->
-    <button type="button" onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto min-w-[44px] min-h-[44px] -ml-2 pl-2" aria-label="Go to home">
+    <button type="button" onclick={handleGoHome} class="flex items-center gap-2 group active:scale-95 transition-transform pointer-events-auto min-w-[44px] min-h-[44px] -ml-2 pl-4" aria-label="Go to home">
       <Logo className="h-7 w-7 shadow-violet-flare/20" />
       <span class="text-xl font-outfit font-black text-white tracking-tighter uppercase">ChessNet</span>
     </button>
@@ -415,6 +415,13 @@
             <span class="text-xs uppercase tracking-widest">{$t('nav.changelog')}</span>
           </a>
 
+          <a href="/panel/support" 
+             onclick={() => showMobileMenu = false}
+             class="flex items-center gap-4 px-6 py-4 rounded-none text-rose-400 font-bold bg-rose-500/5 border border-rose-500/10 transition-all font-outfit {currentRoute === '/panel/support' ? 'bg-rose-500/10 text-rose-400' : ''}">
+            <Heart weight="duotone" size={20} class="animate-pulse" />
+            <span class="text-xs uppercase tracking-widest">Proyectos Apoyados</span>
+          </a>
+
           {#if userRole !== 'parent'}
             <div class="h-px bg-white/5 my-2 mx-4"></div>
             <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.management') || 'Gestión'}</p>
@@ -475,7 +482,7 @@
           </a>
         </nav>
 
-        <div class="p-6 border-t border-white/5">
+        <div class="p-6 pb-24 border-t border-white/5">
           <button 
             type="button"
             onclick={handleLogout}
@@ -886,6 +893,18 @@
             <div>
               <p class="text-xs font-black text-white uppercase tracking-wider">Reportar un Fallo</p>
               <p class="text-[9px] text-zinc-600 font-bold uppercase">Ayúdanos a mejorar</p>
+            </div>
+          </button>
+
+          <button 
+            type="button" 
+            class="w-full flex items-center gap-4 p-4 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-all text-left group"
+            onclick={() => { showSupportMenu = false; goto('/panel/support'); }}
+          >
+            <Heart size={20} class="text-rose-500 group-hover:scale-110 transition-transform animate-pulse" />
+            <div>
+              <p class="text-xs font-black text-white uppercase tracking-wider">Proyectos Apoyados</p>
+              <p class="text-[9px] text-zinc-600 font-bold uppercase">Descubre nuestras colaboraciones</p>
             </div>
           </button>
         </div>

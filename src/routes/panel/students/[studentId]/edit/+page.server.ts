@@ -57,7 +57,7 @@ export const actions: Actions = {
     if (!form.valid) return message(form, 'Revisa los errores del formulario', { status: 400 });
 
     try {
-      const { ...studentData } = form.data;
+      const { id, ...studentData } = form.data;
       const uid = locals.user.uid;
 
       // Ensure ownership check before update

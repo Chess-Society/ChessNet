@@ -61,8 +61,9 @@ export const actions: Actions = {
       }
 
       const now = new Date().toISOString();
+      const { id, ...data } = form.data;
       const classData = {
-        ...form.data,
+        ...data,
         owner_id: locals.user.uid,
         ownerId: locals.user.uid,
         school_id: form.data.schoolId, // Ensure snake_case for compatibility
