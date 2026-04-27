@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t } from '$lib/i18n';
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { 
@@ -34,7 +34,7 @@
     Warning
   } from 'phosphor-svelte';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { attendanceSchema } from '$lib/schemas/attendance';
   import VisualAttendanceCalendar from '$lib/components/Attendance/VisualAttendanceCalendar.svelte';
   import { fade, fly, scale } from 'svelte/transition';
@@ -46,8 +46,7 @@
 
   let { data }: { data: PageData } = $props();
 
-  // svelte-ignore state_referenced_locally
-  const { form, enhance, delayed, message, tainted } = superForm(data.form as any, {
+  const { form, enhance, delayed, message, isTainted } = superForm(untrack(() => data.form) as any, {
     validators: zod(attendanceSchema as any),
     dataType: 'json',
     onUpdated({ form }) {
@@ -60,7 +59,7 @@
     onError({ result }) {
       toast.error((result as any).error?.message || $t('common.error_occurred'));
     }
-  });
+  }) as any;
 
   let viewMode = $state('list'); // 'list' | 'calendar'
   let searchQuery = $state('');
@@ -498,7 +497,7 @@
   </div>
 
   <!-- Floating Save Bar -->
-  {#if tainted && selectedClassId && viewMode === 'list'}
+  {#if isTainted && selectedClassId && viewMode === 'list'}
     <div 
       class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-2xl"
       transition:fly={{ y: 50, duration: 600, easing: cubicOut }}

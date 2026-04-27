@@ -1,6 +1,7 @@
 <script lang="ts">
   import { superForm, message as messageHelper } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { untrack } from 'svelte';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { skillSchema } from '$lib/schemas/skill';
   import { t } from '$lib/i18n';
   import { 
@@ -34,8 +35,8 @@
 
   let { data }: { data: PageData } = $props();
 
-  const { form, errors, enhance, delayed, message, isTainted } = superForm(data.form, {
-    validators: zod(skillSchema),
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(untrack(() => data.form), {
+    validators: zod(skillSchema as any),
     dataType: 'json',
     onUpdated({ form }) {
       if (form.valid) {
@@ -44,7 +45,7 @@
         import('$lib/stores/toast').then(m => m.toast.error(form.message as string));
       }
     }
-  });
+  }) as any;
 
   const categories = $derived($appStore.categories.length > 0 
     ? $appStore.categories 
@@ -78,13 +79,13 @@
   }
 
   function removeItem(key: ListKey, index: number) {
-    $form[key] = $form[key].filter((_, i) => i !== index);
+    $form[key] = $form[key].filter((_: any, i: number) => i !== index);
     if ($form[key].length === 0) $form[key] = [''];
   }
 
   function togglePrerequisite(id: string) {
     if ($form.prerequisites.includes(id)) {
-      $form.prerequisites = $form.prerequisites.filter(p => p !== id);
+      $form.prerequisites = $form.prerequisites.filter((p: string) => p !== id);
     } else {
       $form.prerequisites = [...$form.prerequisites, id];
     }
@@ -118,7 +119,7 @@
       </div>
 
       <div class="flex items-center gap-3">
-        {#if isTainted()}
+        {#if isTainted}
           <span class="text-[10px] font-black uppercase tracking-widest text-amber-500 animate-pulse hidden md:block mr-4">
             {$t('common.unsaved_changes')}
           </span>

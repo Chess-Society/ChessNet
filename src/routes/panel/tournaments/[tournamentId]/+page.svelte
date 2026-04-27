@@ -310,7 +310,7 @@
           const api = await getLocalTournamentsApi();
           await api.removePlayer(tournamentId, studentId);
           toast.success($t('tournaments.player_removed'));
-      } catch (error) {
+      } catch (error: any) {
           console.error("Error removing player:", error);
           toast.error(error.message || $t('tournaments.error_removing_player'));
       }

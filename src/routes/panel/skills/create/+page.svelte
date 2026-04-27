@@ -1,6 +1,7 @@
 <script lang="ts">
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { untrack } from 'svelte';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { skillSchema } from '$lib/schemas/skill';
   import { t } from '$lib/i18n';
   import { 
@@ -32,8 +33,7 @@
 
   let { data } = $props<{ data: any }>();
 
-  // svelte-ignore state_referenced_locally
-  const { form, errors, enhance, delayed, tainted, message } = superForm(data.form, {
+  const { form, errors, enhance, delayed, isTainted, message } = superForm(untrack(() => data.form), {
     validators: zod(skillSchema as any),
     dataType: 'json',
     onUpdated: ({ form }) => {
@@ -44,7 +44,7 @@
         toast.error(form.message as string);
       }
     }
-  });
+  }) as any;
 
   const categories = $derived($appStore.categories.length > 0 
     ? $appStore.categories 
@@ -114,7 +114,7 @@
       </div>
 
       <div class="flex items-center gap-3">
-        {#if $tainted}
+        {#if isTainted}
           <span class="text-[10px] font-black uppercase tracking-widest text-amber-500 animate-pulse hidden md:block mr-4">
             {$t('common.unsaved_changes')}
           </span>

@@ -200,4 +200,8 @@ export const es = {
     'admin.tech.admin_response': 'RESPUESTA_ADM_TX',
     'admin.tech.encode_response': 'CODIFICAR_RESPUESTA',
     'admin.tech.transmit': 'TRANSMITIR_DATOS',
+    'admin.logs.success': 'Completado',
+    'admin.logs.info': 'Información',
+    'admin.logs.warning': 'Aviso',
+    'admin.logs.error': 'Error',
 };

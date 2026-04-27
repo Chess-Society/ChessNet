@@ -1,5 +1,7 @@
 export const es = {
     'common.initializing': 'Inicializando...',
+    'common.phone': 'Teléfono',
+    'common.unsaved_changes': 'Cambios sin guardar',
     'common.achievement': 'Logro',
     'common.accept': 'Aceptar',
     'nav.donate': 'Donar',
@@ -262,6 +264,8 @@ export const es = {
     'actions.planner.desc': 'Planificar clases',
     'actions.achievements.title': 'Insignias',
     'actions.achievements.desc': 'Logros y metas',
+    'actions.missions.title': 'Misiones',
+    'actions.missions.desc': 'Desafíos Lichess y XP',
     'panel.welcome': 'Hola de nuevo, {name}',
     'panel.overview': 'Resumen del Panel',
     'panel.stats': 'Estadísticas Rápidas',

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { goto, invalidateAll } from '$app/navigation';
   import { page } from '$app/stores';
   import { 
@@ -22,7 +22,7 @@
     BookOpen
   } from 'phosphor-svelte';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { studentSchema } from '$lib/schemas/student';
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
@@ -32,8 +32,7 @@
 
   let { data }: { data: any } = $props();
 
-  // svelte-ignore state_referenced_locally
-  const { form, errors, constraints, enhance, delayed, reset, message, isTainted } = superForm(data.form as any, {
+  const { form, errors, constraints, enhance, delayed, reset, message, isTainted } = superForm(untrack(() => data.form) as any, {
     validators: zod(studentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
@@ -72,7 +71,7 @@
     }
   }
 
-  const hasChanges = $derived(isTainted());
+  const hasChanges = $derived(isTainted);
 
   const resetToOriginal = () => {
     reset();
@@ -179,7 +178,7 @@
               {/if}
            </div>
 
-           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div class="space-y-4">
                  <label for="firstName" class="input-label">{$t('students.first_name')}</label>
                  <div class="input-wrapper">
@@ -206,6 +205,23 @@
                     />
                  </div>
               </div>
+           </div>
+
+           <div class="space-y-4 pt-4 border-t border-white/5">
+              <label for="studentEmail" class="input-label">{$t('students.student_email')}</label>
+              <div class="input-wrapper">
+                 <input
+                   id="studentEmail"
+                   name="studentEmail"
+                   type="email"
+                   bind:value={$form.studentEmail}
+                   class="glass-input"
+                   placeholder={$t('students.student_email_placeholder')}
+                   {...$constraints.studentEmail}
+                 />
+              </div>
+              <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-tight italic pl-2">{$t('students.student_email_tip')}</p>
+              {#if $errors.studentEmail}<p class="error-msg">{$errors.studentEmail}</p>{/if}
            </div>
         </div>
       </section>

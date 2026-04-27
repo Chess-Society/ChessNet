@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { goto } from '$app/navigation';
   import { toast } from '$lib/stores/toast';
   import { 
@@ -24,14 +24,12 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { schoolSchema } from '$lib/schemas/school';
 
-  let { data } = $props<{ data: PageData }>();
-  // svelte-ignore state_referenced_locally
-  let { form: dataForm } = data;
+  let { data }: { data: PageData } = $props();
 
-  const { form, errors, enhance, delayed, message, tainted } = superForm(dataForm, {
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(untrack(() => data.form), {
     validators: zod(schoolSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
@@ -41,7 +39,7 @@
         toast.error(form.message);
       }
     }
-  });
+  }) as any;
 
   let searchQuery = $state('');
   let isSelectOpen = $state(false);
@@ -91,7 +89,7 @@
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tighter">{$t('schools.new_title')}</h1>
-            {#if $tainted}
+            {#if isTainted}
               <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[8px] font-black uppercase tracking-widest animate-pulse">{$t('common.unsaved_changes')}</span>
             {/if}
           </div>

@@ -1,8 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, ownerFilter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import { superValidate, message } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { paymentSchema } from '$lib/schemas/payment';
 import { fail, redirect } from '@sveltejs/kit';
 
@@ -16,9 +16,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const [paymentsSnap, studentsSnap, schoolsSnap] = await Promise.all([
-      adminDb.collection('payments').where('owner_id', '==', uid).orderBy('created_at', 'desc').get(),
-      adminDb.collection('students').where('owner_id', '==', uid).orderBy('name', 'asc').get(),
-      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get()
+      adminDb.collection('payments').where(ownerFilter(uid)).orderBy('created_at', 'desc').get(),
+      adminDb.collection('students').where(ownerFilter(uid)).orderBy('name', 'asc').get(),
+      adminDb.collection('schools').where(ownerFilter(uid)).orderBy('name', 'asc').get()
     ]);
 
     const payments = paymentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));

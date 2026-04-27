@@ -115,4 +115,8 @@ export const es = {
     'students.parent_name': 'Nombre del Tutor',
     'students.parent_name_placeholder': 'ej: Nombre del Padre/Madre',
     'students.portal_access_tip': 'Este email permitirá al tutor acceder al portal de familias para ver el progreso y comunicados.',
+    'students.student_email': 'Email del Alumno (Acceso Propio)',
+    'students.student_email_placeholder': 'ej: alumno@email.com',
+    'students.student_email_tip': 'Permite que el alumno tenga su propia cuenta para acceder al portal de forma independiente.',
+    'students.identity_desc': 'Información básica y académica del estudiante.',
 };

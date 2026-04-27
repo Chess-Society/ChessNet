@@ -39,14 +39,13 @@
   import { page } from '$app/stores';
 
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { onMount, untrack } from 'svelte';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { classSchema } from '$lib/schemas/class';
   
   let { data } = $props<{ data: PageData }>();
-  // svelte-ignore state_referenced_locally
-  let { form: dataForm } = data;
 
-  const { form, errors, constraints, enhance, delayed, message, tainted } = superForm(dataForm as any, {
+  const { form, errors, constraints, enhance, delayed, message, isTainted } = superForm(untrack(() => data.form) as any, {
     validators: zod(classSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
@@ -59,7 +58,7 @@
     onError({ result }) {
       toast.error((result as any).error?.message || 'Error al crear clase');
     }
-  });
+  }) as any;
 
   let schools = $derived(data.schools || []);
   const schoolIdFromUrl = $derived($page.url.searchParams.get('schoolId'));

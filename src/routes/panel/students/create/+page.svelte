@@ -31,15 +31,15 @@
     SelectionBackground
   } from 'phosphor-svelte';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
+  import { onMount, untrack } from 'svelte';
   import { studentSchema } from '$lib/schemas/student';
   import { appStore } from '$lib/stores/appStore';
   import type { PageData } from './$types';
   
   let { data } = $props<{ data: PageData }>();
   
-  // svelte-ignore state_referenced_locally
-  const { form, errors, constraints, enhance, delayed, message, tainted } = superForm(data.form, {
+  const { form, errors, constraints, enhance, delayed, message, isTainted } = superForm(untrack(() => data.form) as any, {
     validators: zod(studentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
@@ -52,7 +52,7 @@
     onError({ result }) {
       toast.error(result.error?.message || $t('common.error'));
     }
-  });
+  }) as any;
 
   let plan = $derived($appStore.settings.plan || 'free');
   let studentsCount = $derived($appStore.students.length);
@@ -229,6 +229,24 @@
                   {...$constraints.lichessUsername}
                 />
               </div>
+            </div>
+
+            <div class="space-y-3">
+              <label for="studentEmail" class="glass-label">{$t('students.student_email')}</label>
+              <div class="relative group">
+                <IdentificationBadge weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
+                <input
+                  id="studentEmail"
+                  name="studentEmail"
+                  type="email"
+                  bind:value={$form.studentEmail}
+                  placeholder={$t('students.student_email_placeholder')}
+                  class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
+                  {...$constraints.studentEmail}
+                />
+              </div>
+              <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-tight ml-1">{$t('students.student_email_tip')}</p>
+              {#if $errors.studentEmail}<p class="text-red-500 text-[10px] font-bold uppercase mt-1">{$errors.studentEmail}</p>{/if}
             </div>
           </div>
 

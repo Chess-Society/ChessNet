@@ -23,11 +23,17 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const classData = { id: classSnap.id, ...classSnap.data() };
 
     // Fetch all enrollments for this class
-    const enrollmentsSnap = await adminDb.collection("class_students")
+    let enrollmentsSnap = await adminDb.collection("class_students")
       .where("class_id", "==", classId)
       .get();
     
-    const enrolledIds = enrollmentsSnap.docs.map((doc: any) => doc.data().student_id);
+    if (enrollmentsSnap.empty) {
+      enrollmentsSnap = await adminDb.collection("class_students")
+        .where("classId", "==", classId)
+        .get();
+    }
+    
+    const enrolledIds = enrollmentsSnap.docs.map((doc: any) => doc.data().student_id || doc.data().studentId);
     
     // Fetch enrolled students details
     let students: any[] = [];

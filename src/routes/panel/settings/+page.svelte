@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { onMount, tick, untrack } from 'svelte';
   import { fade, scale } from 'svelte/transition';
   import { 
     CaretRight,
@@ -20,7 +20,7 @@
   import { auth } from '$lib/firebase';
   import { toast } from '$lib/stores/toast';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { settingsSchema } from '$lib/schemas/settings';
   import { goto } from '$app/navigation';
   import { t } from '$lib/i18n';
@@ -29,8 +29,7 @@
 
   let { data } = $props();
 
-  // svelte-ignore state_referenced_locally
-  const { form, errors, enhance, message, delayed } = superForm(data.form as any, {
+  const { form, errors, enhance, message, delayed } = superForm(untrack(() => data.form) as any, {
     validators: zod(settingsSchema as any),
     dataType: 'json',
     onUpdated({ form }) {
@@ -56,6 +55,10 @@
   });
 
   const isDirector = $derived($appStore.settings.role === 'director' || $appStore.settings.role === 'admin');
+  const isAdmin = $derived(data.isAdmin || $appStore.settings.role === 'admin');
+  const plan = $derived(isAdmin ? 'premium' : ($appStore.settings.plan || 'free'));
+  const isPremium = $derived(plan === 'premium');
+  
   const schools = $derived((data.schools as any[]) || []);
   const currentSchool = $derived(schools.length ? (schools.find((s: any) => s.id === $form.schoolId) || schools[0]) : null);
 
@@ -169,16 +172,28 @@
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-8 bg-zinc-950/50 border border-white/10 rounded-none shadow-inner group hover:border-violet-500/20 transition-all">
           <div class="flex items-center gap-6">
-            <div class="w-14 h-14 bg-violet-500/10 border border-violet-500/20 rounded-none flex items-center justify-center text-violet-500 shrink-0">
-              <Sparkle weight="duotone" class="w-7 h-7" />
+            <div class="w-14 h-14 {isPremium ? 'bg-violet-500/10 border-violet-500/30 text-violet-400' : 'bg-zinc-800 text-slate-500'} border rounded-none flex items-center justify-center shrink-0 transition-all">
+              {#if isPremium}
+                <Sparkle weight="duotone" class="w-7 h-7 animate-pulse" />
+              {:else}
+                <Medal weight="duotone" class="w-7 h-7" />
+              {/if}
             </div>
             <div>
               <p class="text-[10px] font-outfit font-black text-slate-500 uppercase tracking-[0.2em] mb-1">{$t('settings.current_level')}</p>
-              <p class="text-white font-outfit font-black text-2xl lg:text-3xl uppercase tracking-tighter">{$t('settings.plan_prefix')} {$appStore.settings.plan || $t('settings.plan_free')}</p>
+              <p class="text-white font-outfit font-black text-xl lg:text-2xl uppercase tracking-tighter flex items-center gap-2">
+                {$t('settings.plan_prefix')} 
+                <span class={isPremium ? 'text-violet-400' : 'text-white'}>
+                  {isPremium ? ($t('panel.premiumCoach') || 'MAESTRO PREMIUM') : ($t('settings.plan_free') || 'GRATUITO')}
+                </span>
+                {#if isPremium}
+                  <Crown weight="fill" class="w-5 h-5 text-amber-500" />
+                {/if}
+              </p>
             </div>
           </div>
-          <a href="/panel/upgrade" class="bg-white text-black h-14 px-10 text-[10px] font-outfit font-black uppercase tracking-[0.2em] shadow-xl hover:bg-violet-100 inline-flex items-center justify-center gap-3 group rounded-none transition-all active:scale-95">
-            {$t('settings.manage_btn')}
+          <a href="/panel/upgrade" class="{isPremium ? 'bg-zinc-900 text-white border border-white/10 hover:bg-zinc-800' : 'bg-white text-black hover:bg-violet-100'} h-14 px-10 text-[10px] font-outfit font-black uppercase tracking-[0.2em] shadow-xl inline-flex items-center justify-center gap-3 group rounded-none transition-all active:scale-95">
+            {isPremium ? ($t('settings.manage_btn') || 'DETALLES DEL PLAN') : ($t('pricing.upgrade_now') || 'MEJORAR AHORA')}
             <CaretRight weight="bold" class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </a>
         </div>

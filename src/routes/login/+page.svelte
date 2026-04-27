@@ -35,18 +35,34 @@
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 8000);
           
-          fetch('/api/auth/session', {
+          const response = await fetch('/api/auth/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: idToken }),
             signal: controller.signal
-          }).catch(() => {}).finally(() => clearTimeout(timeoutId));
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (response.ok) {
+            const result = await response.json();
+            const role = result.role;
+            
+            setTimeout(() => {
+              if (role === 'parent' || role === 'student') {
+                goto('/portal');
+              } else {
+                goto('/panel');
+              }
+            }, 1200);
+          } else {
+            // Fallback
+            setTimeout(() => goto('/panel'), 1200);
+          }
         } catch (e) {
+          // Fallback if session API fails
+          setTimeout(() => goto('/panel'), 1200);
         }
-
-        setTimeout(() => {
-          goto('/panel');
-        }, 1200);
       }
     } catch (err) {
       errorMessage = $t('auth.error.unexpected');

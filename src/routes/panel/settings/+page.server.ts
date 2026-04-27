@@ -1,8 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { settingsSchema } from '$lib/schemas/settings';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, ownerFilter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   const settings = userData.settings || {};
 
   // Fetch schools to get governance status
-  const schoolsSnap = await adminDb.collection('schools').where('owner_id', '==', uid).get();
+  const schoolsSnap = await adminDb.collection('schools').where(ownerFilter(uid)).get();
   const schools = schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
   
   const currentSchoolId = settings.schoolId || schools[0]?.id;
@@ -30,7 +30,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   return {
     form,
-    schools: serializeRecord(schools)
+    schools: serializeRecord(schools),
+    isAdmin: locals.isAdmin
   };
 };
 

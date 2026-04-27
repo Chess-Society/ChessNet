@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, Filter } from '$lib/server/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 import { checkClassLimit } from '$lib/server/plans';
 import { serializeRecord } from '$lib/server/serialize';
@@ -13,20 +13,26 @@ export const GET: RequestHandler = async (event) => {
 
   try {
     const snapshot = await adminDb.collection("classes")
-      .where("owner_id", "==", user.uid)
-      .orderBy("createdAt", "desc")
+      .where(Filter.or(
+        Filter.where('owner_id', '==', user.uid),
+        Filter.where('ownerId', '==', user.uid)
+      ))
       .get();
         
-    // Standardize response fields for frontend consumption
+    // Standardize response fields and sort in-memory
     const classes = snapshot.docs.map((doc: any) => {
       const data = doc.data();
-      return serializeRecord({ 
+      return { 
         id: doc.id, 
         ...data,
         createdAt: data.createdAt || data.created_at,
         updatedAt: data.updatedAt || data.updated_at
-      });
-    });
+      };
+    }).sort((a: any, b: any) => {
+      const dateA = a.createdAt || '';
+      const dateB = b.createdAt || '';
+      return dateB.localeCompare(dateA);
+    }).map((c: any) => serializeRecord(c));
     return json({ classes });
   } catch (error: any) {
     console.error('❌ Error in GET classes API:', error.message);
@@ -87,7 +93,12 @@ export const PUT: RequestHandler = async (event) => {
     const docRef = adminDb.collection("classes").doc(id);
     const docSnap = await docRef.get();
 
-    if (!docSnap.exists || docSnap.data()?.owner_id !== user.uid) {
+    if (!docSnap.exists) {
+      return json({ error: 'Clase no encontrada' }, { status: 404 });
+    }
+
+    const currentOwner = docSnap.data()?.owner_id || docSnap.data()?.ownerId;
+    if (currentOwner !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -129,7 +140,8 @@ export const DELETE: RequestHandler = async (event) => {
     }
 
     const data = docSnap.data();
-    if (data?.owner_id !== user.uid) {
+    const currentOwner = data?.owner_id || data?.ownerId;
+    if (currentOwner !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -137,15 +149,30 @@ export const DELETE: RequestHandler = async (event) => {
     const batch = adminDb.batch();
 
     // 1. Find and remove all enrollments for this class
-    const enrollmentsSnapshot = await adminDb.collection("class_students").where("classId", "==", id).get();
+    const enrollmentsSnapshot = await adminDb.collection("class_students")
+      .where(Filter.or(
+        Filter.where('classId', '==', id),
+        Filter.where('class_id', '==', id)
+      ))
+      .get();
     enrollmentsSnapshot.docs.forEach((doc: any) => {
       batch.delete(doc.ref);
     });
 
     // 2. Find and update all students assigned to this class
-    const studentsSnapshot = await adminDb.collection("students").where("classId", "==", id).get();
+    const studentsSnapshot = await adminDb.collection("students")
+      .where(Filter.or(
+        Filter.where('classId', '==', id),
+        Filter.where('class_id', '==', id)
+      ))
+      .get();
     studentsSnapshot.docs.forEach((doc: any) => {
-      batch.update(doc.ref, { classId: null, updatedAt: new Date().toISOString() });
+      batch.update(doc.ref, { 
+        classId: null, 
+        class_id: null,
+        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
     });
 
     // 3. Delete the class itself

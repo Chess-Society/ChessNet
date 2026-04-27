@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, ownerFilter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -17,11 +17,16 @@ export const load: PageServerLoad = async ({ locals }) => {
     
     // Obtener estudiantes y centros del usuario desde Firebase usando Admin SDK
     const [studentsSnap, schoolsSnap] = await Promise.all([
-      adminDb.collection("students").where("owner_id", "==", uid).get(),
-      adminDb.collection("schools").where("owner_id", "==", uid).get()
+      adminDb.collection("students").where(ownerFilter(uid)).get(),
+      adminDb.collection("schools").where(ownerFilter(uid)).get()
     ]);
 
-    const students = studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+    const students = studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+      .sort((a: any, b: any) => {
+        const dateA = (a.createdAt || a.created_at || '');
+        const dateB = (b.createdAt || b.created_at || '');
+        return dateB.localeCompare(dateA);
+      });
     const schools = schoolsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
 
     // Calcular estadísticas
@@ -77,7 +82,7 @@ export const actions = {
     const uid = locals.user.uid;
 
     try {
-      const snap = await adminDb.collection('students').where('owner_id', '==', uid).get();
+      const snap = await adminDb.collection('students').where(ownerFilter(uid)).get();
       const batch = adminDb.batch();
       snap.docs.forEach((doc: any) => batch.delete(doc.ref));
       await batch.commit();

@@ -1,6 +1,6 @@
 import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, ownerFilter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import { checkPlanGating } from '$lib/server/plans';
 import { TOURNAMENT_TEMPLATES } from '$lib/constants/chess-presets';
@@ -15,7 +15,8 @@ export const actions: Actions = {
 
     try {
       const doc = await adminDb.collection('local_tournaments').doc(id).get();
-      if (!doc.exists || doc.data()?.owner_id !== locals.user.uid) {
+      const currentOwner = doc.data()?.owner_id || doc.data()?.ownerId;
+      if (!doc.exists || currentOwner !== locals.user.uid) {
         return fail(403, { message: 'Unauthorized' });
       }
 
@@ -68,13 +69,13 @@ export const load: PageServerLoad = async (event) => {
     };
   }
 
-  try {
+    try {
     const uid = locals.user.uid;
     
     // Obtener torneos y estudiantes del usuario usando Admin SDK
     const [tournamentsSnap, studentsSnap] = await Promise.all([
-      adminDb.collection("local_tournaments").where("owner_id", "==", uid).get(),
-      adminDb.collection("students").where("owner_id", "==", uid).get()
+      adminDb.collection("local_tournaments").where(ownerFilter(uid)).get(),
+      adminDb.collection("students").where(ownerFilter(uid)).get()
     ]);
 
     const tournaments = tournamentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));

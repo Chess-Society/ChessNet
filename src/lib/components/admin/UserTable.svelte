@@ -11,7 +11,9 @@
     IdentificationBadge,
     Eye,
     Trash,
-    Medal
+    Medal,
+    ShieldCheckered,
+    Warning
   } from 'phosphor-svelte';
   import { fade } from 'svelte/transition';
 
@@ -30,12 +32,29 @@
   }
 
   function getPlanStatus(user: any) {
-    return user.settings?.plan === 'premium' || user.settings?.plan === 'pro' ? 'pro' : 'free';
+    const plan = user.settings?.plan;
+    if (plan === 'premium' || plan === 'pro') {
+      if (user.settings?.planExpiresAt && new Date(user.settings.planExpiresAt) < new Date()) {
+        return 'expired';
+      }
+      return 'pro';
+    }
+    return 'free';
   }
 
   function formatDate(dateStr: string) {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString();
+  }
+
+  function getRemainingDays(expiresAt: string) {
+    if (!expiresAt) return null;
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diffTime = expiry.getTime() - now.getTime();
+    if (diffTime < 0) return 0;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   }
 </script>
 
@@ -79,6 +98,7 @@
         </thead>
         <tbody class="divide-y divide-white/5">
           {#each users as user (user.id)}
+            {@const status = getPlanStatus(user)}
             <tr class="hover:bg-white/[0.01] transition-colors group">
               <td class="px-10 py-6">
                 <div class="flex items-center gap-6">
@@ -93,6 +113,12 @@
                   <div>
                     <h4 class="text-sm font-black text-white group-hover:text-primary-400 transition-colors uppercase italic font-display">{user.displayName || $t('admin.users.no_name')}</h4>
                     <p class="text-[9px] font-mono font-black text-slate-600 uppercase mt-1">{user.email}</p>
+                    {#if user.settings?.role === 'director'}
+                      <div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[7px] font-mono font-black uppercase tracking-widest self-start mt-2">
+                        <ShieldCheckered weight="fill" class="w-2.5 h-2.5" />
+                        DIRECTOR: {user.settings?.schoolName || 'S/N'}
+                      </div>
+                    {/if}
                     <div class="flex items-center gap-2 mt-1">
                       <p class="text-[7px] font-mono text-slate-800 uppercase tracking-tighter truncate max-w-[80px]">ID: {user.id}</p>
                       <button 
@@ -111,10 +137,41 @@
               </td>
 
               <td class="px-10 py-6">
-                {#if getPlanStatus(user) === 'pro'}
-                  <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-black rounded-none text-[9px] font-mono font-black uppercase tracking-widest">
-                    <Crown weight="fill" class="w-3 h-3" />
-                    {$t('admin.users.plan.premium')}
+                {#if status === 'pro'}
+                  <div class="flex flex-col gap-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-black rounded-none text-[9px] font-mono font-black uppercase tracking-widest self-start">
+                      <Crown weight="fill" class="w-3 h-3" />
+                      {$t('admin.users.plan.premium')}
+                    </div>
+                    {#if user.settings?.planExpiresAt}
+                      {@const days = getRemainingDays(user.settings.planExpiresAt)}
+                      <div class="flex flex-col gap-1">
+                        <span class="text-[8px] font-mono font-black text-slate-500 uppercase">
+                          Expiración: {formatDate(user.settings.planExpiresAt)}
+                        </span>
+                        {#if days !== null}
+                          <div class="h-1 w-24 bg-white/5 overflow-hidden">
+                            <div 
+                              class="h-full {days < 3 ? 'bg-rose-500' : days < 7 ? 'bg-amber-500' : 'bg-emerald-500'}" 
+                              style="width: {Math.min(100, (days / 30) * 100)}%"
+                            ></div>
+                          </div>
+                          <span class="text-[7px] font-mono font-black {days < 3 ? 'text-rose-400' : 'text-slate-600'} uppercase">
+                            Faltan {days} días
+                          </span>
+                        {/if}
+                      </div>
+                    {/if}
+                  </div>
+                {:else if status === 'expired'}
+                  <div class="flex flex-col gap-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-500/20 text-rose-500 rounded-none border border-rose-500/30 text-[9px] font-mono font-black uppercase tracking-widest self-start">
+                      <Warning weight="fill" class="w-3 h-3" />
+                      {$t('admin.users.plan.premium')} (EXPIRADO)
+                    </div>
+                    <span class="text-[8px] font-mono font-black text-rose-400/50 uppercase">
+                      Caducó el {formatDate(user.settings?.planExpiresAt)}
+                    </span>
                   </div>
                 {:else}
                   <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 text-slate-500 rounded-none border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest">
@@ -155,6 +212,7 @@
     <!-- Mobile Card View -->
     <div class="lg:hidden divide-y divide-white/5">
       {#each users as user (user.id)}
+        {@const status = getPlanStatus(user)}
         <div class="p-8 space-y-6 hover:bg-white/[0.01] transition-colors relative">
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-4">
@@ -184,6 +242,11 @@
             </div>
             
             <div class="flex items-center gap-2">
+              {#if user.settings?.role === 'director'}
+                <div class="p-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" title="DIRECTOR">
+                  <ShieldCheckered weight="fill" class="w-4 h-4" />
+                </div>
+              {/if}
               <button 
                 onclick={() => onEdit(user)}
                 class="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-none text-slate-400 hover:text-white transition-all"
@@ -198,6 +261,31 @@
                 <Eye weight="bold" class="w-4 h-4" />
               </button>
             </div>
+          </div>
+
+          <!-- Mobile Plan Info -->
+          <div class="bg-white/[0.02] p-4 border border-white/5 space-y-3">
+             <div class="flex items-center justify-between">
+                <span class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">ESTADO_PLAN</span>
+                <span class="text-[9px] font-mono font-black {status === 'pro' ? 'text-amber-500' : status === 'expired' ? 'text-rose-500' : 'text-slate-500'} uppercase">
+                  {status === 'pro' ? 'PREMIUM' : status === 'expired' ? 'EXPIRADO' : 'FREE'}
+                </span>
+             </div>
+             {#if user.settings?.planExpiresAt && status !== 'free'}
+               {@const days = getRemainingDays(user.settings.planExpiresAt)}
+               <div class="flex items-center justify-between text-[8px] font-mono font-black">
+                  <span class="text-slate-700">VENCE</span>
+                  <span class="text-slate-500">{formatDate(user.settings.planExpiresAt)}</span>
+               </div>
+               {#if days !== null}
+                 <div class="h-1 w-full bg-white/5">
+                    <div 
+                      class="h-full {days < 3 ? 'bg-rose-500' : 'bg-primary-500'}" 
+                      style="width: {Math.min(100, (days / 30) * 100)}%"
+                    ></div>
+                 </div>
+               {/if}
+             {/if}
           </div>
         </div>
       {/each}

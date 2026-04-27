@@ -123,7 +123,7 @@
   </div>
 </div>
 
-<style>
+<style lang="postcss">
   .bento-card {
     @apply p-8 bg-[#121214]/60 backdrop-blur-xl border border-white/5 rounded-[2rem];
   }

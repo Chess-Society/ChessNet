@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, Filter } from '$lib/server/firebase-admin';
 
 import { authenticate } from '$lib/server/auth';
 import { checkSchoolLimit } from '$lib/server/plans';
@@ -16,20 +16,26 @@ export const GET: RequestHandler = async (event) => {
 
   try {
     const snapshot = await adminDb.collection("schools")
-      .where("owner_id", "==", uid)
-      .orderBy("createdAt", "desc")
+      .where(Filter.or(
+        Filter.where('owner_id', '==', uid),
+        Filter.where('ownerId', '==', uid)
+      ))
       .get();
     
-    // Standardize response fields for frontend consumption
+    // Standardize response fields and sort in-memory
     const schools = snapshot.docs.map((doc: any) => {
       const data = doc.data();
-      return serializeRecord({ 
+      return { 
         id: doc.id, 
         ...data,
         createdAt: data.createdAt || data.created_at,
         updatedAt: data.updatedAt || data.updated_at
-      });
-    });
+      };
+    }).sort((a: any, b: any) => {
+      const dateA = a.createdAt || '';
+      const dateB = b.createdAt || '';
+      return dateB.localeCompare(dateA);
+    }).map((s: any) => serializeRecord(s));
     return json({ schools });
   } catch (error: any) {
     console.error('❌ Error in GET schools API:', error.message);
@@ -109,8 +115,13 @@ export const PUT: RequestHandler = async (event) => {
     const schoolRef = adminDb.collection("schools").doc(schoolId);
     const schoolSnap = await schoolRef.get();
 
-    if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== uid) {
-      return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
+    if (!schoolSnap.exists) {
+      return json({ error: 'Centro no encontrado' }, { status: 404 });
+    }
+
+    const currentOwner = schoolSnap.data()?.owner_id || schoolSnap.data()?.ownerId;
+    if (currentOwner !== uid) {
+      return json({ error: 'Acceso denegado' }, { status: 403 });
     }
 
     const updateData = {
@@ -154,8 +165,13 @@ export const DELETE: RequestHandler = async (event) => {
     const schoolRef = adminDb.collection("schools").doc(id);
     const schoolSnap = await schoolRef.get();
 
-    if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== user.uid) {
-      return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
+    if (!schoolSnap.exists) {
+      return json({ error: 'Centro no encontrado' }, { status: 404 });
+    }
+
+    const currentOwner = schoolSnap.data()?.owner_id || schoolSnap.data()?.ownerId;
+    if (currentOwner !== user.uid) {
+      return json({ error: 'Acceso denegado' }, { status: 403 });
     }
 
     await schoolRef.delete();

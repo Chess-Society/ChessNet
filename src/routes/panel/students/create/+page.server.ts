@@ -2,9 +2,10 @@ import type { PageServerLoad, Actions } from './$types';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import { message, superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { studentSchema } from '$lib/schemas/student';
 import { fail, redirect } from '@sveltejs/kit';
+import { checkStudentLimit } from '$lib/server/plans';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const form = await superValidate(zod(studentSchema as any)) as any;
@@ -52,6 +53,14 @@ export const actions: Actions = {
     if (!form.valid) return message(form, 'Datos inválidos. Por favor revisa el formulario.', { status: 400 });
 
     try {
+      const uid = locals.user.uid;
+
+      // Enforce student limit for free plan
+      const canCreate = await checkStudentLimit(uid);
+      if (!canCreate) {
+        return message(form, 'Has alcanzado el límite de 10 alumnos del plan gratuito. Mejora a Premium para alumnos ilimitados.', { status: 403 });
+      }
+
       const { ...studentData } = form.data;
       const uid = locals.user.uid;
       const now = new Date().toISOString();

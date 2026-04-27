@@ -13,7 +13,7 @@ import type {
 
 export interface AppSettings {
   plan: string;
-  role?: 'teacher' | 'director' | 'admin';
+  role?: 'teacher' | 'director' | 'admin' | 'student' | 'family';
   schoolName?: string; // Optional: specific school name for directors
   teacherName: string;
   teacherAvatar: string;

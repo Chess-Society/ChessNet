@@ -23,12 +23,13 @@ import { marked } from 'marked';
   import { appStore } from '$lib/stores/appStore';
 
   let { data } = $props<{ data: PageData }>();
-  let student = $derived($appStore.students?.find(s => s.id === data.student.id) || data.student);
-  let school = $derived($appStore.schools?.find(s => s.id === student?.schoolId) || data.school);
+  let userRole = $derived(data?.role || 'teacher');
+  let student = $derived($appStore.students?.find(s => s.id === data?.student?.id) || data?.student);
+  let school = $derived($appStore.schools?.find(s => s.id === student?.schoolId) || data?.school);
   // Classes requires a filter based on `class_students` mock logic if it was fully implemented.
   // For now we'll leave enrolledClasses from `data` since it's hardcoded for mock anyway, or could use data.enrolledClasses.
-  let enrolledClasses = $derived(data.enrolledClasses || []);
-  let attendanceRate = $derived(data.attendanceRate);
+  let enrolledClasses = $derived(data?.enrolledClasses || []);
+  let attendanceRate = $derived(data?.attendanceRate);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -152,6 +153,7 @@ import { marked } from 'marked';
       </div>
     </div>
 
+    {#if userRole !== 'parent'}
     <div class="action-section">
       <button 
         class="glass-btn primary" 
@@ -161,6 +163,7 @@ import { marked } from 'marked';
         <span class="font-outfit font-bold">{$t('students.edit_record')}</span>
       </button>
     </div>
+    {/if}
   </header>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -203,7 +206,7 @@ import { marked } from 'marked';
       </section>
 
       <!-- AI Analysis Section (Premium) -->
-      {#if data.userPlan === 'premium' || data.user?.isAdmin}
+      {#if data?.userPlan === 'premium' || data?.user?.isAdmin}
       <section class="bento-card !p-0 overflow-hidden border-2 border-violet-500/20 relative group/ai">
         <div class="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-fuchsia-600/5 to-transparent opacity-50"></div>
         <div class="absolute -top-24 -right-24 w-64 h-64 bg-violet-500/10 blur-[100px] rounded-full"></div>
@@ -319,10 +322,12 @@ import { marked } from 'marked';
           <div class="space-y-6 relative z-10">
             {#if !student?.lichessUsername}
               <div class="text-center p-6 bg-zinc-900/50 rounded-none border border-white/5">
-                <p class="text-xs font-jakarta text-slate-400 mb-3">No hay cuenta vinculada todavía.</p>
-                <button onclick={() => goto(`/panel/students/${student.id}/edit`)} class="px-4 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-[10px] font-black uppercase tracking-widest rounded-none transition-colors border border-sky-500/20">
-                  Vincular Lichess
-                </button>
+                <p class="text-xs font-jakarta text-slate-400 {userRole === 'parent' ? '' : 'mb-3'}">No hay cuenta vinculada todavía.</p>
+                {#if userRole !== 'parent'}
+                  <button onclick={() => goto(`/panel/students/${student.id}/edit`)} class="px-4 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-[10px] font-black uppercase tracking-widest rounded-none transition-colors border border-sky-500/20">
+                    Vincular Lichess
+                  </button>
+                {/if}
               </div>
             {:else if lichessData}
               <div class="grid grid-cols-2 gap-4">

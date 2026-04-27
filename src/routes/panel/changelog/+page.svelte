@@ -5,6 +5,36 @@
 
   const updates = [
     {
+      version: '0.14.0 Beta',
+      date: '2026-04-27',
+      title: 'Misiones y UX Premium',
+      icon: Trophy,
+      color: 'text-primary-400',
+      bgColor: 'bg-primary-500/10',
+      items: [
+        {
+          title: 'Rachas de Victorias',
+          description: 'Nuevo tipo de misión que detecta automáticamente si un alumno gana X partidas seguidas en Lichess.',
+          icon: Sparkle
+        },
+        {
+          title: 'Agenda Móvil',
+          description: 'Acceso directo a la agenda de clases desde el menú inferior en dispositivos móviles.',
+          icon: Users
+        },
+        {
+          title: 'Feedback de Satisfacción',
+          description: 'Nuevas animaciones y feedback visual al completar desafíos para una experiencia más gratificante.',
+          icon: Star
+        },
+        {
+          title: 'Control de Comunicados',
+          description: 'Los comunicados masivos ahora están integrados en el plan de gestión para profesores.',
+          icon: ShieldCheck
+        }
+      ]
+    },
+    {
       version: '0.13.0 Beta',
       date: '2026-04-22',
       title: 'Evolución del Panel de Control',

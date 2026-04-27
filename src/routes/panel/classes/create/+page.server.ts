@@ -1,9 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate, message } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { classSchema } from '$lib/schemas/class';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
+import { checkClassLimit } from '$lib/server/plans';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -51,6 +52,14 @@ export const actions: Actions = {
     if (!form.valid) return message(form, 'Datos inválidos. Por favor revisa el formulario.', { status: 400 });
 
     try {
+      const uid = locals.user.uid;
+      
+      // Enforce class limit for free plan
+      const canCreate = await checkClassLimit(uid);
+      if (!canCreate) {
+        return message(form, 'Has alcanzado el límite de 1 clase del plan gratuito. Mejora a Premium para clases ilimitadas.', { status: 403 });
+      }
+
       const now = new Date().toISOString();
       const classData = {
         ...form.data,

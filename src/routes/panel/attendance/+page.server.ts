@@ -1,8 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate, message } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { attendanceSchema } from '$lib/schemas/attendance';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, ownerFilter } from '$lib/server/firebase-admin';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
@@ -12,11 +12,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0];
   const classId = url.searchParams.get('classId');
 
-  // Load students and classes for the teacher
+  // Load students and classes for the teacher using ownerFilter
   const [studentsSnap, classesSnap, attendanceSnap] = await Promise.all([
-    adminDb.collection('students').where('teacherId', '==', sessionUser.uid).get(),
-    adminDb.collection('classes').where('teacherId', '==', sessionUser.uid).get(),
-    adminDb.collection('attendance').where('owner_id', '==', sessionUser.uid).get()
+    adminDb.collection('students').where(ownerFilter(sessionUser.uid)).get(),
+    adminDb.collection('classes').where(ownerFilter(sessionUser.uid)).get(),
+    adminDb.collection('attendance').where(ownerFilter(sessionUser.uid)).get()
   ]);
 
   const students = studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));

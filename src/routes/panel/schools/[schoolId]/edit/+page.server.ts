@@ -3,7 +3,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import { superValidate, message } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { schoolSchema } from '$lib/schemas/school';
 
 export const load: PageServerLoad = async ({ locals, params }) => {

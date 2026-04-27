@@ -17,6 +17,11 @@
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       currentUser = user;
       isAuthLoading = false;
+      
+      // If user is already logged in, show them their personalized upgrade page
+      if (user) {
+        goto('/panel/upgrade');
+      }
     });
     return unsubscribe;
   });
@@ -32,10 +37,10 @@
       if (result.success && result.payment_url) {
         window.location.href = result.payment_url;
       } else {
-        toast.error(result.error || 'Error starting subscription');
+        toast.error(result.error || 'Error al iniciar la suscripción');
       }
-    } catch (e) {
-      toast.error(e.message || 'Connection error');
+    } catch (e: any) {
+      toast.error(e.message || 'Error de conexión');
     }
   }
 

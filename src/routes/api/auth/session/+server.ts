@@ -2,6 +2,7 @@ import { adminAuth } from '$lib/server/firebase-admin';
 import { json } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import type { RequestHandler } from './$types';
+import { getUserRole } from '$lib/server/roles';
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
   let token: string | undefined;
@@ -53,6 +54,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       ]) as string;
 
 
+      const decodedToken = await adminAuth.verifyIdToken(token);
+      const userRole = await getUserRole(decodedToken.email || '');
+
       cookies.set('__session', sessionCookie, {
         path: '/',
         httpOnly: true,
@@ -61,8 +65,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         maxAge: 60 * 60 * 24 * 5
       });
 
-      console.log('✅ [SessionAPI] Session cookie created successfully');
-      return json({ success: true });
+      console.log('✅ [SessionAPI] Session cookie created successfully for', decodedToken.email);
+      return json({ success: true, role: userRole });
 
     } catch (createErr: any) {
       console.error('❌ [SessionAPI] Firebase createSessionCookie error:', createErr.message);

@@ -1,6 +1,6 @@
 import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, Filter } from '$lib/server/firebase-admin';
 import { error } from '@sveltejs/kit';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
@@ -73,13 +73,15 @@ export const actions: Actions = {
     if (!locals.user) return fail(401);
     try {
       const uid = locals.user.uid;
-      // Clear both formats
-      const snap1 = await adminDb.collection('skills').where('owner_id', '==', uid).get();
-      const snap2 = await adminDb.collection('skills').where('ownerId', '==', uid).get();
+      const snap = await adminDb.collection('skills')
+        .where(Filter.or(
+          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid)
+        ))
+        .get();
       
       const batch = adminDb.batch();
-      snap1.docs.forEach((doc: QueryDocumentSnapshot) => batch.delete(doc.ref));
-      snap2.docs.forEach((doc: QueryDocumentSnapshot) => batch.delete(doc.ref));
+      snap.docs.forEach((doc: QueryDocumentSnapshot) => batch.delete(doc.ref));
       await batch.commit();
       return { success: true };
     } catch (err) {
@@ -270,7 +272,10 @@ export const load: PageServerLoad = async (event) => {
 
   try {
     let skillsSnap = await adminDb.collection("skills")
-        .where("owner_id", "==", locals.user.uid)
+        .where(Filter.or(
+          Filter.where("owner_id", "==", locals.user.uid),
+          Filter.where("ownerId", "==", locals.user.uid)
+        ))
         .get();
 
     const skills = (skillsSnap?.docs || []).map((doc: any) => {

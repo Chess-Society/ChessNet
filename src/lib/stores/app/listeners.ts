@@ -24,9 +24,22 @@ export function setupListeners(store: Writable<AppState>, user: any) {
   const initializedCollections = new Set<string>();
   const dataCache: Record<string, string> = {};
 
-  // Developer Bypass Notification
+  // Developer Bypass Handling — full premium access, no Firestore needed
   if (user?.uid === 'antigravity-dev-worker') {
-    console.info('🛠️ [AppStore] Developer Bypass Active: Real-time listeners enabled for development mode.');
+    console.info('🛠️ [AppStore] Developer Bypass Active: Premium plan granted, real-time listeners disabled.');
+    update(s => ({
+      ...s,
+      initialized: true,
+      settings: {
+        ...s.settings,
+        plan: 'premium',
+        teacherName: 'Antigravity (Dev)',
+        teacherEmail: 'tomih@chess-society.com',
+        teacherAvatar: '',
+        role: 'admin' as const
+      }
+    }));
+    return () => {}; // No-op cleanup
   }
 
   const userRef = doc(db, 'users', user.uid);
@@ -61,6 +74,15 @@ export function setupListeners(store: Writable<AppState>, user: any) {
             ...(data.settings || {}),
             teacherEmail: userEmail
           };
+          
+          // Local expiration check
+          if (settings.plan === 'premium' && settings.planExpiresAt) {
+            const expiresAt = new Date(settings.planExpiresAt);
+            if (expiresAt < new Date()) {
+              settings.plan = 'free';
+            }
+          }
+
           if (user.isAdmin) settings.plan = 'premium';
           return { ...currentState, settings, dashboardLayout: data.dashboardLayout || [], initialized: true };
         });
@@ -80,11 +102,18 @@ export function setupListeners(store: Writable<AppState>, user: any) {
   // 2. Collection Listener Helper
   const setupCollectionListener = (key: string, path: string, queryFn?: Query) => {
     const collRef = collection(db, path);
-    const q = queryFn || query(collRef, or(
-      where("owner_id", "==", user.uid), 
-      where("ownerId", "==", user.uid),
-      where("sharedWith", "array-contains", user.uid)
-    ));
+    // For admins, some collections should show everything (e.g., reports)
+    let q;
+    if (user.isAdmin && path === 'lobby_reports') {
+      q = query(collRef, orderBy('createdAt', 'desc'));
+    } else {
+      q = queryFn || query(collRef, or(
+        where("owner_id", "==", user.uid), 
+        where("ownerId", "==", user.uid),
+        where("authorId", "==", user.uid),
+        where("sharedWith", "array-contains", user.uid)
+      ));
+    }
     
     const unsub = onSnapshot(q, (snap: QuerySnapshot) => {
       const docs = snap.docs.map((d: QueryDocumentSnapshot) => toData<any>(d));
@@ -119,7 +148,8 @@ export function setupListeners(store: Writable<AppState>, user: any) {
     { key: 'localTournamentPairings', path: 'local_tournament_pairings' },
     { key: 'attendance', path: 'attendance' },
     { key: 'payments', path: 'payments' },
-    { key: 'leads', path: 'leads' }
+    { key: 'leads', path: 'leads' },
+    { key: 'reports', path: 'lobby_reports' }
   ];
   personalCollections.forEach(c => setupCollectionListener(c.key, c.path));
 

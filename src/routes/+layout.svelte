@@ -16,7 +16,9 @@
   import { db } from '$lib/firebase';
   import { doc, onSnapshot } from 'firebase/firestore';
 
-  import { Settings, Crown, Trophy, ChevronRight } from 'lucide-svelte';
+  import { Crown, ChevronRight } from 'lucide-svelte';
+  import { Horse } from 'phosphor-svelte';
+  import Logo from '$lib/components/Logo.svelte';
   import { t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
   import { systemConfig, initGlobalConfig } from '$lib/stores/configStore';
@@ -34,8 +36,9 @@
   import { dev } from '$app/environment';
 
   // Admin access logic with local bypass for Antigravity/Development
+  // In dev: bypass only applies when visiting /admin, so maintenance CAN be tested on other routes
   const isAdmin = $derived(
-    (dev && $user) || // Full access in local dev if logged in
+    (dev && $user && $page.url.pathname.startsWith('/admin')) || // Dev bypass only on /admin
     ($user?.isAdmin === true)
   );
   const isMaintenanceExempt = $derived(
@@ -86,97 +89,52 @@
       </div>
     </div>
   {:else if maintenanceMode && !isAdmin && !isMaintenanceExempt}
-    <div class="fixed inset-0 flex items-center justify-center bg-[#070709] z-[100] p-4 md:p-10 overflow-hidden">
-      <!-- Premium Background Architecture -->
-      <div class="absolute inset-0 -z-10">
-        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.18)_0%,transparent_70%)]"></div>
-        <div class="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_100%_100%,rgba(79,70,229,0.12)_0%,transparent_50%)]"></div>
-        
-        <!-- Chess Board Pattern Overlay -->
-        <div class="absolute inset-0 opacity-[0.03] grayscale invert" style="background-image: repeating-conic-gradient(#fff 0% 25%, transparent 0% 50%); background-size: 80px 80px;"></div>
-        
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#070709_100%)]"></div>
+    <div class="fixed inset-0 flex items-center justify-center bg-[#070709] z-[100] p-6 overflow-hidden">
+      <!-- Minimalist Background -->
+      <div class="absolute inset-0">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/10 blur-[120px] rounded-full"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#070709_80%)]"></div>
       </div>
 
-      <div class="max-w-4xl w-full text-center space-y-12 relative" in:fade={{ duration: 1000 }}>
-        <!-- Abstract Visual Core -->
-        <div class="relative inline-flex flex-col items-center">
-          <div class="absolute -inset-32 bg-violet-600/20 rounded-none blur-[140px] animate-pulse"></div>
-          
-          <div class="relative mb-8">
-            <div class="w-32 h-32 md:w-44 md:h-44 bg-white/[0.015] backdrop-blur-3xl border border-white/10 rounded-none flex items-center justify-center shadow-[0_40px_100px_-15px_rgba(0,0,0,0.8)] border-b-violet-500/30 relative group overflow-visible">
-               <div class="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-transparent rounded-none"></div>
-               
-               <!-- Core Icon -->
-               <div class="relative z-10 transition-transform duration-700 group-hover:scale-110">
-                 <Crown class="w-16 h-16 md:w-20 md:h-20 text-violet-400 opacity-90 group-hover:opacity-100" strokeWidth={1.5} />
-               </div>
-               
-               <!-- Orbital Synchronizer -->
-               <div class="absolute -inset-4 border border-white/5 rounded-none animate-spin-slow opacity-20"></div>
-               <div class="absolute -inset-8 border border-white/[0.02] rounded-none animate-spin-reverse-slow opacity-10"></div>
-               
-               <!-- Floating Particles -->
-               <div class="absolute -top-4 -right-4 w-14 h-14 bg-[#0a0a0c] border border-white/10 rounded-none flex items-center justify-center shadow-2xl animate-float">
-                  <div class="w-3 h-3 bg-violet-500 rounded-none animate-ping"></div>
-               </div>
-               <div class="absolute -bottom-2 -left-6 w-10 h-10 bg-[#0a0a0c] border border-white/5 rounded-none flex items-center justify-center shadow-2xl animate-float-delayed">
-                  <LoadingSpinner size="w-5 h-5" color="text-indigo-400" />
-               </div>
+      <div class="max-w-xl w-full text-center space-y-8 relative" in:fade={{ duration: 800 }}>
+        <!-- Central Icon -->
+        <div class="relative inline-block">
+          <div class="w-24 h-24 md:w-32 md:h-32 bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-3xl flex items-center justify-center shadow-2xl relative group">
+            <div class="absolute inset-0 bg-gradient-to-tr from-violet-500/20 to-transparent rounded-3xl"></div>
+            <div class="relative z-10">
+              <Horse class="w-12 h-12 md:w-16 md:h-16 text-violet-400 filter drop-shadow(0 0 10px rgba(139, 92, 246, 0.5))" weight="fill" />
             </div>
-          </div>
-
-          <div class="space-y-4 md:space-y-8">
-            <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-violet-500/10 border border-violet-500/20 rounded-none mb-2">
-                <span class="w-1.5 h-1.5 bg-violet-400 rounded-none animate-pulse shadow-[0_0_8px_rgba(167,139,250,0.8)]"></span>
-                <span class="text-[10px] font-outfit font-black text-violet-300 uppercase tracking-[0.3em]">{$t('maintenance.subtitle')}</span>
-            </div>
-            <h1 class="text-6xl md:text-9xl font-outfit font-black tracking-tighter text-white uppercase italic leading-[0.85]">
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-300 to-violet-500">ChessNet</span><br/>
-              <span class="text-white opacity-95">2.0</span>
-            </h1>
+            <!-- Pulse Effect -->
+            <div class="absolute -inset-1 border border-violet-500/20 rounded-3xl animate-pulse"></div>
           </div>
         </div>
 
-        <p class="text-slate-400 text-lg md:text-2xl font-outfit font-light max-w-2xl mx-auto leading-relaxed px-6">
-          {$t('maintenance.description')}
-        </p>
-
-        <!-- Premium Status Bento Tiles -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto pt-4 px-6">
-          {#each [
-            { label: $t('maintenance.status.system'), value: $t('maintenance.status.syncing'), icon: Crown, delay: 0, color: 'text-violet-400' },
-            { label: $t('maintenance.status.tournaments'), value: $t('maintenance.status.optimizing'), icon: Trophy, delay: 150, color: 'text-indigo-400' },
-            { label: $t('maintenance.status.server'), value: $t('maintenance.status.stable'), icon: Settings, delay: 300, color: 'text-emerald-400' }
-          ] as indicator}
-             {@const Icon = indicator.icon}
-             <div 
-               class="p-6 md:p-8 bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] rounded-none flex flex-col items-center gap-4 hover:bg-white/[0.05] hover:border-violet-500/20 transition-all group relative overflow-hidden"
-               in:fly={{ y: 20, delay: indicator.delay, duration: 600 }}
-             >
-                <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Icon class="w-24 h-24" />
-                </div>
-                <div class="w-12 h-12 bg-black/40 rounded-none flex items-center justify-center group-hover:scale-110 transition-transform duration-500 border border-white/5">
-                  <Icon class="w-6 h-6 {indicator.color}" />
-                </div>
-                <div class="relative z-10 text-center">
-                    <p class="text-[9px] font-outfit font-black text-slate-500 uppercase tracking-widest mb-1.5">{indicator.label}</p>
-                    <p class="text-xs font-bold text-white uppercase tracking-tight">{indicator.value}</p>
-                </div>
-             </div>
-          {/each}
+        <div class="space-y-4">
+          <h1 class="text-4xl md:text-6xl font-outfit font-black tracking-widest text-white uppercase italic">
+            ChessNet <span class="text-violet-500">2.0</span>
+          </h1>
+          <div class="h-px w-24 bg-gradient-to-r from-transparent via-violet-500/50 to-transparent mx-auto"></div>
+          <p class="text-slate-400 text-lg md:text-xl font-outfit font-light leading-relaxed px-4">
+            {$t('maintenance.description')}
+          </p>
         </div>
 
-        <!-- Progress Indicator -->
-        <div class="max-w-xs mx-auto pt-6 flex flex-col items-center gap-4">
-            <div class="w-full h-1 bg-white/5 rounded-none overflow-hidden relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-600 animate-shimmer scale-x-[0.6] origin-left"></div>
-            </div>
-            <p class="text-[10px] text-slate-600 font-outfit font-bold uppercase tracking-[0.4em] flex items-center gap-2">
-                Progress <ChevronRight class="w-3 h-3" /> 84%
-            </p>
+        <!-- Status Indicator -->
+        <div class="pt-12">
+          <div class="inline-flex items-center gap-3 px-5 py-2 bg-white/[0.02] border border-white/5 rounded-full backdrop-blur-md">
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
+            </span>
+            <span class="text-[10px] text-slate-500 font-outfit font-black uppercase tracking-[0.3em]">
+              {$t('maintenance.online')}
+            </span>
+          </div>
+        </div>
+
+        <!-- Footer Logo -->
+        <div class="pt-16 opacity-20 grayscale scale-75 flex justify-center">
+          <Logo size="w-16 h-16" iconSize="w-8 h-8" />
         </div>
       </div>
     </div>

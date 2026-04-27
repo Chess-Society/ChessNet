@@ -8,7 +8,9 @@
     Crown, 
     TrendUp,
     Clock,
-    Pulse
+    Pulse,
+    Target,
+    CheckCircle
   } from 'phosphor-svelte';
   import { fade, slide } from 'svelte/transition';
 
@@ -21,6 +23,8 @@
       premiumUsers: number;
       recentUsers: number;
       totalRevenue: number;
+      totalMissions: number;
+      totalAssignments: number;
     };
   }
 
@@ -71,6 +75,23 @@
       icon: ChalkboardTeacher,
       color: 'from-slate-400 to-slate-600',
       sub: $t('admin.stats.classes_sub')
+    }
+  ]);
+
+  const gamificationCards = $derived([
+    {
+      label: 'Misiones Totales',
+      value: stats.totalMissions,
+      icon: Target,
+      color: 'from-amber-500 to-orange-600',
+      sub: 'Modelos de desafíos creados'
+    },
+    {
+      label: 'Desafíos Activos',
+      value: stats.totalAssignments,
+      icon: CheckCircle,
+      color: 'from-emerald-500 to-teal-600',
+      sub: 'Alumnos en progreso real'
     }
   ]);
 </script>
@@ -147,6 +168,31 @@
         <!-- Bottom Scanline decoration -->
         <div class="absolute bottom-0 left-0 w-full h-0.5 bg-white/5 overflow-hidden">
           <div class="h-full bg-primary-500/40 w-1/3 animate-[shimmer_3s_infinite]"></div>
+        </div>
+      </div>
+    {/each}
+  </div>
+
+  <!-- Gamification Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/10 border border-white/10">
+    {#each gamificationCards as card, i}
+      {@const Icon = card.icon}
+      <div class="relative bg-violet-500/[0.02] p-8 group transition-all hover:bg-violet-500/[0.05]" in:fade={{ delay: 600 + (i * 100) }}>
+        <div class="flex items-center gap-8">
+            <div class="w-14 h-14 bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 group-hover:bg-violet-500 group-hover:text-white transition-all">
+              <Icon weight="fill" class="w-7 h-7" />
+            </div>
+            
+            <div class="flex-1">
+              <p class="text-[9px] font-mono font-black text-violet-500 uppercase tracking-[0.3em] mb-1">{card.label}</p>
+              <div class="flex items-baseline gap-4">
+                <h4 class="text-5xl font-black font-display italic text-white leading-none">
+                   {(card.value ?? 0).toLocaleString()}
+                </h4>
+                <div class="h-px flex-1 bg-white/5 hidden sm:block"></div>
+                <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest italic">{card.sub}</p>
+              </div>
+            </div>
         </div>
       </div>
     {/each}

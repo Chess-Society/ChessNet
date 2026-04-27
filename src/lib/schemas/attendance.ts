@@ -5,7 +5,7 @@ export const attendanceSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
   records: z.array(z.object({
     studentId: z.string(),
-    status: z.enum(['P', 'A', 'unmarked'])
+    status: z.enum(['P', 'A', 'T', 'unmarked'])
   }))
 });
 

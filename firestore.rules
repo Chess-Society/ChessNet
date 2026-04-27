@@ -3,9 +3,17 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isAuthenticated() { return request.auth != null; }
     
-    // SuperAdmin basado exclusivamente en Firebase Custom Claims (admin: true)
+    // SuperAdmin: Acceso total basado en Custom Claim 'admin' o lista de correos autorizados
     function isSuperAdmin() { 
-      return isAuthenticated() && request.auth.token.admin == true;
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        request.auth.token.email.lower() in [
+          "andreslgumuzio@gmail.com", 
+          "tomih@chess-society.com",
+          "escuelatopchess@gmail.com",
+          "tomihersan@gmail.com"
+        ]
+      );
     }
     
     function isOwner(docData) { return docData.owner_id == request.auth.uid; }

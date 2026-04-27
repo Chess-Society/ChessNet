@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { fade, fly } from 'svelte/transition';
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
   import { 
     HouseLine, 
     UsersFour, 
@@ -21,27 +22,46 @@
     PencilSimple,
     CaretRight,
     Pulse,
-    Megaphone
+    Megaphone,
+    BookOpen
   } from 'phosphor-svelte';
   import { appStore } from '$lib/stores/appStore';
   import { toast } from '$lib/stores/toast';
   import { t, locale } from '$lib/i18n';
   import { parseDate } from '$lib/utils/date';
   import { user as authUser } from '$lib/stores/auth';
+  import { ArrowsClockwise, PuzzlePiece, Sword } from 'phosphor-svelte';
   import type { PageData } from './$types';
+  import Modal from '$lib/components/ui/Modal.svelte';
 
   let { data } = $props<{ data: PageData }>();
 
+  // Announcement modal state
+  let selectedAnnouncement = $state<any>(null);
+  let showAnnouncementModal = $state(false);
+
+  function openAnnouncement(ann: any) {
+    selectedAnnouncement = ann;
+    showAnnouncementModal = true;
+  }
+
   let teacherName = $derived($appStore?.settings?.teacherName || $authUser?.displayName || 'Socio');
+
+  // Resolved data for parent view
+  const resolvedChildren = $derived(data?.role === 'parent' || data?.role === 'student' ? data?.children : data?.parentData?.children);
+  const resolvedAnnouncements = $derived(data?.role === 'parent' || data?.role === 'student' ? data?.announcements : data?.parentData?.announcements);
+  const resolvedPayments = $derived(data?.role === 'parent' || data?.role === 'student' ? data?.payments : data?.parentData?.payments);
+  const resolvedMissions = $derived(data?.role === 'parent' || data?.role === 'student' ? data?.missions : data?.parentData?.missions);
 
   // Available actions definition
   const allActions = [
     { id: 'centers', title: $t('actions.schools.title'), desc: $t('actions.schools.desc'), icon: Buildings, color: 'text-blue-400', link: '/panel/schools' },
     { id: 'classes', title: $t('actions.classes.title'), desc: $t('actions.classes.desc'), icon: GraduationCap, color: 'text-primary-400', link: '/panel/classes' },
     { id: 'students', title: $t('actions.students.title'), desc: $t('actions.students.desc'), icon: UsersFour, color: 'text-violet-400', link: '/panel/students' },
-    { id: 'skills', title: $t('actions.skills.title'), desc: $t('actions.skills.desc'), icon: Target, color: 'text-yellow-400', link: '/panel/skills' },
+    { id: 'skills', title: $t('actions.skills.title'), desc: $t('actions.skills.desc'), icon: BookOpen, color: 'text-yellow-400', link: '/panel/skills' },
     { id: 'tournaments', title: $t('actions.tournaments.title'), desc: $t('actions.tournaments.desc'), icon: Trophy, color: 'text-orange-400', link: '/panel/tournaments', premium: true },
     { id: 'attendance', title: $t('actions.attendance.title'), desc: $t('actions.attendance.desc'), icon: CheckCircle, color: 'text-pink-400', link: '/panel/attendance' },
+    { id: 'missions', title: $t('actions.missions.title'), desc: $t('actions.missions.desc'), icon: Target, color: 'text-amber-400', link: '/panel/missions' },
     { id: 'reports', title: $t('actions.reports.title'), desc: $t('actions.reports.desc'), icon: ChartBar, color: 'text-cyan-400', link: '/panel/reports', premium: true },
     { id: 'payments', title: $t('actions.payments.title'), desc: $t('actions.payments.desc'), icon: CreditCard, color: 'text-primary-400', link: '/panel/payments', badge: 'BETA', premium: true },
     { id: 'planner', title: $t('actions.planner.title'), desc: $t('actions.planner.desc'), icon: CalendarBlank, color: 'text-indigo-400', link: '/panel/planner', badge: 'NEW', premium: true }
@@ -51,20 +71,23 @@
   let draggedId = $state<string | null>(null);
 
   // Derivados del store para el dashboard
-  let displayedActions = $derived(() => {
+  let displayedActions = $derived((() => {
     const layout = $appStore.dashboardLayout || [];
-    if (layout.length === 0) return allActions;
-    
     const actionMap = new Map(allActions.map(a => [a.id, a]));
-    const result = layout.map(id => actionMap.get(id)).filter(Boolean) as typeof allActions;
     
-    // AÃ±adir las que falten si el layout estÃ¡ desactualizado
-    allActions.forEach(a => {
-      if (!layout.includes(a.id)) result.push(a);
-    });
+    let result: typeof allActions = [];
+    if (layout.length > 0) {
+      result = layout.map(id => actionMap.get(id)).filter(Boolean) as typeof allActions;
+      // Add missing ones
+      allActions.forEach(a => {
+        if (!layout.includes(a.id)) result.push(a);
+      });
+    } else {
+      result = allActions;
+    }
     
     return result;
-  });
+  })());
 
   // MÃ©tricas reales calculadas desde el store
   let stats = $derived({
@@ -95,7 +118,7 @@
   const toggleEditMode = () => {
     if (editMode) {
       // Guardar nuevo layout
-      appStore.updateDashboardLayout(displayedActions().map(a => a.id));
+      appStore.updateDashboardLayout(displayedActions.map(a => a.id));
       // toast.success('DiseÃ±o guardado');
     }
     editMode = !editMode;
@@ -113,7 +136,7 @@
     if (!editMode || draggedId === targetId) return;
     e.preventDefault();
     
-    const actions = [...displayedActions()];
+    const actions = [...displayedActions];
     const draggedIdx = actions.findIndex(a => a.id === draggedId);
     const targetIdx = actions.findIndex(a => a.id === targetId);
     
@@ -129,6 +152,22 @@
   };
 
   const todayFormat = $derived(new Intl.DateTimeFormat($locale === 'es' ? 'es-ES' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()));
+
+  // Role switching logic
+  let viewMode = $state<'teacher' | 'parent'>('teacher');
+  let userRole = $derived(data?.role || 'teacher');
+  
+  onMount(() => {
+    if (userRole === 'parent' || userRole === 'student') {
+      viewMode = 'parent';
+    }
+  });
+
+  let hasParentData = $derived(!!data?.parentData || (data?.role === 'parent' || data?.role === 'student'));
+
+  function toggleView() {
+    viewMode = viewMode === 'teacher' ? 'parent' : 'teacher';
+  }
 
   // Chart data (simulated with original logic)
   const chartData = $derived({
@@ -161,23 +200,45 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" transition:fade>
   
-  {#if data.role === 'parent'}
+  <!-- View Switcher (Only if user has both roles) -->
+  {#if (userRole === 'admin' || userRole === 'teacher') && data?.parentData}
+    <div class="flex justify-center pt-8 -mb-4">
+      <div class="inline-flex p-1 bg-zinc-950 border border-white/5 rounded-full shadow-2xl">
+        <button 
+          onclick={() => viewMode = 'teacher'}
+          class="px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all {viewMode === 'teacher' ? 'bg-primary-500 text-black shadow-lg' : 'text-zinc-500 hover:text-white'}"
+        >
+          Vista Profesor
+        </button>
+        <button 
+          onclick={() => viewMode = 'parent'}
+          class="px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all {viewMode === 'parent' ? 'bg-primary-500 text-black shadow-lg' : 'text-zinc-500 hover:text-white'}"
+        >
+          Vista Familiar
+        </button>
+      </div>
+    </div>
+  {/if}
+
+  {#if viewMode === 'parent'}
     <!-- PARENT VIEW -->
-    <div class="pt-10 space-y-12">
+    <div class="pt-10 space-y-12" in:fly={{ y: 20, duration: 600 }}>
       <header class="space-y-4">
         <div class="flex items-center gap-2">
           <div class="h-[2px] w-8 bg-primary-500"></div>
           <h2 class="text-primary-400 text-[10px] font-black uppercase tracking-[0.4em]">Panel de Padres</h2>
         </div>
         <h1 class="text-4xl lg:text-6xl font-outfit font-black text-white tracking-tighter uppercase leading-[0.9]">
-          Hola, {data.user?.name?.split(' ')[0] || 'Familia'}<br/>
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">Sigue el progreso de tus hijos</span>
+          Hola, <br/>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-white to-primary-300 italic">
+            {userRole === 'student' ? (resolvedChildren?.[0]?.name || 'Bienvenido') : 'Familia'}
+          </span>
         </h1>
       </header>
 
       <!-- Children Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {#each data.children || [] as child}
+        {#each resolvedChildren || [] as child}
           <div class="bento-card !p-8 group hover:border-primary-500/30 transition-all">
              <div class="flex items-start justify-between mb-8">
                <div class="flex items-center gap-6">
@@ -212,7 +273,9 @@
                </div>
              </div>
 
-             <button class="w-full h-14 border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all flex items-center justify-center gap-3">
+             <button 
+               onclick={() => goto(`/panel/students/${child.id}`)}
+               class="w-full h-14 border border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all flex items-center justify-center gap-3">
                <ChartBar size={18} />
                Ver Informe de Progreso
              </button>
@@ -220,7 +283,151 @@
         {/each}
       </div>
 
+      <!-- Parent Payments Section -->
+      {#if resolvedPayments?.length}
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <CreditCard size={24} weight="duotone" class="text-primary-400" />
+              <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Facturación Reciente</h3>
+            </div>
+            <button onclick={() => goto('/panel/payments')} class="text-[10px] font-black text-zinc-500 hover:text-white uppercase tracking-widest transition-colors">Ver todo</button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {#each resolvedPayments as payment}
+              <div class="bento-card !p-6 border-white/5 hover:border-primary-500/20 transition-all group">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="px-3 py-1 bg-zinc-950 border border-white/5 text-[8px] font-black text-zinc-400 uppercase tracking-widest">
+                    {new Date(payment.dueDate || payment.date).toLocaleDateString('es', { month: 'long', year: 'numeric' })}
+                  </div>
+                  <span class="text-[8px] font-black px-2 py-1 uppercase tracking-widest {payment.status === 'paid' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
+                    {payment.status === 'paid' ? 'Pagado' : 'Pendiente'}
+                  </span>
+                </div>
+                <div class="flex items-end justify-between">
+                  <div>
+                    <p class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Concepto</p>
+                    <p class="text-sm font-outfit font-black text-white uppercase italic tracking-tight">{payment.concept || 'Cuota Mensual'}</p>
+                    <p class="text-[10px] text-zinc-500 font-bold mt-1">
+                      {resolvedChildren?.find((c: any) => c.id === payment.student_id)?.name || 'Alumno'}
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-2xl font-outfit font-black text-white">{payment.amount}€</p>
+                  </div>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      <!-- Missions Section -->
+      {#if resolvedMissions?.length}
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <Target size={24} weight="duotone" class="text-primary-400" />
+              <h3 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight">Misiones y Desafíos</h3>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {#each resolvedMissions as mission}
+              <div class="bento-card !p-6 border-white/5 group relative overflow-hidden">
+                {#if mission.completed}
+                  <div class="absolute top-0 right-0 p-2">
+                    <CheckCircle weight="fill" size={24} class="text-emerald-500" />
+                  </div>
+                {/if}
+                
+                <div class="space-y-4">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <span class="text-[8px] font-black px-2 py-0.5 bg-primary-500/10 text-primary-400 uppercase border border-primary-500/20 mb-2 inline-block">
+                        {mission.details?.type === 'puzzles' ? 'Lichess Puzzles' : 'Desafío'}
+                      </span>
+                      <h4 class="text-lg font-outfit font-black text-white uppercase italic tracking-tight">{mission.details?.title}</h4>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Recompensa</p>
+                      <p class="text-sm font-black text-amber-400">+{mission.details?.reward} XP</p>
+                    </div>
+                  </div>
+
+                  <div class="space-y-2">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      <span>Progreso</span>
+                      <span>{mission.progress} / {mission.details?.target}</span>
+                    </div>
+                    <div class="h-2 bg-white/5 overflow-hidden">
+                      <div 
+                        class="h-full bg-gradient-to-r from-primary-500 to-indigo-500 transition-all duration-1000" 
+                        style="width: {(mission.progress / mission.details?.target) * 100}%"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between pt-2">
+                    <p class="text-[9px] text-zinc-500 font-medium">
+                      Asignado a: <span class="text-white">{resolvedChildren?.find((c: any) => c.id === mission.student_id)?.name}</span>
+                    </p>
+                    <form 
+                      method="POST" 
+                      action="?/verifyMission"
+                      use:enhance={() => {
+                        return ({ result }) => {
+                          if (result.type === 'success') {
+                            toast.success('¡Progreso actualizado!');
+                          }
+                        };
+                      }}
+                    >
+                      <input type="hidden" name="assignmentId" value={mission.id} />
+                      <button 
+                        disabled={mission.completed}
+                        class="relative px-6 h-12 bg-zinc-950 border border-white/10 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 disabled:hover:bg-zinc-950 disabled:hover:text-zinc-500 overflow-hidden group/btn"
+                      >
+                        <div class="absolute inset-0 bg-primary-500/10 scale-x-0 group-hover/btn:scale-x-100 transition-transform origin-left duration-500"></div>
+                        <span class="relative z-10 flex items-center gap-2">
+                          {#if mission.completed}
+                            <CheckCircle weight="fill" size={16} class="text-emerald-500" />
+                            COMPLETADO
+                          {:else}
+                            <ArrowsClockwise weight="bold" size={16} class="group-hover/btn:rotate-180 transition-transform duration-700" />
+                            VERIFICAR PROGRESO
+                          {/if}
+                        </span>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                {#if mission.completed}
+                  <div class="absolute inset-0 pointer-events-none overflow-hidden" in:fade>
+                    {#each Array(12) as _, i}
+                      <div 
+                        class="absolute w-1 h-1 bg-primary-500/40 rounded-full"
+                        style="
+                          left: {50 + (Math.random() - 0.5) * 40}%; 
+                          top: {50 + (Math.random() - 0.5) * 40}%;
+                          --rx: {(Math.random() - 0.5) * 120}px;
+                          --rd: {Math.random() * 0.5}s;
+                          animation: particle {0.8 + Math.random()}s ease-out var(--rd) forwards;
+                        "
+                      ></div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- Announcements for Parents -->
+
       <div class="space-y-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
@@ -230,7 +437,7 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4">
-          {#each data.announcements || [] as ann}
+          {#each resolvedAnnouncements || [] as ann}
             <div class="bento-card !p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:border-primary-500/20 transition-all">
               <div class="flex items-start gap-6">
                 <div class="w-12 h-12 bg-zinc-950 border border-white/5 flex flex-col items-center justify-center shrink-0">
@@ -245,12 +452,14 @@
                   <p class="text-zinc-500 text-sm line-clamp-1">{ann.content}</p>
                 </div>
               </div>
-              <button class="px-6 h-12 border border-white/5 hover:border-primary-500/50 text-[9px] font-black text-zinc-400 uppercase tracking-widest transition-all">
+               <button 
+                onclick={() => openAnnouncement(ann)}
+                class="px-6 h-12 border border-white/5 hover:border-primary-500/50 text-[9px] font-black text-zinc-400 uppercase tracking-widest transition-all">
                 Leer comunicado
               </button>
             </div>
           {/each}
-          {#if !data.announcements?.length}
+          {#if !resolvedAnnouncements?.length}
             <div class="p-12 text-center border border-dashed border-white/10 opacity-50">
               <p class="text-zinc-500 font-bold uppercase tracking-widest italic">No hay comunicados nuevos</p>
             </div>
@@ -304,7 +513,7 @@
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {#each displayedActions() as action, i}
+      {#each displayedActions as action, i}
         <button 
           onclick={() => {
             if (editMode) return;
@@ -331,7 +540,7 @@
                <action.icon weight="duotone" size={28} />
             </div>
 
-            {#if action.premium && !($appStore.settings.plan === 'premium' || data.isAdmin)}
+            {#if action.premium && !($appStore.settings.plan === 'premium' || userRole === 'admin')}
                 <div class="px-2 py-1 bg-violet-600/20 border border-violet-500/30 text-violet-400">
                     <Crown weight="fill" size={10} />
                 </div>
@@ -609,7 +818,59 @@
           </div>
       </a>
     </div>
-  </div>
+    </div>
+  {/if}
+
+  <!-- Announcement Modal -->
+  {#if showAnnouncementModal && selectedAnnouncement}
+    <Modal show={showAnnouncementModal} title="Comunicado Oficial" onClose={() => showAnnouncementModal = false}>
+      <div class="space-y-6">
+        <div class="flex items-center justify-between border-b border-white/5 pb-6">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-[8px] font-black px-2 py-0.5 bg-primary-500/10 text-primary-400 uppercase border border-primary-500/20">{selectedAnnouncement.priority}</span>
+              <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">{new Date(selectedAnnouncement.createdAt).toLocaleDateString()}</span>
+            </div>
+            <h2 class="text-3xl font-outfit font-black text-white uppercase italic tracking-tight">{selectedAnnouncement.title}</h2>
+          </div>
+          <div class="w-16 h-16 bg-primary-500/10 flex items-center justify-center text-primary-400 shrink-0">
+             <Megaphone size={32} weight="duotone" />
+          </div>
+        </div>
+
+        <div class="prose prose-invert max-w-none">
+          <p class="text-zinc-400 leading-relaxed text-lg whitespace-pre-wrap">
+            {selectedAnnouncement.content}
+          </p>
+        </div>
+
+        {#if selectedAnnouncement.attachmentUrl}
+          <div class="p-4 bg-zinc-950 border border-white/5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-white/5 flex items-center justify-center">
+                <Lightning size={20} class="text-primary-400" />
+              </div>
+              <div>
+                <p class="text-[10px] font-black text-white uppercase tracking-widest">Archivo Adjunto</p>
+                <p class="text-[8px] text-zinc-500 font-bold uppercase tracking-tighter">Documento PDF / Imagen</p>
+              </div>
+            </div>
+            <a href={selectedAnnouncement.attachmentUrl} target="_blank" class="px-4 py-2 bg-primary-500 text-[10px] font-black text-black uppercase tracking-widest hover:bg-primary-400 transition-all">
+              Descargar
+            </a>
+          </div>
+        {/if}
+
+        <div class="pt-6 border-t border-white/5 flex justify-end">
+          <button 
+            onclick={() => showAnnouncementModal = false}
+            class="px-8 h-12 bg-zinc-900 border border-white/10 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+          >
+            Cerrar comunicado
+          </button>
+        </div>
+      </div>
+    </Modal>
   {/if}
 </div>
 
@@ -625,6 +886,21 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #334155;
     border-radius: 0;
+  }
+
+  @keyframes particle {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--rx), -100px) scale(0);
+      opacity: 0;
+    }
+  }
+
+  :global(.particle-success) {
+    animation: particle 1s ease-out forwards;
   }
 </style>
 

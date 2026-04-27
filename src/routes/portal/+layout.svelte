@@ -29,7 +29,7 @@
     { name: 'Dashboard', href: '/portal', icon: SquaresFour },
     { name: 'Comunicados', href: '/portal/announcements', icon: Bell },
     { name: 'Progreso', href: '/portal/progress', icon: Trophy },
-    { name: 'Soporte', href: '/panel/support', icon: ChatCircleDots }
+    { name: 'Soporte', href: '/portal/support', icon: ChatCircleDots }
   ];
 
   onMount(() => {

@@ -39,18 +39,20 @@
     ListDashes,
     Coins,
     List,
-    ChartBar
+    ChartBar,
+    Ticket
   } from 'phosphor-svelte';
 
   // Components
   import StatsGrid from '$lib/components/admin/StatsGrid.svelte';
   import UserTable from '$lib/components/admin/UserTable.svelte';
   import SystemConsole from '$lib/components/admin/SystemConsole.svelte';
+  import SupportManager from '$lib/components/admin/SupportManager.svelte';
+  import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
   import LiveActivityFeed from '$lib/components/admin/LiveActivityFeed.svelte';
 
   import UpdatePill from '$lib/components/common/UpdatePill.svelte';
 
-  import BroadcastCenter from '$lib/components/admin/BroadcastCenter.svelte';
   import DangerZone from '$lib/components/admin/DangerZone.svelte';
 
   // --- State (Svelte 5) ---
@@ -62,6 +64,8 @@
     totalClasses: 0,
     premiumUsers: 0,
     recentUsers: 0,
+    totalMissions: 0,
+    totalAssignments: 0,
     totalRevenue: 0,
     activeSessions: 0,
     serverLoad: 0
@@ -86,7 +90,8 @@
     {
       title: 'GESTIÓN',
       items: [
-        { id: 'users', label: 'Usuarios', icon: Users }
+        { id: 'users', label: 'Usuarios', icon: Users },
+        { id: 'support', label: 'Soporte', icon: Ticket }
       ]
     },
     {
@@ -320,8 +325,39 @@
     }
   }
 
+  async function handlePromoteDirector(userId: string) {
+    const schoolName = prompt("Nombre de la Escuela/Club:", "Mi Escuela de Ajedrez");
+    if (!schoolName) return;
+
+    const confirmed = await uiStore.confirm({
+      title: 'Promover a Director',
+      message: `¿Estás seguro de que quieres dar permisos de Director de "${schoolName}" a este usuario?`,
+      type: 'warning',
+      confirmText: 'PROMOVER',
+      cancelText: 'CANCELAR'
+    });
+
+    if (!confirmed) return;
+    isSaving = true;
+    try {
+      await adminApi.promoteToDirector(userId, schoolName);
+      toast.success('Usuario promovido a Director correctamente');
+    } catch (e: any) {
+      toast.error(e.message || $t('admin.broadcast.error'));
+    } finally {
+      isSaving = false;
+    }
+  }
+
   function getPlanStatus(user: any) {
-    return (user.settings?.plan === 'premium' || user.settings?.plan === 'pro') ? 'pro' : 'free';
+    const plan = user.settings?.plan;
+    if (plan === 'premium' || plan === 'pro') {
+      if (user.settings?.planExpiresAt && new Date(user.settings.planExpiresAt) < new Date()) {
+        return 'expired';
+      }
+      return 'pro';
+    }
+    return 'free';
   }
 </script>
 
@@ -397,9 +433,10 @@
     <div class="flex items-center gap-4">
       <button 
         onclick={() => window.location.href = '/panel'}
-        class="px-4 py-2 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest text-slate-400 hover:bg-white hover:text-black transition-all"
+        class="h-10 px-4 bg-white/10 hover:bg-white text-white hover:text-black border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest transition-all flex items-center gap-2"
       >
-        SALIR
+        <ArrowArcLeft weight="bold" size={14} />
+        PANEL
       </button>
       
       <button 
@@ -520,13 +557,76 @@
 
                     <div class="flex items-center gap-3">
                       <button 
+                        onclick={() => window.location.href = '/panel'} 
+                        class="h-14 px-8 border border-white/10 hover:bg-white/5 text-white transition-all flex items-center gap-3 font-black text-xs uppercase tracking-widest group rounded-none"
+                      >
+                        <ArrowArcLeft class="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                        VOLVER AL PANEL
+                      </button>
+
+                      <button 
                         onclick={refreshStats} 
-                        class="h-14 px-8 bg-white hover:bg-violet-500 hover:text-white text-black transition-all flex items-center gap-3 font-black text-xs uppercase tracking-widest group rounded-none"
+                        class="h-14 px-8 bg-white hover:bg-primary-500 hover:text-white text-black transition-all flex items-center gap-3 font-black text-xs uppercase tracking-widest group rounded-none"
                       >
                         <Pulse class="w-5 h-5 group-hover:animate-pulse" />
                         {$t('admin.dashboard.refresh')}
                       </button>
                     </div>
+                  </div>
+
+                  <!-- Quick Shortcuts -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button 
+                      onclick={() => activeTab = 'broadcast'}
+                      class="p-6 bg-white/[0.02] border border-white/5 hover:border-primary-500/50 hover:bg-primary-500/5 transition-all text-left group"
+                    >
+                      <div class="flex items-center gap-4 mb-4">
+                        <div class="p-2 bg-primary-500/10 text-primary-500 border border-primary-500/20">
+                          <Megaphone weight="bold" size={18} />
+                        </div>
+                        <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">COMUNICACIÓN</span>
+                      </div>
+                      <h4 class="text-xs font-black text-white uppercase italic">CREAR_AVISO_GLOBAL</h4>
+                    </button>
+
+                    <button 
+                      onclick={() => activeTab = 'users'}
+                      class="p-6 bg-white/[0.02] border border-white/5 hover:border-violet-500/50 hover:bg-violet-500/5 transition-all text-left group"
+                    >
+                      <div class="flex items-center gap-4 mb-4">
+                        <div class="p-2 bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                          <Users weight="bold" size={18} />
+                        </div>
+                        <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">AUDITORÍA</span>
+                      </div>
+                      <h4 class="text-xs font-black text-white uppercase italic">GESTIÓN_USUARIOS</h4>
+                    </button>
+
+                    <button 
+                      onclick={() => activeTab = 'support'}
+                      class="p-6 bg-white/[0.02] border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all text-left group"
+                    >
+                      <div class="flex items-center gap-4 mb-4">
+                        <div class="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <Ticket weight="bold" size={18} />
+                        </div>
+                        <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">ATENCIÓN</span>
+                      </div>
+                      <h4 class="text-xs font-black text-white uppercase italic">TICKETS_SOPORTE</h4>
+                    </button>
+
+                    <button 
+                      onclick={() => activeTab = 'system'}
+                      class="p-6 bg-white/[0.02] border border-white/5 hover:border-white/20 hover:bg-white/5 transition-all text-left group"
+                    >
+                      <div class="flex items-center gap-4 mb-4">
+                        <div class="p-2 bg-white/5 text-slate-400 border border-white/10">
+                          <ListDashes weight="bold" size={18} />
+                        </div>
+                        <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">MOTOR</span>
+                      </div>
+                      <h4 class="text-xs font-black text-white uppercase italic">LOGS_SISTEMA</h4>
+                    </button>
                   </div>
 
 
@@ -651,6 +751,21 @@
                   />
                </div>
 
+            {:else if activeTab === 'support'}
+               <div class="space-y-12">
+                  <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-white text-black flex items-center justify-center font-display italic font-black text-3xl">
+                      03
+                    </div>
+                    <div>
+                      <h2 class="text-6xl font-black font-display uppercase italic tracking-tighter leading-[0.8]">
+                        CENTRO DE<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">SOPORTE</span>
+                      </h2>
+                    </div>
+                  </div>
+                  <SupportManager />
+               </div>
+
             {:else if activeTab === 'broadcast'}
                <div class="space-y-12">
                   <div class="flex items-center gap-6">
@@ -703,6 +818,8 @@
 
   <!-- User Detail Modal -->
   {#if showEditModal && selectedUser}
+    {@const status = getPlanStatus(selectedUser)}
+    {@const expiry = selectedUser.settings?.planExpiresAt ? new Date(selectedUser.settings.planExpiresAt) : null}
     <div class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/95 backdrop-blur-xl" transition:fade>
       <div 
         class="bg-[#02040a] w-full max-w-2xl border-t sm:border border-white/10 shadow-2xl overflow-hidden relative h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto rounded-none"
@@ -747,29 +864,114 @@
            </div>
 
 
-           <div class="space-y-4">
+            <!-- Premium Management Section -->
+            <div class="bg-zinc-900/20 border border-white/5 p-6 space-y-8">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 {status === 'pro' ? 'bg-amber-500/20 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)]' : 'bg-slate-500/10 text-slate-500'} flex items-center justify-center border {status === 'pro' ? 'border-amber-500/30' : 'border-white/10'}">
+                    <Crown weight={status === 'pro' ? 'fill' : 'bold'} class="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p class="text-[8px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">ESTADO SUSCRIPCIÓN</p>
+                    <h4 class="text-xl font-black font-display italic uppercase tracking-tight {status === 'pro' ? 'text-amber-500' : status === 'expired' ? 'text-rose-500' : 'text-slate-400'}">
+                      {status === 'pro' ? 'Premium Active' : status === 'expired' ? 'Plan Expirado' : 'Plan Gratuito'}
+                    </h4>
+                  </div>
+                </div>
+                
+                {#if selectedUser.settings?.planExpiresAt}
+                  <div class="text-right">
+                    <p class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">FECHA DE CADUCIDAD</p>
+                    <p class="text-sm font-black font-display italic text-white">{new Date(selectedUser.settings.planExpiresAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}</p>
+                  </div>
+                {/if}
+              </div>
+
+              <!-- Visual Progress Bar -->
+              {#if status === 'pro' && selectedUser.settings?.planExpiresAt && expiry}
+                {@const now = new Date()}
+                {@const total = 30 * 24 * 60 * 60 * 1000} 
+                {@const remaining = expiry.getTime() - now.getTime()}
+                {@const percentage = Math.max(0, Math.min(100, (remaining / total) * 100))}
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between text-[10px] font-mono font-black uppercase">
+                    <span class="text-amber-500/80">Tiempo restante</span>
+                    <span class="text-white">{Math.ceil(remaining / (1000 * 60 * 60 * 24))} días</span>
+                  </div>
+                  <div class="h-2 w-full bg-black border border-white/5 relative overflow-hidden">
+                    <div 
+                      class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-200 transition-all duration-1000" 
+                      style="width: {percentage}%"
+                    >
+                      <div class="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.2)_50%,transparent_100%)] animate-[shimmer_2s_infinite]"></div>
+                    </div>
+                  </div>
+                  <div class="flex justify-between text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">
+                    <span>Iniciado</span>
+                    <span>{percentage.toFixed(1)}% de cobertura</span>
+                    <span>Expiración</span>
+                  </div>
+                </div>
+              {/if}
+
+              <!-- Action Buttons -->
+              <div class="space-y-4">
+                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest text-center">CONCEDER TIEMPO ADICIONAL</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/10 border border-white/10 overflow-hidden shadow-2xl">
+                  {#each [3, 7, 30, 365] as days}
+                    {@const baseDate = status === 'pro' && selectedUser.settings?.planExpiresAt ? new Date(selectedUser.settings.planExpiresAt) : new Date()}
+                    {@const newDate = new Date(baseDate)}
+                    {@const _ = newDate.setDate(newDate.getDate() + days)}
+                    <button 
+                      onclick={() => handleGrantPremium(selectedUser?.id, days)}
+                      disabled={isSaving}
+                      class="py-6 px-2 bg-[#02040a] text-[10px] font-mono font-black uppercase tracking-widest transition-all hover:bg-amber-500 hover:text-black disabled:opacity-50 text-slate-400 cursor-pointer rounded-none flex flex-col items-center gap-2 group"
+                    >
+                      <span class="text-lg group-hover:scale-110 transition-transform">+{days}d</span>
+                      <div class="flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="text-[6px] text-black font-black uppercase">Nueva fecha:</span>
+                        <span class="text-[8px] text-black font-black">{newDate.toLocaleDateString()}</span>
+                      </div>
+                    </button>
+                  {/each}
+                </div>
+
+                {#if status === 'pro' || status === 'expired'}
+                  <button 
+                    onclick={() => handleRevokePremium(selectedUser?.id)}
+                    class="w-full py-4 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 text-[10px] font-mono font-black uppercase tracking-widest transition-all cursor-pointer rounded-none mt-4"
+                  >
+                    CANCELAR SUSCRIPCIÓN INMEDIATAMENTE
+                  </button>
+                  <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest text-center mt-2">
+                    * El sistema revertirá automáticamente a Plan Gratuito tras la expiración.
+                  </p>
+                {/if}
+              </div>
+            </div>
+
+            <!-- Roles Section -->
+            <div class="space-y-4 pt-6 border-t border-white/5">
               <div class="flex items-center gap-3">
-                <Crown weight="duotone" class="w-4 h-4 text-amber-500" />
-                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">{$t('admin.modal.subscription_control')}</p>
+                <ShieldCheckered weight="duotone" class="w-4 h-4 text-emerald-500" />
+                <p class="text-[9px] font-mono font-black text-slate-500 uppercase tracking-[0.3em]">ROLES Y PERMISOS</p>
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/10 border border-white/10">
-                 {#each [3, 7, 30, 365] as days}
-                   <button 
-                    onclick={() => handleGrantPremium(selectedUser?.id, days)}
-                    disabled={isSaving}
-                    class="py-4 bg-[#02040a] text-[10px] font-mono font-black uppercase tracking-widest transition-all hover:bg-primary-500/10 hover:text-primary-400 disabled:opacity-50 text-slate-400 cursor-pointer rounded-none"
-                   >
-                    {days === 365 ? $t('admin.modal.one_year') : $t('admin.users.days', { n: days })}
-                   </button>
-                 {/each}
-              </div>
-              {#if getPlanStatus(selectedUser) === 'pro'}
-                 <button 
-                  onclick={() => handleRevokePremium(selectedUser?.id)}
-                  class="w-full py-3.5 bg-red-500/10 text-red-500 border border-red-500/30 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all cursor-pointer rounded-none"
-                 >
-                  {$t('admin.modal.revoke_privileges')}
-                 </button>
+              
+              {#if selectedUser?.settings?.role === 'director'}
+                <div class="p-4 bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <CheckCircle weight="fill" class="text-emerald-500" />
+                    <span class="text-[10px] font-mono font-black text-emerald-400 uppercase">EL USUARIO YA ES DIRECTOR</span>
+                  </div>
+                </div>
+              {:else}
+                <button 
+                  onclick={() => handlePromoteDirector(selectedUser?.id)}
+                  disabled={isSaving}
+                  class="w-full py-3.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all cursor-pointer rounded-none disabled:opacity-50"
+                >
+                  PROMOVER A DIRECTOR
+                </button>
               {/if}
             </div>
         </div>
@@ -785,8 +987,8 @@
       {#each [
         { id: 'dashboard', icon: SquaresFour, label: 'Dash' },
         { id: 'users', icon: Users, label: 'User' },
-        { id: 'system', icon: Gear, label: 'Sys' },
-        { id: 'exit', icon: ArrowArcLeft, label: 'Exit' }
+        { id: 'support', icon: Ticket, label: 'Sop' },
+        { id: 'exit', icon: ArrowArcLeft, label: 'Panel' }
       ] as item}
         {@const Icon = item.icon}
         <button 
@@ -828,6 +1030,11 @@
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
   }
 </style>
 

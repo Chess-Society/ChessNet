@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, Filter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 
 export const GET: RequestHandler = async ({ locals }) => {
@@ -10,7 +10,10 @@ export const GET: RequestHandler = async ({ locals }) => {
 
   try {
     const snapshot = await adminDb.collection("skills")
-      .where("owner_id", "==", locals.user.uid)
+      .where(Filter.or(
+        Filter.where('owner_id', '==', locals.user.uid),
+        Filter.where('ownerId', '==', locals.user.uid)
+      ))
       .orderBy("createdAt", "desc")
       .get();
          
@@ -95,7 +98,12 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
     const docRef = adminDb.collection("skills").doc(id);
     const docSnap = await docRef.get();
 
-    if (!docSnap.exists || docSnap.data()?.owner_id !== locals.user.uid) {
+    if (!docSnap.exists) {
+      return json({ error: 'Habilidad no encontrada' }, { status: 404 });
+    }
+
+    const currentOwner = docSnap.data()?.owner_id || docSnap.data()?.ownerId;
+    if (currentOwner !== locals.user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 

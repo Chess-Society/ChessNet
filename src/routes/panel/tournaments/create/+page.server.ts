@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import { superValidate, message } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { tournamentSchema } from '$lib/schemas/tournament';
 import { fail, redirect } from '@sveltejs/kit';
 

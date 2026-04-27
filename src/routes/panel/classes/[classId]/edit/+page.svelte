@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { untrack } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { goto } from '$app/navigation';
   import { 
     ChalkboardTeacher,
@@ -31,14 +31,12 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { t } from '$lib/i18n';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { classSchema } from '$lib/schemas/class';
 
   let { data }: { data: any } = $props();
-  // svelte-ignore state_referenced_locally
-  let { form: dataForm } = data;
 
-  const { form, errors, enhance, delayed, message, isTainted } = superForm(dataForm as any, {
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(untrack(() => data.form) as any, {
     validators: zod(classSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
@@ -89,7 +87,7 @@
           <div class="text-group">
             <div class="flex items-center gap-3 mb-1">
                <span class="text-[10px] font-black text-primary-400 uppercase tracking-widest font-outfit">{$t('common.edit')}</span>
-               {#if isTainted()}
+               {#if isTainted}
                  <span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[8px] font-black uppercase tracking-widest animate-pulse">{$t('common.unsaved_changes')}</span>
                {/if}
                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">ID: {data.class.id.slice(0, 8)}</span>

@@ -32,8 +32,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
     student = { id: studentSnap.id, ...studentSnap.data() };
     
-    // Verificar propiedad
-    if (student.owner_id !== uid) {
+    // Verificar propiedad (Profesor, Padre o Propio Alumno)
+    const cleanUserEmail = locals.user.email?.toLowerCase();
+    const isOwner = student.owner_id === uid;
+    const isParent = student.parentEmail?.toLowerCase() === cleanUserEmail || student.parent_email?.toLowerCase() === cleanUserEmail;
+    const isSelf = student.email?.toLowerCase() === cleanUserEmail || student.studentEmail?.toLowerCase() === cleanUserEmail;
+
+    if (!isOwner && !isParent && !isSelf) {
       throw error(403, 'No tienes permiso para ver este alumno');
     }
 
@@ -74,10 +79,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
 
     let attendanceRate = 0;
-    const attendanceSnap = await adminDb.collection("attendance")
-      .where("student_id", "==", studentId)
-      .where("owner_id", "==", uid)
-      .get();
+    // Si es padre o el propio alumno, no filtramos por owner_id
+    const attendanceQuery = isOwner 
+      ? adminDb.collection("attendance").where("student_id", "==", studentId).where("owner_id", "==", uid)
+      : adminDb.collection("attendance").where("student_id", "==", studentId);
+    
+    const attendanceSnap = await attendanceQuery.get();
     
     const totalSessions = attendanceSnap.size;
     const attendanceDocs = attendanceSnap.docs.map((doc: any) => doc.data());
@@ -92,10 +99,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
 
     let estimatedProgress = 0;
-    const skillsSnap = await adminDb.collection("student_skills")
-      .where("student_id", "==", studentId)
-      .where("owner_id", "==", uid)
-      .get();
+    const skillsQuery = isOwner 
+      ? adminDb.collection("student_skills").where("student_id", "==", studentId).where("owner_id", "==", uid)
+      : adminDb.collection("student_skills").where("student_id", "==", studentId);
+
+    const skillsSnap = await skillsQuery.get();
     
     const masteredSkills = skillsSnap.docs.filter((doc: any) => doc.data().level >= 3).length;
     // Asumimos un máximo de 20 habilidades base para el cálculo de porcentaje
@@ -104,6 +112,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     // Removed achievements loading
     return {
       user: locals.user,
+      role: locals.role,
       userPlan: await getUserPlan(locals.user.uid),
       student: serializeRecord(student),
       school: serializeRecord(school),

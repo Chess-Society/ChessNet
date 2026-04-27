@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, Filter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import { fail, error } from '@sveltejs/kit';
 
@@ -14,10 +14,21 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   try {
     const [classSnap, allSkillsSnap, assignedSnap] = await Promise.all([
       adminDb.collection('classes').doc(classId).get(),
-      adminDb.collection('skills').where('owner_id', '==', uid).get(),
+      adminDb.collection('skills')
+        .where(Filter.or(
+          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid)
+        ))
+        .get(),
       adminDb.collection('class_skills')
-        .where('owner_id', '==', uid)
-        .where('classId', '==', classId)
+        .where(Filter.or(
+          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid)
+        ))
+        .where(Filter.or(
+          Filter.where('classId', '==', classId),
+          Filter.where('class_id', '==', classId)
+        ))
         .where('active', '==', true)
         .get()
     ]);
@@ -89,8 +100,11 @@ export const actions: Actions = {
     try {
       const newDoc = {
         classId,
+        class_id: classId,
         skillId,
+        skill_id: skillId,
         owner_id: uid,
+        ownerId: uid,
         assignedAt: new Date().toISOString(),
         active: true,
         orderIndex: 0 // Will be handled by reorder or default
@@ -115,9 +129,18 @@ export const actions: Actions = {
 
     try {
       const snap = await adminDb.collection("class_skills")
-        .where("owner_id", "==", uid)
-        .where("classId", "==", classId)
-        .where("skillId", "==", skillId)
+        .where(Filter.or(
+          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid)
+        ))
+        .where(Filter.or(
+          Filter.where('classId', '==', classId),
+          Filter.where('class_id', '==', classId)
+        ))
+        .where(Filter.or(
+          Filter.where('skillId', '==', skillId),
+          Filter.where('skill_id', '==', skillId)
+        ))
         .where("active", "==", true)
         .get();
 
@@ -144,8 +167,14 @@ export const actions: Actions = {
 
     try {
       const snap = await adminDb.collection("class_skills")
-        .where("owner_id", "==", uid)
-        .where("classId", "==", classId)
+        .where(Filter.or(
+          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid)
+        ))
+        .where(Filter.or(
+          Filter.where('classId', '==', classId),
+          Filter.where('class_id', '==', classId)
+        ))
         .where("active", "==", true)
         .get();
 

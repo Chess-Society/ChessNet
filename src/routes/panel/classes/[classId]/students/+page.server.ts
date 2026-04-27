@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, Filter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 import { fail, error } from '@sveltejs/kit';
 
@@ -16,7 +16,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       adminDb.collection('classes').doc(classId).get(),
       adminDb.collection('students').get(), 
       adminDb.collection('class_students')
-        .where('class_id', '==', classId) // Try both or ensure creation saves both
+        .where(Filter.or(
+          Filter.where('class_id', '==', classId),
+          Filter.where('classId', '==', classId)
+        ))
         .get()
     ]);
 

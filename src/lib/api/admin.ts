@@ -34,6 +34,8 @@ export const adminApi = {
         classesSnap,
         premiumSnap,
         recentSnap,
+        missionsSnap,
+        assignmentsSnap,
         paymentsSnap
       ] = await Promise.all([
         getCountFromServer(collection(db, "users")),
@@ -42,6 +44,8 @@ export const adminApi = {
         getCountFromServer(collection(db, "classes")),
         getCountFromServer(query(collection(db, "users"), where("settings.plan", "==", "premium"))),
         getCountFromServer(query(collection(db, "users"), where("createdAt", ">=", sevenDaysAgo.toISOString()))),
+        getCountFromServer(collection(db, "missions")),
+        getCountFromServer(collection(db, "student_missions")),
         getDocs(query(collection(db, "payments"), limit(500))) // Limit to prevent crash/slowdown
       ]);
 
@@ -54,6 +58,8 @@ export const adminApi = {
         totalClasses: classesSnap.data().count,
         premiumUsers: premiumSnap.data().count,
         recentUsers: recentSnap.data().count,
+        totalMissions: missionsSnap.data().count,
+        totalAssignments: assignmentsSnap.data().count,
         totalRevenue,
         activeSessions: 0, 
         serverLoad: 0
@@ -188,7 +194,18 @@ export const adminApi = {
   async grantTrial(userId: string, days: number) {
     try {
       const userRef = doc(db, "users", userId);
-      const expiresAt = new Date();
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.data();
+      
+      let baseDate = new Date();
+      const currentExpiry = userData?.settings?.planExpiresAt;
+      
+      // Si ya tiene premium y no ha caducado, sumamos a la fecha actual de expiración
+      if (currentExpiry && new Date(currentExpiry) > new Date()) {
+        baseDate = new Date(currentExpiry);
+      }
+
+      const expiresAt = new Date(baseDate);
       expiresAt.setDate(expiresAt.getDate() + days);
 
       await Promise.all([
@@ -201,7 +218,7 @@ export const adminApi = {
           type: 'trial_granted',
           category: 'SUBSCRIPTION',
           action: 'Concesión de Trial',
-          message: `Premium trial de ${days} días concedido al usuario ${userId}`,
+          message: `Premium trial de ${days} días concedido al usuario ${userId}. Nueva expiración: ${expiresAt.toLocaleDateString()}`,
           timestamp: new Date().toISOString(),
           status: 'success'
         })
@@ -308,18 +325,24 @@ export const adminApi = {
   /**
    * Promueve a un usuario al rol de Director y establece su escuela.
    */
-  async promoteToDirector(userEmail: string, schoolName: string) {
+  async promoteToDirector(identifier: string, schoolName: string = "Escuela de Ajedrez") {
     try {
-      // 1. Buscar usuario por email
-      const q = query(collection(db, "users"), where("email", "==", userEmail), limit(1));
-      const snap = await getDocs(q);
-      
-      if (snap.empty) {
-        throw new Error("Usuario no encontrado");
-      }
+      let userId = "";
+      let userEmail = "";
 
-      const userDoc = snap.docs[0];
-      const userId = userDoc.id;
+      // Si parece un email, buscamos por email. Si no, asumimos que es un UID.
+      if (identifier.includes("@")) {
+        const q = query(collection(db, "users"), where("email", "==", identifier), limit(1));
+        const snap = await getDocs(q);
+        if (snap.empty) throw new Error("Usuario no encontrado por email");
+        userId = snap.docs[0].id;
+        userEmail = identifier;
+      } else {
+        userId = identifier;
+        const snap = await getDoc(doc(db, "users", userId));
+        if (!snap.exists()) throw new Error("Usuario no encontrado por ID");
+        userEmail = snap.data().email || "N/A";
+      }
 
       // 2. Actualizar rol y escuela
       await Promise.all([

@@ -1,9 +1,19 @@
 import admin from 'firebase-admin';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Filter } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+
+export { Filter };
+export function ownerFilter(uid: string) {
+    return Filter.or(
+        Filter.where('owner_id', '==', uid),
+        Filter.where('ownerId', '==', uid)
+    );
+}
 import { env as privateEnv } from '$env/dynamic/private';
 import { PUBLIC_FIREBASE_PROJECT_ID } from '$env/static/public';
-import { building } from '$app/environment';
+import { building, dev } from '$app/environment';
+import fs from 'fs';
+import path from 'path';
 
 let initialized = false;
 
@@ -38,6 +48,17 @@ function initializeAdmin() {
             });
             initialized = true;
             console.log('✅ [FirebaseAdmin] Initialized successfully with Service Account');
+        } else if (dev && fs.existsSync(path.resolve('service-account.json'))) {
+            try {
+                const serviceAccount = JSON.parse(fs.readFileSync(path.resolve('service-account.json'), 'utf8'));
+                admin.initializeApp({
+                    credential: admin.credential.cert(serviceAccount)
+                });
+                initialized = true;
+                console.log('✅ [FirebaseAdmin] Initialized successfully using local service-account.json');
+            } catch (err) {
+                console.error('❌ [FirebaseAdmin] Failed to load local service-account.json:', err);
+            }
         } else if (projectId) {
             // Check if we are in a Google Cloud environment that might have ADC
             // If not, don't even try to initialize with just projectId as it triggers the "Default Credentials" error
@@ -51,7 +72,7 @@ function initializeAdmin() {
                     console.error('❌ [FirebaseAdmin] Default Credentials fallback failed.');
                 }
             } else {
-                console.warn('⚠️ [FirebaseAdmin] Missing Service Account keys (FB_CLIENT_EMAIL/FB_PRIVATE_KEY). SDK remains uninitialized.');
+                console.warn('⚠️ [FirebaseAdmin] Missing Service Account keys (FB_CLIENT_EMAIL/FB_PRIVATE_KEY) and no local service-account.json found. SDK remains uninitialized.');
             }
         }
     } catch (error) {

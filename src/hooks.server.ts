@@ -1,39 +1,32 @@
 import { authenticate } from '$lib/server/auth';
 import type { Handle } from '@sveltejs/kit';
 import { adminDb } from '$lib/server/firebase-admin';
-
 import { json } from '@sveltejs/kit';
 
-// Cache de mantenimiento en memoria — evita consultar Firestore en cada request SSR
-const MAINTENANCE_CACHE_TTL_MS = 5_000; // 5 segundos
+// Maintenance cache to avoid frequent Firestore queries
+const MAINTENANCE_CACHE_TTL_MS = 5_000;
 let maintenanceCacheValue: boolean = false;
 let maintenanceCacheExpiry: number = 0;
 
 export const handle: Handle = async ({ event, resolve }) => {
-    // 1. Poblar event.locals con la información del usuario desde la cookie __session
+    // 1. Populate event.locals with user info
     await authenticate(event);
     
-    // 2. Comprobar Modo Mantenimiento (Excepto para rutas de Assets y API de Admin/Auth)
+    // 2. Check Maintenance Mode (Except for Assets and Auth routes)
     const isAsset = event.url.pathname.startsWith('/_app') || 
                     event.url.pathname.startsWith('/favicon') || 
                     event.url.pathname.includes('.');
     const isAdminRoute = event.url.pathname.startsWith('/admin');
     const isAuthRoute = event.url.pathname.startsWith('/login') || event.url.pathname.startsWith('/auth');
     
-    const isDev = process.env.NODE_ENV === 'development';
-    
-    if (!isAsset && !isAdminRoute && !isAuthRoute && !isDev) {
+    if (!isAsset && !isAdminRoute && !isAuthRoute) {
         try {
             const now = Date.now();
             let isMaintenance: boolean;
 
-
-
-            // Usar caché si aún es válido
             if (now < maintenanceCacheExpiry) {
                 isMaintenance = maintenanceCacheValue;
             } else {
-                // Refrescar caché desde Firestore con Timeout para evitar bloqueos
                 const configRef = adminDb.collection("system").doc("config");
                 const configSnap = await Promise.race([
                     configRef.get(),
@@ -45,71 +38,153 @@ export const handle: Handle = async ({ event, resolve }) => {
                 maintenanceCacheExpiry = now + MAINTENANCE_CACHE_TTL_MS;
             }
             
-            if (isMaintenance) {
-                if (!event.locals.isAdmin) {
-                    // Si es una petición de datos (fetch), devolvemos error 503
-                    if (event.request.headers.get('accept')?.includes('application/json')) {
-                        return json({ error: 'Sistema en mantenimiento' }, { status: 503 });
-                    }
-                    
-                    // Si es navegación, devolver página de mantenimiento
-                    return new Response(`
-                        <!DOCTYPE html>
-                        <html lang="es">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>ChessNet | Mantenimiento</title>
-                            <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-                            <style>
-                                :root { --primary: #7c3aed; --bg: #09090b; }
-                                body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-                                .bg-mesh { position: fixed; inset: 0; z-index: -1; opacity: 0.15; pointer-events: none; background: 
-                                    radial-gradient(circle at 0% 0%, var(--primary) 0%, transparent 50%),
-                                    radial-gradient(circle at 100% 100%, #4f46e5 0%, transparent 50%);
-                                }
-                                .container { max-width: 600px; text-align: center; padding: 40px; }
-                                .logo-box { position: relative; display: inline-block; padding: 25px; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; margin-bottom: 40px; transform: rotate(3deg); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-                                h1 { font-family: 'Outfit', sans-serif; font-size: 3.5rem; letter-spacing: -0.05em; margin: 0; text-transform: uppercase; font-style: italic; }
-                                .text-primary { color: var(--primary); }
-                                p { color: #a1a1aa; font-size: 1.1rem; line-height: 1.6; max-width: 400px; margin: 20px auto 40px; }
-                                .status-bar { display: grid; grid-template-cols: 1fr 1fr; gap: 15px; max-width: 320px; margin: 0 auto; }
-                                .status-card { padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; text-align: center; }
-                                .label { display: block; font-size: 0.65rem; font-weight: 900; color: #52525b; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 4px; }
-                                .value { font-size: 0.85rem; font-weight: 700; color: white; }
-                                .pulse { color: var(--primary); }
-                                .bottom-tag { margin-top: 60px; font-size: 0.65rem; font-weight: 800; color: #3f3f46; text-transform: uppercase; letter-spacing: 0.4em; display: flex; align-items: center; justify-content: center; gap: 10px; }
-                                .dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); animation: pulse 2s infinite; }
-                                @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="bg-mesh"></div>
-                            <div class="container">
-                                <div class="logo-box">
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary)"><path d="M14.5 9.5 22 2v20l-7.5-7.5L7 22V2l7.5 7.5Z"/></svg>
+            if (isMaintenance && !event.locals.isAdmin) {
+                if (event.request.headers.get('accept')?.includes('application/json')) {
+                    return json({ error: 'Sistema en mantenimiento' }, { status: 503 });
+                }
+                
+                return new Response(`
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>ChessNet | En Mantenimiento</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+                        <style>
+                            :root {
+                                --primary: #c084fc;
+                                --primary-glow: rgba(192, 132, 252, 0.4);
+                                --bg: #03060b;
+                                --card-bg: rgba(255, 255, 255, 0.03);
+                                --border: rgba(255, 255, 255, 0.08);
+                            }
+                            * { margin: 0; padding: 0; box-sizing: border-box; }
+                            body { 
+                                background: var(--bg); 
+                                color: white; 
+                                height: 100vh; 
+                                font-family: 'Inter', sans-serif;
+                                display: flex; align-items: center; justify-content: center; 
+                                overflow: hidden;
+                            }
+                            .mesh-bg {
+                                position: fixed; inset: 0; z-index: -1;
+                                background: 
+                                    radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
+                                    radial-gradient(circle at 90% 90%, rgba(79, 70, 229, 0.1) 0%, transparent 40%),
+                                    radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 60%);
+                            }
+                            .glass-card {
+                                width: 90%; max-width: 480px;
+                                background: var(--card-bg);
+                                border: 1px solid var(--border);
+                                backdrop-filter: blur(40px);
+                                border-radius: 48px;
+                                padding: 60px 40px;
+                                text-align: center;
+                                box-shadow: 0 40px 100px -20px rgba(0,0,0,0.6);
+                                animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+                            }
+                            .logo-section { margin-bottom: 40px; }
+                            .icon-box {
+                                width: 80px; height: 80px;
+                                background: rgba(192, 132, 252, 0.1);
+                                border: 1px solid rgba(192, 132, 252, 0.2);
+                                border-radius: 24px;
+                                display: flex; align-items: center; justify-content: center;
+                                margin: 0 auto 20px;
+                                color: var(--primary);
+                                animation: float 6s infinite ease-in-out;
+                            }
+                            .brand {
+                                font-family: 'Outfit', sans-serif;
+                                font-size: 2.5rem; font-weight: 900; letter-spacing: -0.05em;
+                                background: linear-gradient(to right, #fff, #c084fc);
+                                -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                                text-transform: uppercase; font-style: italic;
+                            }
+                            h1 { 
+                                font-family: 'Outfit', sans-serif;
+                                font-size: 1.5rem; font-weight: 800; margin-bottom: 16px; 
+                                text-transform: uppercase; tracking: -0.02em;
+                            }
+                            p { 
+                                color: #94a3b8; font-size: 1rem; line-height: 1.6; 
+                                margin-bottom: 40px; font-weight: 500;
+                            }
+                            .status-info {
+                                background: rgba(0,0,0,0.4); border-radius: 24px; padding: 24px;
+                                border: 1px solid var(--border);
+                                display: flex; align-items: center; justify-content: space-around;
+                                margin-bottom: 30px;
+                            }
+                            .status-item { display: flex; flex-direction: column; gap: 4px; }
+                            .status-label { font-size: 0.7rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; }
+                            .status-value { font-size: 0.9rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+                            .pulse-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 12px #10b981; animation: pulse 2s infinite; }
+                            
+                            .progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.03); border-radius: 10px; overflow: hidden; margin-top: 20px; }
+                            .progress-fill { 
+                                height: 100%; width: 70%; 
+                                background: linear-gradient(90deg, #7c3aed, #c084fc);
+                                border-radius: 10px; position: relative;
+                                animation: fillAnim 3s infinite ease-in-out;
+                            }
+                            
+                            @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+                            @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+                            @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+                            @keyframes fillAnim { 0% { width: 60%; } 50% { width: 85%; } 100% { width: 60%; } }
+
+                            @media (max-width: 480px) {
+                                .glass-card { padding: 40px 24px; width: 85%; border-radius: 32px; }
+                                .brand { font-size: 2rem; }
+                                h1 { font-size: 1.2rem; }
+                                p { font-size: 0.9rem; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="mesh-bg"></div>
+                        <div class="glass-card">
+                            <div class="logo-section">
+                                <div class="icon-box">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 2v10"/><path d="M18.4 4.6a9 9 0 1 1-12.8 0"/><path d="m12 12-4 10"/><path d="m12 12 4 10"/>
+                                    </svg>
                                 </div>
-                                <h1>MEJORANDO <span class="text-primary">CHESSNET</span></h1>
-                                <p>Estamos optimizando los motores del sistema para ofrecerte una experiencia más fluida y precisa.</p>
-                                <div class="status-bar">
-                                    <div class="status-card"><span class="label">ESTADO</span><span class="value pulse">ACTUALIZANDO</span></div>
-                                    <div class="status-card"><span class="label">REGRESO</span><span class="value">MUY PRONTO</span></div>
+                                <div class="brand">ChessNet</div>
+                            </div>
+                            <h1>Actualizando ChessNet</h1>
+                            <p>Estamos desplegando una evolución sistemática para elevar tu experiencia. Volveremos en unos instantes.</p>
+                            
+                            <div class="status-info">
+                                <div class="status-item">
+                                    <span class="status-label">Servidor</span>
+                                    <span class="status-value"><div class="pulse-dot"></div> Activo</span>
                                 </div>
-                                <div class="bottom-tag">
-                                    <div class="dot"></div>
-                                    INTELLIGENCE SYSTEM ONLINE
+                                <div class="status-item">
+                                    <span class="status-label">Modo</span>
+                                    <span class="status-value">Mantenimiento</span>
                                 </div>
                             </div>
-                        </body>
-                        </html>
-                    `, {
-                        headers: { 'Content-Type': 'text/html' },
-                        status: 503
-                    });
-                }
+
+                            <div class="progress-container">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <div style="margin-top: 12px; font-size: 0.65rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.2em;">
+                                Sincronizando datos
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                `, {
+                    headers: { 'Content-Type': 'text/html' },
+                    status: 503
+                });
             }
             
-            // Si el sistema está en mantenimiento, nos aseguramos de que la respuesta no se cachee
             if (isMaintenance) {
                 const response = await resolve(event);
                 response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -119,13 +194,8 @@ export const handle: Handle = async ({ event, resolve }) => {
             }
         } catch (error) {
             console.error('Error checking maintenance mode:', error);
-            // Si falla la base de datos (ej: sin inicializar), permitimos la carga de la web
-            // para que no sea un fallo crítico si no hay config.
         }
     }
 
-    // Continuar con la petición
-    const response = await resolve(event);
-    return response;
+    return await resolve(event);
 };
-

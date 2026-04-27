@@ -24,15 +24,14 @@
   import { fade, scale } from 'svelte/transition';
   import { toast } from '$lib/stores/toast';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { onMount, untrack } from 'svelte';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { tournamentSchema } from '$lib/schemas/tournament';
 
   let { data } = $props<{ data: any }>();
   let schools = $derived((data.schools as any[]) || []);
 
-  // svelte-ignore state_referenced_locally
-  const initialForm = data.form;
-  const { form, errors, enhance, delayed, message, tainted } = superForm(initialForm as any, {
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(untrack(() => data.form), {
     validators: zod(tournamentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
@@ -47,7 +46,7 @@
         toast.error(errorMsg);
       }
     }
-  });
+  }) as any;
 
   const getFormatLabel = (f: string) => {
     switch(f) {
@@ -82,7 +81,7 @@
       </div>
   
       <div class="flex items-center gap-4">
-        {#if $tainted}
+        {#if isTainted}
           <span class="text-[10px] font-black text-amber-500 uppercase tracking-widest animate-pulse mr-4 hidden md:block">
             {$t('common.unsaved_changes') || 'CAMBIOS SIN GUARDAR'}
           </span>

@@ -1,4 +1,4 @@
-import { adminDb } from './firebase-admin';
+import { adminDb, Filter } from './firebase-admin';
 
 
 export type UserRole = 'admin' | 'teacher' | 'parent' | 'student' | 'none';
@@ -6,25 +6,32 @@ export type UserRole = 'admin' | 'teacher' | 'parent' | 'student' | 'none';
 export async function getUserRole(email: string): Promise<UserRole> {
     const cleanEmail = email.trim().toLowerCase();
 
-
-
     // 2. Check if Teacher/Director
     // Teachers are in the 'users' collection
-    const userDoc = await adminDb.collection('users').doc(cleanEmail).get();
-    if (userDoc.exists) {
-        const userData = userDoc.data();
+    const userSnap = await adminDb.collection('users').where('email', '==', cleanEmail).limit(1).get();
+    if (!userSnap.empty) {
+        const userData = userSnap.docs[0].data();
         if (userData?.role === 'admin' || userData?.role === 'director') return 'admin';
         return 'teacher';
     }
 
-    // 3. Check if Parent (Free Access)
-    // Parent access is free as it is for informational purposes only.
-    const studentsAsParent = await adminDb.collection('students')
-        .where('parentEmail', '==', cleanEmail)
+    // 3. Check if Parent or Student (Informational Access)
+    const studentsSnap = await adminDb.collection('students')
+        .where(Filter.or(
+            Filter.where('parentEmail', '==', cleanEmail),
+            Filter.where('parent_email', '==', cleanEmail),
+            Filter.where('email', '==', cleanEmail),
+            Filter.where('studentEmail', '==', cleanEmail)
+        ))
         .limit(1)
         .get();
     
-    if (!studentsAsParent.empty) {
+    if (!studentsSnap.empty) {
+        const studentData = studentsSnap.docs[0].data();
+        // If the email matches the student's own email, it's a 'student' role
+        if (studentData.email?.toLowerCase() === cleanEmail || studentData.studentEmail?.toLowerCase() === cleanEmail) {
+            return 'student';
+        }
         return 'parent';
     }
 

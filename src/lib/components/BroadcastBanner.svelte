@@ -6,34 +6,27 @@
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
 
-  let visible = $state(true);
+  let dismissedIds = $state(new Set<string>());
+  let visible = $state(false);
   let currentAnnouncement = $derived($globalAnnouncements[0] || null);
   let isLanding = $derived($page.url.pathname === "/");
 
-  // Persistent dismissal
-  onMount(() => {
-    if (currentAnnouncement) {
-      const dismissedId = localStorage.getItem("dismissed_announcement_id");
-      if (dismissedId === currentAnnouncement.id) {
-        visible = false;
-      }
-    }
-  });
-
-  // Re-show when announcement changes
+  // Robust visibility management
   $effect(() => {
     if (currentAnnouncement) {
-      const dismissedId = localStorage.getItem("dismissed_announcement_id");
-      if (dismissedId !== currentAnnouncement.id) {
-        visible = true;
-      }
+      const dismissedId = browser ? localStorage.getItem("dismissed_announcement_id") : null;
+      // Show only if not dismissed in session OR localStorage, and not on landing
+      const isDismissed = dismissedIds.has(currentAnnouncement.id) || dismissedId === currentAnnouncement.id;
+      visible = !isDismissed && !isLanding;
+    } else {
+      visible = false;
     }
   });
 
   // Communicating height to layouts
   $effect(() => {
     if (browser) {
-      if (currentAnnouncement && visible && !isLanding) {
+      if (visible) {
         document.documentElement.style.setProperty("--banner-height", "40px");
       } else {
         document.documentElement.style.setProperty("--banner-height", "0px");
@@ -42,10 +35,13 @@
   });
 
   function dismiss() {
-    visible = false;
     if (currentAnnouncement) {
-      localStorage.setItem("dismissed_announcement_id", currentAnnouncement.id);
+      dismissedIds.add(currentAnnouncement.id);
+      if (browser) {
+        localStorage.setItem("dismissed_announcement_id", currentAnnouncement.id);
+      }
     }
+    visible = false;
   }
 </script>
 
@@ -65,10 +61,11 @@
           >
             <span class="md:hidden"> {currentAnnouncement.title} </span>
             <span class="hidden md:inline">
-              {currentAnnouncement.title}: {currentAnnouncement.message}
+              {currentAnnouncement.title}: {currentAnnouncement.content || currentAnnouncement.message || ''}
             </span>
           </p>
         </div>
+
 
         <div class="flex items-center gap-4">
           {#if currentAnnouncement.link}

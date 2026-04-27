@@ -31,7 +31,12 @@
     Lightning,
     Question,
     WarningCircle,
-    Megaphone
+    Megaphone,
+    Target,
+    Pulse,
+    Sparkle,
+    Heart,
+    ArrowRight
   } from 'phosphor-svelte';
 
   import { fade, fly } from 'svelte/transition';
@@ -55,9 +60,13 @@
   let showMobileMenu = $state(false);
 
   // Reactividad del store
+  let isAdmin = $derived(!!data?.isAdmin);
+  let userRole = $derived(data?.role || 'teacher');
+  let impersonateEmail = $derived(data?.impersonateEmail);
+  
   let teacherName = $derived($appStore?.settings?.teacherName || $authUser?.displayName || ($authLoading ? '...' : 'Socio'));
   let teacherAvatar = $derived($appStore?.settings?.teacherAvatar || $authUser?.photoURL || null);
-  let plan = $derived(data.isAdmin ? 'premium' : ($appStore?.settings?.plan || 'free'));
+  let plan = $derived(isAdmin ? 'premium' : ($appStore?.settings?.plan || 'free'));
   let isPremium = $derived(plan === 'premium');
   let email = $derived($authUser?.email || '');
   
@@ -66,7 +75,7 @@
 
 
   // Impersonation state
-  let isImpersonating = $derived(!!data.impersonateEmail);
+  let isImpersonating = $derived(!!impersonateEmail);
 
   // Lobby & Support Notifications state
   let lobbyPulse = $state(false);
@@ -143,7 +152,7 @@
   $effect(() => {
     const list = $appStore.reports || [];
     if (list.length > 0) {
-      const isAdmin = data.isAdmin;
+      const isUserAdmin = isAdmin;
       
       if (isAdmin) {
         // Admin: dot en /admin si hay tickets abiertos sin revisar
@@ -365,6 +374,13 @@
         </div>
 
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+          <a href="/portal" 
+             onclick={() => showMobileMenu = false}
+             class="flex items-center gap-4 px-6 py-4 rounded-none text-blue-400 font-black bg-blue-500/5 border border-blue-500/10 transition-all font-outfit mb-2">
+            <Users weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">Portal Familiar</span>
+          </a>
+
           <a href="/panel/settings" 
              onclick={() => showMobileMenu = false}
              class="flex items-center gap-4 px-6 py-4 rounded-none text-slate-400 font-bold hover:bg-violet-500/10 hover:text-violet-400 transition-all font-outfit {currentRoute.includes('/settings') ? 'bg-violet-500/10 text-violet-400' : ''}">
@@ -372,7 +388,7 @@
             <span class="text-xs uppercase tracking-widest">{$t('nav.settings')}</span>
           </a>
           
-          {#if data.isAdmin}
+          {#if isAdmin}
             <a href="/admin" 
                onclick={() => showMobileMenu = false}
                class="flex items-center gap-4 px-6 py-4 rounded-none text-amber-500 font-black bg-amber-500/5 border border-amber-500/10 transition-all font-outfit">
@@ -393,11 +409,11 @@
           <a href="/panel/changelog" 
              onclick={() => showMobileMenu = false}
              class="flex items-center gap-4 px-6 py-4 rounded-none text-slate-400 font-bold hover:bg-violet-500/10 hover:text-violet-400 transition-all font-outfit {currentRoute.includes('/changelog') ? 'bg-violet-500/10 text-violet-400' : ''}">
-            <RocketLaunch weight="duotone" size={20} />
+            <Pulse weight="duotone" size={20} />
             <span class="text-xs uppercase tracking-widest">{$t('nav.changelog')}</span>
           </a>
 
-          {#if data.role !== 'parent'}
+          {#if userRole !== 'parent'}
             <div class="h-px bg-white/5 my-2 mx-4"></div>
             <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.management') || 'Gestión'}</p>
 
@@ -424,7 +440,7 @@
           <div class="h-px bg-white/5 my-2 mx-4"></div>
           <p class="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] px-6 pb-1">{$t('nav.premium_features') || 'Avanzado'}</p>
 
-          {#if data.role !== 'parent'}
+          {#if userRole !== 'parent'}
             <a href={plan === 'premium' ? '/panel/payments' : '/pricing'} onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/payments') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
               <div class="flex items-center gap-4">
                 <Wallet weight="duotone" size={20} />
@@ -444,11 +460,17 @@
               <span class="text-xs uppercase tracking-widest">{$t('nav.skills') || 'Temario'}</span>
             </a>
           {/if}
-          <a href="/panel/announcements" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/announcements') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
-            <Megaphone weight="duotone" size={20} />
-            <span class="text-xs uppercase tracking-widest">{$t('nav.announcements') || 'Comunicados'}</span>
+          <a href="/panel/announcements" onclick={() => showMobileMenu = false} class="flex items-center justify-between px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/announcements') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <div class="flex items-center gap-4">
+              <Megaphone weight="duotone" size={20} />
+              <span class="text-xs uppercase tracking-widest">{$t('nav.announcements') || 'Comunicados'}</span>
+            </div>
+            {#if plan !== 'premium' && userRole === 'teacher'}<Crown weight="fill" size={10} class="text-violet-400" />{/if}
           </a>
-
+          <a href="/panel/missions" onclick={() => showMobileMenu = false} class="flex items-center gap-4 px-6 py-3 rounded-none font-bold hover:bg-white/5 transition-all font-outfit {currentRoute.includes('/missions') ? 'text-violet-400 bg-violet-500/5' : 'text-slate-400'}">
+            <Target weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">{$t('actions.missions.title')}</span>
+          </a>
         </nav>
 
         <div class="p-6 border-t border-white/5">
@@ -494,7 +516,7 @@
         </nav>
 
         <!-- Quick Module Switcher (Teachers only) -->
-        {#if data.role !== 'parent'}
+        {#if userRole !== 'parent'}
           <div class="hidden lg:flex items-center gap-0.5 bg-white/[0.03] p-1 rounded-none border border-white/10 flex-shrink backdrop-blur-xl">
             <a href="/panel/schools" 
                class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/schools') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
@@ -541,6 +563,17 @@
                class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/announcements') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
                title={$t('nav.announcements') || 'Comunicados'}>
               <Megaphone size={20} weight={currentRoute.includes('/announcements') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+            </a>
+            <a href="/panel/missions" 
+               class="p-2.5 rounded-none hover:bg-violet-500/10 transition-all duration-300 {currentRoute.includes('/missions') ? 'text-violet-400 bg-violet-500/10 shadow-[inset_0_0_10px_rgba(139,92,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+               title="Misiones">
+              <Target size={20} weight={currentRoute.includes('/missions') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
+            </a>
+            <div class="w-px h-6 bg-white/5 mx-1"></div>
+            <a href="/portal" 
+               class="p-2.5 rounded-none hover:bg-blue-500/10 transition-all duration-300 {currentRoute.includes('/portal') ? 'text-blue-400 bg-blue-500/10 shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]' : 'text-slate-500 hover:text-slate-300'} group/nav" 
+               title="Portal Familiar">
+              <Users size={20} weight={currentRoute.includes('/portal') ? 'fill' : 'duotone'} class="group-hover/nav:scale-110 transition-transform" />
             </a>
           </div>
         {:else}
@@ -627,7 +660,7 @@
 
               <!-- Secondary Section: Management & Account -->
               <div class="space-y-0.5">
-                {#if $appStore?.settings?.role === 'director' || data.isAdmin}
+                {#if $appStore?.settings?.role === 'director' || isAdmin}
                   <a href={$appStore?.settings?.role === 'director' ? '/panel/director' : '/admin'} class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-white/5 hover:text-white transition-all group/item">
                     <div class="flex items-center gap-3">
                       <Buildings weight="duotone" size={18} class="group-hover/item:text-emerald-400 transition-colors" /> 
@@ -647,12 +680,38 @@
                   <CaretRight size={14} class="opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-1 transition-all" />
                 </a>
 
+                <a href="/panel/changelog" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-white/5 hover:text-white transition-all group/item">
+                  <div class="flex items-center gap-3">
+                    <Sparkle weight="duotone" size={18} class="group-hover/item:text-primary-400 transition-colors" /> 
+                    <span>Novedades / Changelog</span>
+                  </div>
+                  <CaretRight size={14} class="opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-1 transition-all" />
+                </a>
+                
+
                 <a href="/panel/support" class="flex items-center justify-between px-4 py-3 text-xs font-outfit font-bold text-slate-400 hover:bg-white/5 hover:text-white transition-all group/item">
                   <div class="flex items-center gap-3">
                     <Lifebuoy weight="duotone" size={18} /> 
                     <span>Ayuda y Soporte</span>
                   </div>
                   <CaretRight size={14} class="opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-1 transition-all" />
+                </a>
+              </div>
+
+
+              <div class="h-px bg-white/5 mx-2 my-1"></div>
+
+              <!-- Projects Section (Simplified) -->
+              <div class="px-2 pb-1">
+                <a href="/panel/support" class="flex items-center gap-3 px-4 py-2.5 rounded-none hover:bg-white/5 transition-all group/project border border-transparent hover:border-white/5 relative overflow-hidden">
+                  <div class="flex items-center justify-center w-6 h-6 bg-rose-500/10 rounded-lg group-hover/project:bg-rose-500/20 transition-colors">
+                    <Heart size={14} class="text-rose-500 animate-pulse" />
+                  </div>
+                  <span class="text-xs font-outfit font-bold text-slate-300 group-hover/project:text-white transition-colors tracking-tight">Proyectos apoyados</span>
+                  <div class="ml-auto flex items-center gap-2">
+                    <div class="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-[8px] font-black text-rose-400 uppercase tracking-tighter border border-rose-500/20">NUEVO</div>
+                    <CaretRight size={10} class="text-slate-600 group-hover/project:text-white group-hover/project:translate-x-0.5 transition-all" />
+                  </div>
                 </a>
               </div>
 
@@ -733,8 +792,11 @@
           <span class="text-[8px] font-black uppercase tracking-widest leading-none">PANEL</span>
         </a>
         
+        <a href="/panel/missions" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/missions') ? 'text-violet-400' : 'text-slate-500'}">
+          <Target weight={currentRoute.includes('/missions') ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-widest leading-none">{$t('actions.missions.title')}</span>
+        </a>
 
- 
         <!-- Center Action Button (Support Menu) -->
         <div class="relative -top-5">
           <button 
@@ -752,6 +814,11 @@
 
 
 
+        <a href="/panel/planner" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/planner') ? 'text-violet-400' : 'text-slate-500'}">
+          <Calendar weight={currentRoute.includes('/planner') ? 'fill' : 'duotone'} size={20} />
+          <span class="text-[8px] font-black uppercase tracking-widest leading-none">AGENDA</span>
+        </a>
+        
         <a href="/panel/settings" class="flex flex-col items-center justify-center gap-1 w-12 transition-all {currentRoute.includes('/settings') ? 'text-violet-400' : 'text-slate-500'}">
           <GearSix weight={currentRoute.includes('/settings') ? 'fill' : 'duotone'} size={20} />
           <span class="text-[8px] font-black uppercase tracking-widest leading-none">AJUSTES</span>

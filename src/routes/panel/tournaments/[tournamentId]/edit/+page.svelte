@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t, locale } from '$lib/i18n';
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { goto } from '$app/navigation';
   import { 
     Trophy,
@@ -34,14 +34,14 @@
   import type { PageData } from './$types';
   import { fade, slide, fly, scale } from 'svelte/transition';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { tournamentSchema } from '$lib/schemas/tournament';
   import { toast } from '$lib/stores/toast';
   
   let { data }: { data: PageData } = $props();
   
-  const { form, errors, enhance, delayed, message, tainted } = superForm(data.form, {
-    validators: zod(tournamentSchema),
+  const { form, errors, enhance, delayed, message, isTainted } = superForm(untrack(() => data.form), {
+    validators: zod(tournamentSchema as any),
     onUpdated({ form }) {
       if (form.valid) {
         toast.success($t('tournaments.updates.success') || 'Tournament updated successfully');
@@ -50,7 +50,7 @@
         toast.error(form.message);
       }
     }
-  });
+  }) as any;
 
   let showDeleteConfirm = $state(false);
   let showResetConfirm = $state(false);
@@ -134,7 +134,7 @@
       </div>
 
       <div class="flex items-center gap-4">
-        {#if $tainted}
+        {#if isTainted}
           <span class="text-[10px] font-black text-amber-500 uppercase tracking-widest animate-pulse mr-4 hidden md:block">
             {$t('common.unsaved_changes') || 'CAMBIOS SIN GUARDAR'}
           </span>

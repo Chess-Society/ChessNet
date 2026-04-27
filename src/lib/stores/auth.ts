@@ -22,25 +22,6 @@ export const cookieSynced = writable<boolean>(false);
 export const initAuth = () => {
     if (typeof window === 'undefined') return;
 
-    // Local Development Bypass Check
-    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const hasBypassCookie = document.cookie.includes('antigravity_access=antigravity-dev-secret');
-
-    if (isDev && hasBypassCookie) {
-        console.log("🚀 [Auth] Local Dev Bypass Detected");
-        user.set({
-            uid: 'antigravity-dev-worker',
-            email: 'tomih@chess-society.com',
-            displayName: 'Antigravity (Dev Mode)',
-            photoURL: '',
-            isAdmin: true
-        } as any);
-        loading.set(false);
-        authInitialized.set(true);
-        cookieSynced.set(true);
-        return () => {}; // No active listener needed for bypass
-    }
-
     let resolved = false;
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {

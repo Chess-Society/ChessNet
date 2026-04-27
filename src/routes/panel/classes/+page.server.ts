@@ -1,6 +1,6 @@
 import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, ownerFilter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 
 export const actions: Actions = {
@@ -14,7 +14,8 @@ export const actions: Actions = {
     try {
       // Security check: ensure user owns the class
       const doc = await adminDb.collection('classes').doc(id).get();
-      if (!doc.exists || doc.data()?.owner_id !== locals.user.uid) {
+      const currentOwner = doc.data()?.owner_id || doc.data()?.ownerId;
+      if (!doc.exists || currentOwner !== locals.user.uid) {
         return fail(403, { message: 'Unauthorized' });
       }
 
@@ -48,15 +49,15 @@ export const actions: Actions = {
       const batch = adminDb.batch();
       
       const classesSnap = await adminDb.collection('classes')
-        .where('owner_id', '==', uid)
+        .where(ownerFilter(uid))
         .get();
       
       classesSnap.docs.forEach((doc: any) => {
         batch.delete(doc.ref);
       });
-
+      
       const enrollmentsSnap = await adminDb.collection('class_students')
-        .where('owner_id', '==', uid)
+        .where(ownerFilter(uid))
         .get();
       
       enrollmentsSnap.docs.forEach((doc: any) => {
@@ -97,27 +98,30 @@ export const load: PageServerLoad = async ({ locals }) => {
     
     // Obtener clases y centros del usuario desde Firebase usando Admin SDK
     const [classesSnap, schoolsSnap] = await Promise.all([
-      adminDb.collection("classes").where("owner_id", "==", uid).get(),
-      adminDb.collection("schools").where("owner_id", "==", uid).get()
+      adminDb.collection("classes").where(ownerFilter(uid)).get(),
+      adminDb.collection("schools").where(ownerFilter(uid)).get()
     ]);
 
     const classes = classesSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
     const schools = schoolsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
 
     // Obtener alumnos matriculados para contar por clase
-    const enrollmentsSnap = await adminDb.collection("class_students").where("owner_id", "==", uid).get();
+    const enrollmentsSnap = await adminDb.collection("class_students").where(ownerFilter(uid)).get();
     const enrollments = enrollmentsSnap.docs.map((doc: any) => doc.data());
     
     const countByClass: Record<string, number> = {};
     enrollments.forEach((e: any) => {
-      countByClass[e.class_id] = (countByClass[e.class_id] || 0) + 1;
+      const cId = e.class_id || e.classId;
+      if (cId) {
+        countByClass[cId] = (countByClass[cId] || 0) + 1;
+      }
     });
 
     // Enriquecer clases con el conteo
     const enrichedClasses = classes.map((c: any) => ({
       ...c,
       studentCount: countByClass[c.id] || 0
-    }));
+    })).sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
 
     // Calcular estadísticas globales
     const schoolCounts: Record<string, number> = {};
@@ -125,11 +129,12 @@ export const load: PageServerLoad = async ({ locals }) => {
     let totalStudents = 0;
     
     enrichedClasses.forEach((c: any) => {
-      if (c.school_id) {
-        schoolCounts[c.school_id] = (schoolCounts[c.school_id] || 0) + 1;
+      const sId = c.school_id || c.schoolId;
+      if (sId) {
+        schoolCounts[sId] = (schoolCounts[sId] || 0) + 1;
       }
-      totalCapacity += (c.max_students || 0);
-      totalStudents += c.studentCount;
+      totalCapacity += (c.max_students || c.maxStudents || 0);
+      totalStudents += (c.studentCount || 0);
     });
 
     const stats = {

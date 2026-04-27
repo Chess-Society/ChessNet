@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, Filter } from '$lib/server/firebase-admin';
 import { authenticate } from '$lib/server/auth';
 import { checkStudentLimit } from '$lib/server/plans';
 import { serializeRecord } from '$lib/server/serialize';
@@ -13,20 +13,26 @@ export const GET: RequestHandler = async (event) => {
 
   try {
     const snapshot = await adminDb.collection("students")
-      .where("owner_id", "==", user.uid)
-      .orderBy("createdAt", "desc")
+      .where(Filter.or(
+        Filter.where('owner_id', '==', user.uid),
+        Filter.where('ownerId', '==', user.uid)
+      ))
       .get();
         
-    // Standardize response fields for frontend consumption
+    // Standardize response fields and sort in-memory to handle dual field names (createdAt/created_at)
     const students = snapshot.docs.map((doc: any) => {
       const data = doc.data();
-      return serializeRecord({ 
+      return { 
         id: doc.id, 
         ...data,
         createdAt: data.createdAt || data.created_at,
         updatedAt: data.updatedAt || data.updated_at
-      });
-    });
+      };
+    }).sort((a: any, b: any) => {
+      const dateA = a.createdAt || '';
+      const dateB = b.createdAt || '';
+      return dateB.localeCompare(dateA);
+    }).map((s: any) => serializeRecord(s));
     return json({ students });
   } catch (error: any) {
     console.error('❌ Error in GET students API:', error.message);
@@ -112,7 +118,12 @@ export const PUT: RequestHandler = async (event) => {
     const docRef = adminDb.collection("students").doc(id);
     const docSnap = await docRef.get();
 
-    if (!docSnap.exists || docSnap.data()?.owner_id !== user.uid) {
+    if (!docSnap.exists) {
+      return json({ error: 'Alumno no encontrado' }, { status: 404 });
+    }
+
+    const currentOwner = docSnap.data()?.owner_id || docSnap.data()?.ownerId;
+    if (currentOwner !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -130,6 +141,7 @@ export const PUT: RequestHandler = async (event) => {
     };
     delete updateData.id;
     delete updateData.owner_id;
+    delete updateData.ownerId;
     delete updateData.createdAt;
     delete updateData.created_at;
     delete updateData.updated_at;
@@ -141,22 +153,18 @@ export const PUT: RequestHandler = async (event) => {
     if (newClassId !== undefined && newClassId !== oldClassId) {
       // 1. Eliminar inscripciones anteriores
       const enrollmentsq = await adminDb.collection("class_students")
-        .where("studentId", "==", id)
-        .where("owner_id", "==", user.uid)
+        .where(Filter.or(
+          Filter.where('studentId', '==', id),
+          Filter.where('student_id', '==', id)
+        ))
+        .where(Filter.or(
+          Filter.where('owner_id', '==', user.uid),
+          Filter.where('ownerId', '==', user.uid)
+        ))
         .get();
-
-      // Fallback para legacy
-      let docs = enrollmentsq.docs;
-      if (docs.length === 0) {
-        const legacyq = await adminDb.collection("class_students")
-          .where("student_id", "==", id)
-          .where("owner_id", "==", user.uid)
-          .get();
-        docs = legacyq.docs;
-      }
       
       const batch = adminDb.batch();
-      docs.forEach((doc: any) => batch.delete(doc.ref));
+      enrollmentsq.docs.forEach((doc: any) => batch.delete(doc.ref));
       await batch.commit();
 
       // 2. Crear nueva inscripción si hay un nuevo classId
@@ -195,14 +203,25 @@ export const DELETE: RequestHandler = async (event) => {
     const docRef = adminDb.collection("students").doc(id);
     const docSnap = await docRef.get();
 
-    if (!docSnap.exists || docSnap.data()?.owner_id !== user.uid) {
+    if (!docSnap.exists) {
+        return json({ error: 'Alumno no encontrado' }, { status: 404 });
+    }
+
+    const currentOwner = docSnap.data()?.owner_id || docSnap.data()?.ownerId;
+    if (currentOwner !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
     // Eliminar también registros de inscripción
     const enrollmentsq = await adminDb.collection("class_students")
-      .where("studentId", "==", id)
-      .where("owner_id", "==", user.uid)
+      .where(Filter.or(
+        Filter.where('studentId', '==', id),
+        Filter.where('student_id', '==', id)
+      ))
+      .where(Filter.or(
+        Filter.where('owner_id', '==', user.uid),
+        Filter.where('ownerId', '==', user.uid)
+      ))
       .get();
     
     const batch = adminDb.batch();

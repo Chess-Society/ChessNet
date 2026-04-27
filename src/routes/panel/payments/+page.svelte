@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t } from '$lib/i18n';
-  import { onMount, tick } from 'svelte';
+  import { onMount, tick, untrack } from 'svelte';
   import { 
     Plus, 
     MagnifyingGlass, 
@@ -36,7 +36,7 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { enhance as sEnhance } from '$app/forms';
   import { superForm } from 'sveltekit-superforms';
-  import { zod } from 'sveltekit-superforms/adapters';
+  import { zod4 as zod } from 'sveltekit-superforms/adapters';
   import { paymentSchema } from '$lib/schemas/payment';
 
   let { data } = $props();
@@ -117,8 +117,7 @@
   let deleteForm = $state<HTMLFormElement | null>(null);
   let deleteId = $state<string>('');
 
-  // svelte-ignore state_referenced_locally
-  const { form, errors, enhance: paymentEnhance, reset, constraints, message, tainted, delayed } = superForm(data.form as any, {
+  const { form, errors, enhance: paymentEnhance, reset, constraints, message, isTainted, delayed } = superForm(untrack(() => data.form) as any, {
     validators: zod(paymentSchema as any),
     dataType: 'json',
     onUpdated({ form }) {
@@ -133,7 +132,7 @@
     onError({ result }) {
       toast.error((result as any).error?.message || $t('payments.error_action'));
     }
-  });
+  }) as any;
 
   const openNew = () => {
     reset();

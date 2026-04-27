@@ -52,18 +52,29 @@
     isSending = true;
     try {
       // Send to global announcements
-      await addDoc(collection(db, "announcements"), {
+      const data = {
         title: title || "Actualización del Sistema",
-        message: message,
+        content: message,
         link: link,
         linkText: linkText,
-        type: type,
+        link_text: linkText, // Legacy support
+        type: type, // Use the original type (news, feature, improvement, critical)
         authorName: "Admin ChessNet",
         authorEmail: "admin@chessnet.dev",
-        createdAt: serverTimestamp(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         isGlobal: true,
-        isSystem: true
-      });
+        isSystem: true,
+        isPublished: true, // MUST be published to show in dashboard
+        publishedAt: new Date().toISOString(),
+        targetType: 'all', // Standardized for dashboard filtering
+        owner_id: 'system', // Or current user if we want it in their history
+        ownerId: 'system',
+        priority: type === 'critical' ? 'urgent' : 'normal',
+        schoolId: 'all'
+      };
+
+      await addDoc(collection(db, "announcements"), data);
 
       toast.success($t('admin.broadcast.success'));
       message = "";
@@ -89,15 +100,21 @@
   }
 
   async function toggleGlobal(ann: any) {
+    const currentState = ann.isGlobal === true || ann.is_global === true;
+    const action = currentState ? 'desactivar' : 'activar';
+    if (!confirm(`¿Estás seguro de que quieres ${action} este anuncio globalmente?`)) return;
+
     try {
       const ref = doc(db, "announcements", ann.id);
-      const newState = !ann.isGlobal;
+      const newState = !currentState;
       await updateDoc(ref, { 
         isGlobal: newState,
-        is_global: newState // Sync both for legacy support
+        is_global: newState,
+        updatedAt: new Date().toISOString()
       });
-      toast.success($t('admin.broadcast.success'));
+      toast.success(newState ? 'Anuncio activado globalmente' : 'Anuncio desactivado');
     } catch (e) {
+      console.error('Error toggling global state:', e);
       toast.error($t('admin.broadcast.error'));
     }
   }
@@ -258,22 +275,22 @@
     <div class="space-y-4">
       {#each activeAnnouncements as ann}
         {@const meta = getAnnMeta(ann.type)}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all gap-6 {ann.isGlobal ? `border-l-4 ${meta.border}` : 'border-l-4 border-l-slate-900 opacity-60'}">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all gap-6 {ann.isGlobal || ann.is_global ? `border-l-4 ${meta.border}` : 'border-l-4 border-l-slate-900 opacity-60'}">
           <div class="space-y-2">
             <div class="flex items-center gap-3">
               <span class="text-white font-black text-xs uppercase tracking-wider font-mono">{ann.title}</span>
-              {#if ann.isGlobal}
+              {#if ann.isGlobal || ann.is_global}
                  <span class="px-2 py-0.5 {meta.bg} text-black text-[7px] font-black uppercase tracking-[0.2em]">LIVE</span>
               {/if}
             </div>
-            <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wide line-clamp-1 italic">{ann.message}</p>
+            <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wide line-clamp-1 italic">{ann.content || ann.message || ''}</p>
           </div>
           <div class="flex items-center gap-4">
             <button 
               onclick={() => toggleGlobal(ann)}
-              class="h-10 px-6 border {ann.isGlobal ? `${meta.border.replace('l-', '')}/30 text-white` : 'border-slate-800 text-slate-700 hover:border-white/20 hover:text-white'} text-[8px] font-mono font-black uppercase tracking-widest transition-all bg-white/[0.02]"
+              class="h-10 px-6 border {ann.isGlobal || ann.is_global ? `${meta.border.replace('l-', '')}/30 text-white` : 'border-slate-800 text-slate-700 hover:border-white/20 hover:text-white'} text-[8px] font-mono font-black uppercase tracking-widest transition-all bg-white/[0.02]"
             >
-              {ann.isGlobal ? 'DEACTIVATE' : 'RELOAD'}
+              {ann.isGlobal || ann.is_global ? 'DEACTIVATE' : 'RELOAD'}
             </button>
             <button 
               onclick={() => handleDelete(ann.id)}

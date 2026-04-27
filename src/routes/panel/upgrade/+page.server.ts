@@ -3,32 +3,33 @@ import { adminDb } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 
 // Configuración de planes espejo de src/lib/api/subscriptions.ts
+// Configuración de planes espejo de src/lib/api/subscriptions.ts
 const PLANS = [
   {
     id: 'plan-free',
     name: 'free',
     display_name: 'Ajedrecista',
-    description: 'Perfecto para clases particulares o grupos pequeños.',
+    description: 'Perfecto para empezar o gestionar una pequeña escuela local.',
     price_annual: 0,
     currency: 'EUR',
-    max_students: 10,
-    max_classes: 1,
+    max_students: 12,
+    max_classes: 2,
     max_schools: 1,
     max_tournaments: 0,
     max_storage_mb: 50,
     max_custom_skills: 0,
     features: [
       '1 Centro / Escuela',
-      '1 Clase o grupo',
-      'Hasta 10 Alumnos totales',
-      'Control de asistencia'
+      '2 Clases simultáneas',
+      'Hasta 12 Alumnos totales',
+      'Pase de lista y Asistencia'
     ]
   },
   {
     id: 'plan-premium',
     name: 'premium',
     display_name: 'Maestro Premium',
-    description: 'Control total sin límites para tu academia profesional.',
+    description: 'Todas las herramientas sin límites para un control profesional total.',
     price_monthly: 1,
     price_annual: 1,
     currency: 'EUR',
@@ -41,9 +42,9 @@ const PLANS = [
     features: [
       'Centros y Clases Ilimitados',
       'Alumnos Ilimitados',
-      'Gestión de Torneos Pro',
-      'Importación IA e Informes',
-      'Lobby y Comunidad Premium'
+      'Gestión de Torneos (Emparejamientos)',
+      'Informes PDF y Diplomas',
+      'Exportación de datos (Excel/PDF)'
     ]
   }
 ];

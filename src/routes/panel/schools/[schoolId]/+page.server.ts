@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { adminDb } from '$lib/server/firebase-admin';
+import { adminDb, Filter } from '$lib/server/firebase-admin';
 import { serializeRecord } from '$lib/server/serialize';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -12,22 +12,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
   const uid = locals.user.uid;
 
-
-
-
   try {
-    // Intentar obtener el centro usando Admin SDK con reintentos
+    // Intentar obtener el centro usando Admin SDK
     let schoolSnap = await adminDb.collection("schools").doc(schoolId).get();
     
-    // Reintentos con backoff progresivo (hasta ~7.5s total)
-    // Necesario porque el cliente puede navegar antes de que Firestore propague la escritura
-    let attempts = 0;
-    const delays = [300, 500, 700, 1000, 1000, 1000, 1000, 1000, 1000, 1000]; // 10 intentos
-    while (!schoolSnap.exists && attempts < 10) {
-      console.log(`🔄 School ${schoolId} not found, retrying attempt ${attempts + 1}/10...`);
-      await new Promise(resolve => setTimeout(resolve, delays[attempts] || 1000));
+    // Un solo reintento corto (500ms) por si hay latencia en la propagación
+    if (!schoolSnap.exists) {
+      await new Promise(resolve => setTimeout(resolve, 500));
       schoolSnap = await adminDb.collection("schools").doc(schoolId).get();
-      attempts++;
     }
 
     let schoolData: any;
@@ -36,38 +28,35 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         throw error(404, 'Centro no encontrado');
     } else {
       schoolData = { id: schoolSnap.id, ...schoolSnap.data() };
+      const isOwner = schoolData.owner_id === uid || schoolData.ownerId === uid;
       
       // Verificación de propiedad
-      if (schoolData.owner_id !== uid) {
+      if (!isOwner) {
         throw error(403, 'No tienes permiso para ver este centro');
       }
     }
 
     // Obtener clases vinculadas y su ocupación
-    let classesSnap = await adminDb.collection("classes")
-      .where("school_id", "==", schoolId)
-      .where("owner_id", "==", uid)
+    const classesSnap = await adminDb.collection("classes")
+      .where(Filter.or(
+        Filter.where('school_id', '==', schoolId),
+        Filter.where('schoolId', '==', schoolId)
+      ))
+      .where(Filter.or(
+        Filter.where('owner_id', '==', uid),
+        Filter.where('ownerId', '==', uid)
+      ))
       .get();
-    
-    if (classesSnap.empty) {
-      classesSnap = await adminDb.collection("classes")
-        .where("schoolId", "==", schoolId)
-        .where("ownerId", "==", uid)
-        .get();
-    }
     
     const schoolClasses = await Promise.all(classesSnap.docs.map(async (doc: any) => {
       const classData = { id: doc.id, ...doc.data() as any };
       // Contar alumnos inscritos en esta clase
-      let enrollmentsSnap = await adminDb.collection("class_students")
-        .where("class_id", "==", classData.id)
+      const enrollmentsSnap = await adminDb.collection("class_students")
+        .where(Filter.or(
+          Filter.where('class_id', '==', classData.id),
+          Filter.where('classId', '==', classData.id)
+        ))
         .get();
-      
-      if (enrollmentsSnap.empty) {
-        enrollmentsSnap = await adminDb.collection("class_students")
-          .where("classId", "==", classData.id)
-          .get();
-      }
       
       return {
         ...classData,
@@ -76,17 +65,16 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }));
 
     // Obtener alumnos vinculados
-    let studentsSnap = await adminDb.collection("students")
-      .where("school_id", "==", schoolId)
-      .where("owner_id", "==", uid)
+    const studentsSnap = await adminDb.collection("students")
+      .where(Filter.or(
+        Filter.where('school_id', '==', schoolId),
+        Filter.where('schoolId', '==', schoolId)
+      ))
+      .where(Filter.or(
+        Filter.where('owner_id', '==', uid),
+        Filter.where('ownerId', '==', uid)
+      ))
       .get();
-    
-    if (studentsSnap.empty) {
-      studentsSnap = await adminDb.collection("students")
-        .where("schoolId", "==", schoolId)
-        .where("ownerId", "==", uid)
-        .get();
-    }
     
     const schoolStudents = studentsSnap.docs.map((doc: any) => ({
       id: doc.id,

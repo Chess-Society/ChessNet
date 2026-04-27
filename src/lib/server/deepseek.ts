@@ -1,7 +1,11 @@
 import { env } from '$env/dynamic/private';
 
 export async function askDeepSeek(systemPrompt: string, userPrompt: string) {
-    const apiKey = env.DEEPSEEK_API_KEY || 'sk-132b04dec23d432c90d5724b2a8d61a6';
+    const apiKey = env.DEEPSEEK_API_KEY;
+    
+    if (!apiKey) {
+        throw new Error('DEEPSEEK_API_KEY is not defined in environment variables');
+    }
     
     const response = await fetch('https://api.deepseek.com/chat/completions', {
         method: 'POST',
