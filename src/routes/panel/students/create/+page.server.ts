@@ -62,7 +62,6 @@ export const actions: Actions = {
       }
 
       const { ...studentData } = form.data;
-      const uid = locals.user.uid;
       const now = new Date().toISOString();
 
       // Add audit fields
