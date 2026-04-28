@@ -87,8 +87,8 @@
   };
 
   const partners = [
-    { name: 'Rexher Cup', logo: '/images/mindchess-logo.png', desc: 'Socio oficial de torneos élite' },
-    { name: 'MindChess App', logo: '/images/rexher-cup-logo.png', desc: 'Plataforma líder en entrenamiento mental' }
+    { name: 'Rexher Cup', logo: '/images/rexher-cup-logo.png?v=2', desc: 'Socio oficial de torneos élite' },
+    { name: 'MindChess App', logo: '/images/mindchess-logo.png?v=2', desc: 'Plataforma líder en entrenamiento mental' }
   ];
 </script>
 
