@@ -39,25 +39,27 @@
     'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
   };
 
-  // Square colors
+  // Square colors: a1 (0,0) is dark.
+  // In our visual grid, rank 0 is top (8th), rank 7 is bottom (1st).
   const getSquareColor = (file: number, rank: number): string => {
-    return (file + rank) % 2 === 0 ? 'bg-amber-100' : 'bg-amber-800';
+    return (file + rank) % 2 === 0 ? 'bg-slate-200' : 'bg-slate-500';
   };
 
   // Get piece at square
   const getPieceAt = (square: string): string | null => {
-    // Accessing chess to ensure reactivity
-    const _ = chess;
+    if (!chess) return null;
     const piece = chess.get(square as any);
     if (!piece) return null;
-    const key = `${piece.color}${piece.type}`.toUpperCase();
+    // Map to symbol: White is uppercase, Black is lowercase in our map
+    const key = piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase();
     return pieceSymbols[key] || null;
   };
 
-  // Get square name from coordinates
+  // Get square name from coordinates (file 0-7, rank 0-7 where 0 is 1st rank)
   const getSquareName = (file: number, rank: number): string => {
     return String.fromCharCode(97 + file) + (rank + 1);
   };
+
 
   // Handle square click
   const handleSquareClick = (square: string) => {
@@ -192,17 +194,28 @@
   // Derived squares for the view
   const squares = $derived.by(() => {
     const list = [];
-    for (let rank = 7; rank >= 0; rank--) {
-      for (let file = 0; file < 8; file++) {
-        const square = getSquareName(file, rank);
-        const displayFile = orientation === 'white' ? file : 7 - file;
-        const displayRank = orientation === 'white' ? rank : 7 - rank;
+    // We iterate through visual coordinates: rank 0 (top) to 7 (bottom)
+    for (let vRank = 0; vRank < 8; vRank++) {
+      for (let vFile = 0; vFile < 8; vFile++) {
+        // Map visual to logical based on orientation
+        let logicalFile, logicalRank;
+        
+        if (orientation === 'white') {
+          logicalFile = vFile;
+          logicalRank = 7 - vRank;
+        } else {
+          logicalFile = 7 - vFile;
+          logicalRank = vRank;
+        }
+        
+        const square = getSquareName(logicalFile, logicalRank);
+        const piece = getPieceAt(square);
         
         list.push({
           square,
-          file: displayFile,
-          rank: displayRank,
-          piece: getPieceAt(square),
+          vFile,
+          vRank,
+          piece,
           isSelected: selectedSquare === square,
           isPossibleMove: possibleMoves.includes(square),
         });
@@ -210,6 +223,7 @@
     }
     return list;
   });
+
 </script>
 
 <div class="chess-board-container" style="width: {size}px; height: {size}px;">
@@ -218,10 +232,10 @@
     class="chess-board relative border-2 border-slate-600 rounded-none overflow-hidden"
     style="width: 100%; height: 100%;"
   >
-    {#each squares as { square, file, rank, piece, isSelected, isPossibleMove }}
+    {#each squares as { square, vFile, vRank, piece, isSelected, isPossibleMove }}
       <div
-        class="chess-square relative {getSquareColor(file, rank)} {isSelected ? 'ring-2 ring-yellow-400' : ''} {isPossibleMove ? 'ring-2 ring-green-400' : ''}"
-        style="width: 12.5%; height: 12.5%; position: absolute; top: {rank * 12.5}%; left: {file * 12.5}%;"
+        class="chess-square relative {getSquareColor(vFile, vRank)} {isSelected ? 'ring-2 ring-blue-500 z-10' : ''} {isPossibleMove ? 'after:content-[\"\"] after:absolute after:inset-0 after:bg-blue-400/30' : ''}"
+        style="width: 12.5%; height: 12.5%; position: absolute; top: {vRank * 12.5}%; left: {vFile * 12.5}%;"
         onclick={() => handleSquareClick(square)}
         onkeydown={(e: KeyboardEvent) => e.key === 'Enter' || e.key === ' ' ? handleSquareClick(square) : null}
         ondragstart={(e: DragEvent) => handleDragStart(e, square)}
@@ -233,6 +247,7 @@
         tabindex="0"
         aria-label={$t('chess.square', { square })}
       >
+
         {#if piece}
           <div class="absolute inset-0 flex items-center justify-center text-2xl font-bold select-none pointer-events-none">
             {piece}
@@ -246,17 +261,18 @@
         {/if}
         
         {#if showCoordinates}
-          {#if file === 0}
-            <div class="absolute bottom-0 left-1 text-xs font-bold text-slate-700">
-              {orientation === 'white' ? rank + 1 : 8 - rank}
+          {#if vFile === 0}
+            <div class="absolute top-1 left-1 text-[10px] font-bold opacity-50 pointer-events-none">
+              {orientation === 'white' ? 8 - vRank : vRank + 1}
             </div>
           {/if}
-          {#if rank === 0}
-            <div class="absolute top-0 right-1 text-xs font-bold text-slate-700">
-              {String.fromCharCode(97 + (orientation === 'white' ? file : 7 - file))}
+          {#if vRank === 7}
+            <div class="absolute bottom-1 right-1 text-[10px] font-bold opacity-50 pointer-events-none">
+              {String.fromCharCode(97 + (orientation === 'white' ? vFile : 7 - vFile))}
             </div>
           {/if}
         {/if}
+
       </div>
     {/each}
   </div>

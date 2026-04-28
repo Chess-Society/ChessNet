@@ -94,27 +94,27 @@ export const toData = <T>(doc: any): T => {
   const normalized: any = { id };
   for (const key in data) {
     let newKey = key;
-    if (key === 'owner_id' || key === 'userId') newKey = 'ownerId';
-    else if (key === 'student_id') newKey = 'studentId';
-    else if (key === 'school_id') newKey = 'schoolId';
-    else if (key === 'class_id') newKey = 'classId';
-    else if (key === 'tournament_id') newKey = 'tournamentId';
-    else if (key === 'round_no') newKey = 'roundNo';
-    else if (key === 'first_name') newKey = 'firstName';
-    else if (key === 'last_name') newKey = 'lastName';
-    else if (key === 'parent_email') newKey = 'parentEmail';
-    else if (key === 'parent_phone') newKey = 'parentPhone';
-    else if (key === 'date_of_birth') newKey = 'dateOfBirth';
-    else if (key === 'lichess_username') newKey = 'lichessUsername';
-    else if (key === 'payment_type') newKey = 'paymentType';
-    else if (key === 'due_date') newKey = 'dueDate';
-    else if (key === 'paid_date') newKey = 'paidDate';
-    else if (key === 'period_start') newKey = 'periodStart';
-    else if (key === 'period_end') newKey = 'periodEnd';
-    else if (key === 'created_at') newKey = 'createdAt';
-    else if (key === 'updated_at') newKey = 'updatedAt';
-    else if (key === 'started_at' || key === 'start_date') newKey = 'startAt';
-    else if (key === 'finished_at' || key === 'end_date') newKey = 'endAt';
+    if (key === 'ownerId' || key === 'userId') newKey = 'ownerId';
+    else if (key === 'studentId') newKey = 'studentId';
+    else if (key === 'schoolId') newKey = 'schoolId';
+    else if (key === 'classId') newKey = 'classId';
+    else if (key === 'tournamentId') newKey = 'tournamentId';
+    else if (key === 'roundNo') newKey = 'roundNo';
+    else if (key === 'firstName') newKey = 'firstName';
+    else if (key === 'lastName') newKey = 'lastName';
+    else if (key === 'parentEmail') newKey = 'parentEmail';
+    else if (key === 'parentPhone') newKey = 'parentPhone';
+    else if (key === 'dateOfBirth') newKey = 'dateOfBirth';
+    else if (key === 'lichessUsername') newKey = 'lichessUsername';
+    else if (key === 'paymentType') newKey = 'paymentType';
+    else if (key === 'dueDate') newKey = 'dueDate';
+    else if (key === 'paidDate') newKey = 'paidDate';
+    else if (key === 'periodStart') newKey = 'periodStart';
+    else if (key === 'periodEnd') newKey = 'periodEnd';
+    else if (key === 'createdAt') newKey = 'createdAt';
+    else if (key === 'updatedAt') newKey = 'updatedAt';
+    else if (key === 'startedAt' || key === 'start_date') newKey = 'startAt';
+    else if (key === 'finishedAt' || key === 'end_date') newKey = 'endAt';
     
     normalized[newKey] = data[key];
   }

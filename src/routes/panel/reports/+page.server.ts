@@ -10,7 +10,7 @@ export const load: PageServerLoad = async (event) => {
 
   try {
     const studentsSnap = await adminDb.collection("students")
-      .where("owner_id", "==", uid)
+      .where("ownerId", "==", uid)
       .limit(10)
       .get();
 
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async (event) => {
       return {
         student: {
           id: doc.id,
-          name: `${data.first_name} ${data.last_name}`,
+          name: `${data.firstName} ${data.lastName}`,
           email: data.email,
           phone: data.phone || 'N/A',
           level: data.level || 'beginner'

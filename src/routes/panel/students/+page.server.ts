@@ -23,8 +23,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
     const students = studentsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
       .sort((a: any, b: any) => {
-        const dateA = (a.createdAt || a.created_at || '');
-        const dateB = (b.createdAt || b.created_at || '');
+        const dateA = (a.createdAt || a.createdAt || '');
+        const dateB = (b.createdAt || b.createdAt || '');
         return dateB.localeCompare(dateA);
       });
     const schools = schoolsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
@@ -32,7 +32,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     // Calcular estadísticas
     const schoolCounts: Record<string, number> = {};
     students.forEach((s: any) => {
-      const sId = s.school_id || s.schoolId;
+      const sId = s.schoolId || s.schoolId;
       if (sId) {
         schoolCounts[sId] = (schoolCounts[sId] || 0) + 1;
       }
@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     const stats = {
       total: students.length,
       schools: schoolCounts,
-      newest: students[0]?.created_at || null
+      newest: students[0]?.createdAt || null
     };
 
     return {

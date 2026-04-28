@@ -1,31 +1,43 @@
 import { writable, derived } from 'svelte/store';
-import { translations } from './locales/translations';
+import { translations as initialTranslations } from './locales/translations';
 import { browser } from '$app/environment';
 
 /**
  * ChessNet now exclusively supports Spanish (Spain).
- * Localized language preference is locked to 'es'.
  */
 type Locale = 'es';
-
 export const locale = writable<Locale>('es');
 
-// Language toggle is deprecated as the platform is now Spanish-only
-export function toggleLocale() {
-    console.warn('Language toggling is disabled. ChessNet is now Spanish-only.');
+// Internal store for translations, initialized with the core bundle
+const translations = writable(initialTranslations);
+
+/**
+ * Dynamically load a translation module.
+ * Use this in layouts or pages to load specific translation sets.
+ */
+export async function loadTranslations(moduleNames: string[]) {
+    if (!browser) return;
+    
+    for (const name of moduleNames) {
+        try {
+            // Using a dynamic import with a template string allows Vite to split the chunks
+            const mod = await import(`./locales/modules/${name}.ts`);
+            if (mod && mod.es) {
+                translations.update(current => ({
+                    ...current,
+                    es: { ...current.es, ...mod.es }
+                }));
+            }
+        } catch (err) {
+            console.error(`[i18n] Failed to load module: ${name}`, err);
+        }
+    }
 }
 
-if (typeof window !== 'undefined') {
-    // Force Spanish regardless of previous settings
-    localStorage.setItem('locale', 'es');
-    document.documentElement.lang = 'es';
-}
-
-export const t = derived(locale, ($locale) => {
+export const t = derived([locale, translations], ([$locale, $translations]) => {
     return (key: string, vars: Record<string, any> = {}) => {
-        const lang = 'es';
         // @ts-ignore
-        let text = translations[lang]?.[key] || key;
+        let text = $translations[$locale]?.[key] || key;
         
         Object.entries(vars).forEach(([k, v]) => {
             text = text.replace(new RegExp(`{${k}}`, 'g'), String(v));
@@ -34,4 +46,5 @@ export const t = derived(locale, ($locale) => {
         return text;
     };
 });
+
 

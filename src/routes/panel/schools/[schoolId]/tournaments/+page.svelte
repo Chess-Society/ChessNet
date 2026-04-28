@@ -59,7 +59,7 @@
             </h1>
           </div>
           <p class="text-xs text-slate-500 font-bold uppercase tracking-widest bg-white/5 px-4 py-2 rounded-none border border-white/5 inline-block">
-            {$t('tournaments.school_id')}: <span class="text-violet-400">{data.schoolId}</span>
+            {$t('tournaments.schoolId')}: <span class="text-violet-400">{data.schoolId}</span>
           </p>
         </div>
       </div>

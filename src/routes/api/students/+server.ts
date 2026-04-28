@@ -13,28 +13,15 @@ export const GET: RequestHandler = async (event) => {
 
   try {
     const snapshot = await adminDb.collection("students")
-      .where(Filter.or(
-        Filter.where('owner_id', '==', user.uid),
-        Filter.where('ownerId', '==', user.uid)
-      ))
+      .where("ownerId", "==", user.uid)
       .get();
         
-    // Standardize response fields and sort in-memory to handle dual field names (createdAt/created_at)
-    const students = snapshot.docs.map((doc: any) => {
-      const data = doc.data();
-      return { 
-        id: doc.id, 
-        ...data,
-        createdAt: data.createdAt || data.created_at,
-        updatedAt: data.updatedAt || data.updated_at
-      };
-    }).sort((a: any, b: any) => {
-      const dateA = a.createdAt || '';
-      const dateB = b.createdAt || '';
-      return dateB.localeCompare(dateA);
-    }).map((s: any) => serializeRecord(s));
+    const students = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }))
+      .sort((a: any, b: any) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
     return json({ students });
   } catch (error: any) {
+
     console.error('❌ Error in GET students API:', error.message);
     return json({ error: 'Error al obtener los alumnos' }, { status: 500 });
   }
@@ -61,21 +48,20 @@ export const POST: RequestHandler = async (event) => {
     const body = await request.json();
     const studentData = {
       ...body,
-      owner_id: user.uid,
       ownerId: user.uid,
-      school_id: body.schoolId || body.school_id || null,
-      schoolId: body.schoolId || body.school_id || null,
-      class_id: body.classId || body.class_id || null,
-      classId: body.classId || body.class_id || null,
+      schoolId: body.schoolId || null,
+      classId: body.classId || null,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
     
-    // Support legacy field names in outgoing data for a graceful transition
-    if (studentData.created_at) delete studentData.created_at;
-    if (studentData.updated_at) delete studentData.updated_at;
+    // Cleanup legacy fields if they leaked into body
+    delete (studentData as any).ownerId;
+    delete (studentData as any).schoolId;
+    delete (studentData as any).classId;
+    delete (studentData as any).createdAt;
+    delete (studentData as any).updatedAt;
+
 
     const docRef = await adminDb.collection("students").add(studentData);
     const studentId = docRef.id;
@@ -84,14 +70,11 @@ export const POST: RequestHandler = async (event) => {
     if (studentData.classId) {
       const enrollmentData = {
         classId: studentData.classId,
-        class_id: studentData.classId,
         studentId,
-        student_id: studentId,
-        owner_id: user.uid,
         ownerId: user.uid,
-        enrolledAt: new Date().toISOString(),
-        enrolled_at: new Date().toISOString()
+        enrolledAt: new Date().toISOString()
       };
+
       await adminDb.collection("class_students").add(enrollmentData);
     }
 
@@ -122,46 +105,39 @@ export const PUT: RequestHandler = async (event) => {
       return json({ error: 'Alumno no encontrado' }, { status: 404 });
     }
 
-    const currentOwner = docSnap.data()?.owner_id || docSnap.data()?.ownerId;
+    const currentOwner = docSnap.data()?.ownerId || docSnap.data()?.ownerId;
     if (currentOwner !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    const oldData = docSnap.data();
-    const oldClassId = oldData?.classId || oldData?.class_id;
+    const oldData = serializeRecord<any>(docSnap.data());
+    const oldClassId = oldData.classId;
 
     const updateData = {
       ...body,
-      school_id: body.schoolId || body.school_id || oldData.school_id || oldData.schoolId,
-      schoolId: body.schoolId || body.school_id || oldData.schoolId || oldData.school_id,
-      class_id: body.classId || body.class_id || oldData.class_id || oldData.classId,
-      classId: body.classId || body.class_id || oldData.classId || oldData.class_id,
-      updatedAt: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      schoolId: body.schoolId || oldData.schoolId,
+      classId: body.classId || oldData.classId,
+      updatedAt: new Date().toISOString()
     };
     delete updateData.id;
-    delete updateData.owner_id;
+    delete updateData.ownerId;
     delete updateData.ownerId;
     delete updateData.createdAt;
-    delete updateData.created_at;
-    delete updateData.updated_at;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+
 
     await docRef.update(updateData);
 
     // Sincronizar con class_students si la clase cambió
-    const newClassId = updateData.classId || updateData.class_id;
+    const newClassId = updateData.classId || updateData.classId;
     if (newClassId !== undefined && newClassId !== oldClassId) {
       // 1. Eliminar inscripciones anteriores
       const enrollmentsq = await adminDb.collection("class_students")
-        .where(Filter.or(
-          Filter.where('studentId', '==', id),
-          Filter.where('student_id', '==', id)
-        ))
-        .where(Filter.or(
-          Filter.where('owner_id', '==', user.uid),
-          Filter.where('ownerId', '==', user.uid)
-        ))
+        .where("studentId", "==", id)
+        .where("ownerId", "==", user.uid)
         .get();
+
       
       const batch = adminDb.batch();
       enrollmentsq.docs.forEach((doc: any) => batch.delete(doc.ref));
@@ -171,15 +147,12 @@ export const PUT: RequestHandler = async (event) => {
       if (newClassId) {
         await adminDb.collection("class_students").add({
           classId: newClassId,
-          class_id: newClassId,
           studentId: id,
-          student_id: id,
-          owner_id: user.uid,
           ownerId: user.uid,
-          enrolledAt: new Date().toISOString(),
-          enrolled_at: new Date().toISOString()
+          enrolledAt: new Date().toISOString()
         });
       }
+
     }
 
     return json({ success: true, student: { id, ...oldData, ...updateData } });
@@ -207,22 +180,17 @@ export const DELETE: RequestHandler = async (event) => {
         return json({ error: 'Alumno no encontrado' }, { status: 404 });
     }
 
-    const currentOwner = docSnap.data()?.owner_id || docSnap.data()?.ownerId;
+    const currentOwner = docSnap.data()?.ownerId || docSnap.data()?.ownerId;
     if (currentOwner !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
 
     // Eliminar también registros de inscripción
     const enrollmentsq = await adminDb.collection("class_students")
-      .where(Filter.or(
-        Filter.where('studentId', '==', id),
-        Filter.where('student_id', '==', id)
-      ))
-      .where(Filter.or(
-        Filter.where('owner_id', '==', user.uid),
-        Filter.where('ownerId', '==', user.uid)
-      ))
+      .where("studentId", "==", id)
+      .where("ownerId", "==", user.uid)
       .get();
+
     
     const batch = adminDb.batch();
     enrollmentsq.docs.forEach((doc: any) => batch.delete(doc.ref));

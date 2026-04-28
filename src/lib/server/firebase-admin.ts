@@ -5,7 +5,7 @@ import { getAuth } from 'firebase-admin/auth';
 export { Filter };
 export function ownerFilter(uid: string) {
     return Filter.or(
-        Filter.where('owner_id', '==', uid),
+        Filter.where('ownerId', '==', uid),
         Filter.where('ownerId', '==', uid)
     );
 }

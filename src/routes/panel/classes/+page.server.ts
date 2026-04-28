@@ -14,7 +14,7 @@ export const actions: Actions = {
     try {
       // Security check: ensure user owns the class
       const doc = await adminDb.collection('classes').doc(id).get();
-      const currentOwner = doc.data()?.owner_id || doc.data()?.ownerId;
+      const currentOwner = doc.data()?.ownerId || doc.data()?.ownerId;
       if (!doc.exists || currentOwner !== locals.user.uid) {
         return fail(403, { message: 'Unauthorized' });
       }
@@ -26,7 +26,7 @@ export const actions: Actions = {
       
       // Delete enrollments
       const enrollmentsSnap = await adminDb.collection('class_students')
-        .where('class_id', '==', id)
+        .where('classId', '==', id)
         .get();
       
       enrollmentsSnap.docs.forEach((doc: any) => {
@@ -111,7 +111,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     
     const countByClass: Record<string, number> = {};
     enrollments.forEach((e: any) => {
-      const cId = e.class_id || e.classId;
+      const cId = e.classId || e.classId;
       if (cId) {
         countByClass[cId] = (countByClass[cId] || 0) + 1;
       }
@@ -129,7 +129,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     let totalStudents = 0;
     
     enrichedClasses.forEach((c: any) => {
-      const sId = c.school_id || c.schoolId;
+      const sId = c.schoolId || c.schoolId;
       if (sId) {
         schoolCounts[sId] = (schoolCounts[sId] || 0) + 1;
       }

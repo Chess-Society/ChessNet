@@ -8,11 +8,11 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const classId = url.searchParams.get('classId') || url.searchParams.get('class_id');
-  const studentId = url.searchParams.get('studentId') || url.searchParams.get('student_id');
+  const classId = url.searchParams.get('classId') || url.searchParams.get('classId');
+  const studentId = url.searchParams.get('studentId') || url.searchParams.get('studentId');
 
   try {
-    let query = adminDb.collection("class_students").where("owner_id", "==", locals.user.uid);
+    let query = adminDb.collection("class_students").where("ownerId", "==", locals.user.uid);
 
     if (classId) {
       query = query.where("classId", "==", classId);
@@ -28,9 +28,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
       return serializeRecord({ 
         id: doc.id, 
         ...data,
-        enrolledAt: data.enrolledAt || data.enrolled_at,
-        classId: data.classId || data.class_id,
-        studentId: data.studentId || data.student_id
+        enrolledAt: data.enrolledAt || data.enrolledAt,
+        classId: data.classId || data.classId,
+        studentId: data.studentId || data.studentId
       });
     });
 
@@ -49,8 +49,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const classId = body.classId || body.class_id;
-    const studentId = body.studentId || body.student_id;
+    const classId = body.classId || body.classId;
+    const studentId = body.studentId || body.studentId;
 
     if (!classId || !studentId) {
       return json({ error: 'classId and studentId are required' }, { status: 400 });
@@ -60,7 +60,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const existingSnap = await adminDb.collection("class_students")
       .where("classId", "==", classId)
       .where("studentId", "==", studentId)
-      .where("owner_id", "==", locals.user.uid)
+      .where("ownerId", "==", locals.user.uid)
       .get();
       
     if (!existingSnap.empty) {
@@ -70,7 +70,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const enrollmentData = {
       classId,
       studentId,
-      owner_id: locals.user.uid,
+      ownerId: locals.user.uid,
       enrolledAt: new Date().toISOString()
     };
 
@@ -95,8 +95,8 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
     return json({ error: 'Usuario no autenticado' }, { status: 401 });
   }
 
-  const classId = url.searchParams.get('classId') || url.searchParams.get('class_id');
-  const studentId = url.searchParams.get('studentId') || url.searchParams.get('student_id');
+  const classId = url.searchParams.get('classId') || url.searchParams.get('classId');
+  const studentId = url.searchParams.get('studentId') || url.searchParams.get('studentId');
 
   if (!classId || !studentId) {
     return json({ error: 'classId and studentId are required' }, { status: 400 });
@@ -106,7 +106,7 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
     const snapshot = await adminDb.collection("class_students")
       .where("classId", "==", classId)
       .where("studentId", "==", studentId)
-      .where("owner_id", "==", locals.user.uid)
+      .where("ownerId", "==", locals.user.uid)
       .get();
       
     if (snapshot.empty) {
@@ -120,7 +120,7 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
     const studentRef = adminDb.collection("students").doc(studentId);
     const studentSnap = await studentRef.get();
     const studentData = studentSnap.data();
-    if (studentSnap.exists && (studentData?.classId === classId || studentData?.class_id === classId)) {
+    if (studentSnap.exists && (studentData?.classId === classId || studentData?.classId === classId)) {
       batch.update(studentRef, { 
         classId: null,
         updatedAt: new Date().toISOString()

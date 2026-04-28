@@ -22,7 +22,7 @@ export const POST: RequestHandler = async (event) => {
     // Verificar propiedad del torneo
     const tournamentRef = adminDb.collection('local_tournaments').doc(tournamentId);
     const tournamentSnap = await tournamentRef.get();
-    if (!tournamentSnap.exists || (tournamentSnap.data()?.ownerId !== uid && tournamentSnap.data()?.owner_id !== uid)) {
+    if (!tournamentSnap.exists || (tournamentSnap.data()?.ownerId !== uid && tournamentSnap.data()?.ownerId !== uid)) {
       return json({ error: 'No autorizado o torneo no encontrado' }, { status: 403 });
     }
 

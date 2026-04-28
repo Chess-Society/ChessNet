@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   try {
     const [classSnap, schoolsSnap] = await Promise.all([
       adminDb.collection('classes').doc(classId).get(),
-      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get()
+      adminDb.collection('schools').where('ownerId', '==', uid).orderBy('name', 'asc').get()
     ]);
 
     if (!classSnap.exists) {
@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }
 
     const classData = { id: classSnap.id, ...classSnap.data() } as any;
-    if (classData.owner_id !== uid) {
+    if (classData.ownerId !== uid) {
       throw error(403, 'No tienes permiso para editar esta clase');
     }
 
@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const form = await superValidate({
       ...classData,
       maxStudents: classData.maxStudents || classData.max_students || 15,
-      schoolId: classData.schoolId || classData.school_id || ''
+      schoolId: classData.schoolId || classData.schoolId || ''
     }, zod(classSchema as any)) as any;
 
     return {
@@ -65,14 +65,13 @@ export const actions: Actions = {
       const classSnap = await classRef.get();
 
       if (!classSnap.exists) return message(form, 'Clase no encontrada', { status: 404 });
-      if (classSnap.data()?.owner_id !== locals.user.uid) return message(form, 'No tienes permisos para editar esta clase', { status: 403 });
+      if (classSnap.data()?.ownerId !== locals.user.uid) return message(form, 'No tienes permisos para editar esta clase', { status: 403 });
 
       const { id, ...classData } = form.data;
 
       await classRef.update({
         ...classData,
-        updated_at: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
 
       return { form, success: true };

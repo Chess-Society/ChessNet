@@ -25,6 +25,6 @@ export const getOwnedQuery = (collectionName: string) => {
   if (!uid) throw new Error("No hay usuario autenticado");
   return query(
     collection(db, collectionName), 
-    or(where("ownerId", "==", uid), where("owner_id", "==", uid))
+    or(where("ownerId", "==", uid), where("ownerId", "==", uid))
   );
 };

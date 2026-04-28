@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   try {
     const skillSnap = await adminDb.collection("skills").doc(skillId).get();
 
-    if (!skillSnap.exists || skillSnap.data()?.owner_id !== locals.user.uid) {
+    if (!skillSnap.exists || skillSnap.data()?.ownerId !== locals.user.uid) {
       throw error(404, 'Skill not found');
     }
 
@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
     // Load available prerequisites
     const skillsSnap = await adminDb.collection("skills")
-      .where("owner_id", "==", locals.user.uid)
+      .where("ownerId", "==", locals.user.uid)
       .get();
     
     const availablePrerequisites = (skillsSnap?.docs || [])
@@ -80,13 +80,13 @@ export const actions: Actions = {
       const skillRef = adminDb.collection('skills').doc(skillId);
       const skillSnap = await skillRef.get();
 
-      if (!skillSnap.exists || skillSnap.data()?.owner_id !== locals.user.uid) {
+      if (!skillSnap.exists || skillSnap.data()?.ownerId !== locals.user.uid) {
         return message(form, 'Habilidad no encontrada o sin permisos', { status: 403 });
       }
 
       const updateData = {
         ...form.data,
-        updated_at: new Date(),
+        updatedAt: new Date(),
         // Legacy mapping for backward compatibility
         category_id: form.data.categoryId,
         estimated_hours: form.data.estimatedHours,
@@ -114,7 +114,7 @@ export const actions: Actions = {
       const skillRef = adminDb.collection('skills').doc(skillId);
       const skillSnap = await skillRef.get();
 
-      if (!skillSnap.exists || skillSnap.data()?.owner_id !== locals.user.uid) {
+      if (!skillSnap.exists || skillSnap.data()?.ownerId !== locals.user.uid) {
         throw error(403, 'Unauthorized');
       }
 

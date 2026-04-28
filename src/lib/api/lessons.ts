@@ -23,8 +23,8 @@ export const lessonsApi = {
 
     const q = query(
       collection(db, "curriculum_units"),
-      where("owner_id", "==", user.uid),
-      where("school_id", "==", schoolId),
+      where("ownerId", "==", user.uid),
+      where("schoolId", "==", schoolId),
       orderBy("order_index")
     );
 
@@ -53,8 +53,8 @@ export const lessonsApi = {
     // Get the next order index
     const q = query(
       collection(db, "curriculum_units"),
-      where("owner_id", "==", user.uid),
-      where("school_id", "==", schoolId),
+      where("ownerId", "==", user.uid),
+      where("schoolId", "==", schoolId),
       orderBy("order_index", "desc"),
       limit(1)
     );
@@ -62,15 +62,15 @@ export const lessonsApi = {
     const nextOrderIndex = !lastSnap.empty ? (lastSnap.docs[0].data().order_index || 0) + 1 : 0;
 
     const unitData = {
-      owner_id: user.uid,
-      school_id: schoolId,
+      ownerId: user.uid,
+      schoolId: schoolId,
       title,
       description: description || null,
       level: level || null,
       color: color || null,
       order_index: nextOrderIndex,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "curriculum_units"), unitData);
@@ -86,7 +86,7 @@ export const lessonsApi = {
     const docRef = doc(db, "curriculum_units", id);
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const docSnap = await getDoc(docRef);
@@ -117,7 +117,7 @@ export const lessonsApi = {
 
     const q = query(
       collection(db, "lessons"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       where("unit_id", "==", unitId),
       orderBy("order_index")
     );
@@ -149,7 +149,7 @@ export const lessonsApi = {
     // Get the next order index
     const q = query(
       collection(db, "lessons"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       where("unit_id", "==", unitId),
       orderBy("order_index", "desc"),
       limit(1)
@@ -158,7 +158,7 @@ export const lessonsApi = {
     const nextOrderIndex = !lastSnap.empty ? (lastSnap.docs[0].data().order_index || 0) + 1 : 0;
 
     const lessonData = {
-      owner_id: user.uid,
+      ownerId: user.uid,
       unit_id: unitId,
       title,
       description: description || null,
@@ -167,8 +167,8 @@ export const lessonsApi = {
       duration_minutes: durationMinutes || 60,
       difficulty: difficulty || null,
       order_index: nextOrderIndex,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "lessons"), lessonData);
@@ -181,7 +181,7 @@ export const lessonsApi = {
     const docRef = doc(db, "lessons", id);
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const docSnap = await getDoc(docRef);
@@ -212,7 +212,7 @@ export const lessonsApi = {
 
     const q = query(
       collection(db, "lesson_resources"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       where("lesson_id", "==", lessonId),
       orderBy("order_index")
     );
@@ -236,7 +236,7 @@ export const lessonsApi = {
     // Get the next order index
     const q = query(
       collection(db, "lesson_resources"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       where("lesson_id", "==", lessonId),
       orderBy("order_index", "desc"),
       limit(1)
@@ -245,7 +245,7 @@ export const lessonsApi = {
     const nextOrderIndex = !lastSnap.empty ? (lastSnap.docs[0].data().order_index || 0) + 1 : 0;
 
     const resourceData = {
-      owner_id: user.uid,
+      ownerId: user.uid,
       lesson_id: lessonId,
       title,
       type,
@@ -253,7 +253,7 @@ export const lessonsApi = {
       file_path: filePath || null,
       content: content || null,
       order_index: nextOrderIndex,
-      created_at: new Date().toISOString()
+      createdAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "lesson_resources"), resourceData);

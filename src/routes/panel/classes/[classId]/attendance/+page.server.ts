@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const classSnap = await adminDb.collection("classes").doc(classId).get();
 
     const data = classSnap.data();
-    const ownerId = data?.owner_id || data?.ownerId;
+    const ownerId = data?.ownerId || data?.ownerId;
     if (!classSnap.exists || ownerId !== locals.user.uid) {
       throw error(404, 'Class not found');
     }
@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
     // Fetch all enrollments for this class
     let enrollmentsSnap = await adminDb.collection("class_students")
-      .where("class_id", "==", classId)
+      .where("classId", "==", classId)
       .get();
     
     if (enrollmentsSnap.empty) {
@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         .get();
     }
     
-    const enrolledIds = enrollmentsSnap.docs.map((doc: any) => doc.data().student_id || doc.data().studentId);
+    const enrolledIds = enrollmentsSnap.docs.map((doc: any) => doc.data().studentId || doc.data().studentId);
     
     // Fetch enrolled students details
     let students: any[] = [];
@@ -46,8 +46,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
     // Fetch recent attendance for this class
     const attendanceSnap = await adminDb.collection("attendance")
-      .where("class_id", "==", classId) // Use snake_case as primary
-      .where("owner_id", "==", locals.user.uid)
+      .where("classId", "==", classId) // Use snake_case as primary
+      .where("ownerId", "==", locals.user.uid)
       .orderBy("date", "desc")
       .limit(30)
       .get();
@@ -57,7 +57,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     if (rawAttendance.length === 0) {
       const legacySnap = await adminDb.collection("attendance")
         .where("classId", "==", classId)
-        .where("owner_id", "==", locals.user.uid)
+        .where("ownerId", "==", locals.user.uid)
         .orderBy("date", "desc")
         .limit(30)
         .get();
@@ -135,14 +135,14 @@ export const actions: Actions = {
       
       // Get existing records for this date/class to update them
       let existingSnapshot = await adminDb.collection("attendance")
-        .where("owner_id", "==", uid)
-        .where("class_id", "==", classId)
+        .where("ownerId", "==", uid)
+        .where("classId", "==", classId)
         .where("date", "==", date)
         .get();
         
       if (existingSnapshot.empty) {
         existingSnapshot = await adminDb.collection("attendance")
-          .where("owner_id", "==", uid)
+          .where("ownerId", "==", uid)
           .where("classId", "==", classId)
           .where("date", "==", date)
           .get();
@@ -157,13 +157,10 @@ export const actions: Actions = {
         const studentId = record.studentId;
         const attendanceData = {
           studentId,
-          student_id: studentId,
           classId,
-          class_id: classId,
           date,
           status: record.status,
           notes: record.notes || null,
-          owner_id: uid,
           ownerId: uid,
           updatedAt: new Date().toISOString()
         };

@@ -182,7 +182,7 @@
             <div class="meta-divider"></div>
             <div class="meta-item">
               <CalendarBlank weight="duotone" class="text-violet-400" />
-              <span>{calculateAge(student.date_of_birth)} {$t('reports.years')}</span>
+              <span>{calculateAge(student.dateOfBirth)} {$t('reports.years')}</span>
             </div>
             <div class="meta-divider"></div>
             <div class="meta-item">
@@ -332,7 +332,7 @@
                   <span class="label">{$t('reports.contact.birth')}</span>
                   <div class="info-val">
                     <CalendarBlank />
-                    <span>{formatDate(student.date_of_birth)}</span>
+                    <span>{formatDate(student.dateOfBirth)}</span>
                   </div>
                 </div>
                 <div class="info-group">
@@ -595,7 +595,7 @@
                       <td>
                         <div class="concept-cell">
                           <span class="desc">{pay.description}</span>
-                          <span class="due">{$t('reports.payments.due')}: {formatDate(pay.due_date)}</span>
+                          <span class="due">{$t('reports.payments.due')}: {formatDate(pay.dueDate)}</span>
                         </div>
                       </td>
                       <td class="amount">{formatCurrency(pay.amount)}</td>
@@ -606,8 +606,8 @@
                       </td>
                       <td class="text-right reference">
                         <span>{pay.payment_reference || '---'}</span>
-                        {#if pay.paid_date}
-                          <small>{$t('reports.payments.paid')}: {formatDate(pay.paid_date)}</small>
+                        {#if pay.paidDate}
+                          <small>{$t('reports.payments.paid')}: {formatDate(pay.paidDate)}</small>
                         {/if}
                       </td>
                     </tr>

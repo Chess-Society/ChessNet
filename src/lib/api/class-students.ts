@@ -95,7 +95,7 @@ export const classStudentsApi = {
     }
 
     const docData = {
-      owner_id: ownerId,
+      ownerId: ownerId,
       classId: classId,
       studentId: studentId,
       status: "active",
@@ -119,7 +119,7 @@ export const classStudentsApi = {
     for (const studentId of studentIds) {
       const docRef = doc(collection(db, "class_students"));
       batch.set(docRef, {
-        owner_id: ownerId,
+        ownerId: ownerId,
         classId: classId,
         studentId: studentId,
         status: "active",
@@ -176,7 +176,7 @@ export const classStudentsApi = {
     
     // Verificación de propiedad
     const snapBefore = await getDoc(docRef);
-    if (snapBefore.exists() && snapBefore.data().owner_id !== ownerId) {
+    if (snapBefore.exists() && snapBefore.data().ownerId !== ownerId) {
         throw new Error("No autorizado");
     }
 

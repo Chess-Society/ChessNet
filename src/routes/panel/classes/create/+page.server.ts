@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const snapshot = await adminDb.collection('schools')
-      .where('owner_id', '==', uid)
+      .where('ownerId', '==', uid)
       .orderBy('name', 'asc')
       .get();
     
@@ -64,14 +64,10 @@ export const actions: Actions = {
       const { id, ...data } = form.data;
       const classData = {
         ...data,
-        owner_id: locals.user.uid,
         ownerId: locals.user.uid,
-        school_id: form.data.schoolId, // Ensure snake_case for compatibility
-        schoolId: form.data.schoolId,
-        created_at: now,
-        updated_at: now,
+        schoolId: form.data.schoolId, // Ensure snake_case for compatibility
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       };
 
       const docRef = await adminDb.collection('classes').add(classData);

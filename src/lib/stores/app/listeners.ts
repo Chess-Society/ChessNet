@@ -108,7 +108,7 @@ export function setupListeners(store: Writable<AppState>, user: any) {
       q = query(collRef, orderBy('createdAt', 'desc'));
     } else {
       q = queryFn || query(collRef, or(
-        where("owner_id", "==", user.uid), 
+        where("ownerId", "==", user.uid), 
         where("ownerId", "==", user.uid),
         where("authorId", "==", user.uid),
         where("sharedWith", "array-contains", user.uid)

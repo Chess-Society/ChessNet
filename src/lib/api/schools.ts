@@ -82,7 +82,7 @@ export const schoolsApi = {
     
     const data = {
       ...schoolData,
-      owner_id: ownerId,
+      ownerId: ownerId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

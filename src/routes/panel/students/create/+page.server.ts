@@ -23,8 +23,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const [schoolsSnap, classesSnap] = await Promise.all([
-      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get(),
-      adminDb.collection('classes').where('owner_id', '==', uid).orderBy('name', 'asc').get()
+      adminDb.collection('schools').where('ownerId', '==', uid).orderBy('name', 'asc').get(),
+      adminDb.collection('classes').where('ownerId', '==', uid).orderBy('name', 'asc').get()
     ]);
 
     return { 
@@ -68,16 +68,11 @@ export const actions: Actions = {
       const studentToCreate = {
         ...studentData,
         name: `${studentData.firstName} ${studentData.lastName}`.trim(),
-        owner_id: uid,
         ownerId: uid,
-        school_id: studentData.schoolId || null,
         schoolId: studentData.schoolId || null,
-        class_id: studentData.classId || null,
         classId: studentData.classId || null,
         createdAt: now,
         updatedAt: now,
-        created_at: now,
-        updated_at: now
       };
 
       const docRef = await adminDb.collection('students').add(studentToCreate);
@@ -86,13 +81,9 @@ export const actions: Actions = {
       if (studentData.classId) {
         const enrollment = {
           studentId: docRef.id,
-          student_id: docRef.id,
           classId: studentData.classId,
-          class_id: studentData.classId,
           enrolledAt: now,
-          enrolled_at: now,
-          owner_id: uid,
-          ownerId: uid
+          ownerId: uid,
         };
         // Use class_students as it is the standard in the view pages
         await adminDb.collection('class_students').add(enrollment);

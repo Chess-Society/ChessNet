@@ -153,7 +153,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             orderIndex: idx,
             resources: Array.isArray(s.resources) ? s.resources : [],
             id: `ai-${Date.now()}-${idx}`,
-            owner_id: locals.user.uid,
             ownerId: locals.user.uid,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),

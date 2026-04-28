@@ -145,7 +145,7 @@ export const actions: Actions = {
         type,
         target,
         reward,
-        owner_id: user.uid,
+        ownerId: user.uid,
         createdAt: new Date().toISOString()
       });
       return { success: true, id: missionRef.id };
@@ -169,10 +169,10 @@ export const actions: Actions = {
       if (targetType === 'student') {
         studentIds = [targetId];
       } else if (targetType === 'class') {
-        const snap = await adminDb.collection("students").where("class_id", "==", targetId).get();
+        const snap = await adminDb.collection("students").where("classId", "==", targetId).get();
         studentIds = snap.docs.map((d: any) => d.id);
       } else if (targetType === 'school') {
-        const snap = await adminDb.collection("students").where("school_id", "==", targetId).get();
+        const snap = await adminDb.collection("students").where("schoolId", "==", targetId).get();
         studentIds = snap.docs.map((d: any) => d.id);
       }
 
@@ -182,12 +182,12 @@ export const actions: Actions = {
       studentIds.forEach(sid => {
         const ref = adminDb.collection("student_missions").doc();
         batch.set(ref, {
-          student_id: sid,
+          studentId: sid,
           mission_id: missionId,
           progress: 0,
           completed: false,
           assignedAt: now,
-          owner_id: user.uid
+          ownerId: user.uid
         });
       });
 

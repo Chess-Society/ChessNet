@@ -232,7 +232,7 @@
   {:else}
     <div class="space-y-4" in:fade>
       {#each data.assignedMissions as assignment}
-        {@const student = data.students.find(s => s.id === assignment.student_id)}
+        {@const student = data.students.find(s => s.id === assignment.studentId)}
         {@const details = getMissionDetails(assignment.mission_id)}
         <div class="bento-card !p-6 flex flex-col md:flex-row items-center justify-between gap-8 hover:border-white/10 transition-all">
           <div class="flex items-center gap-6 flex-1 min-w-0">

@@ -39,7 +39,7 @@ export const schoolsServerApi = {
       where("user_id", "==", userId)
     );
     const membershipsSnapshot = await getDocs(membershipsQuery);
-    const schoolIds = membershipsSnapshot.docs.map(doc => doc.data().school_id);
+    const schoolIds = membershipsSnapshot.docs.map(doc => doc.data().schoolId);
 
     if (schoolIds.length === 0) return [];
 
@@ -72,9 +72,9 @@ export const schoolsServerApi = {
     const schoolData = {
       name,
       city: city || null,
-      owner_id: userId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      ownerId: userId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "schools"), schoolData);
@@ -91,7 +91,7 @@ export const schoolsServerApi = {
     const docRef = doc(db, "schools", id);
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
     const docSnap = await getDoc(docRef);
@@ -111,10 +111,10 @@ export const schoolsServerApi = {
     cookies: Cookies
   ): Promise<Membership> {
     const membershipData = {
-      school_id: schoolId,
+      schoolId: schoolId,
       user_id: userId,
       role,
-      created_at: new Date().toISOString()
+      createdAt: new Date().toISOString()
     };
 
     const docRef = await addDoc(collection(db, "memberships"), membershipData);
@@ -128,7 +128,7 @@ export const schoolsServerApi = {
 
     const q = query(
       collection(db, "memberships"),
-      where("school_id", "==", schoolId),
+      where("schoolId", "==", schoolId),
       where("user_id", "==", userId)
     );
     const snapshot = await getDocs(q);
@@ -141,7 +141,7 @@ export const schoolsServerApi = {
 
     const q = query(
       collection(db, "memberships"),
-      where("school_id", "==", schoolId),
+      where("schoolId", "==", schoolId),
       where("user_id", "==", userId)
     );
     const snapshot = await getDocs(q);

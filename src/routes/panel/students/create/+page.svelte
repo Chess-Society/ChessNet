@@ -182,7 +182,7 @@
         <div class="space-y-10 relative z-10">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div class="space-y-3">
-              <label for="firstName" class="glass-label">{$t('students.first_name')} <span class="text-violet-500">*</span></label>
+              <label for="firstName" class="glass-label">{$t('students.firstName')} <span class="text-violet-500">*</span></label>
               <div class="relative group">
                 <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
                 <input
@@ -190,7 +190,7 @@
                   name="firstName"
                   type="text"
                   bind:value={$form.firstName}
-                  placeholder={$t('students.first_name_placeholder')}
+                  placeholder={$t('students.firstName_placeholder')}
                   class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
                   aria-invalid={$errors.firstName ? 'true' : undefined}
                   {...$constraints.firstName}
@@ -200,7 +200,7 @@
             </div>
 
             <div class="space-y-3">
-              <label for="lastName" class="glass-label">{$t('students.last_name')}</label>
+              <label for="lastName" class="glass-label">{$t('students.lastName')}</label>
               <div class="relative group">
                 <UserCircle weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none" />
                 <input
@@ -208,7 +208,7 @@
                   name="lastName"
                   type="text"
                   bind:value={$form.lastName}
-                  placeholder={$t('students.last_name_placeholder')}
+                  placeholder={$t('students.lastName_placeholder')}
                   class="glass-input pl-16 pr-8 w-full focus:ring-violet-500/20 focus:border-violet-500 bg-zinc-950/50"
                   {...$constraints.lastName}
                 />
@@ -357,7 +357,7 @@
         <div class="space-y-10 relative z-10">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div class="space-y-3">
-              <label for="parentEmail" class="glass-label">{$t('students.parent_email')}</label>
+              <label for="parentEmail" class="glass-label">{$t('students.parentEmail')}</label>
               <div class="relative group">
                 <SelectionBackground weight="bold" class="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-600 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
                 <input
@@ -365,7 +365,7 @@
                   name="parentEmail"
                   type="email"
                   bind:value={$form.parentEmail}
-                  placeholder={$t('students.parent_email_placeholder')}
+                  placeholder={$t('students.parentEmail_placeholder')}
                   class="glass-input pl-16 pr-8 w-full focus:ring-blue-500/20 focus:border-blue-500 bg-zinc-950/50"
                   aria-invalid={$errors.parentEmail ? 'true' : undefined}
                   {...$constraints.parentEmail}

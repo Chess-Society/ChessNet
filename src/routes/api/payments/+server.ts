@@ -16,10 +16,10 @@ export const GET: RequestHandler = async (event) => {
   const uid = user.uid;
 
   try {
-    let query = adminDb.collection('payments').where('owner_id', '==', uid);
+    let query = adminDb.collection('payments').where('ownerId', '==', uid);
 
     // Aplicar filtros básicos de Firestore si es posible
-    const paymentType = url.searchParams.get('paymentType') || url.searchParams.get('payment_type');
+    const paymentType = url.searchParams.get('paymentType') || url.searchParams.get('paymentType');
     if (paymentType) query = query.where('paymentType', '==', paymentType);
 
     const status = url.searchParams.get('status');
@@ -28,10 +28,10 @@ export const GET: RequestHandler = async (event) => {
     const concept = url.searchParams.get('concept');
     if (concept) query = query.where('concept', '==', concept);
 
-    const studentIdParam = url.searchParams.get('studentId') || url.searchParams.get('student_id');
+    const studentIdParam = url.searchParams.get('studentId') || url.searchParams.get('studentId');
     if (studentIdParam) query = query.where('studentId', '==', studentIdParam);
 
-    const schoolIdParam = url.searchParams.get('schoolId') || url.searchParams.get('school_id');
+    const schoolIdParam = url.searchParams.get('schoolId') || url.searchParams.get('schoolId');
     if (schoolIdParam) query = query.where('schoolId', '==', schoolIdParam);
 
     const snapshot = await query.orderBy('createdAt', 'desc').get();
@@ -40,13 +40,13 @@ export const GET: RequestHandler = async (event) => {
       return serializeRecord({ 
         id: doc.id, 
         ...data,
-        studentId: data.studentId || data.student_id,
-        schoolId: data.schoolId || data.school_id,
-        paymentType: data.paymentType || data.payment_type,
-        periodStart: data.periodStart || data.period_start,
-        periodEnd: data.periodEnd || data.period_end,
-        createdAt: data.createdAt || data.created_at,
-        updatedAt: data.updatedAt || data.updated_at
+        studentId: data.studentId || data.studentId,
+        schoolId: data.schoolId || data.schoolId,
+        paymentType: data.paymentType || data.paymentType,
+        periodStart: data.periodStart || data.periodStart,
+        periodEnd: data.periodEnd || data.periodEnd,
+        createdAt: data.createdAt || data.createdAt,
+        updatedAt: data.updatedAt || data.updatedAt
       });
     });
 
@@ -92,8 +92,8 @@ export const POST: RequestHandler = async (event) => {
     }
 
     // Validar fechas de período si se proporcionan
-    const periodStart = body.periodStart || body.period_start;
-    const periodEnd = body.periodEnd || body.period_end;
+    const periodStart = body.periodStart || body.periodStart;
+    const periodEnd = body.periodEnd || body.periodEnd;
     if (periodStart && periodEnd) {
       if (new Date(periodStart) >= new Date(periodEnd)) {
         return json({ error: 'La fecha de inicio debe ser anterior a la fecha de fin' }, { status: 400 });
@@ -103,7 +103,7 @@ export const POST: RequestHandler = async (event) => {
     // Standardize to camelCase for the database
     const paymentData = {
       ...body,
-      owner_id: uid,
+      ownerId: uid,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       status: body.status || 'pending',
@@ -111,24 +111,24 @@ export const POST: RequestHandler = async (event) => {
     };
 
     // Support field mapping for incoming snake_case
-    if (body.student_id && !body.studentId) paymentData.studentId = body.student_id;
-    if (body.school_id && !body.schoolId) paymentData.schoolId = body.school_id;
-    if (body.payment_type && !body.paymentType) paymentData.paymentType = body.payment_type;
-    if (body.period_start && !body.periodStart) paymentData.periodStart = body.period_start;
-    if (body.period_end && !body.periodEnd) paymentData.periodEnd = body.period_end;
-    if (body.paid_date && !body.paidDate) paymentData.paidDate = body.paid_date;
-    if (body.due_date && !body.dueDate) paymentData.dueDate = body.due_date;
+    if (body.studentId && !body.studentId) paymentData.studentId = body.studentId;
+    if (body.schoolId && !body.schoolId) paymentData.schoolId = body.schoolId;
+    if (body.paymentType && !body.paymentType) paymentData.paymentType = body.paymentType;
+    if (body.periodStart && !body.periodStart) paymentData.periodStart = body.periodStart;
+    if (body.periodEnd && !body.periodEnd) paymentData.periodEnd = body.periodEnd;
+    if (body.paidDate && !body.paidDate) paymentData.paidDate = body.paidDate;
+    if (body.dueDate && !body.dueDate) paymentData.dueDate = body.dueDate;
 
     // Cleanup legacy fields from DB insert
-    delete (paymentData as any).student_id;
-    delete (paymentData as any).school_id;
-    delete (paymentData as any).payment_type;
-    delete (paymentData as any).period_start;
-    delete (paymentData as any).period_end;
-    delete (paymentData as any).paid_date;
-    delete (paymentData as any).due_date;
-    delete (paymentData as any).created_at;
-    delete (paymentData as any).updated_at;
+    delete (paymentData as any).studentId;
+    delete (paymentData as any).schoolId;
+    delete (paymentData as any).paymentType;
+    delete (paymentData as any).periodStart;
+    delete (paymentData as any).periodEnd;
+    delete (paymentData as any).paidDate;
+    delete (paymentData as any).dueDate;
+    delete (paymentData as any).createdAt;
+    delete (paymentData as any).updatedAt;
 
     const docRef = await adminDb.collection('payments').add(paymentData);
     
@@ -167,8 +167,8 @@ export const PUT: RequestHandler = async (event) => {
     }
 
     const data = paymentSnap.data()!;
-    // Compatibilidad: documentos antiguos pueden usar 'userId' en lugar de 'owner_id'
-    const docOwner = data.owner_id || data.userId || null;
+    // Compatibilidad: documentos antiguos pueden usar 'userId' en lugar de 'ownerId'
+    const docOwner = data.ownerId || data.userId || null;
     if (docOwner !== uid) {
       console.warn(`⚠️ [PUT /api/payments] User ${uid} tried to update payment ${paymentId} owned by ${docOwner}`);
       return json({ error: 'Pago no encontrado o no autorizado' }, { status: 403 });
@@ -181,30 +181,30 @@ export const PUT: RequestHandler = async (event) => {
     };
     
     // Support field mapping for incoming snake_case
-    if (updates.student_id && !updates.studentId) cleanUpdates.studentId = updates.student_id;
-    if (updates.school_id && !updates.schoolId) cleanUpdates.schoolId = updates.school_id;
-    if (updates.payment_type && !updates.paymentType) cleanUpdates.paymentType = updates.payment_type;
-    if (updates.period_start && !updates.periodStart) cleanUpdates.periodStart = updates.period_start;
-    if (updates.period_end && !updates.periodEnd) cleanUpdates.periodEnd = updates.period_end;
-    if (updates.paid_date && !updates.paidDate) cleanUpdates.paidDate = updates.paid_date;
-    if (updates.due_date && !updates.dueDate) cleanUpdates.dueDate = updates.due_date;
+    if (updates.studentId && !updates.studentId) cleanUpdates.studentId = updates.studentId;
+    if (updates.schoolId && !updates.schoolId) cleanUpdates.schoolId = updates.schoolId;
+    if (updates.paymentType && !updates.paymentType) cleanUpdates.paymentType = updates.paymentType;
+    if (updates.periodStart && !updates.periodStart) cleanUpdates.periodStart = updates.periodStart;
+    if (updates.periodEnd && !updates.periodEnd) cleanUpdates.periodEnd = updates.periodEnd;
+    if (updates.paidDate && !updates.paidDate) cleanUpdates.paidDate = updates.paidDate;
+    if (updates.dueDate && !updates.dueDate) cleanUpdates.dueDate = updates.dueDate;
 
     // Evitar que el usuario cambie campos críticos por error
     delete cleanUpdates.id;
-    delete cleanUpdates.owner_id;
+    delete cleanUpdates.ownerId;
     delete cleanUpdates.userId;
-    delete cleanUpdates.created_at;
     delete cleanUpdates.createdAt;
-    delete cleanUpdates.updated_at;
+    delete cleanUpdates.createdAt;
+    delete cleanUpdates.updatedAt;
     
     // Cleanup legacy fields from update
-    delete (cleanUpdates as any).student_id;
-    delete (cleanUpdates as any).school_id;
-    delete (cleanUpdates as any).payment_type;
-    delete (cleanUpdates as any).period_start;
-    delete (cleanUpdates as any).period_end;
-    delete (cleanUpdates as any).paid_date;
-    delete (cleanUpdates as any).due_date;
+    delete (cleanUpdates as any).studentId;
+    delete (cleanUpdates as any).schoolId;
+    delete (cleanUpdates as any).paymentType;
+    delete (cleanUpdates as any).periodStart;
+    delete (cleanUpdates as any).periodEnd;
+    delete (cleanUpdates as any).paidDate;
+    delete (cleanUpdates as any).dueDate;
 
     await paymentRef.update(cleanUpdates);
 
@@ -250,7 +250,7 @@ export const DELETE: RequestHandler = async (event) => {
   const snap = paymentSnap!; // guaranteed non-null after try-catch above
   if (snap.exists) {
     const data = snap.data()!;
-    const docOwner = data.owner_id || data.userId || null;
+    const docOwner = data.ownerId || data.userId || null;
 
     if (docOwner !== uid) {
       console.warn(`⚠️ [DELETE] uid=${uid} attempted to delete payment owned by="${docOwner}"`);
@@ -272,7 +272,7 @@ export const DELETE: RequestHandler = async (event) => {
   try {
     const querySnap = await adminDb
       .collection('payments')
-      .where('owner_id', '==', uid)
+      .where('ownerId', '==', uid)
       .get();
 
     const match = querySnap.docs.find((d: any) => d.id === paymentId);

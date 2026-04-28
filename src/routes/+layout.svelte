@@ -19,7 +19,7 @@
   import { Crown, ChevronRight } from 'lucide-svelte';
   import { Horse } from 'phosphor-svelte';
   import Logo from '$lib/components/Logo.svelte';
-  import { t } from '$lib/i18n';
+  import { t, loadTranslations } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
   import { systemConfig, initGlobalConfig } from '$lib/stores/configStore';
   import BroadcastBanner from '$lib/components/BroadcastBanner.svelte';
@@ -27,6 +27,28 @@
 
   let { children } = $props();
   let maintenanceMode = $derived($systemConfig.maintenanceMode);
+
+  // Dynamic Translation Loading Logic
+  $effect(() => {
+    const path = $page.url.pathname;
+    const modulesToLoad: string[] = ['common', 'errors']; // Base modules always needed
+
+    if (path === '/') modulesToLoad.push('landing');
+    if (path === '/pricing') modulesToLoad.push('pricing');
+    if (path.startsWith('/admin')) modulesToLoad.push('admin');
+    if (path.startsWith('/panel/schools')) modulesToLoad.push('schools');
+    if (path.startsWith('/panel/classes')) modulesToLoad.push('classes');
+    if (path.startsWith('/panel/students')) modulesToLoad.push('students');
+    if (path.startsWith('/panel/tournaments')) modulesToLoad.push('tournaments');
+    if (path.startsWith('/panel/payments')) modulesToLoad.push('payments');
+    if (path.startsWith('/panel/attendance')) modulesToLoad.push('attendance');
+    if (path.startsWith('/panel/support')) modulesToLoad.push('support');
+    if (path.startsWith('/panel/planner')) modulesToLoad.push('planner');
+    if (path.startsWith('/panel/settings')) modulesToLoad.push('settings');
+    
+    loadTranslations(modulesToLoad);
+  });
+
 
   if (typeof window !== 'undefined') {
     initAuth();

@@ -18,7 +18,7 @@ export const DELETE: RequestHandler = async (event) => {
   try {
     console.log(`🗑️ [DELETE /api/users/me] Iniciando borrado completo para uid: ${uid}`);
 
-    // Colecciones con campo owner_id
+    // Colecciones con campo ownerId
     const ownerCollections = [
       'schools',
       'classes',
@@ -47,10 +47,10 @@ export const DELETE: RequestHandler = async (event) => {
       'lobby_reports'
     ];
 
-    // Borrar todas las colecciones con owner_id en batches de 500
+    // Borrar todas las colecciones con ownerId en batches de 500
     for (const collectionName of ownerCollections) {
       try {
-        let query = adminDb.collection(collectionName).where('owner_id', '==', uid);
+        let query = adminDb.collection(collectionName).where('ownerId', '==', uid);
         let hasMore = true;
 
         while (hasMore) {

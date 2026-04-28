@@ -117,7 +117,7 @@ export const attendanceApi = {
     const docRef = doc(db, "attendance", attendanceId);
     
     const attendanceData = {
-      owner_id: ownerId,
+      ownerId: ownerId,
       studentId,
       classId,
       date,
@@ -147,7 +147,7 @@ export const attendanceApi = {
       const docRef = doc(db, "attendance", attendanceId);
       
       const data = {
-        owner_id: ownerId,
+        ownerId: ownerId,
         studentId: record.studentId,
         classId,
         date,

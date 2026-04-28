@@ -67,7 +67,7 @@
   async function loadLichessLeaderboards() {
     if (hasFetchedLeaderboards && !isFetchingLeaderboards) return;
     
-    const validStudents = students.filter(s => s.lichess_username && s.lichess_username.trim().length > 0);
+    const validStudents = students.filter(s => s.lichessUsername && s.lichessUsername.trim().length > 0);
     
     if (validStudents.length === 0) {
       hasFetchedLeaderboards = true;
@@ -77,7 +77,7 @@
 
     isFetchingLeaderboards = true;
     try {
-      const usernames = validStudents.map(s => s.lichess_username.trim()).join(',');
+      const usernames = validStudents.map(s => s.lichessUsername.trim()).join(',');
       const res = await fetch(`https://lichess.org/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -87,7 +87,7 @@
       if (res.ok) {
         const lichessDataArray = await res.json();
         leaderboards = validStudents.map(student => {
-           const lData = lichessDataArray.find((d: any) => d.id.toLowerCase() === student.lichess_username.toLowerCase().trim());
+           const lData = lichessDataArray.find((d: any) => d.id.toLowerCase() === student.lichessUsername.toLowerCase().trim());
            return {
              ...student,
              lichessData: lData || null
@@ -150,7 +150,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const fromSchool = urlParams.get('from_school');
     if (fromSchool) goto(`/panel/schools/${fromSchool}`);
-    else if (classData?.school_id) goto(`/panel/schools/${classData.school_id}`);
+    else if (classData?.schoolId) goto(`/panel/schools/${classData.schoolId}`);
     else goto('/panel/classes');
   };
 
@@ -344,9 +344,9 @@
                            <div class="flex items-center justify-between p-3 rounded-none bg-zinc-950/30 border border-white/5">
                               <div class="flex items-center gap-3">
                                  <div class="w-7 h-7 rounded-none bg-zinc-900 border border-white/5 flex items-center justify-center text-white font-black text-[9px] uppercase">
-                                   {player.first_name?.charAt(0) || player.username?.charAt(0)}
+                                   {player.firstName?.charAt(0) || player.username?.charAt(0)}
                                  </div>
-                                 <p class="text-[9px] font-bold text-slate-300 uppercase truncate max-w-[80px]">{player.first_name || player.username}</p>
+                                 <p class="text-[9px] font-bold text-slate-300 uppercase truncate max-w-[80px]">{player.firstName || player.username}</p>
                               </div>
                               <span class="text-sky-400 font-black text-[10px]">{player.lichessData?.perfs?.blitz?.rating || '---'}</span>
                            </div>
@@ -379,7 +379,7 @@
                </button>
 
                <button 
-                 onclick={() => goto(`/panel/students/create?classId=${classData?.id}&schoolId=${classData?.school_id}`)}
+                 onclick={() => goto(`/panel/students/create?classId=${classData?.id}&schoolId=${classData?.schoolId}`)}
                  class="w-full p-6 bg-zinc-900/60 hover:bg-white hover:text-black border border-white/10 text-white rounded-none flex items-center justify-between group transition-all active:scale-[0.98]"
                >
                  <div class="flex items-center gap-4">
@@ -438,7 +438,7 @@
                      <div class="relative z-10">
                         <div class="flex items-center justify-between mb-6">
                            <div class="w-12 h-12 bg-zinc-950 rounded-none border border-white/10 flex items-center justify-center text-violet-400 font-black text-xl font-outfit shadow-inner">
-                              {student.first_name?.charAt(0) || student.name?.charAt(0) || '?'}
+                              {student.firstName?.charAt(0) || student.name?.charAt(0) || '?'}
                            </div>
                            <div class="px-3 py-1 rounded-none text-[7px] font-black uppercase tracking-widest border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
                              ACTIVO
@@ -447,10 +447,10 @@
                         
                         <div class="space-y-2 mb-6">
                            <h4 class="text-white font-black uppercase text-base leading-none font-outfit tracking-tighter truncate group-hover:text-violet-400 transition-colors">
-                            {student.first_name || ''} {student.last_name || student.name || ''}
+                            {student.firstName || ''} {student.lastName || student.name || ''}
                            </h4>
                            <div class="flex items-center gap-2">
-                               <p class="text-[8px] text-slate-500 font-black uppercase tracking-wider">{calculateAge(student.date_of_birth)} AÑOS</p>
+                               <p class="text-[8px] text-slate-500 font-black uppercase tracking-wider">{calculateAge(student.dateOfBirth)} AÑOS</p>
                                <div class="w-0.5 h-0.5 rounded-none bg-slate-700"></div>
                                <p class="text-[8px] text-violet-400 font-black uppercase tracking-wider">{student.chess_level || 'MIXTO'}</p>
                            </div>
@@ -591,7 +591,7 @@
                      <Target size={80} weight="fill" />
                   </div>
                   <p class="text-[8px] font-black text-violet-400 uppercase tracking-widest mb-3">REPRO DE LA TÁCTICA</p>
-                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.tacticalKing.first_name || ach.tacticalKing.username}</h4>
+                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.tacticalKing.firstName || ach.tacticalKing.username}</h4>
                   <p class="text-2xl font-black text-violet-500 mt-2 font-outfit tracking-tighter">{ach.tacticalKing.lichessData?.perfs?.puzzle?.rating || 0} <span class="text-[10px] text-slate-600 font-bold ml-1">ELO PUZZLE</span></p>
                </div>
 
@@ -601,7 +601,7 @@
                      <TrendUp size={80} weight="fill" />
                   </div>
                   <p class="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-3">ESTRELLA EMERGENTE</p>
-                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.risingStar.first_name || ach.risingStar.username}</h4>
+                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.risingStar.firstName || ach.risingStar.username}</h4>
                   <p class="text-2xl font-black text-emerald-500 mt-2 font-outfit tracking-tighter">
                     +{(ach.risingStar.lichessData?.perfs?.blitz?.prog || 0) + (ach.risingStar.lichessData?.perfs?.rapid?.prog || 0)}
                     <span class="text-[10px] text-slate-600 font-bold ml-1">PROGRESO COMB.</span>
@@ -614,7 +614,7 @@
                      <Selection size={80} weight="fill" />
                   </div>
                   <p class="text-[8px] font-black text-amber-400 uppercase tracking-widest mb-3">MÁXIMO ESFUERZO</p>
-                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.mostActive.first_name || ach.mostActive.username}</h4>
+                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.mostActive.firstName || ach.mostActive.username}</h4>
                   <p class="text-2xl font-black text-amber-500 mt-2 font-outfit tracking-tighter">{ach.mostActive.lichessData?.count?.all || 0} <span class="text-[10px] text-slate-600 font-bold ml-1">PARTIDAS JUGADAS</span></p>
                </div>
 
@@ -624,7 +624,7 @@
                      <Sparkle size={80} weight="fill" />
                   </div>
                   <p class="text-[8px] font-black text-sky-400 uppercase tracking-widest mb-3">MAESTRO DE LA VELOCIDAD</p>
-                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.speedDemon.first_name || ach.speedDemon.username}</h4>
+                  <h4 class="text-white font-black uppercase text-sm truncate font-outfit">{ach.speedDemon.firstName || ach.speedDemon.username}</h4>
                   <p class="text-2xl font-black text-sky-500 mt-2 font-outfit tracking-tighter">{ach.speedDemon.lichessData?.perfs?.bullet?.rating || 0} <span class="text-[10px] text-slate-600 font-bold ml-1">ELO BULLET</span></p>
                </div>
             </div>
@@ -669,15 +669,15 @@
                                <div class="flex items-center gap-4">
                                   <div class="relative">
                                      <div class="w-10 h-10 bg-zinc-900 border border-white/5 rounded-none flex items-center justify-center text-white font-black text-xs uppercase font-outfit">
-                                        {student.first_name?.charAt(0) || student.username?.charAt(0)}
+                                        {student.firstName?.charAt(0) || student.username?.charAt(0)}
                                      </div>
                                      <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-zinc-950 rounded-none flex items-center justify-center border border-white/10">
                                         <div class="w-1.5 h-1.5 {student.lichessData?.online ? 'bg-emerald-500 shadow-glow-emerald' : 'bg-slate-700'}"></div>
                                      </div>
                                   </div>
                                   <div>
-                                     <p class="text-white font-black text-sm uppercase tracking-tight font-outfit leading-none mb-1.5">{student.first_name || ''} {student.last_name || student.name || ''}</p>
-                                     <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">@{student.lichess_username}</p>
+                                     <p class="text-white font-black text-sm uppercase tracking-tight font-outfit leading-none mb-1.5">{student.firstName || ''} {student.lastName || student.name || ''}</p>
+                                     <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">@{student.lichessUsername}</p>
                                   </div>
                                </div>
                             </td>
@@ -722,7 +722,7 @@
                             <td class="px-10 py-6 text-right">
                                <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
                                   <a 
-                                    href="https://lichess.org/@/{student.lichess_username}" 
+                                    href="https://lichess.org/@/{student.lichessUsername}" 
                                     target="_blank"
                                     class="p-2.5 bg-sky-500/10 border border-sky-500/20 text-sky-400 hover:bg-sky-500 hover:text-white transition-all shadow-glow-blue-mini"
                                   >

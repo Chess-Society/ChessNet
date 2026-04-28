@@ -125,7 +125,7 @@ export const es = {
     'tournaments.error_generating_pairing': 'Error al generar emparejamientos: {error}',
     'tournaments.school_tournaments_title': 'Torneos',
     'tournaments.hub_title': 'Torneos y Competiciones',
-    'tournaments.school_id': 'Escuela ID',
+    'tournaments.schoolId': 'Escuela ID',
     'tournaments.new_tournament_btn': 'Nuevo torneo',
     'tournaments.module_configuring': 'Módulo de Torneos en Configuración',
     'tournaments.module_configuring_subtitle': 'El sistema de torneos está siendo configurado',

@@ -7,7 +7,7 @@ import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 interface ClassData {
     id?: string;
     name: string;
-    owner_id: string;
+    ownerId: string;
     max_students?: number;
     level?: string;
     school_id?: string;
@@ -23,28 +23,25 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
   try {
     const classSnap = await adminDb.collection("classes").doc(classId).get();
-    const classRaw = classSnap.data();
-    const isOwner = classRaw?.owner_id === locals.user.uid || classRaw?.ownerId === locals.user.uid;
+    const sc = serializeRecord<any>(classSnap.data());
+    const isOwner = sc.ownerId === locals.user.uid;
 
     if (!classSnap.exists || !isOwner) {
       throw error(404, 'Class not found');
     }
 
-    const classData = { ...(classRaw as ClassData), id: classSnap.id };
+    const classData = { ...sc, id: classSnap.id };
+
 
     // Enrolled students
     const enrollmentsSnap = await adminDb.collection("class_students")
-      .where(Filter.or(
-        Filter.where('owner_id', '==', locals.user.uid),
-        Filter.where('ownerId', '==', locals.user.uid)
-      ))
-      .where(Filter.or(
-        Filter.where('class_id', '==', classId),
-        Filter.where('classId', '==', classId)
-      ))
+      .where("ownerId", "==", locals.user.uid)
+      .where("classId", "==", classId)
       .get();
+
       
-    const studentIds = enrollmentsSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data().student_id || doc.data().studentId);
+    const studentIds = enrollmentsSnap.docs.map((doc: QueryDocumentSnapshot) => serializeRecord<any>(doc.data()).studentId);
+
     
     let students: (ClassData & { id: string })[] = [];
     if (studentIds.length > 0) {
@@ -60,17 +57,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     
     // Class skills
     const classSkillsSnap = await adminDb.collection("class_skills")
-      .where(Filter.or(
-        Filter.where('owner_id', '==', locals.user.uid),
-        Filter.where('ownerId', '==', locals.user.uid)
-      ))
-      .where(Filter.or(
-        Filter.where('class_id', '==', classId),
-        Filter.where('classId', '==', classId)
-      ))
+      .where("ownerId", "==", locals.user.uid)
+      .where("classId", "==", classId)
       .get();
+
       
-    const skillIds = classSkillsSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data().skill_id || doc.data().skillId);
+    const skillIds = classSkillsSnap.docs.map((doc: QueryDocumentSnapshot) => serializeRecord<any>(doc.data()).skillId);
+
     
     let skillsMap = new Map();
     if (skillIds.length > 0) {
@@ -86,28 +79,25 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }
 
     const classSkills = classSkillsSnap.docs.map((doc: QueryDocumentSnapshot) => {
-      const data = doc.data();
+      const data = serializeRecord<any>(doc.data());
       return {
         id: doc.id,
         ...data,
-        skill: skillsMap.get(data.skill_id || data.skillId) || { name: 'Skill deleted', description: '', difficulty: 0 }
+        skill: skillsMap.get(data.skillId) || { name: 'Skill deleted', description: '', difficulty: 0 }
       };
-    }).sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
+    }).sort((a: any, b: any) => (a.orderIndex || 0) - (b.orderIndex || 0));
+
 
     // Fetch attendance records for stats
     const attendanceSnap = await adminDb.collection("attendance")
-      .where(Filter.or(
-        Filter.where('owner_id', '==', locals.user.uid),
-        Filter.where('ownerId', '==', locals.user.uid)
-      ))
-      .where(Filter.or(
-        Filter.where('class_id', '==', classId),
-        Filter.where('classId', '==', classId)
-      ))
+      .where("ownerId", "==", locals.user.uid)
+      .where("classId", "==", classId)
       .get();
 
+
     // Attendance stats calculation
-    const attendanceRecords = attendanceSnap.docs.map((doc: QueryDocumentSnapshot) => doc.data());
+    const attendanceRecords = attendanceSnap.docs.map((doc: QueryDocumentSnapshot) => serializeRecord<any>(doc.data()));
+
     const sessionsByDate = attendanceRecords.reduce((acc: Record<string, any>, record: any) => {
       const date = record.date;
       if (!acc[date]) acc[date] = { total: 0, present: 0, late: 0 };
@@ -145,12 +135,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const lastSession = dates[dates.length - 1] || null;
 
     let schoolData = null;
-    if (classData.school_id) {
-      const schoolSnap = await adminDb.collection("schools").doc(classData.school_id).get();
+    if (classData.schoolId) {
+      const schoolSnap = await adminDb.collection("schools").doc(classData.schoolId).get();
       if (schoolSnap.exists) {
-        schoolData = { id: schoolSnap.id, ...schoolSnap.data() };
+        schoolData = serializeRecord({ id: schoolSnap.id, ...schoolSnap.data() });
       }
     }
+
     
     return serializeRecord({
       user: locals.user,
@@ -158,26 +149,28 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       students,
       classSkills,
       classStats: { 
-        total_students: students.length, 
-        active_students: students.filter(s => s.active).length,
-        inactive_students: students.filter(s => !s.active).length,
-        total_skills: classSkills.length, 
-        occupancy_rate: classData.max_students ? Math.round((students.length / classData.max_students) * 100) : 0,
-        skills_by_category: classSkills.reduce((acc: Record<string, number>, cs: any) => {
+        totalStudents: students.length, 
+        activeStudents: students.filter((s: any) => s.active).length,
+        inactiveStudents: students.filter((s: any) => !s.active).length,
+        totalSkills: classSkills.length, 
+        occupancyRate: classData.maxStudents ? Math.round((students.length / classData.maxStudents) * 100) : 0,
+        skillsByCategory: classSkills.reduce((acc: Record<string, number>, cs: any) => {
           const cat = cs.skill?.category || 'Uncategorized';
           acc[cat] = (acc[cat] || 0) + 1;
           return acc;
         }, {}),
       },
+
       attendanceStats: { 
-        total_sessions: totalSessions, 
-        average_attendance_rate: avgAttendance, 
-        average_punctuality_rate: avgPunctuality, 
-        most_attended_date: mostAttended, 
-        least_attended_date: leastAttended, 
-        last_session_date: lastSession, 
-        next_session_date: null 
+        totalSessions: totalSessions, 
+        averageAttendanceRate: avgAttendance, 
+        averagePunctualityRate: avgPunctuality, 
+        mostAttendedDate: mostAttended, 
+        leastAttendedDate: leastAttended, 
+        lastSessionDate: lastSession, 
+        nextSessionDate: null 
       }
+
     });
 
   } catch (err: any) {

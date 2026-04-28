@@ -15,8 +15,8 @@ export interface SubscriptionPlan {
   features: string[];
   is_active: boolean;
   sort_order: number;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UserSubscription {
@@ -24,7 +24,7 @@ export interface UserSubscription {
   user_id: string;
   plan_id: string;
   status: 'active' | 'cancelled' | 'expired' | 'pending' | 'failed';
-  started_at: string;
+  startedAt: string;
   expires_at: string;
   cancelled_at?: string;
   payment_method?: 'paypal' | 'stripe' | 'manual';
@@ -34,8 +34,8 @@ export interface UserSubscription {
   currency: string;
   auto_renew: boolean;
   metadata: Record<string, any>;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SubscriptionPayment {
@@ -54,8 +54,8 @@ export interface SubscriptionPayment {
   refunded_at?: string;
   gateway_response: Record<string, any>;
   notes?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UserPlanLimits {

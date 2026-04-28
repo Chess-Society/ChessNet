@@ -31,7 +31,7 @@ export const POST: RequestHandler = async ({ locals }) => {
 
     const deletePromises = collections.map(async (collName) => {
       // Handle both snake_case and camelCase owner fields
-      const snapshot1 = await adminDb.collection(collName).where('owner_id', '==', uid).get();
+      const snapshot1 = await adminDb.collection(collName).where('ownerId', '==', uid).get();
       const snapshot2 = await adminDb.collection(collName).where('ownerId', '==', uid).get();
       
       const batch = adminDb.batch();
@@ -47,14 +47,14 @@ export const POST: RequestHandler = async ({ locals }) => {
 
     // MED-04: Anonimizar registros de pagos en lugar de borrarlos (Audit Compliance)
     const paymentSnap = await adminDb.collection('payments')
-      .where('owner_id', '==', uid)
+      .where('ownerId', '==', uid)
       .get();
     
     if (!paymentSnap.empty) {
       const batch = adminDb.batch();
       paymentSnap.docs.forEach((doc: any) => {
         batch.update(doc.ref, {
-          owner_id: 'deleted_user',
+          ownerId: 'deleted_user',
           anonymizedAt: new Date().toISOString(),
           // Mantener amount, status, y stripeId para contabilidad
         });

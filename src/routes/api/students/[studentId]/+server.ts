@@ -17,7 +17,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
     const studentRef = adminDb.collection("students").doc(studentId);
     const studentSnap = await studentRef.get();
 
-    if (!studentSnap.exists || studentSnap.data()?.owner_id !== locals.user.uid) {
+    if (!studentSnap.exists || studentSnap.data()?.ownerId !== locals.user.uid) {
       return json({ error: 'Estudiante no encontrado o acceso denegado' }, { status: 404 });
     }
 
@@ -28,10 +28,10 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
     
     // Cleanup body fields to avoid overwriting sensitive data
     delete (updateData as any).id;
-    delete (updateData as any).owner_id;
-    delete (updateData as any).created_at;
+    delete (updateData as any).ownerId;
     delete (updateData as any).createdAt;
-    delete (updateData as any).updated_at;
+    delete (updateData as any).createdAt;
+    delete (updateData as any).updatedAt;
 
 
     await studentRef.update(updateData);
@@ -62,7 +62,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     const studentRef = adminDb.collection("students").doc(studentId);
     const studentSnap = await studentRef.get();
 
-    if (!studentSnap.exists || studentSnap.data()?.owner_id !== locals.user.uid) {
+    if (!studentSnap.exists || studentSnap.data()?.ownerId !== locals.user.uid) {
       return json({ error: 'Estudiante no encontrado o acceso denegado' }, { status: 404 });
     }
 

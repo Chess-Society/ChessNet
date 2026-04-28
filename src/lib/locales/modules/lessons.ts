@@ -18,5 +18,5 @@ export const es = {
     'lessons.module_active': 'Módulo de lecciones funcionando correctamente. Listo para configurar contenido.',
     'lessons.explore_module': 'EXPLORAR MÓDULO',
     'lessons.quote': '"El ajedrez, como el amor, como la música, tiene el poder de hacer feliz a la gente."',
-    'lessons.school_id': 'Centro ID',
+    'lessons.schoolId': 'Centro ID',
 };

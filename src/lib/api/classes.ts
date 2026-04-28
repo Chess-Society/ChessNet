@@ -106,7 +106,7 @@ export const classesApi = {
     const school = await schoolsApi.getSchool(classData.schoolId as string);
 
     const data = {
-      owner_id: ownerId,
+      ownerId: ownerId,
       name: classData.name,
       schoolId: classData.schoolId,
       schoolName: school.name, // Denormalización
@@ -260,7 +260,7 @@ export const classesApi = {
       const data = skillDoc.data();
       const newSkillRef = doc(collection(db, "class_skills"));
       batch.set(newSkillRef, {
-        owner_id: ownerId,
+        ownerId: ownerId,
         classId: newClass.id,
         skillId: (data as any).skillId,
         orderIndex: (data as any).orderIndex,

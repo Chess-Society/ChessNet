@@ -42,7 +42,7 @@
   import { fade, fly } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
   import { appStore } from '$lib/stores/appStore';
-  import { t, locale } from '$lib/i18n';
+  import { t, locale, loadTranslations } from '$lib/i18n';
   import { auth, signOut } from '$lib/firebase';
   import { onMount, onDestroy } from 'svelte';
   import { db } from '$lib/firebase';
@@ -55,6 +55,12 @@
   import type { LayoutData } from './$types';
   
   let { data, children } = $props<{ data: LayoutData, children: any }>();
+
+  // Ensure dashboard module is loaded in the panel
+  $effect(() => {
+    loadTranslations(['dashboard']);
+  });
+
 
   let isLoggingOut = $state(false);
   let showMobileMenu = $state(false);
@@ -129,7 +135,7 @@
   $effect(() => {
     const list = $globalAnnouncementsStore;
     if (list && list.length > 0) {
-      const lastActivity = list[0].created_at;
+      const lastActivity = list[0].createdAt;
       const lastViewed = localStorage.getItem('last_viewed_announcements_global');
       if (lastActivity) {
         const activityTime = new Date(lastActivity).getTime();

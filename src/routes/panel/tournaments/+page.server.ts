@@ -15,7 +15,7 @@ export const actions: Actions = {
 
     try {
       const doc = await adminDb.collection('local_tournaments').doc(id).get();
-      const currentOwner = doc.data()?.owner_id || doc.data()?.ownerId;
+      const currentOwner = doc.data()?.ownerId || doc.data()?.ownerId;
       if (!doc.exists || currentOwner !== locals.user.uid) {
         return fail(403, { message: 'Unauthorized' });
       }
@@ -39,9 +39,9 @@ export const actions: Actions = {
         const ref = adminDb.collection('local_tournaments').doc();
         batch.set(ref, {
           ...template,
-          owner_id: uid,
+          ownerId: uid,
           status: 'upcoming',
-          created_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
           players_registered: 0
         });
       });
@@ -83,7 +83,7 @@ export const load: PageServerLoad = async (event) => {
       id: doc.id, 
       ...doc.data(),
       // Ensure name is always available
-      name: doc.data().name || `${doc.data().first_name || ''} ${doc.data().last_name || ''}`.trim() || 'Unknown'
+      name: doc.data().name || `${doc.data().firstName || ''} ${doc.data().lastName || ''}`.trim() || 'Unknown'
     }));
 
     // Filtrar estudiantes activos y mapearlos al formato que espera la UI
@@ -92,10 +92,10 @@ export const load: PageServerLoad = async (event) => {
       .map((s: any) => ({
         id: s.id,
         name: s.name,
-        first_name: s.first_name || s.name.split(' ')[0] || '',
-        last_name: s.last_name || s.name.split(' ').slice(1).join(' ') || '',
+        firstName: s.firstName || s.name.split(' ')[0] || '',
+        lastName: s.lastName || s.name.split(' ').slice(1).join(' ') || '',
         chess_level: s.chess_level || 'beginner',
-        school_id: s.school_id || ''
+        schoolId: s.schoolId || ''
       }));
 
     // Calcular estadísticas

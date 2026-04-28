@@ -59,8 +59,8 @@ export async function migrateAllToRoot() {
 
       batch.set(newRef, {
         ...data,
-        owner_id: ownerId,
-        updated_at: new Date().toISOString()
+        ownerId: ownerId,
+        updatedAt: new Date().toISOString()
       }, { merge: true });
 
       // Opcional: Borrar el antiguo

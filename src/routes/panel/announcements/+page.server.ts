@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       sentAnnouncements = announcementsSnap.docs
         .map((d: any) => ({ id: d.id, ...d.data(), _type: 'sent' }))
         .filter((a: any) => {
-          if (a.owner_id === user.uid || a.ownerId === user.uid) return true;
+          if (a.ownerId === user.uid || a.ownerId === user.uid) return true;
           if (isAdmin && (a.isGlobal || a.isSystem)) return true;
           return false;
         })
@@ -54,7 +54,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     const childrenSnap = await adminDb.collection("students")
       .where(Filter.or(
         Filter.where("parentEmail", "==", cleanEmail),
-        Filter.where("parent_email", "==", cleanEmail),
+        Filter.where("parentEmail", "==", cleanEmail),
         Filter.where("email", "==", cleanEmail),
         Filter.where("studentEmail", "==", cleanEmail)
       ))
@@ -62,8 +62,8 @@ export const load: PageServerLoad = async ({ locals }) => {
     
     if (!childrenSnap.empty) {
       const children = childrenSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-      const schoolIds = [...new Set(children.map((c: any) => c.school_id || c.schoolId).filter(Boolean))];
-      const classIds = [...new Set(children.map((c: any) => c.class_id || c.classId).filter(Boolean))];
+      const schoolIds = [...new Set(children.map((c: any) => c.schoolId || c.schoolId).filter(Boolean))];
+      const classIds = [...new Set(children.map((c: any) => c.classId || c.classId).filter(Boolean))];
       
       const allAnnouncementsSnap = await adminDb.collection("announcements")
         .where("isPublished", "==", true)
@@ -73,10 +73,10 @@ export const load: PageServerLoad = async ({ locals }) => {
       receivedAnnouncements = allAnnouncementsSnap.docs
         .map((doc: any) => ({ id: doc.id, ...doc.data(), _type: 'received' }))
         .filter((a: any) => {
-          if (a.targetType === 'all' || a.target_type === 'all') return true;
-          if ((a.targetType === 'school' || a.target_type === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
-          if ((a.targetType === 'class' || a.target_type === 'class') && classIds.includes(a.targetId)) return true;
-          if ((a.targetType === 'student' || a.target_type === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
+          if (a.targetType === 'all' || a.targetType === 'all') return true;
+          if ((a.targetType === 'school' || a.targetType === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
+          if ((a.targetType === 'class' || a.targetType === 'class') && classIds.includes(a.targetId)) return true;
+          if ((a.targetType === 'student' || a.targetType === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
           return false;
         });
     }
@@ -149,6 +149,7 @@ export const actions: Actions = {
 
     try {
       await serverCommunicationApi.createAnnouncement(
+        user.uid,
         schoolId,
         title,
         content,
@@ -156,8 +157,7 @@ export const actions: Actions = {
         finalTargetType,
         targetId,
         priority,
-        isPublished,
-        user.uid
+        isPublished
       );
       return { success: true };
     } catch (e: any) {

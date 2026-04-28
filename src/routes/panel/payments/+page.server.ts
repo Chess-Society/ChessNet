@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const [paymentsSnap, studentsSnap, schoolsSnap] = await Promise.all([
-      adminDb.collection('payments').where(ownerFilter(uid)).orderBy('created_at', 'desc').get(),
+      adminDb.collection('payments').where(ownerFilter(uid)).orderBy('createdAt', 'desc').get(),
       adminDb.collection('students').where(ownerFilter(uid)).orderBy('name', 'asc').get(),
       adminDb.collection('schools').where(ownerFilter(uid)).orderBy('name', 'asc').get()
     ]);
@@ -58,9 +58,7 @@ export const actions: Actions = {
       const paymentData = {
         ...data,
         ownerId: uid,
-        owner_id: uid,
         updatedAt: new Date().toISOString(),
-        updated_at: new Date().toISOString()
       };
 
       if (id) {
@@ -68,7 +66,7 @@ export const actions: Actions = {
         return message(form, 'Pago actualizado con éxito');
       } else {
         (paymentData as any).createdAt = new Date().toISOString();
-        (paymentData as any).created_at = new Date().toISOString();
+        (paymentData as any).createdAt = new Date().toISOString();
         await adminDb.collection('payments').add(paymentData);
         return message(form, 'Pago registrado con éxito');
       }

@@ -76,7 +76,7 @@ export const actions: Actions = {
         classId,
         date,
         status: record.status,
-        owner_id: sessionUser.uid,
+        ownerId: sessionUser.uid,
         updatedAt: new Date().toISOString()
       }, { merge: true });
     }

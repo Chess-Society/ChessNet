@@ -27,7 +27,7 @@ export async function assignMissionToStudent(missionId: string, studentId: strin
   }
 
   await assignmentRef.set({
-    student_id: studentId,
+    studentId: studentId,
     mission_id: missionId,
     progress: 0,
     startCount: startCount,
@@ -56,7 +56,7 @@ export async function verifyMission(assignmentId: string) {
   const assignment = assignmentSnap.data() as any;
   const missionSnap = await adminDb.collection("missions").doc(assignment.mission_id).get();
   const mission = missionSnap.data() as any;
-  const studentSnap = await adminDb.collection("students").doc(assignment.student_id).get();
+  const studentSnap = await adminDb.collection("students").doc(assignment.studentId).get();
   const student = studentSnap.data() as any;
 
   if (!mission || !student?.lichessUsername) return { success: false, error: 'Missing requirements' };
@@ -82,7 +82,7 @@ export async function verifyMission(assignmentId: string) {
       });
 
       if (completed && !assignment.completed) {
-          await adminDb.collection("students").doc(assignment.student_id).update({
+          await adminDb.collection("students").doc(assignment.studentId).update({
               experience: (student.experience || 0) + (mission.reward || 50)
           });
       }
@@ -112,7 +112,7 @@ export async function verifyMission(assignmentId: string) {
       });
 
       if (completed && !assignment.completed) {
-          await adminDb.collection("students").doc(assignment.student_id).update({
+          await adminDb.collection("students").doc(assignment.studentId).update({
               experience: (student.experience || 0) + (mission.reward || 50)
           });
       }
@@ -155,7 +155,7 @@ export async function verifyMission(assignmentId: string) {
           });
 
           if (completed && !assignment.completed) {
-              await adminDb.collection("students").doc(assignment.student_id).update({
+              await adminDb.collection("students").doc(assignment.studentId).update({
                   experience: (student.experience || 0) + (mission.reward || 50)
               });
           }

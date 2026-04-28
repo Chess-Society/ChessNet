@@ -21,7 +21,7 @@ export const categoriesApi = {
 
     const q = query(
       collection(db, "categories"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       orderBy("name", "asc")
     );
 
@@ -51,11 +51,11 @@ export const categoriesApi = {
     if (!user) throw new Error("No authenticated user");
 
     const docRef = await addDoc(collection(db, "categories"), {
-      owner_id: user.uid,
+      ownerId: user.uid,
       name,
       description: description || "",
       color: color || '#3b82f6',
-      created_at: new Date().toISOString()
+      createdAt: new Date().toISOString()
     });
 
     const docSnap = await getDoc(docRef);
@@ -70,7 +70,7 @@ export const categoriesApi = {
     const docRef = doc(db, "categories", id);
     await updateDoc(docRef, {
       ...updates,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     });
 
     const docSnap = await getDoc(docRef);
@@ -94,7 +94,7 @@ export const categoriesApi = {
     for (const category of categories) {
       const q = query(
         collection(db, "skills"),
-        where("owner_id", "==", user.uid),
+        where("ownerId", "==", user.uid),
         where("category_id", "==", category.id)
       );
       const snap = await getDocs(q);

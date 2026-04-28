@@ -40,7 +40,7 @@
           ...data,
           linkText: data.linkText || data.link_text,
           isGlobal: data.isGlobal ?? data.is_global ?? false,
-          createdAt: data.createdAt || data.created_at
+          createdAt: data.createdAt || data.createdAt
         };
       });
     });
@@ -68,8 +68,7 @@
         isPublished: true, // MUST be published to show in dashboard
         publishedAt: new Date().toISOString(),
         targetType: 'all', // Standardized for dashboard filtering
-        owner_id: 'system', // Or current user if we want it in their history
-        ownerId: 'system',
+        ownerId: 'system', // Or current user if we want it in their history
         priority: type === 'critical' ? 'urgent' : 'normal',
         schoolId: 'all'
       };

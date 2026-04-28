@@ -28,35 +28,29 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         throw error(404, 'Centro no encontrado');
     } else {
       schoolData = { id: schoolSnap.id, ...schoolSnap.data() };
-      const isOwner = schoolData.owner_id === uid || schoolData.ownerId === uid;
+      const ss = serializeRecord<any>(schoolData);
       
       // Verificación de propiedad
-      if (!isOwner) {
+      if (ss.ownerId !== uid) {
         throw error(403, 'No tienes permiso para ver este centro');
       }
     }
 
+
     // Obtener clases vinculadas y su ocupación
     const classesSnap = await adminDb.collection("classes")
-      .where(Filter.or(
-        Filter.where('school_id', '==', schoolId),
-        Filter.where('schoolId', '==', schoolId)
-      ))
-      .where(Filter.or(
-        Filter.where('owner_id', '==', uid),
-        Filter.where('ownerId', '==', uid)
-      ))
+      .where("schoolId", "==", schoolId)
+      .where("ownerId", "==", uid)
       .get();
+
     
     const schoolClasses = await Promise.all(classesSnap.docs.map(async (doc: any) => {
       const classData = { id: doc.id, ...doc.data() as any };
       // Contar alumnos inscritos en esta clase
       const enrollmentsSnap = await adminDb.collection("class_students")
-        .where(Filter.or(
-          Filter.where('class_id', '==', classData.id),
-          Filter.where('classId', '==', classData.id)
-        ))
+        .where("classId", "==", classData.id)
         .get();
+
       
       return {
         ...classData,
@@ -66,15 +60,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
     // Obtener alumnos vinculados
     const studentsSnap = await adminDb.collection("students")
-      .where(Filter.or(
-        Filter.where('school_id', '==', schoolId),
-        Filter.where('schoolId', '==', schoolId)
-      ))
-      .where(Filter.or(
-        Filter.where('owner_id', '==', uid),
-        Filter.where('ownerId', '==', uid)
-      ))
+      .where("schoolId", "==", schoolId)
+      .where("ownerId", "==", uid)
       .get();
+
     
     const schoolStudents = studentsSnap.docs.map((doc: any) => ({
       id: doc.id,
@@ -82,12 +71,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }));
 
     // Recalcular estadísticas
+    // Recalcular estadísticas
     const stats = {
       totalClasses: schoolClasses.length,
       activeClasses: schoolClasses.filter((c: any) => c.active !== false).length,
       inactiveClasses: schoolClasses.filter((c: any) => c.active === false).length,
       totalStudents: schoolStudents.length,
-      totalCapacity: schoolClasses.reduce((sum: number, c: any) => sum + (c.max_students || 15), 0),
+      totalCapacity: schoolClasses.reduce((sum: number, c: any) => sum + (serializeRecord<any>(c).maxStudents || 15), 0),
       occupancyRate: schoolClasses.length > 0 ? Math.round((schoolStudents.length / (schoolClasses.length * 15)) * 100) : 0,
       levels: {
         beginner: schoolClasses.filter((c: any) => c.level === 'beginner').length,
@@ -97,6 +87,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       },
       averageClassSize: schoolClasses.length > 0 ? Math.round(schoolStudents.length / schoolClasses.length) : 0
     };
+
+
 
     return { 
       user: locals.user, 

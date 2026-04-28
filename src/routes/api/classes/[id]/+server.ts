@@ -18,11 +18,11 @@ export const PUT: RequestHandler = async ({ request, params, locals }) => {
     const classRef = adminDb.collection("classes").doc(id);
     const classSnap = await classRef.get();
 
-    if (!classSnap.exists || classSnap.data()?.owner_id !== locals.user.uid) {
+    if (!classSnap.exists || classSnap.data()?.ownerId !== locals.user.uid) {
       return json({ error: 'Clase no encontrada o acceso denegado' }, { status: 404 });
     }
 
-    const { id: _, owner_id: __, created_at: ___, createdAt: ____, updated_at: _____, ...updateData } = body;
+    const { id: _, ownerId: __, createdAt: ___, createdAt: ____, updatedAt: _____, ...updateData } = body;
     updateData.updatedAt = new Date().toISOString();
 
     await classRef.update(updateData);
@@ -54,7 +54,7 @@ export const PATCH: RequestHandler = async ({ request, params, locals }) => {
     const classRef = adminDb.collection("classes").doc(id);
     const classSnap = await classRef.get();
 
-    if (!classSnap.exists || classSnap.data()?.owner_id !== locals.user.uid) {
+    if (!classSnap.exists || classSnap.data()?.ownerId !== locals.user.uid) {
       return json({ error: 'Clase no encontrada o acceso denegado' }, { status: 404 });
     }
 

@@ -77,7 +77,7 @@ export const exercisesApi = {
     schoolId: string,
     exercise: Omit<
       ChessExercise,
-      "id" | "schoolId" | "createdAt" | "updatedAt" | "owner_id"
+      "id" | "schoolId" | "createdAt" | "updatedAt" | "ownerId"
     >,
   ): Promise<ChessExercise> {
     const ownerId = await getOwnerId();
@@ -85,7 +85,7 @@ export const exercisesApi = {
     const data = {
       ...exercise,
       schoolId: schoolId,
-      owner_id: ownerId,
+      ownerId: ownerId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -142,7 +142,7 @@ export const exercisesApi = {
     const ownerId = await getOwnerId();
 
     await addDoc(collection(db, "exercise_attempts"), {
-      owner_id: ownerId,
+      ownerId: ownerId,
       exerciseId: exerciseId,
       studentId: studentId,
       moves,

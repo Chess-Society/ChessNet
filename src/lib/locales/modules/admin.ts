@@ -195,7 +195,7 @@ export const es = {
     'admin.tech.priority_critical': 'PRIORIDAD_CRÍTICA',
     'admin.tech.status_pending': 'ESTADO_PENDIENTE',
     'admin.tech.status_resolved': 'ESTADO_RESUELTO',
-    'admin.tech.school_id': 'ID_ACADEMIA',
+    'admin.tech.schoolId': 'ID_ACADEMIA',
     'admin.tech.faculty_data': 'DATOS_PROFESORADO',
     'admin.tech.admin_response': 'RESPUESTA_ADM_TX',
     'admin.tech.encode_response': 'CODIFICAR_RESPUESTA',

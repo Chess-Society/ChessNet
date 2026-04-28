@@ -23,7 +23,7 @@ export const load: PageServerLoad = async (event) => {
     const childrenSnap = await adminDb.collection("students")
       .where(Filter.or(
         Filter.where("parentEmail", "==", cleanEmail),
-        Filter.where("parent_email", "==", cleanEmail),
+        Filter.where("parentEmail", "==", cleanEmail),
         Filter.where("email", "==", cleanEmail),
         Filter.where("studentEmail", "==", cleanEmail)
       ))
@@ -31,8 +31,8 @@ export const load: PageServerLoad = async (event) => {
     
     if (!childrenSnap.empty) {
       const children = childrenSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-      const schoolIds = [...new Set(children.map((c: any) => c.school_id || c.schoolId).filter(Boolean))];
-      const classIds = [...new Set(children.map((c: any) => c.class_id || c.classId).filter(Boolean))];
+      const schoolIds = [...new Set(children.map((c: any) => c.schoolId || c.schoolId).filter(Boolean))];
+      const classIds = [...new Set(children.map((c: any) => c.classId || c.classId).filter(Boolean))];
       
       // Fetch relevant announcements
       let announcements: any[] = [];
@@ -45,10 +45,10 @@ export const load: PageServerLoad = async (event) => {
         
         const allAnnouncements = announcementsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
         announcements = allAnnouncements.filter((a: any) => {
-          if (a.targetType === 'all' || a.target_type === 'all') return true;
-          if ((a.targetType === 'school' || a.target_type === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
-          if ((a.targetType === 'class' || a.target_type === 'class') && classIds.includes(a.targetId)) return true;
-          if ((a.targetType === 'student' || a.target_type === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
+          if (a.targetType === 'all' || a.targetType === 'all') return true;
+          if ((a.targetType === 'school' || a.targetType === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
+          if ((a.targetType === 'class' || a.targetType === 'class') && classIds.includes(a.targetId)) return true;
+          if ((a.targetType === 'student' || a.targetType === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
           return false;
         });
       } catch (queryErr) {
@@ -56,10 +56,10 @@ export const load: PageServerLoad = async (event) => {
         const announcementsSnap = await adminDb.collection("announcements").where("isPublished", "==", true).limit(100).get();
         announcements = announcementsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
           .filter((a: any) => {
-            if (a.targetType === 'all' || a.target_type === 'all') return true;
-            if ((a.targetType === 'school' || a.target_type === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
-            if ((a.targetType === 'class' || a.target_type === 'class') && classIds.includes(a.targetId)) return true;
-            if ((a.targetType === 'student' || a.target_type === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
+            if (a.targetType === 'all' || a.targetType === 'all') return true;
+            if ((a.targetType === 'school' || a.targetType === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
+            if ((a.targetType === 'class' || a.targetType === 'class') && classIds.includes(a.targetId)) return true;
+            if ((a.targetType === 'student' || a.targetType === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
             return false;
           })
           .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
@@ -71,7 +71,7 @@ export const load: PageServerLoad = async (event) => {
       let payments: any[] = [];
       if (studentIds.length > 0) {
         const paymentsSnap = await adminDb.collection("payments")
-          .where("student_id", "in", studentIds.slice(0, 10))
+          .where("studentId", "in", studentIds.slice(0, 10))
           .orderBy("dueDate", "desc")
           .limit(20)
           .get();
@@ -88,11 +88,11 @@ export const load: PageServerLoad = async (event) => {
   if (role === 'admin' || role === 'teacher') {
     try {
       const [schoolsSnap, studentsSnap, classesSnap, paymentsSnap, attendanceSnap] = await Promise.all([
-        adminDb.collection("schools").where("owner_id", "==", uid).get(),
-        adminDb.collection("students").where("owner_id", "==", uid).get(),
-        adminDb.collection("classes").where("owner_id", "==", uid).get(),
-        adminDb.collection("payments").where("owner_id", "==", uid).orderBy("paid_date", "desc").limit(100).get(),
-        adminDb.collection("attendance").where("owner_id", "==", uid).orderBy("date", "desc").limit(100).get()
+        adminDb.collection("schools").where("ownerId", "==", uid).get(),
+        adminDb.collection("students").where("ownerId", "==", uid).get(),
+        adminDb.collection("classes").where("ownerId", "==", uid).get(),
+        adminDb.collection("payments").where("ownerId", "==", uid).orderBy("paidDate", "desc").limit(100).get(),
+        adminDb.collection("attendance").where("ownerId", "==", uid).orderBy("date", "desc").limit(100).get()
       ]);
 
       const schools = schoolsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
@@ -106,7 +106,7 @@ export const load: PageServerLoad = async (event) => {
       const currentYear = now.getFullYear();
 
       const monthlyPayments = payments.filter((p: any) => {
-        const d = new Date(p.paid_date);
+        const d = new Date(p.paidDate);
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       });
 
@@ -122,11 +122,11 @@ export const load: PageServerLoad = async (event) => {
       };
 
       const centersWithStats = schools.map((school: any) => {
-        const schoolClasses = classes.filter((c: any) => c.school_id === school.id);
-        const schoolStudents = students.filter((s: any) => s.school_id === school.id);
+        const schoolClasses = classes.filter((c: any) => c.schoolId === school.id);
+        const schoolStudents = students.filter((s: any) => s.schoolId === school.id);
         const schoolAttendance = attendance.filter((a: any) => {
-          const classObj = classes.find((c: any) => c.id === a.class_id);
-          return classObj && classObj.school_id === school.id;
+          const classObj = classes.find((c: any) => c.id === a.classId);
+          return classObj && classObj.schoolId === school.id;
         });
         const presentCount = schoolAttendance.filter((a: any) => a.status === 'P').length;
         const totalAttendanceCount = schoolAttendance.length;
@@ -141,11 +141,11 @@ export const load: PageServerLoad = async (event) => {
           attendanceRate: totalAttendanceCount > 0 ? Math.round((presentCount / totalAttendanceCount) * 100) : 0,
           monthlyRevenue: monthlyPayments
             .filter((p: any) => {
-               const student = students.find((s: any) => s.id === p.student_id);
-               return student && student.school_id === school.id;
+               const student = students.find((s: any) => s.id === p.studentId);
+               return student && student.schoolId === school.id;
             })
             .reduce((sum: number, p: any) => sum + (p.amount || 0), 0),
-          lastActivity: school.updated_at || school.created_at
+          lastActivity: school.updatedAt || school.createdAt
         };
       });
 

@@ -35,7 +35,7 @@ export const paymentsApi = {
     try {
       let q = query(
         collection(db, "payments"),
-        where("owner_id", "==", uid),
+        where("ownerId", "==", uid),
         orderBy("createdAt", "desc")
       );
 
@@ -123,7 +123,7 @@ export const paymentsApi = {
     try {
       const data = {
         ...paymentData,
-        owner_id: uid,
+        ownerId: uid,
         currency: 'EUR',
         status: 'pending',
         createdAt: new Date().toISOString(),
@@ -179,7 +179,7 @@ export const paymentsApi = {
       
       const q = query(
         collection(db, "payments"),
-        where("owner_id", "==", uid)
+        where("ownerId", "==", uid)
       );
       const snapshot = await getDocs(q);
       const allPayments = snapshot.docs.map(doc => doc.data() as any);

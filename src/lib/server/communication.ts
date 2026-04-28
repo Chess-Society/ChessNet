@@ -3,6 +3,7 @@ import type { Announcement } from '$lib/types';
 
 export const serverCommunicationApi = {
   async createAnnouncement(
+    ownerId: string,
     schoolId: string,
     title: string,
     content: string,
@@ -11,11 +12,9 @@ export const serverCommunicationApi = {
     targetId?: string,
     priority: "low" | "normal" | "high" | "urgent" = "normal",
     isPublished: boolean = false,
-    ownerId: string,
     expiresAt?: string,
   ): Promise<any> {
     const data = {
-      owner_id: ownerId,
       ownerId: ownerId,
       schoolId: schoolId,
       title,
@@ -40,7 +39,7 @@ export const serverCommunicationApi = {
     const docSnap = await docRef.get();
     
     if (!docSnap.exists) throw new Error("Anuncio no encontrado");
-    if (docSnap.data()?.owner_id !== ownerId && docSnap.data()?.ownerId !== ownerId) {
+    if (docSnap.data()?.ownerId !== ownerId && docSnap.data()?.ownerId !== ownerId) {
       throw new Error("No autorizado");
     }
     
@@ -52,7 +51,7 @@ export const serverCommunicationApi = {
     const docSnap = await docRef.get();
     
     if (!docSnap.exists) throw new Error("Anuncio no encontrado");
-    if (docSnap.data()?.owner_id !== ownerId && docSnap.data()?.ownerId !== ownerId) {
+    if (docSnap.data()?.ownerId !== ownerId && docSnap.data()?.ownerId !== ownerId) {
       throw new Error("No autorizado");
     }
     

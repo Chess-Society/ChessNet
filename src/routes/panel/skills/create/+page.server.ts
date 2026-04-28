@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const skillsSnap = await adminDb.collection("skills")
-      .where("owner_id", "==", locals.user.uid)
+      .where("ownerId", "==", locals.user.uid)
       .get();
     
     availablePrerequisites = (skillsSnap?.docs || []).map((doc: any) => serializeRecord({
@@ -46,9 +46,9 @@ export const actions: Actions = {
     try {
       const skillData = {
         ...form.data,
-        owner_id: locals.user.uid,
-        created_at: new Date(),
-        updated_at: new Date(),
+        ownerId: locals.user.uid,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         // Legacy mapping
         category_id: (form.data as any).categoryId,
         estimated_hours: (form.data as any).estimatedHours,

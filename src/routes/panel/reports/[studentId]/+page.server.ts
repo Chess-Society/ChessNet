@@ -14,15 +14,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   try {
     // 1. Fetch Student
     const studentSnap = await adminDb.collection("students").doc(studentId).get();
-    if (!studentSnap.exists || studentSnap.data()?.owner_id !== uid) {
+    if (!studentSnap.exists || studentSnap.data()?.ownerId !== uid) {
       throw error(404, 'Student not found');
     }
     const student = { id: studentSnap.id, ...studentSnap.data() };
 
     // 2. Fetch School
     let school = { id: 'independent', name: 'Independent', city: '' };
-    if (student.school_id) {
-      const schoolSnap = await adminDb.collection("schools").doc(student.school_id).get();
+    if (student.schoolId) {
+      const schoolSnap = await adminDb.collection("schools").doc(student.schoolId).get();
       if (schoolSnap.exists) {
         school = { id: schoolSnap.id, ...schoolSnap.data() };
       }
@@ -30,11 +30,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     // 3. Fetch Classes (via class_students)
     const enrollmentsSnap = await adminDb.collection("class_students")
-      .where("owner_id", "==", uid)
-      .where("student_id", "==", studentId)
+      .where("ownerId", "==", uid)
+      .where("studentId", "==", studentId)
       .get();
     
-    const classIds = enrollmentsSnap.docs.map((doc: any) => doc.data().class_id);
+    const classIds = enrollmentsSnap.docs.map((doc: any) => doc.data().classId);
     let classes: any[] = [];
     if (classIds.length > 0) {
       for (let i = 0; i < classIds.length; i += 30) {
@@ -48,8 +48,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     // 4. Fetch Attendance
     const attendanceSnap = await adminDb.collection("attendance")
-      .where("owner_id", "==", uid)
-      .where("student_id", "==", studentId)
+      .where("ownerId", "==", uid)
+      .where("studentId", "==", studentId)
       .orderBy("date", "desc")
       .get();
     
@@ -67,8 +67,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     // 5. Fetch Payments
     const paymentsSnap = await adminDb.collection("payments")
-      .where("owner_id", "==", uid)
-      .where("student_id", "==", studentId)
+      .where("ownerId", "==", uid)
+      .where("studentId", "==", studentId)
       .orderBy("date", "desc")
       .get();
     
@@ -86,8 +86,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       school,
       classes,
       progress_summary: {
-        enrollment_date: student.created_at ? student.created_at.split('T')[0] : 'N/A',
-        days_enrolled: student.created_at ? Math.floor((Date.now() - new Date(student.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 0,
+        enrollment_date: student.createdAt ? student.createdAt.split('T')[0] : 'N/A',
+        days_enrolled: student.createdAt ? Math.floor((Date.now() - new Date(student.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0,
         total_sessions: totalSessions,
         attended_sessions: attended,
         late_sessions: late,
@@ -106,7 +106,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         tournaments_participated: 0,
         tournament_wins: 0,
         current_rating: 1200,
-        last_activity_date: attendanceRecords[0]?.date || student.updatedAt || student.created_at
+        last_activity_date: attendanceRecords[0]?.date || student.updatedAt || student.createdAt
       },
       attendance_history: attendanceRecords.slice(0, 10), // Last 10
       skills_progress: [],

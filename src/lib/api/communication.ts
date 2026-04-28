@@ -89,7 +89,6 @@ export const communicationApi = {
     const finalOwnerId = ownerId || await getOwnerId();
 
     const data = {
-      owner_id: finalOwnerId,
       ownerId: finalOwnerId,
       schoolId: schoolId,
       title,
@@ -180,7 +179,7 @@ export const communicationApi = {
     const ownerId = await getOwnerId();
 
     const messageData = {
-      owner_id: ownerId,
+      ownerId: ownerId,
       studentId: studentId,
       title,
       content,
@@ -203,7 +202,7 @@ export const communicationApi = {
     
     // Verificación de propiedad para mensajes
     const docSnapBefore = await getDoc(docRef);
-    if (docSnapBefore.exists() && docSnapBefore.data().owner_id !== ownerId) {
+    if (docSnapBefore.exists() && docSnapBefore.data().ownerId !== ownerId) {
         throw new Error("No autorizado");
     }
 

@@ -40,8 +40,8 @@ const PLANS: SubscriptionPlan[] = [
     ],
     is_active: true,
     sort_order: 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   },
   {
     id: 'plan-premium',
@@ -66,8 +66,8 @@ const PLANS: SubscriptionPlan[] = [
     ],
     is_active: true,
     sort_order: 2,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
 ];
 

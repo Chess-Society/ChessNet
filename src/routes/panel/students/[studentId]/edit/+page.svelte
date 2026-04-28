@@ -180,7 +180,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div class="space-y-4">
-                 <label for="firstName" class="input-label">{$t('students.first_name')}</label>
+                 <label for="firstName" class="input-label">{$t('students.firstName')}</label>
                  <div class="input-wrapper">
                     <input
                       id="firstName"
@@ -193,7 +193,7 @@
                  </div>
               </div>
               <div class="space-y-4">
-                 <label for="lastName" class="input-label">{$t('students.last_name')}</label>
+                 <label for="lastName" class="input-label">{$t('students.lastName')}</label>
                  <div class="input-wrapper">
                     <input
                       id="lastName"
@@ -260,7 +260,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
            <div class="space-y-4">
-              <label for="parentEmail" class="input-label">{$t('students.parent_email')}</label>
+              <label for="parentEmail" class="input-label">{$t('students.parentEmail')}</label>
               <div class="input-wrapper">
                  <input
                    id="parentEmail"
@@ -268,7 +268,7 @@
                    type="email"
                    bind:value={$form.parentEmail}
                    class="glass-input"
-                   placeholder={$t('students.parent_email_placeholder')}
+                   placeholder={$t('students.parentEmail_placeholder')}
                    {...$constraints.parentEmail}
                  />
               </div>

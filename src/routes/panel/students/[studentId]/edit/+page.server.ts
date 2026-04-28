@@ -17,8 +17,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const uid = locals.user.uid;
     const [studentSnap, schoolsSnap, classesSnap] = await Promise.all([
       adminDb.collection('students').doc(studentId).get(),
-      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get(),
-      adminDb.collection('classes').where('owner_id', '==', uid).orderBy('name', 'asc').get()
+      adminDb.collection('schools').where('ownerId', '==', uid).orderBy('name', 'asc').get(),
+      adminDb.collection('classes').where('ownerId', '==', uid).orderBy('name', 'asc').get()
     ]);
 
     if (!studentSnap.exists) {
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
     const studentData = studentSnap.data();
     // Validate ownership
-    if (studentData?.owner_id !== uid) {
+    if (studentData?.ownerId !== uid) {
       throw error(403, 'Unauthorized access to student');
     }
 
@@ -64,19 +64,16 @@ export const actions: Actions = {
       const docRef = adminDb.collection('students').doc(studentId);
       const docSnap = await docRef.get();
       
-      if (!docSnap.exists || docSnap.data()?.owner_id !== uid) {
+      if (!docSnap.exists || docSnap.data()?.ownerId !== uid) {
         return message(form, 'No tienes permisos para editar este estudiante', { status: 403 });
       }
 
       await docRef.update({
         ...studentData,
-        school_id: studentData.schoolId || null,
         schoolId: studentData.schoolId || null,
-        class_id: studentData.classId || null,
         classId: studentData.classId || null,
         name: `${studentData.firstName} ${studentData.lastName}`.trim(),
         updatedAt: new Date().toISOString(),
-        updated_at: new Date().toISOString()
       });
 
       return { form };

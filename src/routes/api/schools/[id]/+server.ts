@@ -18,11 +18,11 @@ export const PUT: RequestHandler = async ({ request, locals, params }) => {
     const schoolRef = adminDb.collection("schools").doc(schoolId);
     const schoolSnap = await schoolRef.get();
 
-    if (!schoolSnap.exists || schoolSnap.data()?.owner_id !== locals.user.uid) {
+    if (!schoolSnap.exists || schoolSnap.data()?.ownerId !== locals.user.uid) {
       return json({ error: 'Centro no encontrado o acceso denegado' }, { status: 404 });
     }
 
-    const { id: _, owner_id: __, created_at: ___, createdAt: ____, updated_at: _____, ...updateData } = body;
+    const { id: _, ownerId: __, createdAt: ___, createdAt: ____, updatedAt: _____, ...updateData } = body;
     updateData.updatedAt = new Date().toISOString();
 
     await schoolRef.update(updateData);

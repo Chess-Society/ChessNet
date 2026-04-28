@@ -27,7 +27,7 @@ export const tournamentsApi = {
 
     const q = query(
       collection(db, "local_tournaments"),
-      where("owner_id", "==", uid),
+      where("ownerId", "==", uid),
       orderBy("createdAt", "desc")
     );
     const querySnapshot = await getDocs(q);
@@ -41,7 +41,7 @@ export const tournamentsApi = {
 
     const q = query(
       collection(db, "local_tournaments"),
-      where("owner_id", "==", uid),
+      where("ownerId", "==", uid),
       where("schoolId", "==", schoolId),
       orderBy("createdAt", "desc")
     );
@@ -80,7 +80,7 @@ export const tournamentsApi = {
     if (!uid) throw new Error("User not authenticated");
     
     const docData = {
-      owner_id: uid,
+      ownerId: uid,
       schoolId,
       name,
       description: description || "",
@@ -146,7 +146,7 @@ export const tournamentsApi = {
 
     const q = query(
       collection(db, "tournament_participants"),
-      where("owner_id", "==", uid),
+      where("ownerId", "==", uid),
       where("tournamentId", "==", tournamentId),
       orderBy("score", "desc")
     );
@@ -176,7 +176,7 @@ export const tournamentsApi = {
     if (!uid) throw new Error("User not authenticated");
 
     const docData = {
-      owner_id: uid,
+      ownerId: uid,
       tournamentId,
       studentId,
       rating: rating || 1200,
@@ -221,7 +221,7 @@ export const tournamentsApi = {
 
     let q = query(
       collection(db, "tournament_matches"),
-      where("owner_id", "==", uid),
+      where("ownerId", "==", uid),
       where("tournamentId", "==", tournamentId)
     );
 
@@ -265,7 +265,7 @@ export const tournamentsApi = {
     for (const match of matches) {
       const docData = {
         ...match,
-        owner_id: uid,
+        ownerId: uid,
         tournamentId,
         createdAt: new Date().toISOString()
       };

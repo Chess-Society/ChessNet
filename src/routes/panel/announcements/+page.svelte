@@ -39,7 +39,7 @@
   let isSubmitting = $state(false);
   
   const isOwner = (item: any) => {
-    return item.owner_id === userUid || item.ownerId === userUid || item._type === 'sent';
+    return item.ownerId === userUid || item.ownerId === userUid || item._type === 'sent';
   };
   
   const getSchoolName = (id: string) => {

@@ -49,7 +49,7 @@ export function initGlobalConfig() {
           ...data,
           isGlobal: data.isGlobal === true || data.is_global === true,
           isPublished: data.isPublished !== false, // Default to true if missing
-          createdAt: data.createdAt ?? data.created_at,
+          createdAt: data.createdAt ?? data.createdAt,
           content: data.content ?? data.message ?? '',
           linkText: data.linkText ?? data.link_text ?? 'VER MÁS'
         };

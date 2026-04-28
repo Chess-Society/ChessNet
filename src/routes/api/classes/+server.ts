@@ -14,7 +14,7 @@ export const GET: RequestHandler = async (event) => {
   try {
     const snapshot = await adminDb.collection("classes")
       .where(Filter.or(
-        Filter.where('owner_id', '==', user.uid),
+        Filter.where('ownerId', '==', user.uid),
         Filter.where('ownerId', '==', user.uid)
       ))
       .get();
@@ -25,8 +25,8 @@ export const GET: RequestHandler = async (event) => {
       return { 
         id: doc.id, 
         ...data,
-        createdAt: data.createdAt || data.created_at,
-        updatedAt: data.updatedAt || data.updated_at
+        createdAt: data.createdAt || data.createdAt,
+        updatedAt: data.updatedAt || data.updatedAt
       };
     }).sort((a: any, b: any) => {
       const dateA = a.createdAt || '';
@@ -60,14 +60,14 @@ export const POST: RequestHandler = async (event) => {
     const body = await request.json();
     const classData = {
       ...body,
-      owner_id: user.uid,
+      ownerId: user.uid,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
     
     // Support legacy field names in outgoing data for a graceful transition
-    if ((classData as any).created_at) delete (classData as any).created_at;
-    if ((classData as any).updated_at) delete (classData as any).updated_at;
+    if ((classData as any).createdAt) delete (classData as any).createdAt;
+    if ((classData as any).updatedAt) delete (classData as any).updatedAt;
 
     const docRef = await adminDb.collection("classes").add(classData);
     return json({ class: { id: docRef.id, ...classData } });
@@ -97,7 +97,7 @@ export const PUT: RequestHandler = async (event) => {
       return json({ error: 'Clase no encontrada' }, { status: 404 });
     }
 
-    const currentOwner = docSnap.data()?.owner_id || docSnap.data()?.ownerId;
+    const currentOwner = docSnap.data()?.ownerId || docSnap.data()?.ownerId;
     if (currentOwner !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
@@ -107,10 +107,10 @@ export const PUT: RequestHandler = async (event) => {
       updatedAt: new Date().toISOString()
     };
     delete updateData.id;
-    delete updateData.owner_id;
+    delete updateData.ownerId;
     delete updateData.createdAt;
-    delete updateData.created_at;
-    delete updateData.updated_at;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
 
     await docRef.update(updateData);
     return json({ success: true, class: { id, ...docSnap.data(), ...updateData } });
@@ -140,7 +140,7 @@ export const DELETE: RequestHandler = async (event) => {
     }
 
     const data = docSnap.data();
-    const currentOwner = data?.owner_id || data?.ownerId;
+    const currentOwner = data?.ownerId || data?.ownerId;
     if (currentOwner !== user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
@@ -152,7 +152,7 @@ export const DELETE: RequestHandler = async (event) => {
     const enrollmentsSnapshot = await adminDb.collection("class_students")
       .where(Filter.or(
         Filter.where('classId', '==', id),
-        Filter.where('class_id', '==', id)
+        Filter.where('classId', '==', id)
       ))
       .get();
     enrollmentsSnapshot.docs.forEach((doc: any) => {
@@ -163,15 +163,13 @@ export const DELETE: RequestHandler = async (event) => {
     const studentsSnapshot = await adminDb.collection("students")
       .where(Filter.or(
         Filter.where('classId', '==', id),
-        Filter.where('class_id', '==', id)
+        Filter.where('classId', '==', id)
       ))
       .get();
     studentsSnapshot.docs.forEach((doc: any) => {
       batch.update(doc.ref, { 
-        classId: null, 
-        class_id: null,
+        classId: null,
         updatedAt: new Date().toISOString(),
-        updated_at: new Date().toISOString()
       });
     });
 

@@ -69,9 +69,9 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         console.log(`Vincular cuenta Lichess (${lichessUsername}) al estudiante: ${studentId}`);
         
         await adminDb.collection('students').doc(studentId).update({
-            lichess_username: lichessUsername,
+            lichessUsername: lichessUsername,
             lichess_access_token: accessToken,
-            updated_at: new Date().toISOString()
+            updatedAt: new Date().toISOString()
         });
 
         // Limpiar cookies por seguridad

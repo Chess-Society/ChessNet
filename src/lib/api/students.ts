@@ -67,7 +67,7 @@ export const studentsApi = {
 
     const data = {
       ...studentData,
-      owner_id: ownerId,
+      ownerId: ownerId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -119,7 +119,7 @@ export const studentsApi = {
       const docRef = doc(collection(db, "students"));
       batch.set(docRef, {
         ...student,
-        owner_id: ownerId,
+        ownerId: ownerId,
         createdAt: now,
         updatedAt: now,
       });
@@ -143,7 +143,7 @@ export const studentsApi = {
       const docRef = doc(db, "attendance", attendanceId);
       
       batch.set(docRef, {
-        owner_id: ownerId,
+        ownerId: ownerId,
         classId: classId,
         studentId: item.studentId,
         date: date,
@@ -232,7 +232,7 @@ export const studentsApi = {
     const docRef = doc(db, "student_skills", skillProgressId);
     
     const data = {
-      owner_id: ownerId,
+      ownerId: ownerId,
       studentId: studentId,
       skillId: skillId,
       level,

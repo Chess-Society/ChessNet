@@ -22,15 +22,15 @@ export interface Tournament {
   organizer?: string;
   notes?: string;
   rules?: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   user_id: string;
 }
 
 export interface TournamentPlayer {
   id: string;
-  tournament_id: string;
-  student_id: string;
+  tournamentId: string;
+  studentId: string;
   student_name: string;
   student_rating: number;
   registration_date: string;
@@ -40,7 +40,7 @@ export interface TournamentPlayer {
 
 export interface TournamentRound {
   id: string;
-  tournament_id: string;
+  tournamentId: string;
   round_number: number;
   status: 'not_started' | 'in_progress' | 'completed';
   start_time?: string;
@@ -49,7 +49,7 @@ export interface TournamentRound {
 
 export interface TournamentPairing {
   id: string;
-  tournament_id: string;
+  tournamentId: string;
   round_number: number;
   board_number: number;
   white_player_id: string;
@@ -95,24 +95,24 @@ const initDB = async (): Promise<IDBDatabase> => {
       // Tournament Players store
       if (!db.objectStoreNames.contains('tournament_players')) {
         const playersStore = db.createObjectStore('tournament_players', { keyPath: 'id' });
-        playersStore.createIndex('tournament_id', 'tournament_id', { unique: false });
-        playersStore.createIndex('student_id', 'student_id', { unique: false });
-        playersStore.createIndex('tournament_student', ['tournament_id', 'student_id'], { unique: true });
+        playersStore.createIndex('tournamentId', 'tournamentId', { unique: false });
+        playersStore.createIndex('studentId', 'studentId', { unique: false });
+        playersStore.createIndex('tournament_student', ['tournamentId', 'studentId'], { unique: true });
       }
       
       // Tournament Rounds store
       if (!db.objectStoreNames.contains('tournament_rounds')) {
         const roundsStore = db.createObjectStore('tournament_rounds', { keyPath: 'id' });
-        roundsStore.createIndex('tournament_id', 'tournament_id', { unique: false });
-        roundsStore.createIndex('tournament_round', ['tournament_id', 'round_number'], { unique: true });
+        roundsStore.createIndex('tournamentId', 'tournamentId', { unique: false });
+        roundsStore.createIndex('tournament_round', ['tournamentId', 'round_number'], { unique: true });
       }
       
       // Tournament Pairings store
       if (!db.objectStoreNames.contains('tournament_pairings')) {
         const pairingsStore = db.createObjectStore('tournament_pairings', { keyPath: 'id' });
-        pairingsStore.createIndex('tournament_id', 'tournament_id', { unique: false });
+        pairingsStore.createIndex('tournamentId', 'tournamentId', { unique: false });
         pairingsStore.createIndex('round_number', 'round_number', { unique: false });
-        pairingsStore.createIndex('tournament_round_board', ['tournament_id', 'round_number', 'board_number'], { unique: true });
+        pairingsStore.createIndex('tournament_round_board', ['tournamentId', 'round_number', 'board_number'], { unique: true });
       }
     };
   });
@@ -127,14 +127,14 @@ export const tournamentDB = {
     return db;
   },
 
-  async createTournament(tournament: Omit<Tournament, 'id' | 'created_at' | 'updated_at'>): Promise<Tournament> {
+  async createTournament(tournament: Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'>): Promise<Tournament> {
     const database = await this.init();
     
     const newTournament: Tournament = {
       ...tournament,
       id: `tournament_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     return new Promise((resolve, reject) => {
@@ -174,7 +174,7 @@ export const tournamentDB = {
     const updated: Tournament = {
       ...existing,
       ...updates,
-      updated_at: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
 
     return new Promise((resolve, reject) => {
@@ -200,7 +200,7 @@ export const tournamentDB = {
       transaction.objectStore('tournaments').delete(id);
       
       // Delete related players
-      const playersIndex = transaction.objectStore('tournament_players').index('tournament_id');
+      const playersIndex = transaction.objectStore('tournament_players').index('tournamentId');
       playersIndex.openCursor(IDBKeyRange.only(id)).onsuccess = (event) => {
         const cursor = (event.target as IDBRequest).result;
         if (cursor) {
@@ -210,7 +210,7 @@ export const tournamentDB = {
       };
       
       // Delete related rounds
-      const roundsIndex = transaction.objectStore('tournament_rounds').index('tournament_id');
+      const roundsIndex = transaction.objectStore('tournament_rounds').index('tournamentId');
       roundsIndex.openCursor(IDBKeyRange.only(id)).onsuccess = (event) => {
         const cursor = (event.target as IDBRequest).result;
         if (cursor) {
@@ -220,7 +220,7 @@ export const tournamentDB = {
       };
       
       // Delete related pairings
-      const pairingsIndex = transaction.objectStore('tournament_pairings').index('tournament_id');
+      const pairingsIndex = transaction.objectStore('tournament_pairings').index('tournamentId');
       pairingsIndex.openCursor(IDBKeyRange.only(id)).onsuccess = (event) => {
         const cursor = (event.target as IDBRequest).result;
         if (cursor) {
@@ -282,7 +282,7 @@ export const tournamentDB = {
     return new Promise((resolve, reject) => {
       const transaction = database.transaction(['tournament_players'], 'readonly');
       const store = transaction.objectStore('tournament_players');
-      const index = store.index('tournament_id');
+      const index = store.index('tournamentId');
       const request = index.getAll(tournamentId);
       
       request.onsuccess = () => resolve(request.result || []);
@@ -317,7 +317,7 @@ export const tournamentDB = {
         // Emparejamiento normal
         const pairing: TournamentPairing = {
           id: `pairing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          tournament_id: tournamentId,
+          tournamentId: tournamentId,
           round_number: roundNumber,
           board_number: Math.floor(i / 2) + 1,
           white_player_id: whitePlayer.id,
@@ -332,7 +332,7 @@ export const tournamentDB = {
         // Bye para el último jugador si hay número impar
         const byePairing: TournamentPairing = {
           id: `pairing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          tournament_id: tournamentId,
+          tournamentId: tournamentId,
           round_number: roundNumber,
           board_number: Math.floor(i / 2) + 1,
           white_player_id: whitePlayer.id,
@@ -378,7 +378,7 @@ export const tournamentDB = {
     
     const newRound: TournamentRound = {
       id: `round_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      tournament_id: tournamentId,
+      tournamentId: tournamentId,
       round_number: roundNumber,
       status: 'not_started',
       start_time: new Date().toISOString()
@@ -566,7 +566,7 @@ export const tournamentDB = {
       if (blackPlayer) {
         const pairing: TournamentPairing = {
           id: `pairing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          tournament_id: tournamentId,
+          tournamentId: tournamentId,
           round_number: nextRoundNumber,
           board_number: Math.floor(i / 2) + 1,
           white_player_id: whitePlayer.id,
@@ -581,7 +581,7 @@ export const tournamentDB = {
         // Bye para el último jugador si hay número impar
         const byePairing: TournamentPairing = {
           id: `pairing_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          tournament_id: tournamentId,
+          tournamentId: tournamentId,
           round_number: nextRoundNumber,
           board_number: Math.floor(i / 2) + 1,
           white_player_id: whitePlayer.id,
@@ -632,7 +632,7 @@ export const tournamentDB = {
     return new Promise((resolve, reject) => {
       const transaction = database.transaction(['tournament_pairings'], 'readonly');
       const store = transaction.objectStore('tournament_pairings');
-      const index = store.index('tournament_id');
+      const index = store.index('tournamentId');
       const request = index.getAll(tournamentId);
       
       request.onsuccess = () => {
@@ -662,7 +662,7 @@ export const tournamentDB = {
         const updatedTournament = {
           ...tournament,
           status: 'completed',
-          updated_at: new Date().toISOString()
+          updatedAt: new Date().toISOString()
         };
 
         const updateRequest = store.put(updatedTournament);

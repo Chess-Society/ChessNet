@@ -12,7 +12,7 @@ export const GET: RequestHandler = async (event) => {
   try {
     const snapshot = await adminDb
       .collection('achievements')
-      .where('owner_id', '==', user.uid)
+      .where('ownerId', '==', user.uid)
       .orderBy('unlockedAt', 'desc')
       .get();
 
@@ -52,7 +52,7 @@ export const POST: RequestHandler = async (event) => {
 
     const data = {
       id: achievementId,
-      owner_id: user.uid,
+      ownerId: user.uid,
       unlockedAt: new Date().toISOString(),
       notified: false
     };
@@ -85,7 +85,7 @@ export const PATCH: RequestHandler = async (event) => {
 
     const snapshot = await adminDb
       .collection('achievements')
-      .where('owner_id', '==', user.uid)
+      .where('ownerId', '==', user.uid)
       .where('id', '==', achievementId)
       .where('notified', '==', false)
       .get();

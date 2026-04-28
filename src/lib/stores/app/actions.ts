@@ -158,7 +158,8 @@ export function createActions(store: Writable<AppState>) {
       const collRef = collection(db, 'tournaments');
       await addDoc(collRef, { 
         ...tournament, 
-        owner_id: user.uid,
+        ownerId: user.uid,
+
         createdAt: new Date().toISOString() 
       });
     },
@@ -251,7 +252,8 @@ export function createActions(store: Writable<AppState>) {
         await setDoc(doc(db, 'attendance', attendanceId), { 
           ...data,
           id: attendanceId,
-          owner_id: user.uid,
+          ownerId: user.uid,
+
           createdAt: new Date().toISOString() 
         }, { merge: true });
       }
@@ -338,7 +340,8 @@ export function createActions(store: Writable<AppState>) {
         const docRef = doc(collection(db, 'tournaments'));
         batch.set(docRef, { 
           ...t, 
-          owner_id: user.uid,
+          ownerId: user.uid,
+
           createdAt: new Date().toISOString() 
         });
       });
@@ -352,7 +355,8 @@ export function createActions(store: Writable<AppState>) {
       if (!user) return;
       await addDoc(collection(db, 'categories'), {
         ...category,
-        owner_id: user.uid,
+        ownerId: user.uid,
+
         createdAt: new Date().toISOString()
       });
     },
@@ -383,7 +387,8 @@ export function createActions(store: Writable<AppState>) {
       const batch = writeBatch(db);
       categories.forEach(c => {
         const docRef = doc(collection(db, 'categories'));
-        batch.set(docRef, { ...c, owner_id: user.uid, createdAt: new Date().toISOString() });
+        batch.set(docRef, { ...c, ownerId: user.uid, createdAt: new Date().toISOString() });
+
       });
       await batch.commit();
     },

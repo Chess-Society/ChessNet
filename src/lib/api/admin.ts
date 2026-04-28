@@ -108,7 +108,7 @@ export const adminApi = {
     const q = query(
       collection(db, "announcements"), 
       where("is_global", "==", true),
-      orderBy("created_at", "desc")
+      orderBy("createdAt", "desc")
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

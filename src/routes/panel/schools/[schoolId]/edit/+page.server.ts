@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const schoolData = schoolSnap.data()!;
     
     // Authorization check
-    if (schoolData.owner_id !== uid && !schoolData.sharedWith?.includes(uid)) {
+    if (schoolData.ownerId !== uid && !schoolData.sharedWith?.includes(uid)) {
       throw error(403, 'No tienes permiso para editar este centro');
     }
 
@@ -69,14 +69,13 @@ export const actions: Actions = {
       if (!schoolSnap.exists) return message(form, 'Centro no encontrado', { status: 404 });
       
       const schoolData = schoolSnap.data()!;
-      if (schoolData.owner_id !== locals.user.uid) {
+      if (schoolData.ownerId !== locals.user.uid) {
         return message(form, 'No tienes permisos para editar este centro', { status: 403 });
       }
 
       const updateData = {
         ...form.data,
         updatedAt: new Date().toISOString(),
-        updated_at: new Date().toISOString()
       };
 
       await schoolRef.update(updateData);

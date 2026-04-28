@@ -12,27 +12,14 @@ export const GET: RequestHandler = async (event) => {
   }
 
   try {
-    // Try querying by ownerId first (new standard)
-    const newQuerySnapshot = await adminDb.collection('local_tournaments')
+    const snapshot = await adminDb.collection('local_tournaments')
       .where('ownerId', '==', user.uid)
       .get();
     
-    // Also check owner_id (legacy)
-    const legacyQuerySnapshot = await adminDb.collection('local_tournaments')
-      .where('owner_id', '==', user.uid)
-      .get();
-    
-    const allDocs = [...newQuerySnapshot.docs];
-    // Add legacy docs if they aren't already there (shouldn't be, but to be safe)
-    legacyQuerySnapshot.docs.forEach((doc: any) => {
-      if (!allDocs.find(d => d.id === doc.id)) {
-        allDocs.push(doc);
-      }
-    });
-
-    const tournaments = allDocs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
+    const tournaments = snapshot.docs.map((doc: any) => serializeRecord({ id: doc.id, ...doc.data() }));
     
     return json({ items: tournaments });
+
   } catch (error: any) {
     console.error('❌ Error in GET /api/tournaments:', error.message);
     return json({ error: 'Error al obtener los torneos', details: error.message }, { status: 500 });
@@ -114,9 +101,11 @@ export const PUT: RequestHandler = async (event) => {
       return json({ error: 'Torneo no encontrado' }, { status: 404 });
     }
 
-    if (snap.data()?.ownerId !== uid && snap.data()?.owner_id !== uid) {
+    const st = serializeRecord<any>(snap.data());
+    if (st.ownerId !== uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
+
 
     const updates = await request.json();
     const cleanUpdates = {
@@ -125,8 +114,10 @@ export const PUT: RequestHandler = async (event) => {
     };
 
     delete cleanUpdates.id;
-    delete cleanUpdates.owner_id;
+    delete cleanUpdates.ownerId;
+    delete cleanUpdates.ownerId;
     delete cleanUpdates.createdAt;
+
 
     await docRef.update(cleanUpdates);
 
@@ -183,9 +174,11 @@ export const DELETE: RequestHandler = async (event) => {
       return json({ success: true, message: 'Torneo ya eliminado' });
     }
 
-    if (snap.data()?.ownerId !== uid && snap.data()?.owner_id !== uid) {
+    const st = serializeRecord<any>(snap.data());
+    if (st.ownerId !== uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }
+
 
     // El borrado en cascada (jugadores, rondas, pairings) es mejor manejarlo aquí 
     // para asegurar integridad sin depender del cliente.

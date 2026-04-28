@@ -310,7 +310,7 @@
                     <p class="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Concepto</p>
                     <p class="text-sm font-outfit font-black text-white uppercase italic tracking-tight">{payment.concept || 'Cuota Mensual'}</p>
                     <p class="text-[10px] text-zinc-500 font-bold mt-1">
-                      {resolvedChildren?.find((c: any) => c.id === payment.student_id)?.name || 'Alumno'}
+                      {resolvedChildren?.find((c: any) => c.id === payment.studentId)?.name || 'Alumno'}
                     </p>
                   </div>
                   <div class="text-right">
@@ -371,7 +371,7 @@
 
                   <div class="flex items-center justify-between pt-2">
                     <p class="text-[9px] text-zinc-500 font-medium">
-                      Asignado a: <span class="text-white">{resolvedChildren?.find((c: any) => c.id === mission.student_id)?.name}</span>
+                      Asignado a: <span class="text-white">{resolvedChildren?.find((c: any) => c.id === mission.studentId)?.name}</span>
                     </p>
                     <form 
                       method="POST" 

@@ -17,21 +17,21 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     const [studentsSnap, schoolsSnap] = await Promise.all([
-      adminDb.collection('students').where('owner_id', '==', uid).get(),
-      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get()
+      adminDb.collection('students').where('ownerId', '==', uid).get(),
+      adminDb.collection('schools').where('ownerId', '==', uid).orderBy('name', 'asc').get()
     ]);
 
     const schools = schoolsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
     const students = studentsSnap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
 
     const availableStudents = students.map((s: any) => {
-      const school = schools.find((sc: any) => sc.id === s.school_id);
+      const school = schools.find((sc: any) => sc.id === s.schoolId);
       return {
         id: s.id,
-        name: `${s.first_name || ''} ${s.last_name || ''}`.trim() || s.name || 'Sin nombre',
+        name: `${s.firstName || ''} ${s.lastName || ''}`.trim() || s.name || 'Sin nombre',
         rating: s.rating || 1200,
         school_name: school?.name || 'Sin centro',
-        email: s.parent_email || s.email || ''
+        email: s.parentEmail || s.email || ''
       };
     });
 
@@ -64,11 +64,8 @@ export const actions: Actions = {
       const tournamentData = {
         ...form.data,
         ownerId: locals.user.uid,
-        owner_id: locals.user.uid, // legacy
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        created_at: new Date().toISOString(), // legacy
-        updated_at: new Date().toISOString(), // legacy
         status: 'upcoming',
         selected_students: []
       };

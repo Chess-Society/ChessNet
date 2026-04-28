@@ -13,17 +13,17 @@ export interface Profile {
   full_name?: string;
   avatar_url?: string;
   role: "admin" | "teacher" | "assistant" | "viewer";
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Membership {
   id: string;
-  owner_id: string;
-  school_id: string;
+  ownerId: string;
+  schoolId: string;
   user_id: string;
   role: "owner" | "admin" | "teacher" | "assistant" | "viewer";
-  created_at: string;
+  createdAt: string;
   profiles?: any;
 }
 

@@ -12,14 +12,14 @@ export const GET: RequestHandler = async (event) => {
 
   const { url } = event;
   const uid = user.uid;
-  const classId = url.searchParams.get('classId') || url.searchParams.get('class_id');
-  const studentId = url.searchParams.get('studentId') || url.searchParams.get('student_id');
+  const classId = url.searchParams.get('classId') || url.searchParams.get('classId');
+  const studentId = url.searchParams.get('studentId') || url.searchParams.get('studentId');
   const date = url.searchParams.get('date');
   const dateFrom = url.searchParams.get('dateFrom') || url.searchParams.get('date_from');
   const dateTo = url.searchParams.get('dateTo') || url.searchParams.get('date_to');
 
   try {
-    let query = adminDb.collection("attendance").where("owner_id", "==", uid);
+    let query = adminDb.collection("attendance").where("ownerId", "==", uid);
 
     if (classId) {
       query = query.where("classId", "==", classId);
@@ -72,8 +72,8 @@ export const POST: RequestHandler = async (event) => {
 
   try {
     const body = await request.json();
-    const studentId = body.studentId || body.student_id;
-    const classId = body.classId || body.class_id;
+    const studentId = body.studentId || body.studentId;
+    const classId = body.classId || body.classId;
     const { date, status, notes } = body;
 
     if (!studentId || !classId || !date || !status) {
@@ -82,7 +82,7 @@ export const POST: RequestHandler = async (event) => {
 
     // Verificar si ya existe un registro para este alumno, clase y fecha
     const existingSnapshot = await adminDb.collection("attendance")
-      .where("owner_id", "==", uid)
+      .where("ownerId", "==", uid)
       .where("studentId", "==", studentId)
       .where("classId", "==", classId)
       .where("date", "==", date)
@@ -96,7 +96,7 @@ export const POST: RequestHandler = async (event) => {
       date,
       status,
       notes: notes || null,
-      owner_id: uid,
+      ownerId: uid,
       updatedAt: new Date().toISOString()
     };
 
@@ -140,7 +140,7 @@ export const PUT: RequestHandler = async (event) => {
 
   try {
     const body = await request.json();
-    const classId = body.classId || body.class_id;
+    const classId = body.classId || body.classId;
     const { date, records } = body;
 
     if (!classId || !date || !Array.isArray(records)) {
@@ -149,7 +149,7 @@ export const PUT: RequestHandler = async (event) => {
 
     // 1. Obtener todos los registros existentes para esta clase y fecha en una sola consulta
     const existingSnapshot = await adminDb.collection("attendance")
-      .where("owner_id", "==", uid)
+      .where("ownerId", "==", uid)
       .where("classId", "==", classId)
       .where("date", "==", date)
       .get();
@@ -165,7 +165,7 @@ export const PUT: RequestHandler = async (event) => {
 
     // 3. Procesar récords usando el mapa en memoria
     for (const record of records) {
-      const studentId = record.studentId || record.student_id;
+      const studentId = record.studentId || record.studentId;
       const { status, notes } = record;
       
       const data = {
@@ -174,7 +174,7 @@ export const PUT: RequestHandler = async (event) => {
         date,
         status,
         notes: notes || null,
-        owner_id: uid,
+        ownerId: uid,
         updatedAt: new Date().toISOString()
       };
 

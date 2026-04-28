@@ -7,11 +7,11 @@ export const GET: RequestHandler = async ({ url, locals }) => {
   if (!locals.user) return json({ error: 'Usuario no autenticado' }, { status: 401 });
   const uid = locals.user.uid;
 
-  const classId = url.searchParams.get('classId') || url.searchParams.get('class_id');
+  const classId = url.searchParams.get('classId') || url.searchParams.get('classId');
   const skillId = url.searchParams.get('skillId') || url.searchParams.get('skill_id');
 
   try {
-    let query = adminDb.collection("class_skills").where("owner_id", "==", uid).where("active", "==", true);
+    let query = adminDb.collection("class_skills").where("ownerId", "==", uid).where("active", "==", true);
     
     if (classId) query = query.where("classId", "==", classId);
     if (skillId) query = query.where("skillId", "==", skillId);
@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const classId = body.classId || body.class_id;
+    const classId = body.classId || body.classId;
     const skillId = body.skillId || body.skill_id;
     const orderIndex = body.orderIndex || body.order_index;
 
@@ -42,14 +42,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
     // Verify ownership of the class
     const classSnap = await adminDb.collection("classes").doc(classId).get();
-    if (!classSnap.exists || classSnap.data()?.owner_id !== uid) {
+    if (!classSnap.exists || classSnap.data()?.ownerId !== uid) {
       return json({ error: 'Clase no encontrada o acceso denegado' }, { status: 404 });
     }
 
     const newDoc = {
       classId,
       skillId,
-      owner_id: uid,
+      ownerId: uid,
       assignedAt: new Date().toISOString(),
       active: true,
       orderIndex: orderIndex || 0
@@ -68,7 +68,7 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
   if (!locals.user) return json({ error: 'Usuario no autenticado' }, { status: 401 });
   const uid = locals.user.uid;
 
-  const classId = url.searchParams.get('classId') || url.searchParams.get('class_id');
+  const classId = url.searchParams.get('classId') || url.searchParams.get('classId');
   const skillId = url.searchParams.get('skillId') || url.searchParams.get('skill_id');
 
   if (!classId || !skillId) {
@@ -77,7 +77,7 @@ export const DELETE: RequestHandler = async ({ url, locals }) => {
 
   try {
     const snap = await adminDb.collection("class_skills")
-      .where("owner_id", "==", uid)
+      .where("ownerId", "==", uid)
       .where("classId", "==", classId)
       .where("skillId", "==", skillId)
       .where("active", "==", true)
@@ -102,7 +102,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const classId = body.classId || body.class_id;
+    const classId = body.classId || body.classId;
     const skillsOrder = body.skillsOrder || body.skills_order;
 
     if (!classId || !Array.isArray(skillsOrder)) {
@@ -111,7 +111,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 
     const batch = adminDb.batch();
     const snap = await adminDb.collection("class_skills")
-      .where("owner_id", "==", uid)
+      .where("ownerId", "==", uid)
       .where("classId", "==", classId)
       .where("active", "==", true)
       .get();

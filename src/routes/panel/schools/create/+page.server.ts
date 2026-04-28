@@ -50,12 +50,9 @@ export const actions: Actions = {
       
       const schoolData = {
         ...form.data,
-        owner_id: locals.user.uid,
         ownerId: locals.user.uid,
         createdAt: now,
         updatedAt: now,
-        created_at: now,
-        updated_at: now
       };
 
       await schoolRef.set(schoolData);

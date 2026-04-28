@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   try {
     const [tournamentSnap, schoolsSnap] = await Promise.all([
       adminDb.collection('local_tournaments').doc(tournamentId).get(),
-      adminDb.collection('schools').where('owner_id', '==', uid).orderBy('name', 'asc').get()
+      adminDb.collection('schools').where('ownerId', '==', uid).orderBy('name', 'asc').get()
     ]);
 
     if (!tournamentSnap.exists) {
@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     const rawData = tournamentSnap.data() || {};
     
     // Check ownership
-    if (rawData.ownerId !== uid && rawData.owner_id !== uid) {
+    if (rawData.ownerId !== uid && rawData.ownerId !== uid) {
       throw error(403, 'No tienes permiso para editar este torneo');
     }
 
@@ -48,8 +48,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         ...rawData,
         name: rawData.name || '',
         description: rawData.description || '',
-        ownerId: rawData.ownerId || rawData.owner_id,
-        schoolId: rawData.schoolId || rawData.school_id || '',
+        ownerId: rawData.ownerId || rawData.ownerId,
+        schoolId: rawData.schoolId || rawData.schoolId || '',
         timeControl: rawData.timeControl || rawData.time_control || '15 + 10',
         maxPlayers: rawData.maxPlayers || rawData.max_players || 16,
         entryFee: rawData.entryFee || rawData.entry_fee || 0,
@@ -57,8 +57,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         startAt: formatDateTime(rawData.startAt || rawData.start_at || rawData.startDate || rawData.start_date),
         endAt: formatDateTime(rawData.endAt || rawData.end_at || rawData.endDate || rawData.end_date),
         registrationDeadline: formatDateTime(rawData.registrationDeadline || rawData.registration_deadline),
-        createdAt: rawData.createdAt || rawData.created_at,
-        updatedAt: rawData.updatedAt || rawData.updated_at,
+        createdAt: rawData.createdAt || rawData.createdAt,
+        updatedAt: rawData.updatedAt || rawData.updatedAt,
         sharedWith: rawData.sharedWith || [],
         status: rawData.status || 'upcoming',
         format: rawData.format || 'swiss',
@@ -95,14 +95,13 @@ export const actions: Actions = {
       const snap = await docRef.get();
 
       if (!snap.exists) return message(form, 'Torneo no encontrado', { status: 404 });
-      if (snap.data()?.ownerId !== locals.user.uid && snap.data()?.owner_id !== locals.user.uid) {
+      if (snap.data()?.ownerId !== locals.user.uid && snap.data()?.ownerId !== locals.user.uid) {
           return message(form, 'No tienes permisos para editar este torneo', { status: 403 });
       }
 
       const updates = {
         ...form.data,
         updatedAt: new Date().toISOString(),
-        updated_at: new Date().toISOString() // legacy
       };
 
       await docRef.update(updates);
@@ -122,7 +121,7 @@ export const actions: Actions = {
       const snap = await docRef.get();
 
       if (!snap.exists) throw redirect(302, '/panel/tournaments');
-      if (snap.data()?.ownerId !== locals.user.uid && snap.data()?.owner_id !== locals.user.uid) {
+      if (snap.data()?.ownerId !== locals.user.uid && snap.data()?.ownerId !== locals.user.uid) {
           throw error(403);
       }
 

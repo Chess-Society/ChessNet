@@ -33,18 +33,20 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     student = { id: studentSnap.id, ...studentSnap.data() };
     
     // Verificar propiedad (Profesor, Padre o Propio Alumno)
+    const ss = serializeRecord<any>(student);
     const cleanUserEmail = locals.user.email?.toLowerCase();
-    const isOwner = student.owner_id === uid;
-    const isParent = student.parentEmail?.toLowerCase() === cleanUserEmail || student.parent_email?.toLowerCase() === cleanUserEmail;
-    const isSelf = student.email?.toLowerCase() === cleanUserEmail || student.studentEmail?.toLowerCase() === cleanUserEmail;
+    const isOwner = ss.ownerId === uid;
+    const isParent = ss.parentEmail?.toLowerCase() === cleanUserEmail;
+    const isSelf = (ss.email || ss.studentEmail)?.toLowerCase() === cleanUserEmail;
 
     if (!isOwner && !isParent && !isSelf) {
       throw error(403, 'No tienes permiso para ver este alumno');
     }
 
+
     // 2. Cargar centro si está asignado
     let school = null;
-    const sId = student.school_id || student.schoolId;
+    const sId = student.schoolId || student.schoolId;
     if (sId) {
       const schoolSnap = await adminDb.collection("schools").doc(sId).get();
       if (schoolSnap.exists) {
@@ -55,19 +57,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     let enrolledClasses: any[] = [];
     
     const enrollmentsSnap = await adminDb.collection("class_students")
-      .where("student_id", "==", studentId)
+      .where("studentId", "==", studentId)
       .get();
       
-    // Fallback if none found with student_id (for legacy data)
-    let enrollments = enrollmentsSnap.docs.map((doc: any) => doc.data());
-    if (enrollments.length === 0) {
-      const legacySnap = await adminDb.collection("class_students")
-        .where("studentId", "==", studentId)
-        .get();
-      enrollments = legacySnap.docs.map((doc: any) => doc.data());
-    }
-      
-    const classIds = enrollments.map((data: any) => data.class_id || data.classId);
+    const enrollments = enrollmentsSnap.docs.map((doc: any) => serializeRecord<any>(doc.data()));
+    const classIds = enrollments.map((data: any) => data.classId);
+
     
     if (classIds.length > 0) {
       // Obtenemos detalles de las clases
@@ -79,10 +74,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
 
     let attendanceRate = 0;
-    // Si es padre o el propio alumno, no filtramos por owner_id
+    // Si es padre o el propio alumno, no filtramos por ownerId
     const attendanceQuery = isOwner 
-      ? adminDb.collection("attendance").where("student_id", "==", studentId).where("owner_id", "==", uid)
-      : adminDb.collection("attendance").where("student_id", "==", studentId);
+      ? adminDb.collection("attendance").where("studentId", "==", studentId).where("ownerId", "==", uid)
+      : adminDb.collection("attendance").where("studentId", "==", studentId);
+
     
     const attendanceSnap = await attendanceQuery.get();
     
@@ -100,8 +96,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
     let estimatedProgress = 0;
     const skillsQuery = isOwner 
-      ? adminDb.collection("student_skills").where("student_id", "==", studentId).where("owner_id", "==", uid)
-      : adminDb.collection("student_skills").where("student_id", "==", studentId);
+      ? adminDb.collection("student_skills").where("studentId", "==", studentId).where("ownerId", "==", uid)
+      : adminDb.collection("student_skills").where("studentId", "==", studentId);
+
+
 
     const skillsSnap = await skillsQuery.get();
     

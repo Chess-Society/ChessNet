@@ -30,7 +30,7 @@ export const classSkillsApi = {
 
     const q = query(
       collection(db, "class_skills"),
-      where("owner_id", "==", uid),
+      where("ownerId", "==", uid),
       where("classId", "==", classId),
       orderBy("orderIndex", "asc")
     );
@@ -57,7 +57,7 @@ export const classSkillsApi = {
 
     const q = query(
       collection(db, "class_skills"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       where("skillId", "==", skillId),
       orderBy("createdAt", "desc")
     );
@@ -85,7 +85,7 @@ export const classSkillsApi = {
     // Check if already assigned
     const q = query(
       collection(db, "class_skills"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       where("classId", "==", classId),
       where("skillId", "==", skillId)
     );
@@ -98,7 +98,7 @@ export const classSkillsApi = {
     if (orderIndex === undefined) {
       const lastQ = query(
         collection(db, "class_skills"),
-        where("owner_id", "==", user.uid),
+        where("ownerId", "==", user.uid),
         where("classId", "==", classId),
         orderBy("orderIndex", "desc"),
         limit(1)
@@ -108,7 +108,7 @@ export const classSkillsApi = {
     }
 
     const docRef = await addDoc(collection(db, "class_skills"), {
-      owner_id: user.uid,
+      ownerId: user.uid,
       classId,
       skillId,
       orderIndex,
@@ -127,7 +127,7 @@ export const classSkillsApi = {
     // Get current max order index
     const lastQ = query(
       collection(db, "class_skills"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       where("classId", "==", classId),
       orderBy("orderIndex", "desc"),
       limit(1)
@@ -142,7 +142,7 @@ export const classSkillsApi = {
     for (const skillId of skillIds) {
       const docRef = doc(collection(db, "class_skills"));
       batch.set(docRef, {
-        owner_id: user.uid,
+        ownerId: user.uid,
         classId,
         skillId,
         orderIndex: nextOrderIndex++,
@@ -168,7 +168,7 @@ export const classSkillsApi = {
 
     const q = query(
       collection(db, "class_skills"),
-      where("owner_id", "==", user.uid),
+      where("ownerId", "==", user.uid),
       where("classId", "==", classId),
       where("skillId", "==", skillId)
     );
@@ -200,7 +200,7 @@ export const classSkillsApi = {
         const skillId = skillIds[i];
         const q = query(
             collection(db, "class_skills"),
-            where("owner_id", "==", user.uid),
+            where("ownerId", "==", user.uid),
             where("classId", "==", classId),
             where("skillId", "==", skillId)
         );

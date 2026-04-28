@@ -16,18 +16,18 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       adminDb.collection('classes').doc(classId).get(),
       adminDb.collection('skills')
         .where(Filter.or(
-          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid),
           Filter.where('ownerId', '==', uid)
         ))
         .get(),
       adminDb.collection('class_skills')
         .where(Filter.or(
-          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid),
           Filter.where('ownerId', '==', uid)
         ))
         .where(Filter.or(
           Filter.where('classId', '==', classId),
-          Filter.where('class_id', '==', classId)
+          Filter.where('classId', '==', classId)
         ))
         .where('active', '==', true)
         .get()
@@ -100,10 +100,8 @@ export const actions: Actions = {
     try {
       const newDoc = {
         classId,
-        class_id: classId,
         skillId,
         skill_id: skillId,
-        owner_id: uid,
         ownerId: uid,
         assignedAt: new Date().toISOString(),
         active: true,
@@ -130,12 +128,12 @@ export const actions: Actions = {
     try {
       const snap = await adminDb.collection("class_skills")
         .where(Filter.or(
-          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid),
           Filter.where('ownerId', '==', uid)
         ))
         .where(Filter.or(
           Filter.where('classId', '==', classId),
-          Filter.where('class_id', '==', classId)
+          Filter.where('classId', '==', classId)
         ))
         .where(Filter.or(
           Filter.where('skillId', '==', skillId),
@@ -168,12 +166,12 @@ export const actions: Actions = {
     try {
       const snap = await adminDb.collection("class_skills")
         .where(Filter.or(
-          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid),
           Filter.where('ownerId', '==', uid)
         ))
         .where(Filter.or(
           Filter.where('classId', '==', classId),
-          Filter.where('class_id', '==', classId)
+          Filter.where('classId', '==', classId)
         ))
         .where("active", "==", true)
         .get();

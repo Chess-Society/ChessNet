@@ -16,26 +16,22 @@ export const GET: RequestHandler = async (event) => {
 
   try {
     const snapshot = await adminDb.collection("schools")
-      .where(Filter.or(
-        Filter.where('owner_id', '==', uid),
-        Filter.where('ownerId', '==', uid)
-      ))
+      .where('ownerId', '==', uid)
       .get();
+
     
     // Standardize response fields and sort in-memory
     const schools = snapshot.docs.map((doc: any) => {
-      const data = doc.data();
-      return { 
+      return serializeRecord({ 
         id: doc.id, 
-        ...data,
-        createdAt: data.createdAt || data.created_at,
-        updatedAt: data.updatedAt || data.updated_at
-      };
+        ...doc.data()
+      });
     }).sort((a: any, b: any) => {
       const dateA = a.createdAt || '';
       const dateB = b.createdAt || '';
       return dateB.localeCompare(dateA);
-    }).map((s: any) => serializeRecord(s));
+    });
+
     return json({ schools });
   } catch (error: any) {
     console.error('❌ Error in GET schools API:', error.message);
@@ -72,15 +68,14 @@ export const POST: RequestHandler = async (event) => {
     const schoolData = {
       name: name.trim(),
       city: city?.trim() || null,
-      owner_id: uid,
+      ownerId: uid,
       createdBy: uid,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+
     
-    // Support legacy field names in outgoing data for a graceful transition
-    if ((schoolData as any).created_at) delete (schoolData as any).created_at;
-    if ((schoolData as any).updated_at) delete (schoolData as any).updated_at;
+
 
     const docRef = await adminDb.collection("schools").add(schoolData);
     return json({ 
@@ -119,20 +114,24 @@ export const PUT: RequestHandler = async (event) => {
       return json({ error: 'Centro no encontrado' }, { status: 404 });
     }
 
-    const currentOwner = schoolSnap.data()?.owner_id || schoolSnap.data()?.ownerId;
+    const data = schoolSnap.data();
+    const currentOwner = data?.ownerId || data?.ownerId;
     if (currentOwner !== uid) {
       return json({ error: 'Acceso denegado' }, { status: 403 });
     }
+
 
     const updateData = {
       ...body,
       updatedAt: new Date().toISOString()
     };
     delete updateData.id;
-    delete updateData.owner_id;
+    delete updateData.ownerId;
+    delete updateData.ownerId;
     delete updateData.createdAt;
-    delete updateData.created_at;
-    delete updateData.updated_at;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+
 
     await schoolRef.update(updateData);
 
@@ -169,10 +168,12 @@ export const DELETE: RequestHandler = async (event) => {
       return json({ error: 'Centro no encontrado' }, { status: 404 });
     }
 
-    const currentOwner = schoolSnap.data()?.owner_id || schoolSnap.data()?.ownerId;
+    const data = schoolSnap.data();
+    const currentOwner = data?.ownerId || data?.ownerId;
     if (currentOwner !== user.uid) {
       return json({ error: 'Acceso denegado' }, { status: 403 });
     }
+
 
     await schoolRef.delete();
     return json({ success: true, message: 'Centro eliminado correctamente' });

@@ -22,29 +22,31 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
     tournament = { id: tourneySnap.id, ...tourneySnap.data() };
     
-    if (tournament.ownerId !== uid && tournament.owner_id !== uid) {
+    if (tournament.ownerId !== uid) {
       throw error(403, 'No tienes permiso para ver este torneo');
     }
+
 
     // 2. Obtener participantes y sus datos de alumno
     let participants: any[] = [];
     const partSnap = await adminDb.collection("local_tournament_players")
-      .where("tournament_id", "==", tournamentId)
-      .where("owner_id", "==", uid)
+      .where("tournamentId", "==", tournamentId)
+      .where("ownerId", "==", uid)
       .get();
+
       
     participants = await Promise.all(partSnap.docs.map(async (doc: any) => {
       const p = { id: doc.id, ...doc.data() };
-      const studentId = p.studentId || p.student_id;
+      const studentId = p.studentId || p.studentId;
       if (studentId) {
         const sSnap = await adminDb.collection("students").doc(studentId).get();
         if (sSnap.exists) {
           const sData = sSnap.data() || {};
           p.student = {
             ...sData,
-            firstName: sData.firstName || sData.first_name || '',
-            lastName: sData.lastName || sData.last_name || '',
-            name: sData.name || `${sData.firstName || sData.first_name || ''} ${sData.lastName || sData.last_name || ''}`.trim() || 'Unknown student'
+            firstName: sData.firstName || sData.firstName || '',
+            lastName: sData.lastName || sData.lastName || '',
+            name: sData.name || `${sData.firstName || sData.firstName || ''} ${sData.lastName || sData.lastName || ''}`.trim() || 'Unknown student'
           };
         }
       }
@@ -54,9 +56,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     // 3. Obtener emparejamientos
     let pairings: any[] = [];
     const matchSnap = await adminDb.collection("local_tournament_pairings")
-      .where("tournament_id", "==", tournamentId)
-      .where("owner_id", "==", uid)
+      .where("tournamentId", "==", tournamentId)
+      .where("ownerId", "==", uid)
       .get();
+
       
     pairings = await Promise.all(matchSnap.docs.map(async (doc: any) => {
       const m = { id: doc.id, ...doc.data() };
@@ -69,7 +72,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
           const s1Data = s1Snap.data() || {};
           m.player1 = {
             ...s1Data,
-            name: s1Data.name || `${s1Data.firstName || s1Data.first_name || ''} ${s1Data.lastName || s1Data.last_name || ''}`.trim() || 'White'
+            name: s1Data.name || `${s1Data.firstName || s1Data.firstName || ''} ${s1Data.lastName || s1Data.lastName || ''}`.trim() || 'White'
           };
         }
       }
@@ -79,7 +82,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
           const s2Data = s2Snap.data() || {};
           m.player2 = {
             ...s2Data,
-            name: s2Data.name || `${s2Data.firstName || s2Data.first_name || ''} ${s2Data.lastName || s2Data.last_name || ''}`.trim() || 'Black'
+            name: s2Data.name || `${s2Data.firstName || s2Data.firstName || ''} ${s2Data.lastName || s2Data.lastName || ''}`.trim() || 'Black'
           };
         }
       }
@@ -89,52 +92,45 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     // 4. Obtener todos los alumnos del profesor para el buscador de registro
     let allStudents: any[] = [];
     const allStudentsSnap = await adminDb.collection("students")
-      .where("owner_id", "==", uid)
+      .where("ownerId", "==", uid)
       .get();
+
     allStudents = allStudentsSnap.docs.map((doc: any) => {
-      const sData = doc.data() || {};
-      const firstName = sData.firstName || sData.first_name || '';
-      const lastName = sData.lastName || sData.last_name || '';
+      const sData = serializeRecord<any>(doc.data()) || {};
       return { 
         id: doc.id, 
         ...sData,
-        firstName,
-        lastName,
-        name: sData.name || `${firstName} ${lastName}`.trim() || 'Unknown' 
+        name: sData.name || `${sData.firstName || ''} ${sData.lastName || ''}`.trim() || 'Unknown' 
       };
     });
 
+
     // Format logical blocks for UI
     const registeredPlayers = participants.map(p => {
-      let regDate = new Date().toISOString();
-      if (p.createdAt || p.created_at) {
-        try {
-          regDate = new Date(p.createdAt || p.created_at).toISOString();
-        } catch (e) {}
-      }
-
+      const sp = serializeRecord<any>(p);
       return {
-        id: p.id,
+        id: sp.id,
         tournamentId: tournamentId,
-        studentId: p.studentId || p.student_id,
-        studentName: p.student?.name || 'Unknown',
-        studentRating: p.rating || 1200,
-        registrationDate: regDate,
+        studentId: sp.studentId,
+        studentName: sp.student?.name || 'Unknown',
+        studentRating: sp.rating || 1200,
+        registrationDate: sp.createdAt || new Date().toISOString(),
         status: 'confirmed'
       };
     });
 
-    const roundNumbers = [...new Set(pairings.map(p => p.round_no))].filter(Boolean).sort((a, b) => (a as any) - (b as any));
+
+    const roundNumbers = [...new Set(pairings.map(p => p.roundNo))].filter(Boolean).sort((a, b) => (a as any) - (b as any));
     const rounds = roundNumbers.map(r => ({
       id: `round-${r}`,
-      tournament_id: tournamentId,
+      tournamentId: tournamentId,
       round_number: r,
       status: r < (tournament.currentRound || 0) ? 'completed' : (r === (tournament.currentRound || 0) ? 'in_progress' : 'not_started')
     }));
 
     const formattedPairings = pairings.map(p => ({
       id: p.id,
-      roundNo: p.roundNo || p.round_no,
+      roundNo: p.roundNo || p.roundNo,
       board: p.board,
       whiteStudentId: p.whiteStudentId || p.white_student_id,
       blackStudentId: p.blackStudentId || p.black_student_id,
@@ -144,31 +140,37 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }));
 
     const standings = participants
-      .sort((a, b) => (b.score || 0) - (a.score || 0) || (b.tiebreakScore || b.tiebreak_score || 0) - (a.tiebreakScore || a.tiebreak_score || 0))
-      .map((p, index) => ({
-        position: index + 1,
-        studentId: p.studentId || p.student_id,
-        studentName: p.student?.name || 'Unknown',
-        rating: p.rating || 1200,
-        points: p.score || 0,
-        gamesPlayed: pairings.filter(m => {
-          const wId = m.whiteStudentId || m.white_student_id;
-          const bId = m.blackStudentId || m.black_student_id;
-          const pId = p.studentId || p.student_id;
-          return (wId === pId || bId === pId) && m.result && m.result !== '*';
-        }).length,
-        buchholz: p.tiebreakScore || p.tiebreak_score || 0
-      }));
+      .sort((a, b) => (b.score || 0) - (a.score || 0) || (b.tiebreakScore || 0) - (a.tiebreakScore || 0))
+      .map((p, index) => {
+        const sp = serializeRecord<any>(p);
+        return {
+          position: index + 1,
+          studentId: sp.studentId,
+          studentName: sp.student?.name || 'Unknown',
+          rating: sp.rating || 1200,
+          points: sp.score || 0,
+          gamesPlayed: pairings.filter(m => {
+            const sm = serializeRecord<any>(m);
+            return (sm.whiteStudentId === sp.studentId || sm.blackStudentId === sp.studentId) && sm.result && sm.result !== '*';
+          }).length,
+          buchholz: sp.tiebreakScore || 0
+        };
+      });
 
-    const registeredStudentIds = participants.map(p => p.studentId || p.student_id);
+
+    const registeredStudentIds = participants.map(p => {
+      const sp = serializeRecord<any>(p);
+      return sp.studentId;
+    });
     const availableStudents = allStudents
       .filter(s => !registeredStudentIds.includes(s.id))
       .map(s => ({
         id: s.id,
         name: s.name,
         rating: 1200,
-        schoolName: s.schoolName || s.school_name || 'No school'
+        schoolName: s.schoolName || 'No school'
       }));
+
 
     return serializeRecord({
       user: locals.user,

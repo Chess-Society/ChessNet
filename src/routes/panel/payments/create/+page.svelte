@@ -430,13 +430,13 @@
               </div>
 
                <div class="space-y-2">
-                <label for="due_date" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.due_date')}</label>
+                <label for="dueDate" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.dueDate')}</label>
                 <div class="relative group">
                   <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors pointer-events-none z-10">
                     <Clock weight="bold" class="w-5 h-5" />
                   </div>
                   <input 
-                    id="due_date"
+                    id="dueDate"
                     type="date" 
                     bind:value={formData.dueDate}
                     class="glass-input pl-12 h-14 w-full"
@@ -510,12 +510,12 @@
           <div class="space-y-6">
             <div class="grid grid-cols-2 gap-4">
                <div class="space-y-2">
-                <label for="period_start" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.from')}</label>
-                <input id="period_start" type="date" bind:value={formData.periodStart} class="glass-input h-14" />
+                <label for="periodStart" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.from')}</label>
+                <input id="periodStart" type="date" bind:value={formData.periodStart} class="glass-input h-14" />
               </div>
                <div class="space-y-2">
-                <label for="period_end" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.to')}</label>
-                <input id="period_end" type="date" bind:value={formData.periodEnd} class="glass-input h-14" />
+                <label for="periodEnd" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">{$t('payments.to')}</label>
+                <input id="periodEnd" type="date" bind:value={formData.periodEnd} class="glass-input h-14" />
               </div>
             </div>
 
@@ -640,7 +640,7 @@
               <!-- Footer Details -->
               <div class="grid grid-cols-2 gap-4 pt-8 border-t-2 border-dashed border-zinc-200">
                  <div>
-                  <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">{$t('payments.due_date')}</div>
+                  <div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">{$t('payments.dueDate')}</div>
                   <p class="text-xs font-black text-black italic">
                     {formData.dueDate ? formatDate(formData.dueDate) : $t('payments.upon_receipt')}
                   </p>

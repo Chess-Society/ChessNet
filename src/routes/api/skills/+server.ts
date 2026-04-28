@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ locals }) => {
   try {
     const snapshot = await adminDb.collection("skills")
       .where(Filter.or(
-        Filter.where('owner_id', '==', locals.user.uid),
+        Filter.where('ownerId', '==', locals.user.uid),
         Filter.where('ownerId', '==', locals.user.uid)
       ))
       .orderBy("createdAt", "desc")
@@ -22,8 +22,8 @@ export const GET: RequestHandler = async ({ locals }) => {
       return serializeRecord({ 
         id: doc.id, 
         ...data,
-        createdAt: data.createdAt || data.created_at,
-        updatedAt: data.updatedAt || data.updated_at
+        createdAt: data.createdAt || data.createdAt,
+        updatedAt: data.updatedAt || data.updatedAt
       });
     });
     return json({ skills });
@@ -50,13 +50,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         const skillRef = adminDb.collection("skills").doc();
         const skillData = {
           ...skill,
-          owner_id: locals.user.uid,
+          ownerId: locals.user.uid,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
         // Remove legacy fields if they exist in imported data
-        if ((skillData as any).created_at) delete (skillData as any).created_at;
-        if ((skillData as any).updated_at) delete (skillData as any).updated_at;
+        if ((skillData as any).createdAt) delete (skillData as any).createdAt;
+        if ((skillData as any).updatedAt) delete (skillData as any).updatedAt;
         
         batch.set(skillRef, skillData);
         results.push(skillRef.id);
@@ -69,14 +69,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     // Handle single skill
     const skillData = {
       ...body,
-      owner_id: locals.user.uid,
+      ownerId: locals.user.uid,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
     
     // Cleanup legacy fields
-    if ((skillData as any).created_at) delete (skillData as any).created_at;
-    if ((skillData as any).updated_at) delete (skillData as any).updated_at;
+    if ((skillData as any).createdAt) delete (skillData as any).createdAt;
+    if ((skillData as any).updatedAt) delete (skillData as any).updatedAt;
 
     const docRef = await adminDb.collection("skills").add(skillData);
     return json({ success: true, id: docRef.id, skill: { id: docRef.id, ...skillData } });
@@ -102,7 +102,7 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
       return json({ error: 'Habilidad no encontrada' }, { status: 404 });
     }
 
-    const currentOwner = docSnap.data()?.owner_id || docSnap.data()?.ownerId;
+    const currentOwner = docSnap.data()?.ownerId || docSnap.data()?.ownerId;
     if (currentOwner !== locals.user.uid) {
       return json({ error: 'No autorizado' }, { status: 403 });
     }

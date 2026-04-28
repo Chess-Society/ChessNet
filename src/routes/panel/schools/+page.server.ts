@@ -19,8 +19,8 @@ export const load: PageServerLoad = async ({ locals }) => {
       id: doc.id,
       ...doc.data()
     })).sort((a: any, b: any) => {
-      const dateA = (a.createdAt || a.created_at || '');
-      const dateB = (b.createdAt || b.created_at || '');
+      const dateA = (a.createdAt || a.createdAt || '');
+      const dateB = (b.createdAt || b.createdAt || '');
       return dateB.localeCompare(dateA);
     });
 
@@ -31,14 +31,14 @@ export const load: PageServerLoad = async ({ locals }) => {
         adminDb.collection("classes")
           .where(ownerFilter(uid))
           .where(Filter.or(
-            Filter.where('school_id', '==', school.id),
+            Filter.where('schoolId', '==', school.id),
             Filter.where('schoolId', '==', school.id)
           ))
           .get(),
         adminDb.collection("students")
           .where(ownerFilter(uid))
           .where(Filter.or(
-            Filter.where('school_id', '==', school.id),
+            Filter.where('schoolId', '==', school.id),
             Filter.where('schoolId', '==', school.id)
           ))
           .get()

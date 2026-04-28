@@ -34,7 +34,7 @@ export const actions: Actions = {
 
     try {
       const doc = await adminDb.collection('skills').doc(id).get();
-      if (!doc.exists || (doc.data()?.owner_id !== locals.user.uid && doc.data()?.ownerId !== locals.user.uid)) {
+      if (!doc.exists || (doc.data()?.ownerId !== locals.user.uid && doc.data()?.ownerId !== locals.user.uid)) {
         return fail(403);
       }
       await adminDb.collection('skills').doc(id).delete();
@@ -57,7 +57,7 @@ export const actions: Actions = {
       for (const id of ids) {
         const docRef = adminDb.collection('skills').doc(id);
         const doc = await docRef.get();
-        if (doc.exists && (doc.data()?.owner_id === locals.user.uid || doc.data()?.ownerId === locals.user.uid)) {
+        if (doc.exists && (doc.data()?.ownerId === locals.user.uid || doc.data()?.ownerId === locals.user.uid)) {
           batch.delete(docRef);
         }
       }
@@ -75,7 +75,7 @@ export const actions: Actions = {
       const uid = locals.user.uid;
       const snap = await adminDb.collection('skills')
         .where(Filter.or(
-          Filter.where('owner_id', '==', uid),
+          Filter.where('ownerId', '==', uid),
           Filter.where('ownerId', '==', uid)
         ))
         .get();
@@ -103,9 +103,7 @@ export const actions: Actions = {
         const ref = adminDb.collection('skills').doc();
         batch.set(ref, {
           ...skill,
-          owner_id: uid,
           ownerId: uid,
-          created_at: new Date().toISOString(),
           createdAt: new Date().toISOString(),
           order: index
         });
@@ -239,12 +237,9 @@ export const actions: Actions = {
               learningObjectives: Array.isArray(s.learningObjectives || s.learning_objectives) ? (s.learningObjectives || s.learning_objectives) : [],
               orderIndex: idx,
               resources: Array.isArray(s.resources) ? s.resources : [],
-              owner_id: locals.user.uid,
               ownerId: locals.user.uid,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
               active: true
           };
           batch.set(ref, skillData);
@@ -273,7 +268,7 @@ export const load: PageServerLoad = async (event) => {
   try {
     let skillsSnap = await adminDb.collection("skills")
         .where(Filter.or(
-          Filter.where("owner_id", "==", locals.user.uid),
+          Filter.where("ownerId", "==", locals.user.uid),
           Filter.where("ownerId", "==", locals.user.uid)
         ))
         .get();
@@ -291,18 +286,18 @@ export const load: PageServerLoad = async (event) => {
       
       // Robust date parsing
       let createdAt = new Date().toISOString();
-      if (data.created_at) {
+      if (data.createdAt) {
         try {
-          if (typeof data.created_at.toDate === 'function') {
-            createdAt = data.created_at.toDate().toISOString();
+          if (typeof data.createdAt.toDate === 'function') {
+            createdAt = data.createdAt.toDate().toISOString();
           } else {
-            const d = new Date(data.created_at);
+            const d = new Date(data.createdAt);
             if (!isNaN(d.getTime())) {
               createdAt = d.toISOString();
             }
           }
         } catch (e) {
-          console.warn(`[Skills] Invalid date for skill ${doc.id}:`, data.created_at);
+          console.warn(`[Skills] Invalid date for skill ${doc.id}:`, data.createdAt);
         }
       }
 
@@ -312,14 +307,14 @@ export const load: PageServerLoad = async (event) => {
         name: data.name || 'Untitled Skill',
         difficulty: difficulty || 'beginner',
         category: data.category || 'General',
-        created_at: createdAt
+        createdAt: createdAt
       };
     });
 
     // Sort by creation date safely
     skills.sort((a: any, b: any) => {
       try {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } catch (e) {
         return 0;
       }

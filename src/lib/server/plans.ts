@@ -68,7 +68,7 @@ export async function checkStudentLimit(uid: string, isAdmin?: boolean) {
     // Plan free: limit 10 students
     const snapshot = await adminDb.collection("students")
         .where(Filter.or(
-            Filter.where('owner_id', '==', uid),
+            Filter.where('ownerId', '==', uid),
             Filter.where('ownerId', '==', uid)
         ))
         .count()
@@ -87,7 +87,7 @@ export async function checkSchoolLimit(uid: string, isAdmin?: boolean) {
     // Plan free: limit 1 school
     const snapshot = await adminDb.collection("schools")
         .where(Filter.or(
-            Filter.where('owner_id', '==', uid),
+            Filter.where('ownerId', '==', uid),
             Filter.where('ownerId', '==', uid)
         ))
         .count()
@@ -106,7 +106,7 @@ export async function checkClassLimit(uid: string, isAdmin?: boolean) {
     // Plan free: limit 1 class
     const snapshot = await adminDb.collection("classes")
         .where(Filter.or(
-            Filter.where('owner_id', '==', uid),
+            Filter.where('ownerId', '==', uid),
             Filter.where('ownerId', '==', uid)
         ))
         .count()
