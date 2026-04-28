@@ -1,6 +1,6 @@
 import { authenticate } from '$lib/server/auth';
 import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async (event) => {
     const { user, isAdmin } = await authenticate(event);
@@ -9,9 +9,6 @@ export const load: PageServerLoad = async (event) => {
         throw error(403, 'Acceso denegado: Se requieren permisos de administrador');
     }
 
-
-    return {
-        user,
-        isAdmin
-    };
+    // Redirigir a la nueva ruta modular por defecto
+    throw redirect(303, '/admin/dashboard');
 };

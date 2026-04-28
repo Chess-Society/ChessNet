@@ -368,5 +368,42 @@ export const adminApi = {
     }
   },
 
+  /**
+   * Obtiene la lista de todas las escuelas/clubes para validación.
+   */
+  async getAllSchools(limitCount = 100) {
+    try {
+      const q = query(collection(db, "schools"), orderBy("createdAt", "desc"), limit(limitCount));
+      const snap = await getDocs(q);
+      return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error("[AdminAPI] Error getting all schools:", error);
+      throw error;
+    }
+  },
 
+  /**
+   * Aprueba o valida una escuela.
+   */
+  async updateSchoolStatus(schoolId: string, status: 'active' | 'pending' | 'suspended') {
+    try {
+      const schoolRef = doc(db, "schools", schoolId);
+      await updateDoc(schoolRef, {
+        status,
+        updatedAt: new Date().toISOString()
+      });
+
+      await addDoc(collection(db, "system_logs"), {
+        type: 'school_status_changed',
+        category: 'SCHOOLS',
+        action: 'Cambio de Estado',
+        message: `Estado de la escuela ${schoolId} cambiado a ${status}`,
+        timestamp: new Date().toISOString(),
+        status: 'info'
+      });
+    } catch (error) {
+      console.error("[AdminAPI] Error updating school status:", error);
+      throw error;
+    }
+  }
 };
