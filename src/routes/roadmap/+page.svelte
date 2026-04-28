@@ -13,7 +13,7 @@
     ArrowLeft,
     Trophy,
     GraduationCap,
-    Strategy
+    Puzzle
   } from 'lucide-svelte';
   import { fade, fly } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
@@ -270,7 +270,11 @@
 
 <style>
     :global(.bento-card) {
-        @apply relative bg-[#0a0a0c] border border-white/5 overflow-hidden transition-all duration-500;
+        position: relative;
+        background-color: #0a0a0c;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+        transition: all 0.5s;
     }
 </style>
 
