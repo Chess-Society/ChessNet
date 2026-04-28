@@ -421,11 +421,18 @@
             <span class="text-xs uppercase tracking-widest">{$t('nav.changelog')}</span>
           </a>
 
-          <a href="/panel/support" 
+          <a href="/panel/projects" 
              onclick={() => showMobileMenu = false}
-             class="flex items-center gap-4 px-6 py-4 rounded-none text-rose-400 font-bold bg-rose-500/5 border border-rose-500/10 transition-all font-outfit {currentRoute === '/panel/support' ? 'bg-rose-500/10 text-rose-400' : ''}">
+             class="flex items-center gap-4 px-6 py-4 rounded-none text-rose-400 font-bold bg-rose-500/5 border border-rose-500/10 transition-all font-outfit {currentRoute.includes('/projects') ? 'bg-rose-500/10 text-rose-400' : ''}">
             <Heart weight="duotone" size={20} class="animate-pulse" />
             <span class="text-xs uppercase tracking-widest">Proyectos Apoyados</span>
+          </a>
+
+          <a href="/panel/support" 
+             onclick={() => showMobileMenu = false}
+             class="flex items-center gap-4 px-6 py-4 rounded-none text-slate-400 font-bold hover:bg-white/5 transition-all font-outfit {currentRoute === '/panel/support' ? 'bg-white/5 text-white' : ''}">
+            <Lifebuoy weight="duotone" size={20} />
+            <span class="text-xs uppercase tracking-widest">Ayuda y Soporte</span>
           </a>
 
           {#if userRole !== 'parent'}
@@ -720,7 +727,7 @@
 
               <!-- Projects Section (Simplified) -->
               <div class="px-2 pb-1">
-                <a href="/panel/support" class="flex items-center gap-3 px-4 py-2.5 rounded-none hover:bg-white/5 transition-all group/project border border-transparent hover:border-white/5 relative overflow-hidden">
+                <a href="/panel/projects" class="flex items-center gap-3 px-4 py-2.5 rounded-none hover:bg-white/5 transition-all group/project border border-transparent hover:border-white/5 relative overflow-hidden">
                   <div class="flex items-center justify-center w-6 h-6 bg-rose-500/10 rounded-lg group-hover/project:bg-rose-500/20 transition-colors">
                     <Heart size={14} class="text-rose-500 animate-pulse" />
                   </div>
@@ -777,7 +784,7 @@
           </div>
         </div>
         <div class="space-y-1 text-center">
-          <p class="text-white font-black uppercase tracking-[0.3em] text-[10px]">ChessNet AI</p>
+          <p class="text-white font-black uppercase tracking-[0.3em] text-[10px]">ChessNet Engine</p>
           <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest animate-pulse">{$t('common.processing') || 'PROCESANDO...'}</p>
         </div>
       </div>

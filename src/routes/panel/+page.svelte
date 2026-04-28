@@ -583,7 +583,6 @@
       
 
       {#if !isFullyBoarded}
-        <!-- Roadmap for quick access -->
         <div class="bento-card mb-8 overflow-hidden group" in:fly={{y: 20}}>
             <!-- Background Glow -->
             <div class="absolute -top-24 -right-24 w-64 h-64 bg-violet-500/10 blur-[100px] group-hover:bg-violet-500/20 transition-all duration-700"></div>

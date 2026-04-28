@@ -17,7 +17,7 @@ export const es = {
     'pricing.premium.feat1': 'Centros y clases ilimitados',
     'pricing.premium.feat2': 'Alumnos ilimitados',
     'pricing.premium.feat3': 'Gestión de torneos (Pairings Pro)',
-    'pricing.premium.feat4': 'Importación IA e Informes',
+    'pricing.premium.feat4': 'Análisis e Informes Avanzados',
     'pricing.premium.cta': 'Suscribirse Ahora',
     'pricing.recommended': 'RECOMENDADO',
     'pricing.limits.school_reached': 'Límite de centros alcanzado (1). Pásate a Premium para sedes ilimitadas.',

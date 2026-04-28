@@ -477,7 +477,7 @@
               <div class="w-8 h-1.5 bg-violet-600 rounded-none shadow-glow-violet"></div>
               <h2 class="text-5xl font-black text-white uppercase tracking-tighter font-outfit">{$t('classes.syllabus')}</h2>
             </div>
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-11 italic">{$t('classes.roadmap_objectives')}</p>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-11 italic">{$t('classes.pedagogical_path')}</p>
          </div>
          <button 
             onclick={() => goto(`/panel/classes/${classData.id}/skills`)}

@@ -34,7 +34,7 @@
 
       <a href="/" class="flex items-center gap-2 text-surface-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
         <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        {$t('roadmap.back')}
+        {$t('back')}
       </a>
     </div>
   </nav>

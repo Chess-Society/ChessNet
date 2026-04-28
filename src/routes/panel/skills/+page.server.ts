@@ -9,20 +9,6 @@ import { checkPlanGating, getUserPlan } from '$lib/server/plans';
 import { CHESS_SYLLABUS_PRESETS } from '$lib/constants/chess-presets';
 import { env } from '$env/dynamic/private';
 import { dev } from '$app/environment';
-import { createRequire } from 'module';
-import { askDeepSeek } from '$lib/server/deepseek';
-
-const require = createRequire(import.meta.url);
-let pdf: any;
-try {
-    pdf = require('pdf-parse');
-} catch (e) {
-    try {
-        pdf = require('pdf-parse/lib/pdf-parse.js');
-    } catch (e2) {
-        console.error('❌ [ImportAI] Failed to require pdf-parse:', e2);
-    }
-}
 
 export const actions: Actions = {
   delete: async ({ request, locals }) => {

@@ -70,7 +70,7 @@ import { marked } from 'marked';
   let isAnalyzing = $state(false);
   let aiError = $state('');
 
-  async function generateAIAnalysis() {
+  async function generatePerformanceReport() {
     if (isAnalyzing) return;
     isAnalyzing = true;
     aiError = '';
@@ -114,7 +114,7 @@ import { marked } from 'marked';
 </script>
 
 <svelte:head>
-  <title>{student?.firstName} {student?.lastName} - {$t('students.records')} - ChessNet</title>
+  <title>{student?.firstName} {student?.lastName} - {$t('students.records')} - ChessNet Premium</title>
 </svelte:head>
 
 <div class="page-container" in:fade>
@@ -219,15 +219,15 @@ import { marked } from 'marked';
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">Análisis DeepSeek IA</h2>
+                  <h2 class="text-xl font-outfit font-extrabold text-white tracking-tight uppercase">Resumen de Rendimiento</h2>
                   <span class="px-2 py-0.5 bg-violet-500/20 text-violet-300 text-[10px] font-black uppercase tracking-widest border border-violet-500/30 rounded-full">Premium</span>
                 </div>
-                <p class="text-xs text-slate-400 font-jakarta mt-1">Inteligencia artificial aplicada al progreso de tus alumnos</p>
+                <p class="text-xs text-slate-400 font-jakarta mt-1">Análisis avanzado aplicado al progreso de tus alumnos</p>
               </div>
             </div>
 
             <button 
-              onclick={generateAIAnalysis}
+              onclick={generatePerformanceReport}
               disabled={isAnalyzing || !student?.lichessUsername}
               class="glass-btn primary !bg-violet-600 hover:!bg-violet-500 !border-violet-400/50 min-w-[200px] relative overflow-hidden group/btn"
             >
@@ -236,7 +236,7 @@ import { marked } from 'marked';
                 <span>Analizando datos...</span>
               {:else}
                 <Sparkle size={20} weight="fill" class="group-hover/btn:animate-pulse" />
-                <span>Generar Informe IA</span>
+                <span>Actualizar Informe</span>
               {/if}
             </button>
           </div>
@@ -249,7 +249,7 @@ import { marked } from 'marked';
             </div>
           {:else if !student?.lichessUsername}
              <div class="p-8 text-center bg-zinc-900/30 rounded-2xl border border-dashed border-white/10">
-                <p class="text-slate-400 font-jakarta italic">Vincula una cuenta de Lichess para que la IA pueda analizar el progreso del alumno.</p>
+                <p class="text-slate-400 font-jakarta italic">Vincula una cuenta de Lichess para que el motor de rendimiento pueda analizar el progreso del alumno.</p>
              </div>
           {:else if aiError}
             <div class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm rounded-xl">
@@ -313,8 +313,9 @@ import { marked } from 'marked';
             </div>
             
             {#if isFetchingLichess}
-              <div class="flex gap-1">
-                <div class="w-1.5 h-1.5 rounded-none bg-sky-500 animate-ping"></div>
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                <p class="text-white font-black uppercase tracking-[0.3em] text-[10px]">ChessNet Engine</p>
               </div>
             {/if}
           </div>

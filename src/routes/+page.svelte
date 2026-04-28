@@ -71,7 +71,6 @@
       <div class="hidden lg:flex lg:gap-x-12 items-center">
         <a href="#features" class="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors font-mono">01. {$t('nav.features')}</a>
         <a href="/pricing" class="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors font-mono">02. {$t('nav.pricing')}</a>
-        <a href="/roadmap" class="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-colors font-mono">03. {$t('nav.roadmap')}</a>
       </div>
 
       <div class="flex lg:flex-1 lg:justify-end gap-6 items-center">
@@ -361,7 +360,6 @@
            <div class="flex flex-col gap-5 text-[10px] font-black text-slate-600 uppercase tracking-widest">
              <a href="#features" class="hover:text-white transition-colors">{$t('nav.features')}</a>
              <a href="/pricing" class="hover:text-white transition-colors">{$t('nav.pricing')}</a>
-             <a href="/roadmap" class="hover:text-white transition-colors">{$t('nav.roadmap')}</a>
            </div>
          </div>
          <div class="space-y-8">

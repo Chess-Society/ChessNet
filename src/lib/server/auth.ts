@@ -7,9 +7,8 @@ import { env as privateEnv } from '$env/dynamic/private';
 import { getUserRole, type UserRole } from './roles';
 
 export async function authenticate(event: RequestEvent) {
-    // Local AI Access Bypass (Development Only)
-    // HIGH-01: Secret desde env var — nunca hardcodeado en código fuente
-    // Definir DEV_AUTH_BYPASS_SECRET en .env para activar el bypass local
+    // Local Developer Access Bypass (Development Only)
+    // Security: Bypass secret must be configured via environment variable
     if (dev) {
         const aiAccess = event.cookies.get('antigravity_access');
         const bypassSecret = privateEnv.DEV_AUTH_BYPASS_SECRET;

@@ -254,7 +254,6 @@
       <p class="text-surface-500 text-sm font-medium">© {new Date().getFullYear()} ChessNet. Crafted with <span class="text-primary-500">violet passion</span> for chess.</p>
       <div class="flex flex-wrap justify-center gap-6">
         <a href="/pricing" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('nav.pricing')}</a>
-        <a href="/roadmap" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('nav.roadmap')}</a>
         <a href="/donate" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('nav.donate')}</a>
         <a href="/legal/terms" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('legal.terms')}</a>
         <a href="/legal/privacy" class="text-surface-500 hover:text-white transition-colors text-sm">{$t('legal.privacy')}</a>

@@ -409,7 +409,7 @@
     </div>
 
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <!-- Main AI Import CTA -->
+        <!-- Standard Syllabus Import CTA -->
         <button 
           onclick={() => handleImportSyllabus()}
           class="px-10 py-5 rounded-none bg-zinc-950 text-white border border-white/10 shadow-2xl hover:border-violet-500/50 transition-all flex items-center justify-center gap-4 text-xs font-black tracking-[0.2em] uppercase group overflow-hidden active:scale-95"
@@ -523,7 +523,7 @@
     </div>
   </div>
 
-  <!-- AI Progress Indicator (Visible when extracting) -->
+  <!-- Syllabus Progress Indicator -->
 
   <!-- Search & Toggles -->
   <div class="sticky top-6 z-40">

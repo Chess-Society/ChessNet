@@ -1,7 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { adminDb } from '$lib/server/firebase-admin';
 import { getUserPlan } from '$lib/server/plans';
-import { askDeepSeek } from '$lib/server/deepseek';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ params, locals }) => {
@@ -11,7 +10,7 @@ export const POST: RequestHandler = async ({ params, locals }) => {
 
     const plan = await getUserPlan(locals.user.uid);
     if (plan !== 'premium' && !locals.isAdmin) {
-        throw error(403, 'Premium plan required for AI analysis');
+        throw error(403, 'Premium plan required for analysis');
     }
 
     const { studentId } = params;
@@ -33,45 +32,64 @@ export const POST: RequestHandler = async ({ params, locals }) => {
             fetch(`https://lichess.org/api/user/${studentData.lichessUsername}/rating-history`)
         ]);
 
-        let lichessInfo = {};
+        let lichessInfo: any = {};
         if (userRes.ok) {
             lichessInfo = await userRes.json();
         }
 
-        let ratingHistory = [];
+        let ratingHistory: any[] = [];
         if (historyRes.ok) {
             ratingHistory = await historyRes.json();
         }
 
-        // Prepare prompt for DeepSeek
-        const prompt = `
-            Analiza el progreso de este estudiante de ajedrez basándote en sus datos de Lichess.
-            
-            Nombre: ${studentData.firstName} ${studentData.lastName}
-            Username Lichess: ${studentData.lichessUsername}
-            
-            Datos de Perfil:
-            ${JSON.stringify(lichessInfo, null, 2)}
-            
-            Historial de Rating (últimos meses):
-            ${JSON.stringify(ratingHistory, null, 2).substring(0, 3000)} ... (truncado para brevedad)
-            
-            Por favor, proporciona:
-            1. Un resumen del nivel actual.
-            2. Fortalezas detectadas (basado en ritmos de juego y regularidad).
-            3. Áreas de mejora.
-            4. Una recomendación de entrenamiento personalizada.
-            
-            Responde en español, con un tono profesional pero motivador para un profesor de ajedrez.
-            Usa formato Markdown.
+        // --- LOCAL REPORT GENERATOR (Non-AI) ---
+        // This replaces the third-party AI dependency with a local analysis of the data.
+        
+        const perfs = lichessInfo.perfs || {};
+        const blitz = perfs.blitz?.rating || 'N/A';
+        const rapid = perfs.rapid?.rating || 'N/A';
+        const puzzle = perfs.puzzle?.rating || 'N/A';
+        
+        // Calculate recent trend (last 30 days roughly)
+        let trendMsg = "Estable";
+        if (ratingHistory.length > 0) {
+          const rapidHistory = ratingHistory.find((h: any) => h.name === 'Rapid');
+          if (rapidHistory && rapidHistory.points.length > 2) {
+            const last = rapidHistory.points[rapidHistory.points.length - 1][3];
+            const prev = rapidHistory.points[rapidHistory.points.length - 2][3];
+            const diff = last - prev;
+            if (diff > 0) trendMsg = `Creciente (+${diff} puntos)`;
+            else if (diff < 0) trendMsg = `Decreciente (${diff} puntos)`;
+          }
+        }
+
+        const report = `
+### 📊 Resumen de Rendimiento: ${studentData.firstName} ${studentData.lastName}
+*Actualizado el ${new Date().toLocaleDateString('es-ES')}*
+
+**Niveles Actuales (Lichess):**
+- **Blitz:** ${blitz}
+- **Rapid:** ${rapid}
+- **Tácticas (Puzzles):** ${puzzle}
+- **Tendencia:** ${trendMsg}
+
+**Análisis de Actividad:**
+El alumno ha completado un total de **${lichessInfo.count?.all || 0}** partidas. 
+Su ratio de victorias actual se sitúa en torno al **${lichessInfo.count?.win || 0}** partidas ganadas.
+
+**Recomendación del Sistema:**
+${Number(puzzle) < Number(rapid) ? 
+  "⚠️ El nivel de táctica es inferior al de juego real. Se recomienda priorizar el entrenamiento de patrones tácticos." : 
+  "✅ Buen equilibrio entre táctica y juego posicional. Se recomienda empezar a estudiar aperturas específicas."}
+
+---
+*Este informe ha sido generado automáticamente por el motor interno de ChessNet.*
         `;
 
-        const analysis = await askDeepSeek(prompt, "Eres un gran maestro de ajedrez y un experto pedagogo que ayuda a profesores a analizar el progreso de sus alumnos.");
-
-        return json({ analysis });
+        return json({ analysis: report.trim() });
 
     } catch (err: any) {
-        console.error('❌ Error analyzing student with DeepSeek:', err);
+        console.error('❌ Error in student analysis:', err);
         return json({ error: err.message || 'Internal server error' }, { status: 500 });
     }
 };

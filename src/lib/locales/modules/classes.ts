@@ -137,7 +137,7 @@ export const es = {
     'classes.academic_progress': 'Progreso Académico',
     'classes.session_pulse': 'Actividad Reciente',
     'classes.real_time_tracking': 'Seguimiento de participación en tiempo real',
-    'classes.roadmap_objectives': 'Ruta Pedagógica y Objetivos',
+    'classes.pedagogical_path': 'Ruta Pedagógica y Objetivos',
     'classes.last_activity': 'Última Actividad',
     'classes.group_progress': 'Progreso del Grupo',
     'classes.progress_desc': 'Hitos de desarrollo completados al {percent}% actualmente.',
