@@ -4,29 +4,43 @@ export async function askDeepSeek(userPrompt: string, systemPrompt: string) {
     const apiKey = env.DEEPSEEK_API_KEY;
     
     if (!apiKey) {
-        throw new Error('DEEPSEEK_API_KEY is not defined in environment variables');
+        console.error('❌ DEEPSEEK_API_KEY is missing in environment variables (runtime)');
+        throw new Error('Configuración de IA incompleta: DEEPSEEK_API_KEY no encontrada.');
     }
     
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            model: 'deepseek-chat',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-            ]
-        })
-    });
+    try {
+        console.log('🤖 Sending request to DeepSeek API...');
+        const response = await fetch('https://api.deepseek.com/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000
+            })
+        });
 
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`DeepSeek API error: ${response.status} - ${error}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`❌ DeepSeek API error (${response.status}):`, errorText);
+            throw new Error(`Error de DeepSeek (${response.status}): ${errorText}`);
+        }
+
+        const data = await response.json();
+        if (!data.choices || data.choices.length === 0) {
+            throw new Error('La IA no devolvió ninguna respuesta válida.');
+        }
+        console.log('✅ DeepSeek response received successfully');
+        return data.choices[0].message.content;
+    } catch (err: any) {
+        console.error('❌ Exception in askDeepSeek:', err);
+        throw err;
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
 }

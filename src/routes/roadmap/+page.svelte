@@ -2,9 +2,6 @@
   import { 
     Map, 
     Zap, 
-    School, 
-    ArrowLeft, 
-    ArrowRight, 
     Sparkles,
     CheckCircle2,
     Clock3,
@@ -12,9 +9,11 @@
     Lightbulb,
     Target,
     Users,
-    CreditCard,
     LayoutDashboard,
-    Smartphone
+    ArrowLeft,
+    Trophy,
+    GraduationCap,
+    Strategy
   } from 'lucide-svelte';
   import { fade, fly } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
@@ -86,22 +85,11 @@
       default: return Lightbulb;
     }
   };
-  const votedFeatures = [
-    { title: 'Generador de torneos suizos automático', votes: 124, category: 'roadmap.cat_tournaments' },
-    { title: 'Generador de informes PDF avanzados', votes: 106, category: 'roadmap.cat_reports' },
-    { title: 'Sistema de mensajería masiva por correo', votes: 82, category: 'roadmap.cat_admin' },
-    { title: 'Calendario de eventos interactivo', votes: 75, category: 'roadmap.cat_core' }
+
+  const partners = [
+    { name: 'Rexher Cup', logo: '/images/rexher-cup-logo.png', desc: 'Socio oficial de torneos élite' },
+    { name: 'MindChess App', logo: '/images/mindchess-logo.png', desc: 'Plataforma líder en entrenamiento mental' }
   ];
-
-  let voted = $state(new Set());
-
-  const handleVote = (id: number) => {
-    if (voted.has(id)) {
-      voted.delete(id);
-    } else {
-      voted.add(id);
-    }
-  };
 </script>
 
 <svelte:head>
@@ -109,206 +97,181 @@
   <meta name="description" content={$t('roadmap.subtitle')} />
 </svelte:head>
 
-<div class="min-h-screen bg-bento-bg text-surface-200 font-sans selection:bg-primary-500/30 overflow-x-hidden">
-    <!-- Decorative Background Glows -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 rounded-none blur-[140px] animate-pulse"></div>
-        <div class="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-blue-500/5 rounded-none blur-[120px]"></div>
+<div class="min-h-screen bg-[#02040a] text-zinc-300 font-sans selection:bg-primary-500/30 overflow-x-hidden">
+    <!-- Premium Background Effects -->
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] bg-primary-600/10 rounded-full blur-[160px] animate-pulse"></div>
+        <div class="absolute bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[140px]"></div>
+        <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0); background-size: 40px 40px;"></div>
     </div>
 
-  <!-- Nav -->
-  <nav class="relative z-10 p-8 flex justify-between items-center max-w-7xl mx-auto">
-    <a href="/" class="flex items-center gap-3 transition-transform hover:scale-105 active:scale-95 group">
-      <div class="relative">
+  <!-- Header / Nav -->
+  <nav class="relative z-10 p-6 md:p-10 flex justify-between items-center max-w-7xl mx-auto border-b border-white/5 backdrop-blur-md bg-black/20">
+    <a href="/" class="flex items-center gap-4 group">
+      <div class="relative w-10 h-10 flex items-center justify-center">
         <div class="absolute -inset-2 bg-primary-500/20 rounded-none blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
-        <Logo size="w-10 h-10" iconSize="w-6 h-6" />
+        <Logo size="w-full h-full" />
       </div>
-      <span class="text-2xl font-display font-black tracking-tighter text-white">ChessNet</span>
+      <span class="text-2xl font-black tracking-tighter text-white uppercase italic">ChessNet <span class="text-primary-500">OS</span></span>
     </a>
-    <div class="flex items-center gap-6 relative z-10">
-
-
-      <a href="/" class="flex items-center gap-2 text-surface-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors group">
-        <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        {$t('roadmap.back')}
-      </a>
-    </div>
+    
+    <a href="/" class="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold uppercase tracking-[0.2em] transition-all group">
+      <ArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+      {$t('roadmap.back')}
+    </a>
   </nav>
 
-  <!-- Content -->
-  <main class="relative z-10 max-w-5xl mx-auto px-6 py-20">
-    <div class="text-center mb-24" in:fade={{ duration: 1000 }}>
-      <div class="inline-flex items-center justify-center p-4 rounded-none bg-primary-500/10 text-primary-500 mb-8 border border-primary-500/20 shadow-xl shadow-primary-500/10">
-        <Map class="w-10 h-10" />
-      </div>
-      
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-none bg-white/5 border border-white/10 text-surface-400 text-[10px] font-black uppercase tracking-widest mb-6">
-        <Sparkles class="w-3.5 h-3.5 text-primary-400" />
-        <span>{$t('roadmap.feedback')}</span>
-      </div>
+  <!-- Hero Section -->
+  <main class="relative z-10 max-w-7xl mx-auto px-6 py-24">
+    <div class="max-w-3xl mb-32">
+        <div class="inline-flex items-center gap-3 px-4 py-2 bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px] font-black uppercase tracking-[0.3em] mb-8">
+            <Sparkles class="w-3.5 h-3.5" />
+            <span>Product Vision 2026</span>
+        </div>
+        
+        <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-white mb-8 leading-[0.85] uppercase italic">
+            El futuro del <br/>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-white to-primary-600">Ajedrez Profesional</span>
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-zinc-500 font-medium leading-relaxed max-w-2xl mb-12">
+            Estamos construyendo la plataforma definitiva para academias y clubes. Descubre los próximos hitos en nuestra misión de digitalizar el ajedrez.
+        </p>
 
-      <h1 class="text-4xl md:text-6xl font-display font-black tracking-tight text-white mb-6">{$t('roadmap.title')}</h1>
-      <p class="text-lg md:text-xl text-surface-400 leading-relaxed max-w-2xl mx-auto font-medium mb-10">
-        {$t('roadmap.subtitle')}
-      </p>
-      
-      <div class="inline-flex items-center gap-2 bg-yellow-500/10 text-yellow-400 px-5 py-2.5 rounded-none border border-yellow-500/20 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
-        <Zap class="w-4 h-4" />
-        {$t('roadmap.subject_feedback')}
-      </div>
+        <div class="flex flex-wrap gap-12">
+            <div class="space-y-1">
+                <p class="text-4xl font-black text-white italic">v2.4</p>
+                <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Versión Actual</p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-4xl font-black text-white italic">99.9%</p>
+                <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Uptime Garantizado</p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-4xl font-black text-white italic">1.2k</p>
+                <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Usuarios Activos</p>
+            </div>
+        </div>
     </div>
 
-    <div class="relative">
-      <!-- Vertical Timeline Line -->
-      <div class="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-primary-500/50 via-white/5 to-transparent hidden md:block"></div>
-
-      <div class="space-y-16 relative">
+    <!-- Bento Roadmap Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[280px]">
+        
+        <!-- Big Active Phase Card -->
         {#each roadmapItems as phase, i}
           {@const StatusIcon = getStatusIcon(phase.status)}
-          {@const ItemIcon = phase.icon}
-          {@const isEven = i % 2 === 0}
-
-          <div 
-            class="flex flex-col md:flex-row gap-8 items-start relative {isEven ? '' : 'md:flex-row-reverse'}" 
-            in:fly={{ y: 30, duration: 800, delay: 200 + (i * 100) }}
-          >
-            <!-- Desktop Status Side -->
-            <div class="hidden md:flex flex-1 pt-2 {isEven ? 'justify-end pr-12 text-right' : 'justify-start pl-12 text-left'}">
-              <div class="inline-flex flex-col {isEven ? 'items-end' : 'items-start'}">
-                <span class="text-[10px] font-black uppercase tracking-[0.2em] mb-2 px-3 py-1 rounded-none 
-                  {phase.status === 'released' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-                   phase.status === 'in-progress' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 
-                   'bg-white/5 text-surface-400 border border-white/10'}"
-                >
-                  {$t(getStatusLabel(phase.status))}
-                </span>
-                <p class="text-[8px] font-mono text-surface-500 uppercase tracking-widest">ChessNet OS v{1 + (i*0.2)}.0</p>
-              </div>
-            </div>
-
-            <!-- Timeline Node -->
-            <div class="absolute left-[-4px] md:left-1/2 md:ml-[-8px] top-6 w-4 h-4 rounded-none border-2 border-[#02040a] shadow-xl z-20 
-              {phase.status === 'released' ? 'bg-emerald-500 shadow-emerald-500/20' : 
-               phase.status === 'in-progress' ? 'bg-blue-500 shadow-blue-500/20' : 
-               'bg-zinc-800 shadow-white/5'}"></div>
-
-            <!-- Content Card -->
-            <div class="flex-1 {isEven ? 'pl-8 md:pl-12' : 'pr-0 md:pr-12 pl-8 md:pl-0'} w-full">
-              <div class="md:hidden mb-4">
-                <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-none
-                  {phase.status === 'released' ? 'bg-emerald-500/10 text-emerald-400' : 
-                   phase.status === 'in-progress' ? 'bg-blue-500/10 text-blue-400' : 
-                   'bg-white/5 text-surface-400'}">
-                  {$t(getStatusLabel(phase.status))}
-                </span>
-              </div>
-
-              <div class="bento-card border-white/5 p-8 md:p-10 hover:border-white/20 transition-all group relative overflow-hidden bg-white/[0.01]">
-                <div class="absolute -right-8 -top-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
-                  <ItemIcon class="w-40 h-40" />
-                </div>
-
-                <div class="flex items-center gap-5 mb-8">
-                  <div class="w-14 h-14 bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/40 group-hover:text-white group-hover:border-white/20 transition-all">
-                    <ItemIcon class="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 class="text-2xl font-display font-black text-white tracking-tight uppercase italic ">{$t(phase.title)}</h3>
-                    <div class="flex items-center gap-2 mt-1">
-                      <StatusIcon class="w-3 h-3 {phase.status === 'released' ? 'text-emerald-500' : 'text-surface-500'}" />
-                      <span class="text-[8px] font-mono font-bold uppercase tracking-widest text-surface-500">
-                        {phase.status === 'released' ? 'Despliegue completado' : 
-                         phase.status === 'in-progress' ? 'En fase de desarrollo' : 'Priorizado para Q3/Q4'}
-                      </span>
+          {@const isMajor = i === 1} <!-- Phase 2 as the major focus -->
+          
+          <div class="group relative overflow-hidden bg-[#0a0a0c] border border-white/5 hover:border-primary-500/30 transition-all duration-700
+            {isMajor ? 'md:col-span-8 md:row-span-2' : 'md:col-span-4'}">
+            
+            <!-- Subtle Hover Gradient -->
+            <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            
+            <div class="relative p-8 h-full flex flex-col">
+                <div class="flex justify-between items-start mb-auto">
+                    <div class="w-14 h-14 bg-white/5 flex items-center justify-center border border-white/5 group-hover:bg-primary-500/10 group-hover:border-primary-500/20 transition-all">
+                        <svelte:component this={phase.icon} class="w-7 h-7 text-zinc-500 group-hover:text-primary-400 transition-colors" />
                     </div>
-                  </div>
+                    
+                    <div class="px-3 py-1 text-[8px] font-black uppercase tracking-widest border 
+                        {phase.status === 'released' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                         phase.status === 'in-progress' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
+                         'bg-white/5 text-zinc-600 border-white/10'}">
+                        {$t(getStatusLabel(phase.status))}
+                    </div>
                 </div>
 
-                <ul class="space-y-5">
-                  {#each phase.items as item}
-                    <li class="flex items-start gap-4 group/item">
-                      <div class="mt-1.5 w-1 h-1 rounded-none transition-all 
-                        {phase.status === 'released' ? 'bg-emerald-500' : 'bg-surface-600 group-hover/item:bg-white'}"></div>
-                      <span class="font-medium tracking-tight text-sm md:text-base text-surface-400 group-hover/item:text-white transition-colors">
-                        {$t(item)}
-                      </span>
-                    </li>
-                  {/each}
-                </ul>
-              </div>
+                <div class="mt-8">
+                    <h3 class="text-3xl font-black text-white tracking-tighter uppercase italic mb-4">{$t(phase.title)}</h3>
+                    <ul class="space-y-3">
+                        {#each phase.items as item}
+                            <li class="flex items-center gap-3 text-sm font-medium text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                                <div class="w-1.5 h-1.5 {phase.status === 'released' ? 'bg-emerald-500' : 'bg-zinc-800 group-hover:bg-primary-500'} transition-colors"></div>
+                                {$t(item)}
+                            </li>
+                        {/each}
+                    </ul>
+                </div>
+
+                {#if isMajor}
+                    <div class="mt-12 pt-8 border-t border-white/5">
+                        <div class="flex items-center gap-4">
+                            <div class="flex -space-x-2">
+                                {#each Array(4) as _, i}
+                                    <div class="w-8 h-8 rounded-none border border-[#02040a] bg-zinc-800 flex items-center justify-center text-[8px] font-black">
+                                        USR
+                                    </div>
+                                {/each}
+                            </div>
+                            <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">+42 desarrolladores han votado esta fase</p>
+                        </div>
+                    </div>
+                {/if}
             </div>
           </div>
         {/each}
-      </div>
+
+        <!-- Community Card -->
+        <div class="md:col-span-12 md:row-span-1 bg-gradient-to-r from-primary-600 to-indigo-900 p-10 flex flex-col md:flex-row items-center justify-between gap-8 border border-white/10 group overflow-hidden">
+            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="relative z-10 text-center md:text-left">
+                <h3 class="text-3xl md:text-4xl font-black text-white tracking-tighter uppercase italic mb-2">Construyamos juntos</h3>
+                <p class="text-white/70 font-medium max-w-xl">Nuestra comunidad en Discord es el epicentro de la innovación en ChessNet. Únete y propón tus propias funciones.</p>
+            </div>
+            <a href="https://discord.gg/G7SrFtJHnr" target="_blank" class="relative z-10 px-10 py-5 bg-white text-black font-black uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all shadow-2xl">
+                Unirse al Discord
+            </a>
+        </div>
     </div>
 
-    <!-- Community Voting Section -->
-    <div class="mt-32 max-w-4xl mx-auto" in:fly={{ y: 30, duration: 800, delay: 600 }}>
-      <div class="text-center mb-12">
-        <h2 class="text-3xl font-display font-black text-white tracking-tighter uppercase italic mb-4">{$t('roadmap.cta_title')}</h2>
-        <p class="text-surface-400 max-w-xl mx-auto">{$t('roadmap.cta_desc')}</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {#each votedFeatures as feature, i}
-          <button 
-            onclick={() => handleVote(i)}
-            class="group flex items-center justify-between p-6 bento-card border-white/5 hover:border-primary-500/30 transition-all text-left bg-white/[0.01]"
-          >
-            <div class="flex flex-col gap-1">
-              <span class="text-[9px] font-mono text-primary-500 font-bold uppercase tracking-widest">{$t(feature.category)}</span>
-              <span class="text-white font-medium group-hover:text-primary-400 transition-colors">{feature.title}</span>
+    <!-- Official Partners Section -->
+    <section class="mt-40 border-t border-white/5 pt-24">
+        <div class="text-center mb-20">
+            <div class="inline-flex items-center gap-3 px-3 py-1 bg-white/5 border border-white/10 text-[9px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-6">
+                Official Ecosystem
             </div>
-            <div class="flex flex-col items-center gap-1 pl-4 border-l border-white/5">
-              <div class="p-2 rounded-none transition-all {voted.has(i) ? 'bg-primary-500 text-white' : 'bg-white/5 text-surface-400 group-hover:bg-white/10'}">
-                <Sparkles class="w-4 h-4" />
-              </div>
-              <span class="text-[10px] font-mono font-bold {voted.has(i) ? 'text-primary-400' : 'text-surface-500'}">
-                {feature.votes + (voted.has(i) ? 1 : 0)}
-              </span>
-            </div>
-          </button>
-        {/each}
-      </div>
-    </div>
+            <h2 class="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase italic">Aliados Estratégicos</h2>
+        </div>
 
-    <!-- Final Support/Discord CTA -->
-    <div class="mt-32 pb-32 text-center" in:fade={{ duration: 1000, delay: 800 }}>
-      <div class="inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-none mb-8">
-        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-        <span class="text-xs font-mono font-bold uppercase tracking-tighter text-surface-400">Soporte técnico activo 24/7</span>
-      </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {#each partners as partner}
+                <div class="group relative p-12 bg-[#0a0a0c] border border-white/5 hover:border-primary-500/30 transition-all duration-500 flex flex-col items-center text-center overflow-hidden">
+                    <!-- Background Glow -->
+                    <div class="absolute -inset-24 bg-primary-500/5 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    
+                    <div class="relative w-56 h-56 mb-10 bg-black/40 backdrop-blur-xl flex items-center justify-center border border-white/5 group-hover:border-primary-500/20 transition-all duration-700 shadow-2xl">
+                        <img src={partner.logo} alt={partner.name} class="max-w-[80%] max-h-[80%] object-contain group-hover:scale-105 transition-transform duration-700 drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]" />
+                    </div>
+                    
+                    <div class="relative z-10">
+                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tight mb-4 group-hover:text-primary-400 transition-colors">{partner.name}</h3>
+                        <p class="text-zinc-500 font-medium leading-relaxed group-hover:text-zinc-300 transition-colors">{partner.desc}</p>
+                    </div>
 
-      <div class="flex flex-col md:flex-row items-center justify-center gap-6">
-        <a 
-          href="https://discord.gg/G7SrFtJHnr" 
-          target="_blank"
-          class="group flex items-center gap-4 px-8 py-5 bg-[#5865F2] hover:bg-[#4752C4] text-white transition-all shadow-xl shadow-indigo-500/10"
-        >
-          <div class="p-2 bg-white/10">
-            <Users class="w-6 h-6" />
-          </div>
-          <div class="text-left">
-            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70">Únete a la comunidad</p>
-            <p class="text-lg font-black tracking-tight italic uppercase">Acceder al Discord</p>
-          </div>
-          <ArrowRight class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </a>
+                    <!-- Decorative Corner -->
+                    <div class="absolute top-0 right-0 w-12 h-12 border-t border-r border-white/10 group-hover:border-primary-500/40 transition-colors"></div>
+                </div>
+            {/each}
+        </div>
+    </section>
 
-        <a 
-          href="/" 
-          class="group flex items-center gap-4 px-8 py-5 bg-white/5 border border-white/10 hover:border-white/20 text-white transition-all"
-        >
-          <div class="p-2 bg-white/5">
-            <LayoutDashboard class="w-6 h-6" />
-          </div>
-          <div class="text-left">
-            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70">{$t('roadmap.back')}</p>
-            <p class="text-lg font-black tracking-tight italic uppercase">Volver al Panel</p>
-          </div>
-        </a>
-      </div>
+    <!-- Footer Footer -->
+    <div class="mt-40 text-center pb-20">
+        <p class="text-[10px] font-black text-zinc-700 uppercase tracking-[0.6em] mb-8">ChessNet Professional Operating System</p>
+        <div class="flex justify-center gap-8 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+            <a href="/" class="hover:text-white transition-colors">Home</a>
+            <a href="/pricing" class="hover:text-white transition-colors">Planes</a>
+            <a href="mailto:soporte@chessnet.io" class="hover:text-white transition-colors">Soporte</a>
+        </div>
     </div>
   </main>
 </div>
+
+<style>
+    :global(.bento-card) {
+        @apply relative bg-[#0a0a0c] border border-white/5 overflow-hidden transition-all duration-500;
+    }
+</style>
+
 

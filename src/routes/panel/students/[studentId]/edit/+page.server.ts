@@ -15,21 +15,35 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
   try {
     const uid = locals.user.uid;
-    const [studentSnap, schoolsSnap, classesSnap] = await Promise.all([
-      adminDb.collection('students').doc(studentId).get(),
-      adminDb.collection('schools').where('ownerId', '==', uid).orderBy('name', 'asc').get(),
-      adminDb.collection('classes').where('ownerId', '==', uid).orderBy('name', 'asc').get()
-    ]);
+
+    console.log(`[EditStudent] Loading data for ${studentId} (requested by ${uid})`);
+
+    // Retry logic for eventual consistency
+    let studentSnap = await adminDb.collection('students').doc(studentId).get();
+    
+    if (!studentSnap.exists) {
+      console.log(`[EditStudent] Not found in first attempt, retrying...`);
+      await new Promise(r => setTimeout(r, 1500));
+      studentSnap = await adminDb.collection('students').doc(studentId).get();
+    }
 
     if (!studentSnap.exists) {
+      console.error(`[EditStudent] Student ${studentId} not found after retry`);
       throw error(404, 'Student not found');
     }
 
     const studentData = studentSnap.data();
-    // Validate ownership
-    if (studentData?.ownerId !== uid) {
+    
+    // Validate ownership or admin status
+    if (studentData?.ownerId !== uid && !locals.isAdmin) {
+      console.warn(`[EditStudent] Unauthorized access attempt by ${uid} for student ${studentId}`);
       throw error(403, 'Unauthorized access to student');
     }
+
+    const [schoolsSnap, classesSnap] = await Promise.all([
+      adminDb.collection('schools').where('ownerId', '==', uid).orderBy('name', 'asc').get(),
+      adminDb.collection('classes').where('ownerId', '==', uid).orderBy('name', 'asc').get()
+    ]);
 
     const form = await superValidate(studentData, zod(studentSchema as any)) as any;
 
