@@ -15,7 +15,8 @@
     Sparkle,
     Lock,
     Medal,
-    Warning
+    Warning,
+    Crown
   } from 'phosphor-svelte';
   import { auth } from '$lib/firebase';
   import { toast } from '$lib/stores/toast';
