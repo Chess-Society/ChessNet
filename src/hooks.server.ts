@@ -64,5 +64,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         }
     }
 
-    return await resolve(event);
+    const response = await resolve(event);
+    response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    return response;
 };

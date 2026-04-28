@@ -49,11 +49,11 @@
   const categories = $derived($appStore.categories.length > 0 
     ? $appStore.categories 
     : [
-        { id: 'basics', name: $t('skills.category_fundamentals') },
-        { id: 'tactics', name: $t('skills.category_tactics') },
-        { id: 'strategy', name: $t('skills.category_strategy') },
-        { id: 'endgames', name: $t('skills.category_endgames') },
-        { id: 'openings', name: $t('skills.category_openings') }
+        { id: 'basics', name: $t('skills.category.basics') },
+        { id: 'tactics', name: $t('skills.category.tactics') },
+        { id: 'strategy', name: $t('skills.category.strategy') },
+        { id: 'endgames', name: $t('skills.category.endgame') },
+        { id: 'openings', name: $t('skills.category.opening') }
       ]
   );
 
@@ -147,38 +147,6 @@
       <!-- Left Content Area (8 cols) -->
       <div class="lg:col-span-8 space-y-8">
         
-        <!-- AI Import Quick Action -->
-        {#if !$delayed}
-          <section 
-            class="relative group overflow-hidden bg-zinc-900/40 border border-violet-500/30 rounded-none p-8 mb-8 shadow-2xl transition-all hover:bg-zinc-900/60"
-            in:fly={{ y: -20, duration: 600 }}
-          >
-            <div class="absolute top-0 right-0 w-64 h-64 bg-violet-600/5 blur-[80px] rounded-none transition-all group-hover:bg-violet-600/10"></div>
-            <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div class="flex items-center gap-6">
-                <div class="w-16 h-16 bg-violet-600/10 text-violet-400 flex items-center justify-center rounded-none border border-violet-500/20 group-hover:scale-110 transition-transform duration-500">
-                  <Brain weight="fill" class="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 class="text-xl font-black text-white uppercase italic tracking-tight flex items-center gap-2">
-                    {$t('skills.ui.import_pdf') || 'Importar con IA'}
-                    <span class="px-1.5 py-0.5 bg-violet-600 text-white text-[8px] font-black not-italic tracking-normal">BETA</span>
-                  </h3>
-                  <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">{$t('skills.ui.import_pdf_subtitle') || 'Sube un PDF y ahorra tiempo creando lecciones'}</p>
-                </div>
-              </div>
-              <button 
-                type="button"
-                onclick={() => goto('/panel/skills?import=ai')}
-                class="px-8 py-4 bg-zinc-950 border border-violet-500/50 text-white font-black uppercase tracking-widest text-[10px] hover:bg-violet-600 hover:border-violet-400 transition-all shadow-xl flex items-center gap-3 group/ai"
-              >
-                <Sparkle weight="fill" class="w-4 h-4 group-hover/ai:rotate-12 transition-transform" />
-                {$t('skills.ui.extract_ai') || 'ANALIZAR PDF'}
-              </button>
-            </div>
-          </section>
-        {/if}
-
         <!-- Main Info Card -->
         <section class="bg-zinc-900/30 border border-zinc-800/50 rounded-none overflow-hidden backdrop-blur-sm shadow-2xl">
           <div class="bg-gradient-to-r from-violet-600/10 to-transparent p-8 border-b border-zinc-800/50">

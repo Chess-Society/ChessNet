@@ -34,7 +34,7 @@ export const actions: Actions = {
 
     try {
       const doc = await adminDb.collection('skills').doc(id).get();
-      if (!doc.exists || (doc.data()?.ownerId !== locals.user.uid && doc.data()?.ownerId !== locals.user.uid)) {
+      if (!doc.exists || doc.data()?.ownerId !== locals.user.uid) {
         return fail(403);
       }
       await adminDb.collection('skills').doc(id).delete();
@@ -57,7 +57,7 @@ export const actions: Actions = {
       for (const id of ids) {
         const docRef = adminDb.collection('skills').doc(id);
         const doc = await docRef.get();
-        if (doc.exists && (doc.data()?.ownerId === locals.user.uid || doc.data()?.ownerId === locals.user.uid)) {
+        if (doc.exists && doc.data()?.ownerId === locals.user.uid) {
           batch.delete(docRef);
         }
       }
@@ -74,10 +74,7 @@ export const actions: Actions = {
     try {
       const uid = locals.user.uid;
       const snap = await adminDb.collection('skills')
-        .where(Filter.or(
-          Filter.where('ownerId', '==', uid),
-          Filter.where('ownerId', '==', uid)
-        ))
+        .where('ownerId', '==', uid)
         .get();
       
       const batch = adminDb.batch();
@@ -133,126 +130,6 @@ export const actions: Actions = {
       console.error('Error reordering skills:', err);
       return fail(500);
     }
-  },
-
-  importAI: async (event) => {
-    const { locals, request } = event;
-    if (!locals.user) return fail(401);
-
-    // check premium
-    const plan = await getUserPlan(locals.user.uid);
-    if (plan !== 'premium' && !locals.isAdmin) {
-      return fail(403, { message: 'Esta funcionalidad es exclusiva para usuarios Premium' });
-    }
-
-    try {
-      const formData = await request.formData();
-      const file = formData.get('file') as File;
-
-      if (!file) {
-        return fail(400, { message: 'No se subió ningún archivo' });
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      
-      let pdfText = '';
-      try {
-          let parse: any = null;
-          if (typeof pdf === 'function') {
-              parse = pdf;
-          } else if (pdf && typeof pdf.default === 'function') {
-              parse = pdf.default;
-          } else if (pdf && typeof pdf === 'object') {
-              parse = pdf.default || pdf;
-              if (typeof parse !== 'function' && Object.keys(pdf).length > 0) {
-                 const firstKey = Object.keys(pdf).find(k => typeof pdf[k] === 'function');
-                 if (firstKey) parse = pdf[firstKey];
-              }
-          }
-
-          if (typeof parse !== 'function') {
-               throw new Error('PDF parsing library was not initialized correctly');
-          }
-
-          let pdfData: any;
-          try {
-              pdfData = await parse(buffer);
-          } catch (e: any) {
-              if (e.message?.includes("without 'new'") || e.message?.includes("is not a constructor")) {
-                  pdfData = await (new parse(buffer));
-              } else {
-                  throw e;
-              }
-          }
-          
-          pdfText = pdfData.text;
-      } catch (pdfError: any) {
-          return fail(400, { message: 'No se pudo leer el PDF: ' + pdfError.message });
-      }
-
-      const systemPrompt = `
-        Eres un experto coordinador académico de ajedrez. Tu tarea es extraer el temario de un documento PDF.
-        
-        Debes devolver un OBJETO JSON con la propiedad "skills" que sea un ARRAY de objetos.
-        Cada objeto de "skills" debe tener:
-        - name: Nombre de la lección
-        - description: Descripción pedagógica breve.
-        - category: Una de estas categorías exactas: "Táctica", "Estrategia", "Aperturas", "Finales", "Historia".
-        - level: "beginner", "intermediate", o "advanced".
-        - difficulty: Número del 1 al 5.
-        - learningObjectives: Array de strings con objetivos.
-        - resources: Array de strings con términos de búsqueda para recursos.
-        
-        IMPORTANTE:
-        1. El idioma de salida debe ser el MISMO que el de entrada (Español predominante).
-        2. No añadas Markdown. Solo el JSON puro.
-      `;
-
-      const userPrompt = `Texto extraído del PDF:\n\n${pdfText.substring(0, 30000)}`;
-
-      const resultText = await askDeepSeek(systemPrompt, userPrompt);
-      
-      let cleanedJson = resultText.trim();
-      if (cleanedJson.startsWith('```')) {
-          cleanedJson = cleanedJson.replace(/```(json)?|```/g, '').trim();
-      }
-
-      const parsed = JSON.parse(cleanedJson);
-      const rawSkills = Array.isArray(parsed.skills) ? parsed.skills : (Array.isArray(parsed) ? parsed : []);
-
-      if (rawSkills.length === 0) {
-          return fail(422, { message: 'No se detectaron lecciones de ajedrez en este PDF' });
-      }
-
-      const batch = adminDb.batch();
-      const processedSkills = rawSkills.map((s: any, idx: number) => {
-          const ref = adminDb.collection('skills').doc();
-          const skillData = {
-              name: s.name || 'Sin título',
-              description: s.description || '',
-              category: s.category || 'Táctica',
-              level: s.level || 'beginner',
-              difficulty: Number(s.difficulty) || 1,
-              learningObjectives: Array.isArray(s.learningObjectives || s.learning_objectives) ? (s.learningObjectives || s.learning_objectives) : [],
-              orderIndex: idx,
-              resources: Array.isArray(s.resources) ? s.resources : [],
-              ownerId: locals.user.uid,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              active: true
-          };
-          batch.set(ref, skillData);
-          return { id: ref.id, ...skillData };
-      });
-
-      await batch.commit();
-      return { success: true, count: processedSkills.length };
-
-    } catch (error: any) {
-      console.error('❌ [ImportAI] Error:', error);
-      return fail(500, { message: error.message });
-    }
   }
 };
 
@@ -267,22 +144,14 @@ export const load: PageServerLoad = async (event) => {
 
   try {
     let skillsSnap = await adminDb.collection("skills")
-        .where(Filter.or(
-          Filter.where("ownerId", "==", locals.user.uid),
-          Filter.where("ownerId", "==", locals.user.uid)
-        ))
+        .where("ownerId", "==", locals.user.uid)
         .get();
 
     const skills = (skillsSnap?.docs || []).map((doc: any) => {
       const data = doc.data() || {};
       
       // Map difficulty safely
-      let difficulty = data.difficulty;
-      if (typeof difficulty === 'number') {
-        if (difficulty === 1) difficulty = 'beginner';
-        else if (difficulty === 2) difficulty = 'intermediate';
-        else if (difficulty === 3) difficulty = 'advanced';
-      }
+      let difficulty = data.difficulty || 1;
       
       // Robust date parsing
       let createdAt = new Date().toISOString();
@@ -305,7 +174,7 @@ export const load: PageServerLoad = async (event) => {
         id: doc.id, 
         ...data,
         name: data.name || 'Untitled Skill',
-        difficulty: difficulty || 'beginner',
+        difficulty: difficulty,
         category: data.category || 'General',
         createdAt: createdAt
       };
@@ -322,9 +191,9 @@ export const load: PageServerLoad = async (event) => {
 
     const stats = {
       total: skills.length,
-      beginner: skills.filter((s: any) => s.difficulty === 'beginner').length,
-      intermediate: skills.filter((s: any) => s.difficulty === 'intermediate').length,
-      advanced: skills.filter((s: any) => s.difficulty === 'advanced').length
+      beginner: skills.filter((s: any) => (s.difficulty || 0) <= 2).length,
+      intermediate: skills.filter((s: any) => (s.difficulty || 0) === 3).length,
+      advanced: skills.filter((s: any) => (s.difficulty || 0) >= 4).length
     };
 
     // Get unique categories

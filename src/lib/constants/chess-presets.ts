@@ -5,7 +5,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   // 1. TÁCTICA – CORTO PLAZO
   {
     name: '1.1 Táctica Básica',
-    categoryId: 'tactica',
+    categoryId: 'tactics',
     description: 'Fundamentos tácticos esenciales: clavada, ataques dobles, descubierta, etc.',
     level: 'beginner',
     difficulty: 2,
@@ -16,7 +16,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   },
   {
     name: '1.2 Patrones Tácticos',
-    categoryId: 'tactica',
+    categoryId: 'tactics',
     description: 'Esquemas típicos de mate y combinaciones (Anastasia, Boden, Lucena medio juego, etc.).',
     level: 'intermediate',
     difficulty: 3,
@@ -27,7 +27,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   },
   {
     name: '1.3 Combinaciones Complejas',
-    categoryId: 'tactica',
+    categoryId: 'tactics',
     description: 'Secuencias forzadas largas que incluyen sacrificios múltiples.',
     level: 'advanced',
     difficulty: 5,
@@ -40,7 +40,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   // 2. ESTRATEGIA
   {
     name: '2.1 Valoración Comprensiva',
-    categoryId: 'estrategia',
+    categoryId: 'strategy',
     description: 'Evaluación objetiva de la posición: material, espacio, desarrollo y seguridad del rey.',
     level: 'intermediate',
     difficulty: 3,
@@ -56,7 +56,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   },
   {
     name: '2.2 Maniobras de Piezas (Método Caselas)',
-    categoryId: 'estrategia',
+    categoryId: 'strategy',
     description: 'Técnicas de mejora posicional y estructural basadas en el método de Jacobo Caselas.',
     level: 'advanced',
     difficulty: 4,
@@ -71,7 +71,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   },
   {
     name: '2.3 Restricción y Profilaxis',
-    categoryId: 'estrategia',
+    categoryId: 'strategy',
     description: 'Pensamiento preventivo para limitar las opciones del rival antes de ejecutar el plan propio.',
     level: 'advanced',
     difficulty: 5,
@@ -88,7 +88,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   // 3. CÁLCULO
   {
     name: '3.1 Cálculo de Variantes (Aagaard)',
-    categoryId: 'calculo',
+    categoryId: 'strategy',
     description: 'Sistematización del cálculo profundo usando técnicas de Jacob Aagaard.',
     level: 'advanced',
     difficulty: 5,
@@ -105,7 +105,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   // 4. FINALES
   {
     name: '4.1 Finales de Peones Básicos',
-    categoryId: 'finales',
+    categoryId: 'endgames',
     description: 'Regla del cuadrado, oposición y triangulación.',
     level: 'beginner',
     difficulty: 2,
@@ -116,7 +116,7 @@ export const CHESS_SYLLABUS_PRESETS: CreateSkillForm[] = [
   },
   {
     name: '4.2 Finales de Torres: Lucena y Philidor',
-    categoryId: 'finales',
+    categoryId: 'endgames',
     description: 'Las dos posiciones fundamentales que todo jugador debe conocer.',
     level: 'intermediate',
     difficulty: 4,

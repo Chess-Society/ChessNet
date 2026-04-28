@@ -58,9 +58,7 @@
   let searchQuery = $state('');
   let selectedCategory = $state('all');
   let hoveredSkillId = $state<string | null>(null);
-  let isExtractingAI = $state(false);
   let isImporting = $state(false);
-  let extractionProgress = $state(0);
   let showImportModal = $state(false);
   let isGrouped = $state(true);
   let fileInput = $state<HTMLInputElement>();
@@ -115,7 +113,7 @@
   const stats = $derived({
     total: skills.length,
     mastered: skills.filter((s) => (s.studentsMastered || 0) > 0).length,
-    advanced: skills.filter((s) => s.level === 'advanced').length,
+    advanced: skills.filter((s) => (Number(s.difficulty) || 0) >= 4).length,
     hours: skills.reduce((acc, s) => acc + (Number(s.estimatedHours) || 0), 0)
   });
 
@@ -128,7 +126,6 @@
 
   let reorderingsData = $state<string>('[]');
   let importData = $state<string>('');
-  let importAIForm = $state<HTMLFormElement | null>(null);
 
   const deleteSkill = async (id: string, name: string) => {
     const confirmed = await uiStore.confirm({
@@ -160,32 +157,6 @@
     }
   };
 
-  const handlePDFUpload = (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (file) extractFromPDF(file);
-  };
-
-  const extractFromPDF = async (file: File) => {
-    const isPremium = data.user?.plan === 'premium';
-    
-    if (!isPremium) {
-      toast.error($t('pricing.premium.required'));
-      return;
-    }
-
-    if (importAIForm) {
-      // Need to manually set the file input since we're using a hidden form for submission
-      // but we can also just use a normal form for this one since it's a file upload.
-      // However, to keep it consistent with the "hidden form" pattern:
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      const input = importAIForm.querySelector('input[type="file"]') as HTMLInputElement;
-      if (input) {
-        input.files = dataTransfer.files;
-        importAIForm.requestSubmit();
-      }
-    }
-  };
 
   const getResourceType = (resource: string) => {
     if (resource.includes('youtube.com') || resource.includes('vimeo')) return 'video';
@@ -210,10 +181,20 @@
   };
 
   const getDifficultyColor = (diff: any) => {
-    const d = Number(diff) || (diff === 'beginner' ? 1 : diff === 'intermediate' ? 3 : 5);
-    if (d <= 2) return 'from-violet-500/20 to-violet-500/5 text-violet-400 border-violet-500/20';
-    if (d <= 4) return 'from-orange-500/20 to-orange-500/5 text-orange-400 border-orange-500/20';
-    return 'from-rose-500/20 to-rose-500/5 text-rose-400 border-rose-500/20';
+    const d = typeof diff === 'number' ? diff : (diff === 'beginner' ? 1 : diff === 'intermediate' ? 3 : 5);
+    if (d <= 2) return 'border-emerald-500/20 text-emerald-400';
+    if (d <= 4) return 'border-amber-500/20 text-amber-400';
+    return 'border-rose-500/20 text-rose-400';
+  };
+
+  const getDifficultyLabel = (diff: any, level?: string) => {
+    if (level) return level;
+    const d = typeof diff === 'number' ? diff : (diff === 'beginner' ? 1 : diff === 'intermediate' ? 3 : 5);
+    if (d <= 1) return $t('skills.difficulty.entry');
+    if (d <= 2) return $t('skills.difficulty.novice');
+    if (d <= 3) return $t('skills.difficulty.intermediate');
+    if (d <= 4) return $t('skills.difficulty.advanced');
+    return $t('skills.difficulty.master');
   };
 
   // Bulk Selection Logic
@@ -392,27 +373,6 @@
   <input type="hidden" name="reorderings" value={reorderingsData} />
 </form>
 
-<form 
-  method="POST" 
-  action="?/importAI" 
-  enctype="multipart/form-data" 
-  use:enhance={() => {
-    isExtractingAI = true;
-    extractionProgress = 20;
-    return async ({ result }) => {
-      isExtractingAI = false;
-      if (result.type === 'success') {
-        toast.success($t('skills.ui.extraction_complete'));
-      } else if (result.type === 'failure') {
-        toast.error(result.data?.message || $t('common.error.generic'));
-      }
-    };
-  }} 
-  bind:this={importAIForm} 
-  class="hidden"
->
-  <input type="file" name="file" />
-</form>
 
 <svelte:head>
   <title>{$t('skills.title')} - ChessNet</title>
@@ -451,18 +411,13 @@
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <!-- Main AI Import CTA -->
         <button 
-          onclick={() => showImportModal = true}
-          class="relative px-10 py-5 rounded-none bg-zinc-950 text-white border border-violet-500/30 shadow-[0_0_40px_rgba(139,92,246,0.1)] hover:shadow-[0_0_60px_rgba(139,92,246,0.2)] hover:border-violet-500 transition-all flex items-center justify-center gap-4 text-xs font-black tracking-[0.2em] uppercase group overflow-hidden active:scale-95"
+          onclick={() => handleImportSyllabus()}
+          class="px-10 py-5 rounded-none bg-zinc-950 text-white border border-white/10 shadow-2xl hover:border-violet-500/50 transition-all flex items-center justify-center gap-4 text-xs font-black tracking-[0.2em] uppercase group overflow-hidden active:scale-95"
         >
-          <div class="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-transparent to-indigo-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div class="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-20deg] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-          
           <div class="relative flex items-center gap-3">
-            <Sparkle weight="fill" class="w-5 h-5 text-violet-400 group-hover:rotate-[30deg] transition-transform duration-500" />
+            <Lightning weight="fill" class="w-5 h-5 text-amber-400" />
             <span class="italic">{$t('skills.import_title')}</span>
           </div>
-          
-          <div class="px-2 py-0.5 bg-violet-600 text-white text-[8px] font-black rounded-none shadow-lg">BETA AI</div>
         </button>
 
         <button 
@@ -484,22 +439,22 @@
       
       <div class="relative w-24 h-24 bg-zinc-950 flex items-center justify-center border border-white/10 shadow-2xl">
         <div class="absolute inset-2 border border-violet-500/20 animate-pulse"></div>
-        <FilePdf weight="duotone" class="w-12 h-12 text-violet-400" />
+        <Target weight="duotone" class="w-12 h-12 text-violet-400" />
       </div>
 
       <div class="space-y-4 max-w-xl relative z-10">
-        <h2 class="text-3xl font-black text-white uppercase italic tracking-tighter">{$t('skills.ui.import_pdf') || 'Analysis de PDF con IA'}</h2>
+        <h2 class="text-3xl font-black text-white uppercase italic tracking-tighter">{$t('skills.ui.no_skills_title') || 'TU ACADEMIA ESTÁ VACÍA'}</h2>
         <p class="text-zinc-500 font-medium leading-relaxed">
-          {$t('skills.ui.import_pdf_subtitle') || 'Sube el temario de tu escuela en PDF y nuestra IA extraerá automáticamente todas las lecciones, objetivos y recursos por ti.'}
+          {$t('skills.ui.no_skills_subtitle') || 'Comienza creando tu primera lección o importa un temario completo de ajedrez.'}
         </p>
       </div>
 
       <button 
-        onclick={() => showImportModal = true}
+        onclick={() => handleImportSyllabus()}
         class="bg-violet-600 hover:bg-violet-500 text-white px-12 py-5 rounded-none font-black uppercase tracking-[0.3em] text-[10px] shadow-[0_15px_40px_rgba(139,92,246,0.3)] transition-all active:scale-95 flex items-center gap-4"
       >
-        <Sparkle weight="fill" class="w-4 h-4" />
-        {$t('skills.ui.extract_ai') || 'COMENZAR ANÁLISIS'}
+        <Lightning weight="fill" class="w-4 h-4" />
+        {$t('skills.import_cta')}
       </button>
     </div>
   {/if}
@@ -569,31 +524,6 @@
   </div>
 
   <!-- AI Progress Indicator (Visible when extracting) -->
-  {#if isExtractingAI}
-    <div class="relative group overflow-hidden bg-zinc-900/60 backdrop-blur-xl border border-white/5 rounded-none p-1 shadow-2xl transition-all" transition:slide>
-      <div class="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-transparent to-blue-600/10 opacity-100"></div>
-      <div class="relative bg-zinc-950/80 rounded-none p-8 flex flex-col md:flex-row items-center justify-between gap-10">
-        <div class="flex items-center gap-6 flex-1">
-          <div class="w-16 h-16 bg-violet-600/20 rounded-none flex items-center justify-center text-violet-500">
-            <Brain weight="fill" class="w-8 h-8 animate-pulse" />
-          </div>
-          <div class="space-y-1">
-            <h3 class="text-xl font-outfit font-black text-white uppercase tracking-tight">{$t('skills.ai_analyzing') || 'EXTRAYENDO CONTENIDO'}</h3>
-            <p class="text-xs font-jakarta font-medium text-zinc-400">{$t('skills.ai_analyzing_desc') || 'Nuestro motor de IA está procesando el archivo PDF para generar las lecciones.'}</p>
-          </div>
-        </div>
-        <div class="w-full md:w-80 space-y-3">
-          <div class="flex justify-between text-[10px] font-black text-violet-400 uppercase tracking-widest">
-            <span>{Math.round(extractionProgress)}%</span>
-            <span>ANALIZANDO...</span>
-          </div>
-          <div class="h-2 bg-zinc-900 rounded-none border border-white/5 p-0.5 overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-violet-600 to-blue-500 rounded-none transition-all duration-300" style="width: {extractionProgress}%"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  {/if}
 
   <!-- Search & Toggles -->
   <div class="sticky top-6 z-40">
@@ -725,34 +655,6 @@
       <div class="flex flex-col sm:flex-row items-center gap-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl px-6">
         <button 
-          onclick={() => showImportModal = true}
-          class="group p-8 bg-zinc-900/50 border border-white/5 hover:border-violet-500/30 transition-all flex flex-col items-center gap-6 text-center shadow-2xl relative overflow-hidden"
-        >
-          <div class="absolute inset-0 bg-gradient-to-tr from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          
-          <div class="w-16 h-16 bg-violet-600/10 text-violet-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 relative">
-            <Brain weight="fill" class="w-8 h-8" />
-            <Sparkle weight="fill" class="w-4 h-4 absolute -top-1 -right-1 animate-pulse text-white" />
-          </div>
-          <div>
-            <h4 class="text-white font-black uppercase tracking-tighter text-xl italic mb-2 flex items-center justify-center gap-2">
-              {$t('skills.ui.import_pdf')}
-              <span class="px-1.5 py-0.5 bg-violet-500 text-black text-[8px] font-black not-italic tracking-normal">AI</span>
-            </h4>
-            <p class="text-zinc-500 text-xs font-bold leading-relaxed">{$t('skills.ui.import_pdf_subtitle')}</p>
-          </div>
-          <div class="mt-auto pt-6 w-full">
-             <div class="w-full py-4 bg-violet-600 text-white font-black uppercase tracking-widest text-[10px] group-hover:bg-violet-500 transition-colors flex items-center justify-center gap-2 relative">
-               <Sparkle weight="fill" class="w-4 h-4" />
-               {$t('skills.ui.extract_ai')}
-               <div class="absolute inset-0 overflow-hidden">
-                 <div class="animate-[shimmer_2s_infinite] absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg]"></div>
-               </div>
-             </div>
-          </div>
-        </button>
-
-        <button 
           onclick={() => handleImportSyllabus()}
           class="group p-8 bg-zinc-900/50 border border-white/5 hover:border-amber-500/30 transition-all flex flex-col items-center gap-6 text-center shadow-2xl"
         >
@@ -842,75 +744,6 @@
     </div>
   {/if}
 
-  <!-- Import Selection Modal -->
-  {#if showImportModal}
-    <div class="fixed inset-0 z-[200] flex items-center justify-center p-6" transition:fade>
-      <div 
-        class="absolute inset-0 bg-black/90 backdrop-blur-sm" 
-        onclick={() => showImportModal = false}
-        onkeydown={(e) => e.key === 'Escape' && (showImportModal = false)}
-        role="button"
-        tabindex="-1"
-      ></div>
-      
-      <div 
-        class="relative w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-none shadow-[0_50px_100px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col md:flex-row"
-        in:fly={{ y: 20, duration: 600, easing: cubicOut }}
-      >
-        <!-- AI Option -->
-        <div class="flex-1 p-10 space-y-8 border-b md:border-b-0 md:border-r border-white/5 group hover:bg-violet-500/5 transition-colors">
-          <div class="w-16 h-16 bg-violet-600/10 text-violet-400 flex items-center justify-center rounded-none mb-6 group-hover:scale-110 transition-transform duration-500">
-            <FilePdf weight="duotone" class="w-10 h-10" />
-          </div>
-          <div class="space-y-4">
-            <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter group-hover:text-violet-300 transition-colors">{$t('skills.ui.import_pdf')}</h3>
-            <p class="text-zinc-500 font-medium leading-relaxed">{$t('skills.ui.import_pdf_subtitle')}</p>
-          </div>
-          
-          <div class="pt-6">
-            <input type="file" accept=".pdf" class="hidden" bind:this={fileInput} onchange={(e) => { handlePDFUpload(e); showImportModal = false; }} />
-            <button 
-              onclick={() => fileInput?.click()}
-              class="w-full py-5 bg-white text-black font-black uppercase tracking-widest text-[10px] hover:bg-violet-500 hover:text-white transition-all shadow-xl flex items-center justify-center gap-3 active:scale-95"
-            >
-              <Sparkle weight="fill" class="w-4 h-4" />
-              {$t('skills.ui.extract_ai')}
-            </button>
-          </div>
-        </div>
-
-        <!-- Presets Option -->
-        <div class="flex-1 p-10 space-y-8 group hover:bg-amber-500/5 transition-colors">
-          <div class="w-16 h-16 bg-amber-500/10 text-amber-400 flex items-center justify-center rounded-none mb-6 group-hover:scale-110 transition-transform duration-500">
-            <Stack weight="duotone" class="w-10 h-10" />
-          </div>
-          <div class="space-y-4">
-            <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter group-hover:text-amber-300 transition-colors">{$t('skills.import_title')}</h3>
-            <p class="text-zinc-500 font-medium leading-relaxed">{$t('skills.import_confirm')}</p>
-          </div>
-          
-          <div class="pt-6">
-            <button 
-              onclick={() => { handleImportSyllabus(); showImportModal = false; }}
-              class="w-full py-5 bg-zinc-900 text-white border border-white/5 font-black uppercase tracking-widest text-[10px] hover:bg-zinc-800 transition-all flex items-center justify-center gap-3 active:scale-95"
-            >
-              <Lightning weight="fill" class="w-4 h-4 text-amber-400" />
-              {$t('skills.import_cta')}
-            </button>
-          </div>
-        </div>
-
-        <!-- Close -->
-        <button 
-          onclick={() => showImportModal = false}
-          class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center text-zinc-600 hover:text-white transition-colors"
-          aria-label="Close"
-        >
-          <X weight="bold" class="w-6 h-6" />
-        </button>
-      </div>
-    </div>
-  {/if}
 </div>
 
 {#snippet SkillCardComp({ skill, getDifficultyColor, getResourceType, getResourceIcon, getResourceLabel, deleteSkill }: { skill: SkillWithDetails, getDifficultyColor: (d: any) => string, getResourceType: (r: string) => string, getResourceIcon: (t: string) => any, getResourceLabel: (t: string) => string, deleteSkill: (id: string, name: string) => void })}
@@ -950,7 +783,7 @@
           </button>
         {/if}
         <div class="px-3 py-1 rounded-none text-[9px] font-black uppercase tracking-widest border {getDifficultyColor(skill.difficulty)} bg-black/20 font-outfit">
-          {skill.level || $t('skills.status_mastered')}
+          {getDifficultyLabel(skill.difficulty, skill.level)}
         </div>
       </div>
       

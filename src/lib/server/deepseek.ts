@@ -4,8 +4,8 @@ export async function askDeepSeek(userPrompt: string, systemPrompt: string) {
     const apiKey = env.DEEPSEEK_API_KEY;
     
     if (!apiKey) {
-        console.error('❌ DEEPSEEK_API_KEY is missing in environment variables (runtime)');
-        throw new Error('Configuración de IA incompleta: DEEPSEEK_API_KEY no encontrada.');
+        console.error("❌ DEEPSEEK_API_KEY no configurada.");
+        throw new Error("El servicio de Inteligencia Artificial no está configurado (falta API Key). Contacte con soporte.");
     }
     
     try {

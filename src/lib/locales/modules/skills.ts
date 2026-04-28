@@ -66,6 +66,7 @@ export const es = {
     'skills.skill_category': 'Categoría',
     'skills.reorder_success': 'Habilidades reordenadas con éxito',
     'skills.mastered': 'DOMINADO',
+    'skills.category.basics': 'Fundamentos',
     'skills.category.opening': 'Apertura',
     'skills.category.tactics': 'Táctica',
     'skills.category.endgame': 'Finales',
