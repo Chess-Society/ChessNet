@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/private';
 
-export async function askDeepSeek(systemPrompt: string, userPrompt: string) {
+export async function askDeepSeek(userPrompt: string, systemPrompt: string) {
     const apiKey = env.DEEPSEEK_API_KEY;
     
     if (!apiKey) {
@@ -18,10 +18,7 @@ export async function askDeepSeek(systemPrompt: string, userPrompt: string) {
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt }
-            ],
-            response_format: {
-                type: 'json_object'
-            }
+            ]
         })
     });
 

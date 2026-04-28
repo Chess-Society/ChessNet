@@ -4,10 +4,7 @@ import { getAuth } from 'firebase-admin/auth';
 
 export { Filter };
 export function ownerFilter(uid: string) {
-    return Filter.or(
-        Filter.where('ownerId', '==', uid),
-        Filter.where('ownerId', '==', uid)
-    );
+    return Filter.where('ownerId', '==', uid);
 }
 import { env as privateEnv } from '$env/dynamic/private';
 import { PUBLIC_FIREBASE_PROJECT_ID } from '$env/static/public';

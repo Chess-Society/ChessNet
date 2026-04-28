@@ -44,7 +44,16 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   } catch (err: any) {
     console.error('❌ Error in edit student page:', err);
     if (err.status) throw err;
-    throw error(404, 'Student not found or error loading data');
+    
+    // Si el error contiene "FAILED_PRECONDITION" y un link, es un índice faltante
+    if (err.message?.includes('FAILED_PRECONDITION')) {
+      throw error(500, {
+        message: 'Error de base de datos (posible índice faltante). Revisa los logs de Netlify.',
+        details: err.message
+      });
+    }
+    
+    throw error(err.status || 500, err.message || 'Error loading data');
   }
 };
 
