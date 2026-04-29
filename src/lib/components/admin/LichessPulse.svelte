@@ -14,12 +14,12 @@
     <div class="space-y-1">
       <div class="inline-flex items-center gap-2 px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 text-[8px] font-mono font-black text-blue-400 uppercase tracking-widest">
         <Pulse size={10} weight="bold" />
-        LICHESS_GLOBAL_PULSE
+        LICHESS GLOBAL PULSE
       </div>
       <h3 class="text-2xl font-black font-display uppercase italic tracking-tighter text-white">{$t('admin.stats.performance_title')}</h3>
     </div>
     <div class="px-4 py-2 bg-white/5 border border-white/10 text-[9px] font-mono font-black uppercase tracking-widest text-slate-600">
-      SYSTEM_NOMINAL
+      SYSTEM NOMINAL
     </div>
   </div>
 
@@ -29,7 +29,7 @@
         <div class="absolute -right-4 -bottom-4 opacity-[0.02]">
           <ChartLineUp size={100} weight="fill" />
         </div>
-        <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-[0.2em] mb-4">METRIC_PENDING</p>
+        <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-[0.2em] mb-4">METRIC PENDING</p>
         <div class="flex items-end justify-between relative z-10">
           <h4 class="text-4xl font-black font-display italic text-white/10 tracking-tighter">--</h4>
           <div class="flex items-center gap-1 mb-1 opacity-20">
@@ -48,9 +48,9 @@
       <div class="flex items-center justify-between relative z-10">
         <p class="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
           <Trophy size={14} class="text-amber-500/20" />
-          TOP_PERFORMERS_SNAPSHOT
+          TOP PERFORMERS SNAPSHOT
         </p>
-        <span class="text-[8px] font-mono font-black text-slate-800 uppercase">NO_ACTIVE_DATA</span>
+        <span class="text-[8px] font-mono font-black text-slate-800 uppercase">NO ACTIVE DATA</span>
       </div>
 
       <div class="h-48 flex flex-col items-center justify-center border border-dashed border-white/5 relative z-10">
@@ -63,14 +63,14 @@
       <div class="space-y-6 relative z-10">
         <p class="text-[10px] font-mono font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
           <Pulse size={14} class="text-blue-500/20" />
-          NETWORK_ACTIVITY
+          NETWORK ACTIVITY
         </p>
         
         <div class="space-y-4 opacity-30">
           <div class="flex gap-3">
             <div class="w-1 bg-slate-800"></div>
             <div>
-              <p class="text-[9px] font-mono font-black text-slate-700 uppercase tracking-tighter">LISTENING_FOR_EVENTS</p>
+              <p class="text-[9px] font-mono font-black text-slate-700 uppercase tracking-tighter">LISTENING FOR EVENTS</p>
               <p class="text-[10px] text-slate-800 leading-tight mt-1">Conexión con Lichess establecida. Esperando eventos del oráculo...</p>
             </div>
           </div>
@@ -78,7 +78,7 @@
       </div>
 
       <button disabled class="w-full py-4 bg-white/5 border border-white/10 text-slate-700 text-[10px] font-black uppercase tracking-widest mt-8 cursor-not-allowed">
-        FORCE_SYNC_DISABLED
+        FORCE SYNC DISABLED
       </button>
     </div>
   </div>

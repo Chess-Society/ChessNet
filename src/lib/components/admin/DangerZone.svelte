@@ -26,8 +26,8 @@
         <Shield weight="fill" size={24} />
       </div>
       <div>
-        <h2 class="text-3xl font-black font-display uppercase italic tracking-tighter text-white">PROTOCOL_DANGER_ZONE</h2>
-        <p class="text-[10px] font-mono font-black text-slate-600 uppercase tracking-widest mt-1">NIVEL DE ACCESO: OMEGA (ADMINISTRADOR_SISTEMA)</p>
+        <h2 class="text-3xl font-black font-display uppercase italic tracking-tighter text-white">PROTOCOL DANGER ZONE</h2>
+        <p class="text-[10px] font-mono font-black text-slate-600 uppercase tracking-widest mt-1">NIVEL DE ACCESO: OMEGA (ADMINISTRADOR SISTEMA)</p>
       </div>
     </div>
     <div class="h-1 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 opacity-30"></div>
@@ -63,9 +63,9 @@
           <div class="p-3 bg-violet-500/10 text-violet-400 border border-violet-500/20">
             <ArrowCounterClockwise weight="bold" size={20} />
           </div>
-          <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">SISTEMA_INTEGRIDAD</span>
+          <span class="text-[9px] font-mono font-black text-slate-600 uppercase tracking-widest">SISTEMA INTEGRIDAD</span>
         </div>
-        <h4 class="text-sm font-black text-white uppercase italic mb-2">REPARAR_ESTRUCTURA_USUARIOS</h4>
+        <h4 class="text-sm font-black text-white uppercase italic mb-2">REPARAR ESTRUCTURA USUARIOS</h4>
         <p class="text-[10px] text-slate-600 leading-relaxed uppercase">SINCRONIZA CAMPOS FALTANTES Y NORMALIZA EL ESQUEMA DE DATOS FIRESTORE.</p>
       </button>
     </div>
@@ -74,10 +74,10 @@
 
   <!-- Security Footer -->
   <div class="pt-8 border-t border-white/5 flex items-center justify-between">
-    <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest">ChessNet_OS_SECURITY_PROTOCOLS // V4.1.2</p>
+    <p class="text-[8px] font-mono font-black text-slate-700 uppercase tracking-widest">ChessNet OS SECURITY PROTOCOLS // V4.1.2</p>
     <div class="flex items-center gap-4">
       <div class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
-      <span class="text-[8px] font-mono font-black text-red-500 uppercase tracking-widest">RECORDING_ADMIN_ACTION</span>
+      <span class="text-[8px] font-mono font-black text-red-500 uppercase tracking-widest">RECORDING ADMIN ACTION</span>
     </div>
   </div>
   

@@ -27,9 +27,66 @@ export function setupListeners(store: Writable<AppState>, user: any) {
   // Developer Bypass Handling — full premium access, no Firestore needed
   if (user?.uid === 'antigravity-dev-worker') {
     console.info('🛠️ [AppStore] Developer Bypass Active: Premium plan granted, real-time listeners disabled.');
+    
+    // Mock reports for support panel testing
+    const mockReports = [
+      {
+        id: 'mock-ticket-1',
+        title: 'Prueba de Soporte Técnico',
+        content: 'Esto es un ticket de prueba generado automáticamente para el modo desarrollador.',
+        type: 'technical',
+        status: 'open',
+        createdAt: new Date().toISOString(),
+        authorId: user.uid
+      },
+      {
+        id: 'mock-ticket-2',
+        title: 'Solicitud de Director (Ejemplo)',
+        content: 'Solicito el rol de director para mi escuela de ajedrez.',
+        type: 'director_request',
+        schoolName: 'Academia Dev Master',
+        status: 'open',
+        adminResponse: 'Hola, estamos revisando tu solicitud. Por favor, espera confirmación.',
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        authorId: user.uid
+      }
+    ];
+
+    // Mock students for dashboard testing
+    const mockStudents = [
+      {
+        id: 'dev-student-1',
+        firstName: 'Alumno',
+        lastName: 'Demo',
+        name: 'Alumno Demo',
+        level: 'Intermedio',
+        active: true,
+        lichessUsername: 'MagnusCarlsen',
+        notes: 'Este es un alumno de prueba.',
+        ownerId: user.uid,
+        schoolId: 'dev-school',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    // Mock schools for testing
+    const mockSchools = [
+      {
+        id: 'dev-school',
+        ownerId: user.uid,
+        name: 'Academia Dev Master',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
     update(s => ({
       ...s,
       initialized: true,
+      reports: mockReports,
+      students: mockStudents,
+      schools: mockSchools,
       settings: {
         ...s.settings,
         plan: 'premium',

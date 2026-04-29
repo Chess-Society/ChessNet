@@ -912,7 +912,7 @@
           <button 
             type="button" 
             class="w-full flex items-center gap-4 p-4 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-all text-left group"
-            onclick={() => { showSupportMenu = false; goto('/panel/support'); }}
+            onclick={() => { showSupportMenu = false; goto('/panel/projects'); }}
           >
             <Heart size={20} class="text-rose-500 group-hover:scale-110 transition-transform animate-pulse" />
             <div>

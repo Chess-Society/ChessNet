@@ -145,6 +145,10 @@
     return { label: $t('attendance.legend.critical'), color: 'text-red-400', bg: 'bg-red-500/10' };
   };
 
+  const formatLabel = (str: string | undefined | null) => {
+    if (!str) return '';
+    return str.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  };
 </script>
 
 <svelte:head>
@@ -393,9 +397,9 @@
                     {/if}
                   </div>
                   <div class="space-y-1">
-                    <h3 class="text-lg font-outfit font-black text-white group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-none">{student.name}</h3>
+                    <h3 class="text-lg font-outfit font-black text-white group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-none">{formatLabel(student.name)}</h3>
                     <div class="flex items-center gap-3">
-                      <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{student.level || $t('attendance.level_not_assigned')}</span>
+                      <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{formatLabel(student.level) || $t('attendance.level_not_assigned')}</span>
                       <span class="w-1 h-1 rounded-none bg-zinc-800"></span>
                       <span class="text-[9px] font-medium text-zinc-600 uppercase tracking-widest italic">ID: {student.id.slice(0, 5)}</span>
                     </div>

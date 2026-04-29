@@ -45,7 +45,7 @@
   <div class="lg:col-span-1 space-y-6">
     <div class="bg-black border border-white/10 p-8 rounded-none shadow-2xl relative overflow-hidden group">
       <div class="absolute top-0 right-0 p-4 opacity-5 font-mono text-[8px] leading-tight select-none">
-        SEC_LEVEL: 04<br/>
+        SEC LEVEL: 04<br/>
         ENCRYPTION: AES-256
       </div>
       
@@ -59,9 +59,9 @@
       <div class="space-y-6">
         <div class="flex items-center justify-between p-5 bg-white/[0.01] rounded-none border border-white/5">
           <div class="space-y-1">
-            <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">MAINT_STATUS</p>
+            <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">MAINT STATUS</p>
             <p class="text-[10px] font-mono font-black {maintenanceMode ? 'text-red-500' : 'text-emerald-500'} uppercase">
-              {maintenanceMode ? 'ACTIVE_PROTECT' : 'NOMINAL_OPER'}
+              {maintenanceMode ? 'ACTIVE PROTECT' : 'NOMINAL OPER'}
             </p>
           </div>
           <button 
@@ -73,13 +73,13 @@
         </div>
 
         <div class="p-5 bg-white/[0.01] rounded-none border border-white/5 space-y-4">
-          <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">DATA_INTEGRITY</p>
+          <p class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest">DATA INTEGRITY</p>
           <button 
             onclick={onRepairData}
             class="w-full py-4 bg-primary-500 text-black rounded-none text-[9px] font-mono font-black uppercase tracking-[0.2em] hover:bg-white transition-all flex items-center justify-center gap-3"
           >
             <Database weight="bold" class="w-4 h-4" />
-            REPAIR_INDICES
+            REPAIR INDICES
           </button>
         </div>
       </div>
@@ -154,11 +154,11 @@
     <div class="px-8 py-5 bg-white/[0.01] border-t border-white/10 text-[8px] font-mono font-black text-slate-800 flex justify-between items-center uppercase tracking-[0.2em]">
       <div class="flex items-center gap-6">
         <span>INSTANCE: PRODUCTION</span>
-        <span>MODE: CLOUD_FS</span>
+        <span>MODE: CLOUD FS</span>
       </div>
       <div class="flex items-center gap-2 text-emerald-500/30">
         <div class="w-1.5 h-1.5 bg-emerald-500/50 rounded-none"></div>
-        <span>SYNC_ESTABLISHED</span>
+        <span>SYNC ESTABLISHED</span>
       </div>
     </div>
   </div>

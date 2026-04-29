@@ -67,6 +67,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const stats = {
       assigned: assignedSkills.length,
       available: availableSkills.length,
+      taught: assignedSkills.filter((s: any) => s.taught).length,
       byCategory: assignedSkills.reduce((acc: any, s: any) => {
         acc[s.category] = (acc[s.category] || 0) + 1;
         return acc;
@@ -185,6 +186,41 @@ export const actions: Actions = {
         }
       });
 
+      await batch.commit();
+      return { success: true };
+    } catch (e) {
+      console.error(e);
+      return fail(500);
+    }
+  },
+
+  toggleTaught: async ({ request, locals, params }) => {
+    if (!locals.user) return fail(401);
+    const uid = locals.user.uid;
+    const classId = params.classId;
+    const formData = await request.formData();
+    const skillId = formData.get('skillId') as string;
+    const taught = formData.get('taught') === 'true';
+
+    if (!skillId) return fail(400);
+
+    try {
+      const snap = await adminDb.collection("class_skills")
+        .where("ownerId", "==", uid)
+        .where("classId", "==", classId)
+        .where("skillId", "==", skillId)
+        .where("active", "==", true)
+        .get();
+
+      if (snap.empty) return fail(404);
+
+      const batch = adminDb.batch();
+      snap.docs.forEach((doc: any) => {
+        batch.update(doc.ref, { 
+          taught: !taught, 
+          taughtAt: !taught ? new Date().toISOString() : null 
+        });
+      });
       await batch.commit();
       return { success: true };
     } catch (e) {

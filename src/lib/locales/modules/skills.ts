@@ -114,5 +114,7 @@ export const es = {
     'skills.difficulty.advanced': 'Avanzado',
     'skills.difficulty.master': 'Maestro',
     'skills.edit.title': 'Editar Habilidad',
-    'skills.edit.subtitle': 'Actualiza los detalles y requisitos del módulo'
+    'skills.edit.subtitle': 'Actualiza los detalles y requisitos del módulo',
+    'skills.ui.no_skills_title': 'Academia Vacía',
+    'skills.ui.no_skills_subtitle': 'Inicia tu programa académico importando un temario o creando una lección desde cero.'
 };

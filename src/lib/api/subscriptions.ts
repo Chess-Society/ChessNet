@@ -26,17 +26,18 @@ const PLANS: SubscriptionPlan[] = [
     description: 'Perfecto para empezar o gestionar una pequeña escuela local.',
     price_annual: 0,
     currency: 'EUR',
-    max_students: 12,
-    max_classes: 2,
+    max_students: 10,
+    max_classes: 1,
     max_schools: 1,
     max_tournaments: 0,
     max_storage_mb: 50,
     max_custom_skills: 0,
     features: [
       '1 Centro / Escuela',
-      '2 Clases simultáneas',
-      'Hasta 12 Alumnos totales',
-      'Pase de lista y Asistencia'
+      '1 Clase (Grupo)',
+      'Hasta 10 Alumnos',
+      'Pase de lista y Asistencia',
+      'Informes básicos de alumno'
     ],
     is_active: true,
     sort_order: 1,
@@ -47,7 +48,7 @@ const PLANS: SubscriptionPlan[] = [
     id: 'plan-premium',
     name: 'premium',
     display_name: 'Maestro Premium',
-    description: 'Todas las herramientas sin límites para un control profesional total.',
+    description: 'Control total y profesional sin límites para directores y profesores.',
     price_monthly: 1,
     price_annual: 1,
     currency: 'EUR',
@@ -55,14 +56,14 @@ const PLANS: SubscriptionPlan[] = [
     max_classes: -1,
     max_schools: -1,
     max_tournaments: -1,
-    max_storage_mb: 2000,
+    max_storage_mb: 2048,
     max_custom_skills: -1,
     features: [
-      'Centros y Clases Ilimitados',
-      'Alumnos Ilimitados',
-      'Gestión de Torneos (Emparejamientos)',
-      'Informes PDF y Diplomas',
-      'Exportación de datos (Excel/PDF)'
+      'Alumnos y Clases ilimitados',
+      'Comunicados Masivos (Notificaciones a Familias)',
+      'Motor de Torneos (Emparejamientos)',
+      'Analíticas Avanzadas de Rendimiento',
+      'Gestión de Pagos y Recibos'
     ],
     is_active: true,
     sort_order: 2,
@@ -75,17 +76,18 @@ const DEFAULT_LIMITS: UserPlanLimits = {
   plan_name: 'free',
   display_name: 'Ajedrecista',
   status: 'active',
-  max_students: 12,
-  max_classes: 2,
+  max_students: 10,
+  max_classes: 1,
   max_schools: 1,
   max_tournaments: 0,
   max_storage_mb: 50,
   max_custom_skills: 0,
   features: [
     '1 Centro / Escuela',
-    '2 Clases simultáneas',
-    'Hasta 12 Alumnos totales',
-    'Pase de lista y Asistencia'
+    '1 Clase (Grupo)',
+    'Hasta 10 Alumnos',
+    'Pase de lista y Asistencia',
+    'Informes básicos de alumno'
   ]
 };
 

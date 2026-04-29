@@ -22,11 +22,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       let announcementsQuery;
       if (isAdmin) {
         announcementsQuery = adminDb.collection("announcements")
-          .where(Filter.or(
-            ownerFilter(user.uid),
-            Filter.where("isGlobal", "==", true),
-            Filter.where("isSystem", "==", true)
-          ));
+          .where(ownerFilter(user.uid));
       } else {
         announcementsQuery = adminDb.collection("announcements")
           .where(ownerFilter(user.uid));
@@ -42,9 +38,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       sentAnnouncements = announcementsSnap.docs
         .map((d: any) => ({ id: d.id, ...d.data(), _type: 'sent' }))
         .filter((a: any) => {
-          if (a.ownerId === user.uid || a.ownerId === user.uid) return true;
-          if (isAdmin && (a.isGlobal || a.isSystem)) return true;
-          return false;
+          return a.ownerId === user.uid || a.ownerId === user.uid;
         })
         .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     }
@@ -73,10 +67,27 @@ export const load: PageServerLoad = async ({ locals }) => {
       receivedAnnouncements = allAnnouncementsSnap.docs
         .map((doc: any) => ({ id: doc.id, ...doc.data(), _type: 'received' }))
         .filter((a: any) => {
-          if (a.targetType === 'all' || a.targetType === 'all') return true;
-          if ((a.targetType === 'school' || a.targetType === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
-          if ((a.targetType === 'class' || a.targetType === 'class') && classIds.includes(a.targetId)) return true;
-          if ((a.targetType === 'student' || a.targetType === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
+          // 1. Security: Exclude global/system and ensure association
+          if (a.isGlobal || a.isSystem) return false;
+          
+          const isFromMyTeacher = children.some((c: any) => c.ownerId === a.ownerId);
+          const isFromMySchool = a.schoolId && a.schoolId !== 'all' && schoolIds.includes(a.schoolId);
+          
+          // If not from my teacher or school, it's not for me
+          if (!isFromMyTeacher && !isFromMySchool) return false;
+
+          // 2. Targeting logic
+          if (a.targetType === 'all') return true;
+          if (a.targetType === 'school') {
+            return !a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId);
+          }
+          if (a.targetType === 'class') {
+            return classIds.includes(a.targetId);
+          }
+          if (a.targetType === 'student' || a.targetType === 'parent') {
+            return children.some((c: any) => c.id === a.targetId);
+          }
+          
           return false;
         });
     }

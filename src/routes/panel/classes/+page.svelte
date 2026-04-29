@@ -99,6 +99,11 @@
       showDeleteAllModal = false;
     }
   };
+
+  const formatLabel = (str: string | undefined | null) => {
+    if (!str) return '';
+    return str.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  };
 </script>
 
 <form method="POST" action="?/delete" use:enhance bind:this={deleteForm} class="hidden">
@@ -371,9 +376,9 @@
                         </div>
                       </div>
                       <div>
-                        <h3 class="text-2xl font-outfit font-black text-white group-hover/row:text-primary-400 transition-colors duration-500 tracking-tighter uppercase leading-none">{cls.name}</h3>
+                        <h3 class="text-2xl font-outfit font-black text-white group-hover/row:text-primary-400 transition-colors duration-500 tracking-tighter uppercase leading-none">{formatLabel(cls.name)}</h3>
                         <div class="flex items-center gap-4 mt-5">
-                          <span class="px-3 py-1 bg-white/5 border border-white/5 rounded-none text-[10px] font-black text-slate-400 uppercase tracking-widest">{cls.level || $t('classes.level.mixed')}</span>
+                          <span class="px-3 py-1 bg-white/5 border border-white/5 rounded-none text-[10px] font-black text-slate-400 uppercase tracking-widest">{formatLabel(cls.level) || $t('classes.level.mixed')}</span>
                           {#if (cls.studentIds?.length || 0) >= (cls.maxStudents || 10)}
                             <span class="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-none text-[10px] font-black text-red-400 uppercase tracking-widest animate-pulse">{$t('classes.metrics.full_capacity')}</span>
                           {/if}
@@ -386,7 +391,7 @@
                         <div class="p-3 bg-blue-500/10 rounded-none border border-blue-500/20 text-blue-400 group-hover/row:scale-110 transition-transform">
                           <Buildings weight="duotone" size={20} />
                         </div>
-                        <span class="text-sm font-black text-slate-300 uppercase tracking-tight">{getSchoolName(cls.schoolId)}</span>
+                        <span class="text-sm font-black text-slate-300 uppercase tracking-tight">{formatLabel(getSchoolName(cls.schoolId))}</span>
                      </div>
                   </td>
                   <td class="px-12 py-12">

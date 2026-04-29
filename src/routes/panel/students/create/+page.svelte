@@ -84,6 +84,12 @@
   <title>{$t('students.new_title')} - ChessNet</title>
 </svelte:head>
 
+<div class="min-h-screen bg-zinc-950 text-white font-sans selection:bg-violet-500/30">
+<form 
+  method="POST" 
+  action="?/create" 
+  use:enhance
+>
 <!-- Premium Sticky Header -->
 <div class="sticky top-0 z-[100] bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 py-4 px-6 md:px-12">
   <div class="max-w-[1400px] mx-auto flex items-center justify-between">
@@ -100,12 +106,7 @@
       </div>
     </div>
 
-    <form 
-      method="POST" 
-      action="?/create" 
-      use:enhance 
-      class="flex items-center gap-4"
-    >
+    <div class="flex items-center gap-4">
       <button 
         type="button"
         onclick={handleGoBack}
@@ -126,7 +127,7 @@
         {/if}
         {$delayed ? $t('common.saving') : $t('students.confirm_registration')}
       </button>
-    </form>
+    </div>
   </div>
 </div>
 
@@ -472,6 +473,8 @@
       </div>
     </div>
   </div>
+  </div>
+</form>
 </div>
 
 <style>

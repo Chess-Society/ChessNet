@@ -1,36 +1,45 @@
 <script lang="ts">
   import { fade, fly } from 'svelte/transition';
-  import { RocketLaunch, Star, ShieldCheck, Users, Buildings, Trophy, Sparkle, ChartLineUp } from 'phosphor-svelte';
+  import * as Phosphor from 'phosphor-svelte';
   import { t } from '$lib/i18n';
 
-  const updates = [
+  let { data } = $props();
+
+  // Helper to get icon component from name
+  function getIcon(name: string) {
+    // @ts-ignore
+    return Phosphor[name] || Phosphor.Sparkle;
+  }
+
+  // Fallback data if collection is empty
+  const defaultUpdates = [
     {
       version: '0.14.0 Beta',
       date: '2026-04-27',
       title: 'Misiones y UX Premium',
-      icon: Trophy,
+      icon: 'Trophy',
       color: 'text-primary-400',
       bgColor: 'bg-primary-500/10',
       items: [
         {
           title: 'Rachas de Victorias',
           description: 'Nuevo tipo de misión que detecta automáticamente si un alumno gana X partidas seguidas en Lichess.',
-          icon: Sparkle
+          icon: 'Sparkle'
         },
         {
           title: 'Agenda Móvil',
           description: 'Acceso directo a la agenda de clases desde el menú inferior en dispositivos móviles.',
-          icon: Users
+          icon: 'Users'
         },
         {
           title: 'Feedback de Satisfacción',
           description: 'Nuevas animaciones y feedback visual al completar desafíos para una experiencia más gratificante.',
-          icon: Star
+          icon: 'Star'
         },
         {
           title: 'Control de Comunicados',
           description: 'Los comunicados masivos ahora están integrados en el plan de gestión para profesores.',
-          icon: ShieldCheck
+          icon: 'ShieldCheck'
         }
       ]
     },
@@ -38,83 +47,30 @@
       version: '0.13.0 Beta',
       date: '2026-04-22',
       title: 'Evolución del Panel de Control',
-      icon: RocketLaunch,
+      icon: 'RocketLaunch',
       color: 'text-violet-400',
       bgColor: 'bg-violet-500/10',
       items: [
         {
           title: 'Nueva Interfaz Administrativa',
           description: 'Re-ingeniería total de la interfaz administrativa para una gestión más clara y eficiente.',
-          icon: ShieldCheck
+          icon: 'ShieldCheck'
         },
         {
           title: 'Expansión Internacional',
           description: 'Soporte global para escuelas en cualquier país con buscador inteligente de regiones.',
-          icon: Sparkle
+          icon: 'Sparkle'
         },
         {
           title: 'Colaboración de Red',
           description: 'Los profesores ahora pueden compartir su actividad con los directores manteniendo su privacidad.',
-          icon: Users
-        }
-      ]
-    },
-    {
-      version: '0.12.0 Beta',
-      date: '2026-04-21',
-      title: 'Análisis Unificado de Lichess',
-      icon: ChartLineUp,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/10',
-      items: [
-        {
-          title: 'Sincronización Lichess.org',
-          description: 'Conexión profunda con perfiles de alumnos para seguimiento automático de partidas y ELO.',
-          icon: Sparkle
-        },
-        {
-          title: 'Pulse de Grupo Unificado',
-          description: 'Seguimiento del progreso de todo el grupo de manera unificada y de un vistazo rápido con métricas globales.',
-          icon: ChartLineUp
-        }
-      ]
-    },
-    {
-      version: '0.11.0',
-      date: '2026-04-20',
-      title: 'Mejoras en el Sistema de Torneos',
-      icon: Trophy,
-      color: 'text-amber-400',
-      bgColor: 'bg-amber-500/10',
-      items: [
-        {
-          title: 'Torneos Locales Avanzados',
-          description: 'Sistema de emparejamientos mejorado y gestión de rondas en tiempo real para tus torneos presenciales.',
-          icon: Sparkle
-        },
-        {
-          title: 'Reportes de Rendimiento',
-          description: 'Visualización clara del progreso de los alumnos tras cada competición.',
-          icon: Star
-        }
-      ]
-    },
-    {
-      version: '0.10.0',
-      date: '2026-04-15',
-      title: 'Lanzamiento Beta Pública',
-      icon: RocketLaunch,
-      color: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/10',
-      items: [
-        {
-          title: 'Plataforma Todo-en-Uno',
-          description: 'Gestión de escuelas, clases, alumnos y pagos diseñada específicamente para profesores de ajedrez.',
-          icon: Buildings
+          icon: 'Users'
         }
       ]
     }
   ];
+
+  const updates = $derived(data.entries.length > 0 ? data.entries : defaultUpdates);
 </script>
 
 <svelte:head>
@@ -124,7 +80,7 @@
 <div class="max-w-4xl mx-auto py-12 px-6" in:fade>
   <div class="mb-16 text-center">
     <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-500/10 border border-violet-500/20 mb-6">
-      <Sparkle size={14} class="text-violet-400 animate-pulse" />
+      <Phosphor.Sparkle size={14} class="text-violet-400 animate-pulse" />
       <span class="text-[10px] font-black text-violet-400 uppercase tracking-[0.2em]">Actualizaciones y Evolución</span>
     </div>
     <h1 class="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter mb-4 px-4 leading-[0.9]">
@@ -140,6 +96,7 @@
     <div class="absolute left-[39px] top-4 bottom-4 w-px bg-gradient-to-b from-violet-500/50 via-zinc-800 to-zinc-900 hidden md:block"></div>
 
     {#each updates as update, i}
+      {@const IconComp = getIcon(update.icon)}
       <div class="relative pl-0 md:pl-24" in:fly={{ y: 20, delay: i * 100 }}>
         <!-- Version Badge (Mobile) -->
         <div class="md:hidden flex items-center gap-3 mb-6">
@@ -152,7 +109,7 @@
         <!-- Desktop Dot -->
         <div class="absolute left-0 top-0 hidden md:flex items-center justify-center w-20">
           <div class="w-10 h-10 {update.bgColor} {update.color} border border-current/30 flex items-center justify-center shadow-xl shadow-current/5 relative z-10">
-            <update.icon size={20} weight="duotone" />
+            <IconComp size={20} weight="duotone" />
           </div>
           <div class="absolute -left-52 top-0 text-right w-48 pr-8 mt-1">
             <p class="text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em]">{update.version}</p>
@@ -162,7 +119,7 @@
 
         <div class="bento-card !p-8 md:!p-12 relative group hover:border-white/10 transition-all">
           <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <update.icon size={120} weight="duotone" />
+            <IconComp size={120} weight="duotone" />
           </div>
 
           <h2 class="text-2xl font-outfit font-black text-white uppercase italic tracking-tight mb-8 relative z-10">
@@ -171,10 +128,11 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
             {#each update.items as item}
+              {@const ItemIcon = getIcon(item.icon)}
               <div class="space-y-3">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-none {update.bgColor} {update.color} flex items-center justify-center">
-                    <item.icon size={16} weight="bold" />
+                    <ItemIcon size={16} weight="bold" />
                   </div>
                   <h3 class="text-sm font-outfit font-bold text-zinc-200 uppercase tracking-tight">{item.title}</h3>
                 </div>

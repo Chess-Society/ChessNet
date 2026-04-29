@@ -10,8 +10,9 @@ export const load: PageServerLoad = async (event) => {
         .where('parentEmail', '==', parentEmail)
         .get();
 
-    const students = studentsSnapshot.docs.map((doc: any) => doc.data());
+    const students = studentsSnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
     const schoolIds = [...new Set(students.map((s: any) => s.schoolId).filter(Boolean))];
+    const classIds = [...new Set(students.map((s: any) => s.classId).filter(Boolean))];
 
     // Fetch all active announcements
     const announcementsSnapshot = await adminDb.collection('announcements')
@@ -28,8 +29,24 @@ export const load: PageServerLoad = async (event) => {
             isGlobal: !!(d.is_global || d.isGlobal)
         };
     }).filter((ann: any) => {
-        if (ann.isGlobal) return true;
-        if (ann.schoolId && schoolIds.includes(ann.schoolId)) return true;
+        if (ann.isGlobal || ann.isSystem) return false;
+        
+        const isFromMyTeacher = students.some((s: any) => s.ownerId === ann.ownerId);
+        const isFromMySchool = ann.schoolId && ann.schoolId !== 'all' && schoolIds.includes(ann.schoolId);
+        
+        if (!isFromMyTeacher && !isFromMySchool) return false;
+
+        if (ann.targetType === 'all') return true;
+        if (ann.targetType === 'school') {
+            return !ann.targetId || ann.targetId === 'all' || schoolIds.includes(ann.targetId);
+        }
+        if (ann.targetType === 'class') {
+            return classIds.includes(ann.targetId);
+        }
+        if (ann.targetType === 'student' || ann.targetType === 'parent') {
+            return students.some((s: any) => s.id === ann.targetId);
+        }
+
         return false;
     });
 

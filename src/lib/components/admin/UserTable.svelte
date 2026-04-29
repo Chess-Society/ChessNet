@@ -182,7 +182,7 @@
               <td class="px-10 py-6">
                 <div class="flex flex-col">
                   <span class="text-xs text-white font-mono font-black italic">{formatDate(user.createdAt)}</span>
-                  <span class="text-[9px] text-slate-700 font-mono font-black uppercase tracking-tight mt-1">FIRESTORE.NATIVE</span>
+                  <span class="text-[9px] text-slate-700 font-mono font-black uppercase tracking-tight mt-1">FIRESTORE NATIVE</span>
                 </div>
               </td>
               <td class="px-10 py-6">
@@ -266,7 +266,7 @@
           <!-- Mobile Plan Info -->
           <div class="bg-white/[0.02] p-4 border border-white/5 space-y-3">
              <div class="flex items-center justify-between">
-                <span class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">ESTADO_PLAN</span>
+                <span class="text-[8px] font-mono font-black text-slate-600 uppercase tracking-widest">ESTADO PLAN</span>
                 <span class="text-[9px] font-mono font-black {status === 'pro' ? 'text-amber-500' : status === 'expired' ? 'text-rose-500' : 'text-slate-500'} uppercase">
                   {status === 'pro' ? 'PREMIUM' : status === 'expired' ? 'EXPIRADO' : 'FREE'}
                 </span>

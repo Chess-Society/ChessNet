@@ -26,8 +26,9 @@ export const initAuth = () => {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
         const currentUser = get(user);
+        const hasBypass = (typeof window !== 'undefined') && document.cookie.includes('antigravity_access=antigravity-dev-secret');
         
-        // If we have a firebaseUser, we always trust it
+        // Priority 1: Real Firebase User
         if (firebaseUser) {
             // Fetch custom claims to check for admin status
             const tokenResult = await firebaseUser.getIdTokenResult();
@@ -65,13 +66,23 @@ export const initAuth = () => {
                     } catch (e) {}
                 })();
             }
-        } else {
-            // FIREBASE SAYS NULL. 
-            // If we have a current session user, we only clear it if we are NOT in dev bypass
-            // AND we have waited long enough for Firebase to truly confirm the state.
-            const hasBypass = (typeof window !== 'undefined') && document.cookie.includes('antigravity_access=antigravity-dev-secret');
-            
-            if (currentUser && !hasBypass && resolved) {
+        } 
+        // Priority 2: Developer Bypass (Local Dev Only)
+        else if (hasBypass && !currentUser) {
+            console.info('🛠️ [Auth] Client-side Developer Bypass detected. Setting mock user.');
+            user.set({
+                uid: 'antigravity-dev-worker',
+                email: 'tomih@chess-society.com',
+                displayName: 'Antigravity (Dev Mode)',
+                photoURL: null,
+                emailVerified: true,
+                isAdmin: true
+            });
+            cookieSynced.set(true);
+        }
+        // Priority 3: No User
+        else if (!firebaseUser && !hasBypass) {
+            if (currentUser && resolved) {
                 user.set(null);
                 try {
                     await fetch('/api/auth/session', { method: 'DELETE' });

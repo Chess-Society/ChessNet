@@ -161,7 +161,8 @@ export const load: PageServerLoad = async (event) => {
         ...data,
         name: data.name || 'Untitled Skill',
         difficulty: difficulty,
-        category: data.category || 'General',
+        category: data.categoryId ? data.categoryId.replace(/_/g, ' ') : (data.category ? data.category.replace(/_/g, ' ') : 'General'),
+        level: data.difficulty <= 1 ? 'Beginner' : data.difficulty <= 3 ? 'Intermediate' : 'Advanced',
         createdAt: createdAt
       };
     });
@@ -190,7 +191,7 @@ export const load: PageServerLoad = async (event) => {
     });
 
     const categories = Object.entries(categoryCounts).map(([name, count]) => ({
-      name,
+      name: name.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()),
       count
     }));
 

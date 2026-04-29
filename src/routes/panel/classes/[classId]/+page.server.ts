@@ -155,7 +155,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         totalSkills: classSkills.length, 
         occupancyRate: classData.maxStudents ? Math.round((students.length / classData.maxStudents) * 100) : 0,
         skillsByCategory: classSkills.reduce((acc: Record<string, number>, cs: any) => {
-          const cat = cs.skill?.category || 'Uncategorized';
+          const cat = (cs.skill?.category || 'Uncategorized').replace(/_/g, ' ');
           acc[cat] = (acc[cat] || 0) + 1;
           return acc;
         }, {}),

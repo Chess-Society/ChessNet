@@ -25,7 +25,7 @@
   } from 'phosphor-svelte';
   import { toast } from '$lib/stores/toast';
   import { uiStore } from '$lib/stores/uiStore';
-  import { t } from '$lib/i18n';
+  import { loadTranslations, t } from '$lib/i18n';
   import type { PageData } from './$types';
   import { fade, fly, scale, slide } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';
@@ -43,6 +43,8 @@
     difficulty: 'beginner' | 'intermediate' | 'advanced';
     created_at?: string;
     assigned_at?: string;
+    taught?: boolean;
+    taughtAt?: string;
     orderIndex?: number;
     assignment_id?: string;
     skill?: {
@@ -67,7 +69,7 @@
   let classData = $derived(data.class as unknown as LocalClass);
   let assignedSkills = $derived((data.assignedSkills as unknown as ExtendedSkill[]) || []);
   let availableSkillsByCategory = $derived((data.availableSkillsByCategory as unknown as Record<string, ExtendedSkill[]>) || {});
-  let stats = $derived(data.stats || { assigned: 0, available: 0, byCategory: {} as Record<string, number> });
+  let stats = $derived(data.stats || { assigned: 0, available: 0, taught: 0, byCategory: {} as Record<string, number> });
 
   $effect(() => {
     // Expand categories by default
@@ -124,14 +126,32 @@
     'Strategy': 'text-rose-400 bg-rose-500/10 border-rose-500/20'
   };
 
+  onMount(() => {
+    loadTranslations(['skills', 'common', 'classes']);
+  });
+
+  const formatLabel = (label: string | undefined | null) => {
+    if (!label) return '';
+    return label.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  };
+
   const handleGoBack = () => {
     goto(`/panel/classes/${classData?.id}`);
   };
 
   let skillFormEl = $state<HTMLFormElement>();
-  let selectedSkillId = $state('');
-  let skillFormAction = $state('?/assign');
+  let selectedSkillId = $state<string>('');
+  let skillFormAction = $state<string>('');
   let reorderData = $state('');
+  let isTaught = $state(false);
+
+  const handleToggleTaught = async (skillId: string, currentStatus: boolean) => {
+    selectedSkillId = skillId;
+    isTaught = currentStatus;
+    skillFormAction = '?/toggleTaught';
+    await tick();
+    skillFormEl?.requestSubmit();
+  };
 
   const handleAssignSkill = async (skillId: string) => {
     selectedSkillId = skillId;
@@ -205,6 +225,7 @@
 >
   <input type="hidden" name="skillId" value={selectedSkillId} />
   <input type="hidden" name="reorderings" value={reorderData} />
+  <input type="hidden" name="taught" value={isTaught ? 'true' : 'false'} />
 </form>
 
 <svelte:head>
@@ -271,7 +292,10 @@
               style="width: {(stats.assigned / (stats.assigned + stats.available)) * 100}%"
             ></div>
           </div>
-          <p class="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{$t('classes.lessons_assigned', { count: stats.assigned })}</p>
+          <p class="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">
+            {$t('classes.lessons_assigned', { count: stats.assigned })} 
+            ({stats.taught} {$t('common.completed') || 'Completed'})
+          </p>
         </div>
       </div>
     </div>
@@ -316,9 +340,10 @@
           {#each Object.entries(stats.byCategory) as [category, count]}
             <div class="flex items-center gap-3 bg-zinc-950/50 border border-white/5 px-4 py-2.5 rounded-none hover:border-white/10 transition-all cursor-default">
               <span class="text-lg font-black text-white leading-none">{count}</span>
-              <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{category}</span>
+              <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{category.replace(/_/g, ' ')}</span>
             </div>
           {/each}
+        </div>
           {#if Object.keys(stats.byCategory).length === 0}
             <div class="flex items-center gap-2 text-zinc-700">
               <span class="text-[10px] font-black uppercase tracking-[0.2em]">{$t('classes.no_categories')}</span>
@@ -327,7 +352,6 @@
         </div>
       </div>
     </div>
-  </div>
 
   <!-- Matrix Layout -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
@@ -393,28 +417,44 @@
                         </div>
                       {/if}
                       <div>
-                        <h3 class="text-lg font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors">{skill.name}</h3>
-                        <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">{skill.category}</p>
+                        <h3 class="text-lg font-black text-white uppercase tracking-tight group-hover:text-primary-400 transition-colors">{formatLabel(skill.name)}</h3>
+                        <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mt-1">{formatLabel(skill.category)}</p>
                       </div>
                     </div>
                     
-                    <button 
-                      onclick={() => handleUnassignSkill(skill.id)}
-                      class="w-10 h-10 bg-rose-500/10 border border-rose-500/20 rounded-none flex items-center justify-center text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/20 transition-all opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 group-hover:shadow-[0_0_15px_rgba(244,63,94,0.2)]"
-                    >
-                      <Trash weight="duotone" class="w-4.5 h-4.5" />
-                    </button>
+                    <div class="flex flex-col gap-2">
+                      <button 
+                        onclick={() => handleToggleTaught(skill.id, !!skill.taught)}
+                        class="w-10 h-10 border rounded-none flex items-center justify-center transition-all group/taught 
+                        {skill.taught ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500' : 'bg-white/5 border-white/5 text-zinc-600 hover:text-white'}"
+                        title={skill.taught ? ($t('classes.taught') || 'Taught') : ($t('classes.mark_as_taught') || 'Mark as taught')}
+                      >
+                        <CheckCircle weight={skill.taught ? 'fill' : 'bold'} class="w-4.5 h-4.5" />
+                      </button>
+                      <button 
+                        onclick={() => handleUnassignSkill(skill.id)}
+                        class="w-10 h-10 bg-rose-500/10 border border-rose-500/20 rounded-none flex items-center justify-center text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/20 transition-all opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 group-hover:shadow-[0_0_15px_rgba(244,63,94,0.2)]"
+                      >
+                        <Trash weight="duotone" class="w-4.5 h-4.5" />
+                      </button>
+                    </div>
                   </div>
 
-                  <p class="text-zinc-500 text-[11px] leading-relaxed font-medium my-6 border-l-2 border-white/5 pl-4 line-clamp-2 italic">
+                  <p class="text-zinc-500 text-[11px] leading-relaxed font-medium my-6 border-l-2 border-white/5 pl-4 line-clamp-2 italic {skill.taught ? 'line-through opacity-50' : ''}">
                     {skill.description}
                   </p>
 
                   <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-3">
                        <div class={`px-3 py-1 rounded-none text-[8px] font-black uppercase tracking-[0.2em] border ${difficultyColors[skill.difficulty] || 'bg-white/5 border-white/10 text-zinc-400'}`}>
                         {difficultyLabels[skill.difficulty]}
                       </div>
+                      {#if skill.taught}
+                        <span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
+                          <CheckCircle weight="fill" class="w-3 h-3" />
+                          {$t('classes.taught') || 'IMPARTIDA'} {skill.taughtAt ? new Date(skill.taughtAt).toLocaleDateString() : ''}
+                        </span>
+                      {/if}
                     </div>
                     <span class="text-[8px] font-black text-zinc-700 uppercase tracking-widest flex items-center gap-2">
                       <Clock weight="bold" class="w-3 h-3" />
@@ -481,7 +521,7 @@
                     </div>
                   {/if}
                   <div>
-                    <h3 class="text-xl font-black text-white uppercase tracking-tight group-hover/trigger:text-primary-400 transition-colors">{category}</h3>
+                    <h3 class="text-xl font-black text-white uppercase tracking-tight group-hover/trigger:text-primary-400 transition-colors">{formatLabel(category)}</h3>
                     <p class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mt-1">{$t('classes.skills_indexed', { count: skills.length })}</p>
                   </div>
                 </div>
@@ -497,7 +537,7 @@
                     <div class="p-8 hover:bg-white/[0.03] transition-all group/item relative overflow-hidden">
                       <div class="relative z-10 flex items-start justify-between gap-8">
                         <div class="flex-1">
-                          <h4 class="text-sm font-black text-white uppercase tracking-wider group-hover/item:text-primary-400 transition-colors">{skill.name}</h4>
+                          <h4 class="text-sm font-black text-white uppercase tracking-wider group-hover/item:text-primary-400 transition-colors">{formatLabel(skill.name)}</h4>
                           <p class="text-zinc-500 text-[11px] leading-relaxed font-medium my-4 line-clamp-2">{skill.description}</p>
                           
                           <div class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950/50 w-fit rounded-none border border-white/5">

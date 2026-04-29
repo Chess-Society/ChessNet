@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, signInAnonymously } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { browser, building } from "$app/environment";
 import * as publicEnv from "$env/static/public";
@@ -23,6 +24,7 @@ const getFirebaseConfig = () => ({
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
+let storage: any;
 let analytics: Analytics | null = null;
 
 // Only initialize if we have required config AND we are not in the middle of a build
@@ -35,6 +37,7 @@ if (shouldInitialize) {
         app = getApps().length === 0 ? initializeApp(config) : getApp();
         auth = getAuth(app);
         db = getFirestore(app);
+        storage = getStorage(app);
 
         if (browser) {
             isSupported().then(supported => {
@@ -56,7 +59,7 @@ if (!auth) auth = { currentUser: null } as Auth;
 // @ts-ignore
 if (!db) db = {} as Firestore;
 
-export { app, auth, db, analytics };
+export { app, auth, db, storage, analytics };
 export { signInAnonymously };
 
 // Auth helpers

@@ -76,17 +76,8 @@ export const actions: Actions = {
     const uid = locals.user.uid;
 
     try {
-      // In a real app, you'd use a Cloud Function or a more robust deletion script
-      // But for this project, we'll follow the pattern of cleaning up key collections
       const batch = adminDb.batch();
-      
-      // Delete user doc
       batch.delete(adminDb.collection('users').doc(uid));
-
-      // We should also delete schools, students, etc. 
-      // But usually this is handled by a background task for safety.
-      // For now, let's just delete the user doc and let the client handle auth deletion.
-      
       await batch.commit();
       return { success: true };
     } catch (err: any) {

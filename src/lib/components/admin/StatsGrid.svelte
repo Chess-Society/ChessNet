@@ -117,7 +117,7 @@
             
             <div class="flex items-center gap-2">
               <div class="px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-[8px] font-mono font-black text-violet-400 uppercase tracking-widest">
-                REALTIME_DATA
+                REALTIME DATA
               </div>
             </div>
           </div>

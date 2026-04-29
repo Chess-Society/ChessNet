@@ -67,7 +67,7 @@
       </div>
       <h3 class="text-xs font-mono font-black uppercase tracking-[0.3em] text-white">{$t('admin.activity.pulse')}</h3>
     </div>
-    <span class="text-[9px] font-mono font-black text-slate-700 uppercase tracking-widest bg-white/5 px-3 py-1 border border-white/5 rounded-none">FLUJO_DE_RED</span>
+    <span class="text-[9px] font-mono font-black text-slate-700 uppercase tracking-widest bg-white/5 px-3 py-1 border border-white/5 rounded-none">FLUJO DE RED</span>
   </div>
 
   <div class="flex-1 overflow-y-auto max-h-[450px] divide-y divide-white/5 custom-scrollbar">
@@ -115,8 +115,8 @@
   <div class="px-8 py-5 bg-white/[0.01] border-t border-white/10 text-[8px] font-mono font-black text-slate-700 flex justify-between items-center uppercase tracking-widest">
     <div class="flex items-center gap-4">
       <span class="text-slate-800">MONITOREANDO:</span>
-      <span class="flex items-center gap-1"><span class="w-1 h-1 bg-violet-500"></span> SOCKET_AUTENTICACION</span>
-      <span class="flex items-center gap-1"><span class="w-1 h-1 bg-violet-500"></span> COLECCION_FS</span>
+      <span class="flex items-center gap-1"><span class="w-1 h-1 bg-violet-500"></span> SOCKET AUTENTICACION</span>
+      <span class="flex items-center gap-1"><span class="w-1 h-1 bg-violet-500"></span> COLECCION FS</span>
     </div>
     <div class="flex items-center gap-2 text-emerald-500/50">
       <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none animate-pulse"></div>

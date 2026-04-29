@@ -205,7 +205,7 @@
           <input 
             id="broadcast-title"
             bind:value={title}
-            placeholder="S_SUBJECT_INPUT"
+            placeholder="S SUBJECT INPUT"
             class="w-full bg-white/[0.02] border border-white/10 rounded-none px-6 py-4 text-xs font-mono text-white placeholder:text-slate-800 outline-none focus:border-primary-500/50 transition-all uppercase"
           />
         </div>
@@ -224,7 +224,7 @@
             <input 
               id="broadcast-link-text"
               bind:value={linkText}
-              placeholder="UI_TAG"
+              placeholder="UI TAG"
               class="w-full bg-white/[0.02] border border-white/10 rounded-none px-6 py-4 text-xs font-mono text-white placeholder:text-slate-800 outline-none focus:border-primary-500/50 transition-all uppercase"
             />
           </div>
@@ -233,7 +233,7 @@
 
       <!-- Message Input -->
       <div class="space-y-2">
-        <label for="broadcast-payload" class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest ml-1">PAYLOAD_CONTENT</label>
+        <label for="broadcast-payload" class="text-[8px] font-mono font-black text-slate-800 uppercase tracking-widest ml-1">PAYLOAD CONTENT</label>
         <div class="relative">
           <textarea 
             id="broadcast-payload"

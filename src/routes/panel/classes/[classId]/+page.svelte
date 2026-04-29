@@ -45,7 +45,7 @@
   import type { PageData } from './$types';
   import { fade, fly, scale } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { t } from '$lib/i18n';
+  import { loadTranslations, t } from '$lib/i18n';
   import { appStore } from '$lib/stores/appStore';
 
   let { data } = $props<{ data: PageData }>();
@@ -126,6 +126,10 @@
 
 
 
+  onMount(() => {
+    loadTranslations(['classes', 'skills', 'common', 'students']);
+  });
+
   $effect(() => {
     if (currentView === 'lichess' || (currentView === 'overview' && students.length > 0)) {
       loadLichessLeaderboards();
@@ -169,6 +173,11 @@
     const monthDiff = today.getMonth() - birth.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
     return age;
+  };
+
+  const formatLabel = (label: string | undefined | null) => {
+    if (!label) return '';
+    return label.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
   };
 </script>
 
@@ -452,7 +461,7 @@
                            <div class="flex items-center gap-2">
                                <p class="text-[8px] text-slate-500 font-black uppercase tracking-wider">{calculateAge(student.dateOfBirth)} AÑOS</p>
                                <div class="w-0.5 h-0.5 rounded-none bg-slate-700"></div>
-                               <p class="text-[8px] text-violet-400 font-black uppercase tracking-wider">{student.chess_level || 'MIXTO'}</p>
+                               <p class="text-[8px] text-violet-400 font-black uppercase tracking-wider">{formatLabel(student.chess_level) || 'MIXTO'}</p>
                            </div>
                         </div>
                      </div>
@@ -516,15 +525,21 @@
                   
                   <div class="flex-1 space-y-8 relative z-10">
                      <div class="flex flex-wrap items-center gap-6">
-                        <h4 class="text-4xl font-black text-white uppercase font-outfit tracking-tighter group-hover:text-violet-400 transition-all duration-700 leading-none">{skill.skill.name}</h4>
+                        <h4 class="text-4xl font-black text-white uppercase font-outfit tracking-tighter group-hover:text-violet-400 transition-all duration-700 leading-none {skill.taught ? 'line-through opacity-50' : ''}">{skill.skill.name}</h4>
                         <div class="flex items-center gap-2 px-5 py-2 rounded-none border border-violet-500/20 bg-violet-600/10 shadow-glow-violet-mini backdrop-blur-md">
                            <Shapes size={14} weight="duotone" class="text-violet-400" />
                            <span class="text-[9px] font-black text-violet-300 uppercase tracking-[0.2em] font-outfit">
-                             {skill.skill.category?.name}
+                             {(skill.skill.category || 'GENERAL').replace(/_/g, ' ')}
                            </span>
                         </div>
+                        {#if skill.taught}
+                          <div class="flex items-center gap-2 px-5 py-2 rounded-none border border-emerald-500/20 bg-emerald-500/10 shadow-glow-emerald-mini backdrop-blur-md">
+                            <CheckCircle weight="fill" size={14} class="text-emerald-400" />
+                            <span class="text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em] font-outfit">{$t('common.completed') || 'IMPARTIDA'}</span>
+                          </div>
+                        {/if}
                      </div>
-                     <p class="text-slate-400 text-lg font-medium leading-relaxed max-w-4xl font-jakarta uppercase tracking-tight group-hover:text-slate-200 transition-all duration-700">{skill.skill.description}</p>
+                     <p class="text-slate-400 text-lg font-medium leading-relaxed max-w-4xl font-jakarta uppercase tracking-tight group-hover:text-slate-200 transition-all duration-700 {skill.taught ? 'opacity-40' : ''}">{skill.skill.description}</p>
                   </div>
 
                   <div class="flex flex-col items-center gap-6 relative z-10 bg-zinc-950/90 p-10 rounded-none border border-white/5 shadow-[inset_0_4px_25px_rgba(0,0,0,0.8)] min-w-[220px] group-hover:border-violet-500/30 transition-all duration-1000 group/rating">

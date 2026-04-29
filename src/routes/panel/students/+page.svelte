@@ -104,7 +104,13 @@
     }
   };
 
+  const formatLabel = (str: string | undefined | null) => {
+    if (!str) return '';
+    return str.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  };
+
   const getInitials = (name: string) => {
+    if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 </script>
@@ -343,14 +349,14 @@
                         {getInitials(student.name)}
                       </div>
                       <div>
-                        <p class="text-white font-bold leading-none">{student.name}</p>
+                        <p class="text-white font-bold leading-none">{formatLabel(student.name)}</p>
                         <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">{$t('students.student_label')}</p>
                       </div>
                     </div>
                   </td>
                   <td class="px-8 py-6 text-center">
                     <span class="px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-none text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      {student.level || '--'}
+                      {formatLabel(student.level) || '--'}
                     </span>
                   </td>
                   <td class="px-8 py-6 text-center">
@@ -363,7 +369,7 @@
                   <td class="px-8 py-6">
                     <div class="flex items-center gap-2 text-zinc-400 font-medium">
                       <Buildings weight="bold" class="w-4 h-4 text-zinc-600" />
-                      <span class="text-sm">{getSchoolName(student.schoolId)}</span>
+                      <span class="text-sm">{formatLabel(getSchoolName(student.schoolId))}</span>
                     </div>
                   </td>
                   <td class="px-8 py-6 text-right">

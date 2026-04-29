@@ -41,7 +41,7 @@
       title: 'GESTIÓN',
       items: [
         { id: 'users', label: 'Usuarios', icon: Users, path: '/admin/users' },
-        { id: 'clubs', label: 'Clubes', icon: Buildings, path: '/admin/clubs' },
+        { id: 'changelog', label: 'Changelog', icon: List, path: '/admin/changelog' },
         { id: 'support', label: 'Soporte', icon: Ticket, path: '/admin/support' }
       ]
     },

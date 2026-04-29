@@ -45,10 +45,26 @@ export const load: PageServerLoad = async (event) => {
         
         const allAnnouncements = announcementsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
         announcements = allAnnouncements.filter((a: any) => {
-          if (a.targetType === 'all' || a.targetType === 'all') return true;
-          if ((a.targetType === 'school' || a.targetType === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
-          if ((a.targetType === 'class' || a.targetType === 'class') && classIds.includes(a.targetId)) return true;
-          if ((a.targetType === 'student' || a.targetType === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
+          // 1. Security: Exclude global/system and ensure association
+          if (a.isGlobal || a.isSystem) return false;
+          
+          const isFromMyTeacher = children.some((c: any) => c.ownerId === a.ownerId);
+          const isFromMySchool = a.schoolId && a.schoolId !== 'all' && schoolIds.includes(a.schoolId);
+          
+          if (!isFromMyTeacher && !isFromMySchool) return false;
+
+          // 2. Targeting logic
+          if (a.targetType === 'all') return true;
+          if (a.targetType === 'school') {
+            return !a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId);
+          }
+          if (a.targetType === 'class') {
+            return classIds.includes(a.targetId);
+          }
+          if (a.targetType === 'student' || a.targetType === 'parent') {
+            return children.some((c: any) => c.id === a.targetId);
+          }
+          
           return false;
         });
       } catch (queryErr) {
@@ -56,10 +72,24 @@ export const load: PageServerLoad = async (event) => {
         const announcementsSnap = await adminDb.collection("announcements").where("isPublished", "==", true).limit(100).get();
         announcements = announcementsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
           .filter((a: any) => {
-            if (a.targetType === 'all' || a.targetType === 'all') return true;
-            if ((a.targetType === 'school' || a.targetType === 'school') && (!a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId))) return true;
-            if ((a.targetType === 'class' || a.targetType === 'class') && classIds.includes(a.targetId)) return true;
-            if ((a.targetType === 'student' || a.targetType === 'student') && children.some((c: any) => c.id === a.targetId)) return true;
+            if (a.isGlobal || a.isSystem) return false;
+            
+            const isFromMyTeacher = children.some((c: any) => c.ownerId === a.ownerId);
+            const isFromMySchool = a.schoolId && a.schoolId !== 'all' && schoolIds.includes(a.schoolId);
+            
+            if (!isFromMyTeacher && !isFromMySchool) return false;
+
+            if (a.targetType === 'all') return true;
+            if (a.targetType === 'school') {
+              return !a.targetId || a.targetId === 'all' || schoolIds.includes(a.targetId);
+            }
+            if (a.targetType === 'class') {
+              return classIds.includes(a.targetId);
+            }
+            if (a.targetType === 'student' || a.targetType === 'parent') {
+              return children.some((c: any) => c.id === a.targetId);
+            }
+            
             return false;
           })
           .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())

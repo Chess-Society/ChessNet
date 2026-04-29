@@ -473,7 +473,7 @@
                   </div>
                   <div>
                     <h4 class="text-white font-black uppercase text-sm mb-1 font-outfit tracking-tight group-hover:text-blue-400 transition-colors">{student.firstName} {student.lastName}</h4>
-                    <p class="text-slate-600 font-black text-[10px] uppercase tracking-widest font-jakarta transition-colors group-hover:text-slate-400 truncate max-w-[200px]">{student.email || 'NO_IDENTIFIER'}</p>
+                    <p class="text-slate-600 font-black text-[10px] uppercase tracking-widest font-jakarta transition-colors group-hover:text-slate-400 truncate max-w-[200px]">{student.email || 'Sin Identificador'}</p>
                   </div>
                 </div>
                 
