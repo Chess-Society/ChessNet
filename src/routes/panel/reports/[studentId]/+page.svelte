@@ -159,7 +159,7 @@
       <div class="profile-main">
         <div class="avatar-orb-wrap">
           <div class="avatar-orb">
-            <span class="initial">{student.name.charAt(0)}</span>
+            <span class="initial">{(student?.name || '?').charAt(0)}</span>
             <div class="orb-glow"></div>
             <div class="status-indicator {student.status === 'active' ? 'active' : 'inactive'}"></div>
           </div>

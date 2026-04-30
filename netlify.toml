@@ -11,7 +11,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Cross-Origin-Opener-Policy = "unsafe-none"
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
     Cross-Origin-Embedder-Policy = "unsafe-none"
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
@@ -20,7 +20,7 @@
     # LOW-01: CSP — protección contra XSS e inyección de recursos
     # 'unsafe-inline' requerido para Svelte SSR (estilos inline) y Firebase SDK
     # connect-src incluye Firebase, Stripe y Lichess API
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.stripe.com https://lichess.org https://www.chess.com; frame-src https://js.stripe.com https://hooks.stripe.com; object-src 'none'; base-uri 'self';"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.stripe.com https://lichess.org https://www.chess.com https://securetoken.googleapis.com; frame-src https://js.stripe.com https://hooks.stripe.com https://chessnet-2505.firebaseapp.com; object-src 'none'; base-uri 'self';"
 
 [[headers]]
   for = "/_app/immutable/*"

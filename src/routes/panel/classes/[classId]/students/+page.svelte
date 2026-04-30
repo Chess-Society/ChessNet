@@ -375,7 +375,7 @@
                 <div class="flex items-center gap-6 relative z-10">
                   <div class="w-16 h-16 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center text-violet-400 font-black font-outfit text-xl group-hover:scale-110 group-hover:border-violet-500/50 transition-all duration-700 shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)] relative overflow-hidden">
                      <div class="absolute inset-0 bg-gradient-to-br from-violet-600/10 to-transparent"></div>
-                     <span class="relative z-10">{student.firstName.charAt(0)}{student.lastName.charAt(0)}</span>
+                     <span class="relative z-10">{(student.firstName || '').charAt(0)}{(student.lastName || '').charAt(0)}</span>
                   </div>
                   <div>
                     <h4 class="text-white font-black uppercase text-sm mb-1.5 font-outfit tracking-tight group-hover:text-violet-400 transition-colors">{student.firstName} {student.lastName}</h4>
@@ -469,7 +469,7 @@
              >
                 <div class="flex items-center gap-6">
                   <div class="w-16 h-16 bg-zinc-950 rounded-none border border-white/5 flex items-center justify-center text-slate-600 font-black font-outfit text-xl group-hover:scale-110 group-hover:border-blue-500/50 group-hover:text-blue-400 transition-all duration-700 shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)]">
-                     {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                     {(student.firstName || '').charAt(0)}{(student.lastName || '').charAt(0)}
                   </div>
                   <div>
                     <h4 class="text-white font-black uppercase text-sm mb-1 font-outfit tracking-tight group-hover:text-blue-400 transition-colors">{student.firstName} {student.lastName}</h4>

@@ -42,11 +42,16 @@ export const handle: Handle = async ({ event, resolve }) => {
             
             if (isMaintenance && !event.locals.isAdmin) {
                 if (event.request.headers.get('accept')?.includes('application/json')) {
+                    // JSON API responses don't need COOP
                     return json({ error: 'Sistema en mantenimiento' }, { status: 503 });
                 }
                 
                 return new Response(maintenanceHtml, {
-                    headers: { 'Content-Type': 'text/html' },
+                    headers: { 
+                        'Content-Type': 'text/html',
+                        // Required so Firebase Auth popup can still communicate
+                        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups'
+                    },
                     status: 503
                 });
             }
@@ -57,6 +62,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                 response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
                 response.headers.set('Pragma', 'no-cache');
                 response.headers.set('Expires', '0');
+                response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
                 return response;
             }
         } catch (error) {
@@ -65,6 +71,9 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
 
     const response = await resolve(event);
+    // Required for Firebase signInWithPopup to work correctly.
+    // 'same-origin-allow-popups' lets this page open popups and communicate with them,
+    // while still providing cross-origin isolation for same-origin resources.
     response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     return response;
 };

@@ -18,15 +18,22 @@ const translations = writable(initialTranslations);
 export async function loadTranslations(moduleNames: string[]) {
     if (!browser) return;
     
+    // Use import.meta.glob to ensure Vite detects and bundles all locale modules
+    const modules = import.meta.glob('./locales/modules/*.ts');
+    
     for (const name of moduleNames) {
         try {
-            // Using a dynamic import with a template string allows Vite to split the chunks
-            const mod = await import(`./locales/modules/${name}.ts`);
-            if (mod && mod.es) {
-                translations.update(current => ({
-                    ...current,
-                    es: { ...current.es, ...mod.es }
-                }));
+            const path = `./locales/modules/${name}.ts`;
+            if (modules[path]) {
+                const mod: any = await modules[path]();
+                if (mod && mod.es) {
+                    translations.update(current => ({
+                        ...current,
+                        es: { ...current.es, ...mod.es }
+                    }));
+                }
+            } else {
+                console.warn(`[i18n] Module not found: ${name}`);
             }
         } catch (err) {
             console.error(`[i18n] Failed to load module: ${name}`, err);
